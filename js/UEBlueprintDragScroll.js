@@ -51,10 +51,6 @@ export default class UEBlueprintDragScroll extends UEBlueprintDrag {
         this.blueprintNode.translate(-x, -y)
     }
 
-    scaledExpand(x, y, scale) {
-
-    }
-
     clamp(val, min, max) {
         return Math.min(Math.max(val, min), max);
     }

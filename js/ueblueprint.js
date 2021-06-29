@@ -22,6 +22,10 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
 `
     }
 
+    static clamp(val, min, max) {
+        return Math.min(Math.max(val, min), max);
+    }
+
     constructor() {
         super()
         this.expandGridSize = 400
@@ -141,6 +145,10 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         ]
     }
 
+    /**
+     * Get the scroll limits
+     * @return {array} The horizonal and vertical maximum scroll limits
+     */
     getScrollMax() {
         let parentElement = this.gridDOMElement.parentElement
         return [
@@ -149,16 +157,26 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         ]
     }
 
+    /**
+     * Expand the grid, considers the absolute value of params
+     * @param {number} x - Horizontal expansion value
+     * @param {number} y - Vertical expansion value
+     */
     _expand(x, y) {
-        x = Math.round(x)
-        y = Math.round(y)
-        this.additional = [this.additional[0] + Math.abs(x), this.additional[1] + Math.abs(y)]
+        x = Math.round(Math.abs(x))
+        y = Math.round(Math.abs(y))
+        this.additional = [this.additional[0] + x, this.additional[1] + y]
         if (this.gridDOMElement) {
             this.gridDOMElement.style.setProperty('--ueb-additional-x', this.additional[0])
             this.gridDOMElement.style.setProperty('--ueb-additional-y', this.additional[1])
         }
     }
 
+    /**
+     * Moves the content of the grid according to the coordinates
+     * @param {number} x - Horizontal translation value
+     * @param {number} y - Vertical translation value
+     */
     _translate(x, y) {
         x = Math.round(x)
         y = Math.round(y)
@@ -169,6 +187,11 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         }
     }
 
+    /**
+     * Expand the grind indefinitely, the content will remain into position
+     * @param {number} x - Horizontal expand value (negative means left, positive means right)
+     * @param {number} y - Vertical expand value (negative means top, positive means bottom)
+     */
     seamlessExpand(x, y) {
         // First expand the grid to contain the additional space
         this._expand(x, y)
