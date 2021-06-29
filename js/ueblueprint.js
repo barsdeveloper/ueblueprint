@@ -5,14 +5,14 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
 
     static domTemplate(obj) {
         return `
-<div class="ueb" style="--ueb-grid-scale:${obj.scale}">
+<div class="ueb">
     <div class="ueb-viewport-header">
         <div class="ueb-viewport-zoom">1:1</div>
     </div>
     <div class="ueb-viewport-overlay"></div>
     <div class="ueb-viewport-body">
         <div class="ueb-grid"
-            style="--ueb-additional-x:${obj.additional[0]}; --ueb-additional-y:${obj.additional[1]}; --ueb-translate-x:${obj.translate[0]}; --ueb-translate-y:${obj.translate[1]}">
+            style="--ueb-additional-x:${obj.additional[0]}; --ueb-additional-y:${obj.additional[1]}; --ueb-translate-x:${obj.translateValue[0]}; --ueb-translate-y:${obj.translateValue[1]}">
             <div class="ueb-grid-content">
                 ${obj.nodes.forEach(node => node.getDOMElement()) ?? ''}
             </div>
@@ -24,10 +24,11 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
 
     constructor() {
         super()
+        this.expandGridSize = 400
         this.gridDOMElement = null
         this.dragObject = null
-        this.additional = [0, 0]
-        this.translateValue = [0, 0]
+        this.additional = [2 * this.expandGridSize, 2 * this.expandGridSize]
+        this.translateValue = [this.expandGridSize, this.expandGridSize]
         this.scale = 1
         this.nodes = []
     }
@@ -44,7 +45,8 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
             contentElement.appendChild(node.getDOMElement())
         })
         this.dragObject = new UEBlueprintDragScroll(this, {
-            'clickButton': 2
+            'clickButton': 2,
+            'stepSize': 1
         })
     }
 
@@ -59,38 +61,129 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         return this.gridDOMElement
     }
 
-    setScroll(value = [0, 0]) {
+    setScroll(value, smooth = false) {
         this.scroll = value
+        if (!smooth) {
+            this.gridDOMElement.parentElement.scroll(value[0], value[1])
+        } else {
+            this.gridDOMElement.parentElement.scroll({
+                left: value[0],
+                top: value[1],
+                behavior: 'smooth'
+            })
+        }
     }
 
-    addScroll(value) {
-        this.setLocation([this.scroll[0] + value[0], this.scroll[1] + value[1]])
+    scrollDelta(delta, smooth = false) {
+        const scrollMax = this.getScrollMax()
+        let currentScroll = this.getScroll()
+        let finalScroll = [
+            currentScroll[0] + delta[0],
+            currentScroll[1] + delta[1]
+        ]
+        let expand = [0, 0]
+        for (let i = 0; i < 2; ++i) {
+            if (delta[i] < 0 && finalScroll[i] < 0.25 * this.expandGridSize) {
+                // Expand if scrolling is diminishing and the remainig space is less that a quarter of an expansion step
+                expand[i] = finalScroll[i]
+                if (expand[i] > 0) {
+                    // Final scroll is still in rage (more than zero) but we want to expand to negative (left or top)
+                    expand[i] = -this.expandGridSize
+                }
+            } else if (delta[i] > 0 && finalScroll[i] > scrollMax[i] - 0.25 * this.expandGridSize) {
+                // Expand if scrolling is increasing and the remainig space is less that a quarter of an expansion step
+                expand[i] = finalScroll[i] - scrollMax[i]
+                if (expand[i] < 0) {
+                    // Final scroll is still in rage (less than the maximum scroll) but we want to expand to positive (right or bottom)
+                    expand[i] = this.expandGridSize
+                }
+            }
+        }
+        if (expand[0] != 0 || expand[1] != 0) {
+            this.seamlessExpand(this.progressiveSnapToGrid(expand[0]), this.progressiveSnapToGrid(expand[1]))
+            currentScroll = this.getScroll()
+            finalScroll = [
+                currentScroll[0] + delta[0],
+                currentScroll[1] + delta[1]
+            ]
+        }
+        this.setScroll(finalScroll, smooth)
     }
 
     getScroll() {
-        return this.scroll
+        let parentElement = this.gridDOMElement.parentElement
+        return [parentElement.scrollLeft, parentElement.scrollTop]
     }
 
-    expand(x, y) {
+    scrollCenter() {
+        const scroll = this.getScroll()
+        const offset = [
+            this.translateValue[0] - scroll[0],
+            this.translateValue[1] - scroll[1]
+        ]
+        const targetOffset = this.getViewportSize().map(size => size / 2)
+        const deltaOffset = [
+            offset[0] - targetOffset[0],
+            offset[1] - targetOffset[1]
+        ]
+        this.scrollDelta(deltaOffset, true)
+    }
+
+    getExpandGridSize() {
+        return this.expandGridSize
+    }
+
+    getViewportSize() {
+        let parentElement = this.gridDOMElement.parentElement
+        return [
+            parentElement.clientWidth,
+            parentElement.clientHeight
+        ]
+    }
+
+    getScrollMax() {
+        let parentElement = this.gridDOMElement.parentElement
+        return [
+            parentElement.scrollWidth - parentElement.clientWidth,
+            parentElement.scrollHeight - parentElement.clientHeight
+        ]
+    }
+
+    _expand(x, y) {
         x = Math.round(x)
         y = Math.round(y)
         this.additional = [this.additional[0] + Math.abs(x), this.additional[1] + Math.abs(y)]
-        if (this.domElement) {
-            this.domElement.style.setProperty('--ueb-additional-x', this.additional[0])
-            this.domElement.style.setProperty('--ueb-additional-y', this.additional[1])
-            this.domElement.parentElement.scrollLeft -= x
-            this.domElement.parentElement.scrollTop -= y
+        if (this.gridDOMElement) {
+            this.gridDOMElement.style.setProperty('--ueb-additional-x', this.additional[0])
+            this.gridDOMElement.style.setProperty('--ueb-additional-y', this.additional[1])
         }
     }
 
-    translate(x, y) {
+    _translate(x, y) {
         x = Math.round(x)
         y = Math.round(y)
         this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y]
-        if (this.domElement) {
-            this.domElement.style.setProperty('--ueb-translate-x', this.translateValue[0])
-            this.domElement.style.setProperty('--ueb-translate-y', this.translateValue[1])
+        if (this.gridDOMElement) {
+            this.gridDOMElement.style.setProperty('--ueb-translate-x', this.translateValue[0])
+            this.gridDOMElement.style.setProperty('--ueb-translate-y', this.translateValue[1])
         }
+    }
+
+    seamlessExpand(x, y) {
+        // First expand the grid to contain the additional space
+        this._expand(x, y)
+        // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
+        this._translate(x < 0 ? -x : 0, y < 0 ? -y : 0)
+        if (x < 0) {
+            this.gridDOMElement.parentElement.scrollLeft -= x
+        }
+        if (y < 0) {
+            this.gridDOMElement.parentElement.scrollTop -= y
+        }
+    }
+
+    progressiveSnapToGrid(x) {
+        return this.expandGridSize * Math.round(x / this.expandGridSize + 0.5 * Math.sign(x))
     }
 
     getScale() {
