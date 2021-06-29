@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+
+    <title></title>
+    <style>
+        body {
+            --ueb-fron-size: 13px;
+            --ueb-viewport-height: 30rem;
+            --ueb-viewport-width: 100%;
+            --ueb-grid-size: 16px;
+            --ueb-grid-line-width: 2px;
+            --ueb-grid-line-color: #353535;
+            --ueb-grid-set: 8;
+            --ueb-grid-set-line-color: #161616;
+            --ueb-grid-axis-line-color: black;
+            --ueb-grid-snap: 16px;
+            --ueb-grid-min-scale: 0.2;
+            --ueb-node-radius: 7px;
+            --ueb-grid-snap: 16px;
+        }
+    </style>
+    <link rel="stylesheet" href="css/ueblueprint-style.css">
+    <link rel="stylesheet" href="css/ueblueprint-node-value-type-color.css">
+</head>
+
+<body>
+    <div>Hello</div>
+    <script type="module">
+        import UEBlueprintObject from "./js/UEBlueprintObject.js"
+        import UEBlueprint from "./js/UEBlueprint.js"
+        let node1 = new UEBlueprintObject()
+        node1.addLocation([100, 100])
+        let blueprint = new UEBlueprint()
+        blueprint.addNode(node1)
+        document.querySelector('body').appendChild(blueprint.getDOMElement())
+    </script>
+    <script type="module">
+        /*
+        document.addEventListener("DOMContentLoaded", function (event) {
+            let leftmost = Number.MAX_SAFE_INTEGER;
+            let topmost = Number.MAX_SAFE_INTEGER;
+            let draggableElements = document.querySelectorAll('.ueb-node').forEach(function (node) {
+                new UEBlueprintDrag(node)
+                leftmost = Math.min(leftmost, node.offsetLeft)
+                topmost = Math.min(leftmost, node.offsetTop)
+            })
+            document.querySelectorAll('.ueb-grid').forEach(function (grid) {
+                let obj = new UEBlueprintDragScrollGrid(grid, {
+                    'clickButton': 2,
+                    'exitGrabSameButtonOnly': true,
+                    'expandGridSize': 200
+                })
+                obj.stepSize = 1
+                let viewportWidth = grid.parentElement.clientWidth
+                let viewportHeight = grid.parentElement.clientHeight
+                grid.style.setProperty('--ueb-translateX', Math.round(viewportWidth / 2))
+                grid.style.setProperty('--ueb-translateY', Math.round(viewportHeight / 2))
+                grid.style.setProperty('--ueb-additionalX', 0)
+                grid.style.setProperty('--ueb-additionalY', 0)
+            })
+        });*/
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,35 @@
+.ueb {
+    --ueb-node-value-color: white;
+}
+
+.ueb-node-value-boolean {
+    --ueb-node-value-color: #930000;
+}
+
+.ueb-node-value-integer {
+    --ueb-node-value-color: #1fe0ad;
+}
+
+.ueb-node-value-float {
+    --ueb-node-value-color: #9ffb44;
+}
+
+.ueb-node-value-vector {
+    --ueb-node-value-color: #fcc823;
+}
+
+.ueb-node-value-rotator {
+    --ueb-node-value-color: #9eb1fc;
+}
+
+.ueb-node-value-string {
+    --ueb-node-value-color: #fc00d2;
+}
+
+.ueb-node-value-name {
+    --ueb-node-value-color: #cb81fc;
+}
+
+.ueb-node-value-objectreference {
+    --ueb-node-value-color: #00a8f2;
+}
