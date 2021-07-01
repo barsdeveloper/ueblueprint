@@ -5,7 +5,7 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
 
     static domTemplate(obj) {
         return `
-<div class="ueb">
+<div class="ueb ueb-zoom-${obj.zoom}">
     <div class="ueb-viewport-header">
         <div class="ueb-viewport-zoom">1:1</div>
     </div>
@@ -31,9 +31,9 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         this.expandGridSize = 400
         this.gridDOMElement = null
         this.dragObject = null
-        this.additional = [2 * this.expandGridSize, 2 * this.expandGridSize]
-        this.translateValue = [this.expandGridSize, this.expandGridSize]
-        this.scale = 1
+        this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
+        this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
+        this.zoom = 0
         this.nodes = []
     }
 
@@ -209,8 +209,24 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         return this.expandGridSize * Math.round(x / this.expandGridSize + 0.5 * Math.sign(x))
     }
 
+    getZoom() {
+        return this.zoom
+    }
+
+    setZoom(zoom) {
+        zoom = this.constructor.clamp(zoom, -12, 0)
+        this.domElement.classList.remove(`ueb-zoom-${this.zoom}`)
+        this.zoom = zoom
+        this.domElement.classList.add(`ueb-zoom-${this.zoom}`)
+        /*
+                let scale = this.getScale()
+                let additionalX = Math.ceil(self.scrolledDOMElement.clientWidth * (1 - 1 / scale))
+                let additionalY = Math.ceil(self.scrolledDOMElement.clientHeight * (1 - 1 / scale))
+                self.blueprintNode.expand(additionalX, additionalY)*/
+    }
+
     getScale() {
-        return this.scale
+        return getComputedStyle(this.gridDOMElement).getPropertyValue('--ueb-grid-scale')
     }
 
     addNode(...blueprintNode) {
