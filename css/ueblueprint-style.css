@@ -49,8 +49,8 @@
     position                    : absolute;
     min-width                   : 100%;
     min-height                  : 100%;
-    width                       : calc(100% + var(--ueb-additional-x) * 1px);
-    height                      : calc(100% + var(--ueb-additional-y) * 1px);
+    width                       : calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-grid-scale));
+    height                      : calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-grid-scale));
     background-color            : #262626;
     background-image            :
         /* Axis lines */
