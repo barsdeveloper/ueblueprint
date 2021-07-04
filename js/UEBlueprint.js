@@ -1,5 +1,5 @@
-import UEBlueprintDOMModel from "./UEBlueprintDOMModel.js";
-import UEBlueprintDragScroll from "./UEBlueprintDragScroll.js";
+import UEBlueprintDOMModel from "./UEBlueprintDOMModel.js"
+import UEBlueprintDragScroll from "./UEBlueprintDragScroll.js"
 
 export default class UEBlueprint extends UEBlueprintDOMModel {
 
@@ -23,7 +23,7 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
     }
 
     static clamp(val, min, max) {
-        return Math.min(Math.max(val, min), max);
+        return Math.min(Math.max(val, min), max)
     }
 
     constructor() {
@@ -193,10 +193,13 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
      * @param {number} y - Vertical expand value (negative means top, positive means bottom)
      */
     seamlessExpand(x, y) {
+        let scale = this.getScale()
+        let scaledX = x / scale
+        let scaledY = y / scale
         // First expand the grid to contain the additional space
-        this._expand(x, y)
+        this._expand(scaledX, scaledY)
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        this._translate(x < 0 ? -x : 0, y < 0 ? -y : 0)
+        this._translate(scaledX < 0 ? -scaledX : 0, scaledY < 0 ? -scaledY : 0)
         if (x < 0) {
             this.gridDOMElement.parentElement.scrollLeft -= x
         }
@@ -213,20 +216,30 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         return this.zoom
     }
 
-    setZoom(zoom) {
+    setZoom(zoom, center) {
         zoom = this.constructor.clamp(zoom, -12, 0)
+        if (zoom == this.zoom) {
+            return
+        }
+        let initialScale = this.getScale()
+        this.domElement.classList.add(`ueb-zoom-${zoom}`)
         this.domElement.classList.remove(`ueb-zoom-${this.zoom}`)
         this.zoom = zoom
-        this.domElement.classList.add(`ueb-zoom-${this.zoom}`)
-        /*
-                let scale = this.getScale()
-                let additionalX = Math.ceil(self.scrolledDOMElement.clientWidth * (1 - 1 / scale))
-                let additionalY = Math.ceil(self.scrolledDOMElement.clientHeight * (1 - 1 / scale))
-                self.blueprintNode.expand(additionalX, additionalY)*/
+        if (center) {
+            let relativeScale = this.getScale() / initialScale
+            let newCenter = [
+                relativeScale * center[0],
+                relativeScale * center[1]
+            ]
+            this.scrollDelta([
+                (newCenter[0] - center[0]) * initialScale,
+                (newCenter[1] - center[1]) * initialScale
+            ])
+        }
     }
 
     getScale() {
-        return getComputedStyle(this.gridDOMElement).getPropertyValue('--ueb-grid-scale')
+        return parseFloat(getComputedStyle(this.gridDOMElement).getPropertyValue('--ueb-grid-scale'))
     }
 
     addNode(...blueprintNode) {

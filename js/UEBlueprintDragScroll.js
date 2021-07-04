@@ -21,7 +21,7 @@ export default class UEBlueprintDragScroll extends UEBlueprintDrag {
         this.mouseWheelHandler = function (e) {
             let zoomLevel = self.blueprintNode.getZoom()
             zoomLevel -= Math.round(e.deltaY / 50)
-            self.blueprintNode.setZoom(zoomLevel)
+            self.blueprintNode.setZoom(zoomLevel, [e.offsetX, e.offsetY])
 
         }
         this.blueprintNode.getGridDOMElement().addEventListener('wheel', this.mouseWheelHandler)
