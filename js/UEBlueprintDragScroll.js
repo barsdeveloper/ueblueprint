@@ -3,7 +3,6 @@ import UEBlueprintDrag from "./UEBlueprintDrag.js"
 export default class UEBlueprintDragScroll extends UEBlueprintDrag {
     constructor(scrolledEntity, options) {
         super(scrolledEntity, options)
-        this.scrolledDOMElement = scrolledEntity.getGridDOMElement()
         this.minZoom = options?.minZoom ?? -12
         let self = this;
         this.mouseMoveHandler = function (e) {

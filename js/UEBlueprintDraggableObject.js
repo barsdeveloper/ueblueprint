@@ -1,7 +1,6 @@
-import UEBlueprintDOMModel from "./UEBlueprintDOMModel.js"
 import UEBlueprintDrag from "./UEBlueprintDrag.js"
 
-export default class UEBlueprintDraggableObject extends UEBlueprintDOMModel {
+export default class UEBlueprintDraggableObject extends HTMLElement {
 
     constructor() {
         super()
@@ -9,24 +8,18 @@ export default class UEBlueprintDraggableObject extends UEBlueprintDOMModel {
         this.location = [0, 0]
     }
 
-    createDOMElement() {
-        super.createDOMElement()
+    connectedCallback() {
         this.dragObject = new UEBlueprintDrag(this)
     }
 
-    removeDOMElement() {
-        if (this.domElement) {
-            this.dragObject.unlistenDOMElement()
-        }
-        return super.removeDOMElement()
+    disconnectedCallback() {
+        this.dragObject.unlistenDOMElement()
     }
 
     setLocation(value = [0, 0]) {
         this.location = value
-        if (this.domElement) {
-            this.domElement.style.setProperty('--ueb-position-x', this.location[0])
-            this.domElement.style.setProperty('--ueb-position-y', this.location[1])
-        }
+        this.style.setProperty('--ueb-position-x', this.location[0])
+        this.style.setProperty('--ueb-position-y', this.location[1])
     }
 
     addLocation(value) {

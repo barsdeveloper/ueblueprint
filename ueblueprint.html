@@ -22,20 +22,18 @@
             --ueb-grid-snap: 16px;
         }
     </style>
-    <link rel="stylesheet" href="css/ueblueprint-style.css">
     <link rel="stylesheet" href="css/ueblueprint-node-value-type-color.css">
+    <link rel="stylesheet" href="css/ueblueprint-style.css">
 </head>
 
 <body>
     <div>Hello</div>
     <script type="module">
-        import UEBlueprintObject from "./js/UEBlueprintObject.js"
-        import UEBlueprint from "./js/UEBlueprint.js"
-        let node1 = new UEBlueprintObject()
-        node1.addLocation([100, 100])
+        import { UEBlueprint, UEBlueprintObject } from "./ueblueprint.js"
         let blueprint = new UEBlueprint()
+        let node1 = new UEBlueprintObject()
         blueprint.addNode(node1)
-        document.querySelector('body').appendChild(blueprint.getDOMElement())
+        document.querySelector('body').appendChild(blueprint)
         let a = 123
     </script>
     <script type="module">

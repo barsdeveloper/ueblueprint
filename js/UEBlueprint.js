@@ -1,25 +1,35 @@
-import UEBlueprintDOMModel from "./UEBlueprintDOMModel.js"
 import UEBlueprintDragScroll from "./UEBlueprintDragScroll.js"
 
-export default class UEBlueprint extends UEBlueprintDOMModel {
+export default class UEBlueprint extends HTMLElement {
 
-    static domTemplate(obj) {
+    header() {
         return `
-<div class="ueb ueb-zoom-${obj.zoom}">
-    <div class="ueb-viewport-header">
-        <div class="ueb-viewport-zoom">1:1</div>
-    </div>
-    <div class="ueb-viewport-overlay"></div>
-    <div class="ueb-viewport-body">
-        <div class="ueb-grid"
-            style="--ueb-additional-x:${obj.additional[0]}; --ueb-additional-y:${obj.additional[1]}; --ueb-translate-x:${obj.translateValue[0]}; --ueb-translate-y:${obj.translateValue[1]}">
-            <div class="ueb-grid-content">
-                ${obj.nodes.forEach(node => node.getDOMElement()) ?? ''}
+            <div class="ueb-viewport-header">
+                <div class="ueb-viewport-zoom">1:1</div>
             </div>
-        </div>
-    </div>
-</div>
-`
+        `
+    }
+
+    overlay() {
+        return `
+            <div class="ueb-viewport-overlay"></div>
+        `
+    }
+
+    viewport() {
+        return `
+            <div class="ueb-viewport-body">
+                <div class="ueb-grid"
+                    style="--ueb-additional-x:${this.additional[0]}; --ueb-additional-y:${this.additional[1]}; --ueb-translate-x:${this.translateValue[0]}; --ueb-translate-y:${this.translateValue[1]}">
+                    <div class="ueb-grid-content" data-nodes>
+                    </div>
+                </div>
+            </div>
+        `
+    }
+
+    insertChildren() {
+        this.querySelector('[data-nodes]').append(...this.nodes)
     }
 
     static clamp(val, min, max) {
@@ -28,49 +38,60 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
 
     constructor() {
         super()
+        this.nodes = new Set()
         this.expandGridSize = 400
-        this.gridDOMElement = null
+        this.gridElement = null
+        this.viewportElement = null
+        this.overlayElement = null
         this.dragObject = null
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
         this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
         this.zoom = 0
-        this.nodes = []
+        this.headerElement = null
     }
 
-    createDOMElement() {
-        super.createDOMElement()
-        this.gridDOMElement = this.domElement.querySelector('.ueb-grid')
-        let contentElement = this.domElement.querySelector('.ueb-grid-content')
-        if (!this.gridDOMElement || !contentElement) {
-            console.error('Some expencted DOM elements not be found, please check domTemplate().')
-        }
-        // Populate the grid content with the node elements
-        this.nodes.forEach(node => {
-            contentElement.appendChild(node.getDOMElement())
-        })
+    connectedCallback() {
+        this.classList.add('ueb', `ueb-zoom-${this.zoom}`)
+        let aDiv = document.createElement('div');
+        // Add header
+        aDiv.innerHTML = this.header()
+        this.headerElement = aDiv.firstElementChild
+        this.appendChild(this.headerElement)
+
+        // Add overlay
+        aDiv.innerHTML = this.overlay()
+        this.overlayElement = aDiv.firstElementChild
+        this.appendChild(this.overlayElement)
+
+        // Add viewport
+        aDiv.innerHTML = this.viewport()
+        this.viewportElement = aDiv.firstElementChild
+        this.appendChild(this.viewportElement)
+
+        this.gridElement = this.viewportElement.querySelector('.ueb-grid')
+        this.insertChildren()
+
         this.dragObject = new UEBlueprintDragScroll(this, {
             'clickButton': 2,
             'stepSize': 1
         })
     }
 
-    removeDOMElement() {
-        if (this.domElement) {
-            this.dragObject.unlistenDOMElement()
-        }
-        return super.removeDOMElement()
+    getGridDOMElement() {
+        return this.gridElement
     }
 
-    getGridDOMElement() {
-        return this.gridDOMElement
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.dragObject.unlistenDOMElement()
     }
 
     setScroll(value, smooth = false) {
         this.scroll = value
         if (!smooth) {
-            this.gridDOMElement.parentElement.scroll(value[0], value[1])
+            this.viewportElement.scroll(value[0], value[1])
         } else {
-            this.gridDOMElement.parentElement.scroll({
+            this.viewportElement.scroll({
                 left: value[0],
                 top: value[1],
                 behavior: 'smooth'
@@ -115,8 +136,7 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
     }
 
     getScroll() {
-        let parentElement = this.gridDOMElement.parentElement
-        return [parentElement.scrollLeft, parentElement.scrollTop]
+        return [this.viewportElement.scrollLeft, this.viewportElement.scrollTop]
     }
 
     scrollCenter() {
@@ -138,10 +158,9 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
     }
 
     getViewportSize() {
-        let parentElement = this.gridDOMElement.parentElement
         return [
-            parentElement.clientWidth,
-            parentElement.clientHeight
+            this.viewportElement.clientWidth,
+            this.viewportElement.clientHeight
         ]
     }
 
@@ -150,10 +169,9 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
      * @return {array} The horizonal and vertical maximum scroll limits
      */
     getScrollMax() {
-        let parentElement = this.gridDOMElement.parentElement
         return [
-            parentElement.scrollWidth - parentElement.clientWidth,
-            parentElement.scrollHeight - parentElement.clientHeight
+            this.viewportElement.scrollWidth - this.viewportElement.clientWidth,
+            this.viewportElement.scrollHeight - this.viewportElement.clientHeight
         ]
     }
 
@@ -166,9 +184,9 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         x = Math.round(Math.abs(x))
         y = Math.round(Math.abs(y))
         this.additional = [this.additional[0] + x, this.additional[1] + y]
-        if (this.gridDOMElement) {
-            this.gridDOMElement.style.setProperty('--ueb-additional-x', this.additional[0])
-            this.gridDOMElement.style.setProperty('--ueb-additional-y', this.additional[1])
+        if (this.gridElement) {
+            this.gridElement.style.setProperty('--ueb-additional-x', this.additional[0])
+            this.gridElement.style.setProperty('--ueb-additional-y', this.additional[1])
         }
     }
 
@@ -181,9 +199,9 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         x = Math.round(x)
         y = Math.round(y)
         this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y]
-        if (this.gridDOMElement) {
-            this.gridDOMElement.style.setProperty('--ueb-translate-x', this.translateValue[0])
-            this.gridDOMElement.style.setProperty('--ueb-translate-y', this.translateValue[1])
+        if (this.gridElement) {
+            this.gridElement.style.setProperty('--ueb-translate-x', this.translateValue[0])
+            this.gridElement.style.setProperty('--ueb-translate-y', this.translateValue[1])
         }
     }
 
@@ -201,10 +219,10 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
         this._translate(scaledX < 0 ? -scaledX : 0, scaledY < 0 ? -scaledY : 0)
         if (x < 0) {
-            this.gridDOMElement.parentElement.scrollLeft -= x
+            this.viewportElement.scrollLeft -= x
         }
         if (y < 0) {
-            this.gridDOMElement.parentElement.scrollTop -= y
+            this.viewportElement.scrollTop -= y
         }
     }
 
@@ -222,8 +240,8 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
             return
         }
         let initialScale = this.getScale()
-        this.domElement.classList.add(`ueb-zoom-${zoom}`)
-        this.domElement.classList.remove(`ueb-zoom-${this.zoom}`)
+        this.classList.add(`ueb-zoom-${zoom}`)
+        this.classList.remove(`ueb-zoom-${this.zoom}`)
         this.zoom = zoom
         if (center) {
             let relativeScale = this.getScale() / initialScale
@@ -239,10 +257,16 @@ export default class UEBlueprint extends UEBlueprintDOMModel {
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.gridDOMElement).getPropertyValue('--ueb-grid-scale'))
+        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-grid-scale'))
     }
 
-    addNode(...blueprintNode) {
-        this.nodes.push(...blueprintNode)
+    addNode(...blueprintNodes) {
+        [...blueprintNodes].reduce((s, e) => s.add(e), this.nodes)
+        let nodesDestination = this.querySelector('[data-nodes]')
+        if (nodesDestination) {
+            nodesDestination.append(...blueprintNodes)
+        }
     }
 }
+
+customElements.define('u-blueprint', UEBlueprint)

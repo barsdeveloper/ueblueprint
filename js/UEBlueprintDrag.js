@@ -1,6 +1,6 @@
 export default class UEBlueprintDrag {
-    constructor(draggedNode, options) {
-        this.blueprintNode = draggedNode;
+    constructor(blueprintNode, options) {
+        this.blueprintNode = blueprintNode;
         this.mousePosition = [0, 0];
         this.stepSize = options?.stepSize
         this.clickButton = options?.clickButton ?? 0
@@ -38,17 +38,13 @@ export default class UEBlueprintDrag {
                 document.removeEventListener('mouseup', self.mouseUpHandler)
             }
         };
-        let element = this.blueprintNode.getDOMElement()
+        let element = this.blueprintNode
         element.addEventListener('mousedown', this.mouseDownHandler)
         element.addEventListener('contextmenu', e => e.preventDefault())
     }
 
     unlistenDOMElement() {
-        if (this.blueprintNode) {
-            this.blueprintNode.getDOMElement().removeEventListener('mousedown', this.mouseDownHandler)
-            return true
-        }
-        return false
+        this.blueprintNode.removeEventListener('mousedown', this.mouseDownHandler)
     }
 
     snapToGrid(posX, posY) {
@@ -60,7 +56,7 @@ export default class UEBlueprintDrag {
 
     clicked(x, y) {
         if (!this.stepSize) {
-            this.stepSize = parseInt(getComputedStyle(this.blueprintNode.getDOMElement()).getPropertyValue('--ueb-grid-snap'))
+            this.stepSize = parseInt(getComputedStyle(this.blueprintNode).getPropertyValue('--ueb-grid-snap'))
         }
         // Get the current mouse position
         this.mousePosition = this.snapToGrid(x, y)

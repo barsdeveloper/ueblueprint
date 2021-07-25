@@ -14,14 +14,15 @@
         url('../font/roboto-regular.woff') format('woff');
 }
 
-.ueb {
+u-blueprint {
+    display    : block;
     position   : relative;
     font-family: Roboto, Noto, Oxygen, Ubuntu, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size  : var(--ueb-fron-size);
 }
 
 .ueb-viewport-header {
-    display   : flexbox;
+    display   : flex;
     position  : absolute;
     top       : 0;
     right     : 0;
@@ -32,7 +33,6 @@
 }
 
 .ueb-viewport-zoom {
-    float: right;
     color: #4d4d4db7;
 }
 
@@ -175,6 +175,7 @@
 }
 
 .ueb-node {
+    display      : block;
     position     : absolute;
     transform    : translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
     border-radius: var(--ueb-node-radius);

@@ -1,0 +1,26 @@
+{
+  "name": "ueblueprint",
+  "version": "1.0.0",
+  "description": "Unreal Engine's Blueprint visualisation library",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup --config"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barsdeveloper/ueblueprint.git"
+  },
+  "keywords": [
+    "unreal",
+    "engine",
+    "blueprint"
+  ],
+  "author": "barsdeveloper",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/barsdeveloper/ueblueprint/issues"
+  },
+  "homepage": "https://github.com/barsdeveloper/ueblueprint#readme",
+  "dependencies": {},
+  "devDependencies": {}
+}
