@@ -84,13 +84,18 @@ class UEBlueprintDragScroll extends UEBlueprintDrag {
             self.mousePosition = mousePosition;
         };
         this.mouseWheelHandler = function (e) {
+            e.preventDefault();
             let zoomLevel = self.blueprintNode.getZoom();
-            zoomLevel -= Math.round(e.deltaY / 50);
-            self.blueprintNode.setZoom(zoomLevel, [e.offsetX, e.offsetY]);
+            zoomLevel -= Math.sign(e.deltaY);
+            self.blueprintNode.getScale();
+            const targetOffset = e.target.getBoundingClientRect();
+            const currentTargetOffset = e.currentTarget.getBoundingClientRect();
+            let offset = [e.offsetX + targetOffset.x - currentTargetOffset.x, e.offsetY + targetOffset.y - currentTargetOffset.y];
+            console.log([offset[0] - e.x, offset[1] - e.y]);
+            self.blueprintNode.setZoom(zoomLevel, offset);
 
         };
-        this.blueprintNode.getGridDOMElement().addEventListener('wheel', this.mouseWheelHandler);
-        this.blueprintNode.getGridDOMElement().addEventListener('wheel', e => e.preventDefault());
+        this.blueprintNode.getGridDOMElement().addEventListener('wheel', this.mouseWheelHandler, false);
         this.blueprintNode.getGridDOMElement().parentElement.addEventListener('wheel', e => e.preventDefault());
     }
 
@@ -341,10 +346,19 @@ class UEBlueprint extends HTMLElement {
             return
         }
         let initialScale = this.getScale();
-        this.classList.add(`ueb-zoom-${zoom}`);
         this.classList.remove(`ueb-zoom-${this.zoom}`);
+        this.classList.add(`ueb-zoom-${zoom}`);
         this.zoom = zoom;
+
+
         if (center) {
+
+            let point = document.createElement('div');
+            point.style.width = '2px';
+            point.style.height = '2px';
+            point.style.background = 'red';
+            point.style.position = 'absolute';
+            document.querySelector('.ueb-grid').appendChild(point);
             let relativeScale = this.getScale() / initialScale;
             let newCenter = [
                 relativeScale * center[0],
@@ -354,6 +368,8 @@ class UEBlueprint extends HTMLElement {
                 (newCenter[0] - center[0]) * initialScale,
                 (newCenter[1] - center[1]) * initialScale
             ]);
+            point.style.left = `${center[0]}px`;
+            point.style.top = `${center[1]}px`;
         }
     }
 

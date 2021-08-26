@@ -18,13 +18,18 @@ export default class UEBlueprintDragScroll extends UEBlueprintDrag {
             self.mousePosition = mousePosition
         };
         this.mouseWheelHandler = function (e) {
+            e.preventDefault()
             let zoomLevel = self.blueprintNode.getZoom()
-            zoomLevel -= Math.round(e.deltaY / 50)
-            self.blueprintNode.setZoom(zoomLevel, [e.offsetX, e.offsetY])
+            zoomLevel -= Math.sign(e.deltaY)
+            let scale = self.blueprintNode.getScale()
+            const targetOffset = e.target.getBoundingClientRect()
+            const currentTargetOffset = e.currentTarget.getBoundingClientRect()
+            let offset = [e.offsetX + targetOffset.x - currentTargetOffset.x, e.offsetY + targetOffset.y - currentTargetOffset.y]
+            console.log([offset[0] - e.x, offset[1] - e.y])
+            self.blueprintNode.setZoom(zoomLevel, offset)
 
         }
-        this.blueprintNode.getGridDOMElement().addEventListener('wheel', this.mouseWheelHandler)
-        this.blueprintNode.getGridDOMElement().addEventListener('wheel', e => e.preventDefault())
+        this.blueprintNode.getGridDOMElement().addEventListener('wheel', this.mouseWheelHandler, false)
         this.blueprintNode.getGridDOMElement().parentElement.addEventListener('wheel', e => e.preventDefault())
     }
 

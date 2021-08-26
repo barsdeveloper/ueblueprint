@@ -240,10 +240,19 @@ export default class UEBlueprint extends HTMLElement {
             return
         }
         let initialScale = this.getScale()
-        this.classList.add(`ueb-zoom-${zoom}`)
         this.classList.remove(`ueb-zoom-${this.zoom}`)
+        this.classList.add(`ueb-zoom-${zoom}`)
         this.zoom = zoom
+
+
         if (center) {
+
+            let point = document.createElement('div');
+            point.style.width = '2px'
+            point.style.height = '2px'
+            point.style.background = 'red'
+            point.style.position = 'absolute'
+            document.querySelector('.ueb-grid').appendChild(point)
             let relativeScale = this.getScale() / initialScale
             let newCenter = [
                 relativeScale * center[0],
@@ -253,6 +262,8 @@ export default class UEBlueprint extends HTMLElement {
                 (newCenter[0] - center[0]) * initialScale,
                 (newCenter[1] - center[1]) * initialScale
             ])
+            point.style.left = `${center[0]}px`
+            point.style.top = `${center[1]}px`
         }
     }
 
