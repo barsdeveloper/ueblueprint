@@ -1,8 +1,9 @@
 import UEBlueprintDragScroll from "./UEBlueprintDragScroll.js"
+import UEBlueprintSelect from "./UEBlueprintSelect.js"
 
 export default class UEBlueprint extends HTMLElement {
 
-    header() {
+    headerTemplate() {
         return `
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">1:1</div>
@@ -10,13 +11,13 @@ export default class UEBlueprint extends HTMLElement {
         `
     }
 
-    overlay() {
+    overlayTemplate() {
         return `
             <div class="ueb-viewport-overlay"></div>
         `
     }
 
-    viewport() {
+    viewportTemplate() {
         return `
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
@@ -26,6 +27,16 @@ export default class UEBlueprint extends HTMLElement {
                 </div>
             </div>
         `
+    }
+
+    selectorTemplate() {
+        return `<div class="ueb-selector"></div>`
+    }
+
+    static getElement(template) {
+        let div = document.createElement('div');
+        div.innerHTML = template
+        return div.firstElementChild
     }
 
     insertChildren() {
@@ -43,29 +54,27 @@ export default class UEBlueprint extends HTMLElement {
         this.gridElement = null
         this.viewportElement = null
         this.overlayElement = null
+        this.selectorElement = null
         this.dragObject = null
+        this.selectObject = null
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
         this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
         this.zoom = 0
         this.headerElement = null
+        this.selectFrom = null
+        this.selectTo = null
     }
 
     connectedCallback() {
         this.classList.add('ueb', `ueb-zoom-${this.zoom}`)
-        let aDiv = document.createElement('div');
-        // Add header
-        aDiv.innerHTML = this.header()
-        this.headerElement = aDiv.firstElementChild
+
+        this.headerElement = this.constructor.getElement(this.headerTemplate())
         this.appendChild(this.headerElement)
 
-        // Add overlay
-        aDiv.innerHTML = this.overlay()
-        this.overlayElement = aDiv.firstElementChild
+        this.overlayElement = this.constructor.getElement(this.overlayTemplate())
         this.appendChild(this.overlayElement)
 
-        // Add viewport
-        aDiv.innerHTML = this.viewport()
-        this.viewportElement = aDiv.firstElementChild
+        this.viewportElement = this.constructor.getElement(this.viewportTemplate())
         this.appendChild(this.viewportElement)
 
         this.gridElement = this.viewportElement.querySelector('.ueb-grid')
@@ -73,7 +82,13 @@ export default class UEBlueprint extends HTMLElement {
 
         this.dragObject = new UEBlueprintDragScroll(this, {
             'clickButton': 2,
-            'stepSize': 1
+            'stepSize': 1,
+            'exitDragAnyButton': false
+        })
+
+        this.selectObject = new UEBlueprintSelect(this, {
+            'clickButton': 0,
+            'exitSelectAnyButton': true
         })
     }
 
@@ -84,6 +99,7 @@ export default class UEBlueprint extends HTMLElement {
     disconnectedCallback() {
         super.disconnectedCallback()
         this.dragObject.unlistenDOMElement()
+        this.selectObject.unlistenDOMElement()
     }
 
     setScroll(value, smooth = false) {
@@ -260,6 +276,28 @@ export default class UEBlueprint extends HTMLElement {
 
     getScale() {
         return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-grid-scale'))
+    }
+
+    startSelecting(x, y) {
+        if (this.selectorElement) {
+            this.finishSelecting()
+        }
+        this.selectorElement = this.constructor.getElement(this.selectorTemplate())
+        this.querySelector('[data-nodes]').appendChild(this.selectorElement)
+        this.selectorElement.style.setProperty('--ueb-select-from-x', x)
+        this.selectorElement.style.setProperty('--ueb-select-from-y', y)
+    }
+
+    finishSelecting() {
+        if (this.selectorElement) {
+            this.selectorElement.remove()
+            this.selectorElement = null
+        }
+    }
+
+    doSelecting(x, y) {
+        this.selectorElement.style.setProperty('--ueb-select-to-x', x)
+        this.selectorElement.style.setProperty('--ueb-select-to-y', y)
     }
 
     addNode(...blueprintNodes) {

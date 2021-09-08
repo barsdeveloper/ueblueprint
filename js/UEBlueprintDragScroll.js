@@ -32,9 +32,4 @@ export default class UEBlueprintDragScroll extends UEBlueprintDrag {
         this.blueprintNode.getGridDOMElement().parentElement.addEventListener('wheel', e => e.preventDefault())
     }
 
-    expandAndTranslate(x, y) {
-        this.blueprintNode.expand(x, y)
-        this.blueprintNode.translate(-x, -y)
-    }
-
 }

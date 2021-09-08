@@ -4,7 +4,7 @@ class UEBlueprintDrag {
         this.mousePosition = [0, 0];
         this.stepSize = options?.stepSize;
         this.clickButton = options?.clickButton ?? 0;
-        this.exitGrabSameButtonOnly = options?.exitGrabSameButtonOnly ?? false;
+        this.exitDragAnyButton = options?.exitDragAnyButton ?? true;
         let self = this;
         this.mouseDownHandler = function (e) {
             switch (e.button) {
@@ -12,7 +12,7 @@ class UEBlueprintDrag {
                     self.clicked(e.clientX, e.clientY);
                     break;
                 default:
-                    if (!self.exitGrabSameButtonOnly) {
+                    if (!self.exitDragAnyButton) {
                         self.mouseUpHandler(e);
                     }
                     break;
@@ -32,15 +32,14 @@ class UEBlueprintDrag {
             self.mousePosition = mousePosition;
         };
         this.mouseUpHandler = function (e) {
-            if (!self.exitGrabSameButtonOnly || e.button == self.clickButton) {
+            if (!self.exitDragAnyButton || e.button == self.clickButton) {
                 // Remove the handlers of `mousemove` and `mouseup`
                 document.removeEventListener('mousemove', self.mouseMoveHandler);
                 document.removeEventListener('mouseup', self.mouseUpHandler);
             }
         };
-        let element = this.blueprintNode;
-        element.addEventListener('mousedown', this.mouseDownHandler);
-        element.addEventListener('contextmenu', e => e.preventDefault());
+        this.blueprintNode.addEventListener('mousedown', this.mouseDownHandler);
+        this.blueprintNode.addEventListener('contextmenu', e => e.preventDefault());
     }
 
     unlistenDOMElement() {
@@ -98,16 +97,57 @@ class UEBlueprintDragScroll extends UEBlueprintDrag {
         this.blueprintNode.getGridDOMElement().parentElement.addEventListener('wheel', e => e.preventDefault());
     }
 
-    expandAndTranslate(x, y) {
-        this.blueprintNode.expand(x, y);
-        this.blueprintNode.translate(-x, -y);
+}
+
+class UEBlueprintSelect {
+    constructor(blueprintNode, options) {
+        this.blueprintNode = blueprintNode;
+        this.mousePosition = [0, 0];
+        this.clickButton = options?.clickButton ?? 0;
+        this.exitSelectAnyButton = options?.exitSelectAnyButton ?? true;
+        let self = this;
+        this.mouseDownHandler = function (e) {
+            switch (e.button) {
+                case self.clickButton:
+                    self.clicked(e.clientX, e.clientY);
+                    break
+                default:
+                    if (!self.exitSelectAnyButton) {
+                        self.mouseUpHandler(e);
+                    }
+                    break
+            }
+        };
+        this.mouseMoveHandler = function (e) {
+            self.blueprintNode.doSelecting(e.clientX, e.clientY);
+        };
+        this.mouseUpHandler = function (e) {
+            if (!self.exitSelectAnyButton || e.button == self.clickButton) {
+                // Remove the handlers of `mousemove` and `mouseup`
+                document.removeEventListener('mousemove', self.mouseMoveHandler);
+                document.removeEventListener('mouseup', self.mouseUpHandler);
+            }
+        };
+        this.blueprintNode.addEventListener('mousedown', this.mouseDownHandler);
+        this.blueprintNode.addEventListener('contextmenu', e => e.preventDefault());
     }
 
+    unlistenDOMElement() {
+        this.blueprintNode.removeEventListener('mousedown', this.mouseDownHandler);
+    }
+
+    clicked(x, y) {
+        // Attach the listeners to `document`
+        document.addEventListener('mousemove', this.mouseMoveHandler);
+        document.addEventListener('mouseup', this.mouseUpHandler);
+        // Start selecting
+        this.blueprintNode.startSelecting(x, y);
+    }
 }
 
 class UEBlueprint extends HTMLElement {
 
-    header() {
+    headerTemplate() {
         return `
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">1:1</div>
@@ -115,13 +155,13 @@ class UEBlueprint extends HTMLElement {
         `
     }
 
-    overlay() {
+    overlayTemplate() {
         return `
             <div class="ueb-viewport-overlay"></div>
         `
     }
 
-    viewport() {
+    viewportTemplate() {
         return `
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
@@ -131,6 +171,16 @@ class UEBlueprint extends HTMLElement {
                 </div>
             </div>
         `
+    }
+
+    selectorTemplate() {
+        return `<div class="ueb-selector"></div>`
+    }
+
+    static getElement(template) {
+        let div = document.createElement('div');
+        div.innerHTML = template;
+        return div.firstElementChild
     }
 
     insertChildren() {
@@ -148,29 +198,27 @@ class UEBlueprint extends HTMLElement {
         this.gridElement = null;
         this.viewportElement = null;
         this.overlayElement = null;
+        this.selectorElement = null;
         this.dragObject = null;
+        this.selectObject = null;
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0];
         this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0];
         this.zoom = 0;
         this.headerElement = null;
+        this.selectFrom = null;
+        this.selectTo = null;
     }
 
     connectedCallback() {
         this.classList.add('ueb', `ueb-zoom-${this.zoom}`);
-        let aDiv = document.createElement('div');
-        // Add header
-        aDiv.innerHTML = this.header();
-        this.headerElement = aDiv.firstElementChild;
+
+        this.headerElement = this.constructor.getElement(this.headerTemplate());
         this.appendChild(this.headerElement);
 
-        // Add overlay
-        aDiv.innerHTML = this.overlay();
-        this.overlayElement = aDiv.firstElementChild;
+        this.overlayElement = this.constructor.getElement(this.overlayTemplate());
         this.appendChild(this.overlayElement);
 
-        // Add viewport
-        aDiv.innerHTML = this.viewport();
-        this.viewportElement = aDiv.firstElementChild;
+        this.viewportElement = this.constructor.getElement(this.viewportTemplate());
         this.appendChild(this.viewportElement);
 
         this.gridElement = this.viewportElement.querySelector('.ueb-grid');
@@ -178,7 +226,13 @@ class UEBlueprint extends HTMLElement {
 
         this.dragObject = new UEBlueprintDragScroll(this, {
             'clickButton': 2,
-            'stepSize': 1
+            'stepSize': 1,
+            'exitDragAnyButton': false
+        });
+
+        this.selectObject = new UEBlueprintSelect(this, {
+            'clickButton': 0,
+            'exitSelectAnyButton': true
         });
     }
 
@@ -189,6 +243,7 @@ class UEBlueprint extends HTMLElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.dragObject.unlistenDOMElement();
+        this.selectObject.unlistenDOMElement();
     }
 
     setScroll(value, smooth = false) {
@@ -365,6 +420,28 @@ class UEBlueprint extends HTMLElement {
 
     getScale() {
         return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-grid-scale'))
+    }
+
+    startSelecting(x, y) {
+        if (this.selectorElement) {
+            this.finishSelecting();
+        }
+        this.selectorElement = this.constructor.getElement(this.selectorTemplate());
+        this.querySelector('[data-nodes]').appendChild(this.selectorElement);
+        this.selectorElement.style.setProperty('--ueb-select-from-x', x);
+        this.selectorElement.style.setProperty('--ueb-select-from-y', y);
+    }
+
+    finishSelecting() {
+        if (this.selectorElement) {
+            this.selectorElement.remove();
+            this.selectorElement = null;
+        }
+    }
+
+    doSelecting(x, y) {
+        this.selectorElement.style.setProperty('--ueb-select-to-x', x);
+        this.selectorElement.style.setProperty('--ueb-select-to-y', y);
     }
 
     addNode(...blueprintNodes) {

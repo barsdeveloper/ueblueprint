@@ -273,3 +273,12 @@ u-blueprint {
     border-bottom: 0.3em solid transparent;
     border-left  : 0.3em solid var(--ueb-node-value-color);
 }
+
+.ueb-selector {
+    position: absolute;
+    top     : min(var(--ueb-select-from-y) * 1px, var(--ueb-select-to-y) * 1px);
+    left    : min(var(--ueb-select-from-x) * 1px, var(--ueb-select-to-x) * 1px);
+    width   : calc(max(var(--ueb-select-from-x) - var(--ueb-select-to-x), var(--ueb-select-to-x) - var(--ueb-select-from-x)) * 1px);
+    height  : calc(max(var(--ueb-select-from-y) - var(--ueb-select-to-y), var(--ueb-select-to-y) - var(--ueb-select-from-y)) * 1px);
+    border  : 2px dashed gray;
+}
