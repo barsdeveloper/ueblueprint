@@ -4,7 +4,8 @@ export default class UEBlueprintDragScroll extends UEBlueprintDrag {
     constructor(scrolledEntity, options) {
         super(scrolledEntity, options)
         this.minZoom = options?.minZoom ?? -12
-        let self = this;
+        let self = this
+
         this.mouseMoveHandler = function (e) {
             let mousePosition = self.snapToGrid(e.clientX, e.clientY)
 
@@ -16,7 +17,8 @@ export default class UEBlueprintDragScroll extends UEBlueprintDrag {
 
             // Reassign the position of mouse
             self.mousePosition = mousePosition
-        };
+        }
+
         this.mouseWheelHandler = function (e) {
             e.preventDefault()
             let zoomLevel = self.blueprintNode.getZoom()
@@ -24,10 +26,13 @@ export default class UEBlueprintDragScroll extends UEBlueprintDrag {
             let scaleCorrection = 1 / self.blueprintNode.getScale()
             const targetOffset = e.target.getBoundingClientRect()
             const currentTargetOffset = e.currentTarget.getBoundingClientRect()
-            let offset = [e.offsetX + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection, e.offsetY + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection]
+            let offset = [
+                e.offsetX + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection,
+                e.offsetY + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection
+            ]
             self.blueprintNode.setZoom(zoomLevel, offset)
-
         }
+
         this.blueprintNode.getGridDOMElement().addEventListener('wheel', this.mouseWheelHandler, false)
         this.blueprintNode.getGridDOMElement().parentElement.addEventListener('wheel', e => e.preventDefault())
     }

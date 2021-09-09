@@ -14,11 +14,26 @@
         url('../font/roboto-regular.woff') format('woff');
 }
 
+:root {
+    --ueb-fron-size           : 13px;
+    --ueb-viewport-height     : 30rem;
+    --ueb-viewport-width      : 100%;
+    --ueb-grid-size           : 16px;
+    --ueb-grid-line-width     : 2px;
+    --ueb-grid-line-color     : #353535;
+    --ueb-grid-set            : 8;
+    --ueb-grid-set-line-color : #161616;
+    --ueb-grid-axis-line-color: black;
+    --ueb-grid-snap           : 16px;
+    --ueb-node-radius         : 7px;
+}
+
 u-blueprint {
     display    : block;
     position   : relative;
     font-family: Roboto, Noto, Oxygen, Ubuntu, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size  : var(--ueb-fron-size);
+    user-select: none;
 }
 
 .ueb-viewport-header {
@@ -280,5 +295,44 @@ u-blueprint {
     left    : min(var(--ueb-select-from-x) * 1px, var(--ueb-select-to-x) * 1px);
     width   : calc(max(var(--ueb-select-from-x) - var(--ueb-select-to-x), var(--ueb-select-to-x) - var(--ueb-select-from-x)) * 1px);
     height  : calc(max(var(--ueb-select-from-y) - var(--ueb-select-to-y), var(--ueb-select-to-y) - var(--ueb-select-from-y)) * 1px);
-    border  : 2px dashed gray;
+    background-image:
+        /* Top */
+        repeating-linear-gradient(90deg, transparent, transparent 1px, white 2px, white 7px, transparent 7px, transparent 11px),
+        repeating-linear-gradient(90deg, black, black 8px, transparent 9px, transparent 11px),
+        /* Bottom */
+        repeating-linear-gradient(90deg, transparent, transparent 1px, white 2px, white 7px, transparent 7px, transparent 11px),
+        repeating-linear-gradient(90deg, black, black 8px, transparent 9px, transparent 11px),
+        /* Left */
+        repeating-linear-gradient(180deg, transparent, transparent 1px, white 1px, white 7px, transparent 7px, transparent 11px),
+        repeating-linear-gradient(180deg, black, black 8px, transparent 9px, transparent 11px),
+        /* Right */
+        repeating-linear-gradient(0deg, transparent, transparent 1px, white 2px, white 7px, transparent 7px, transparent 11px),
+        repeating-linear-gradient(0deg, black, black 8px, transparent 9px, transparent 11px);
+    background-size:
+        /* Top */
+        100% 1px,
+        100% 3px,
+        /* Bottom */
+        100% 1px,
+        100% 3px,
+        /* Left */
+        1px 100%,
+        3px 100%,
+        /* Right */
+        1px 100%,
+        3px 100%;
+    background-position:
+        /* Top */
+        0 1px,
+        0 0,
+        /* Bottom */
+        0 calc(100% - 1px),
+        0 100%,
+        /* Left */
+        1px 0,
+        0 0,
+        /* Right */
+        calc(100% - 1px) 0,
+        100% 0;
+    background-repeat: no-repeat;
 }

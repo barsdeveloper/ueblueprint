@@ -70,6 +70,7 @@ class UEBlueprintDragScroll extends UEBlueprintDrag {
         super(scrolledEntity, options);
         this.minZoom = options?.minZoom ?? -12;
         let self = this;
+
         this.mouseMoveHandler = function (e) {
             let mousePosition = self.snapToGrid(e.clientX, e.clientY);
 
@@ -82,6 +83,7 @@ class UEBlueprintDragScroll extends UEBlueprintDrag {
             // Reassign the position of mouse
             self.mousePosition = mousePosition;
         };
+
         this.mouseWheelHandler = function (e) {
             e.preventDefault();
             let zoomLevel = self.blueprintNode.getZoom();
@@ -89,10 +91,13 @@ class UEBlueprintDragScroll extends UEBlueprintDrag {
             let scaleCorrection = 1 / self.blueprintNode.getScale();
             const targetOffset = e.target.getBoundingClientRect();
             const currentTargetOffset = e.currentTarget.getBoundingClientRect();
-            let offset = [e.offsetX + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection, e.offsetY + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection];
+            let offset = [
+                e.offsetX + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection,
+                e.offsetY + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection
+            ];
             self.blueprintNode.setZoom(zoomLevel, offset);
-
         };
+
         this.blueprintNode.getGridDOMElement().addEventListener('wheel', this.mouseWheelHandler, false);
         this.blueprintNode.getGridDOMElement().parentElement.addEventListener('wheel', e => e.preventDefault());
     }
@@ -101,15 +106,17 @@ class UEBlueprintDragScroll extends UEBlueprintDrag {
 
 class UEBlueprintSelect {
     constructor(blueprintNode, options) {
+        /** @type {import("./UEBlueprint.js").default;}" */
         this.blueprintNode = blueprintNode;
         this.mousePosition = [0, 0];
         this.clickButton = options?.clickButton ?? 0;
         this.exitSelectAnyButton = options?.exitSelectAnyButton ?? true;
         let self = this;
+
         this.mouseDownHandler = function (e) {
             switch (e.button) {
                 case self.clickButton:
-                    self.clicked(e.clientX, e.clientY);
+                    self.clicked([e.offsetX, e.offsetY]);
                     break
                 default:
                     if (!self.exitSelectAnyButton) {
@@ -118,30 +125,42 @@ class UEBlueprintSelect {
                     break
             }
         };
+
         this.mouseMoveHandler = function (e) {
-            self.blueprintNode.doSelecting(e.clientX, e.clientY);
+            e.preventDefault();
+            let scaleCorrection = 1 / self.blueprintNode.getScale();
+            const targetOffset = e.target.getBoundingClientRect();
+            const currentTargetOffset = e.currentTarget.getBoundingClientRect();
+            let offset = [
+                e.offsetX + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection,
+                e.offsetY + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection
+            ];
+            self.blueprintNode.doSelecting(offset);
         };
+
         this.mouseUpHandler = function (e) {
             if (!self.exitSelectAnyButton || e.button == self.clickButton) {
                 // Remove the handlers of `mousemove` and `mouseup`
-                document.removeEventListener('mousemove', self.mouseMoveHandler);
+                self.blueprintNode.getGridDOMElement().removeEventListener('mousemove', self.mouseMoveHandler);
                 document.removeEventListener('mouseup', self.mouseUpHandler);
             }
         };
-        this.blueprintNode.addEventListener('mousedown', this.mouseDownHandler);
-        this.blueprintNode.addEventListener('contextmenu', e => e.preventDefault());
+
+        let gridElement = this.blueprintNode.getGridDOMElement();
+        gridElement.addEventListener('mousedown', this.mouseDownHandler);
+        gridElement.addEventListener('contextmenu', e => e.preventDefault());
     }
 
     unlistenDOMElement() {
         this.blueprintNode.removeEventListener('mousedown', this.mouseDownHandler);
     }
 
-    clicked(x, y) {
+    clicked(position) {
         // Attach the listeners to `document`
-        document.addEventListener('mousemove', this.mouseMoveHandler);
+        this.blueprintNode.getGridDOMElement().addEventListener('mousemove', this.mouseMoveHandler);
         document.addEventListener('mouseup', this.mouseUpHandler);
         // Start selecting
-        this.blueprintNode.startSelecting(x, y);
+        this.blueprintNode.startSelecting(position);
     }
 }
 
@@ -193,12 +212,14 @@ class UEBlueprint extends HTMLElement {
 
     constructor() {
         super();
+        /** @type {Set<import("./UEBlueprintObject.js").default>}" */
         this.nodes = new Set();
         this.expandGridSize = 400;
         this.gridElement = null;
         this.viewportElement = null;
         this.overlayElement = null;
         this.selectorElement = null;
+        this.selectorObserver = null;
         this.dragObject = null;
         this.selectObject = null;
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0];
@@ -244,6 +265,10 @@ class UEBlueprint extends HTMLElement {
         super.disconnectedCallback();
         this.dragObject.unlistenDOMElement();
         this.selectObject.unlistenDOMElement();
+    }
+
+    getScroll() {
+        return [this.viewportElement.scrollLeft, this.viewportElement.scrollTop]
     }
 
     setScroll(value, smooth = false) {
@@ -293,10 +318,6 @@ class UEBlueprint extends HTMLElement {
             ];
         }
         this.setScroll(finalScroll, smooth);
-    }
-
-    getScroll() {
-        return [this.viewportElement.scrollLeft, this.viewportElement.scrollTop]
     }
 
     scrollCenter() {
@@ -422,26 +443,56 @@ class UEBlueprint extends HTMLElement {
         return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-grid-scale'))
     }
 
-    startSelecting(x, y) {
+    compensateTranslation(position) {
+        position[0] -= this.translateValue[0];
+        position[1] -= this.translateValue[1];
+        return position
+    }
+
+    /**
+     * Create a selection rectangle starting from the specified position
+     * @param {number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
+     */
+    startSelecting(initialPosition) {
         if (this.selectorElement) {
             this.finishSelecting();
         }
+        initialPosition = this.compensateTranslation(initialPosition);
         this.selectorElement = this.constructor.getElement(this.selectorTemplate());
         this.querySelector('[data-nodes]').appendChild(this.selectorElement);
-        this.selectorElement.style.setProperty('--ueb-select-from-x', x);
-        this.selectorElement.style.setProperty('--ueb-select-from-y', y);
+        this.selectorElement.style.setProperty('--ueb-select-from-x', initialPosition[0]);
+        this.selectorElement.style.setProperty('--ueb-select-from-y', initialPosition[1]);
+        this.selectorObserver = new IntersectionObserver(
+            (entries, observer) => {
+                entries.map(entry => {
+                    /** @type {import("./UEBlueprintObject.js").default;}" */
+                    let target = entry.target;
+                    target.setSelected(entry.isIntersecting);
+                });
+            }, {
+            threshold: [0.01],
+            root: this.selectorElement
+        });
+        this.nodes.forEach(element => this.selectorObserver.observe(element));
     }
 
     finishSelecting() {
         if (this.selectorElement) {
             this.selectorElement.remove();
             this.selectorElement = null;
+            this.selectorObserver.disconnect();
+            this.selectorObserver = null;
         }
     }
 
-    doSelecting(x, y) {
-        this.selectorElement.style.setProperty('--ueb-select-to-x', x);
-        this.selectorElement.style.setProperty('--ueb-select-to-y', y);
+    /**
+     * Move selection rectagle to the specified final position. The initial position was specified by startSelecting()
+     * @param {number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
+     */
+    doSelecting(finalPosition) {
+        finalPosition = this.compensateTranslation(finalPosition);
+        this.selectorElement.style.setProperty('--ueb-select-to-x', finalPosition[0]);
+        this.selectorElement.style.setProperty('--ueb-select-to-y', finalPosition[1]);
     }
 
     addNode(...blueprintNodes) {
