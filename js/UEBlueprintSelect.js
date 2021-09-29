@@ -36,6 +36,7 @@ export default class UEBlueprintSelect {
             if (!self.exitSelectAnyButton || e.button == self.clickButton) {
                 // Remove the handlers of `mousemove` and `mouseup`
                 self.blueprintNode.getGridDOMElement().removeEventListener('mousemove', self.mouseMoveHandler)
+                self.blueprintNode.finishSelecting()
                 document.removeEventListener('mouseup', self.mouseUpHandler)
             }
         }

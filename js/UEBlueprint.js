@@ -1,6 +1,10 @@
 import UEBlueprintDragScroll from "./UEBlueprintDragScroll.js"
 import UEBlueprintSelect from "./UEBlueprintSelect.js"
+import SelectionModel from "./SelectionModel.js"
 
+/**
+ * @typedef {import("./UEBlueprintObject.js").default} UEBlueprintObject
+ */
 export default class UEBlueprint extends HTMLElement {
 
     headerTemplate() {
@@ -23,14 +27,11 @@ export default class UEBlueprint extends HTMLElement {
                 <div class="ueb-grid"
                     style="--ueb-additional-x:${this.additional[0]}; --ueb-additional-y:${this.additional[1]}; --ueb-translate-x:${this.translateValue[0]}; --ueb-translate-y:${this.translateValue[1]}">
                     <div class="ueb-grid-content" data-nodes>
+                        <div class="ueb-selector" data-selecting="false"></div>
                     </div>
                 </div>
             </div>
         `
-    }
-
-    selectorTemplate() {
-        return `<div class="ueb-selector"></div>`
     }
 
     static getElement(template) {
@@ -49,22 +50,49 @@ export default class UEBlueprint extends HTMLElement {
 
     constructor() {
         super()
-        /** @type {Set<import("./UEBlueprintObject.js").default>}" */
-        this.nodes = new Set()
+        /** @type {UEBlueprintObject[]}" */
+        this.nodes = new Array()
         this.expandGridSize = 400
+        /** @type {HTMLElement} */
         this.gridElement = null
+        /** @type {HTMLElement} */
         this.viewportElement = null
+        /** @type {HTMLElement} */
         this.overlayElement = null
+        /** @type {HTMLElement} */
         this.selectorElement = null
+        /** @type {HTMLElement} */
+        this.nodesContainerElement = null
+        /** @type {IntersectionObserver} */
         this.selectorObserver = null
         this.dragObject = null
         this.selectObject = null
+        /** @type {Array<number>} */
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
+        /** @type {Array<number>} */
         this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
+        /** @type {number} */
         this.zoom = 0
+        /** @type {HTMLElement} */
         this.headerElement = null
-        this.selectFrom = null
-        this.selectTo = null
+        /** @type {SelectionModel} */
+        this.selectionModel = null
+        /** @type {(node: UEBlueprintObject) => BoundariesInfo} */
+        this.nodeBoundariesSupplier = (node) => {
+            let rect = node.getBoundingClientRect()
+            let gridRect = this.nodesContainerElement.getBoundingClientRect()
+            return {
+                primaryInf: rect.left - gridRect.left,
+                primarySup: rect.right - gridRect.right,
+                // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
+                secondaryInf: rect.top - gridRect.top,
+                secondarySup: rect.bottom - gridRect.bottom
+            }
+        }
+        /** @type {(node: UEBlueprintObject, selected: bool) => void}} */
+        this.nodeSelectToggleFunction = (node, selected) => {
+            node.setSelected(selected)
+        }
     }
 
     connectedCallback() {
@@ -72,15 +100,27 @@ export default class UEBlueprint extends HTMLElement {
 
         this.headerElement = this.constructor.getElement(this.headerTemplate())
         this.appendChild(this.headerElement)
-
         this.overlayElement = this.constructor.getElement(this.overlayTemplate())
         this.appendChild(this.overlayElement)
-
         this.viewportElement = this.constructor.getElement(this.viewportTemplate())
         this.appendChild(this.viewportElement)
-
         this.gridElement = this.viewportElement.querySelector('.ueb-grid')
+        this.selectorElement = this.viewportElement.querySelector('.ueb-selector')
+        this.nodesContainerElement = this.querySelector('[data-nodes]')
         this.insertChildren()
+
+        this.selectorObserver = new IntersectionObserver(
+            (entries, observer) => {
+                entries.map(entry => {
+                    /** @type {import("./UEBlueprintObject.js").default;}" */
+                    let target = entry.target
+                    target.setSelected(entry.isIntersecting)
+                })
+            }, {
+            threshold: [0.01],
+            root: this.selectorElement
+        })
+        this.nodes.forEach(element => this.selectorObserver.observe(element))
 
         this.dragObject = new UEBlueprintDragScroll(this, {
             'clickButton': 2,
@@ -291,35 +331,20 @@ export default class UEBlueprint extends HTMLElement {
      * @param {number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
      */
     startSelecting(initialPosition) {
-        if (this.selectorElement) {
-            this.finishSelecting()
-        }
         initialPosition = this.compensateTranslation(initialPosition)
-        this.selectorElement = this.constructor.getElement(this.selectorTemplate())
-        this.querySelector('[data-nodes]').appendChild(this.selectorElement)
+        // Set initial position
         this.selectorElement.style.setProperty('--ueb-select-from-x', initialPosition[0])
         this.selectorElement.style.setProperty('--ueb-select-from-y', initialPosition[1])
-        this.selectorObserver = new IntersectionObserver(
-            (entries, observer) => {
-                entries.map(entry => {
-                    /** @type {import("./UEBlueprintObject.js").default;}" */
-                    let target = entry.target
-                    target.setSelected(entry.isIntersecting)
-                })
-            }, {
-            threshold: [0.01],
-            root: this.selectorElement
-        })
-        this.nodes.forEach(element => this.selectorObserver.observe(element))
+        // Final position coincide with the initial position, at the beginning of selection
+        this.selectorElement.style.setProperty('--ueb-select-to-x', initialPosition[0])
+        this.selectorElement.style.setProperty('--ueb-select-to-y', initialPosition[1])
+        this.selectorElement.dataset.selecting = "true"
+        this.selectionModel = new SelectionModel(initialPosition, this.nodes, this.nodeBoundariesSupplier, this.nodeSelectToggleFunction)
     }
 
     finishSelecting() {
-        if (this.selectorElement) {
-            this.selectorElement.remove()
-            this.selectorElement = null
-            this.selectorObserver.disconnect()
-            this.selectorObserver = null
-        }
+        this.selectorElement.dataset.selecting = "false"
+        this.selectionModel = null
     }
 
     /**
@@ -330,13 +355,17 @@ export default class UEBlueprint extends HTMLElement {
         finalPosition = this.compensateTranslation(finalPosition)
         this.selectorElement.style.setProperty('--ueb-select-to-x', finalPosition[0])
         this.selectorElement.style.setProperty('--ueb-select-to-y', finalPosition[1])
+        this.selectionModel.selectTo(finalPosition)
     }
 
+    /**
+     * 
+     * @param  {...UEBlueprintObject} blueprintNodes 
+     */
     addNode(...blueprintNodes) {
-        [...blueprintNodes].reduce((s, e) => s.add(e), this.nodes)
-        let nodesDestination = this.querySelector('[data-nodes]')
-        if (nodesDestination) {
-            nodesDestination.append(...blueprintNodes)
+        [...blueprintNodes].reduce((s, e) => s.push(e), this.nodes)
+        if (this.nodesContainerElement) {
+            this.nodesContainerElement.append(...blueprintNodes)
         }
     }
 }

@@ -290,11 +290,12 @@ u-blueprint {
 }
 
 .ueb-selector {
-    position: absolute;
-    top     : min(var(--ueb-select-from-y) * 1px, var(--ueb-select-to-y) * 1px);
-    left    : min(var(--ueb-select-from-x) * 1px, var(--ueb-select-to-x) * 1px);
-    width   : calc(max(var(--ueb-select-from-x) - var(--ueb-select-to-x), var(--ueb-select-to-x) - var(--ueb-select-from-x)) * 1px);
-    height  : calc(max(var(--ueb-select-from-y) - var(--ueb-select-to-y), var(--ueb-select-to-y) - var(--ueb-select-from-y)) * 1px);
+    position  : absolute;
+    visibility: hidden;
+    top       : min(var(--ueb-select-from-y) * 1px, var(--ueb-select-to-y) * 1px);
+    left      : min(var(--ueb-select-from-x) * 1px, var(--ueb-select-to-x) * 1px);
+    width     : calc(max(var(--ueb-select-from-x) - var(--ueb-select-to-x), var(--ueb-select-to-x) - var(--ueb-select-from-x)) * 1px);
+    height    : calc(max(var(--ueb-select-from-y) - var(--ueb-select-to-y), var(--ueb-select-to-y) - var(--ueb-select-from-y)) * 1px);
     background-image:
         /* Top */
         repeating-linear-gradient(90deg, transparent, transparent 1px, white 2px, white 7px, transparent 7px, transparent 11px),
@@ -335,4 +336,12 @@ u-blueprint {
         calc(100% - 1px) 0,
         100% 0;
     background-repeat: no-repeat;
+}
+
+.ueb-selector>* {
+    visibility: visible;
+}
+
+.ueb-selector[data-selecting="true"] {
+    visibility: visible;
 }
