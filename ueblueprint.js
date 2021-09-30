@@ -1,3 +1,9 @@
+class Utility {
+    static clamp(val, min, max) {
+        return Math.min(Math.max(val, min), max)
+    }
+}
+
 class UEBlueprintDrag {
     constructor(blueprintNode, options) {
         this.blueprintNode = blueprintNode;
@@ -175,6 +181,7 @@ class OrderedIndexArray {
         this.array = new Uint32Array(value);
         this.comparisonValueSupplier = comparisonValueSupplier;
         this.length = 0;
+        this.current = 0;
     }
 
     /**
@@ -213,17 +220,24 @@ class OrderedIndexArray {
         return l
     }
 
+    currentIsInside() {
+        return this.current > 0 && this.current < this.array.length
+    }
+
     /** 
      * Inserts the element in the array.
      * @param array {number[]} The array to insert into.
      * @param value {number} The value to insert into the array.
      * @returns {number} The position into occupied by value into the array.
      */
-    insert(value) {
-        let position = this.getPosition(value);
+    insert(element, comparisonValue = null) {
+        let position = this.getPosition(element);
+        if (position < this.current || comparisonValue != null && position == this.current && this.comparisonValueSupplier(element) < comparisonValue) {
+            ++this.current;
+        }
         let newArray = new Uint32Array(this.array.length + 1);
         newArray.set(this.array.subarray(0, position), 0);
-        newArray[position] = value;
+        newArray[position] = element;
         newArray.set(this.array.subarray(position), position + 1);
         this.array = newArray;
         this.length = this.array.length;
@@ -234,9 +248,9 @@ class OrderedIndexArray {
      * Removes the element from the array.
      * @param {number} value The value of the element to be remove.
      */
-    remove(value) {
-        let position = this.getPosition(value);
-        if (this.array[position] == value) {
+    remove(element) {
+        let position = this.getPosition(element);
+        if (this.array[position] == element) {
             this.removeAt(position);
         }
     }
@@ -246,11 +260,30 @@ class OrderedIndexArray {
      * @param {number} position The index of the element to be remove.
      */
     removeAt(position) {
+        if (position < this.current) {
+            --this.current;
+        }
         let newArray = new Uint32Array(this.array.length - 1);
         newArray.set(this.array.subarray(0, position), 0);
         newArray.set(this.array.subarray(position + 1), position);
         this.array = newArray;
         this.length = this.array.length;
+    }
+
+    getNext() {
+        if (this.current >= 0 && this.current < this.array.length) {
+            return this.comparisonValueSupplier(this.get(this.current))
+        } else {
+            return Number.MAX_SAFE_INTEGER
+        }
+    }
+
+    getPrev() {
+        if (this.current > 0) {
+            return this.comparisonValueSupplier(this.get(this.current - 1))
+        } else {
+            return Number.MIN_SAFE_INTEGER
+        }
     }
 }
 
@@ -268,6 +301,7 @@ class SelectionModel {
      *      secondaryBoundary: number,
      *      insertionPosition: number,
      *      rectangle: number
+     *      onSecondaryAxis: Boolean
      * }} Metadata
      * @typedef {numeric} Rectangle
      * @param {number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
@@ -287,86 +321,76 @@ class SelectionModel {
         rectangles.forEach((rect, index) => {
             /** @type Metadata */
             let rectangleMetadata = {
-                primaryBoundary: this.initialPosition,
-                secondaryBoundary: this.initialPosition,
-                rectangle: index // used to move both directions inside the this.metadata array
+                primaryBoundary: this.initialPosition[0],
+                secondaryBoundary: this.initialPosition[1],
+                rectangle: index, // used to move both directions inside the this.metadata array
+                onSecondaryAxis: false
             };
+            selectToggleFunction(rect, false); // Initially deselected (Eventually)
             const rectangleBoundaries = boundariesFunc(rect);
-            if (rectangleBoundaries.primarySup < this.initialPosition[0]) { // rectangle is before position on the main axis
-                rectangleMetadata.primaryBoundary = rectangleBoundaries.primarySup;
-            } else if (position < rectangleBoundaries.primaryInf) { // rectangle is after position on the main axis
+            if (this.initialPosition[0] < rectangleBoundaries.primaryInf) { // Initial position is before the rectangle
                 rectangleMetadata.primaryBoundary = rectangleBoundaries.primaryInf;
-            } else {
+                this.primaryOrder.insert(index);
+            } else if (rectangleBoundaries.primarySup < this.initialPosition[0]) { // Initial position is after the rectangle
+                rectangleMetadata.primaryBoundary = rectangleBoundaries.primarySup;
+                this.primaryOrder.insert(index);
+            } else { // Initial lays inside the rectangle (considering just this axis)
                 // Secondary order depends on primary order, if primary boundaries are not satisfied, the element is not watched for secondary ones
                 if (rectangleBoundaries.secondarySup < this.initialPosition[1] || this.initialPosition[1] < rectangleBoundaries.secondaryInf) {
                     this.secondaryOrder.insert(index);
                 } else {
-                    selectToggleFunction(rect);
+                    selectToggleFunction(rect, true);
                 }
             }
-            if (rectangleBoundaries.secondarySup < this.initialPosition[1]) {
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup;
-            } else if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) {
+            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
                 rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf;
+            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup;
+            } else {
+                rectangleMetadata.onSecondaryAxis = true;
             }
-            this.primaryOrder.insert(index);
             this.metadata[index] = rectangleMetadata;
         });
+        this.primaryOrder.current = this.primaryOrder.getPosition(this.initialPosition[0]);
+        this.secondaryOrder.current = this.secondaryOrder.getPosition(this.initialPosition[1]);
         this.computeBoundaries(this.initialPosition);
     }
 
-    computeBoundaries(position) {
-        const primaryPosition = this.primaryOrder.getPosition(position[0]);
-        const secondaryPosition = this.secondaryOrder.getPosition(position[1]);
+    computeBoundaries() {
         this.boundaries = {
             // Primary axis negative direction 
-            primaryN: primaryPosition > 0
-                ? {
-                    'value': this.metadata[this.primaryOrder.get(primaryPosition - 1)].primaryBoundary,
-                    'index': primaryPosition - 1
-                }
-                : {
-                    'value': Number.MIN_SAFE_INTEGER,
-                    'index': null
-                },
-            // Primary axis positive direction
-            primaryP: primaryPosition < this.primaryOrder.length
-                ? {
-                    'value': this.metadata[this.primaryOrder.get(primaryPosition)].primaryBoundary,
-                    'index': primaryPosition
-                }
-                : {
-                    'value': Number.MAX_SAFE_INTEGER,
-                    'index': null
-                },
+            primaryN: {
+                'value': this.primaryOrder.getPrev(),
+                'index': this.primaryOrder.current - 1
+            },
+            primaryP: {
+                'value': this.primaryOrder.getNext(),
+                'index': this.primaryOrder.current
+            },
             // Secondary axis negative direction
-            secondaryN: secondaryPosition > 0
-                ? {
-                    'value': this.metadata[this.secondaryOrder.get(secondaryPosition - 1)].secondaryBoundary,
-                    'index': secondaryPosition - 1
-                }
-                : {
-                    'value': Number.MIN_SAFE_INTEGER,
-                    'index': null
-                },
+            secondaryN: {
+                'value': this.secondaryOrder.getPrev(),
+                'index': this.secondaryOrder.current - 1
+            },
             // Secondary axis positive direction
-            secondaryP: secondaryPosition < this.secondaryOrder.length
-                ? {
-                    'value': this.metadata[this.secondaryOrder.get(secondaryPosition)].secondaryBoundary,
-                    'index': secondaryPosition
-                }
-                : {
-                    'value': Number.MAX_SAFE_INTEGER,
-                    'index': null
-                }
+            secondaryP: {
+                'value': this.secondaryOrder.getNext(),
+                'index': this.secondaryOrder.current
+            }
         };
     }
 
     selectTo(finalPosition) {
         const primaryBoundaryCrossed = (index, extended) => {
             if (extended) {
-                this.secondaryOrder.insert(index);
+                this.primaryOrder.current += Math.sign(finalPosition[0] - this.initialPosition[0]);
+                if (this.metadata[index].onSecondaryAxis) {
+                    this.selectToggleFunction(this.rectangles[index], true);
+                } else {
+                    this.secondaryOrder.insert(index, this.initialPosition[1]);
+                }
             } else {
+                this.primaryOrder.current -= Math.sign(finalPosition[0] - this.initialPosition[0]);
                 this.secondaryOrder.remove(index);
                 this.selectToggleFunction(this.rectangles[index], false);
             }
@@ -382,6 +406,11 @@ class SelectionModel {
 
 
         const secondaryBoundaryCrossed = (index, extended) => {
+            if (extended) {
+                this.secondaryOrder.current += Math.sign(finalPosition[1] - this.initialPosition[1]);
+            } else {
+                this.secondaryOrder.current -= Math.sign(finalPosition[1] - this.initialPosition[1]);
+            }
             this.selectToggleFunction(this.rectangles[index], extended);
             this.computeBoundaries(finalPosition);
             this.selectTo(finalPosition);
@@ -437,10 +466,6 @@ class UEBlueprint extends HTMLElement {
 
     insertChildren() {
         this.querySelector('[data-nodes]').append(...this.nodes);
-    }
-
-    static clamp(val, min, max) {
-        return Math.min(Math.max(val, min), max)
     }
 
     constructor() {
@@ -688,7 +713,7 @@ class UEBlueprint extends HTMLElement {
     }
 
     setZoom(zoom, center) {
-        zoom = this.constructor.clamp(zoom, -12, 0);
+        zoom = Utility.clamp(zoom, -12, 0);
         if (zoom == this.zoom) {
             return
         }

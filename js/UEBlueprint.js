@@ -1,3 +1,4 @@
+import Utility from "./Utility.js"
 import UEBlueprintDragScroll from "./UEBlueprintDragScroll.js"
 import UEBlueprintSelect from "./UEBlueprintSelect.js"
 import SelectionModel from "./SelectionModel.js"
@@ -42,10 +43,6 @@ export default class UEBlueprint extends HTMLElement {
 
     insertChildren() {
         this.querySelector('[data-nodes]').append(...this.nodes)
-    }
-
-    static clamp(val, min, max) {
-        return Math.min(Math.max(val, min), max)
     }
 
     constructor() {
@@ -293,7 +290,7 @@ export default class UEBlueprint extends HTMLElement {
     }
 
     setZoom(zoom, center) {
-        zoom = this.constructor.clamp(zoom, -12, 0)
+        zoom = Utility.clamp(zoom, -12, 0)
         if (zoom == this.zoom) {
             return
         }

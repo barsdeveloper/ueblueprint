@@ -17,6 +17,7 @@
         import { UEBlueprint, UEBlueprintObject } from "./ueblueprint.js"
         let blueprint = new UEBlueprint()
         let node1 = new UEBlueprintObject()
+        node1.setLocation([400, 200])
         blueprint.addNode(node1)
         document.querySelector('body').appendChild(blueprint)
         let a = 123
