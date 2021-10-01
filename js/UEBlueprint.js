@@ -314,7 +314,7 @@ export default class UEBlueprint extends HTMLElement {
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-grid-scale'))
+        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-scale'))
     }
 
     compensateTranslation(position) {
@@ -360,7 +360,12 @@ export default class UEBlueprint extends HTMLElement {
      * @param  {...UEBlueprintObject} blueprintNodes 
      */
     addNode(...blueprintNodes) {
-        [...blueprintNodes].reduce((s, e) => s.push(e), this.nodes)
+        [...blueprintNodes].reduce(
+            (s, e) => {
+                s.push(e)
+                return s
+            },
+            this.nodes)
         if (this.nodesContainerElement) {
             this.nodesContainerElement.append(...blueprintNodes)
         }

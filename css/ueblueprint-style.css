@@ -60,12 +60,12 @@ u-blueprint {
 }
 
 .ueb-grid {
-    --ueb-grid-line-actual-width: calc(var(--ueb-grid-line-width) / var(--ueb-grid-scale));
+    --ueb-grid-line-actual-width: calc(var(--ueb-grid-line-width) / var(--ueb-scale));
     position                    : absolute;
     min-width                   : 100%;
     min-height                  : 100%;
-    width                       : calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-grid-scale));
-    height                      : calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-grid-scale));
+    width                       : calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-scale));
+    height                      : calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-scale));
     background-color            : #262626;
     background-image            :
         /* Axis lines */
@@ -105,7 +105,7 @@ u-blueprint {
         var(--ueb-grid-actual-size) var(--ueb-grid-actual-size);
     background-position: calc(var(--ueb-translate-x) * 1px) calc(var(--ueb-translate-y) * 1px);
     background-repeat  : repeat-x, repeat-y, repeat, repeat, repeat, repeat;
-    transform          : scale(var(--ueb-grid-scale), var(--ueb-grid-scale));
+    transform          : scale(var(--ueb-scale), var(--ueb-scale));
     transform-origin   : 0 0;
     overflow           : hidden;
 }
@@ -113,72 +113,72 @@ u-blueprint {
 .ueb-zoom--.ueb,
 .ueb {
     /* 16/16 */
-    --ueb-grid-scale      : 1;
+    --ueb-scale           : 1;
     --ueb-grid-actual-size: var(--ueb-grid-size);
 }
 
 .ueb-zoom--1.ueb {
     /* 14/16 */
-    --ueb-grid-scale: 0.875
+    --ueb-scale: 0.875
 }
 
 .ueb-zoom--2.ueb {
     /* 12/16 */
-    --ueb-grid-scale: 0.75
+    --ueb-scale: 0.75
 }
 
 .ueb-zoom--3.ueb {
     /* 10.8/16 */
-    --ueb-grid-scale: 0.675
+    --ueb-scale: 0.675
 }
 
 .ueb-zoom--4.ueb {
     /* 8/16 */
-    --ueb-grid-scale      : 0.5;
+    --ueb-scale           : 0.5;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2)
 }
 
 .ueb-zoom--5.ueb {
     /* 6/16 */
-    --ueb-grid-scale      : 0.375;
+    --ueb-scale           : 0.375;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
 .ueb-zoom--6.ueb {
-    --ueb-grid-scale      : 0.333333;
+    --ueb-scale           : 0.333333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--7.ueb {
-    --ueb-grid-scale      : 0.3;
+    --ueb-scale           : 0.3;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--8.ueb {
-    --ueb-grid-scale      : 0.266666;
+    --ueb-scale           : 0.266666;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--9.ueb {
-    --ueb-grid-scale      : 0.233333;
+    --ueb-scale           : 0.233333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--10.ueb {
     /* 12/16 */
-    --ueb-grid-scale      : 0.2;
+    --ueb-scale           : 0.2;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--11.ueb {
     /* 12/16 */
-    --ueb-grid-scale      : 0.166666;
+    --ueb-scale           : 0.166666;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
 
 .ueb-zoom--12.ueb {
     /* 12/16 */
-    --ueb-grid-scale      : 0.133333;
+    --ueb-scale           : 0.133333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
 
@@ -298,42 +298,82 @@ u-blueprint {
     height    : calc(max(var(--ueb-select-from-y) - var(--ueb-select-to-y), var(--ueb-select-to-y) - var(--ueb-select-from-y)) * 1px);
     background-image:
         /* Top */
-        repeating-linear-gradient(90deg, transparent, transparent 1px, white 2px, white 7px, transparent 7px, transparent 11px),
-        repeating-linear-gradient(90deg, black, black 8px, transparent 9px, transparent 11px),
+        repeating-linear-gradient(90deg,
+            transparent,
+            transparent calc(1px / var(--ueb-scale)),
+            white calc(2px / var(--ueb-scale)),
+            white calc(7px / var(--ueb-scale)),
+            transparent calc(7px / var(--ueb-scale)),
+            transparent calc(11px / var(--ueb-scale))),
+        repeating-linear-gradient(90deg,
+            black,
+            black calc(8px / var(--ueb-scale)),
+            transparent calc(9px / var(--ueb-scale)),
+            transparent calc(11px / var(--ueb-scale))),
         /* Bottom */
-        repeating-linear-gradient(90deg, transparent, transparent 1px, white 2px, white 7px, transparent 7px, transparent 11px),
-        repeating-linear-gradient(90deg, black, black 8px, transparent 9px, transparent 11px),
+        repeating-linear-gradient(90deg,
+            transparent,
+            transparent calc(1px / var(--ueb-scale)),
+            white calc(2px / var(--ueb-scale)),
+            white calc(7px / var(--ueb-scale)),
+            transparent calc(7px / var(--ueb-scale)),
+            transparent calc(11px / var(--ueb-scale))),
+        repeating-linear-gradient(90deg,
+            black,
+            black calc(8px / var(--ueb-scale)),
+            transparent calc(9px / var(--ueb-scale)),
+            transparent calc(11px / var(--ueb-scale))),
         /* Left */
-        repeating-linear-gradient(180deg, transparent, transparent 1px, white 1px, white 7px, transparent 7px, transparent 11px),
-        repeating-linear-gradient(180deg, black, black 8px, transparent 9px, transparent 11px),
+        repeating-linear-gradient(180deg,
+            transparent,
+            transparent calc(1px / var(--ueb-scale)),
+            white calc(1px / var(--ueb-scale)),
+            white calc(7px / var(--ueb-scale)),
+            transparent calc(7px / var(--ueb-scale)),
+            transparent calc(11px / var(--ueb-scale))),
+        repeating-linear-gradient(180deg,
+            black,
+            black calc(8px / var(--ueb-scale)),
+            transparent calc(9px / var(--ueb-scale)),
+            transparent calc(11px / var(--ueb-scale))),
         /* Right */
-        repeating-linear-gradient(0deg, transparent, transparent 1px, white 2px, white 7px, transparent 7px, transparent 11px),
-        repeating-linear-gradient(0deg, black, black 8px, transparent 9px, transparent 11px);
+        repeating-linear-gradient(0deg,
+            transparent,
+            transparent calc(1px / var(--ueb-scale)),
+            white calc(2px / var(--ueb-scale)),
+            white calc(7px / var(--ueb-scale)),
+            transparent calc(7px / var(--ueb-scale)),
+            transparent calc(11px / var(--ueb-scale))),
+        repeating-linear-gradient(0deg,
+            black,
+            black calc(8px / var(--ueb-scale)),
+            transparent calc(9px / var(--ueb-scale)),
+            transparent calc(11px / var(--ueb-scale)));
     background-size:
         /* Top */
-        100% 1px,
-        100% 3px,
+        100% calc(1px / var(--ueb-scale)),
+        100% calc(3px / var(--ueb-scale)),
         /* Bottom */
-        100% 1px,
-        100% 3px,
+        100% calc(1px / var(--ueb-scale)),
+        100% calc(3px / var(--ueb-scale)),
         /* Left */
-        1px 100%,
-        3px 100%,
+        calc(1px / var(--ueb-scale)) 100%,
+        calc(3px / var(--ueb-scale)) 100%,
         /* Right */
-        1px 100%,
-        3px 100%;
+        calc(1px / var(--ueb-scale)) 100%,
+        calc(3px / var(--ueb-scale)) 100%;
     background-position:
         /* Top */
-        0 1px,
+        0 calc(1px / var(--ueb-scale)),
         0 0,
         /* Bottom */
-        0 calc(100% - 1px),
+        0 calc(100% - 1px / var(--ueb-scale)),
         0 100%,
         /* Left */
-        1px 0,
+        calc(1px / var(--ueb-scale)) 0,
         0 0,
         /* Right */
-        calc(100% - 1px) 0,
+        calc(100% - 1px / var(--ueb-scale)) 0,
         100% 0;
     background-repeat: no-repeat;
 }

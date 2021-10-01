@@ -181,7 +181,7 @@ class OrderedIndexArray {
         this.array = new Uint32Array(value);
         this.comparisonValueSupplier = comparisonValueSupplier;
         this.length = 0;
-        this.current = 0;
+        this.currentPosition = 0;
     }
 
     /**
@@ -220,20 +220,17 @@ class OrderedIndexArray {
         return l
     }
 
-    currentIsInside() {
-        return this.current > 0 && this.current < this.array.length
-    }
-
     /** 
      * Inserts the element in the array.
-     * @param array {number[]} The array to insert into.
-     * @param value {number} The value to insert into the array.
+     * @param element {number} The value to insert into the array.
      * @returns {number} The position into occupied by value into the array.
      */
     insert(element, comparisonValue = null) {
-        let position = this.getPosition(element);
-        if (position < this.current || comparisonValue != null && position == this.current && this.comparisonValueSupplier(element) < comparisonValue) {
-            ++this.current;
+        let position = this.getPosition(this.comparisonValueSupplier(element));
+        if (
+            position < this.currentPosition
+            || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
+            ++this.currentPosition;
         }
         let newArray = new Uint32Array(this.array.length + 1);
         newArray.set(this.array.subarray(0, position), 0);
@@ -249,7 +246,7 @@ class OrderedIndexArray {
      * @param {number} value The value of the element to be remove.
      */
     remove(element) {
-        let position = this.getPosition(element);
+        let position = this.getPosition(this.comparisonValueSupplier(element));
         if (this.array[position] == element) {
             this.removeAt(position);
         }
@@ -260,27 +257,42 @@ class OrderedIndexArray {
      * @param {number} position The index of the element to be remove.
      */
     removeAt(position) {
-        if (position < this.current) {
-            --this.current;
+        if (position < this.currentPosition) {
+            --this.currentPosition;
         }
         let newArray = new Uint32Array(this.array.length - 1);
         newArray.set(this.array.subarray(0, position), 0);
         newArray.set(this.array.subarray(position + 1), position);
         this.array = newArray;
         this.length = this.array.length;
+        return position
     }
 
     getNext() {
-        if (this.current >= 0 && this.current < this.array.length) {
-            return this.comparisonValueSupplier(this.get(this.current))
+        if (this.currentPosition >= 0 && this.currentPosition < this.array.length) {
+            return this.get(this.currentPosition)
+        }
+        return null
+    }
+
+    getNextValue() {
+        if (this.currentPosition >= 0 && this.currentPosition < this.array.length) {
+            return this.comparisonValueSupplier(this.get(this.currentPosition))
         } else {
             return Number.MAX_SAFE_INTEGER
         }
     }
 
     getPrev() {
-        if (this.current > 0) {
-            return this.comparisonValueSupplier(this.get(this.current - 1))
+        if (this.currentPosition > 0) {
+            return this.get(this.currentPosition - 1)
+        }
+        return null
+    }
+
+    getPrevValue() {
+        if (this.currentPosition > 0) {
+            return this.comparisonValueSupplier(this.get(this.currentPosition - 1))
         } else {
             return Number.MIN_SAFE_INTEGER
         }
@@ -323,9 +335,10 @@ class SelectionModel {
             let rectangleMetadata = {
                 primaryBoundary: this.initialPosition[0],
                 secondaryBoundary: this.initialPosition[1],
-                rectangle: index, // used to move both directions inside the this.metadata array
+                rectangle: index, // used to move both expandings inside the this.metadata array
                 onSecondaryAxis: false
             };
+            this.metadata[index] = rectangleMetadata;
             selectToggleFunction(rect, false); // Initially deselected (Eventually)
             const rectangleBoundaries = boundariesFunc(rect);
             if (this.initialPosition[0] < rectangleBoundaries.primaryInf) { // Initial position is before the rectangle
@@ -349,50 +362,62 @@ class SelectionModel {
             } else {
                 rectangleMetadata.onSecondaryAxis = true;
             }
-            this.metadata[index] = rectangleMetadata;
         });
-        this.primaryOrder.current = this.primaryOrder.getPosition(this.initialPosition[0]);
-        this.secondaryOrder.current = this.secondaryOrder.getPosition(this.initialPosition[1]);
+        this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0]);
+        this.secondaryOrder.currentPosition = this.secondaryOrder.getPosition(this.initialPosition[1]);
         this.computeBoundaries(this.initialPosition);
     }
 
     computeBoundaries() {
         this.boundaries = {
-            // Primary axis negative direction 
+            // Primary axis negative expanding 
             primaryN: {
-                'value': this.primaryOrder.getPrev(),
-                'index': this.primaryOrder.current - 1
+                'value': this.primaryOrder.getPrevValue(),
+                'index': this.primaryOrder.getPrev()
             },
             primaryP: {
-                'value': this.primaryOrder.getNext(),
-                'index': this.primaryOrder.current
+                'value': this.primaryOrder.getNextValue(),
+                'index': this.primaryOrder.getNext()
             },
-            // Secondary axis negative direction
+            // Secondary axis negative expanding
             secondaryN: {
-                'value': this.secondaryOrder.getPrev(),
-                'index': this.secondaryOrder.current - 1
+                'value': this.secondaryOrder.getPrevValue(),
+                'index': this.secondaryOrder.getPrev()
             },
-            // Secondary axis positive direction
+            // Secondary axis positive expanding
             secondaryP: {
-                'value': this.secondaryOrder.getNext(),
-                'index': this.secondaryOrder.current
+                'value': this.secondaryOrder.getNextValue(),
+                'index': this.secondaryOrder.getNext()
             }
         };
     }
 
     selectTo(finalPosition) {
-        const primaryBoundaryCrossed = (index, extended) => {
-            if (extended) {
-                this.primaryOrder.current += Math.sign(finalPosition[0] - this.initialPosition[0]);
-                if (this.metadata[index].onSecondaryAxis) {
-                    this.selectToggleFunction(this.rectangles[index], true);
-                } else {
-                    this.secondaryOrder.insert(index, this.initialPosition[1]);
-                }
+        const direction = [
+            Math.sign(finalPosition[0] - this.initialPosition[0]),
+            Math.sign(finalPosition[1] - this.initialPosition[1])
+        ];
+        const primaryBoundaryCrossed = (index, expanding) => {
+            this.primaryOrder.currentPosition += direction[0] * (expanding ? 1 : -1);
+            if (this.metadata[index].onSecondaryAxis) {
+                this.selectToggleFunction(this.rectangles[index], expanding);
             } else {
-                this.primaryOrder.current -= Math.sign(finalPosition[0] - this.initialPosition[0]);
-                this.secondaryOrder.remove(index);
-                this.selectToggleFunction(this.rectangles[index], false);
+                if (expanding) {
+                    this.secondaryOrder.insert(index, finalPosition[1]);
+                    const secondaryBoundary = this.metadata[index].secondaryBoundary;
+                    if (
+                        // If inserted before the current position
+                        Math.sign(finalPosition[1] - secondaryBoundary) == direction[1]
+                        // And after initial position
+                        && Math.sign(secondaryBoundary - this.initialPosition[1]) == direction[1]
+                    ) {
+                        // Secondary axis is already satisfied then
+                        this.selectToggleFunction(this.rectangles[index], true);
+                    }
+                } else {
+                    this.selectToggleFunction(this.rectangles[index], false);
+                    this.secondaryOrder.remove(index);
+                }
             }
             this.computeBoundaries(finalPosition);
             this.selectTo(finalPosition);
@@ -405,13 +430,9 @@ class SelectionModel {
         }
 
 
-        const secondaryBoundaryCrossed = (index, extended) => {
-            if (extended) {
-                this.secondaryOrder.current += Math.sign(finalPosition[1] - this.initialPosition[1]);
-            } else {
-                this.secondaryOrder.current -= Math.sign(finalPosition[1] - this.initialPosition[1]);
-            }
-            this.selectToggleFunction(this.rectangles[index], extended);
+        const secondaryBoundaryCrossed = (index, expanding) => {
+            this.secondaryOrder.currentPosition += direction[1] * (expanding ? 1 : -1);
+            this.selectToggleFunction(this.rectangles[index], expanding);
             this.computeBoundaries(finalPosition);
             this.selectTo(finalPosition);
         };
@@ -737,7 +758,7 @@ class UEBlueprint extends HTMLElement {
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-grid-scale'))
+        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-scale'))
     }
 
     compensateTranslation(position) {
@@ -783,7 +804,12 @@ class UEBlueprint extends HTMLElement {
      * @param  {...UEBlueprintObject} blueprintNodes 
      */
     addNode(...blueprintNodes) {
-        [...blueprintNodes].reduce((s, e) => s.push(e), this.nodes);
+        [...blueprintNodes].reduce(
+            (s, e) => {
+                s.push(e);
+                return s
+            },
+            this.nodes);
         if (this.nodesContainerElement) {
             this.nodesContainerElement.append(...blueprintNodes);
         }

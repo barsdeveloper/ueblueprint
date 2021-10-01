@@ -8,7 +8,7 @@ export default class OrderedIndexArray {
         this.array = new Uint32Array(value)
         this.comparisonValueSupplier = comparisonValueSupplier
         this.length = 0
-        this.current = 0
+        this.currentPosition = 0
     }
 
     /**
@@ -47,20 +47,17 @@ export default class OrderedIndexArray {
         return l
     }
 
-    currentIsInside() {
-        return this.current > 0 && this.current < this.array.length
-    }
-
     /** 
      * Inserts the element in the array.
-     * @param array {number[]} The array to insert into.
-     * @param value {number} The value to insert into the array.
+     * @param element {number} The value to insert into the array.
      * @returns {number} The position into occupied by value into the array.
      */
     insert(element, comparisonValue = null) {
-        let position = this.getPosition(element)
-        if (position < this.current || comparisonValue != null && position == this.current && this.comparisonValueSupplier(element) < comparisonValue) {
-            ++this.current
+        let position = this.getPosition(this.comparisonValueSupplier(element))
+        if (
+            position < this.currentPosition
+            || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
+            ++this.currentPosition
         }
         let newArray = new Uint32Array(this.array.length + 1)
         newArray.set(this.array.subarray(0, position), 0)
@@ -76,7 +73,7 @@ export default class OrderedIndexArray {
      * @param {number} value The value of the element to be remove.
      */
     remove(element) {
-        let position = this.getPosition(element)
+        let position = this.getPosition(this.comparisonValueSupplier(element))
         if (this.array[position] == element) {
             this.removeAt(position)
         }
@@ -87,27 +84,42 @@ export default class OrderedIndexArray {
      * @param {number} position The index of the element to be remove.
      */
     removeAt(position) {
-        if (position < this.current) {
-            --this.current
+        if (position < this.currentPosition) {
+            --this.currentPosition
         }
         let newArray = new Uint32Array(this.array.length - 1)
         newArray.set(this.array.subarray(0, position), 0)
         newArray.set(this.array.subarray(position + 1), position)
         this.array = newArray
         this.length = this.array.length
+        return position
     }
 
     getNext() {
-        if (this.current >= 0 && this.current < this.array.length) {
-            return this.comparisonValueSupplier(this.get(this.current))
+        if (this.currentPosition >= 0 && this.currentPosition < this.array.length) {
+            return this.get(this.currentPosition)
+        }
+        return null
+    }
+
+    getNextValue() {
+        if (this.currentPosition >= 0 && this.currentPosition < this.array.length) {
+            return this.comparisonValueSupplier(this.get(this.currentPosition))
         } else {
             return Number.MAX_SAFE_INTEGER
         }
     }
 
     getPrev() {
-        if (this.current > 0) {
-            return this.comparisonValueSupplier(this.get(this.current - 1))
+        if (this.currentPosition > 0) {
+            return this.get(this.currentPosition - 1)
+        }
+        return null
+    }
+
+    getPrevValue() {
+        if (this.currentPosition > 0) {
+            return this.comparisonValueSupplier(this.get(this.currentPosition - 1))
         } else {
             return Number.MIN_SAFE_INTEGER
         }

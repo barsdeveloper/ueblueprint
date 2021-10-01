@@ -18,7 +18,9 @@
         let blueprint = new UEBlueprint()
         let node1 = new UEBlueprintObject()
         node1.setLocation([400, 200])
-        blueprint.addNode(node1)
+        let node2 = new UEBlueprintObject()
+        node2.setLocation([300, 100])
+        blueprint.addNode(node1, node2)
         document.querySelector('body').appendChild(blueprint)
         let a = 123
     </script>
