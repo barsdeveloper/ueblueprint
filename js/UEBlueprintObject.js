@@ -96,6 +96,9 @@ export default class UEBlueprintObject extends UEBlueprintDraggableObject {
     }
 
     setSelected(value = true) {
+        if (this.selected == value) {
+            return
+        }
         this.selected = value
         if (value) {
             this.classList.add('ueb-selected')

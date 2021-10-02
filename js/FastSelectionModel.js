@@ -1,6 +1,6 @@
 import OrderedIndexArray from "./OrderedIndexArray.js"
 
-export default class SelectionModel {
+export default class FastSelectionModel {
 
     /**
      * @typedef {{
@@ -31,6 +31,8 @@ export default class SelectionModel {
         this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary)
         this.selectToggleFunction = selectToggleFunction
         this.rectangles = rectangles
+        this.primaryOrder.reserve(this.rectangles.length)
+        this.secondaryOrder.reserve(this.rectangles.length)
         rectangles.forEach((rect, index) => {
             /** @type Metadata */
             let rectangleMetadata = {
@@ -42,6 +44,16 @@ export default class SelectionModel {
             this.metadata[index] = rectangleMetadata
             selectToggleFunction(rect, false) // Initially deselected (Eventually)
             const rectangleBoundaries = boundariesFunc(rect)
+
+            // Secondary axis first because it may be inserted in this.secondaryOrder during the primary axis check
+            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf
+            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup
+            } else {
+                rectangleMetadata.onSecondaryAxis = true
+            }
+
             if (this.initialPosition[0] < rectangleBoundaries.primaryInf) { // Initial position is before the rectangle
                 rectangleMetadata.primaryBoundary = rectangleBoundaries.primaryInf
                 this.primaryOrder.insert(index)
@@ -55,13 +67,6 @@ export default class SelectionModel {
                 } else {
                     selectToggleFunction(rect, true)
                 }
-            }
-            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf
-            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup
-            } else {
-                rectangleMetadata.onSecondaryAxis = true
             }
         })
         this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0])
@@ -98,12 +103,11 @@ export default class SelectionModel {
             Math.sign(finalPosition[0] - this.initialPosition[0]),
             Math.sign(finalPosition[1] - this.initialPosition[1])
         ]
-        const primaryBoundaryCrossed = (index, expanding) => {
-            this.primaryOrder.currentPosition += direction[0] * (expanding ? 1 : -1)
+        const primaryBoundaryCrossed = (index, added) => {
             if (this.metadata[index].onSecondaryAxis) {
-                this.selectToggleFunction(this.rectangles[index], expanding)
+                this.selectToggleFunction(this.rectangles[index], added)
             } else {
-                if (expanding) {
+                if (added) {
                     this.secondaryOrder.insert(index, finalPosition[1])
                     const secondaryBoundary = this.metadata[index].secondaryBoundary
                     if (
@@ -125,23 +129,34 @@ export default class SelectionModel {
         }
 
         if (finalPosition[0] < this.boundaries.primaryN.value) {
-            primaryBoundaryCrossed(this.boundaries.primaryN.index, finalPosition[0] < this.initialPosition[0])
+            --this.primaryOrder.currentPosition
+            primaryBoundaryCrossed(
+                this.boundaries.primaryN.index,
+                this.initialPosition[0] > this.boundaries.primaryN.value && finalPosition[0] < this.initialPosition[0])
         } else if (finalPosition[0] > this.boundaries.primaryP.value) {
-            primaryBoundaryCrossed(this.boundaries.primaryP.index, this.initialPosition[0] < finalPosition[0])
+            ++this.primaryOrder.currentPosition
+            primaryBoundaryCrossed(
+                this.boundaries.primaryP.index,
+                this.initialPosition[0] < this.boundaries.primaryP.value && this.initialPosition[0] < finalPosition[0])
         }
 
 
-        const secondaryBoundaryCrossed = (index, expanding) => {
-            this.secondaryOrder.currentPosition += direction[1] * (expanding ? 1 : -1)
-            this.selectToggleFunction(this.rectangles[index], expanding)
+        const secondaryBoundaryCrossed = (index, added) => {
+            this.selectToggleFunction(this.rectangles[index], added)
             this.computeBoundaries(finalPosition)
             this.selectTo(finalPosition)
         }
 
         if (finalPosition[1] < this.boundaries.secondaryN.value) {
-            secondaryBoundaryCrossed(this.boundaries.secondaryN.index, finalPosition[1] < this.initialPosition[1]);
+            --this.secondaryOrder.currentPosition
+            secondaryBoundaryCrossed(
+                this.boundaries.secondaryN.index,
+                this.initialPosition[1] > this.boundaries.secondaryN.value && finalPosition[1] < this.initialPosition[1]);
         } else if (finalPosition[1] > this.boundaries.secondaryP.value) {
-            secondaryBoundaryCrossed(this.boundaries.secondaryP.index, this.initialPosition[1] < finalPosition[1]);
+            ++this.secondaryOrder.currentPosition
+            secondaryBoundaryCrossed(
+                this.boundaries.secondaryP.index,
+                this.initialPosition[1] < this.boundaries.secondaryP.value && this.initialPosition[1] < finalPosition[1]);
         }
         this.finalPosition = finalPosition
     }

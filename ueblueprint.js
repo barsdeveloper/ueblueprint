@@ -190,7 +190,10 @@ class OrderedIndexArray {
      * @returns The element of the array
      */
     get(index) {
-        return this.array[index]
+        if (index >= 0 && index < this.length) {
+            return this.array[index]
+        }
+        return null
     }
 
     /**
@@ -208,7 +211,7 @@ class OrderedIndexArray {
      */
     getPosition(value) {
         let l = 0;
-        let r = this.array.length;
+        let r = this.length;
         while (l < r) {
             let m = Math.floor((l + r) / 2);
             if (this.comparisonValueSupplier(this.array[m]) < value) {
@@ -220,24 +223,46 @@ class OrderedIndexArray {
         return l
     }
 
+    reserve(length) {
+        if (this.array.length < length) {
+            let newArray = new Uint32Array(length);
+            newArray.set(this.array);
+            this.array = newArray;
+        }
+    }
+
     /** 
      * Inserts the element in the array.
      * @param element {number} The value to insert into the array.
      * @returns {number} The position into occupied by value into the array.
      */
     insert(element, comparisonValue = null) {
+        let i = 0;
+        for (i = 0; i < this.length; ++i) {
+            if (element == this.array[i]) {
+                console.log("error");
+                break;
+            }
+        }
         let position = this.getPosition(this.comparisonValueSupplier(element));
         if (
             position < this.currentPosition
             || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
             ++this.currentPosition;
         }
-        let newArray = new Uint32Array(this.array.length + 1);
-        newArray.set(this.array.subarray(0, position), 0);
-        newArray[position] = element;
-        newArray.set(this.array.subarray(position), position + 1);
-        this.array = newArray;
-        this.length = this.array.length;
+        /*
+        let newArray = new Uint32Array(this.array.length + 1)
+        newArray.set(this.array.subarray(0, position), 0)
+        newArray[position] = element
+        newArray.set(this.array.subarray(position), position + 1)
+        this.array = newArray
+        */
+        this.shiftRight(position);
+        this.array[position] = element;
+        ++this.length;
+        if (this.length > this.array.length) {
+            console.log("error2");
+        }
         return position
     }
 
@@ -260,23 +285,26 @@ class OrderedIndexArray {
         if (position < this.currentPosition) {
             --this.currentPosition;
         }
-        let newArray = new Uint32Array(this.array.length - 1);
-        newArray.set(this.array.subarray(0, position), 0);
-        newArray.set(this.array.subarray(position + 1), position);
-        this.array = newArray;
-        this.length = this.array.length;
+        /*
+        let newArray = new Uint32Array(this.array.length - 1)
+        newArray.set(this.array.subarray(0, position), 0)
+        newArray.set(this.array.subarray(position + 1), position)
+        this.array = newArray
+        */
+        this.shiftLeft(position);
+        --this.length;
         return position
     }
 
     getNext() {
-        if (this.currentPosition >= 0 && this.currentPosition < this.array.length) {
+        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
             return this.get(this.currentPosition)
         }
         return null
     }
 
     getNextValue() {
-        if (this.currentPosition >= 0 && this.currentPosition < this.array.length) {
+        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
             return this.comparisonValueSupplier(this.get(this.currentPosition))
         } else {
             return Number.MAX_SAFE_INTEGER
@@ -297,9 +325,17 @@ class OrderedIndexArray {
             return Number.MIN_SAFE_INTEGER
         }
     }
+
+    shiftLeft(leftLimit, steps = 1) {
+        this.array.set(this.array.subarray(leftLimit + steps), leftLimit);
+    }
+
+    shiftRight(leftLimit, steps = 1) {
+        this.array.set(this.array.subarray(leftLimit, -steps), leftLimit + steps);
+    }
 }
 
-class SelectionModel {
+class FastSelectionModel {
 
     /**
      * @typedef {{
@@ -330,6 +366,8 @@ class SelectionModel {
         this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary);
         this.selectToggleFunction = selectToggleFunction;
         this.rectangles = rectangles;
+        this.primaryOrder.reserve(this.rectangles.length);
+        this.secondaryOrder.reserve(this.rectangles.length);
         rectangles.forEach((rect, index) => {
             /** @type Metadata */
             let rectangleMetadata = {
@@ -341,6 +379,16 @@ class SelectionModel {
             this.metadata[index] = rectangleMetadata;
             selectToggleFunction(rect, false); // Initially deselected (Eventually)
             const rectangleBoundaries = boundariesFunc(rect);
+
+            // Secondary axis first because it may be inserted in this.secondaryOrder during the primary axis check
+            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf;
+            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup;
+            } else {
+                rectangleMetadata.onSecondaryAxis = true;
+            }
+
             if (this.initialPosition[0] < rectangleBoundaries.primaryInf) { // Initial position is before the rectangle
                 rectangleMetadata.primaryBoundary = rectangleBoundaries.primaryInf;
                 this.primaryOrder.insert(index);
@@ -354,13 +402,6 @@ class SelectionModel {
                 } else {
                     selectToggleFunction(rect, true);
                 }
-            }
-            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf;
-            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup;
-            } else {
-                rectangleMetadata.onSecondaryAxis = true;
             }
         });
         this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0]);
@@ -397,12 +438,11 @@ class SelectionModel {
             Math.sign(finalPosition[0] - this.initialPosition[0]),
             Math.sign(finalPosition[1] - this.initialPosition[1])
         ];
-        const primaryBoundaryCrossed = (index, expanding) => {
-            this.primaryOrder.currentPosition += direction[0] * (expanding ? 1 : -1);
+        const primaryBoundaryCrossed = (index, added) => {
             if (this.metadata[index].onSecondaryAxis) {
-                this.selectToggleFunction(this.rectangles[index], expanding);
+                this.selectToggleFunction(this.rectangles[index], added);
             } else {
-                if (expanding) {
+                if (added) {
                     this.secondaryOrder.insert(index, finalPosition[1]);
                     const secondaryBoundary = this.metadata[index].secondaryBoundary;
                     if (
@@ -424,23 +464,34 @@ class SelectionModel {
         };
 
         if (finalPosition[0] < this.boundaries.primaryN.value) {
-            primaryBoundaryCrossed(this.boundaries.primaryN.index, finalPosition[0] < this.initialPosition[0]);
+            --this.primaryOrder.currentPosition;
+            primaryBoundaryCrossed(
+                this.boundaries.primaryN.index,
+                this.initialPosition[0] > this.boundaries.primaryN.value && finalPosition[0] < this.initialPosition[0]);
         } else if (finalPosition[0] > this.boundaries.primaryP.value) {
-            primaryBoundaryCrossed(this.boundaries.primaryP.index, this.initialPosition[0] < finalPosition[0]);
+            ++this.primaryOrder.currentPosition;
+            primaryBoundaryCrossed(
+                this.boundaries.primaryP.index,
+                this.initialPosition[0] < this.boundaries.primaryP.value && this.initialPosition[0] < finalPosition[0]);
         }
 
 
-        const secondaryBoundaryCrossed = (index, expanding) => {
-            this.secondaryOrder.currentPosition += direction[1] * (expanding ? 1 : -1);
-            this.selectToggleFunction(this.rectangles[index], expanding);
+        const secondaryBoundaryCrossed = (index, added) => {
+            this.selectToggleFunction(this.rectangles[index], added);
             this.computeBoundaries(finalPosition);
             this.selectTo(finalPosition);
         };
 
         if (finalPosition[1] < this.boundaries.secondaryN.value) {
-            secondaryBoundaryCrossed(this.boundaries.secondaryN.index, finalPosition[1] < this.initialPosition[1]);
+            --this.secondaryOrder.currentPosition;
+            secondaryBoundaryCrossed(
+                this.boundaries.secondaryN.index,
+                this.initialPosition[1] > this.boundaries.secondaryN.value && finalPosition[1] < this.initialPosition[1]);
         } else if (finalPosition[1] > this.boundaries.secondaryP.value) {
-            secondaryBoundaryCrossed(this.boundaries.secondaryP.index, this.initialPosition[1] < finalPosition[1]);
+            ++this.secondaryOrder.currentPosition;
+            secondaryBoundaryCrossed(
+                this.boundaries.secondaryP.index,
+                this.initialPosition[1] < this.boundaries.secondaryP.value && this.initialPosition[1] < finalPosition[1]);
         }
         this.finalPosition = finalPosition;
     }
@@ -516,7 +567,7 @@ class UEBlueprint extends HTMLElement {
         this.zoom = 0;
         /** @type {HTMLElement} */
         this.headerElement = null;
-        /** @type {SelectionModel} */
+        /** @type {FastSelectionModel} */
         this.selectionModel = null;
         /** @type {(node: UEBlueprintObject) => BoundariesInfo} */
         this.nodeBoundariesSupplier = (node) => {
@@ -780,7 +831,7 @@ class UEBlueprint extends HTMLElement {
         this.selectorElement.style.setProperty('--ueb-select-to-x', initialPosition[0]);
         this.selectorElement.style.setProperty('--ueb-select-to-y', initialPosition[1]);
         this.selectorElement.dataset.selecting = "true";
-        this.selectionModel = new SelectionModel(initialPosition, this.nodes, this.nodeBoundariesSupplier, this.nodeSelectToggleFunction);
+        this.selectionModel = new FastSelectionModel(initialPosition, this.nodes, this.nodeBoundariesSupplier, this.nodeSelectToggleFunction);
     }
 
     finishSelecting() {
@@ -946,6 +997,9 @@ class UEBlueprintObject extends UEBlueprintDraggableObject {
     }
 
     setSelected(value = true) {
+        if (this.selected == value) {
+            return
+        }
         this.selected = value;
         if (value) {
             this.classList.add('ueb-selected');

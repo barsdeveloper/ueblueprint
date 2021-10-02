@@ -1,7 +1,8 @@
 import Utility from "./Utility.js"
 import UEBlueprintDragScroll from "./UEBlueprintDragScroll.js"
 import UEBlueprintSelect from "./UEBlueprintSelect.js"
-import SelectionModel from "./SelectionModel.js"
+import FastSelectionModel from "./FastSelectionModel.js"
+import SimpleSelectionModel from "./SimpleSelectionModel.js"
 
 /**
  * @typedef {import("./UEBlueprintObject.js").default} UEBlueprintObject
@@ -72,7 +73,7 @@ export default class UEBlueprint extends HTMLElement {
         this.zoom = 0
         /** @type {HTMLElement} */
         this.headerElement = null
-        /** @type {SelectionModel} */
+        /** @type {FastSelectionModel} */
         this.selectionModel = null
         /** @type {(node: UEBlueprintObject) => BoundariesInfo} */
         this.nodeBoundariesSupplier = (node) => {
@@ -336,7 +337,7 @@ export default class UEBlueprint extends HTMLElement {
         this.selectorElement.style.setProperty('--ueb-select-to-x', initialPosition[0])
         this.selectorElement.style.setProperty('--ueb-select-to-y', initialPosition[1])
         this.selectorElement.dataset.selecting = "true"
-        this.selectionModel = new SelectionModel(initialPosition, this.nodes, this.nodeBoundariesSupplier, this.nodeSelectToggleFunction)
+        this.selectionModel = new FastSelectionModel(initialPosition, this.nodes, this.nodeBoundariesSupplier, this.nodeSelectToggleFunction)
     }
 
     finishSelecting() {

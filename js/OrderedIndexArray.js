@@ -17,7 +17,10 @@ export default class OrderedIndexArray {
      * @returns The element of the array
      */
     get(index) {
-        return this.array[index]
+        if (index >= 0 && index < this.length) {
+            return this.array[index]
+        }
+        return null
     }
 
     /**
@@ -35,7 +38,7 @@ export default class OrderedIndexArray {
      */
     getPosition(value) {
         let l = 0
-        let r = this.array.length
+        let r = this.length
         while (l < r) {
             let m = Math.floor((l + r) / 2)
             if (this.comparisonValueSupplier(this.array[m]) < value) {
@@ -47,24 +50,46 @@ export default class OrderedIndexArray {
         return l
     }
 
+    reserve(length) {
+        if (this.array.length < length) {
+            let newArray = new Uint32Array(length)
+            newArray.set(this.array)
+            this.array = newArray
+        }
+    }
+
     /** 
      * Inserts the element in the array.
      * @param element {number} The value to insert into the array.
      * @returns {number} The position into occupied by value into the array.
      */
     insert(element, comparisonValue = null) {
+        let i = 0;
+        for (i = 0; i < this.length; ++i) {
+            if (element == this.array[i]) {
+                console.log("error");
+                break;
+            }
+        }
         let position = this.getPosition(this.comparisonValueSupplier(element))
         if (
             position < this.currentPosition
             || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
             ++this.currentPosition
         }
+        /*
         let newArray = new Uint32Array(this.array.length + 1)
         newArray.set(this.array.subarray(0, position), 0)
         newArray[position] = element
         newArray.set(this.array.subarray(position), position + 1)
         this.array = newArray
-        this.length = this.array.length
+        */
+        this.shiftRight(position)
+        this.array[position] = element
+        ++this.length
+        if (this.length > this.array.length) {
+            console.log("error2")
+        }
         return position
     }
 
@@ -87,23 +112,26 @@ export default class OrderedIndexArray {
         if (position < this.currentPosition) {
             --this.currentPosition
         }
+        /*
         let newArray = new Uint32Array(this.array.length - 1)
         newArray.set(this.array.subarray(0, position), 0)
         newArray.set(this.array.subarray(position + 1), position)
         this.array = newArray
-        this.length = this.array.length
+        */
+        this.shiftLeft(position)
+        --this.length
         return position
     }
 
     getNext() {
-        if (this.currentPosition >= 0 && this.currentPosition < this.array.length) {
+        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
             return this.get(this.currentPosition)
         }
         return null
     }
 
     getNextValue() {
-        if (this.currentPosition >= 0 && this.currentPosition < this.array.length) {
+        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
             return this.comparisonValueSupplier(this.get(this.currentPosition))
         } else {
             return Number.MAX_SAFE_INTEGER
@@ -123,5 +151,13 @@ export default class OrderedIndexArray {
         } else {
             return Number.MIN_SAFE_INTEGER
         }
+    }
+
+    shiftLeft(leftLimit, steps = 1) {
+        this.array.set(this.array.subarray(leftLimit + steps), leftLimit)
+    }
+
+    shiftRight(leftLimit, steps = 1) {
+        this.array.set(this.array.subarray(leftLimit, -steps), leftLimit + steps)
     }
 }
