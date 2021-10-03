@@ -123,7 +123,8 @@ class UDrag extends UMouseClickDrag {
 
     dragTo(e) {
         let mousePosition = this.snapToGrid(e.clientX, e.clientY);
-        const d = [mousePosition[0] - this.mousePosition[0], mousePosition[1] - this.mousePosition[1]];
+        let scaleCorrection = 1 / this.target.getScale();
+        const d = [(mousePosition[0] - this.mousePosition[0]) * scaleCorrection, (mousePosition[1] - this.mousePosition[1]) * scaleCorrection];
 
         if (d[0] == 0 && d[1] == 0) {
             return
@@ -215,7 +216,7 @@ class UMouseWheel {
             if (self.looseTarget) {
                 /*
                  * Compensating for having used the mouse wheel over a descendant of the target (the element listened for the 'wheel' event).
-                 * We are interested to get the location relative to the listened target, not the exact target that caused the event.
+                 * We are interested to get the location relative to the listened target, not the descendant target that caused the event.
                  */
                 const targetOffset = e.target.getBoundingClientRect();
                 const currentTargetOffset = e.currentTarget.getBoundingClientRect();
@@ -960,6 +961,10 @@ class UEBlueprintDraggableObject extends HTMLElement {
 
     getLocation() {
         return this.location
+    }
+
+    getScale() {
+        return getComputedStyle(this).getPropertyValue('--ueb-scale')
     }
 
 }

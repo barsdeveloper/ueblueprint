@@ -23,7 +23,7 @@ export default class UMouseWheel {
             if (self.looseTarget) {
                 /*
                  * Compensating for having used the mouse wheel over a descendant of the target (the element listened for the 'wheel' event).
-                 * We are interested to get the location relative to the listened target, not the exact target that caused the event.
+                 * We are interested to get the location relative to the listened target, not the descendant target that caused the event.
                  */
                 const targetOffset = e.target.getBoundingClientRect()
                 const currentTargetOffset = e.currentTarget.getBoundingClientRect()

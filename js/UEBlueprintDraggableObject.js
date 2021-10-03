@@ -32,4 +32,8 @@ export default class UEBlueprintDraggableObject extends HTMLElement {
         return this.location
     }
 
+    getScale() {
+        return getComputedStyle(this).getPropertyValue('--ueb-scale')
+    }
+
 }

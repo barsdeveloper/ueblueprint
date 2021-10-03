@@ -24,7 +24,8 @@ export default class UDrag extends UMouseClickDrag {
 
     dragTo(e) {
         let mousePosition = this.snapToGrid(e.clientX, e.clientY)
-        const d = [mousePosition[0] - this.mousePosition[0], mousePosition[1] - this.mousePosition[1]]
+        let scaleCorrection = 1 / this.target.getScale()
+        const d = [(mousePosition[0] - this.mousePosition[0]) * scaleCorrection, (mousePosition[1] - this.mousePosition[1]) * scaleCorrection]
 
         if (d[0] == 0 && d[1] == 0) {
             return
