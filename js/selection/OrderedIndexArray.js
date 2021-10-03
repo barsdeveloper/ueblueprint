@@ -64,13 +64,6 @@ export default class OrderedIndexArray {
      * @returns {number} The position into occupied by value into the array.
      */
     insert(element, comparisonValue = null) {
-        let i = 0;
-        for (i = 0; i < this.length; ++i) {
-            if (element == this.array[i]) {
-                console.log("error");
-                break;
-            }
-        }
         let position = this.getPosition(this.comparisonValueSupplier(element))
         if (
             position < this.currentPosition
@@ -87,9 +80,6 @@ export default class OrderedIndexArray {
         this.shiftRight(position)
         this.array[position] = element
         ++this.length
-        if (this.length > this.array.length) {
-            console.log("error2")
-        }
         return position
     }
 

@@ -1,4 +1,4 @@
-import OrderedIndexArray from "./OrderedIndexArray.js"
+import OrderedIndexArray from "./OrderedIndexArray"
 
 export default class FastSelectionModel {
 
@@ -20,16 +20,16 @@ export default class FastSelectionModel {
      * @param {number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
      * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
      * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
-     * @param {(rect: Rectangle, selected: bool) => void} selectToggleFunction A function that selects or deselects individual rectangles.
+     * @param {(rect: Rectangle, selected: bool) => void} selectFunc A function that selects or deselects individual rectangles.
      */
-    constructor(initialPosition, rectangles, boundariesFunc, selectToggleFunction) {
+    constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
         this.initialPosition = initialPosition
         this.finalPosition = initialPosition
         /** @type Metadata[] */
         this.metadata = new Array(rectangles.length)
         this.primaryOrder = new OrderedIndexArray((element) => this.metadata[element].primaryBoundary)
         this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary)
-        this.selectToggleFunction = selectToggleFunction
+        this.selectFunc = selectFunc
         this.rectangles = rectangles
         this.primaryOrder.reserve(this.rectangles.length)
         this.secondaryOrder.reserve(this.rectangles.length)
@@ -42,7 +42,7 @@ export default class FastSelectionModel {
                 onSecondaryAxis: false
             }
             this.metadata[index] = rectangleMetadata
-            selectToggleFunction(rect, false) // Initially deselected (Eventually)
+            selectFunc(rect, false) // Initially deselected (Eventually)
             const rectangleBoundaries = boundariesFunc(rect)
 
             // Secondary axis first because it may be inserted in this.secondaryOrder during the primary axis check
@@ -65,7 +65,7 @@ export default class FastSelectionModel {
                 if (rectangleBoundaries.secondarySup < this.initialPosition[1] || this.initialPosition[1] < rectangleBoundaries.secondaryInf) {
                     this.secondaryOrder.insert(index)
                 } else {
-                    selectToggleFunction(rect, true)
+                    selectFunc(rect, true)
                 }
             }
         })
@@ -78,22 +78,22 @@ export default class FastSelectionModel {
         this.boundaries = {
             // Primary axis negative expanding 
             primaryN: {
-                'value': this.primaryOrder.getPrevValue(),
-                'index': this.primaryOrder.getPrev()
+                v: this.primaryOrder.getPrevValue(),
+                i: this.primaryOrder.getPrev()
             },
             primaryP: {
-                'value': this.primaryOrder.getNextValue(),
-                'index': this.primaryOrder.getNext()
+                v: this.primaryOrder.getNextValue(),
+                i: this.primaryOrder.getNext()
             },
             // Secondary axis negative expanding
             secondaryN: {
-                'value': this.secondaryOrder.getPrevValue(),
-                'index': this.secondaryOrder.getPrev()
+                v: this.secondaryOrder.getPrevValue(),
+                i: this.secondaryOrder.getPrev()
             },
             // Secondary axis positive expanding
             secondaryP: {
-                'value': this.secondaryOrder.getNextValue(),
-                'index': this.secondaryOrder.getNext()
+                v: this.secondaryOrder.getNextValue(),
+                i: this.secondaryOrder.getNext()
             }
         }
     }
@@ -105,7 +105,7 @@ export default class FastSelectionModel {
         ]
         const primaryBoundaryCrossed = (index, added) => {
             if (this.metadata[index].onSecondaryAxis) {
-                this.selectToggleFunction(this.rectangles[index], added)
+                this.selectFunc(this.rectangles[index], added)
             } else {
                 if (added) {
                     this.secondaryOrder.insert(index, finalPosition[1])
@@ -117,10 +117,10 @@ export default class FastSelectionModel {
                         && Math.sign(secondaryBoundary - this.initialPosition[1]) == direction[1]
                     ) {
                         // Secondary axis is already satisfied then
-                        this.selectToggleFunction(this.rectangles[index], true)
+                        this.selectFunc(this.rectangles[index], true)
                     }
                 } else {
-                    this.selectToggleFunction(this.rectangles[index], false)
+                    this.selectFunc(this.rectangles[index], false)
                     this.secondaryOrder.remove(index)
                 }
             }
@@ -128,35 +128,35 @@ export default class FastSelectionModel {
             this.selectTo(finalPosition)
         }
 
-        if (finalPosition[0] < this.boundaries.primaryN.value) {
+        if (finalPosition[0] < this.boundaries.primaryN.v) {
             --this.primaryOrder.currentPosition
             primaryBoundaryCrossed(
-                this.boundaries.primaryN.index,
-                this.initialPosition[0] > this.boundaries.primaryN.value && finalPosition[0] < this.initialPosition[0])
-        } else if (finalPosition[0] > this.boundaries.primaryP.value) {
+                this.boundaries.primaryN.i,
+                this.initialPosition[0] > this.boundaries.primaryN.v && finalPosition[0] < this.initialPosition[0])
+        } else if (finalPosition[0] > this.boundaries.primaryP.v) {
             ++this.primaryOrder.currentPosition
             primaryBoundaryCrossed(
-                this.boundaries.primaryP.index,
-                this.initialPosition[0] < this.boundaries.primaryP.value && this.initialPosition[0] < finalPosition[0])
+                this.boundaries.primaryP.i,
+                this.initialPosition[0] < this.boundaries.primaryP.v && this.initialPosition[0] < finalPosition[0])
         }
 
 
         const secondaryBoundaryCrossed = (index, added) => {
-            this.selectToggleFunction(this.rectangles[index], added)
+            this.selectFunc(this.rectangles[index], added)
             this.computeBoundaries(finalPosition)
             this.selectTo(finalPosition)
         }
 
-        if (finalPosition[1] < this.boundaries.secondaryN.value) {
+        if (finalPosition[1] < this.boundaries.secondaryN.v) {
             --this.secondaryOrder.currentPosition
             secondaryBoundaryCrossed(
-                this.boundaries.secondaryN.index,
-                this.initialPosition[1] > this.boundaries.secondaryN.value && finalPosition[1] < this.initialPosition[1]);
-        } else if (finalPosition[1] > this.boundaries.secondaryP.value) {
+                this.boundaries.secondaryN.i,
+                this.initialPosition[1] > this.boundaries.secondaryN.v && finalPosition[1] < this.initialPosition[1])
+        } else if (finalPosition[1] > this.boundaries.secondaryP.v) {
             ++this.secondaryOrder.currentPosition
             secondaryBoundaryCrossed(
-                this.boundaries.secondaryP.index,
-                this.initialPosition[1] < this.boundaries.secondaryP.value && this.initialPosition[1] < finalPosition[1]);
+                this.boundaries.secondaryP.i,
+                this.initialPosition[1] < this.boundaries.secondaryP.v && this.initialPosition[1] < finalPosition[1])
         }
         this.finalPosition = finalPosition
     }

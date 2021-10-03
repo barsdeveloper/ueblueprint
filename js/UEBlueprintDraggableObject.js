@@ -1,4 +1,4 @@
-import UEBlueprintDrag from "./UEBlueprintDrag.js"
+import UDrag from "./input/UDrag"
 
 export default class UEBlueprintDraggableObject extends HTMLElement {
 
@@ -9,7 +9,9 @@ export default class UEBlueprintDraggableObject extends HTMLElement {
     }
 
     connectedCallback() {
-        this.dragObject = new UEBlueprintDrag(this)
+        this.dragObject = new UDrag(this, null, {
+            looseTarget: true
+        })
     }
 
     disconnectedCallback() {

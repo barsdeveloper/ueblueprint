@@ -1,11 +1,12 @@
-import Utility from "./Utility.js"
-import UEBlueprintDragScroll from "./UEBlueprintDragScroll.js"
-import UEBlueprintSelect from "./UEBlueprintSelect.js"
-import FastSelectionModel from "./FastSelectionModel.js"
-import SimpleSelectionModel from "./SimpleSelectionModel.js"
+import Utility from "./Utility"
+import UDragScroll from "./input/UDragScroll"
+import USelect from "./input/USelect"
+import UZoom from "./input/UZoom"
+import FastSelectionModel from "./selection/FastSelectionModel"
+import SimpleSelectionModel from "./selection/SimpleSelectionModel"
 
 /**
- * @typedef {import("./UEBlueprintObject.js").default} UEBlueprintObject
+ * @typedef {import("./UEBlueprintObject").default} UEBlueprintObject
  */
 export default class UEBlueprint extends HTMLElement {
 
@@ -37,7 +38,7 @@ export default class UEBlueprint extends HTMLElement {
     }
 
     static getElement(template) {
-        let div = document.createElement('div');
+        let div = document.createElement('div')
         div.innerHTML = template
         return div.firstElementChild
     }
@@ -61,8 +62,6 @@ export default class UEBlueprint extends HTMLElement {
         this.selectorElement = null
         /** @type {HTMLElement} */
         this.nodesContainerElement = null
-        /** @type {IntersectionObserver} */
-        this.selectorObserver = null
         this.dragObject = null
         this.selectObject = null
         /** @type {Array<number>} */
@@ -107,28 +106,19 @@ export default class UEBlueprint extends HTMLElement {
         this.nodesContainerElement = this.querySelector('[data-nodes]')
         this.insertChildren()
 
-        this.selectorObserver = new IntersectionObserver(
-            (entries, observer) => {
-                entries.map(entry => {
-                    /** @type {import("./UEBlueprintObject.js").default;}" */
-                    let target = entry.target
-                    target.setSelected(entry.isIntersecting)
-                })
-            }, {
-            threshold: [0.01],
-            root: this.selectorElement
-        })
-        this.nodes.forEach(element => this.selectorObserver.observe(element))
-
-        this.dragObject = new UEBlueprintDragScroll(this, {
+        this.dragObject = new UDragScroll(this.getGridDOMElement(), this, {
             'clickButton': 2,
             'stepSize': 1,
             'exitDragAnyButton': false
         })
 
-        this.selectObject = new UEBlueprintSelect(this, {
+        this.zoomObject = new UZoom(this.getGridDOMElement(), this, {
+            looseTarget: true
+        })
+
+        this.selectObject = new USelect(this.getGridDOMElement(), this, {
             'clickButton': 0,
-            'exitSelectAnyButton': true
+            'exitAnyButton': true
         })
     }
 
@@ -354,6 +344,13 @@ export default class UEBlueprint extends HTMLElement {
         this.selectorElement.style.setProperty('--ueb-select-to-x', finalPosition[0])
         this.selectorElement.style.setProperty('--ueb-select-to-y', finalPosition[1])
         this.selectionModel.selectTo(finalPosition)
+    }
+
+    /**
+     * Unselect all nodes
+     */
+    unselectAll() {
+        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, false))
     }
 
     /**

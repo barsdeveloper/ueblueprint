@@ -1,4 +1,4 @@
-import UEBlueprintDraggableObject from "./UEBlueprintDraggableObject.js"
+import UEBlueprintDraggableObject from "./UEBlueprintDraggableObject"
 
 export default class UEBlueprintObject extends UEBlueprintDraggableObject {
     static classInputs = [/*
@@ -86,7 +86,7 @@ export default class UEBlueprintObject extends UEBlueprintDraggableObject {
         this.style.setProperty('--ueb-position-x', this.location[0])
         this.style.setProperty('--ueb-position-y', this.location[1])
 
-        let aDiv = document.createElement('div');
+        let aDiv = document.createElement('div')
         aDiv.innerHTML = this.render()
         this.appendChild(aDiv.firstElementChild)
     }
