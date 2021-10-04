@@ -1,18 +1,14 @@
-import Utility from "../Utility"
+import UPointing from "./UPointing"
 
 /**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  */
-export default class UMouseClickDrag {
+export default class UMouseClickDrag extends UPointing {
     constructor(target, blueprint, options) {
-        this.target = target
-        /** @type {import("../UEBlueprint").default}" */
-        this.blueprint = blueprint
+        super(target, blueprint, options)
         this.clickButton = options?.clickButton ?? 0
         this.exitAnyButton = options?.exitAnyButton ?? true
         this.looseTarget = options?.looseTarget ?? false
-        this.moveEverywhere = options?.moveEverywhere ?? false
-        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
         this.started = false
         this.clickedPosition = [0, 0]
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace
@@ -28,7 +24,7 @@ export default class UMouseClickDrag {
                         // Attach the listeners
                         movementListenedElement.addEventListener('mousemove', self.mouseStartedMovingHandler)
                         document.addEventListener('mouseup', self.mouseUpHandler)
-                        self.clickedPosition = self.adjustScale(self.adjustLocation([e.clientX, e.clientY]))
+                        self.clickedPosition = self.getLocation(e)
                         self.clicked(self.clickedPosition)
                     }
                     break
@@ -56,9 +52,9 @@ export default class UMouseClickDrag {
         this.mouseMoveHandler = function (e) {
             e.preventDefault()
             e.stopPropagation()
-            const offset = self.adjustScale(self.adjustLocation([e.clientX, e.clientY]))
+            const location = self.getLocation(e)
             const movement = [e.movementX, e.movementY]
-            self.dragTo(offset, movement)
+            self.dragTo(location, movement)
         }
 
         this.mouseUpHandler = function (e) {
@@ -79,24 +75,6 @@ export default class UMouseClickDrag {
 
     preventDefault(e) {
         e.preventDefault()
-    }
-
-    adjustLocation(location) {
-        const targetOffset = this.movementSpace.getBoundingClientRect()
-        location = [
-            (location[0] - targetOffset.x),
-            (location[1] - targetOffset.y)
-        ]
-        return location
-    }
-
-    adjustScale(location) {
-        let scaleCorrection = 1 / Utility.getScale(this.target)
-        location = [
-            location[0] * scaleCorrection,
-            location[1] * scaleCorrection
-        ]
-        return location
     }
 
     unlistenDOMElement() {

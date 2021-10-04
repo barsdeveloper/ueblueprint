@@ -120,6 +120,7 @@ export default class UEBlueprint extends HTMLElement {
 
         this.selectObject = new USelect(this.getGridDOMElement(), this, {
             clickButton: 0,
+            moveEverywhere: true,
             exitAnyButton: true
         })
     }
