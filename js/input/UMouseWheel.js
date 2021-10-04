@@ -1,3 +1,5 @@
+import Utility from "../Utility"
+
 export default class UMouseWheel {
 
     /**
@@ -18,8 +20,8 @@ export default class UMouseWheel {
             if (!self.looseTarget && e.target != e.currentTarget) {
                 return
             }
-            let scaleCorrection = 1 / self.blueprint.getScale()
-            let offset = [e.offsetX, e.offsetY]
+            let scaleCorrection = 1 / Utility.getScale(self.target)
+            let offset = [0, 0]
             if (self.looseTarget) {
                 /*
                  * Compensating for having used the mouse wheel over a descendant of the target (the element listened for the 'wheel' event).
@@ -28,10 +30,10 @@ export default class UMouseWheel {
                 const targetOffset = e.target.getBoundingClientRect()
                 const currentTargetOffset = e.currentTarget.getBoundingClientRect()
                 offset = [
-                    offset[0] + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection,
-                    offset[1] + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection
+                    e.offsetX + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection,
+                    e.offsetY + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection
                 ]
-            }
+            } // TODO else branch
             self.wheel(Math.sign(e.deltaY), offset)
         }
 

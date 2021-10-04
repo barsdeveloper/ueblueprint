@@ -74,16 +74,18 @@ export default class UEBlueprint extends HTMLElement {
         this.headerElement = null
         /** @type {FastSelectionModel} */
         this.selectionModel = null
+        let self = this
         /** @type {(node: UEBlueprintObject) => BoundariesInfo} */
         this.nodeBoundariesSupplier = (node) => {
             let rect = node.getBoundingClientRect()
             let gridRect = this.nodesContainerElement.getBoundingClientRect()
+            const scaleCorrection = 1 / this.getScale()
             return {
-                primaryInf: rect.left - gridRect.left,
-                primarySup: rect.right - gridRect.right,
+                primaryInf: (rect.left - gridRect.left) * scaleCorrection,
+                primarySup: (rect.right - gridRect.right) * scaleCorrection,
                 // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-                secondaryInf: rect.top - gridRect.top,
-                secondarySup: rect.bottom - gridRect.bottom
+                secondaryInf: (rect.top - gridRect.top) * scaleCorrection,
+                secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
             }
         }
         /** @type {(node: UEBlueprintObject, selected: bool) => void}} */
@@ -107,9 +109,9 @@ export default class UEBlueprint extends HTMLElement {
         this.insertChildren()
 
         this.dragObject = new UDragScroll(this.getGridDOMElement(), this, {
-            'clickButton': 2,
-            'stepSize': 1,
-            'exitDragAnyButton': false
+            clickButton: 2,
+            moveEverywhere: true,
+            exitAnyButton: false
         })
 
         this.zoomObject = new UZoom(this.getGridDOMElement(), this, {
@@ -117,8 +119,8 @@ export default class UEBlueprint extends HTMLElement {
         })
 
         this.selectObject = new USelect(this.getGridDOMElement(), this, {
-            'clickButton': 0,
-            'exitAnyButton': true
+            clickButton: 0,
+            exitAnyButton: true
         })
     }
 

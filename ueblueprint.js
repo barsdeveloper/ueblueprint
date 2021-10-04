@@ -2,6 +2,10 @@ class Utility {
     static clamp(val, min, max) {
         return Math.min(Math.max(val, min), max)
     }
+
+    static getScale(element) {
+        return getComputedStyle(element).getPropertyValue('--ueb-scale')
+    }
 }
 
 /**
@@ -15,9 +19,11 @@ class UMouseClickDrag {
         this.clickButton = options?.clickButton ?? 0;
         this.exitAnyButton = options?.exitAnyButton ?? true;
         this.looseTarget = options?.looseTarget ?? false;
+        this.moveEverywhere = options?.moveEverywhere ?? false;
+        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
         this.started = false;
         this.clickedPosition = [0, 0];
-        let movementSpace = this.blueprint?.getGridDOMElement() ?? document;
+        const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
         let self = this;
 
         this.mouseDownHandler = function (e) {
@@ -25,12 +31,13 @@ class UMouseClickDrag {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
+                        e.stopPropagation();
                         self.started = false;
                         // Attach the listeners
-                        movementSpace.addEventListener('mousemove', self.mouseStartedMovingHandler);
+                        movementListenedElement.addEventListener('mousemove', self.mouseStartedMovingHandler);
                         document.addEventListener('mouseup', self.mouseUpHandler);
-                        self.clickedPosition = [e.offsetX, e.offsetY];
-                        self.clicked(e);
+                        self.clickedPosition = self.adjustScale(self.adjustLocation([e.clientX, e.clientY]));
+                        self.clicked(self.clickedPosition);
                     }
                     break
                 default:
@@ -43,28 +50,32 @@ class UMouseClickDrag {
 
         this.mouseStartedMovingHandler = function (e) {
             e.preventDefault();
+            e.stopPropagation();
 
             // Delegate from now on to self.mouseMoveHandler
-            movementSpace.removeEventListener('mousemove', self.mouseStartedMovingHandler);
-            movementSpace.addEventListener('mousemove', self.mouseMoveHandler);
+            movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler);
+            movementListenedElement.addEventListener('mousemove', self.mouseMoveHandler);
 
             // Do actual actions
-            self.startDrag(e);
+            self.startDrag();
             self.started = true;
         };
 
         this.mouseMoveHandler = function (e) {
             e.preventDefault();
-            self.dragTo(e);
+            e.stopPropagation();
+            const offset = self.adjustScale(self.adjustLocation([e.clientX, e.clientY]));
+            const movement = [e.movementX, e.movementY];
+            self.dragTo(offset, movement);
         };
 
         this.mouseUpHandler = function (e) {
             if (!self.exitAnyButton || e.button == self.clickButton) {
-                // Remove the handlers of `mousemove` and `mouseup`
-                movementSpace.removeEventListener('mousemove', self.mouseStartedMovingHandler);
-                movementSpace.removeEventListener('mousemove', self.mouseMoveHandler);
+                // Remove the handlers of "mousemove" and "mouseup"
+                movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler);
+                movementListenedElement.removeEventListener('mousemove', self.mouseMoveHandler);
                 document.removeEventListener('mouseup', self.mouseUpHandler);
-                self.endDrag(e);
+                self.endDrag();
             }
         };
 
@@ -78,6 +89,24 @@ class UMouseClickDrag {
         e.preventDefault();
     }
 
+    adjustLocation(location) {
+        const targetOffset = this.movementSpace.getBoundingClientRect();
+        location = [
+            (location[0] - targetOffset.x),
+            (location[1] - targetOffset.y)
+        ];
+        return location
+    }
+
+    adjustScale(location) {
+        let scaleCorrection = 1 / Utility.getScale(this.target);
+        location = [
+            location[0] * scaleCorrection,
+            location[1] * scaleCorrection
+        ];
+        return location
+    }
+
     unlistenDOMElement() {
         this.target.removeEventListener('mousedown', this.mouseDownHandler);
         if (this.clickButton == 2) {
@@ -86,70 +115,23 @@ class UMouseClickDrag {
     }
 
     /* Subclasses will override the following methods */
-    clicked(e) {
+    clicked(location) {
     }
 
-    startDrag(e) {
+    startDrag() {
     }
 
-    dragTo(e) {
+    dragTo(location, movement) {
     }
 
-    endDrag(e) {
-    }
-}
-
-class UDrag extends UMouseClickDrag {
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        this.stepSize = options?.stepSize;
-        this.mousePosition = [0, 0];
-    }
-
-    snapToGrid(posX, posY) {
-        return [
-            this.stepSize * Math.round(posX / this.stepSize),
-            this.stepSize * Math.round(posY / this.stepSize)
-        ]
-    }
-
-    startDrag(e) {
-        if (!this.stepSize) {
-            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue('--ueb-grid-snap'));
-        }
-        // Get the current mouse position
-        this.mousePosition = this.snapToGrid(e.clientX, e.clientY);
-    }
-
-    dragTo(e) {
-        let mousePosition = this.snapToGrid(e.clientX, e.clientY);
-        let scaleCorrection = 1 / this.target.getScale();
-        const d = [(mousePosition[0] - this.mousePosition[0]) * scaleCorrection, (mousePosition[1] - this.mousePosition[1]) * scaleCorrection];
-
-        if (d[0] == 0 && d[1] == 0) {
-            return
-        }
-
-        this.target.addLocation(d);
-
-        // Reassign the position of mouse
-        this.mousePosition = mousePosition;
+    endDrag() {
     }
 }
 
-class UDragScroll extends UDrag {
+class UDragScroll extends UMouseClickDrag {
 
-    dragTo(e) {
-        const mousePosition = this.snapToGrid(e.clientX, e.clientY);
-
-        // How far the mouse has been moved
-        const dx = mousePosition[0] - this.mousePosition[0];
-        const dy = mousePosition[1] - this.mousePosition[1];
-
-        this.blueprint.scrollDelta([-dx, -dy]);
-
-        // Reassign the position of mouse
-        this.mousePosition = mousePosition;
+    dragTo(location, movement) {
+        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
     }
 
 }
@@ -164,25 +146,15 @@ class USelect extends UMouseClickDrag {
         this.mousePosition = [0, 0];
     }
 
-    clicked(e) {
-    }
-
-    startDrag(e) {
+    startDrag() {
         this.blueprint.startSelecting(this.clickedPosition);
     }
 
-    dragTo(e) {
-        let scaleCorrection = 1 / this.blueprint.getScale();
-        const targetOffset = e.target.getBoundingClientRect();
-        const currentTargetOffset = e.currentTarget.getBoundingClientRect();
-        let offset = [
-            e.offsetX + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection,
-            e.offsetY + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection
-        ];
-        this.blueprint.doSelecting(offset);
+    dragTo(location, movement) {
+        this.blueprint.doSelecting(location);
     }
 
-    endDrag(e) {
+    endDrag() {
         if (this.started) {
             this.blueprint.finishSelecting();
         } else {
@@ -211,8 +183,8 @@ class UMouseWheel {
             if (!self.looseTarget && e.target != e.currentTarget) {
                 return
             }
-            let scaleCorrection = 1 / self.blueprint.getScale();
-            let offset = [e.offsetX, e.offsetY];
+            let scaleCorrection = 1 / Utility.getScale(self.target);
+            let offset = [0, 0];
             if (self.looseTarget) {
                 /*
                  * Compensating for having used the mouse wheel over a descendant of the target (the element listened for the 'wheel' event).
@@ -221,10 +193,10 @@ class UMouseWheel {
                 const targetOffset = e.target.getBoundingClientRect();
                 const currentTargetOffset = e.currentTarget.getBoundingClientRect();
                 offset = [
-                    offset[0] + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection,
-                    offset[1] + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection
+                    e.offsetX + targetOffset.x * scaleCorrection - currentTargetOffset.x * scaleCorrection,
+                    e.offsetY + targetOffset.y * scaleCorrection - currentTargetOffset.y * scaleCorrection
                 ];
-            }
+            } // TODO else branch
             self.wheel(Math.sign(e.deltaY), offset);
         };
 
@@ -637,12 +609,13 @@ class UEBlueprint extends HTMLElement {
         this.nodeBoundariesSupplier = (node) => {
             let rect = node.getBoundingClientRect();
             let gridRect = this.nodesContainerElement.getBoundingClientRect();
+            const scaleCorrection = 1 / this.getScale();
             return {
-                primaryInf: rect.left - gridRect.left,
-                primarySup: rect.right - gridRect.right,
+                primaryInf: (rect.left - gridRect.left) * scaleCorrection,
+                primarySup: (rect.right - gridRect.right) * scaleCorrection,
                 // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-                secondaryInf: rect.top - gridRect.top,
-                secondarySup: rect.bottom - gridRect.bottom
+                secondaryInf: (rect.top - gridRect.top) * scaleCorrection,
+                secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
             }
         };
         /** @type {(node: UEBlueprintObject, selected: bool) => void}} */
@@ -666,9 +639,9 @@ class UEBlueprint extends HTMLElement {
         this.insertChildren();
 
         this.dragObject = new UDragScroll(this.getGridDOMElement(), this, {
-            'clickButton': 2,
-            'stepSize': 1,
-            'exitDragAnyButton': false
+            clickButton: 2,
+            moveEverywhere: true,
+            exitAnyButton: false
         });
 
         this.zoomObject = new UZoom(this.getGridDOMElement(), this, {
@@ -676,8 +649,8 @@ class UEBlueprint extends HTMLElement {
         });
 
         this.selectObject = new USelect(this.getGridDOMElement(), this, {
-            'clickButton': 0,
-            'exitAnyButton': true
+            clickButton: 0,
+            exitAnyButton: true
         });
     }
 
@@ -931,6 +904,46 @@ class UEBlueprint extends HTMLElement {
 
 customElements.define('u-blueprint', UEBlueprint);
 
+class UDrag extends UMouseClickDrag {
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+        this.stepSize = parseInt(options?.stepSize);
+        this.mousePosition = [0, 0];
+    }
+
+    snapToGrid(location) {
+        return [
+            this.stepSize * Math.round(location[0] / this.stepSize),
+            this.stepSize * Math.round(location[1] / this.stepSize)
+        ]
+    }
+
+    startDrag() {
+        if (isNaN(this.stepSize) || this.stepSize <= 0) {
+            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue('--ueb-grid-snap'));
+            if (isNaN(this.stepSize) || this.stepSize <= 0) {
+                this.stepSize = 1;
+            }
+        }
+        // Get the current mouse position
+        this.mousePosition = this.stepSize != 1 ? this.snapToGrid(this.clickedPosition) : this.clickedPosition;
+    }
+
+    dragTo(location, movement) {
+        const mousePosition = this.stepSize != 1 ? this.snapToGrid(location) : location;
+        const d = [mousePosition[0] - this.mousePosition[0], mousePosition[1] - this.mousePosition[1]];
+
+        if (d[0] == 0 && d[1] == 0) {
+            return
+        }
+
+        this.target.addLocation(d);
+
+        // Reassign the position of mouse
+        this.mousePosition = mousePosition;
+    }
+}
+
 class UEBlueprintDraggableObject extends HTMLElement {
 
     constructor() {
@@ -961,10 +974,6 @@ class UEBlueprintDraggableObject extends HTMLElement {
 
     getLocation() {
         return this.location
-    }
-
-    getScale() {
-        return getComputedStyle(this).getPropertyValue('--ueb-scale')
     }
 
 }

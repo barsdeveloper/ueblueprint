@@ -1,18 +1,9 @@
-import UDrag from "./UDrag"
+import UMouseClickDrag from "./UMouseClickDrag"
 
-export default class UDragScroll extends UDrag {
+export default class UDragScroll extends UMouseClickDrag {
 
-    dragTo(e) {
-        const mousePosition = this.snapToGrid(e.clientX, e.clientY)
-
-        // How far the mouse has been moved
-        const dx = mousePosition[0] - this.mousePosition[0]
-        const dy = mousePosition[1] - this.mousePosition[1]
-
-        this.blueprint.scrollDelta([-dx, -dy])
-
-        // Reassign the position of mouse
-        this.mousePosition = mousePosition
+    dragTo(location, movement) {
+        this.blueprint.scrollDelta([-movement[0], -movement[1]])
     }
 
 }

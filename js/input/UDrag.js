@@ -3,29 +3,31 @@ import UMouseClickDrag from "./UMouseClickDrag"
 export default class UDrag extends UMouseClickDrag {
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
-        this.stepSize = options?.stepSize
+        this.stepSize = parseInt(options?.stepSize)
         this.mousePosition = [0, 0]
     }
 
-    snapToGrid(posX, posY) {
+    snapToGrid(location) {
         return [
-            this.stepSize * Math.round(posX / this.stepSize),
-            this.stepSize * Math.round(posY / this.stepSize)
+            this.stepSize * Math.round(location[0] / this.stepSize),
+            this.stepSize * Math.round(location[1] / this.stepSize)
         ]
     }
 
-    startDrag(e) {
-        if (!this.stepSize) {
+    startDrag() {
+        if (isNaN(this.stepSize) || this.stepSize <= 0) {
             this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue('--ueb-grid-snap'))
+            if (isNaN(this.stepSize) || this.stepSize <= 0) {
+                this.stepSize = 1
+            }
         }
         // Get the current mouse position
-        this.mousePosition = this.snapToGrid(e.clientX, e.clientY)
+        this.mousePosition = this.stepSize != 1 ? this.snapToGrid(this.clickedPosition) : this.clickedPosition
     }
 
-    dragTo(e) {
-        let mousePosition = this.snapToGrid(e.clientX, e.clientY)
-        let scaleCorrection = 1 / this.target.getScale()
-        const d = [(mousePosition[0] - this.mousePosition[0]) * scaleCorrection, (mousePosition[1] - this.mousePosition[1]) * scaleCorrection]
+    dragTo(location, movement) {
+        const mousePosition = this.stepSize != 1 ? this.snapToGrid(location) : location
+        const d = [mousePosition[0] - this.mousePosition[0], mousePosition[1] - this.mousePosition[1]]
 
         if (d[0] == 0 && d[1] == 0) {
             return

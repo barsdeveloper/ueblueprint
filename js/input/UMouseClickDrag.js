@@ -1,3 +1,5 @@
+import Utility from "../Utility"
+
 /**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  */
@@ -9,9 +11,11 @@ export default class UMouseClickDrag {
         this.clickButton = options?.clickButton ?? 0
         this.exitAnyButton = options?.exitAnyButton ?? true
         this.looseTarget = options?.looseTarget ?? false
+        this.moveEverywhere = options?.moveEverywhere ?? false
+        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
         this.started = false
         this.clickedPosition = [0, 0]
-        let movementSpace = this.blueprint?.getGridDOMElement() ?? document
+        const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace
         let self = this
 
         this.mouseDownHandler = function (e) {
@@ -19,12 +23,13 @@ export default class UMouseClickDrag {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
+                        e.stopPropagation()
                         self.started = false
                         // Attach the listeners
-                        movementSpace.addEventListener('mousemove', self.mouseStartedMovingHandler)
+                        movementListenedElement.addEventListener('mousemove', self.mouseStartedMovingHandler)
                         document.addEventListener('mouseup', self.mouseUpHandler)
-                        self.clickedPosition = [e.offsetX, e.offsetY]
-                        self.clicked(e)
+                        self.clickedPosition = self.adjustScale(self.adjustLocation([e.clientX, e.clientY]))
+                        self.clicked(self.clickedPosition)
                     }
                     break
                 default:
@@ -37,28 +42,32 @@ export default class UMouseClickDrag {
 
         this.mouseStartedMovingHandler = function (e) {
             e.preventDefault()
+            e.stopPropagation()
 
             // Delegate from now on to self.mouseMoveHandler
-            movementSpace.removeEventListener('mousemove', self.mouseStartedMovingHandler)
-            movementSpace.addEventListener('mousemove', self.mouseMoveHandler)
+            movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler)
+            movementListenedElement.addEventListener('mousemove', self.mouseMoveHandler)
 
             // Do actual actions
-            self.startDrag(e)
+            self.startDrag()
             self.started = true
         }
 
         this.mouseMoveHandler = function (e) {
             e.preventDefault()
-            self.dragTo(e)
+            e.stopPropagation()
+            const offset = self.adjustScale(self.adjustLocation([e.clientX, e.clientY]))
+            const movement = [e.movementX, e.movementY]
+            self.dragTo(offset, movement)
         }
 
         this.mouseUpHandler = function (e) {
             if (!self.exitAnyButton || e.button == self.clickButton) {
-                // Remove the handlers of `mousemove` and `mouseup`
-                movementSpace.removeEventListener('mousemove', self.mouseStartedMovingHandler)
-                movementSpace.removeEventListener('mousemove', self.mouseMoveHandler)
+                // Remove the handlers of "mousemove" and "mouseup"
+                movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler)
+                movementListenedElement.removeEventListener('mousemove', self.mouseMoveHandler)
                 document.removeEventListener('mouseup', self.mouseUpHandler)
-                self.endDrag(e)
+                self.endDrag()
             }
         }
 
@@ -72,6 +81,24 @@ export default class UMouseClickDrag {
         e.preventDefault()
     }
 
+    adjustLocation(location) {
+        const targetOffset = this.movementSpace.getBoundingClientRect()
+        location = [
+            (location[0] - targetOffset.x),
+            (location[1] - targetOffset.y)
+        ]
+        return location
+    }
+
+    adjustScale(location) {
+        let scaleCorrection = 1 / Utility.getScale(this.target)
+        location = [
+            location[0] * scaleCorrection,
+            location[1] * scaleCorrection
+        ]
+        return location
+    }
+
     unlistenDOMElement() {
         this.target.removeEventListener('mousedown', this.mouseDownHandler)
         if (this.clickButton == 2) {
@@ -80,15 +107,15 @@ export default class UMouseClickDrag {
     }
 
     /* Subclasses will override the following methods */
-    clicked(e) {
+    clicked(location) {
     }
 
-    startDrag(e) {
+    startDrag() {
     }
 
-    dragTo(e) {
+    dragTo(location, movement) {
     }
 
-    endDrag(e) {
+    endDrag() {
     }
 }
