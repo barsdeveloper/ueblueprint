@@ -15,7 +15,6 @@ class UPointing {
         this.target = target;
         /** @type {import("../UEBlueprint").default}" */
         this.blueprint = blueprint;
-        this.moveEverywhere = options?.moveEverywhere ?? false;
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
     }
 
@@ -38,6 +37,7 @@ class UMouseClickDrag extends UPointing {
         super(target, blueprint, options);
         this.clickButton = options?.clickButton ?? 0;
         this.exitAnyButton = options?.exitAnyButton ?? true;
+        this.moveEverywhere = options?.moveEverywhere ?? false;
         this.looseTarget = options?.looseTarget ?? false;
         this.started = false;
         this.clickedPosition = [0, 0];
@@ -140,8 +140,6 @@ class USelect extends UMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-
-        this.blueprint = blueprint; // blueprint is needed
         this.stepSize = options?.stepSize;
         this.mousePosition = [0, 0];
     }
@@ -920,23 +918,32 @@ class UDrag extends UMouseClickDrag {
             return
         }
 
-        this.target.addLocation(d);
+        this.target.dragDispatch(d);
 
         // Reassign the position of mouse
         this.mousePosition = mousePosition;
     }
 }
 
-class UEBlueprintDraggableObject extends HTMLElement {
+class USelectableDraggableObject extends HTMLElement {
 
     constructor() {
         super();
+        /** @type {import("./UEBlueprint").default}" */
+        this.blueprint = null;
         this.dragObject = null;
         this.location = [0, 0];
+        this.selected = false;
+
+        let self = this;
+        this.dragHandler = (e) => {
+            self.addLocation(e.detail.value);
+        };
     }
 
     connectedCallback() {
-        this.dragObject = new UDrag(this, null, {
+        this.blueprint = this.closest('u-blueprint');
+        this.dragObject = new UDrag(this, null, { // UDrag doesn't need blueprint
             looseTarget: true
         });
     }
@@ -955,13 +962,40 @@ class UEBlueprintDraggableObject extends HTMLElement {
         this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
     }
 
-    getLocation() {
-        return this.location
+    dragDispatch(value) {
+        if (!this.selected) {
+            this.blueprint.unselectAll();
+            this.setSelected(true);
+        }
+        let dragEvent = new CustomEvent('uDragSelected', {
+            detail: {
+                instigator: this,
+                value: value
+            },
+            bubbles: false,
+            cancelable: true,
+            composed: false,
+        });
+        this.blueprint.dispatchEvent(dragEvent);
+    }
+
+    setSelected(value = true) {
+        if (this.selected == value) {
+            return
+        }
+        this.selected = value;
+        if (this.selected) {
+            this.classList.add('ueb-selected');
+            this.blueprint.addEventListener('uDragSelected', this.dragHandler);
+        } else {
+            this.classList.remove('ueb-selected');
+            this.blueprint.removeEventListener('uDragSelected', this.dragHandler);
+        }
     }
 
 }
 
-class UEBlueprintObject extends UEBlueprintDraggableObject {
+class UEBlueprintObject extends USelectableDraggableObject {
     static classInputs = [/*
         {
             name: "Input Example",
@@ -1025,7 +1059,6 @@ class UEBlueprintObject extends UEBlueprintDraggableObject {
 
     constructor() {
         super();
-        this.selected = false;
         this.inputs = this.constructor.classInputs.map(value => {
             return {
                 connected: null
@@ -1050,22 +1083,6 @@ class UEBlueprintObject extends UEBlueprintDraggableObject {
         let aDiv = document.createElement('div');
         aDiv.innerHTML = this.render();
         this.appendChild(aDiv.firstElementChild);
-    }
-
-    isSelected() {
-        return this.selected
-    }
-
-    setSelected(value = true) {
-        if (this.selected == value) {
-            return
-        }
-        this.selected = value;
-        if (value) {
-            this.classList.add('ueb-selected');
-        } else {
-            this.classList.remove('ueb-selected');
-        }
     }
 }
 

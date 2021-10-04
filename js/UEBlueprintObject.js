@@ -1,6 +1,6 @@
-import UEBlueprintDraggableObject from "./UEBlueprintDraggableObject"
+import USelectableDraggableObject from "./USelectableDraggableObject"
 
-export default class UEBlueprintObject extends UEBlueprintDraggableObject {
+export default class UEBlueprintObject extends USelectableDraggableObject {
     static classInputs = [/*
         {
             name: "Input Example",
@@ -64,7 +64,6 @@ export default class UEBlueprintObject extends UEBlueprintDraggableObject {
 
     constructor() {
         super()
-        this.selected = false
         this.inputs = this.constructor.classInputs.map(value => {
             return {
                 connected: null
@@ -89,22 +88,6 @@ export default class UEBlueprintObject extends UEBlueprintDraggableObject {
         let aDiv = document.createElement('div')
         aDiv.innerHTML = this.render()
         this.appendChild(aDiv.firstElementChild)
-    }
-
-    isSelected() {
-        return this.selected
-    }
-
-    setSelected(value = true) {
-        if (this.selected == value) {
-            return
-        }
-        this.selected = value
-        if (value) {
-            this.classList.add('ueb-selected')
-        } else {
-            this.classList.remove('ueb-selected')
-        }
     }
 }
 

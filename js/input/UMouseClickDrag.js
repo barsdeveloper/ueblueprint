@@ -8,6 +8,7 @@ export default class UMouseClickDrag extends UPointing {
         super(target, blueprint, options)
         this.clickButton = options?.clickButton ?? 0
         this.exitAnyButton = options?.exitAnyButton ?? true
+        this.moveEverywhere = options?.moveEverywhere ?? false
         this.looseTarget = options?.looseTarget ?? false
         this.started = false
         this.clickedPosition = [0, 0]

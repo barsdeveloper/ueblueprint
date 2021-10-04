@@ -4,8 +4,6 @@ export default class USelect extends UMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
-
-        this.blueprint = blueprint // blueprint is needed
         this.stepSize = options?.stepSize
         this.mousePosition = [0, 0]
     }

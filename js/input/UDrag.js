@@ -33,7 +33,7 @@ export default class UDrag extends UMouseClickDrag {
             return
         }
 
-        this.target.addLocation(d)
+        this.target.dragDispatch(d)
 
         // Reassign the position of mouse
         this.mousePosition = mousePosition

@@ -204,6 +204,10 @@ u-blueprint {
     border-radius: calc(var(--ueb-node-radius) * 1.4);
 }
 
+.ueb-selected {
+    z-index: 1;
+}
+
 .ueb-selected>.ueb-node-border {
     background-image:
         linear-gradient(to right, #f1b000 0%, #f1b000 100%),

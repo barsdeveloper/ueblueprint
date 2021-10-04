@@ -7,7 +7,6 @@ export default class UPointing {
         this.target = target
         /** @type {import("../UEBlueprint").default}" */
         this.blueprint = blueprint
-        this.moveEverywhere = options?.moveEverywhere ?? false
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
     }
 
