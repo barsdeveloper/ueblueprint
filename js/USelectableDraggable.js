@@ -1,11 +1,10 @@
 import UDrag from "./input/UDrag"
+import UGraphEntity from "./UGraphEntity"
 
-export default class USelectableDraggable extends HTMLElement {
+export default class USelectableDraggable extends UGraphEntity {
 
     constructor() {
         super()
-        /** @type {import("./UEBlueprint").default}" */
-        this.blueprint = null
         this.dragObject = null
         this.location = [0, 0]
         this.selected = false
@@ -17,7 +16,7 @@ export default class USelectableDraggable extends HTMLElement {
     }
 
     connectedCallback() {
-        this.blueprint = this.closest('u-blueprint')
+        super.connectedCallback()
         this.dragObject = new UDrag(this, null, { // UDrag doesn't need blueprint
             looseTarget: true
         })

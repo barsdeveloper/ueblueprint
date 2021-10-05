@@ -84,10 +84,6 @@ export default class UEBlueprintObject extends USelectableDraggable {
         }
         this.style.setProperty('--ueb-position-x', this.location[0])
         this.style.setProperty('--ueb-position-y', this.location[1])
-
-        let aDiv = document.createElement('div')
-        aDiv.innerHTML = this.render()
-        this.appendChild(aDiv.firstElementChild)
     }
 }
 
