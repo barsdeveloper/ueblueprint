@@ -925,7 +925,7 @@ class UDrag extends UMouseClickDrag {
     }
 }
 
-class USelectableDraggableObject extends HTMLElement {
+class USelectableDraggable extends HTMLElement {
 
     constructor() {
         super();
@@ -995,7 +995,7 @@ class USelectableDraggableObject extends HTMLElement {
 
 }
 
-class UEBlueprintObject extends USelectableDraggableObject {
+class UEBlueprintObject extends USelectableDraggable {
     static classInputs = [/*
         {
             name: "Input Example",

@@ -1,6 +1,6 @@
 import UDrag from "./input/UDrag"
 
-export default class USelectableDraggableObject extends HTMLElement {
+export default class USelectableDraggable extends HTMLElement {
 
     constructor() {
         super()

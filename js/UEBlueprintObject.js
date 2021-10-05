@@ -1,6 +1,6 @@
-import USelectableDraggableObject from "./USelectableDraggableObject"
+import USelectableDraggable from "./USelectableDraggable"
 
-export default class UEBlueprintObject extends USelectableDraggableObject {
+export default class UEBlueprintObject extends USelectableDraggable {
     static classInputs = [/*
         {
             name: "Input Example",
