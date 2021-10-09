@@ -1,9 +1,9 @@
-import UPointing from "./UPointing"
+import Pointing from "./Pointing"
 
 /**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  */
-export default class UMouseClickDrag extends UPointing {
+export default class MouseClickDrag extends Pointing {
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
         this.clickButton = options?.clickButton ?? 0

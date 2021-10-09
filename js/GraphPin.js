@@ -1,8 +1,8 @@
-import FGuid from "./FGuid";
+import Guid from "./Guid";
 
-export default class UGraphPin {
+export default class GraphPin {
     constructor(Options) {
-        this.PinId = new FGuid(Options?.PinId)
+        this.PinId = new Guid(Options?.PinId)
         this.PinName = Options?.PinName ?? ""
         this.PinToolTip = Options?.PinToolTip ?? ""
         this.PinType = {
@@ -50,9 +50,9 @@ export default class UGraphPin {
         prefix += prefix != "" ? "." : ""
         for (const property in object) {
             if (object[property]?.constructor?.name === 'Object') {
-                result += UGraphPin.subSerialize(prefix + property, object[property])
+                result += GraphPin.subSerialize(prefix + property, object[property])
             } else {
-                result += `${prefix + property}=${UGraphPin.serializeValue(object[property])},`
+                result += `${prefix + property}=${GraphPin.serializeValue(object[property])},`
             }
         }
         return result

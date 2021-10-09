@@ -1,7 +1,7 @@
-import UDrag from "./input/UDrag"
-import UGraphEntity from "./UGraphEntity"
+import Drag from "./input/Drag"
+import GraphEntity from "./GraphEntity"
 
-export default class USelectableDraggable extends UGraphEntity {
+export default class SelectableDraggable extends GraphEntity {
 
     constructor() {
         super()
@@ -17,7 +17,7 @@ export default class USelectableDraggable extends UGraphEntity {
 
     connectedCallback() {
         super.connectedCallback()
-        this.dragObject = new UDrag(this, null, { // UDrag doesn't need blueprint
+        this.dragObject = new Drag(this, null, { // UDrag doesn't need blueprint
             looseTarget: true
         })
     }

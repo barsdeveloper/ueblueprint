@@ -1,6 +1,6 @@
-import UMouseClickDrag from "./UMouseClickDrag"
+import MouseClickDrag from "./MouseClickDrag"
 
-export default class UDrag extends UMouseClickDrag {
+export default class Drag extends MouseClickDrag {
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize)

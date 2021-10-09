@@ -1,7 +1,7 @@
 import Utility from "./Utility"
-import UDragScroll from "./input/UDragScroll"
-import USelect from "./input/USelect"
-import UZoom from "./input/UZoom"
+import DragScroll from "./input/DragScroll"
+import Select from "./input/Select"
+import Zoom from "./input/Zoom"
 import FastSelectionModel from "./selection/FastSelectionModel"
 import SimpleSelectionModel from "./selection/SimpleSelectionModel"
 
@@ -108,17 +108,17 @@ export default class UEBlueprint extends HTMLElement {
         this.nodesContainerElement = this.querySelector('[data-nodes]')
         this.insertChildren()
 
-        this.dragObject = new UDragScroll(this.getGridDOMElement(), this, {
+        this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
             clickButton: 2,
             moveEverywhere: true,
             exitAnyButton: false
         })
 
-        this.zoomObject = new UZoom(this.getGridDOMElement(), this, {
+        this.zoomObject = new Zoom(this.getGridDOMElement(), this, {
             looseTarget: true
         })
 
-        this.selectObject = new USelect(this.getGridDOMElement(), this, {
+        this.selectObject = new Select(this.getGridDOMElement(), this, {
             clickButton: 0,
             moveEverywhere: true,
             exitAnyButton: true

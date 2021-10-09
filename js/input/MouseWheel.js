@@ -1,11 +1,11 @@
-import UPointing from "./UPointing"
+import Pointing from "./Pointing"
 
-export default class UMouseWheel extends UPointing {
+export default class MouseWheel extends Pointing {
 
     /**
      * 
      * @param {HTMLElement} target 
-     * @param {import("../UEBlueprint").default} blueprint 
+     * @param {import("../UEBlueprint").EBlueprint} blueprint 
      * @param {Object} options 
      */
     constructor(target, blueprint, options) {

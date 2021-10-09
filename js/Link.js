@@ -1,6 +1,6 @@
 import UBlueprintEntity from "./UBlueprintEntity"
 
-export default class ULink extends UBlueprintEntity {
+export default class Link extends UBlueprintEntity {
 
     /**
      * 
@@ -26,4 +26,4 @@ export default class ULink extends UBlueprintEntity {
     }
 }
 
-customElements.define('u-link', ULink)
+customElements.define('u-link', Link)

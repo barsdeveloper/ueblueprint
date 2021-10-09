@@ -1,11 +1,11 @@
 import Utility from "../Utility"
 
-export default class UPointing {
+export default class Pointing {
 
     constructor(target, blueprint, options) {
         /** @type {HTMLElement} */
         this.target = target
-        /** @type {import("../UEBlueprint").default}" */
+        /** @type {import("../UEBlueprint").EBlueprint}" */
         this.blueprint = blueprint
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
     }

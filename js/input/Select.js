@@ -1,6 +1,6 @@
-import UMouseClickDrag from "./UMouseClickDrag"
+import MouseClickDrag from "./MouseClickDrag"
 
-export default class USelect extends UMouseClickDrag {
+export default class Select extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)

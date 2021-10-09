@@ -1,4 +1,4 @@
-export default class FGuid {
+export default class Guid {
     static generateGuid() {
         let result = ""
         let random = new Uint32Array(4);
@@ -15,7 +15,7 @@ export default class FGuid {
         } else if (guid?.constructor?.name === 'FGuid') {
             this.value = guid.value
         } else {
-            this.value = FGuid.generateGuid()
+            this.value = Guid.generateGuid()
         }
     }
 

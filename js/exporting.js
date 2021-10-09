@@ -1,5 +1,5 @@
 import UEBlueprint from "./UEBlueprint"
 import UEBlueprintObject from "./UEBlueprintObject"
-import UGraphPin from "./UGraphPin"
+import GraphPin from "./GraphPin"
 
-export { UEBlueprint, UEBlueprintObject, UGraphPin }
+export { UEBlueprint as UEBlueprint, UEBlueprintObject, GraphPin as UGraphPin }
