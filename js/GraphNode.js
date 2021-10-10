@@ -1,7 +1,7 @@
 import SelectableDraggable from "./SelectableDraggable"
 import NodeTemplate from "./template/NodeTemplate"
 
-export default class UEBlueprintObject extends SelectableDraggable {
+export default class GraphNode extends SelectableDraggable {
 
     constructor() {
         super(new NodeTemplate())
@@ -21,4 +21,4 @@ export default class UEBlueprintObject extends SelectableDraggable {
     }
 }
 
-customElements.define('u-object', UEBlueprintObject)
+customElements.define('u-object', GraphNode)

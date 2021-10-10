@@ -8,7 +8,7 @@ import GraphEntity from "./GraphEntity"
 import BlueprintTemplate from "./template/BlueprintTemplate"
 
 /**
- * @typedef {import("./UEBlueprintObject").default} UEBlueprintObject
+ * @typedef {import("./GraphNode").default} GrapNode
  */
 export default class UEBlueprint extends GraphEntity {
 
@@ -18,7 +18,7 @@ export default class UEBlueprint extends GraphEntity {
 
     constructor() {
         super(new BlueprintTemplate())
-        /** @type {UEBlueprintObject[]}" */
+        /** @type {GrapNode[]}" */
         this.nodes = new Array()
         this.expandGridSize = 400
         /** @type {HTMLElement} */
@@ -44,7 +44,7 @@ export default class UEBlueprint extends GraphEntity {
         /** @type {FastSelectionModel} */
         this.selectionModel = null
         let self = this
-        /** @type {(node: UEBlueprintObject) => BoundariesInfo} */
+        /** @type {(node: GrapNode) => BoundariesInfo} */
         this.nodeBoundariesSupplier = (node) => {
             let rect = node.getBoundingClientRect()
             let gridRect = this.nodesContainerElement.getBoundingClientRect()
@@ -57,7 +57,7 @@ export default class UEBlueprint extends GraphEntity {
                 secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
             }
         }
-        /** @type {(node: UEBlueprintObject, selected: bool) => void}} */
+        /** @type {(node: GrapNode, selected: bool) => void}} */
         this.nodeSelectToggleFunction = (node, selected) => {
             node.setSelected(selected)
         }
@@ -331,7 +331,7 @@ export default class UEBlueprint extends GraphEntity {
 
     /**
      * 
-     * @param  {...UEBlueprintObject} blueprintNodes 
+     * @param  {...GrapNode} blueprintNodes 
      */
     addNode(...blueprintNodes) {
         [...blueprintNodes].reduce(

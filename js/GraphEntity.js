@@ -8,7 +8,7 @@ export default class GraphEntity extends HTMLElement {
      */
     constructor(template) {
         super()
-        /** @type {import("./UEBlueprint").EBlueprint}" */
+        /** @type {import("./UEBlueprint").default}" */
         this.blueprint = null
         this.template = template
     }
