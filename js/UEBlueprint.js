@@ -4,51 +4,20 @@ import Select from "./input/Select"
 import Zoom from "./input/Zoom"
 import FastSelectionModel from "./selection/FastSelectionModel"
 import SimpleSelectionModel from "./selection/SimpleSelectionModel"
+import GraphEntity from "./GraphEntity"
+import BlueprintTemplate from "./template/BlueprintTemplate"
 
 /**
  * @typedef {import("./UEBlueprintObject").default} UEBlueprintObject
  */
-export default class UEBlueprint extends HTMLElement {
-
-    headerTemplate() {
-        return `
-            <div class="ueb-viewport-header">
-                <div class="ueb-viewport-zoom">1:1</div>
-            </div>
-        `
-    }
-
-    overlayTemplate() {
-        return `
-            <div class="ueb-viewport-overlay"></div>
-        `
-    }
-
-    viewportTemplate() {
-        return `
-            <div class="ueb-viewport-body">
-                <div class="ueb-grid"
-                    style="--ueb-additional-x:${this.additional[0]}; --ueb-additional-y:${this.additional[1]}; --ueb-translate-x:${this.translateValue[0]}; --ueb-translate-y:${this.translateValue[1]}">
-                    <div class="ueb-grid-content" data-nodes>
-                        <div class="ueb-selector" data-selecting="false"></div>
-                    </div>
-                </div>
-            </div>
-        `
-    }
-
-    static getElement(template) {
-        let div = document.createElement('div')
-        div.innerHTML = template
-        return div.firstElementChild
-    }
+export default class UEBlueprint extends GraphEntity {
 
     insertChildren() {
         this.querySelector('[data-nodes]').append(...this.nodes)
     }
 
     constructor() {
-        super()
+        super(new BlueprintTemplate())
         /** @type {UEBlueprintObject[]}" */
         this.nodes = new Array()
         this.expandGridSize = 400
@@ -95,17 +64,21 @@ export default class UEBlueprint extends HTMLElement {
     }
 
     connectedCallback() {
+        super.connectedCallback()
         this.classList.add('ueb', `ueb-zoom-${this.zoom}`)
 
-        this.headerElement = this.constructor.getElement(this.headerTemplate())
-        this.appendChild(this.headerElement)
-        this.overlayElement = this.constructor.getElement(this.overlayTemplate())
-        this.appendChild(this.overlayElement)
-        this.viewportElement = this.constructor.getElement(this.viewportTemplate())
-        this.appendChild(this.viewportElement)
+        this.headerElement = this.querySelector('.ueb-node-header')
+        console.assert(this.headerElement, "Header element not provided by the template.")
+        this.overlayElement = this.querySelector('.ueb-viewport-overlay')
+        console.assert(this.overlayElement, "Overlay element not provided by the template.")
+        this.viewportElement = this.querySelector('.ueb-viewport-body')
+        console.assert(this.viewportElement, "Viewport element not provided by the template.")
         this.gridElement = this.viewportElement.querySelector('.ueb-grid')
+        console.assert(this.gridElement, "Grid element not provided by the template.")
         this.selectorElement = this.viewportElement.querySelector('.ueb-selector')
+        console.assert(this.selectorElement, "Selector element not provided by the template.")
         this.nodesContainerElement = this.querySelector('[data-nodes]')
+        console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.")
         this.insertChildren()
 
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {

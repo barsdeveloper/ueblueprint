@@ -3,8 +3,8 @@ import GraphEntity from "./GraphEntity"
 
 export default class SelectableDraggable extends GraphEntity {
 
-    constructor() {
-        super()
+    constructor(template) {
+        super(template)
         this.dragObject = null
         this.location = [0, 0]
         this.selected = false

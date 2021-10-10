@@ -8,12 +8,12 @@ class Utility {
     }
 }
 
-class UPointing {
+class Pointing {
 
     constructor(target, blueprint, options) {
         /** @type {HTMLElement} */
         this.target = target;
-        /** @type {import("../UEBlueprint").default}" */
+        /** @type {import("../UEBlueprint").EBlueprint}" */
         this.blueprint = blueprint;
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
     }
@@ -32,7 +32,7 @@ class UPointing {
 /**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  */
-class UMouseClickDrag extends UPointing {
+class MouseClickDrag extends Pointing {
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
         this.clickButton = options?.clickButton ?? 0;
@@ -128,7 +128,7 @@ class UMouseClickDrag extends UPointing {
     }
 }
 
-class UDragScroll extends UMouseClickDrag {
+class DragScroll extends MouseClickDrag {
 
     dragTo(location, movement) {
         this.blueprint.scrollDelta([-movement[0], -movement[1]]);
@@ -136,7 +136,7 @@ class UDragScroll extends UMouseClickDrag {
 
 }
 
-class USelect extends UMouseClickDrag {
+class Select extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
@@ -161,12 +161,12 @@ class USelect extends UMouseClickDrag {
     }
 }
 
-class UMouseWheel extends UPointing {
+class MouseWheel extends Pointing {
 
     /**
      * 
      * @param {HTMLElement} target 
-     * @param {import("../UEBlueprint").default} blueprint 
+     * @param {import("../UEBlueprint").EBlueprint} blueprint 
      * @param {Object} options 
      */
     constructor(target, blueprint, options) {
@@ -191,7 +191,7 @@ class UMouseWheel extends UPointing {
     }
 }
 
-class UZoom extends UMouseWheel {
+class Zoom extends MouseWheel {
     wheel(variation, location) {
         let zoomLevel = this.blueprint.getZoom();
         zoomLevel -= variation;
@@ -517,11 +517,56 @@ class FastSelectionModel {
 }
 
 /**
- * @typedef {import("./UEBlueprintObject").default} UEBlueprintObject
+ * A Graph Entity is an element that can stay directly (as a first child) on the blueprint grid. Those entities are either nodes or links
  */
-class UEBlueprint extends HTMLElement {
+class GraphEntity extends HTMLElement {
+    /**
+     * 
+     * @param {import("./template/Template").default} template The template to render this node
+     */
+    constructor(template) {
+        super();
+        /** @type {import("./UEBlueprint").EBlueprint}" */
+        this.blueprint = null;
+        this.template = template;
+    }
 
-    headerTemplate() {
+    connectedCallback() {
+        this.blueprint = this.closest('u-blueprint');
+        this.append(...this.template.getElements(this));
+    }
+
+    // Subclasses want to rewrite this
+    render() {
+        return ''
+    }
+}
+
+class Template {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {HTMLElement} element Target element 
+     * @returns The computed html 
+     */
+    render(element) {
+        return ``
+    }
+
+    /**
+     * Returns the html elements rendered by this template.
+     * @param {HTMLElement} element Target element
+     * @returns The rendered elements
+     */
+    getElements(element) {
+        let aDiv = document.createElement('div');
+        aDiv.innerHTML = this.render(element);
+        return aDiv.childNodes
+    }
+}
+
+class BlueprintTemplate extends Template {
+    header(element) {
         return `
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">1:1</div>
@@ -529,17 +574,22 @@ class UEBlueprint extends HTMLElement {
         `
     }
 
-    overlayTemplate() {
+    overlay() {
         return `
             <div class="ueb-viewport-overlay"></div>
         `
     }
 
-    viewportTemplate() {
+    /**
+     * 
+     * @param {import("../UEBlueprint").default} element 
+     * @returns 
+     */
+    viewport(element) {
         return `
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
-                    style="--ueb-additional-x:${this.additional[0]}; --ueb-additional-y:${this.additional[1]}; --ueb-translate-x:${this.translateValue[0]}; --ueb-translate-y:${this.translateValue[1]}">
+                    style="--ueb-additional-x:${element.additional[0]}; --ueb-additional-y:${element.additional[1]}; --ueb-translate-x:${element.translateValue[0]}; --ueb-translate-y:${element.translateValue[1]}">
                     <div class="ueb-grid-content" data-nodes>
                         <div class="ueb-selector" data-selecting="false"></div>
                     </div>
@@ -548,18 +598,31 @@ class UEBlueprint extends HTMLElement {
         `
     }
 
-    static getElement(template) {
-        let div = document.createElement('div');
-        div.innerHTML = template;
-        return div.firstElementChild
+    /**
+     * Computes the html content of the target element.
+     * @param {HTMLElement} element Target element 
+     * @returns The computed html 
+     */
+    render(element) {
+        return `
+            ${this.header(element)}
+            ${this.overlay(element)}
+            ${this.viewport(element)}
+        `
     }
+}
+
+/**
+ * @typedef {import("./UEBlueprintObject").default} UEBlueprintObject
+ */
+class UEBlueprint extends GraphEntity {
 
     insertChildren() {
         this.querySelector('[data-nodes]').append(...this.nodes);
     }
 
     constructor() {
-        super();
+        super(new BlueprintTemplate());
         /** @type {UEBlueprintObject[]}" */
         this.nodes = new Array();
         this.expandGridSize = 400;
@@ -605,30 +668,34 @@ class UEBlueprint extends HTMLElement {
     }
 
     connectedCallback() {
+        super.connectedCallback();
         this.classList.add('ueb', `ueb-zoom-${this.zoom}`);
 
-        this.headerElement = this.constructor.getElement(this.headerTemplate());
-        this.appendChild(this.headerElement);
-        this.overlayElement = this.constructor.getElement(this.overlayTemplate());
-        this.appendChild(this.overlayElement);
-        this.viewportElement = this.constructor.getElement(this.viewportTemplate());
-        this.appendChild(this.viewportElement);
+        this.headerElement = this.querySelector('.ueb-node-header');
+        console.assert(this.headerElement, "Header element not provided by the template.");
+        this.overlayElement = this.querySelector('.ueb-viewport-overlay');
+        console.assert(this.overlayElement, "Overlay element not provided by the template.");
+        this.viewportElement = this.querySelector('.ueb-viewport-body');
+        console.assert(this.viewportElement, "Viewport element not provided by the template.");
         this.gridElement = this.viewportElement.querySelector('.ueb-grid');
+        console.assert(this.gridElement, "Grid element not provided by the template.");
         this.selectorElement = this.viewportElement.querySelector('.ueb-selector');
+        console.assert(this.selectorElement, "Selector element not provided by the template.");
         this.nodesContainerElement = this.querySelector('[data-nodes]');
+        console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.");
         this.insertChildren();
 
-        this.dragObject = new UDragScroll(this.getGridDOMElement(), this, {
+        this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
             clickButton: 2,
             moveEverywhere: true,
             exitAnyButton: false
         });
 
-        this.zoomObject = new UZoom(this.getGridDOMElement(), this, {
+        this.zoomObject = new Zoom(this.getGridDOMElement(), this, {
             looseTarget: true
         });
 
-        this.selectObject = new USelect(this.getGridDOMElement(), this, {
+        this.selectObject = new Select(this.getGridDOMElement(), this, {
             clickButton: 0,
             moveEverywhere: true,
             exitAnyButton: true
@@ -885,7 +952,7 @@ class UEBlueprint extends HTMLElement {
 
 customElements.define('u-blueprint', UEBlueprint);
 
-class UDrag extends UMouseClickDrag {
+class Drag extends MouseClickDrag {
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
         this.stepSize = parseInt(options?.stepSize);
@@ -925,30 +992,10 @@ class UDrag extends UMouseClickDrag {
     }
 }
 
-class UGraphEntity extends HTMLElement {
-    constructor() {
-        super();
-        /** @type {import("./UEBlueprint").default}" */
-        this.blueprint = null;
-    }
+class SelectableDraggable extends GraphEntity {
 
-    connectedCallback() {
-        this.blueprint = this.closest('u-blueprint');
-        let aDiv = document.createElement('div');
-        aDiv.innerHTML = this.render();
-        this.appendChild(aDiv.firstElementChild);
-    }
-
-    // Subclasses want to rewrite this
-    render() {
-        return ""
-    }
-}
-
-class USelectableDraggable extends UGraphEntity {
-
-    constructor() {
-        super();
+    constructor(template) {
+        super(template);
         this.dragObject = null;
         this.location = [0, 0];
         this.selected = false;
@@ -961,7 +1008,7 @@ class USelectableDraggable extends UGraphEntity {
 
     connectedCallback() {
         super.connectedCallback();
-        this.dragObject = new UDrag(this, null, { // UDrag doesn't need blueprint
+        this.dragObject = new Drag(this, null, { // UDrag doesn't need blueprint
             looseTarget: true
         });
     }
@@ -1013,50 +1060,45 @@ class USelectableDraggable extends UGraphEntity {
 
 }
 
-class UEBlueprintObject extends USelectableDraggable {
-    static classInputs = [/*
-        {
-            name: "Input Example",
-            type: 'integer'
-        }
-    */]
-    static classOutputs = [/*
-        {
-            name: "Return Value",
-            type: 'string'
-        }*/
-    ]
-    static classInFlow = false
-    static classOutFlow = false
-    static className = 'Empty node'
+class NodeTemplate extends Template {
 
-    header() {
+    /**
+     * Computes the html content of the target element.
+     * @param {HTMLElement} element Target element 
+     * @returns The computed html 
+     */
+    header(element) {
         return `
             <div class="ueb-node-header">
                 <span class="ueb-node-name">
                     <span class="ueb-node-symbol"></span>
-                    <span class="ueb-node-text">${this.constructor.className}</span>
+                    <span class="ueb-node-text">${element.graphNodeName}</span>
                 </span>
             </div>
         `
     }
 
-    body() {
+    /**
+     * Computes the html content of the target element.
+     * @param {HTMLElement} element Target element 
+     * @returns The computed html 
+     */
+    body(element) {
         return `
             <div class="ueb-node-body">
                 <div class="ueb-node-inputs">
-                    ${this.constructor.classInputs.forEach((input, index) => `
+                    ${element.inputs.forEach((input, index) => `
                     <div class="ueb-node-input ueb-node-value-${input.type}">
-                        <span class="ueb-node-value-icon ${this.inputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
+                        <span class="ueb-node-value-icon ${element.inputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
                         ${input.name}
                     </div>
                     `) ?? ''}
                 </div>
                 <div class="ueb-node-outputs">
-                    ${this.constructor.classOutputs.forEach((output, index) => `
+                    ${element.outputs.forEach((output, index) => `
                     <div class="ueb-node-output ueb-node-value-${output.type}">
                         ${output.name}
-                        <span class="ueb-node-value-icon ${this.outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
+                        <span class="ueb-node-value-icon ${element.outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
                     </div>
                     `) ?? ''}
                 </div>
@@ -1064,29 +1106,30 @@ class UEBlueprintObject extends USelectableDraggable {
         `
     }
 
-    render() {
+    /**
+     * Computes the html content of the target element.
+     * @param {HTMLElement} element Target element 
+     * @returns The computed html 
+     */
+    render(element) {
         return `
             <div class="ueb-node-border">
                 <div class="ueb-node-content">
-                    ${this.header()}
-                    ${this.body()}
+                    ${this.header(element)}
+                    ${this.body(element)}
                 </div>
             </div>
-`
+        `
     }
+}
+
+class UEBlueprintObject extends SelectableDraggable {
 
     constructor() {
-        super();
-        this.inputs = this.constructor.classInputs.map(value => {
-            return {
-                connected: null
-            }
-        });
-        this.outputs = this.constructor.classOutputs.map(value => {
-            return {
-                connected: null
-            }
-        });
+        super(new NodeTemplate());
+        this.graphNodeName = 'N/A';
+        this.inputs = [];
+        this.outputs = [];
     }
 
     connectedCallback() {
@@ -1102,19 +1145,24 @@ class UEBlueprintObject extends USelectableDraggable {
 
 customElements.define('u-object', UEBlueprintObject);
 
-class FGuid {
+class Guid {
+    static generateGuid() {
+        let result = "";
+        let random = new Uint32Array(4);
+        crypto.getRandomValues(random);
+        random.forEach(n => {
+            this.result += ('00000000' + n.toString(16).toUpperCase()).slice(-8);
+        });
+        return result
+    }
+
     constructor(guid) {
         if (guid?.constructor?.name === 'String') {
             this.value = guid;
         } else if (guid?.constructor?.name === 'FGuid') {
             this.value = guid.value;
         } else {
-            let random = new Uint32Array(4);
-            crypto.getRandomValues(random);
-            this.value = "";
-            random.forEach(n => {
-                this.value += ('00000000' + n.toString(16).toUpperCase()).slice(-8);
-            });
+            this.value = Guid.generateGuid();
         }
     }
 
@@ -1123,9 +1171,9 @@ class FGuid {
     }
 }
 
-class UGraphPin {
+class GraphPin {
     constructor(Options) {
-        this.PinId = new FGuid(Options?.PinId);
+        this.PinId = new Guid(Options?.PinId);
         this.PinName = Options?.PinName ?? "";
         this.PinToolTip = Options?.PinToolTip ?? "";
         this.PinType = {
@@ -1137,15 +1185,7 @@ class UGraphPin {
             bIsReference: Options?.PinType?.bIsReference ?? false,
             bIsConst: Options?.PinType?.bIsConst ?? false,
             bIsWeakPointer: Options?.PinType?.bIsWeakPointer ?? false,
-            bIsUObjectWrapper: Options?.PinType?.bIsUObjectWrapper ?? false,
-            alpha: Object.assign({}, {
-                ciao: 1,
-                arrivederci: "2",
-                beta: {
-                    autunno: "autunno",
-                    inverno: "inverno"
-                }
-            })
+            bIsUObjectWrapper: Options?.PinType?.bIsUObjectWrapper ?? false
         };
         this.LinkedTo = Options?.LinkedTo ?? null;
         this.DefaultValue = Options?.DefaultValue ?? true;
@@ -1181,19 +1221,23 @@ class UGraphPin {
         prefix += prefix != "" ? "." : "";
         for (const property in object) {
             if (object[property]?.constructor?.name === 'Object') {
-                result += UGraphPin.subSerialize(prefix + property, object[property]);
+                result += GraphPin.subSerialize(prefix + property, object[property]);
             } else {
-                result += `${prefix + property}=${UGraphPin.serializeValue(object[property])},`;
+                result += `${prefix + property}=${GraphPin.serializeValue(object[property])},`;
             }
         }
         return result
     }
 
     serialize() {
-        let result = `Pin (${this.constructor.subSerialize('', this)})`;
+        let result = `CustomProperties Pin (${this.constructor.subSerialize('', this)})`;
         return result
+    }
+
+    toString() {
+        return this.serialize()
     }
 
 }
 
-export { UEBlueprint, UEBlueprintObject, UGraphPin };
+export { UEBlueprint, UEBlueprintObject, GraphPin as UGraphPin };
