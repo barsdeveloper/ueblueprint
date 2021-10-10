@@ -2,13 +2,12 @@ import Utility from "./Utility"
 import DragScroll from "./input/DragScroll"
 import Select from "./input/Select"
 import Zoom from "./input/Zoom"
-import FastSelectionModel from "./selection/FastSelectionModel"
-import SimpleSelectionModel from "./selection/SimpleSelectionModel"
 import GraphEntity from "./GraphEntity"
 import BlueprintTemplate from "./template/BlueprintTemplate"
+import GraphSelector from "./GraphSelector"
 
 /**
- * @typedef {import("./GraphNode").default} GrapNode
+ * @typedef {import("./GraphNode").default} GraphNode
  */
 export default class UEBlueprint extends GraphEntity {
 
@@ -18,7 +17,7 @@ export default class UEBlueprint extends GraphEntity {
 
     constructor() {
         super(new BlueprintTemplate())
-        /** @type {GrapNode[]}" */
+        /** @type {GraphNode[]}" */
         this.nodes = new Array()
         this.expandGridSize = 400
         /** @type {HTMLElement} */
@@ -41,10 +40,7 @@ export default class UEBlueprint extends GraphEntity {
         this.zoom = 0
         /** @type {HTMLElement} */
         this.headerElement = null
-        /** @type {FastSelectionModel} */
-        this.selectionModel = null
-        let self = this
-        /** @type {(node: GrapNode) => BoundariesInfo} */
+        /** @type {(node: GraphNode) => BoundariesInfo} */
         this.nodeBoundariesSupplier = (node) => {
             let rect = node.getBoundingClientRect()
             let gridRect = this.nodesContainerElement.getBoundingClientRect()
@@ -57,7 +53,7 @@ export default class UEBlueprint extends GraphEntity {
                 secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
             }
         }
-        /** @type {(node: GrapNode, selected: bool) => void}} */
+        /** @type {(node: GraphNode, selected: bool) => void}} */
         this.nodeSelectToggleFunction = (node, selected) => {
             node.setSelected(selected)
         }
@@ -67,7 +63,7 @@ export default class UEBlueprint extends GraphEntity {
         super.connectedCallback()
         this.classList.add('ueb', `ueb-zoom-${this.zoom}`)
 
-        this.headerElement = this.querySelector('.ueb-node-header')
+        this.headerElement = this.querySelector('.ueb-viewport-header')
         console.assert(this.headerElement, "Header element not provided by the template.")
         this.overlayElement = this.querySelector('.ueb-viewport-overlay')
         console.assert(this.overlayElement, "Overlay element not provided by the template.")
@@ -75,10 +71,10 @@ export default class UEBlueprint extends GraphEntity {
         console.assert(this.viewportElement, "Viewport element not provided by the template.")
         this.gridElement = this.viewportElement.querySelector('.ueb-grid')
         console.assert(this.gridElement, "Grid element not provided by the template.")
-        this.selectorElement = this.viewportElement.querySelector('.ueb-selector')
-        console.assert(this.selectorElement, "Selector element not provided by the template.")
+        this.selectorElement = new GraphSelector()
         this.nodesContainerElement = this.querySelector('[data-nodes]')
         console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.")
+        this.nodesContainerElement.append(this.selectorElement)
         this.insertChildren()
 
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
@@ -291,38 +287,6 @@ export default class UEBlueprint extends GraphEntity {
     }
 
     /**
-     * Create a selection rectangle starting from the specified position
-     * @param {number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
-     */
-    startSelecting(initialPosition) {
-        initialPosition = this.compensateTranslation(initialPosition)
-        // Set initial position
-        this.selectorElement.style.setProperty('--ueb-select-from-x', initialPosition[0])
-        this.selectorElement.style.setProperty('--ueb-select-from-y', initialPosition[1])
-        // Final position coincide with the initial position, at the beginning of selection
-        this.selectorElement.style.setProperty('--ueb-select-to-x', initialPosition[0])
-        this.selectorElement.style.setProperty('--ueb-select-to-y', initialPosition[1])
-        this.selectorElement.dataset.selecting = "true"
-        this.selectionModel = new FastSelectionModel(initialPosition, this.nodes, this.nodeBoundariesSupplier, this.nodeSelectToggleFunction)
-    }
-
-    finishSelecting() {
-        this.selectorElement.dataset.selecting = "false"
-        this.selectionModel = null
-    }
-
-    /**
-     * Move selection rectagle to the specified final position. The initial position was specified by startSelecting()
-     * @param {number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
-     */
-    doSelecting(finalPosition) {
-        finalPosition = this.compensateTranslation(finalPosition)
-        this.selectorElement.style.setProperty('--ueb-select-to-x', finalPosition[0])
-        this.selectorElement.style.setProperty('--ueb-select-to-y', finalPosition[1])
-        this.selectionModel.selectTo(finalPosition)
-    }
-
-    /**
      * Unselect all nodes
      */
     unselectAll() {
@@ -331,7 +295,7 @@ export default class UEBlueprint extends GraphEntity {
 
     /**
      * 
-     * @param  {...GrapNode} blueprintNodes 
+     * @param  {...GraphNode} blueprintNodes 
      */
     addNode(...blueprintNodes) {
         [...blueprintNodes].reduce(

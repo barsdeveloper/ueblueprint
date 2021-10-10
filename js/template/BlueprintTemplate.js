@@ -25,9 +25,7 @@ export default class BlueprintTemplate extends Template {
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
                     style="--ueb-additional-x:${element.additional[0]}; --ueb-additional-y:${element.additional[1]}; --ueb-translate-x:${element.translateValue[0]}; --ueb-translate-y:${element.translateValue[1]}">
-                    <div class="ueb-grid-content" data-nodes>
-                        <div class="ueb-selector" data-selecting="false"></div>
-                    </div>
+                    <div class="ueb-grid-content" data-nodes></div>
                 </div>
             </div>
         `

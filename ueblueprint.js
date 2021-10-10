@@ -142,19 +142,20 @@ class Select extends MouseClickDrag {
         super(target, blueprint, options);
         this.stepSize = options?.stepSize;
         this.mousePosition = [0, 0];
+        this.selectorElement = this.blueprint.selectorElement;
     }
 
     startDrag() {
-        this.blueprint.startSelecting(this.clickedPosition);
+        this.selectorElement.startSelecting(this.clickedPosition);
     }
 
     dragTo(location, movement) {
-        this.blueprint.doSelecting(location);
+        this.selectorElement.doSelecting(location);
     }
 
     endDrag() {
         if (this.started) {
-            this.blueprint.finishSelecting();
+            this.selectorElement.finishSelecting();
         } else {
             this.blueprint.unselectAll();
         }
@@ -196,6 +197,103 @@ class Zoom extends MouseWheel {
         let zoomLevel = this.blueprint.getZoom();
         zoomLevel -= variation;
         this.blueprint.setZoom(zoomLevel, location);
+    }
+}
+
+/**
+ * A Graph Entity is an element that can stay directly (as a first child) on the blueprint grid. Those entities are either nodes or links
+ */
+class GraphEntity extends HTMLElement {
+    /**
+     * 
+     * @param {import("./template/Template").default} template The template to render this node
+     */
+    constructor(template) {
+        super();
+        /** @type {import("./UEBlueprint").default}" */
+        this.blueprint = null;
+        this.template = template;
+    }
+
+    connectedCallback() {
+        this.blueprint = this.closest('u-blueprint');
+        this.append(...this.template.getElements(this));
+    }
+
+    // Subclasses want to rewrite this
+    render() {
+        return ''
+    }
+}
+
+/**
+ * @typedef {import("./GraphNode").default} GraphNode
+ */
+class Template {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {GraphNode} element Target element 
+     * @returns The computed html 
+     */
+    render(element) {
+        return ``
+    }
+
+    /**
+     * Returns the html elements rendered by this template.
+     * @param {GraphNode} element Target element
+     * @returns The rendered elements
+     */
+    getElements(element) {
+        let aDiv = document.createElement('div');
+        aDiv.innerHTML = this.render(element);
+        return aDiv.childNodes
+    }
+}
+
+class BlueprintTemplate extends Template {
+    header(element) {
+        return `
+            <div class="ueb-viewport-header">
+                <div class="ueb-viewport-zoom">1:1</div>
+            </div>
+        `
+    }
+
+    overlay() {
+        return `
+            <div class="ueb-viewport-overlay"></div>
+        `
+    }
+
+    /**
+     * 
+     * @param {import("../UEBlueprint").default} element 
+     * @returns 
+     */
+    viewport(element) {
+        return `
+            <div class="ueb-viewport-body">
+                <div class="ueb-grid"
+                    style="--ueb-additional-x:${element.additional[0]}; --ueb-additional-y:${element.additional[1]}; --ueb-translate-x:${element.translateValue[0]}; --ueb-translate-y:${element.translateValue[1]}">
+                    <div class="ueb-grid-content" data-nodes></div>
+                </div>
+            </div>
+        `
+    }
+
+    /**
+     * Computes the html content of the target element.
+     * @param {HTMLElement} element Target element 
+     * @returns The computed html 
+     */
+    render(element) {
+        return `
+            ${this.header(element)}
+            ${this.overlay(element)}
+            ${this.viewport(element)}
+        `
     }
 }
 
@@ -516,104 +614,59 @@ class FastSelectionModel {
 
 }
 
-/**
- * A Graph Entity is an element that can stay directly (as a first child) on the blueprint grid. Those entities are either nodes or links
- */
-class GraphEntity extends HTMLElement {
-    /**
-     * 
-     * @param {import("./template/Template").default} template The template to render this node
-     */
-    constructor(template) {
-        super();
-        /** @type {import("./UEBlueprint").default}" */
-        this.blueprint = null;
-        this.template = template;
+class GraphSelector extends GraphEntity {
+
+    constructor() {
+        super(new Template());
+        /**
+         * @type {import("./GraphSelector").default}
+         */
+        this.selectionModel = null;
     }
 
     connectedCallback() {
-        this.blueprint = this.closest('u-blueprint');
-        this.append(...this.template.getElements(this));
+        super.connectedCallback();
+        this.classList.add('ueb-selector');
+        this.dataset.selecting = "false";
     }
 
-    // Subclasses want to rewrite this
-    render() {
-        return ''
+    /**
+     * Create a selection rectangle starting from the specified position
+     * @param {number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
+     */
+    startSelecting(initialPosition) {
+        initialPosition = this.blueprint.compensateTranslation(initialPosition);
+        // Set initial position
+        this.style.setProperty('--ueb-select-from-x', initialPosition[0]);
+        this.style.setProperty('--ueb-select-from-y', initialPosition[1]);
+        // Final position coincide with the initial position, at the beginning of selection
+        this.style.setProperty('--ueb-select-to-x', initialPosition[0]);
+        this.style.setProperty('--ueb-select-to-y', initialPosition[1]);
+        this.dataset.selecting = "true";
+        this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.nodes, this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction);
+    }
+
+    /**
+     * Move selection rectagle to the specified final position. The initial position was specified by startSelecting()
+     * @param {number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
+     */
+    doSelecting(finalPosition) {
+        finalPosition = this.blueprint.compensateTranslation(finalPosition);
+        this.style.setProperty('--ueb-select-to-x', finalPosition[0]);
+        this.style.setProperty('--ueb-select-to-y', finalPosition[1]);
+        this.selectionModel.selectTo(finalPosition);
+    }
+
+    finishSelecting() {
+        this.dataset.selecting = "false";
+        this.selectionModel = null;
     }
 }
 
-class Template {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {HTMLElement} element Target element 
-     * @returns The computed html 
-     */
-    render(element) {
-        return ``
-    }
-
-    /**
-     * Returns the html elements rendered by this template.
-     * @param {HTMLElement} element Target element
-     * @returns The rendered elements
-     */
-    getElements(element) {
-        let aDiv = document.createElement('div');
-        aDiv.innerHTML = this.render(element);
-        return aDiv.childNodes
-    }
-}
-
-class BlueprintTemplate extends Template {
-    header(element) {
-        return `
-            <div class="ueb-viewport-header">
-                <div class="ueb-viewport-zoom">1:1</div>
-            </div>
-        `
-    }
-
-    overlay() {
-        return `
-            <div class="ueb-viewport-overlay"></div>
-        `
-    }
-
-    /**
-     * 
-     * @param {import("../UEBlueprint").default} element 
-     * @returns 
-     */
-    viewport(element) {
-        return `
-            <div class="ueb-viewport-body">
-                <div class="ueb-grid"
-                    style="--ueb-additional-x:${element.additional[0]}; --ueb-additional-y:${element.additional[1]}; --ueb-translate-x:${element.translateValue[0]}; --ueb-translate-y:${element.translateValue[1]}">
-                    <div class="ueb-grid-content" data-nodes>
-                        <div class="ueb-selector" data-selecting="false"></div>
-                    </div>
-                </div>
-            </div>
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {HTMLElement} element Target element 
-     * @returns The computed html 
-     */
-    render(element) {
-        return `
-            ${this.header(element)}
-            ${this.overlay(element)}
-            ${this.viewport(element)}
-        `
-    }
-}
+customElements.define('u-selector', GraphSelector);
 
 /**
- * @typedef {import("./GraphNode").default} GrapNode
+ * @typedef {import("./GraphNode").default} GraphNode
  */
 class UEBlueprint extends GraphEntity {
 
@@ -623,7 +676,7 @@ class UEBlueprint extends GraphEntity {
 
     constructor() {
         super(new BlueprintTemplate());
-        /** @type {GrapNode[]}" */
+        /** @type {GraphNode[]}" */
         this.nodes = new Array();
         this.expandGridSize = 400;
         /** @type {HTMLElement} */
@@ -646,9 +699,7 @@ class UEBlueprint extends GraphEntity {
         this.zoom = 0;
         /** @type {HTMLElement} */
         this.headerElement = null;
-        /** @type {FastSelectionModel} */
-        this.selectionModel = null;
-        /** @type {(node: GrapNode) => BoundariesInfo} */
+        /** @type {(node: GraphNode) => BoundariesInfo} */
         this.nodeBoundariesSupplier = (node) => {
             let rect = node.getBoundingClientRect();
             let gridRect = this.nodesContainerElement.getBoundingClientRect();
@@ -661,7 +712,7 @@ class UEBlueprint extends GraphEntity {
                 secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
             }
         };
-        /** @type {(node: GrapNode, selected: bool) => void}} */
+        /** @type {(node: GraphNode, selected: bool) => void}} */
         this.nodeSelectToggleFunction = (node, selected) => {
             node.setSelected(selected);
         };
@@ -671,7 +722,7 @@ class UEBlueprint extends GraphEntity {
         super.connectedCallback();
         this.classList.add('ueb', `ueb-zoom-${this.zoom}`);
 
-        this.headerElement = this.querySelector('.ueb-node-header');
+        this.headerElement = this.querySelector('.ueb-viewport-header');
         console.assert(this.headerElement, "Header element not provided by the template.");
         this.overlayElement = this.querySelector('.ueb-viewport-overlay');
         console.assert(this.overlayElement, "Overlay element not provided by the template.");
@@ -679,10 +730,10 @@ class UEBlueprint extends GraphEntity {
         console.assert(this.viewportElement, "Viewport element not provided by the template.");
         this.gridElement = this.viewportElement.querySelector('.ueb-grid');
         console.assert(this.gridElement, "Grid element not provided by the template.");
-        this.selectorElement = this.viewportElement.querySelector('.ueb-selector');
-        console.assert(this.selectorElement, "Selector element not provided by the template.");
+        this.selectorElement = new GraphSelector();
         this.nodesContainerElement = this.querySelector('[data-nodes]');
         console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.");
+        this.nodesContainerElement.append(this.selectorElement);
         this.insertChildren();
 
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
@@ -895,38 +946,6 @@ class UEBlueprint extends GraphEntity {
     }
 
     /**
-     * Create a selection rectangle starting from the specified position
-     * @param {number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
-     */
-    startSelecting(initialPosition) {
-        initialPosition = this.compensateTranslation(initialPosition);
-        // Set initial position
-        this.selectorElement.style.setProperty('--ueb-select-from-x', initialPosition[0]);
-        this.selectorElement.style.setProperty('--ueb-select-from-y', initialPosition[1]);
-        // Final position coincide with the initial position, at the beginning of selection
-        this.selectorElement.style.setProperty('--ueb-select-to-x', initialPosition[0]);
-        this.selectorElement.style.setProperty('--ueb-select-to-y', initialPosition[1]);
-        this.selectorElement.dataset.selecting = "true";
-        this.selectionModel = new FastSelectionModel(initialPosition, this.nodes, this.nodeBoundariesSupplier, this.nodeSelectToggleFunction);
-    }
-
-    finishSelecting() {
-        this.selectorElement.dataset.selecting = "false";
-        this.selectionModel = null;
-    }
-
-    /**
-     * Move selection rectagle to the specified final position. The initial position was specified by startSelecting()
-     * @param {number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
-     */
-    doSelecting(finalPosition) {
-        finalPosition = this.compensateTranslation(finalPosition);
-        this.selectorElement.style.setProperty('--ueb-select-to-x', finalPosition[0]);
-        this.selectorElement.style.setProperty('--ueb-select-to-y', finalPosition[1]);
-        this.selectionModel.selectTo(finalPosition);
-    }
-
-    /**
      * Unselect all nodes
      */
     unselectAll() {
@@ -935,7 +954,7 @@ class UEBlueprint extends GraphEntity {
 
     /**
      * 
-     * @param  {...GrapNode} blueprintNodes 
+     * @param  {...GraphNode} blueprintNodes 
      */
     addNode(...blueprintNodes) {
         [...blueprintNodes].reduce(
@@ -1228,6 +1247,7 @@ class GraphNode extends SelectableDraggable {
     }
 
     connectedCallback() {
+        this.getAttribute('type')?.trim();
         super.connectedCallback();
         this.classList.add('ueb-node');
         if (this.selected) {
@@ -1238,6 +1258,6 @@ class GraphNode extends SelectableDraggable {
     }
 }
 
-customElements.define('u-object', GraphNode);
+customElements.define('u-node', GraphNode);
 
 export { GraphNode, UEBlueprint, GraphPin as UGraphPin };

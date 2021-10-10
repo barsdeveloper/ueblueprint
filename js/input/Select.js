@@ -6,19 +6,20 @@ export default class Select extends MouseClickDrag {
         super(target, blueprint, options)
         this.stepSize = options?.stepSize
         this.mousePosition = [0, 0]
+        this.selectorElement = this.blueprint.selectorElement
     }
 
     startDrag() {
-        this.blueprint.startSelecting(this.clickedPosition)
+        this.selectorElement.startSelecting(this.clickedPosition)
     }
 
     dragTo(location, movement) {
-        this.blueprint.doSelecting(location)
+        this.selectorElement.doSelecting(location)
     }
 
     endDrag() {
         if (this.started) {
-            this.blueprint.finishSelecting()
+            this.selectorElement.finishSelecting()
         } else {
             this.blueprint.unselectAll()
         }

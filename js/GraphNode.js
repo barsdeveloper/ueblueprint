@@ -11,6 +11,7 @@ export default class GraphNode extends SelectableDraggable {
     }
 
     connectedCallback() {
+        const type = this.getAttribute('type')?.trim()
         super.connectedCallback()
         this.classList.add('ueb-node')
         if (this.selected) {
@@ -21,4 +22,4 @@ export default class GraphNode extends SelectableDraggable {
     }
 }
 
-customElements.define('u-object', GraphNode)
+customElements.define('u-node', GraphNode)

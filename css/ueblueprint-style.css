@@ -294,6 +294,7 @@ u-blueprint {
 }
 
 .ueb-selector {
+    display   : block;
     position  : absolute;
     visibility: hidden;
     top       : min(var(--ueb-select-from-y) * 1px, var(--ueb-select-to-y) * 1px);
