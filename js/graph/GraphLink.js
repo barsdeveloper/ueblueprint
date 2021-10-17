@@ -1,6 +1,6 @@
 import UBlueprintEntity from "./UBlueprintEntity"
 
-export default class Link extends UBlueprintEntity {
+export default class GraphLink extends UBlueprintEntity {
 
     /**
      * 
@@ -22,8 +22,8 @@ export default class Link extends UBlueprintEntity {
             <svg viewBox="0 0 100 100">
                 <line x1="0" y1="80" x2="100" y2="20" stroke="black" />
             </svg>
-`
+        `
     }
 }
 
-customElements.define('u-link', Link)
+customElements.define('u-link', GraphLink)

@@ -17,7 +17,7 @@ export default class BlueprintTemplate extends Template {
 
     /**
      * 
-     * @param {import("../UEBlueprint").default} element 
+     * @param {import("../Blueprint").Blueprint} element 
      * @returns 
      */
     viewport(element) {

@@ -1,4 +1,4 @@
-import Drag from "./input/Drag"
+import Drag from "../input/Drag"
 import GraphEntity from "./GraphEntity"
 
 export default class SelectableDraggable extends GraphEntity {

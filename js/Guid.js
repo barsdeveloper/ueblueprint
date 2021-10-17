@@ -1,9 +1,11 @@
 export default class Guid {
-    static generateGuid() {
+    static generateGuid(random) {
         let result = ""
-        let random = new Uint32Array(4);
-        crypto.getRandomValues(random)
-        random.forEach(n => {
+        let values = new Uint32Array(4);
+        if (random === true) {
+            crypto.getRandomValues(values)
+        }
+        values.forEach(n => {
             this.result += ('00000000' + n.toString(16).toUpperCase()).slice(-8)
         })
         return result
@@ -15,7 +17,7 @@ export default class Guid {
         } else if (guid?.constructor?.name === 'FGuid') {
             this.value = guid.value
         } else {
-            this.value = Guid.generateGuid()
+            this.value = Guid.generateGuid(guid === true)
         }
     }
 

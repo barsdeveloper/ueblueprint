@@ -1,6 +1,6 @@
-import FastSelectionModel from "./selection/FastSelectionModel";
+import FastSelectionModel from "../selection/FastSelectionModel";
 import GraphEntity from "./GraphEntity";
-import Template from "./template/Template";
+import Template from "../template/Template";
 
 export default class GraphSelector extends GraphEntity {
 

@@ -5,7 +5,7 @@ export default class Pointing {
     constructor(target, blueprint, options) {
         /** @type {HTMLElement} */
         this.target = target
-        /** @type {import("../UEBlueprint").default}" */
+        /** @type {import("../Blueprint").Blueprint}" */
         this.blueprint = blueprint
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
     }

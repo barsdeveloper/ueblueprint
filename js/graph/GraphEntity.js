@@ -4,11 +4,11 @@
 export default class GraphEntity extends HTMLElement {
     /**
      * 
-     * @param {import("./template/Template").default} template The template to render this node
+     * @param {import("../template/Template").default} template The template to render this node
      */
     constructor(template) {
         super()
-        /** @type {import("./UEBlueprint").default}" */
+        /** @type {import("../Blueprint").Blueprint}" */
         this.blueprint = null
         this.template = template
     }

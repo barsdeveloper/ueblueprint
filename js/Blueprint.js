@@ -2,14 +2,14 @@ import Utility from "./Utility"
 import DragScroll from "./input/DragScroll"
 import Select from "./input/Select"
 import Zoom from "./input/Zoom"
-import GraphEntity from "./GraphEntity"
+import GraphEntity from "./graph/GraphEntity"
 import BlueprintTemplate from "./template/BlueprintTemplate"
-import GraphSelector from "./GraphSelector"
+import GraphSelector from "./graph/GraphSelector"
 
 /**
- * @typedef {import("./GraphNode").default} GraphNode
+ * @typedef {import("./graph/GraphNode").default} GraphNode
  */
-export default class UEBlueprint extends GraphEntity {
+export default class Blueprint extends GraphEntity {
 
     insertChildren() {
         this.querySelector('[data-nodes]').append(...this.nodes)
@@ -26,7 +26,7 @@ export default class UEBlueprint extends GraphEntity {
         this.viewportElement = null
         /** @type {HTMLElement} */
         this.overlayElement = null
-        /** @type {HTMLElement} */
+        /** @type {GraphSelector} */
         this.selectorElement = null
         /** @type {HTMLElement} */
         this.nodesContainerElement = null
@@ -295,19 +295,19 @@ export default class UEBlueprint extends GraphEntity {
 
     /**
      * 
-     * @param  {...GraphNode} blueprintNodes 
+     * @param  {...GraphNode} graphNodes 
      */
-    addNode(...blueprintNodes) {
-        [...blueprintNodes].reduce(
+    addNode(...graphNodes) {
+        [...graphNodes].reduce(
             (s, e) => {
                 s.push(e)
                 return s
             },
             this.nodes)
         if (this.nodesContainerElement) {
-            this.nodesContainerElement.append(...blueprintNodes)
+            this.nodesContainerElement.append(...graphNodes)
         }
     }
 }
 
-customElements.define('u-blueprint', UEBlueprint)
+customElements.define('u-blueprint', Blueprint)

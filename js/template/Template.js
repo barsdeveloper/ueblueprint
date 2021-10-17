@@ -1,5 +1,5 @@
 /**
- * @typedef {import("./GraphNode").default} GraphNode
+ * @typedef {import("../graph/GraphNode").default} GraphNode
  */
 export default class Template {
 

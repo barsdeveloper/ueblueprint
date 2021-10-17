@@ -1,11 +1,11 @@
 import SelectableDraggable from "./SelectableDraggable"
-import NodeTemplate from "./template/NodeTemplate"
+import NodeTemplate from "../template/NodeTemplate"
 
 export default class GraphNode extends SelectableDraggable {
 
     constructor() {
         super(new NodeTemplate())
-        this.graphNodeName = 'N/A'
+        this.graphNodeName = 'n/a'
         this.inputs = []
         this.outputs = []
     }
