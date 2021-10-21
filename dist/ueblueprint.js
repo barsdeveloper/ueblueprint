@@ -1,3 +1,14 @@
+class TypeInitialization {
+    constructor(value, showDefault = true, type = Utility.getType(value)) {
+        if (type.prototype.constructor.name != value.constructor.name) {
+            throw new Error("Default value expected to be of the same type.")
+        }
+        this.value = value;
+        this.showDefault = showDefault;
+        this.type = type;
+    }
+}
+
 class Utility {
     static clamp(val, min, max) {
         return Math.min(Math.max(val, min), max)
@@ -16,14 +27,17 @@ class Utility {
      * @param {Boolean} create Whether to create or not the key in case it doesn't exist
      * @returns {Boolean} Returns true on succes, false otherwise
      */
-    static objectSet = (keys, value, target) => {
+    static objectSet(target, keys, value, create = false) {
+        if (keys.constructor != Array) {
+            console.error("Expected keys to be an array.");
+        }
         if (keys.length == 1) {
-            if (keys[0] in target) {
+            if (create || keys[0] in target) {
                 target[keys[0]] = value;
                 return true
             }
         } else if (keys.length > 0) {
-            return Utility.objectSet(keys.slice(1), value, target[keys[0]])
+            return Utility.objectSet(target[keys[0]], keys.slice(1), value, create)
         }
         return false
     }
@@ -31,16 +45,65 @@ class Utility {
 
     /**
      * Gets a value from an object, gives defaultValue in case of failure
+     * @param {Object} source Object holding the data 
      * @param {String[]} keys The chained keys to access from object in order to get the value
      * @param {any} defaultValue Value to return in case from doesn't have it
-     * @param {Object} from Object holding the data 
      * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
      */
-    static objectGet = (keys, defaultValue, from) => {
-        if (keys.length == 0 || !(keys[0] in from)) {
+    static objectGet(source, keys, defaultValue = null) {
+        if (keys.constructor != Array) {
+            console.error("Expected keys to be an array.");
+        }
+        if (keys.length == 0 || !(keys[0] in source)) {
             return defaultValue
         }
-        return Utility.objectGet(keys.slice(1), defaultValue, from[keys[0]])
+        if (keys.length == 1) {
+            return source[keys[0]]
+        }
+        return Utility.objectGet(source[keys[0]], keys.slice(1), defaultValue)
+    }
+
+
+    static sanitize(value) {
+        if (!(value instanceof Object)) {
+            return value
+        }
+        switch (value?.constructor) {
+            case Boolean:
+                return value.valueOf()
+            case Number:
+                return value.valueOf()
+            case String:
+                return value.toString()
+            default:
+                return value
+        }
+    }
+
+    static equals(a, b) {
+        a = Utility.sanitize(a);
+        b = Utility.sanitize(b);
+        return a === b
+    }
+
+    /**
+     * 
+     * @param {String} value 
+     */
+    static FirstCapital(value) {
+        return value.charAt(0).toUpperCase() + value.substring(1)
+    }
+
+    static getType(value) {
+        let constructor = value?.constructor;
+        switch (constructor) {
+            case TypeInitialization:
+                return value.type
+            case Function:
+                return value
+            default:
+                return constructor
+        }
     }
 }
 
@@ -1201,6 +1264,148 @@ class GraphNode extends SelectableDraggable {
 
 customElements.define('u-node', GraphNode);
 
+class Entity {
+    constructor(options = {}) {
+        /**
+         * 
+         * @param {String[]} prefix 
+         * @param {Object} target 
+         * @param {Object} properties 
+         */
+        const defineAllAttributes = (prefix, target, properties, propertySetter = (t, p, v) => t[p] = v) => {
+            let fullKey = prefix.concat("");
+            const last = fullKey.length - 1;
+            for (let property in properties) {
+                fullKey[last] = property;
+                // Not instanceof because all objects are instenceof Object
+                if (properties[property]?.constructor === Object) {
+                    propertySetter(target, property, {});
+                    defineAllAttributes(fullKey, target[property], properties[property]);
+                    continue
+                }
+                /*
+                 * The value can either be:
+                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World") 
+                 *     - TypeInitialization: contains the maximum amount of information about the attribute.
+                 *     - A type: the default value will be default constructed object without arguments.
+                 *     - A proper value.
+                 */
+                const value = Utility.objectGet(options, fullKey);
+                if (value !== null) {
+                    propertySetter(target, property, value);
+                    continue
+                }
+                let defaultValue = properties[property];
+                if (defaultValue instanceof Array) {
+                    propertySetter(target, property, []);
+                    defineAllAttributes(
+                        fullKey,
+                        target[property],
+                        defaultValue,
+                        (t, _, v) => {
+                            console.log(v);
+                            t.push(v);
+                        });
+                    continue
+                }
+                if (defaultValue instanceof TypeInitialization) {
+                    if (!defaultValue.showDefault) {
+                        continue
+                    }
+                    defaultValue = defaultValue.value;
+                }
+                if (defaultValue instanceof Function) {
+                    defaultValue = Utility.sanitize(new defaultValue());
+                }
+                propertySetter(target, property, defaultValue);
+            }
+        };
+        defineAllAttributes([], this, this.getAttributes());
+    }
+}
+
+class Guid {
+    static generateGuid(random) {
+        let values = new Uint32Array(4);
+        if (random === true) {
+            crypto.getRandomValues(values);
+        }
+        let result = "";
+        values.forEach(n => {
+            result += ('00000000' + n.toString(16).toUpperCase()).slice(-8);
+        });
+        return result
+    }
+
+    constructor(guid) {
+        switch (guid?.constructor) {
+            case String:
+                this.value = guid;
+                break
+            case Guid:
+                this.value = guid.value;
+                break
+            default:
+                this.value = Guid.generateGuid(guid === true);
+        }
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
+class ObjectReferenceEntity extends Entity {
+
+    static attributes = {
+        type: "None",
+        path: ""
+    }
+
+    getAttributes() {
+        return ObjectReferenceEntity.attributes
+    }
+
+    toString() {
+        return this.type + (this.path ? `'"${this.path}"'` : "")
+    }
+}
+
+class PinEntity$1 extends Entity {
+    static attributes = {
+        PinId: Guid,
+        PinName: [new TypeInitialization(5, true), "ciao"],
+        PinToolTip: "",
+        Direction: new TypeInitialization("", false),
+        PinType: {
+            PinCategory: "",
+            PinSubCategory: "",
+            PinSubCategoryObject: ObjectReferenceEntity,
+            PinSubCategoryMemberReference: null,
+            PinValueType: null,
+            ContainerType: ObjectReferenceEntity,
+            bIsReference: false,
+            bIsConst: false,
+            bIsWeakPointer: false,
+            bIsUObjectWrapper: false
+        },
+        LinkedTo: Guid,
+        DefaultValue: "",
+        AutogeneratedDefaultValue: "",
+        PersistentGuid: Guid,
+        bHidden: false,
+        bNotConnectable: false,
+        bDefaultValueIsReadOnly: false,
+        bDefaultValueIsIgnored: false,
+        bAdvancedView: false,
+        bOrphanedPin: false,
+    }
+
+    getAttributes() {
+        return PinEntity$1.attributes
+    }
+}
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function getDefaultExportFromCjs (x) {
@@ -1215,209 +1420,252 @@ var parsimmon_umd_min = {exports: {}};
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
 
-class Guid {
-    static generateGuid(random) {
-        let result = "";
-        let values = new Uint32Array(4);
-        if (random === true) {
-            crypto.getRandomValues(values);
-        }
-        values.forEach(n => {
-            this.result += ('00000000' + n.toString(16).toUpperCase()).slice(-8);
-        });
-        return result
+class FunctionReferenceEntity extends Entity {
+    static attributes = {
+        MemberParent: new ObjectReferenceEntity({
+            type: "Class",
+            path: "/Script/Engine.GameplayStatics"
+        }),
+        MemberName: ""
     }
 
-    constructor(guid) {
-        if (guid?.constructor?.name === 'String') {
-            this.value = guid;
-        } else if (guid?.constructor?.name === 'FGuid') {
-            this.value = guid.value;
-        } else {
-            this.value = Guid.generateGuid(guid === true);
-        }
-    }
-
-    toString() {
-        return this.value
+    getAttributes() {
+        return FunctionReferenceEntity.attributes
     }
 }
 
-class ReferenceTypeName {
-
-    static Class = new ReferenceTypeName("Class")
-    static None = new ReferenceTypeName("None")
-    static ReferenceName = ['Class']
-
-    /**
-     * 
-     * @param {String} reference 
-     * @returns 
-     */
-    static splitReference(reference) {
-        const pathBegin = reference.search(/['"]/);
-        const referenceType = reference.substr(0, pathBegin > 0 ? pathBegin : undefined).trim(); // reference example Class'"/Script/Engine.PlayerCameraManager"'
-        const referencePath = pathBegin > 0 ? reference.substr(pathBegin).trim() : "";
-        switch (referenceType) {
-            case "None":
-                if (referencePath.length > 0) {
-                    return false // None cannot have a path
-                }
-            case "Class":
-                return [referenceType, referencePath]
-            default:
-                return false
-        }
-    }
-
-    /**
-     * 
-     * @param {String} reference 
-     */
-    constructor(reference) {
-        reference = ReferenceTypeName.splitReference(reference);
-        if (!reference) {
-            throw new Error('Invalid reference: ' + reference)
-        }
-        this.value = reference[0] + reference[1];
-    }
-
-    toString() {
-        return this.value
+class Integer extends Entity {
+    constructor(value) {
+        super();
+        this.value = Math.round(new Number(value).valueOf());
     }
 }
 
-class PinEntity {
-    static optionalKeys = ['Direction']
-    constructor(options = {}) {
-        const getOrFalse = (keys) => Utility.objectGet(keys, false, options);
-        const getOrEmptyString = (keys) => Utility.objectGet(keys, "", options);
-        this.PinId = new Guid(Utility.objectGet(["PinId"], true, options));
-        this.PinName = getOrEmptyString(["PinName"]);
-        this.PinToolTip = getOrEmptyString(["PinToolTip"]);
-        this.Direction = getOrEmptyString(["Direction"]);
-        this.PinType = {
-            PinCategory: getOrEmptyString(["PinType", "PinCategory"]),
-            PinSubCategory: getOrEmptyString(["PinType", "PinSubCategory"]),
-            PinSubCategoryObject: Utility.objectGet(["PinType", "PinSubCategoryObject"], ReferenceTypeName.None, options),
-            PinSubCategoryMemberReference: Utility.objectGet(["PinType", "PinSubCategoryMemberReference"], null, options),
-            PinValueType: getOrFalse(["PinType", "PinValueType"]),
-            ContainerType: Utility.objectGet(["PinType", "ContainerType"], ReferenceTypeName.None, options),
-            bIsReference: getOrFalse(["PinType", "bIsReference"]),
-            bIsConst: getOrFalse(["PinType", "bIsConst"]),
-            bIsWeakPointer: getOrFalse(["PinType", "bIsWeakPointer"]),
-            bIsUObjectWrapper: getOrFalse(["PinType", "bIsUObjectWrapper"])
-        };
-        this.LinkedTo = Utility.objectGet(["LinkedTo"], null, options);
-        this.DefaultValue = getOrFalse(["DefaultValue"]);
-        this.AutogeneratedDefaultValue = getOrFalse(["AutogeneratedDefaultValue"]);
-        this.PersistentGuid = new Guid(getOrFalse(["PersistentGuid"]));
-        this.bHidden = getOrFalse(["bHidden"]);
-        this.bNotConnectable = getOrFalse(["bNotConnectable"]);
-        this.bDefaultValueIsReadOnly = getOrFalse(["bDefaultValueIsReadOnly"]);
-        this.bDefaultValueIsIgnored = getOrFalse(["bDefaultValueIsIgnored"]);
-        this.bAdvancedView = getOrFalse(["bAdvancedView"]);
-        this.bOrphanedPin = getOrFalse(["bOrphanedPin"]);
+class VariableReferenceEntity extends Entity {
+    static attributes = {
+        MemberName: "",
+        MemberGuid: Guid,
+        bSelfContext: true
     }
 
+    getAttributes() {
+        return VariableReferenceEntity.attributes
+    }
 }
 
-function checkValidKeys(obj, args) {
-    if (args.length == 0) {
-        return true
+class ObjectEntity extends Entity {
+
+    static attributes = {
+        Class: "",
+        Name: "",
+        bIsPureFunc: new TypeInitialization(false, false),
+        VariableReference: new TypeInitialization(new VariableReferenceEntity(), false),
+        FunctionReference: new TypeInitialization(new FunctionReferenceEntity(), false),
+        TargetType: new TypeInitialization(new ObjectReferenceEntity(), false),
+        NodePosX: Integer,
+        NodePosY: Integer,
+        NodeGuid: Guid,
+        CustomProperties: [PinEntity$1]
     }
-    return args[0] in obj && checkValidKeys(obj[args[0]], args.slice(1))
+
+    getAttributes() {
+        return ObjectEntity.attributes
+    }
 }
 
 let P = Parsimmon;
 
-class PinGrammar {
-    static pinEntity = new PinEntity()
-    Null = (_) => P.string("()").map(() => null).desc("null value.")
-    None = (_) => P.string("None").map(() => new ReferenceTypeName("None")).desc('None value')
-    ReferenceName = () => P.alt(...ReferenceTypeName.ReferenceName.map(name => P.string(name)))
-    Word = (_) => P.regex(/[a-zA-Z]+/)
-    Guid = (_) => P.regex(/[0-9a-zA-Z]{32}/).desc("a 32 digit hexadecimal value")
-    String = (_) => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('a string value (with possibility to escale the quote symbol " using \")')
-    Boolean = (_) => P.string("True").or(P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
-    AttributeName = (r) => r.Word
-        .sepBy1(P.string("."))
-        .assert(attr => checkValidKeys(PinGrammar.pinEntity, attr), "a valid pin attribute (check the class PinEntity)")
-        .tieWith(".")
-    AttributeValue = (r) => P.alt(r.Null, r.None, r.Boolean, r.String, r.Guid)
-    Attribute = (r) => P.seqMap(
-        r.AttributeName,
-        P.string("=").trim(P.optWhitespace),
-        r.AttributeValue,
-        /**
-         * 
-         * @param {String} name The key PinEntity
-         * @param {*} _ 
-         * @param {*} value 
-         * @returns 
-         */
-        (name, _, value) =>
-            /**
-             * Sets the property name name in the object pinEntity to the value provided
-             * @param {PinEntity} pinEntity
-             */
-            (pinEntity) => Utility.objectSet(name.split('.'), value, pinEntity)
+class Grammar {
+    // General
+    InlineWhitespace = _ => P.regex(/[^\S\n]+/)
+    InlineOptWhitespace = _ => P.regex(/[^\S\n]*/)
+    WhitespaceNewline = _ => P.regex(/[^\S\n]*\n\s*/)
+    Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
+    None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None" })).desc("none")
+    Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
+    Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+    Integer = _ => P.regex(/[0-9]+/).map(Integer).desc("an integer")
+    String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
+    Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
+    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).desc("32 digit hexadecimal (accepts all the letters for safety) value")
+    ReferencePath = _ => P.seq(P.string("/"), P.regex(/[a-zA-Z_]+/).sepBy1(P.string(".")).tieWith("."))
+        .tie()
+        .atLeast(2)
+        .tie()
+        .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
+    Reference = r => P.alt(
+        r.None,
+        r.ReferencePath.map(path => new ObjectReferenceEntity({ path: path })),
+        P.seqMap(
+            r.Word,
+            P.optWhitespace,
+            P.alt(P.string(`"`), P.string(`'"`)).chain(
+                result => r.ReferencePath.skip(
+                    P.string(result.split("").reverse().join(""))
+                )
+            ),
+            (referenceType, _, referencePath) => new ObjectReferenceEntity({
+                type: referenceType,
+                path: referencePath
+            })
+        )
     )
-    Pin = (r) => {
-        return P.seqObj(
-            P.string("Pin"),
+    AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
+    AttributeAnyValue = r => P.alt(r.Null, r.None, r.Boolean, r.Number, r.Integer, r.String, r.Guid, r.Reference)
+    static getGrammarForType(r, type, defaultGrammar) {
+        switch (type) {
+            case Boolean:
+                return r.Boolean
+            case Number:
+                return r.Number
+            case Integer:
+                return r.Integer
+            case String:
+                return r.String
+            case Guid:
+                return r.Guid
+            case ObjectReferenceEntity:
+                return r.Reference
+            default:
+                return defaultGrammar
+        }
+    }
+    // Meta grammar
+    static CreateAttributeGrammar = (r, attributeGrammar, attributeSupplier, valueSeparator = P.string("=")) =>
+        attributeGrammar.skip(valueSeparator.trim(P.optWhitespace))
+            .chain(attributeName => {
+                const attributeKey = attributeName.split(".");
+                const attribute = attributeSupplier(attributeKey);
+                const type = Utility.getType(attribute);
+                let attributeValueGrammar = type === Array
+                    ? attribute
+                        .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
+                        .reduce((accum, cur) =>
+                            !cur || accum === r.AttributeAnyValue
+                                ? r.AttributeAnyValue
+                                : accum.or(cur)
+                        )
+                    : Grammar.getGrammarForType(r, type, r.AttributeAnyValue);
+                // After the attribute name (already parsed at this point, we continue with an equal sign (possibly surrounded by whitespace) then the expected attribute value)
+                return attributeValueGrammar.map(attributeValue => type === Array
+                    ? entity => {
+                        /** @type {Array} */
+                        let array = Utility.objectGet(entity, attributeKey, []);
+                        array.push(attributeValue);
+                        return Utility.objectSet(entity, attributeKey, array)
+                    }
+                    : entity => Utility.objectSet(entity, attributeKey, attributeValue)
+                ) // returns attributeSetter
+            })
+    // Meta grammar
+    static CreateMultiAttributeGrammar = (r, keyGrammar, entityType, attributeSupplier) =>
+        /**
+         * Basically this creates a parser that looks for a string like 'AttributeName (A=False,B="Something",)'
+         * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
+         */
+        P.seqObj(
+            keyGrammar,
             P.optWhitespace,
             P.string("("),
             [
-                "attributes",
-                r.Attribute
+                "attributes", // this is the name of the attribute of object passed to map chained next
+                Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeSupplier)
                     .trim(P.optWhitespace)
                     .sepBy(P.string(","))
                     .skip(P.regex(/,?/).then(P.optWhitespace)) // Optional trailing comma
             ],
             P.string(')')
         ).map(object => {
-            let result = new PinEntity();
+            let result = new entityType();
             object.attributes.forEach(attributeSetter => attributeSetter(result));
             return result
         })
-    }
+    FunctionReference = r => Grammar.CreateMultiAttributeGrammar(
+        r,
+        P.succeed(),
+        FunctionReferenceEntity,
+        attributeKey => Utility.objectGet(FunctionReferenceEntity.attributes, attributeKey)
+    )
+    Pin = r => Grammar.CreateMultiAttributeGrammar(
+        r,
+        P.string("Pin"),
+        PinEntity$1,
+        attributeKey => Utility.objectGet(PinEntity$1.attributes, attributeKey)
+    )
+    Object = r => P.seqMap(
+        P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
+        P.alt(
+            Grammar.CreateAttributeGrammar(r, P.string("CustomProperties"), _ => ObjectEntity.attributes.CustomProperties, P.string(" ")),
+            Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeKey => Utility.objectGet(ObjectEntity, attributeKey))
+        )
+            .trim(r.InlineOptWhitespace) // whitespace which is NOT newline
+            .sepBy(P.string("\n"))
+            .skip(r.WhitespaceNewline), // Optional trailing comma
+        P.seq(P.string("End"), P.whitespace, P.string("Object")),
+        (_, attributes, __) => {
+            let result = new ObjectEntity();
+            attributes.forEach(attributeSetter => attributeSetter(result));
+            return result
+        }
+    )
 }
 
 class Serializer {
 
-    static writeValue(value) {
-        if (value?.constructor?.name === 'Function') {
-            return this.writeValue(value())
-        }
-        // No quotes
+    static grammar = Parsimmon.createLanguage(new Grammar())
+
+    writeValue(value) {
         if (value === null) {
-            return '()'
+            return "()"
         }
-        if (value?.constructor?.name === 'Boolean') {
-            return value ? 'True' : 'False'
-        }
-        if (value?.constructor?.name === 'ETypesNames' || value?.constructor?.name === 'FGuid') {
-            return value.toString()
-        }
-        // Quotes
-        if (value?.constructor?.name === 'String') {
-            return `"${value}"`
+        switch (value?.constructor) {
+            case Function:
+                return this.writeValue(value())
+            case Boolean:
+                return Utility.FirstCapital(value.toString())
+            case ObjectReferenceEntity:
+            case Guid:
+                return value.toString()
+            case String:
+                return `"${value}"`
         }
     }
 
-    static subWrite(prefix, object) {
+    /**
+     * 
+     * @param {String[]} prefix 
+     * @param {Object} object 
+     * @param {String} separator 
+     * @returns 
+     */
+    subWrite(key, object, separator = "\n", prefix = "") {
         let result = "";
-        prefix += prefix != "" ? "." : "";
-        const fullPropertyName = prefix + property;
+        let fullKey = key.concat("");
+        const last = fullKey.length - 1;
         for (const property in object) {
-            if (object[property]?.constructor?.name === 'Object') {
-                result += Serializer.subWrite(fullPropertyName, object[property]);
-            } else if (!object.constructor.optionalKeys.contains(fullPropertyName)) {
-                result += `${fullPropertyName}=${Serializer.writeValue(object[property])},`;
+            fullKey[last] = property;
+            const value = object[property];
+            if (object[property]?.constructor === Object) {
+                // Recursive call when finding an object
+                result += this.subWrite(fullKey, value, separator, prefix);
+            } else if (this.showProperty(fullKey, value)) {
+                result += prefix + fullKey.join(".") + "=" + this.writeValue(value) + separator;
             }
         }
         return result
+    }
+
+    getAttributes() {
+        return PinEntity.attributes
+    }
+
+    showProperty(attributeKey, attributeValue) {
+        const attributes = this.getAttributes();
+        const attribute = Utility.objectGet(attributes, attributeKey);
+        if (attribute instanceof TypeInitialization) {
+            return !Utility.equals(attribute.value, attributeValue) || attribute.showDefault
+        }
+        return true
     }
 
     /**
@@ -1425,9 +1673,13 @@ class Serializer {
      * @param {String} value 
      */
     read(value) {
-        //Parsimmon.length
     }
 
+    /**
+     * Returns a string representing the object (serialization)
+     * @param {*} object 
+     * @returns The serialized string
+     */
     write(object) {
         return ''
     }
@@ -1435,10 +1687,12 @@ class Serializer {
 
 class PinSerializer extends Serializer {
 
-    static pinGrammar = Parsimmon.createLanguage(new PinGrammar())
+    getAttributes() {
+        return PinEntity$1.attributes
+    }
 
     read(value) {
-        const parseResult = PinSerializer.pinGrammar.Pin.parse(value);
+        const parseResult = Serializer.grammar.Pin.parse(value);
         if (!parseResult.status) {
             console.error("Error when trying to parse the pin.");
             return parseResult
@@ -1447,9 +1701,40 @@ class PinSerializer extends Serializer {
     }
 
     write(object) {
-        let result = `Pin (${Serializer.subWrite('', object)})`;
+        let result = `Pin (${this.subWrite([], object, ",")})`;
         return result
     }
 }
 
-export { GraphNode, PinSerializer, Blueprint as UEBlueprint };
+class ObjectSerializer extends Serializer {
+
+    showProperty(attributeKey, attributeValue) {
+        switch (attributeKey.toString()) {
+            case "Class":
+            case "Name":
+                // Serielized separately
+                return false
+        }
+        return super.showProperty(attributeKey, attributeValue)
+    }
+
+    read(value) {
+        const parseResult = Serializer.grammar.Object.parse(value);
+        if (!parseResult.status) {
+            console.error("Error when trying to parse the object.");
+            return parseResult
+        }
+        return parseResult.value
+    }
+
+    write(object) {
+        let result = `
+Begin Object Class=${object.Class} Name=${object.Name}
+${this.subWrite([], object, "\n", "   ")}
+End Object
+`;
+        return result
+    }
+}
+
+export { Grammar, GraphNode, ObjectReferenceEntity, ObjectSerializer, PinEntity$1 as PinEntity, PinSerializer, Blueprint as UEBlueprint };

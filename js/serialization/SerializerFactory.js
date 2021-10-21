@@ -1,15 +1,17 @@
-import ObjectEntity from "../entity/ObjectEntity";
-import PinEntity from "../entity/PinEntity";
-import SerializeObject from "./ObjectSerialize";
-import PinSerializer from "./PinSerializer";
+import PinEntity from "../entity/PinEntity"
+import Utility from "../Utility"
+import PinSerializer from "./PinSerializer"
+import ObjectEntity from "../entity/ObjectEntity"
+import ObjectSerialize from "./ObjectSerialize"
+
 
 export default class SerializerFactory {
     static serializers = new Map([
-        [PinEntity.prototype.constructor.name, PinSerializer],
-        [ObjectEntity.prototype.constructor.name, SerializeObject]
+        [PinEntity, PinSerializer],
+        [ObjectEntity, ObjectSerialize]
     ])
 
-    createSerializer(object) {
-        return SerializerFactory.serializers.get(object.constructor.name)
+    static createSerializer(object) {
+        return new SerializerFactory.serializers.get(Utility.getType(object))()
     }
 }
