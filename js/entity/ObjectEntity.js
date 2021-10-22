@@ -10,7 +10,7 @@ import VariableReferenceEntity from "./VariableReferenceEntity"
 export default class ObjectEntity extends Entity {
 
     static attributes = {
-        Class: "",
+        Class: ObjectReferenceEntity,
         Name: "",
         bIsPureFunc: new TypeInitialization(false, false),
         VariableReference: new TypeInitialization(new VariableReferenceEntity(), false),

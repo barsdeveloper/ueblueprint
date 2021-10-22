@@ -39,10 +39,7 @@ export default class Entity {
                         fullKey,
                         target[property],
                         defaultValue,
-                        (t, _, v) => {
-                            console.log(v)
-                            t.push(v)
-                        })
+                        (t, _, v) => t.push(v))
                     continue
                 }
                 if (defaultValue instanceof TypeInitialization) {

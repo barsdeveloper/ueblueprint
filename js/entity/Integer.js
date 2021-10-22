@@ -1,8 +1,24 @@
 import Entity from "./Entity"
 
 export default class Integer extends Entity {
+
+    static attributes = {
+        value: 0
+    }
+
     constructor(value) {
-        super()
-        this.value = Math.round(new Number(value).valueOf())
+        if (value?.constructor === String) {
+            value = Number(value)
+        }
+        if (value?.constructor === Number) {
+            value = {
+                value: Math.round(value.valueOf())
+            }
+        }
+        super(value)
+    }
+
+    getAttributes() {
+        return Integer.attributes
     }
 }

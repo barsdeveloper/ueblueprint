@@ -2,11 +2,13 @@ import Entity from "./Entity";
 import Guid from "../Guid";
 import ObjectReferenceEntity from "./ObjectReferenceEntity";
 import TypeInitialization from "./TypeInitialization";
+import LocalizedTextEntity from "./LocalizedTextEntity";
 
 export default class PinEntity extends Entity {
     static attributes = {
         PinId: Guid,
-        PinName: [new TypeInitialization(5, true), "ciao"],
+        PinName: "",
+        PinFriendlyName: new TypeInitialization(new LocalizedTextEntity(), false),
         PinToolTip: "",
         Direction: new TypeInitialization("", false),
         PinType: {

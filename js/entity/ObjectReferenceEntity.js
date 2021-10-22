@@ -3,7 +3,7 @@ import Entity from "./Entity"
 export default class ObjectReferenceEntity extends Entity {
 
     static attributes = {
-        type: "None",
+        type: "",
         path: ""
     }
 
@@ -12,6 +12,10 @@ export default class ObjectReferenceEntity extends Entity {
     }
 
     toString() {
-        return this.type + (this.path ? `'"${this.path}"'` : "")
+        return (this.type ?? "") + (
+            this.path
+                ? this.type ? `'"${this.path}"'` : this.path
+                : ""
+        )
     }
 }
