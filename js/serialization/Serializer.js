@@ -1,9 +1,9 @@
-import Parsimmon from "parsimmon"
 import Grammar from "./Grammar"
-import Utility from "../Utility"
-import TypeInitialization from "../entity/TypeInitialization"
+import GuidEntity from "../entity/GuidEntity"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
-import Guid from "../Guid"
+import Parsimmon from "parsimmon"
+import TypeInitialization from "../entity/TypeInitialization"
+import Utility from "../Utility"
 
 
 export default class Serializer {
@@ -20,7 +20,7 @@ export default class Serializer {
             case Boolean:
                 return Utility.FirstCapital(value.toString())
             case ObjectReferenceEntity:
-            case Guid:
+            case GuidEntity:
                 return value.toString()
             case String:
                 return `"${value}"`

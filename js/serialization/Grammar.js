@@ -1,5 +1,5 @@
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
-import Guid from "../Guid"
+import GuidEntity from "../entity/GuidEntity"
 import Integer from "../entity/Integer"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
 import Parsimmon from "parsimmon"
@@ -7,6 +7,7 @@ import PinEntity from "../entity/PinEntity"
 import Utility from "../Utility"
 import ObjectEntity from "../entity/ObjectEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
+import PinReferenceEntity from "../entity/PinReferenceEntity"
 
 let P = Parsimmon
 
@@ -22,8 +23,9 @@ export default class Grammar {
     Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
     String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
-    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).desc("32 digit hexadecimal (accepts all the letters for safety) value")
-    ReferencePath = _ => P.seq(P.string("/"), P.regex(/[0-9a-zA-Z_]+/).sepBy1(P.string(".")).tieWith("."))
+    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
+    PathSymbol = _ => P.regex(/[0-9a-zA-Z_]+/)
+    ReferencePath = _ => P.seq(P.string("/"), r.PathSymbol.sepBy1(P.string(".")).tieWith("."))
         .tie()
         .atLeast(2)
         .tie()
@@ -49,11 +51,11 @@ export default class Grammar {
     AttributeAnyValue = r => P.alt(r.Null, r.None, r.Boolean, r.Number, r.Integer, r.String, r.Guid, r.Reference, r.LocalizedText)
     LocalizedText = r => P.seqMap(
         P.string("NSLOCTEXT").skip(P.optWhitespace).skip(P.string("(")),
-        r.String.trim(P.optWhitespace),
+        r.String.trim(P.optWhitespace), // namespace
         P.string(","),
-        r.String.trim(P.optWhitespace),
+        r.String.trim(P.optWhitespace), // key
         P.string(","),
-        r.String.trim(P.optWhitespace),
+        r.String.trim(P.optWhitespace), // value
         P.string(")"),
         (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
             namespace: namespace,
@@ -61,8 +63,17 @@ export default class Grammar {
             value: value
         })
     )
-    static getGrammarForType(r, type, defaultGrammar) {
-        switch (type) {
+    PinReference = r => P.seqMap(
+        r.PathSymbol,
+        P.whitespace,
+        r.Guid,
+        (objectName, _, pinGuid) => new PinReferenceEntity({
+            objectName: objectName,
+            pinGuid: pinGuid
+        })
+    )
+    static getGrammarForType(r, attributeType, defaultGrammar) {
+        switch (Utility.getType(attributeType)) {
             case Boolean:
                 return r.Boolean
             case Number:
@@ -71,16 +82,34 @@ export default class Grammar {
                 return r.Integer
             case String:
                 return r.String
-            case Guid:
+            case GuidEntity:
                 return r.Guid
             case ObjectReferenceEntity:
                 return r.Reference
             case LocalizedTextEntity:
                 return r.LocalizedText
+            case PinReferenceEntity:
+                return r.PinReference
             case FunctionReferenceEntity:
                 return r.FunctionReference
             case PinEntity:
                 return r.Pin
+            case Array:
+                return P.seqMap(
+                    P.string("("),
+                    attributeType
+                        .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
+                        .reduce((accum, cur) =>
+                            !cur || accum === r.AttributeAnyValue
+                                ? r.AttributeAnyValue
+                                : accum.or(cur)
+                        )
+                        .trim(P.optWhitespace)
+                        .sepBy(P.string(","))
+                        .skip(P.regex(/,?\s*/)),
+                    P.string(")"),
+                    (_, grammar, __) => grammar
+                )
             default:
                 return defaultGrammar
         }
@@ -91,26 +120,10 @@ export default class Grammar {
             .chain(attributeName => {
                 const attributeKey = attributeName.split(".")
                 const attribute = attributeSupplier(attributeKey)
-                const type = Utility.getType(attribute)
-                let attributeValueGrammar = type === Array
-                    ? attribute
-                        .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
-                        .reduce((accum, cur) =>
-                            !cur || accum === r.AttributeAnyValue
-                                ? r.AttributeAnyValue
-                                : accum.or(cur)
-                        )
-                    : Grammar.getGrammarForType(r, type, r.AttributeAnyValue)
-                // After the attribute name (already parsed at this point, we continue with an equal sign (possibly surrounded by whitespace) then the expected attribute value)
-                return attributeValueGrammar.map(attributeValue => type === Array
-                    ? entity => {
-                        /** @type {Array} */
-                        let array = Utility.objectGet(entity, attributeKey, [])
-                        array.push(attributeValue)
-                        return Utility.objectSet(entity, attributeKey, array, true)
-                    }
-                    : entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
-                ) // returns attributeSetter
+                let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
+                return attributeValueGrammar.map(attributeValue =>
+                    entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
+                ) // returns attributeSetter:  a function called with an object as argument that will set the correct attribute value
             })
     // Meta grammar
     static CreateMultiAttributeGrammar = (r, keyGrammar, entityType, attributeSupplier) =>
@@ -156,4 +169,5 @@ export default class Grammar {
             return result
         }
     )
+    MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
 }

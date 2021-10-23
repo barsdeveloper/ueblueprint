@@ -33,6 +33,12 @@ export default class Entity {
                     continue
                 }
                 let defaultValue = properties[property]
+                if (defaultValue instanceof TypeInitialization) {
+                    if (!defaultValue.showDefault) {
+                        continue
+                    }
+                    defaultValue = defaultValue.value
+                }
                 if (defaultValue instanceof Array) {
                     propertySetter(target, property, [])
                     defineAllAttributes(
@@ -41,12 +47,6 @@ export default class Entity {
                         defaultValue,
                         (t, _, v) => t.push(v))
                     continue
-                }
-                if (defaultValue instanceof TypeInitialization) {
-                    if (!defaultValue.showDefault) {
-                        continue
-                    }
-                    defaultValue = defaultValue.value
                 }
                 if (defaultValue instanceof Function) {
                     defaultValue = Utility.sanitize(new defaultValue())
