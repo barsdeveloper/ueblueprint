@@ -13,13 +13,13 @@ export default class ObjectEntity extends Entity {
         Class: ObjectReferenceEntity,
         Name: "",
         bIsPureFunc: new TypeInitialization(false, false),
-        VariableReference: new TypeInitialization(new VariableReferenceEntity(), false),
-        FunctionReference: new TypeInitialization(new FunctionReferenceEntity(), false),
-        TargetType: new TypeInitialization(new ObjectReferenceEntity(), false),
-        NodePosX: Integer,
-        NodePosY: Integer,
+        VariableReference: new TypeInitialization(null, false, VariableReferenceEntity),
+        FunctionReference: new TypeInitialization(null, false, FunctionReferenceEntity),
+        TargetType: new TypeInitialization(null, false, ObjectReferenceEntity),
+        NodePosX: 0,
+        NodePosY: 0,
         NodeGuid: GuidEntity,
-        CustomProperties: [PinEntity]
+        CustomProperties: [new TypeInitialization(null, false, PinEntity)]
     }
 
     getAttributes() {

@@ -25,7 +25,7 @@ export default class Grammar {
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
     Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
     PathSymbol = _ => P.regex(/[0-9a-zA-Z_]+/)
-    ReferencePath = _ => P.seq(P.string("/"), r.PathSymbol.sepBy1(P.string(".")).tieWith("."))
+    ReferencePath = r => P.seq(P.string("/"), r.PathSymbol.sepBy1(P.string(".")).tieWith("."))
         .tie()
         .atLeast(2)
         .tie()
@@ -155,10 +155,21 @@ export default class Grammar {
         PinEntity,
         attributeKey => Utility.objectGet(PinEntity.attributes, attributeKey)
     )
+    CustomProperties = r =>
+        P.string("CustomProperties")
+            .then(P.whitespace)
+            .then(r.Pin)
+            .map(pin => entity => {
+                /** @type {Array} */
+                let properties = Utility.objectGet(entity, ["CustomProperties"], [])
+                properties.push(pin)
+                Utility.objectSet(entity, ["CustomProperties"], properties, true)
+            })
+
     Object = r => P.seqMap(
         P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
         P.alt(
-            Grammar.CreateAttributeGrammar(r, P.string("CustomProperties"), _ => ObjectEntity.attributes.CustomProperties, P.whitespace),
+            r.CustomProperties,
             Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeKey => Utility.objectGet(ObjectEntity.attributes, attributeKey))
         )
             .sepBy1(P.whitespace),
