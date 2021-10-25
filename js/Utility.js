@@ -1,3 +1,4 @@
+import Integer from "./entity/primitive/Integer"
 import TypeInitialization from "./entity/TypeInitialization"
 
 export default class Utility {
@@ -57,18 +58,15 @@ export default class Utility {
 
     static sanitize(value) {
         if (!(value instanceof Object)) {
-            return value
+            return value // Is already primitive
         }
-        switch (value?.constructor) {
-            case Boolean:
-                return value.valueOf()
-            case Number:
-                return value.valueOf()
-            case String:
-                return value.toString()
-            default:
-                return value
+        if (value instanceof Boolean || value instanceof Integer || value instanceof Number) {
+            return value.valueOf()
         }
+        if (value instanceof String) {
+            return value.toString()
+        }
+        return value
     }
 
     static equals(a, b) {

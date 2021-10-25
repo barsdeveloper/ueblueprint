@@ -1,12 +1,12 @@
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
-import GuidEntity from "../entity/GuidEntity"
-import Integer from "../entity/Integer"
-import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
+import Guid from "../entity/primitive/Guid"
+import Integer from "../entity/primitive/Integer"
+import ObjectReference from "../entity/primitive/ObjectReference"
 import Parsimmon from "parsimmon"
 import PinEntity from "../entity/PinEntity"
 import Utility from "../Utility"
 import ObjectEntity from "../entity/ObjectEntity"
-import LocalizedTextEntity from "../entity/LocalizedTextEntity"
+import LocalizedTextEntity from "../entity/primitive/LocalizedTextEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 
 let P = Parsimmon
@@ -17,13 +17,13 @@ export default class Grammar {
     InlineOptWhitespace = _ => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
     WhitespaceNewline = _ => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
-    None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None" })).desc("none")
+    None = _ => P.string("None").map(_ => new ObjectReference({ type: "None" })).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
     Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
     Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
     String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
-    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
+    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new Guid(v)).desc("32 digit hexadecimal (accepts all the letters for safety) value")
     PathSymbol = _ => P.regex(/[0-9a-zA-Z_]+/)
     ReferencePath = r => P.seq(P.string("/"), r.PathSymbol.sepBy1(P.string(".")).tieWith("."))
         .tie()
@@ -32,7 +32,7 @@ export default class Grammar {
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
     Reference = r => P.alt(
         r.None,
-        r.ReferencePath.map(path => new ObjectReferenceEntity({ path: path })),
+        r.ReferencePath.map(path => new ObjectReference("", path)),
         P.seqMap(
             r.Word,
             P.optWhitespace,
@@ -41,10 +41,7 @@ export default class Grammar {
                     P.string(result.split("").reverse().join(""))
                 )
             ),
-            (referenceType, _, referencePath) => new ObjectReferenceEntity({
-                type: referenceType,
-                path: referencePath
-            })
+            (referenceType, _, referencePath) => new ObjectReference(referenceType, referencePath)
         )
     )
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
@@ -57,11 +54,7 @@ export default class Grammar {
         P.string(","),
         r.String.trim(P.optWhitespace), // value
         P.string(")"),
-        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
-            namespace: namespace,
-            key: key,
-            value: value
-        })
+        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity(namespace, key, value)
     )
     PinReference = r => P.seqMap(
         r.PathSymbol,
@@ -82,9 +75,9 @@ export default class Grammar {
                 return r.Integer
             case String:
                 return r.String
-            case GuidEntity:
+            case Guid:
                 return r.Guid
-            case ObjectReferenceEntity:
+            case ObjectReference:
                 return r.Reference
             case LocalizedTextEntity:
                 return r.LocalizedText

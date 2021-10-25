@@ -1,11 +1,11 @@
 import Entity from "./Entity"
-import GuidEntity from "./GuidEntity"
+import Guid from "./primitive/Guid"
 
 export default class PinReferenceEntity extends Entity {
 
     static attributes = {
         objectName: String,
-        pinGuid: GuidEntity
+        pinGuid: Guid
     }
 
     getAttributes() {

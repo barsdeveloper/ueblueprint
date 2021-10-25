@@ -1,12 +1,12 @@
-import GuidEntity from "./GuidEntity"
 import Entity from "./Entity"
+import Guid from "./primitive/Guid"
 
 export default class VariableReferenceEntity extends Entity {
 
     static attributes = {
         MemberName: String,
-        MemberGuid: GuidEntity,
-        bSelfContext: true
+        MemberGuid: Guid,
+        bSelfContext: false
     }
 
     getAttributes() {

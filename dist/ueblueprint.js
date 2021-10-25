@@ -1,3 +1,33 @@
+class Primitive {
+    toString() {
+        return "Unimplemented for " + this.constructor.name
+    }
+}
+
+class Integer extends Primitive {
+
+    constructor(value) {
+        super();
+        // Using constructor equality and not instanceof in order to consider both primitives and objects
+        if (value?.constructor === String) {
+            value = Number(value);
+        }
+        if (value?.constructor === Number) {
+            value = Math.round(value);
+        }
+        /** @type {number} */
+        this.value = value;
+    }
+
+    valueOf() {
+        this.value;
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
 class Utility {
     static clamp(val, min, max) {
         return Math.min(Math.max(val, min), max)
@@ -55,18 +85,15 @@ class Utility {
 
     static sanitize(value) {
         if (!(value instanceof Object)) {
-            return value
+            return value // Is already primitive
         }
-        switch (value?.constructor) {
-            case Boolean:
-                return value.valueOf()
-            case Number:
-                return value.valueOf()
-            case String:
-                return value.toString()
-            default:
-                return value
+        if (value instanceof Boolean || value instanceof Integer || value instanceof Number) {
+            return value.valueOf()
         }
+        if (value instanceof String) {
+            return value.toString()
+        }
+        return value
     }
 
     static equals(a, b) {
@@ -97,7 +124,17 @@ class Utility {
 }
 
 class TypeInitialization {
-    constructor(value, showDefault = true, type = Utility.getType(value)) {
+
+    /**
+     * 
+     * @param {typeof Object} type 
+     * @param {boolean} showDefault 
+     * @param {*} value
+     */
+    constructor(type, showDefault = true, value = undefined) {
+        if (value === undefined) {
+            value = Utility.sanitize(new type());
+        }
         this.value = value;
         this.showDefault = showDefault;
         this.type = type;
@@ -112,14 +149,14 @@ class Entity {
          * @param {Object} target 
          * @param {Object} properties 
          */
-        const defineAllAttributes = (prefix, target, properties, propertySetter = (t, p, v) => t[p] = v) => {
+        const defineAllAttributes = (prefix, target, properties) => {
             let fullKey = prefix.concat("");
             const last = fullKey.length - 1;
             for (let property in properties) {
                 fullKey[last] = property;
-                // Not instanceof because all objects are instenceof Object
+                // Not instanceof because all objects are instenceof Object, exact match needed
                 if (properties[property]?.constructor === Object) {
-                    propertySetter(target, property, {});
+                    target[property] = {};
                     defineAllAttributes(fullKey, target[property], properties[property]);
                     continue
                 }
@@ -132,7 +169,7 @@ class Entity {
                  */
                 const value = Utility.objectGet(options, fullKey);
                 if (value !== null) {
-                    propertySetter(target, property, value);
+                    target[property] = value;
                     continue
                 }
                 let defaultValue = properties[property];
@@ -143,29 +180,20 @@ class Entity {
                     defaultValue = defaultValue.value;
                 }
                 if (defaultValue instanceof Array) {
-                    propertySetter(target, property, []);
-                    defineAllAttributes(
-                        fullKey,
-                        target[property],
-                        defaultValue,
-                        (t, _, v) => t.push(v));
+                    target[property] = [];
                     continue
                 }
                 if (defaultValue instanceof Function) {
                     defaultValue = Utility.sanitize(new defaultValue());
                 }
-                propertySetter(target, property, defaultValue);
+                target[property] = defaultValue;
             }
         };
         defineAllAttributes([], this, this.getAttributes());
     }
 }
 
-class GuidEntity extends Entity {
-
-    static attributes = {
-        value: String
-    }
+class Guid extends Primitive {
 
     static generateGuid(random) {
         let values = new Uint32Array(4);
@@ -180,46 +208,54 @@ class GuidEntity extends Entity {
     }
 
     constructor(guid) {
-        if (guid?.constructor === String) {
-            guid = {
-                value: guid
-            };
-        } else if (guid?.constructor === Boolean) {
-            guid = {
-                value: GuidEntity.generateGuid(guid == true)
-            };
+        super();
+        // Using constructor equality and not instanceof in order to consider both primitives and objects
+        if (guid?.constructor === Boolean) {
+            guid = Guid.generateGuid(guid == true);
         }
-        super(guid);
+        if (guid instanceof Guid) {
+            guid = guid.value;
+        }
+        this.value = guid;
     }
 
-    getAttributes() {
-        return GuidEntity.attributes
+    toString() {
+        return this.value.toString()
     }
 }
 
-class LocalizedTextEntity extends Entity {
+class LocalizedTextEntity extends Primitive {
 
-    static attributes = {
-        namespace: "",
-        key: "",
-        value: ""
+    /**
+     * 
+     * @param {String} namespace 
+     * @param {String} key 
+     * @param {String} value 
+     */
+    constructor(namespace, key, value) {
+        super();
+        this.namespace = namespace;
+        this.key = key;
+        this.value = value;
     }
 
-    getAttributes() {
-        return LocalizedTextEntity.attributes
+    toString() {
+        "NSLOCTEXT(" + `"${this.namespace}"` + ", " + `"${this.key}"` + ", " + `"${this.value}"` + ")";
     }
 
 }
 
-class ObjectReferenceEntity extends Entity {
+class ObjectReference extends Primitive {
 
-    static attributes = {
-        type: "",
-        path: ""
-    }
-
-    getAttributes() {
-        return ObjectReferenceEntity.attributes
+    /**
+     * 
+     * @param {String} type 
+     * @param {String} path 
+     */
+    constructor(type, path) {
+        super();
+        this.type = type;
+        this.path = path;
     }
 
     toString() {
@@ -235,7 +271,7 @@ class PinReferenceEntity extends Entity {
 
     static attributes = {
         objectName: String,
-        pinGuid: GuidEntity
+        pinGuid: Guid
     }
 
     getAttributes() {
@@ -246,27 +282,27 @@ class PinReferenceEntity extends Entity {
 class PinEntity$1 extends Entity {
 
     static attributes = {
-        PinId: GuidEntity,
+        PinId: Guid,
         PinName: "",
-        PinFriendlyName: new TypeInitialization(new LocalizedTextEntity(), false),
+        PinFriendlyName: new TypeInitialization(LocalizedTextEntity, false, null),
         PinToolTip: "",
-        Direction: new TypeInitialization("", false),
+        Direction: new TypeInitialization(String, false, ""),
         PinType: {
             PinCategory: "",
             PinSubCategory: "",
-            PinSubCategoryObject: ObjectReferenceEntity,
+            PinSubCategoryObject: ObjectReference,
             PinSubCategoryMemberReference: null,
             PinValueType: null,
-            ContainerType: ObjectReferenceEntity,
+            ContainerType: ObjectReference,
             bIsReference: false,
             bIsConst: false,
             bIsWeakPointer: false,
             bIsUObjectWrapper: false
         },
-        LinkedTo: [new TypeInitialization(null, false, PinReferenceEntity)],
+        LinkedTo: [new TypeInitialization(PinReferenceEntity, false, null)],
         DefaultValue: "",
         AutogeneratedDefaultValue: "",
-        PersistentGuid: GuidEntity,
+        PersistentGuid: Guid,
         bHidden: false,
         bNotConnectable: false,
         bDefaultValueIsReadOnly: false,
@@ -288,35 +324,12 @@ class PinEntity$1 extends Entity {
 
 class FunctionReferenceEntity extends Entity {
     static attributes = {
-        MemberParent: ObjectReferenceEntity,
+        MemberParent: ObjectReference,
         MemberName: ""
     }
 
     getAttributes() {
         return FunctionReferenceEntity.attributes
-    }
-}
-
-class Integer extends Entity {
-
-    static attributes = {
-        value: 0
-    }
-
-    constructor(value) {
-        if (value?.constructor === String) {
-            value = Number(value);
-        }
-        if (value?.constructor === Number) {
-            value = {
-                value: Math.round(value.valueOf())
-            };
-        }
-        super(value);
-    }
-
-    getAttributes() {
-        return Integer.attributes
     }
 }
 
@@ -338,8 +351,8 @@ class VariableReferenceEntity extends Entity {
 
     static attributes = {
         MemberName: String,
-        MemberGuid: GuidEntity,
-        bSelfContext: true
+        MemberGuid: Guid,
+        bSelfContext: false
     }
 
     getAttributes() {
@@ -350,16 +363,16 @@ class VariableReferenceEntity extends Entity {
 class ObjectEntity extends Entity {
 
     static attributes = {
-        Class: ObjectReferenceEntity,
+        Class: ObjectReference,
         Name: "",
-        bIsPureFunc: new TypeInitialization(false, false),
-        VariableReference: new TypeInitialization(null, false, VariableReferenceEntity),
-        FunctionReference: new TypeInitialization(null, false, FunctionReferenceEntity),
-        TargetType: new TypeInitialization(null, false, ObjectReferenceEntity),
-        NodePosX: Integer,
-        NodePosY: Integer,
-        NodeGuid: GuidEntity,
-        CustomProperties: [new TypeInitialization(null, false, PinEntity$1)]
+        bIsPureFunc: new TypeInitialization(Boolean, false, false),
+        VariableReference: new TypeInitialization(VariableReferenceEntity, false, null),
+        FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
+        TargetType: new TypeInitialization(ObjectReference, false, null),
+        NodePosX: 0,
+        NodePosY: 0,
+        NodeGuid: Guid,
+        CustomProperties: [PinEntity$1]
     }
 
     getAttributes() {
@@ -375,13 +388,13 @@ class Grammar {
     InlineOptWhitespace = _ => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
     WhitespaceNewline = _ => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
-    None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None" })).desc("none")
+    None = _ => P.string("None").map(_ => new ObjectReference({ type: "None" })).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
     Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
     Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
     String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
-    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
+    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new Guid(v)).desc("32 digit hexadecimal (accepts all the letters for safety) value")
     PathSymbol = _ => P.regex(/[0-9a-zA-Z_]+/)
     ReferencePath = r => P.seq(P.string("/"), r.PathSymbol.sepBy1(P.string(".")).tieWith("."))
         .tie()
@@ -390,7 +403,7 @@ class Grammar {
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
     Reference = r => P.alt(
         r.None,
-        r.ReferencePath.map(path => new ObjectReferenceEntity({ path: path })),
+        r.ReferencePath.map(path => new ObjectReference("", path)),
         P.seqMap(
             r.Word,
             P.optWhitespace,
@@ -399,10 +412,7 @@ class Grammar {
                     P.string(result.split("").reverse().join(""))
                 )
             ),
-            (referenceType, _, referencePath) => new ObjectReferenceEntity({
-                type: referenceType,
-                path: referencePath
-            })
+            (referenceType, _, referencePath) => new ObjectReference(referenceType, referencePath)
         )
     )
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
@@ -415,11 +425,7 @@ class Grammar {
         P.string(","),
         r.String.trim(P.optWhitespace), // value
         P.string(")"),
-        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
-            namespace: namespace,
-            key: key,
-            value: value
-        })
+        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity(namespace, key, value)
     )
     PinReference = r => P.seqMap(
         r.PathSymbol,
@@ -440,9 +446,9 @@ class Grammar {
                 return r.Integer
             case String:
                 return r.String
-            case GuidEntity:
+            case Guid:
                 return r.Guid
-            case ObjectReferenceEntity:
+            case ObjectReference:
                 return r.Reference
             case LocalizedTextEntity:
                 return r.LocalizedText
@@ -554,8 +560,8 @@ class Serializer {
                 return this.writeValue(value())
             case Boolean:
                 return Utility.FirstCapital(value.toString())
-            case ObjectReferenceEntity:
-            case GuidEntity:
+            case ObjectReference:
+            case Guid:
                 return value.toString()
             case String:
                 return `"${value}"`

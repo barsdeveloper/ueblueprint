@@ -9,14 +9,14 @@ export default class Entity {
          * @param {Object} target 
          * @param {Object} properties 
          */
-        const defineAllAttributes = (prefix, target, properties, propertySetter = (t, p, v) => t[p] = v) => {
+        const defineAllAttributes = (prefix, target, properties) => {
             let fullKey = prefix.concat("")
             const last = fullKey.length - 1
             for (let property in properties) {
                 fullKey[last] = property
-                // Not instanceof because all objects are instenceof Object
+                // Not instanceof because all objects are instenceof Object, exact match needed
                 if (properties[property]?.constructor === Object) {
-                    propertySetter(target, property, {})
+                    target[property] = {}
                     defineAllAttributes(fullKey, target[property], properties[property])
                     continue
                 }
@@ -29,7 +29,7 @@ export default class Entity {
                  */
                 const value = Utility.objectGet(options, fullKey)
                 if (value !== null) {
-                    propertySetter(target, property, value)
+                    target[property] = value
                     continue
                 }
                 let defaultValue = properties[property]
@@ -40,18 +40,13 @@ export default class Entity {
                     defaultValue = defaultValue.value
                 }
                 if (defaultValue instanceof Array) {
-                    propertySetter(target, property, [])
-                    defineAllAttributes(
-                        fullKey,
-                        target[property],
-                        defaultValue,
-                        (t, _, v) => t.push(v))
+                    target[property] = []
                     continue
                 }
                 if (defaultValue instanceof Function) {
                     defaultValue = Utility.sanitize(new defaultValue())
                 }
-                propertySetter(target, property, defaultValue)
+                target[property] = defaultValue
             }
         }
         defineAllAttributes([], this, this.getAttributes())

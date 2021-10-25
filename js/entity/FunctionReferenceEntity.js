@@ -1,9 +1,9 @@
 import Entity from "./Entity"
-import ObjectReferenceEntity from "./ObjectReferenceEntity"
+import ObjectReference from "./primitive/ObjectReference"
 
 export default class FunctionReferenceEntity extends Entity {
     static attributes = {
-        MemberParent: ObjectReferenceEntity,
+        MemberParent: ObjectReference,
         MemberName: ""
     }
 
