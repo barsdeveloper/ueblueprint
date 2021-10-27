@@ -1,10 +1,10 @@
-import Utility from "./Utility"
-import DragScroll from "./input/DragScroll"
-import Select from "./input/Select"
-import Zoom from "./input/Zoom"
-import GraphEntity from "./graph/GraphEntity"
 import BlueprintTemplate from "./template/BlueprintTemplate"
+import DragScroll from "./input/DragScroll"
+import GraphEntity from "./graph/GraphEntity"
 import GraphSelector from "./graph/GraphSelector"
+import Select from "./input/Select"
+import Utility from "./Utility"
+import Zoom from "./input/Zoom"
 
 /**
  * @typedef {import("./graph/GraphNode").default} GraphNode
