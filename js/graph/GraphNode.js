@@ -1,5 +1,5 @@
-import SelectableDraggable from "./SelectableDraggable"
 import NodeTemplate from "../template/NodeTemplate"
+import SelectableDraggable from "./SelectableDraggable"
 
 export default class GraphNode extends SelectableDraggable {
 

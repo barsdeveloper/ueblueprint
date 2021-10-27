@@ -1,4 +1,4 @@
-import Template from "./Template";
+import Template from "./Template"
 
 export default class BlueprintTemplate extends Template {
     header(element) {

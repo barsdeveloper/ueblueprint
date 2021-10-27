@@ -1,13 +1,13 @@
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import Guid from "../entity/primitive/Guid"
 import Integer from "../entity/primitive/Integer"
+import LocalizedTextEntity from "../entity/primitive/LocalizedTextEntity"
+import ObjectEntity from "../entity/ObjectEntity"
 import ObjectReference from "../entity/primitive/ObjectReference"
 import Parsimmon from "parsimmon"
 import PinEntity from "../entity/PinEntity"
-import Utility from "../Utility"
-import ObjectEntity from "../entity/ObjectEntity"
-import LocalizedTextEntity from "../entity/primitive/LocalizedTextEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import Utility from "../Utility"
 
 let P = Parsimmon
 
@@ -17,7 +17,7 @@ export default class Grammar {
     InlineOptWhitespace = _ => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
     WhitespaceNewline = _ => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
-    None = _ => P.string("None").map(_ => new ObjectReference({ type: "None" })).desc("none")
+    None = _ => P.string("None").map(_ => new ObjectReference("None", "")).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
     Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
     Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
