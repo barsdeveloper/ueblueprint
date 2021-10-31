@@ -6,9 +6,7 @@ import Select from "./input/Select"
 import Utility from "./Utility"
 import Zoom from "./input/Zoom"
 
-/**
- * @typedef {import("./graph/GraphNode").default} GraphNode
- */
+/** @typedef {import("./graph/GraphNode").default} GraphNode */
 export default class Blueprint extends GraphEntity {
 
     insertChildren() {

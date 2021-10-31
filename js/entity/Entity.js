@@ -44,7 +44,7 @@ export default class Entity {
                     continue
                 }
                 if (defaultValue instanceof Function) {
-                    defaultValue = Utility.sanitize(new defaultValue())
+                    defaultValue = TypeInitialization.sanitize(new defaultValue())
                 }
                 target[property] = defaultValue
             }

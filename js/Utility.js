@@ -1,4 +1,3 @@
-import Integer from "./entity/primitive/Integer"
 import TypeInitialization from "./entity/TypeInitialization"
 
 export default class Utility {
@@ -55,23 +54,9 @@ export default class Utility {
         return Utility.objectGet(source[keys[0]], keys.slice(1), defaultValue)
     }
 
-
-    static sanitize(value) {
-        if (!(value instanceof Object)) {
-            return value // Is already primitive
-        }
-        if (value instanceof Boolean || value instanceof Integer || value instanceof Number) {
-            return value.valueOf()
-        }
-        if (value instanceof String) {
-            return value.toString()
-        }
-        return value
-    }
-
     static equals(a, b) {
-        a = Utility.sanitize(a)
-        b = Utility.sanitize(b)
+        a = TypeInitialization.sanitize(a)
+        b = TypeInitialization.sanitize(b)
         return a === b
     }
 
