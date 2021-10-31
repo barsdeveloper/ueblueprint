@@ -1,10 +1,10 @@
 import Drag from "../input/Drag"
-import GraphEntity from "./GraphEntity"
+import GraphElement from "./GraphElement"
 
-export default class SelectableDraggable extends GraphEntity {
+export default class SelectableDraggable extends GraphElement {
 
-    constructor(template) {
-        super(template)
+    constructor(...args) {
+        super(...args)
         this.dragObject = null
         this.location = [0, 0]
         this.selected = false

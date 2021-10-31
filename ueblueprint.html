@@ -14,9 +14,8 @@
 <body>
     <div>Hello</div>
     <script type="module">
-        import { SerializerFactory, ObjectEntity } from "./dist/ueblueprint.js"
-        let s = SerializerFactory.getSerializer(ObjectEntity)
-        let object = s.constructor.grammar.Object.parse(`Begin Object Class=/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator Name="K2Node_CommutativeAssociativeBinaryOperator_1"
+        import { Blueprint, GraphNode } from "./dist/ueblueprint.js"
+        let node1 = GraphNode.fromSerializedObject(`Begin Object Class=/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator Name="K2Node_CommutativeAssociativeBinaryOperator_1"
    bIsPureFunc=True
    FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
    NodePosX=1856
@@ -27,12 +26,9 @@
    CustomProperties Pin (PinId=81E183294B6CBC122C5E88A8C37F13A3,PinName="B",PinToolTip="B String The string to append to A",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_1 DB96A96142631A1B113BC69C8B77B9BD,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
    CustomProperties Pin (PinId=E9BBB3A54DE64C213F52B2AFC8197637,PinName="ReturnValue",PinToolTip="Return Value String A new string which is the concatenation of A+B",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
 End Object`)
-        console.log(s.write(object.value))
-        //let blueprint = new UEBlueprint()
-
-        //let node0 = new GraphNode(); node0.setLocation([985, 393]); let node1 = new GraphNode(); node1.setLocation([999, 114]); let node2 = new GraphNode(); node2.setLocation([811, 253]); let node3 = new GraphNode(); node3.setLocation([802, 146]); let node4 = new GraphNode(); node4.setLocation([597, 105]); let node5 = new GraphNode(); node5.setLocation([789, 233]); let node6 = new GraphNode(); node6.setLocation([549, 289]); let node7 = new GraphNode(); node7.setLocation([678, 193]); let node8 = new GraphNode(); node8.setLocation([1078, 244]); let node9 = new GraphNode(); node9.setLocation([751, 151]); let node10 = new GraphNode(); node10.setLocation([1046, -14]); let node11 = new GraphNode(); node11.setLocation([714, 267]); let node12 = new GraphNode(); node12.setLocation([767, 36]); let node13 = new GraphNode(); node13.setLocation([807, 219]); let node14 = new GraphNode(); node14.setLocation([1031, 70]); let node15 = new GraphNode(); node15.setLocation([906, 389]); let node16 = new GraphNode(); node16.setLocation([936, 131]); let node17 = new GraphNode(); node17.setLocation([689, 249]); let node18 = new GraphNode(); node18.setLocation([1153, 343]); let node19 = new GraphNode(); node19.setLocation([626, 209]); blueprint.addNode(node0, node1, node2, node3, node4, node5, node6, node7, node8, node9, node10, node11, node12, node13, node14, node15, node16, node17, node18, node19);
-
-        //document.querySelector('body').appendChild(blueprint)
+        let blueprint = new Blueprint()
+        blueprint.addNode(node1)
+        document.querySelector('body').appendChild(blueprint)
     </script>
     <script type="module">
         /*

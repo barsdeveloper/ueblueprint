@@ -1,11 +1,11 @@
 import FastSelectionModel from "../selection/FastSelectionModel"
-import GraphEntity from "./GraphEntity"
+import GraphElement from "./GraphElement"
 import Template from "../template/Template"
 
-export default class GraphSelector extends GraphEntity {
+export default class GraphSelector extends GraphElement {
 
     constructor() {
-        super(new Template())
+        super({}, new Template())
         /**
          * @type {import("./GraphSelector").default}
          */
@@ -31,7 +31,7 @@ export default class GraphSelector extends GraphEntity {
         this.style.setProperty('--ueb-select-to-x', initialPosition[0])
         this.style.setProperty('--ueb-select-to-y', initialPosition[1])
         this.dataset.selecting = "true"
-        this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.nodes, this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction)
+        this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.getNodes(), this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction)
     }
 
     /**

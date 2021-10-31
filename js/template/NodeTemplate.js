@@ -1,4 +1,4 @@
-import { PinEntity } from "../../dist/ueblueprint"
+import PinEntity from "../entity/PinEntity"
 import Template from "./Template"
 
 export default class NodeTemplate extends Template {
@@ -42,7 +42,7 @@ export default class NodeTemplate extends Template {
                     ${outputs.map((output, index) => `
                     <div class="ueb-node-output ueb-node-value-${output.type}">
                         ${output.name}
-                        <span class="ueb-node-value-icon ${entity.outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
+                        <span class="ueb-node-value-icon ${outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
                     </div>
                     `).join("") ?? ''}
                 </div>

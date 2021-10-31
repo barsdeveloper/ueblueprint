@@ -1,23 +1,21 @@
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import DragScroll from "./input/DragScroll"
-import GraphEntity from "./graph/GraphEntity"
+import GraphElement from "./graph/GraphElement"
 import GraphSelector from "./graph/GraphSelector"
 import Select from "./input/Select"
 import Utility from "./Utility"
 import Zoom from "./input/Zoom"
+import BlueprintData from "./BlueprintData"
 
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
-export default class Blueprint extends GraphEntity {
+export default class Blueprint extends GraphElement {
 
     insertChildren() {
-        this.querySelector('[data-nodes]').append(...this.nodes)
+        this.querySelector('[data-nodes]').append(...this.entity.nodes)
     }
 
     constructor() {
-        super(new BlueprintTemplate())
-        /** @type {GraphNode[]}" */
-        this.nodes = new Array()
-        this.expandGridSize = 400
+        super(new BlueprintData(), new BlueprintTemplate())
         /** @type {HTMLElement} */
         this.gridElement = null
         /** @type {HTMLElement} */
@@ -30,10 +28,6 @@ export default class Blueprint extends GraphEntity {
         this.nodesContainerElement = null
         this.dragObject = null
         this.selectObject = null
-        /** @type {Array<number>} */
-        this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
-        /** @type {Array<number>} */
-        this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
         /** @type {number} */
         this.zoom = 0
         /** @type {HTMLElement} */
@@ -128,19 +122,19 @@ export default class Blueprint extends GraphEntity {
         ]
         let expand = [0, 0]
         for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < 0.25 * this.expandGridSize) {
+            if (delta[i] < 0 && finalScroll[i] < 0.25 * this.entity.expandGridSize) {
                 // Expand if scrolling is diminishing and the remainig space is less that a quarter of an expansion step
                 expand[i] = finalScroll[i]
                 if (expand[i] > 0) {
                     // Final scroll is still in rage (more than zero) but we want to expand to negative (left or top)
-                    expand[i] = -this.expandGridSize
+                    expand[i] = -this.entity.expandGridSize
                 }
-            } else if (delta[i] > 0 && finalScroll[i] > scrollMax[i] - 0.25 * this.expandGridSize) {
+            } else if (delta[i] > 0 && finalScroll[i] > scrollMax[i] - 0.25 * this.entity.expandGridSize) {
                 // Expand if scrolling is increasing and the remainig space is less that a quarter of an expansion step
                 expand[i] = finalScroll[i] - scrollMax[i]
                 if (expand[i] < 0) {
                     // Final scroll is still in rage (less than the maximum scroll) but we want to expand to positive (right or bottom)
-                    expand[i] = this.expandGridSize
+                    expand[i] = this.entity.expandGridSize
                 }
             }
         }
@@ -158,8 +152,8 @@ export default class Blueprint extends GraphEntity {
     scrollCenter() {
         const scroll = this.getScroll()
         const offset = [
-            this.translateValue[0] - scroll[0],
-            this.translateValue[1] - scroll[1]
+            this.entity.translateValue[0] - scroll[0],
+            this.entity.translateValue[1] - scroll[1]
         ]
         const targetOffset = this.getViewportSize().map(size => size / 2)
         const deltaOffset = [
@@ -170,7 +164,7 @@ export default class Blueprint extends GraphEntity {
     }
 
     getExpandGridSize() {
-        return this.expandGridSize
+        return this.entity.expandGridSize
     }
 
     getViewportSize() {
@@ -199,10 +193,10 @@ export default class Blueprint extends GraphEntity {
     _expand(x, y) {
         x = Math.round(Math.abs(x))
         y = Math.round(Math.abs(y))
-        this.additional = [this.additional[0] + x, this.additional[1] + y]
+        this.entity.additional = [this.entity.additional[0] + x, this.entity.additional[1] + y]
         if (this.gridElement) {
-            this.gridElement.style.setProperty('--ueb-additional-x', this.additional[0])
-            this.gridElement.style.setProperty('--ueb-additional-y', this.additional[1])
+            this.gridElement.style.setProperty('--ueb-additional-x', this.entity.additional[0])
+            this.gridElement.style.setProperty('--ueb-additional-y', this.entity.additional[1])
         }
     }
 
@@ -214,10 +208,10 @@ export default class Blueprint extends GraphEntity {
     _translate(x, y) {
         x = Math.round(x)
         y = Math.round(y)
-        this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y]
+        this.entity.translateValue = [this.entity.translateValue[0] + x, this.entity.translateValue[1] + y]
         if (this.gridElement) {
-            this.gridElement.style.setProperty('--ueb-translate-x', this.translateValue[0])
-            this.gridElement.style.setProperty('--ueb-translate-y', this.translateValue[1])
+            this.gridElement.style.setProperty('--ueb-translate-x', this.entity.translateValue[0])
+            this.gridElement.style.setProperty('--ueb-translate-y', this.entity.translateValue[1])
         }
     }
 
@@ -243,7 +237,7 @@ export default class Blueprint extends GraphEntity {
     }
 
     progressiveSnapToGrid(x) {
-        return this.expandGridSize * Math.round(x / this.expandGridSize + 0.5 * Math.sign(x))
+        return this.entity.expandGridSize * Math.round(x / this.entity.expandGridSize + 0.5 * Math.sign(x))
     }
 
     getZoom() {
@@ -279,16 +273,24 @@ export default class Blueprint extends GraphEntity {
     }
 
     compensateTranslation(position) {
-        position[0] -= this.translateValue[0]
-        position[1] -= this.translateValue[1]
+        position[0] -= this.entity.translateValue[0]
+        position[1] -= this.entity.translateValue[1]
         return position
+    }
+
+    /**
+     * 
+     * @returns {GraphNode[]} Nodes
+     */
+    getNodes() {
+        return this.entity.nodes
     }
 
     /**
      * Unselect all nodes
      */
     unselectAll() {
-        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, false))
+        this.entity.nodes.forEach(node => this.nodeSelectToggleFunction(node, false))
     }
 
     /**
@@ -301,7 +303,7 @@ export default class Blueprint extends GraphEntity {
                 s.push(e)
                 return s
             },
-            this.nodes)
+            this.entity.nodes)
         if (this.nodesContainerElement) {
             this.nodesContainerElement.append(...graphNodes)
         }

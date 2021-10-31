@@ -1,6 +1,6 @@
-import UBlueprintEntity from "./UBlueprintEntity"
+import GraphElement from "./GraphElement"
 
-export default class GraphLink extends UBlueprintEntity {
+export default class GraphLink extends GraphElement {
 
     /**
      * 

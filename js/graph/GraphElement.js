@@ -1,22 +1,18 @@
-export default class GraphEntity extends HTMLElement {
+export default class GraphElement extends HTMLElement {
     /**
      * 
      * @param {import("../template/Template").default} template The template to render this node
      */
-    constructor(template) {
+    constructor(entity, template) {
         super()
-        /** @type {import("../Blueprint").Blueprint}" */
+        /** @type {import("../Blueprint").default}" */
         this.blueprint = null
+        this.entity = entity
         this.template = template
     }
 
     connectedCallback() {
         this.blueprint = this.closest('u-blueprint')
-        this.append(...this.template.getElements(this))
-    }
-
-    // Subclasses want to rewrite this
-    render() {
-        return ''
+        this.append(...this.template.getElements(this.entity))
     }
 }

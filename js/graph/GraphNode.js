@@ -1,10 +1,17 @@
+import ObjectEntity from "../entity/ObjectEntity"
+import SerializerFactory from "../serialization/SerializerFactory"
 import NodeTemplate from "../template/NodeTemplate"
 import SelectableDraggable from "./SelectableDraggable"
 
 export default class GraphNode extends SelectableDraggable {
 
-    constructor() {
-        super(new NodeTemplate())
+    static fromSerializedObject(str) {
+        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str)
+        return new GraphNode(entity)
+    }
+
+    constructor(entity) {
+        super(entity, new NodeTemplate())
         this.graphNodeName = 'n/a'
         this.inputs = []
         this.outputs = []
