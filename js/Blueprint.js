@@ -6,6 +6,7 @@ import Select from "./input/Select"
 import Utility from "./Utility"
 import Zoom from "./input/Zoom"
 import BlueprintData from "./BlueprintData"
+import Paste from "./input/Paste"
 
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
 export default class Blueprint extends GraphElement {
@@ -84,6 +85,8 @@ export default class Blueprint extends GraphElement {
             moveEverywhere: true,
             exitAnyButton: true
         })
+
+        this.pasteObject = new Paste(this.getGridDOMElement(), this)
     }
 
     getGridDOMElement() {
@@ -94,6 +97,7 @@ export default class Blueprint extends GraphElement {
         super.disconnectedCallback()
         this.dragObject.unlistenDOMElement()
         this.selectObject.unlistenDOMElement()
+        this.pasteObject.unlistenDOMElement()
     }
 
     getScroll() {

@@ -41,6 +41,14 @@ export default class PinEntity extends Entity {
         return PinEntity.attributes
     }
 
+    /**
+     * 
+     * @returns {String}
+     */
+    getPinDisplayName() {
+        return this.PinName
+    }
+
     isOutput() {
         if (this.Direction === "EGPD_Output") {
             return true

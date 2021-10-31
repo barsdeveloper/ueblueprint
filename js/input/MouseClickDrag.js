@@ -15,7 +15,7 @@ export default class MouseClickDrag extends Pointing {
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace
         let self = this
 
-        this.mouseDownHandler = function (e) {
+        this.mouseDownHandler = e => {
             switch (e.button) {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
@@ -37,7 +37,7 @@ export default class MouseClickDrag extends Pointing {
             }
         }
 
-        this.mouseStartedMovingHandler = function (e) {
+        this.mouseStartedMovingHandler = e => {
             e.preventDefault()
             e.stopPropagation()
 
@@ -50,7 +50,7 @@ export default class MouseClickDrag extends Pointing {
             self.started = true
         }
 
-        this.mouseMoveHandler = function (e) {
+        this.mouseMoveHandler = e => {
             e.preventDefault()
             e.stopPropagation()
             const location = self.getLocation(e)
@@ -58,7 +58,7 @@ export default class MouseClickDrag extends Pointing {
             self.dragTo(location, movement)
         }
 
-        this.mouseUpHandler = function (e) {
+        this.mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
                 // Remove the handlers of "mousemove" and "mouseup"
                 movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler)

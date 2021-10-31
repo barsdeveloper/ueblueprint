@@ -24,4 +24,12 @@ export default class ObjectEntity extends Entity {
     getAttributes() {
         return ObjectEntity.attributes
     }
+
+    /**
+     * 
+     * @returns {String} The name of the node
+     */
+    getNodeDisplayName() {
+        return this.Name
+    }
 }

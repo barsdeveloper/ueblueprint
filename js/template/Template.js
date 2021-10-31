@@ -9,7 +9,7 @@ export default class Template {
      * @returns The computed html 
      */
     render(entity) {
-        return ``
+        return ""
     }
 
     /**

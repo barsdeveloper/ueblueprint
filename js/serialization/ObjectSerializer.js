@@ -31,6 +31,20 @@ export default class ObjectSerializer extends Serializer {
 
     /**
      * 
+     * @param {String} value 
+     * @returns {ObjectEntity[]}
+     */
+    readMultiple(value) {
+        const parseResult = Serializer.grammar.MultipleObject.parse(value)
+        if (!parseResult.status) {
+            console.error("Error when trying to parse the object.")
+            return parseResult
+        }
+        return parseResult.value
+    }
+
+    /**
+     * 
      * @param {ObjectEntity} object 
      * @returns 
      */

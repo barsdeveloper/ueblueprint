@@ -323,6 +323,14 @@ class PinEntity extends Entity {
         return PinEntity.attributes
     }
 
+    /**
+     * 
+     * @returns {String}
+     */
+    getPinDisplayName() {
+        return this.PinName
+    }
+
     isOutput() {
         if (this.Direction === "EGPD_Output") {
             return true
@@ -360,6 +368,14 @@ class ObjectEntity extends Entity {
 
     getAttributes() {
         return ObjectEntity.attributes
+    }
+
+    /**
+     * 
+     * @returns {String} The name of the node
+     */
+    getNodeDisplayName() {
+        return this.Name
     }
 }
 
@@ -683,6 +699,20 @@ class ObjectSerializer extends Serializer {
 
     /**
      * 
+     * @param {String} value 
+     * @returns {ObjectEntity[]}
+     */
+    readMultiple(value) {
+        const parseResult = Serializer.grammar.MultipleObject.parse(value);
+        if (!parseResult.status) {
+            console.error("Error when trying to parse the object.");
+            return parseResult
+        }
+        return parseResult.value
+    }
+
+    /**
+     * 
      * @param {ObjectEntity} object 
      * @returns 
      */
@@ -708,7 +738,7 @@ class Template {
      * @returns The computed html 
      */
     render(entity) {
-        return ``
+        return ""
     }
 
     /**
@@ -804,7 +834,7 @@ class MouseClickDrag extends Pointing {
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
         let self = this;
 
-        this.mouseDownHandler = function (e) {
+        this.mouseDownHandler = e => {
             switch (e.button) {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
@@ -826,7 +856,7 @@ class MouseClickDrag extends Pointing {
             }
         };
 
-        this.mouseStartedMovingHandler = function (e) {
+        this.mouseStartedMovingHandler = e => {
             e.preventDefault();
             e.stopPropagation();
 
@@ -839,7 +869,7 @@ class MouseClickDrag extends Pointing {
             self.started = true;
         };
 
-        this.mouseMoveHandler = function (e) {
+        this.mouseMoveHandler = e => {
             e.preventDefault();
             e.stopPropagation();
             const location = self.getLocation(e);
@@ -847,7 +877,7 @@ class MouseClickDrag extends Pointing {
             self.dragTo(location, movement);
         };
 
-        this.mouseUpHandler = function (e) {
+        this.mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
                 // Remove the handlers of "mousemove" and "mouseup"
                 movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler);
@@ -1322,7 +1352,7 @@ class MouseWheel extends Pointing {
         this.looseTarget = options?.looseTarget ?? true;
         let self = this;
 
-        this.mouseWheelHandler = function (e) {
+        this.mouseWheelHandler = e => {
             e.preventDefault();
             const location = self.getLocation(e);
             self.wheel(Math.sign(e.deltaY), location);
@@ -1359,6 +1389,239 @@ class BlueprintData {
         /** @type {Array<number>} */
         this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0];
     }
+}
+
+/**
+ * @typedef {import("../entity/ObjectEntity").default} ObjectEntity
+ */
+class NodeTemplate extends Template {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {ObjectEntity} entity Entity representing the element 
+     * @returns The computed html 
+     */
+    header(entity) {
+        return `
+            <div class="ueb-node-header">
+                <span class="ueb-node-name">
+                    <span class="ueb-node-symbol"></span>
+                    <span class="ueb-node-text">${entity.getNodeDisplayName()}</span>
+                </span>
+            </div>
+        `
+    }
+
+    /**
+     * Computes the html content of the target element.
+     * @param {ObjectEntity} entity Entity representing the element 
+     * @returns The computed html 
+     */
+    body(entity) {
+        /** @type {PinEntity[]} */
+        let inputs = entity.CustomProperties.filter(v => v instanceof PinEntity);
+        let outputs = inputs.filter(v => v.isOutput());
+        inputs = inputs.filter(v => !v.isOutput());
+        return `
+            <div class="ueb-node-body">
+                <div class="ueb-node-inputs">
+                    ${inputs.map((input, index) => `
+                    <div class="ueb-node-input ueb-node-value-${input.type}">
+                        <span class="ueb-node-value-icon ${inputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
+                        ${input.getPinDisplayName()}
+                    </div>
+                    `).join("") ?? ""}
+                </div>
+                <div class="ueb-node-outputs">
+                    ${outputs.map((output, index) => `
+                    <div class="ueb-node-output ueb-node-value-${output.type}">
+                        ${output.getPinDisplayName()}
+                        <span class="ueb-node-value-icon ${outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
+                    </div>
+                    `).join("") ?? ''}
+                </div>
+            </div>
+        `
+    }
+
+    /**
+     * Computes the html content of the target element.
+     * @param {ObjectEntity} entity Entity representing the element 
+     * @returns The computed html 
+     */
+    render(entity) {
+        return `
+            <div class="ueb-node-border">
+                <div class="ueb-node-content">
+                    ${this.header(entity)}
+                    ${this.body(entity)}
+                </div>
+            </div>
+        `
+    }
+}
+
+class Drag extends MouseClickDrag {
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+        this.stepSize = parseInt(options?.stepSize);
+        this.mousePosition = [0, 0];
+    }
+
+    snapToGrid(location) {
+        return [
+            this.stepSize * Math.round(location[0] / this.stepSize),
+            this.stepSize * Math.round(location[1] / this.stepSize)
+        ]
+    }
+
+    startDrag() {
+        if (isNaN(this.stepSize) || this.stepSize <= 0) {
+            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue('--ueb-grid-snap'));
+            if (isNaN(this.stepSize) || this.stepSize <= 0) {
+                this.stepSize = 1;
+            }
+        }
+        // Get the current mouse position
+        this.mousePosition = this.stepSize != 1 ? this.snapToGrid(this.clickedPosition) : this.clickedPosition;
+    }
+
+    dragTo(location, movement) {
+        const mousePosition = this.stepSize != 1 ? this.snapToGrid(location) : location;
+        const d = [mousePosition[0] - this.mousePosition[0], mousePosition[1] - this.mousePosition[1]];
+
+        if (d[0] == 0 && d[1] == 0) {
+            return
+        }
+
+        this.target.dragDispatch(d);
+
+        // Reassign the position of mouse
+        this.mousePosition = mousePosition;
+    }
+}
+
+class SelectableDraggable extends GraphElement {
+
+    constructor(...args) {
+        super(...args);
+        this.dragObject = null;
+        this.location = [0, 0];
+        this.selected = false;
+
+        let self = this;
+        this.dragHandler = (e) => {
+            self.addLocation(e.detail.value);
+        };
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.dragObject = new Drag(this, null, { // UDrag doesn't need blueprint
+            looseTarget: true
+        });
+    }
+
+    disconnectedCallback() {
+        this.dragObject.unlistenDOMElement();
+    }
+
+    setLocation(value = [0, 0]) {
+        this.location = value;
+        this.style.setProperty('--ueb-position-x', this.location[0]);
+        this.style.setProperty('--ueb-position-y', this.location[1]);
+    }
+
+    addLocation(value) {
+        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
+    }
+
+    dragDispatch(value) {
+        if (!this.selected) {
+            this.blueprint.unselectAll();
+            this.setSelected(true);
+        }
+        let dragEvent = new CustomEvent('uDragSelected', {
+            detail: {
+                instigator: this,
+                value: value
+            },
+            bubbles: false,
+            cancelable: true,
+            composed: false,
+        });
+        this.blueprint.dispatchEvent(dragEvent);
+    }
+
+    setSelected(value = true) {
+        if (this.selected == value) {
+            return
+        }
+        this.selected = value;
+        if (this.selected) {
+            this.classList.add('ueb-selected');
+            this.blueprint.addEventListener('uDragSelected', this.dragHandler);
+        } else {
+            this.classList.remove('ueb-selected');
+            this.blueprint.removeEventListener('uDragSelected', this.dragHandler);
+        }
+    }
+
+}
+
+class GraphNode extends SelectableDraggable {
+
+    static fromSerializedObject(str) {
+        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
+        return new GraphNode(entity)
+    }
+
+    constructor(entity) {
+        super(entity, new NodeTemplate());
+        this.graphNodeName = 'n/a';
+        this.inputs = [];
+        this.outputs = [];
+    }
+
+    connectedCallback() {
+        this.getAttribute('type')?.trim();
+        super.connectedCallback();
+        this.classList.add('ueb-node');
+        if (this.selected) {
+            this.classList.add('ueb-selected');
+        }
+        this.style.setProperty('--ueb-position-x', this.location[0]);
+        this.style.setProperty('--ueb-position-y', this.location[1]);
+    }
+}
+
+customElements.define('u-node', GraphNode);
+
+class Paste {
+
+    constructor(target, blueprint, options) {
+        /** @type {HTMLElement} */
+        this.target = target;
+        /** @type {import("../Blueprint").default}" */
+        this.blueprint = blueprint;
+        this.serializer = new ObjectSerializer();
+
+        let self = this;
+        this.pasteHandler = e => {
+            self.pasted(e.clipboardData.getData("text"));
+        };
+        this.target.addEventListener("paste", this.pasteHandler);
+    }
+
+    pasted(value) {
+        let nodes = this.serializer.readMultiple(value).map(entity => new GraphNode(entity));
+        this.blueprint.addNode(...nodes);
+    }
+
+    unlistenDOMElement() {
+        this.target.removeEventListener("paste", this.pasteHandler);
+    }
+
 }
 
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
@@ -1438,6 +1701,8 @@ class Blueprint extends GraphElement {
             moveEverywhere: true,
             exitAnyButton: true
         });
+
+        this.pasteObject = new Paste(this.getGridDOMElement(), this);
     }
 
     getGridDOMElement() {
@@ -1448,6 +1713,7 @@ class Blueprint extends GraphElement {
         super.disconnectedCallback();
         this.dragObject.unlistenDOMElement();
         this.selectObject.unlistenDOMElement();
+        this.pasteObject.unlistenDOMElement();
     }
 
     getScroll() {
@@ -1665,208 +1931,6 @@ class Blueprint extends GraphElement {
 }
 
 customElements.define('u-blueprint', Blueprint);
-
-class NodeTemplate extends Template {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {HTMLElement} entity Entity representing the element 
-     * @returns The computed html 
-     */
-    header(entity) {
-        return `
-            <div class="ueb-node-header">
-                <span class="ueb-node-name">
-                    <span class="ueb-node-symbol"></span>
-                    <span class="ueb-node-text">${entity.graphNodeName}</span>
-                </span>
-            </div>
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {import("../entity/ObjectEntity").default} entity Entity representing the element 
-     * @returns The computed html 
-     */
-    body(entity) {
-        let inputs = entity.CustomProperties.filter(v => v instanceof PinEntity);
-        let outputs = inputs.filter(v => v.isOutput());
-        inputs = inputs.filter(v => !v.isOutput());
-        return `
-            <div class="ueb-node-body">
-                <div class="ueb-node-inputs">
-                    ${inputs.map((input, index) => `
-                    <div class="ueb-node-input ueb-node-value-${input.type}">
-                        <span class="ueb-node-value-icon ${inputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
-                        ${input.name}
-                    </div>
-                    `).join("") ?? ""}
-                </div>
-                <div class="ueb-node-outputs">
-                    ${outputs.map((output, index) => `
-                    <div class="ueb-node-output ueb-node-value-${output.type}">
-                        ${output.name}
-                        <span class="ueb-node-value-icon ${outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
-                    </div>
-                    `).join("") ?? ''}
-                </div>
-            </div>
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {HTMLElement} entity Entity representing the element 
-     * @returns The computed html 
-     */
-    render(entity) {
-        return `
-            <div class="ueb-node-border">
-                <div class="ueb-node-content">
-                    ${this.header(entity)}
-                    ${this.body(entity)}
-                </div>
-            </div>
-        `
-    }
-}
-
-class Drag extends MouseClickDrag {
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize);
-        this.mousePosition = [0, 0];
-    }
-
-    snapToGrid(location) {
-        return [
-            this.stepSize * Math.round(location[0] / this.stepSize),
-            this.stepSize * Math.round(location[1] / this.stepSize)
-        ]
-    }
-
-    startDrag() {
-        if (isNaN(this.stepSize) || this.stepSize <= 0) {
-            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue('--ueb-grid-snap'));
-            if (isNaN(this.stepSize) || this.stepSize <= 0) {
-                this.stepSize = 1;
-            }
-        }
-        // Get the current mouse position
-        this.mousePosition = this.stepSize != 1 ? this.snapToGrid(this.clickedPosition) : this.clickedPosition;
-    }
-
-    dragTo(location, movement) {
-        const mousePosition = this.stepSize != 1 ? this.snapToGrid(location) : location;
-        const d = [mousePosition[0] - this.mousePosition[0], mousePosition[1] - this.mousePosition[1]];
-
-        if (d[0] == 0 && d[1] == 0) {
-            return
-        }
-
-        this.target.dragDispatch(d);
-
-        // Reassign the position of mouse
-        this.mousePosition = mousePosition;
-    }
-}
-
-class SelectableDraggable extends GraphElement {
-
-    constructor(...args) {
-        super(...args);
-        this.dragObject = null;
-        this.location = [0, 0];
-        this.selected = false;
-
-        let self = this;
-        this.dragHandler = (e) => {
-            self.addLocation(e.detail.value);
-        };
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        this.dragObject = new Drag(this, null, { // UDrag doesn't need blueprint
-            looseTarget: true
-        });
-    }
-
-    disconnectedCallback() {
-        this.dragObject.unlistenDOMElement();
-    }
-
-    setLocation(value = [0, 0]) {
-        this.location = value;
-        this.style.setProperty('--ueb-position-x', this.location[0]);
-        this.style.setProperty('--ueb-position-y', this.location[1]);
-    }
-
-    addLocation(value) {
-        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
-    }
-
-    dragDispatch(value) {
-        if (!this.selected) {
-            this.blueprint.unselectAll();
-            this.setSelected(true);
-        }
-        let dragEvent = new CustomEvent('uDragSelected', {
-            detail: {
-                instigator: this,
-                value: value
-            },
-            bubbles: false,
-            cancelable: true,
-            composed: false,
-        });
-        this.blueprint.dispatchEvent(dragEvent);
-    }
-
-    setSelected(value = true) {
-        if (this.selected == value) {
-            return
-        }
-        this.selected = value;
-        if (this.selected) {
-            this.classList.add('ueb-selected');
-            this.blueprint.addEventListener('uDragSelected', this.dragHandler);
-        } else {
-            this.classList.remove('ueb-selected');
-            this.blueprint.removeEventListener('uDragSelected', this.dragHandler);
-        }
-    }
-
-}
-
-class GraphNode extends SelectableDraggable {
-
-    static fromSerializedObject(str) {
-        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
-        return new GraphNode(entity)
-    }
-
-    constructor(entity) {
-        super(entity, new NodeTemplate());
-        this.graphNodeName = 'n/a';
-        this.inputs = [];
-        this.outputs = [];
-    }
-
-    connectedCallback() {
-        this.getAttribute('type')?.trim();
-        super.connectedCallback();
-        this.classList.add('ueb-node');
-        if (this.selected) {
-            this.classList.add('ueb-selected');
-        }
-        this.style.setProperty('--ueb-position-x', this.location[0]);
-        this.style.setProperty('--ueb-position-y', this.location[1]);
-    }
-}
-
-customElements.define('u-node', GraphNode);
 
 class GraphLink extends GraphElement {
 

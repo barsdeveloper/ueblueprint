@@ -13,7 +13,7 @@ export default class MouseWheel extends Pointing {
         this.looseTarget = options?.looseTarget ?? true
         let self = this
 
-        this.mouseWheelHandler = function (e) {
+        this.mouseWheelHandler = e => {
             e.preventDefault()
             const location = self.getLocation(e)
             self.wheel(Math.sign(e.deltaY), location)
