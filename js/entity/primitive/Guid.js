@@ -3,7 +3,7 @@ import Primitive from "./Primitive"
 export default class Guid extends Primitive {
 
     static generateGuid(random) {
-        let values = new Uint32Array(4);
+        let values = new Uint32Array(4)
         if (random === true) {
             crypto.getRandomValues(values)
         }

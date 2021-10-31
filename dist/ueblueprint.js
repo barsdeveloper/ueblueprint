@@ -215,6 +215,7 @@ class ObjectReference extends Primitive {
 }
 
 class FunctionReferenceEntity extends Entity {
+
     static attributes = {
         MemberParent: ObjectReference,
         MemberName: ""
@@ -256,19 +257,16 @@ class Guid extends Primitive {
     }
 }
 
-class LocalizedTextEntity extends Primitive {
+class LocalizedTextEntity extends Entity {
 
-    /**
-     * 
-     * @param {String} namespace 
-     * @param {String} key 
-     * @param {String} value 
-     */
-    constructor(namespace, key, value) {
-        super();
-        this.namespace = namespace;
-        this.key = key;
-        this.value = value;
+    static attributes = {
+        namespace: String,
+        key: String,
+        value: String
+    }
+
+    getAttributes() {
+        return LocalizedTextEntity.attributes
     }
 
     toString() {
@@ -424,7 +422,11 @@ class Grammar {
         P.string(","),
         r.String.trim(P.optWhitespace), // value
         P.string(")"),
-        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity(namespace, key, value)
+        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
+            namespace: namespace,
+            key: key,
+            value: value
+        })
     )
     PinReference = r => P.seqMap(
         r.PathSymbol,
@@ -563,17 +565,20 @@ class Serializer {
 
     static grammar = Parsimmon.createLanguage(new Grammar())
 
-    constructor(entityType, prefix = "", separator = ",", trailingSeparator = false) {
+    constructor(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         this.entityType = entityType;
-        this.prefix = prefix;
-        this.separator = separator;
-        this.trailingSeparator = trailingSeparator;
+        this.prefix = prefix ?? "";
+        this.separator = separator ?? ",";
+        this.trailingSeparator = trailingSeparator ?? false;
+        this.attributeValueConjunctionSign = attributeValueConjunctionSign ?? "=";
+        this.attributeKeyPrinter = attributeKeyPrinter ?? (k => k.join("."));
     }
 
     writeValue(value) {
         if (value === null) {
             return "()"
         }
+        // This is an exact match (and not instanceof) to hit also primitive types (by accessing value.constructor they are converted to objects automatically)
         switch (value?.constructor) {
             case Function:
                 return this.writeValue(value())
@@ -603,7 +608,11 @@ class Serializer {
                 // Recursive call when finding an object
                 result += this.subWrite(fullKey, value, this.prefix, this.separator);
             } else if (this.showProperty(fullKey, value)) {
-                result += (result.length ? this.separator : "") + this.prefix + fullKey.join(".") + "=" + this.writeValue(value);
+                result += (result.length ? this.separator : "")
+                    + this.prefix
+                    + this.attributeKeyPrinter(fullKey)
+                    + this.attributeValueConjunctionSign
+                    + this.writeValue(value);
             }
         }
         if (this.trailingSeparator && result.length) {
@@ -625,9 +634,9 @@ class Serializer {
 
 class GeneralSerializer extends Serializer {
 
-    constructor(keyword = "", entityType, prefix = "", separator = ",", trailingSeparator = false) {
-        super(entityType, prefix, separator, trailingSeparator);
-        this.keyword = keyword;
+    constructor(keyword, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
+        super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter);
+        this.keyword = keyword ?? "";
     }
 
     read(value) {
@@ -641,7 +650,7 @@ class GeneralSerializer extends Serializer {
     }
 
     write(object) {
-        let result = `${this.key ?? ""}(${this.subWrite([], object)})`;
+        let result = `${this.keyword}(${this.subWrite([], object)})`;
         return result
     }
 }
@@ -691,5 +700,6 @@ End Object`;
 SerializerFactory.registerSerializer(ObjectEntity, new ObjectSerializer());
 SerializerFactory.registerSerializer(PinEntity, new GeneralSerializer("Pin ", PinEntity, "", ",", true));
 SerializerFactory.registerSerializer(FunctionReferenceEntity, new GeneralSerializer("", FunctionReferenceEntity, "", ",", false));
+SerializerFactory.registerSerializer(LocalizedTextEntity, new GeneralSerializer("NSLOCTEXT", LocalizedTextEntity, "", ",", false, "", _ => ""));
 
 export { ObjectEntity, SerializerFactory };

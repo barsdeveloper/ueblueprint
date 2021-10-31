@@ -1,7 +1,7 @@
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import Guid from "../entity/primitive/Guid"
 import Integer from "../entity/primitive/Integer"
-import LocalizedTextEntity from "../entity/primitive/LocalizedTextEntity"
+import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
 import ObjectReference from "../entity/primitive/ObjectReference"
 import Parsimmon from "parsimmon"
@@ -54,7 +54,11 @@ export default class Grammar {
         P.string(","),
         r.String.trim(P.optWhitespace), // value
         P.string(")"),
-        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity(namespace, key, value)
+        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
+            namespace: namespace,
+            key: key,
+            value: value
+        })
     )
     PinReference = r => P.seqMap(
         r.PathSymbol,

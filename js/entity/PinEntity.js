@@ -1,6 +1,6 @@
 import Entity from "./Entity"
 import Guid from "./primitive/Guid"
-import LocalizedTextEntity from "./primitive/LocalizedTextEntity"
+import LocalizedTextEntity from "./LocalizedTextEntity"
 import ObjectReference from "./primitive/ObjectReference"
 import PinReferenceEntity from "./PinReferenceEntity"
 import TypeInitialization from "./TypeInitialization"
