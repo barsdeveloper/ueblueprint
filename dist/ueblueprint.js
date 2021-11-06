@@ -798,13 +798,34 @@ class BlueprintTemplate extends Template {
     }
 }
 
-class Pointing {
+class Context {
 
     constructor(target, blueprint, options) {
         /** @type {HTMLElement} */
         this.target = target;
-        /** @type {import("../Blueprint").Blueprint}" */
+        /** @type {import("../Blueprint").default}" */
         this.blueprint = blueprint;
+        this.options = options;
+        if (options?.wantsFocusCallback ?? false) {
+            let self = this;
+            this.blueprint.addEventListener("blueprintfocus", _ => self.blueprintFocused());
+            this.blueprint.addEventListener("blueprintunfocus", _ => self.blueprintUnfocused());
+        }
+    }
+
+    blueprintFocused() {
+        console.log("focused");
+    }
+
+    blueprintUnfocused() {
+    }
+
+}
+
+class Pointing extends Context {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
     }
 
@@ -835,6 +856,7 @@ class MouseClickDrag extends Pointing {
         let self = this;
 
         this.mouseDownHandler = e => {
+            this.blueprint.setFocused(true);
             switch (e.button) {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
@@ -1344,10 +1366,11 @@ class MouseWheel extends Pointing {
     /**
      * 
      * @param {HTMLElement} target 
-     * @param {import("../Blueprint").Blueprint} blueprint 
+     * @param {import("../Blueprint").default} blueprint 
      * @param {Object} options 
      */
     constructor(target, blueprint, options) {
+        options.wantsFocusCallback = true;
         super(target, blueprint, options);
         this.looseTarget = options?.looseTarget ?? true;
         let self = this;
@@ -1357,15 +1380,25 @@ class MouseWheel extends Pointing {
             const location = self.getLocation(e);
             self.wheel(Math.sign(e.deltaY), location);
         };
+        this.mouseParentWheelHandler = e => e.preventDefault();
 
+        if (this.blueprint.focused) {
+            this.movementSpace.addEventListener('wheel', this.mouseWheelHandler, false);
+        }
+    }
+
+    blueprintFocused() {
         this.movementSpace.addEventListener('wheel', this.mouseWheelHandler, false);
-        // Prevent movement space from being scrolled
-        this.movementSpace.parentElement?.addEventListener('wheel', e => e.preventDefault());
+        this.movementSpace.parentElement?.addEventListener('wheel', this.mouseParentWheelHandler);
+    }
+
+    blueprintUnfocused() {
+        this.movementSpace.removeEventListener('wheel', this.mouseWheelHandler, false);
+        this.movementSpace.parentElement?.removeEventListener('wheel', this.mouseParentWheelHandler);
     }
 
     /* Subclasses will override the following method */
     wheel(variation, location) {
-
     }
 }
 
@@ -1494,7 +1527,7 @@ class Drag extends MouseClickDrag {
             return
         }
 
-        this.target.dragDispatch(d);
+        this.target.dispatchDragEvent(d);
 
         // Reassign the position of mouse
         this.mousePosition = mousePosition;
@@ -1517,7 +1550,7 @@ class SelectableDraggable extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this.dragObject = new Drag(this, null, { // UDrag doesn't need blueprint
+        this.dragObject = new Drag(this, this.blueprint, { // UDrag doesn't need blueprint
             looseTarget: true
         });
     }
@@ -1536,7 +1569,7 @@ class SelectableDraggable extends GraphElement {
         this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
     }
 
-    dragDispatch(value) {
+    dispatchDragEvent(value) {
         if (!this.selected) {
             this.blueprint.unselectAll();
             this.setSelected(true);
@@ -1597,39 +1630,102 @@ class GraphNode extends SelectableDraggable {
 
 customElements.define('u-node', GraphNode);
 
-class Paste {
+class KeyboardShortcut extends Context {
 
     constructor(target, blueprint, options) {
-        /** @type {HTMLElement} */
-        this.target = target;
-        /** @type {import("../Blueprint").default}" */
-        this.blueprint = blueprint;
-        this.serializer = new ObjectSerializer();
+        super(target, blueprint, options);
+        /** @type {String[]} */
+        this.keys = this.options?.keys ?? [];
+        /** @type Numeric */
+        this.currentKey = 0;
+
 
         let self = this;
-        this.pasteHandler = e => {
-            self.pasted(e.clipboardData.getData("text"));
+        this.keyDownHandler = e => {
+            e.preventDefault();
+            if (Utility.equals(e.keys[self.currentKey], e.key)) {
+                if (++self.currentKey == this.keys.length) {
+                    self.fire();
+                }
+            }
         };
-        this.target.addEventListener("paste", this.pasteHandler);
-    }
-
-    pasted(value) {
-        let nodes = this.serializer.readMultiple(value).map(entity => new GraphNode(entity));
-        this.blueprint.addNode(...nodes);
+        this.keyUpHandler = e => {
+            e.preventDefault();
+            for (let i = 0; i < self.currentKey; ++i) {
+                if (Utility.equals(e.keys[self.currentKey], e.key)) {
+                    self.currentKey = i;
+                    break
+                }
+            }
+        };
+        if (this.keys.length > 0) {
+            this.target.addEventListener("keydown", this.keyDownHandler);
+            this.target.addEventListener("keyup", this.keyUpHandler);
+        }
     }
 
     unlistenDOMElement() {
-        this.target.removeEventListener("paste", this.pasteHandler);
+        this.target.removeEventListener('keydown', this.keyDownHandler);
+        this.target.removeEventListener('keyup', this.keyUpHandler);
+    }
+
+    fire() {
     }
 
 }
 
+class Paste extends KeyboardShortcut {
+
+    constructor(target, blueprint) {
+        super(target, blueprint, {
+            keys: ["Control", "C"]
+        });
+    }
+
+    fire() {
+        let value = navigator.clipboard.readText();
+        let nodes = this.serializer.readMultiple(value).map(entity => new GraphNode(entity));
+        this.blueprint.addNode(...nodes);
+    }
+
+}
+
+class Unfocus extends Context {
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+
+        let self = this;
+        this.clickHandler = e => self.clickedSomewhere(e);
+        if (this.blueprint.focuse) {
+            document.addEventListener("click", this.clickHandler);
+        }
+    }
+
+    /**
+     * 
+     * @param {MouseEvent} e 
+     */
+    clickedSomewhere(e) {
+        // If target is inside the blueprint grid
+        if (e.target.closest("u-blueprint")) {
+            return
+        }
+        this.blueprint.setFocused(false);
+    }
+
+    blueprintFocused() {
+        document.addEventListener("click", this.clickHandler);
+    }
+
+    blueprintUnfocused() {
+        document.removeEventListener("click", this.clickHandler);
+    }
+}
+
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
 class Blueprint extends GraphElement {
-
-    insertChildren() {
-        this.querySelector('[data-nodes]').append(...this.entity.nodes);
-    }
 
     constructor() {
         super(new BlueprintData(), new BlueprintTemplate());
@@ -1649,8 +1745,9 @@ class Blueprint extends GraphElement {
         this.zoom = 0;
         /** @type {HTMLElement} */
         this.headerElement = null;
+        this.focused = false;
         /** @type {(node: GraphNode) => BoundariesInfo} */
-        this.nodeBoundariesSupplier = (node) => {
+        this.nodeBoundariesSupplier = node => {
             let rect = node.getBoundingClientRect();
             let gridRect = this.nodesContainerElement.getBoundingClientRect();
             const scaleCorrection = 1 / this.getScale();
@@ -1684,7 +1781,9 @@ class Blueprint extends GraphElement {
         this.nodesContainerElement = this.querySelector('[data-nodes]');
         console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.");
         this.nodesContainerElement.append(this.selectorElement);
-        this.insertChildren();
+        this.querySelector('[data-nodes]').append(...this.entity.nodes);
+
+        this.pasteObject = new Paste(this.getGridDOMElement(), this);
 
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
             clickButton: 2,
@@ -1702,7 +1801,7 @@ class Blueprint extends GraphElement {
             exitAnyButton: true
         });
 
-        this.pasteObject = new Paste(this.getGridDOMElement(), this);
+        this.unfocusObject = new Unfocus(this.getGridDOMElement(), this);
     }
 
     getGridDOMElement() {
@@ -1927,6 +2026,19 @@ class Blueprint extends GraphElement {
         if (this.nodesContainerElement) {
             this.nodesContainerElement.append(...graphNodes);
         }
+    }
+
+    setFocused(value = true) {
+        if (this.focused == value) {
+            return;
+        }
+        let event = new CustomEvent(value ? "blueprintfocus" : "blueprintunfocus");
+        this.focused = value;
+        this.dataset.focused = this.focused;
+        if (!this.focused) {
+            this.unselectAll();
+        }
+        this.dispatchEvent(event);
     }
 }
 

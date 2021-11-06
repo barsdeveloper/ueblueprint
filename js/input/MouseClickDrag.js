@@ -4,6 +4,7 @@ import Pointing from "./Pointing"
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  */
 export default class MouseClickDrag extends Pointing {
+
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
         this.clickButton = options?.clickButton ?? 0
@@ -16,6 +17,7 @@ export default class MouseClickDrag extends Pointing {
         let self = this
 
         this.mouseDownHandler = e => {
+            this.blueprint.setFocused(true)
             switch (e.button) {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants

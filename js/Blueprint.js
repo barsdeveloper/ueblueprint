@@ -7,13 +7,10 @@ import Utility from "./Utility"
 import Zoom from "./input/Zoom"
 import BlueprintData from "./BlueprintData"
 import Paste from "./input/Paste"
+import Unfocus from "./input/Unfocus"
 
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
 export default class Blueprint extends GraphElement {
-
-    insertChildren() {
-        this.querySelector('[data-nodes]').append(...this.entity.nodes)
-    }
 
     constructor() {
         super(new BlueprintData(), new BlueprintTemplate())
@@ -33,8 +30,9 @@ export default class Blueprint extends GraphElement {
         this.zoom = 0
         /** @type {HTMLElement} */
         this.headerElement = null
+        this.focused = false
         /** @type {(node: GraphNode) => BoundariesInfo} */
-        this.nodeBoundariesSupplier = (node) => {
+        this.nodeBoundariesSupplier = node => {
             let rect = node.getBoundingClientRect()
             let gridRect = this.nodesContainerElement.getBoundingClientRect()
             const scaleCorrection = 1 / this.getScale()
@@ -68,7 +66,9 @@ export default class Blueprint extends GraphElement {
         this.nodesContainerElement = this.querySelector('[data-nodes]')
         console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.")
         this.nodesContainerElement.append(this.selectorElement)
-        this.insertChildren()
+        this.querySelector('[data-nodes]').append(...this.entity.nodes)
+
+        this.pasteObject = new Paste(this.getGridDOMElement(), this)
 
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
             clickButton: 2,
@@ -86,7 +86,7 @@ export default class Blueprint extends GraphElement {
             exitAnyButton: true
         })
 
-        this.pasteObject = new Paste(this.getGridDOMElement(), this)
+        this.unfocusObject = new Unfocus(this.getGridDOMElement(), this)
     }
 
     getGridDOMElement() {
@@ -311,6 +311,19 @@ export default class Blueprint extends GraphElement {
         if (this.nodesContainerElement) {
             this.nodesContainerElement.append(...graphNodes)
         }
+    }
+
+    setFocused(value = true) {
+        if (this.focused == value) {
+            return;
+        }
+        let event = new CustomEvent(value ? "blueprintfocus" : "blueprintunfocus")
+        this.focused = value
+        this.dataset.focused = this.focused
+        if (!this.focused) {
+            this.unselectAll()
+        }
+        this.dispatchEvent(event)
     }
 }
 

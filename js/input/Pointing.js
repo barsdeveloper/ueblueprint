@@ -1,12 +1,10 @@
+import Context from "./Context"
 import Utility from "../Utility"
 
-export default class Pointing {
+export default class Pointing extends Context {
 
     constructor(target, blueprint, options) {
-        /** @type {HTMLElement} */
-        this.target = target
-        /** @type {import("../Blueprint").Blueprint}" */
-        this.blueprint = blueprint
+        super(target, blueprint, options)
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
     }
 

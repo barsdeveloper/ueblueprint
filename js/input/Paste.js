@@ -1,29 +1,18 @@
 import GraphNode from "../graph/GraphNode"
-import ObjectSerializer from "../serialization/ObjectSerializer"
+import KeyboardShortcut from "./KeyboardShortcut"
 
-export default class Paste {
+export default class Paste extends KeyboardShortcut {
 
-    constructor(target, blueprint, options) {
-        /** @type {HTMLElement} */
-        this.target = target
-        /** @type {import("../Blueprint").default}" */
-        this.blueprint = blueprint
-        this.serializer = new ObjectSerializer()
-
-        let self = this
-        this.pasteHandler = e => {
-            self.pasted(e.clipboardData.getData("text"))
-        }
-        this.target.addEventListener("paste", this.pasteHandler)
+    constructor(target, blueprint) {
+        super(target, blueprint, {
+            keys: ["Control", "C"]
+        })
     }
 
-    pasted(value) {
+    fire() {
+        let value = navigator.clipboard.readText()
         let nodes = this.serializer.readMultiple(value).map(entity => new GraphNode(entity))
         this.blueprint.addNode(...nodes)
-    }
-
-    unlistenDOMElement() {
-        this.target.removeEventListener("paste", this.pasteHandler)
     }
 
 }

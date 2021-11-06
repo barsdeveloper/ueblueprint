@@ -1,6 +1,7 @@
 import MouseClickDrag from "./MouseClickDrag"
 
 export default class Drag extends MouseClickDrag {
+
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize)
@@ -33,7 +34,7 @@ export default class Drag extends MouseClickDrag {
             return
         }
 
-        this.target.dragDispatch(d)
+        this.target.dispatchDragEvent(d)
 
         // Reassign the position of mouse
         this.mousePosition = mousePosition

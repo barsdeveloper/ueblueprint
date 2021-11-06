@@ -55,8 +55,12 @@ u-blueprint {
     position       : relative;
     height         : var(--ueb-viewport-height);
     width          : var(--ueb-viewport-width);
-    overflow       : scroll;
+    overflow       : hidden;
     scrollbar-width: 0;
+}
+
+u-blueprint[data-focused="true"] .ueb-viewport-body {
+    overflow: scroll;
 }
 
 .ueb-grid {
@@ -297,10 +301,10 @@ u-blueprint {
     display   : block;
     position  : absolute;
     visibility: hidden;
-    top       : min(var(--ueb-select-from-y) * 1px, var(--ueb-select-to-y) * 1px);
-    left      : min(var(--ueb-select-from-x) * 1px, var(--ueb-select-to-x) * 1px);
-    width     : calc(max(var(--ueb-select-from-x) - var(--ueb-select-to-x), var(--ueb-select-to-x) - var(--ueb-select-from-x)) * 1px);
-    height    : calc(max(var(--ueb-select-from-y) - var(--ueb-select-to-y), var(--ueb-select-to-y) - var(--ueb-select-from-y)) * 1px);
+    top       : 0;
+    left      : 0;
+    width     : 0;
+    height    : 0;
     background-image:
         /* Top */
         repeating-linear-gradient(90deg,
@@ -389,4 +393,8 @@ u-blueprint {
 
 .ueb-selector[data-selecting="true"] {
     visibility: visible;
+    top       : min(var(--ueb-select-from-y) * 1px, var(--ueb-select-to-y) * 1px);
+    left      : min(var(--ueb-select-from-x) * 1px, var(--ueb-select-to-x) * 1px);
+    width     : calc(max(var(--ueb-select-from-x) - var(--ueb-select-to-x), var(--ueb-select-to-x) - var(--ueb-select-from-x)) * 1px);
+    height    : calc(max(var(--ueb-select-from-y) - var(--ueb-select-to-y), var(--ueb-select-to-y) - var(--ueb-select-from-y)) * 1px);
 }

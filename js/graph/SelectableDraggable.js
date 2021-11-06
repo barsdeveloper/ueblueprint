@@ -17,7 +17,7 @@ export default class SelectableDraggable extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.dragObject = new Drag(this, null, { // UDrag doesn't need blueprint
+        this.dragObject = new Drag(this, this.blueprint, { // UDrag doesn't need blueprint
             looseTarget: true
         })
     }
@@ -36,7 +36,7 @@ export default class SelectableDraggable extends GraphElement {
         this.setLocation([this.location[0] + value[0], this.location[1] + value[1]])
     }
 
-    dragDispatch(value) {
+    dispatchDragEvent(value) {
         if (!this.selected) {
             this.blueprint.unselectAll()
             this.setSelected(true)
