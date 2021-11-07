@@ -6,7 +6,6 @@ import SerializerFactory from "./SerializerFactory"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 
-
 export default class Serializer {
 
     static grammar = Parsimmon.createLanguage(new Grammar())

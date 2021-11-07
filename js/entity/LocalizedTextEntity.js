@@ -15,5 +15,4 @@ export default class LocalizedTextEntity extends Entity {
     toString() {
         "NSLOCTEXT(" + `"${this.namespace}"` + ", " + `"${this.key}"` + ", " + `"${this.value}"` + ")"
     }
-
 }

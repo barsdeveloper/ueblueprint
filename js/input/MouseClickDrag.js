@@ -13,6 +13,7 @@ export default class MouseClickDrag extends Pointing {
         this.looseTarget = options?.looseTarget ?? false
         this.started = false
         this.clickedPosition = [0, 0]
+
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace
         let self = this
 
@@ -81,10 +82,11 @@ export default class MouseClickDrag extends Pointing {
     }
 
     unlistenDOMElement() {
+        super.unlistenDOMElement()
         this.target.removeEventListener('mousedown', this.mouseDownHandler)
         if (this.clickButton == 2) {
             this.target.removeEventListener('contextmenu', this.preventDefault)
-        }
+        } blueprintunfocusHandler
     }
 
     /* Subclasses will override the following methods */

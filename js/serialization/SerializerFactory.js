@@ -1,6 +1,5 @@
 import Utility from "../Utility"
 
-
 export default class SerializerFactory {
 
     static #serializers = new Map()

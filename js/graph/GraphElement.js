@@ -1,4 +1,5 @@
 export default class GraphElement extends HTMLElement {
+
     /**
      * 
      * @param {import("../template/Template").default} template The template to render this node

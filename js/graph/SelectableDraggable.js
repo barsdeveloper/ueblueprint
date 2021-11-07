@@ -66,5 +66,4 @@ export default class SelectableDraggable extends GraphElement {
             this.blueprint.removeEventListener('uDragSelected', this.dragHandler)
         }
     }
-
 }

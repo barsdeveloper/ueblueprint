@@ -8,16 +8,21 @@ export default class Context {
         this.options = options
         if (options?.wantsFocusCallback ?? false) {
             let self = this
-            this.blueprint.addEventListener("blueprintfocus", _ => self.blueprintFocused())
-            this.blueprint.addEventListener("blueprintunfocus", _ => self.blueprintUnfocused())
+            this.blueprintfocusHandler = _ => self.blueprintFocused()
+            this.blueprintunfocusHandler = _ => self.blueprintUnfocused()
+            this.blueprint.addEventListener("blueprintfocus", this.blueprintfocusHandler)
+            this.blueprint.addEventListener("blueprintunfocus", this.blueprintunfocusHandler)
         }
     }
 
+    unlistenDOMElement() {
+        this.blueprint.removeEventListener("blueprintfocus", this.blueprintfocusHandler)
+        this.blueprint.removeEventListener("blueprintunfocus", this.blueprintunfocusHandler)
+    }
+
     blueprintFocused() {
-        console.log("focused")
     }
 
     blueprintUnfocused() {
     }
-
 }

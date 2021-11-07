@@ -9,7 +9,6 @@ export default class Utility {
         return getComputedStyle(element).getPropertyValue('--ueb-scale')
     }
 
-
     /**
      * Sets a value in an object
      * @param {String[]} keys The chained keys to access from object in order to set the value
@@ -32,7 +31,6 @@ export default class Utility {
         }
         return false
     }
-
 
     /**
      * Gets a value from an object, gives defaultValue in case of failure

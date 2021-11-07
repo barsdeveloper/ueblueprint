@@ -8,6 +8,11 @@ export default class Pointing extends Context {
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
     }
 
+    /**
+     * 
+     * @param {MouseEvent} mouseEvent 
+     * @returns 
+     */
     getLocation(mouseEvent) {
         const scaleCorrection = 1 / Utility.getScale(this.target)
         const targetOffset = this.movementSpace.getBoundingClientRect()

@@ -1,13 +1,14 @@
+import BlueprintData from "./BlueprintData"
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import DragScroll from "./input/DragScroll"
 import GraphElement from "./graph/GraphElement"
 import GraphSelector from "./graph/GraphSelector"
+import MouseTracking from "./input/MouseTracking"
+import Paste from "./input/Paste"
 import Select from "./input/Select"
+import Unfocus from "./input/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/Zoom"
-import BlueprintData from "./BlueprintData"
-import Paste from "./input/Paste"
-import Unfocus from "./input/Unfocus"
 
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
 export default class Blueprint extends GraphElement {
@@ -68,6 +69,7 @@ export default class Blueprint extends GraphElement {
         this.nodesContainerElement.append(this.selectorElement)
         this.querySelector('[data-nodes]').append(...this.entity.nodes)
 
+
         this.pasteObject = new Paste(this.getGridDOMElement(), this)
 
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
@@ -87,6 +89,7 @@ export default class Blueprint extends GraphElement {
         })
 
         this.unfocusObject = new Unfocus(this.getGridDOMElement(), this)
+        this.mouseTrackingObject = new MouseTracking(this.getGridDOMElement(), this)
     }
 
     getGridDOMElement() {
@@ -95,6 +98,7 @@ export default class Blueprint extends GraphElement {
 
     disconnectedCallback() {
         super.disconnectedCallback()
+        setSelected(false)
         this.dragObject.unlistenDOMElement()
         this.selectObject.unlistenDOMElement()
         this.pasteObject.unlistenDOMElement()

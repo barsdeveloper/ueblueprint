@@ -2,6 +2,7 @@ import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 
 export default class Entity {
+
     constructor(options = {}) {
         /**
          * 

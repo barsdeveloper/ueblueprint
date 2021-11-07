@@ -5,9 +5,11 @@ export default class BlueprintData {
         /** @type {GraphNode[]}" */
         this.nodes = new Array()
         this.expandGridSize = 400
-        /** @type {Array<number>} */
+        /** @type {number[]} */
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
-        /** @type {Array<number>} */
+        /** @type {number[]} */
         this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
+        /** @type {number[]} */
+        this.mousePosition = [0, 0]
     }
 }
