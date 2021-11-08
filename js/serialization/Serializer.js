@@ -23,6 +23,7 @@ export default class Serializer {
         if (value === null) {
             return "()"
         }
+        const serialize = v => SerializerFactory.getSerializer(Utility.getType(v)).write(v)
         // This is an exact match (and not instanceof) to hit also primitive types (by accessing value.constructor they are converted to objects automatically)
         switch (value?.constructor) {
             case Function:
@@ -34,8 +35,11 @@ export default class Serializer {
             case String:
                 return `"${value}"`
         }
+        if (value instanceof Array) {
+            return `(${value.map(v => serialize(v) + ",")})`
+        }
         if (value instanceof Entity) {
-            return SerializerFactory.getSerializer(Utility.getType(value)).write(value)
+            return serialize(value)
         }
         if (value instanceof Primitive) {
             return value.toString()
@@ -51,7 +55,8 @@ export default class Serializer {
             const value = object[property]
             if (object[property]?.constructor === Object) {
                 // Recursive call when finding an object
-                result += this.subWrite(fullKey, value, this.prefix, this.separator)
+                result += (result.length ? this.separator : "")
+                    + this.subWrite(fullKey, value)
             } else if (this.showProperty(fullKey, value)) {
                 result += (result.length ? this.separator : "")
                     + this.prefix
@@ -60,7 +65,7 @@ export default class Serializer {
                     + this.writeValue(value)
             }
         }
-        if (this.trailingSeparator && result.length) {
+        if (this.trailingSeparator && result.length && fullKey.length === 0) {
             // append separator at the end if asked and there was printed content
             result += this.separator
         }

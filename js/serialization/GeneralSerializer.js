@@ -3,9 +3,9 @@ import Serializer from "./Serializer"
 
 export default class GeneralSerializer extends Serializer {
 
-    constructor(keyword, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
+    constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter)
-        this.keyword = keyword ?? ""
+        this.wrap = wrap ?? (v => `(${v})`)
     }
 
     read(value) {
@@ -19,7 +19,7 @@ export default class GeneralSerializer extends Serializer {
     }
 
     write(object) {
-        let result = `${this.keyword}(${this.subWrite([], object)})`
+        let result = this.wrap(this.subWrite([], object))
         return result
     }
 }

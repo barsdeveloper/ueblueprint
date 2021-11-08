@@ -7,9 +7,7 @@ export default class Paste extends Context {
     constructor(target, blueprint, options = {}) {
         options.wantsFocusCallback = true
         super(target, blueprint, options)
-
         this.serializer = new ObjectSerializer()
-
         let self = this
         this.pasteHandle = e => self.pasted(e.clipboardData.getData("Text"))
     }
@@ -33,8 +31,11 @@ export default class Paste extends Context {
         })
         let mousePosition = this.blueprint.entity.mousePosition
         nodes.forEach(node => {
-            node.location[0] += mousePosition[0] - left
-            node.location[1] += mousePosition[1] - top
+            const locationOffset = [
+                mousePosition[0] - left,
+                mousePosition[1] - top
+            ]
+            node.addLocation(locationOffset)
         })
         this.blueprint.addNode(...nodes)
     }

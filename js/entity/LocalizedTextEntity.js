@@ -11,8 +11,4 @@ export default class LocalizedTextEntity extends Entity {
     getAttributes() {
         return LocalizedTextEntity.attributes
     }
-
-    toString() {
-        "NSLOCTEXT(" + `"${this.namespace}"` + ", " + `"${this.key}"` + ", " + `"${this.value}"` + ")"
-    }
 }

@@ -9,6 +9,7 @@ import Select from "./input/Select"
 import Unfocus from "./input/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/Zoom"
+import Copy from "./input/Copy"
 
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
 export default class Blueprint extends GraphElement {
@@ -70,6 +71,7 @@ export default class Blueprint extends GraphElement {
         this.querySelector('[data-nodes]').append(...this.entity.nodes)
 
 
+        this.copyObject = new Copy(this.getGridDOMElement(), this)
         this.pasteObject = new Paste(this.getGridDOMElement(), this)
 
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
@@ -290,8 +292,18 @@ export default class Blueprint extends GraphElement {
      * 
      * @returns {GraphNode[]} Nodes
      */
-    getNodes() {
-        return this.entity.nodes
+    getNodes(selected = false) {
+        if (selected) {
+            return this.entity.nodes.filter(
+                /**
+                 * 
+                 * @param {GraphNode} node 
+                 */
+                node => node.selected
+            )
+        } else {
+            return this.entity.nodes
+        }
     }
 
     /**

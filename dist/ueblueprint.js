@@ -1,4 +1,5 @@
 class Primitive {
+
     toString() {
         return "Unimplemented for " + this.constructor.name
     }
@@ -139,6 +140,7 @@ class Utility {
 }
 
 class Entity {
+
     constructor(options = {}) {
         /**
          * 
@@ -266,16 +268,28 @@ class LocalizedTextEntity extends Entity {
     getAttributes() {
         return LocalizedTextEntity.attributes
     }
+}
+
+class PathSymbol extends Primitive {
+
+    constructor(value) {
+        super();
+        this.value = new String(value).valueOf();
+    }
+
+    valueOf() {
+        this.value;
+    }
 
     toString() {
-        "NSLOCTEXT(" + `"${this.namespace}"` + ", " + `"${this.key}"` + ", " + `"${this.value}"` + ")";
+        return this.value
     }
 }
 
 class PinReferenceEntity extends Entity {
 
     static attributes = {
-        objectName: String,
+        objectName: PathSymbol,
         pinGuid: Guid
     }
 
@@ -405,8 +419,8 @@ class Grammar {
     String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
     Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new Guid(v)).desc("32 digit hexadecimal (accepts all the letters for safety) value")
-    PathSymbol = _ => P.regex(/[0-9a-zA-Z_]+/)
-    ReferencePath = r => P.seq(P.string("/"), r.PathSymbol.sepBy1(P.string(".")).tieWith("."))
+    PathSymbol = _ => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbol(v))
+    ReferencePath = r => P.seq(P.string("/"), r.PathSymbol.map(v => v.toString()).sepBy1(P.string(".")).tieWith("."))
         .tie()
         .atLeast(2)
         .tie()
@@ -591,6 +605,7 @@ class Serializer {
         if (value === null) {
             return "()"
         }
+        const serialize = v => SerializerFactory.getSerializer(Utility.getType(v)).write(v);
         // This is an exact match (and not instanceof) to hit also primitive types (by accessing value.constructor they are converted to objects automatically)
         switch (value?.constructor) {
             case Function:
@@ -602,8 +617,11 @@ class Serializer {
             case String:
                 return `"${value}"`
         }
+        if (value instanceof Array) {
+            return `(${value.map(v => serialize(v) + ",")})`
+        }
         if (value instanceof Entity) {
-            return SerializerFactory.getSerializer(Utility.getType(value)).write(value)
+            return serialize(value)
         }
         if (value instanceof Primitive) {
             return value.toString()
@@ -619,7 +637,8 @@ class Serializer {
             const value = object[property];
             if (object[property]?.constructor === Object) {
                 // Recursive call when finding an object
-                result += this.subWrite(fullKey, value, this.prefix, this.separator);
+                result += (result.length ? this.separator : "")
+                    + this.subWrite(fullKey, value);
             } else if (this.showProperty(fullKey, value)) {
                 result += (result.length ? this.separator : "")
                     + this.prefix
@@ -628,7 +647,7 @@ class Serializer {
                     + this.writeValue(value);
             }
         }
-        if (this.trailingSeparator && result.length) {
+        if (this.trailingSeparator && result.length && fullKey.length === 0) {
             // append separator at the end if asked and there was printed content
             result += this.separator;
         }
@@ -647,9 +666,9 @@ class Serializer {
 
 class GeneralSerializer extends Serializer {
 
-    constructor(keyword, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
+    constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter);
-        this.keyword = keyword ?? "";
+        this.wrap = wrap ?? (v => `(${v})`);
     }
 
     read(value) {
@@ -663,7 +682,7 @@ class GeneralSerializer extends Serializer {
     }
 
     write(object) {
-        let result = `${this.keyword}(${this.subWrite([], object)})`;
+        let result = this.wrap(this.subWrite([], object));
         return result
     }
 }
@@ -714,7 +733,7 @@ class ObjectSerializer extends Serializer {
      * @returns 
      */
     write(object) {
-        let result = `Begin Object Class=${object.Class} Name=${object.Name}
+        let result = `Begin Object Class=${object.Class} Name="${object.Name}"
 ${this.subWrite([], object)
             + object
                 .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity).write(pin))
@@ -1604,9 +1623,7 @@ class Paste extends Context {
     constructor(target, blueprint, options = {}) {
         options.wantsFocusCallback = true;
         super(target, blueprint, options);
-
         this.serializer = new ObjectSerializer();
-
         let self = this;
         this.pasteHandle = e => self.pasted(e.clipboardData.getData("Text"));
     }
@@ -1630,8 +1647,11 @@ class Paste extends Context {
         });
         let mousePosition = this.blueprint.entity.mousePosition;
         nodes.forEach(node => {
-            node.location[0] += mousePosition[0] - left;
-            node.location[1] += mousePosition[1] - top;
+            const locationOffset = [
+                mousePosition[0] - left,
+                mousePosition[1] - top
+            ];
+            node.addLocation(locationOffset);
         });
         this.blueprint.addNode(...nodes);
     }
@@ -1747,6 +1767,30 @@ class Zoom extends MouseWheel {
     }
 }
 
+class Copy extends Context {
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+        this.serializer = new ObjectSerializer();
+        let self = this;
+        this.copyHandle = _ => self.copied();
+    }
+
+    blueprintFocused() {
+        document.body.addEventListener("copy", this.copyHandle);
+    }
+
+    blueprintUnfocused() {
+        document.body.removeEventListener("copy", this.copyHandle);
+    }
+
+    copied() {
+        const value = this.blueprint.getNodes(true).map(node => this.serializer.write(node.entity)).join("\n");
+        navigator.clipboard.writeText(value);
+    }
+}
+
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
 class Blueprint extends GraphElement {
 
@@ -1807,6 +1851,7 @@ class Blueprint extends GraphElement {
         this.querySelector('[data-nodes]').append(...this.entity.nodes);
 
 
+        this.copyObject = new Copy(this.getGridDOMElement(), this);
         this.pasteObject = new Paste(this.getGridDOMElement(), this);
 
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
@@ -2027,8 +2072,18 @@ class Blueprint extends GraphElement {
      * 
      * @returns {GraphNode[]} Nodes
      */
-    getNodes() {
-        return this.entity.nodes
+    getNodes(selected = false) {
+        if (selected) {
+            return this.entity.nodes.filter(
+                /**
+                 * 
+                 * @param {GraphNode} node 
+                 */
+                node => node.selected
+            )
+        } else {
+            return this.entity.nodes
+        }
     }
 
     /**
@@ -2098,9 +2153,25 @@ class GraphLink extends GraphElement {
 
 customElements.define('u-link', GraphLink);
 
-SerializerFactory.registerSerializer(ObjectEntity, new ObjectSerializer());
-SerializerFactory.registerSerializer(PinEntity, new GeneralSerializer("Pin ", PinEntity, "", ",", true));
-SerializerFactory.registerSerializer(FunctionReferenceEntity, new GeneralSerializer("", FunctionReferenceEntity, "", ",", false));
-SerializerFactory.registerSerializer(LocalizedTextEntity, new GeneralSerializer("NSLOCTEXT", LocalizedTextEntity, "", ",", false, "", _ => ""));
+SerializerFactory.registerSerializer(
+    ObjectEntity,
+    new ObjectSerializer()
+);
+SerializerFactory.registerSerializer(
+    PinEntity,
+    new GeneralSerializer(v => `Pin (${v})`, PinEntity, "", ",", true)
+);
+SerializerFactory.registerSerializer(
+    FunctionReferenceEntity,
+    new GeneralSerializer(v => `(${v})`, FunctionReferenceEntity, "", ",", false)
+);
+SerializerFactory.registerSerializer(
+    LocalizedTextEntity,
+    new GeneralSerializer(v => `NSLOCTEXT(${v})`, LocalizedTextEntity, "", ",", false, "", _ => "")
+);
+SerializerFactory.registerSerializer(
+    PinReferenceEntity,
+    new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+);
 
 export { Blueprint, GraphLink, GraphNode };
