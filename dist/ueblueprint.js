@@ -192,32 +192,22 @@ class Entity {
     }
 }
 
-class ObjectReference extends Primitive {
+class ObjectReferenceEntity extends Entity {
 
-    /**
-     * 
-     * @param {String} type 
-     * @param {String} path 
-     */
-    constructor(type, path) {
-        super();
-        this.type = type;
-        this.path = path;
+    static attributes = {
+        type: String,
+        path: String
     }
 
-    toString() {
-        return (this.type ?? "") + (
-            this.path
-                ? this.type ? `'"${this.path}"'` : this.path
-                : ""
-        )
+    getAttributes() {
+        return ObjectReferenceEntity.attributes
     }
 }
 
 class FunctionReferenceEntity extends Entity {
 
     static attributes = {
-        MemberParent: ObjectReference,
+        MemberParent: ObjectReferenceEntity,
         MemberName: ""
     }
 
@@ -309,10 +299,10 @@ class PinEntity extends Entity {
         PinType: {
             PinCategory: "",
             PinSubCategory: "",
-            PinSubCategoryObject: ObjectReference,
+            PinSubCategoryObject: ObjectReferenceEntity,
             PinSubCategoryMemberReference: null,
             PinValueType: null,
-            ContainerType: ObjectReference,
+            ContainerType: ObjectReferenceEntity,
             bIsReference: false,
             bIsConst: false,
             bIsWeakPointer: false,
@@ -365,12 +355,12 @@ class VariableReferenceEntity extends Entity {
 class ObjectEntity extends Entity {
 
     static attributes = {
-        Class: ObjectReference,
+        Class: ObjectReferenceEntity,
         Name: "",
         bIsPureFunc: new TypeInitialization(Boolean, false, false),
         VariableReference: new TypeInitialization(VariableReferenceEntity, false, null),
         FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
-        TargetType: new TypeInitialization(ObjectReference, false, null),
+        TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         NodePosX: 0,
         NodePosY: 0,
         NodeGuid: Guid,
@@ -412,7 +402,7 @@ class Grammar {
     InlineOptWhitespace = _ => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
     WhitespaceNewline = _ => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
-    None = _ => P.string("None").map(_ => new ObjectReference("None", "")).desc("none")
+    None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
     Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
     Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
@@ -427,7 +417,7 @@ class Grammar {
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
     Reference = r => P.alt(
         r.None,
-        r.ReferencePath.map(path => new ObjectReference("", path)),
+        r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path })),
         P.seqMap(
             r.Word,
             P.optWhitespace,
@@ -436,7 +426,7 @@ class Grammar {
                     P.string(result.split("").reverse().join(""))
                 )
             ),
-            (referenceType, _, referencePath) => new ObjectReference(referenceType, referencePath)
+            (referenceType, _, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
         )
     )
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
@@ -476,7 +466,7 @@ class Grammar {
                 return r.String
             case Guid:
                 return r.Guid
-            case ObjectReference:
+            case ObjectReferenceEntity:
                 return r.Reference
             case LocalizedTextEntity:
                 return r.LocalizedText
@@ -733,7 +723,7 @@ class ObjectSerializer extends Serializer {
      * @returns 
      */
     write(object) {
-        let result = `Begin Object Class=${object.Class} Name="${object.Name}"
+        let result = `Begin Object Class=${this.writeValue(object.Class)} Name=${this.writeValue(object.Name)}
 ${this.subWrite([], object)
             + object
                 .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity).write(pin))
@@ -2153,6 +2143,19 @@ class GraphLink extends GraphElement {
 
 customElements.define('u-link', GraphLink);
 
+class CustomSerializer extends GeneralSerializer {
+
+    constructor(objectWriter, entityType) {
+        super(undefined, entityType);
+        this.objectWriter = objectWriter;
+    }
+
+    write(object) {
+        let result = this.objectWriter(object);
+        return result
+    }
+}
+
 SerializerFactory.registerSerializer(
     ObjectEntity,
     new ObjectSerializer()
@@ -2172,6 +2175,16 @@ SerializerFactory.registerSerializer(
 SerializerFactory.registerSerializer(
     PinReferenceEntity,
     new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+);
+SerializerFactory.registerSerializer(
+    ObjectReferenceEntity,
+    new CustomSerializer(
+        /** @param {ObjectReferenceEntity} objectReference */
+        objectReference => (objectReference.type ?? "") + (
+            objectReference.path
+                ? objectReference.type ? `'"${objectReference.path}"'` : objectReference.path
+                : ""
+        ))
 );
 
 export { Blueprint, GraphLink, GraphNode };

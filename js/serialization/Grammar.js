@@ -3,7 +3,7 @@ import Guid from "../entity/primitive/Guid"
 import Integer from "../entity/primitive/Integer"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
-import ObjectReference from "../entity/primitive/ObjectReference"
+import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
 import Parsimmon from "parsimmon"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
@@ -18,7 +18,7 @@ export default class Grammar {
     InlineOptWhitespace = _ => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
     WhitespaceNewline = _ => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
-    None = _ => P.string("None").map(_ => new ObjectReference("None", "")).desc("none")
+    None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
     Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
     Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
@@ -33,7 +33,7 @@ export default class Grammar {
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
     Reference = r => P.alt(
         r.None,
-        r.ReferencePath.map(path => new ObjectReference("", path)),
+        r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path })),
         P.seqMap(
             r.Word,
             P.optWhitespace,
@@ -42,7 +42,7 @@ export default class Grammar {
                     P.string(result.split("").reverse().join(""))
                 )
             ),
-            (referenceType, _, referencePath) => new ObjectReference(referenceType, referencePath)
+            (referenceType, _, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
         )
     )
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
@@ -82,7 +82,7 @@ export default class Grammar {
                 return r.String
             case Guid:
                 return r.Guid
-            case ObjectReference:
+            case ObjectReferenceEntity:
                 return r.Reference
             case LocalizedTextEntity:
                 return r.LocalizedText

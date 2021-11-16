@@ -1,7 +1,7 @@
 import Entity from "./Entity"
 import Guid from "./primitive/Guid"
 import LocalizedTextEntity from "./LocalizedTextEntity"
-import ObjectReference from "./primitive/ObjectReference"
+import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinReferenceEntity from "./PinReferenceEntity"
 import TypeInitialization from "./TypeInitialization"
 
@@ -16,10 +16,10 @@ export default class PinEntity extends Entity {
         PinType: {
             PinCategory: "",
             PinSubCategory: "",
-            PinSubCategoryObject: ObjectReference,
+            PinSubCategoryObject: ObjectReferenceEntity,
             PinSubCategoryMemberReference: null,
             PinValueType: null,
-            ContainerType: ObjectReference,
+            ContainerType: ObjectReferenceEntity,
             bIsReference: false,
             bIsConst: false,
             bIsWeakPointer: false,

@@ -9,6 +9,8 @@ import Blueprint from "./Blueprint"
 import GraphNode from "./graph/GraphNode"
 import GraphLink from "./graph/GraphLink"
 import PinReferenceEntity from "./entity/PinReferenceEntity"
+import ObjectReferenceEntity from "./entity/ObjectReferenceEntity"
+import CustomSerializer from "./serialization/CustomSerializer"
 
 SerializerFactory.registerSerializer(
     ObjectEntity,
@@ -29,6 +31,16 @@ SerializerFactory.registerSerializer(
 SerializerFactory.registerSerializer(
     PinReferenceEntity,
     new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+)
+SerializerFactory.registerSerializer(
+    ObjectReferenceEntity,
+    new CustomSerializer(
+        /** @param {ObjectReferenceEntity} objectReference */
+        objectReference => (objectReference.type ?? "") + (
+            objectReference.path
+                ? objectReference.type ? `'"${objectReference.path}"'` : objectReference.path
+                : ""
+        ))
 )
 
 export { Blueprint as Blueprint, GraphNode as GraphNode, GraphLink as GraphLink }

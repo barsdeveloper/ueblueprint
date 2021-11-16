@@ -49,7 +49,7 @@ export default class ObjectSerializer extends Serializer {
      * @returns 
      */
     write(object) {
-        let result = `Begin Object Class=${object.Class} Name="${object.Name}"
+        let result = `Begin Object Class=${this.writeValue(object.Class)} Name=${this.writeValue(object.Name)}
 ${this.subWrite([], object)
             + object
                 .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity).write(pin))
