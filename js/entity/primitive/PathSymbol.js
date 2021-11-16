@@ -1,4 +1,4 @@
-import Primitive from "./Primitive";
+import Primitive from "./Primitive"
 
 export default class PathSymbol extends Primitive {
 

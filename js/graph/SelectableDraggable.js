@@ -17,7 +17,7 @@ export default class SelectableDraggable extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.dragObject = new Drag(this, this.blueprint, { // UDrag doesn't need blueprint
+        this.dragObject = new Drag(this, this.blueprint, {
             looseTarget: true
         })
     }

@@ -166,10 +166,11 @@ export default class Grammar {
 
     Object = r => P.seqMap(
         P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
-        P.alt(
-            r.CustomProperties,
-            Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeKey => Utility.objectGet(ObjectEntity.attributes, attributeKey))
-        )
+        P
+            .alt(
+                r.CustomProperties,
+                Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeKey => Utility.objectGet(ObjectEntity.attributes, attributeKey))
+            )
             .sepBy1(P.whitespace),
         P.seq(r.WhitespaceNewline, P.string("End"), P.whitespace, P.string("Object")),
         (_, attributes, __) => {

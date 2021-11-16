@@ -550,10 +550,11 @@ class Grammar {
 
     Object = r => P.seqMap(
         P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
-        P.alt(
-            r.CustomProperties,
-            Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeKey => Utility.objectGet(ObjectEntity.attributes, attributeKey))
-        )
+        P
+            .alt(
+                r.CustomProperties,
+                Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeKey => Utility.objectGet(ObjectEntity.attributes, attributeKey))
+            )
             .sepBy1(P.whitespace),
         P.seq(r.WhitespaceNewline, P.string("End"), P.whitespace, P.string("Object")),
         (_, attributes, __) => {
@@ -1518,7 +1519,7 @@ class SelectableDraggable extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this.dragObject = new Drag(this, this.blueprint, { // UDrag doesn't need blueprint
+        this.dragObject = new Drag(this, this.blueprint, {
             looseTarget: true
         });
     }
@@ -1569,6 +1570,25 @@ class SelectableDraggable extends GraphElement {
     }
 }
 
+class DragLink extends MouseClickDrag {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+    }
+
+    startDrag() {
+        //this.selectorElement.startSelecting(this.clickedPosition)
+    }
+
+    dragTo(location, movement) {
+        //this.selectorElement.doSelecting(location)
+    }
+
+    endDrag() {
+        if (this.started) ;
+    }
+}
+
 class GraphNode extends SelectableDraggable {
 
     static fromSerializedObject(str) {
@@ -1582,21 +1602,30 @@ class GraphNode extends SelectableDraggable {
      */
     constructor(entity) {
         super(entity, new NodeTemplate());
-        this.graphNodeName = 'n/a';
-        this.inputs = [];
-        this.outputs = [];
+        this.graphNodeName = "n/a";
+        this.dragLinkObjects = Array();
         super.setLocation([this.entity.NodePosX, this.entity.NodePosY]);
     }
 
     connectedCallback() {
-        this.getAttribute('type')?.trim();
+        this.getAttribute("type")?.trim();
         super.connectedCallback();
-        this.classList.add('ueb-node');
+        this.classList.add("ueb-node");
         if (this.selected) {
-            this.classList.add('ueb-selected');
+            this.classList.add("ueb-selected");
         }
-        this.style.setProperty('--ueb-position-x', this.location[0]);
-        this.style.setProperty('--ueb-position-y', this.location[1]);
+        this.style.setProperty("--ueb-position-x", this.location[0]);
+        this.style.setProperty("--ueb-position-y", this.location[1]);
+        this.querySelectorAll(".ueb-node-input, .ueb-node-output").forEach(element => {
+            this.dragLinkObjects.push(
+                new DragLink(element, this.blueprint, {
+                    clickButton: 0,
+                    moveEverywhere: true,
+                    exitAnyButton: true,
+                    looseTarget: true
+                })
+            );
+        });
     }
 
     setLocation(value = [0, 0]) {
@@ -1651,8 +1680,6 @@ class Select extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-        this.stepSize = options?.stepSize;
-        this.mousePosition = [0, 0];
         this.selectorElement = this.blueprint.selectorElement;
     }
 
