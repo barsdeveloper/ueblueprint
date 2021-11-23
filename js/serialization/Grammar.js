@@ -1,5 +1,5 @@
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
-import Guid from "../entity/primitive/Guid"
+import GuidEntity from "../entity/GuidEntity"
 import Integer from "../entity/primitive/Integer"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
@@ -24,7 +24,7 @@ export default class Grammar {
     Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
     String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
-    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new Guid(v)).desc("32 digit hexadecimal (accepts all the letters for safety) value")
+    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
     PathSymbolEntity = _ => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
     ReferencePath = r => P.seq(P.string("/"), r.PathSymbolEntity.map(v => v.toString()).sepBy1(P.string(".")).tieWith("."))
         .tie()
@@ -80,7 +80,7 @@ export default class Grammar {
                 return r.Integer
             case String:
                 return r.String
-            case Guid:
+            case GuidEntity:
                 return r.Guid
             case ObjectReferenceEntity:
                 return r.Reference

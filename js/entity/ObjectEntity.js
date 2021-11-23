@@ -1,6 +1,6 @@
 import Entity from "./Entity"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
-import Guid from "./primitive/Guid"
+import GuidEntity from "./GuidEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"
 import TypeInitialization from "./TypeInitialization"
@@ -17,7 +17,7 @@ export default class ObjectEntity extends Entity {
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         NodePosX: 0,
         NodePosY: 0,
-        NodeGuid: Guid,
+        NodeGuid: GuidEntity,
         CustomProperties: [PinEntity]
     }
 
