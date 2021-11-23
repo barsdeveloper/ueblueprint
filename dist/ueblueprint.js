@@ -829,7 +829,7 @@ class GuidEntity extends Entity {
         }
         let guid = "";
         values.forEach(n => {
-            guid += ('00000000' + n.toString(16).toUpperCase()).slice(-8);
+            guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
         });
         return new GuidEntity({ valud: guid })
     }
@@ -2097,6 +2097,34 @@ class Blueprint extends GraphElement {
 
 customElements.define('u-blueprint', Blueprint);
 
+class GraphLink extends GraphElement {
+
+    /**
+     * 
+     * @typedef {{
+     *      node: String,
+     *      pin: String
+     * }} PinReference
+     * @param {?PinReference} source 
+     * @param {?PinReference} destination 
+     */
+    constructor(source, destination) {
+        super();
+        this.source = source;
+        this.destination = destination;
+    }
+
+    render() {
+        return `
+            <svg viewBox="0 0 100 100">
+                <line x1="0" y1="80" x2="100" y2="20" stroke="black" />
+            </svg>
+        `
+    }
+}
+
+customElements.define('u-link', GraphLink);
+
 class GeneralSerializer extends Serializer {
 
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
@@ -2133,34 +2161,6 @@ class CustomSerializer extends GeneralSerializer {
     }
 }
 
-class GraphLink extends GraphElement {
-
-    /**
-     * 
-     * @typedef {{
-     *      node: String,
-     *      pin: String
-     * }} PinReference
-     * @param {?PinReference} source 
-     * @param {?PinReference} destination 
-     */
-    constructor(source, destination) {
-        super();
-        this.source = source;
-        this.destination = destination;
-    }
-
-    render() {
-        return `
-            <svg viewBox="0 0 100 100">
-                <line x1="0" y1="80" x2="100" y2="20" stroke="black" />
-            </svg>
-        `
-    }
-}
-
-customElements.define('u-link', GraphLink);
-
 class ToStringSerializer extends GeneralSerializer {
 
     constructor(entityType) {
@@ -2173,38 +2173,42 @@ class ToStringSerializer extends GeneralSerializer {
     }
 }
 
-SerializerFactory.registerSerializer(
-    ObjectEntity,
-    new ObjectSerializer()
-);
-SerializerFactory.registerSerializer(
-    PinEntity,
-    new GeneralSerializer(v => `Pin (${v})`, PinEntity, "", ",", true)
-);
-SerializerFactory.registerSerializer(
-    FunctionReferenceEntity,
-    new GeneralSerializer(v => `(${v})`, FunctionReferenceEntity, "", ",", false)
-);
-SerializerFactory.registerSerializer(
-    LocalizedTextEntity,
-    new GeneralSerializer(v => `NSLOCTEXT(${v})`, LocalizedTextEntity, "", ",", false, "", _ => "")
-);
-SerializerFactory.registerSerializer(
-    PinReferenceEntity,
-    new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
-);
-SerializerFactory.registerSerializer(
-    ObjectReferenceEntity,
-    new CustomSerializer(
-        /** @param {ObjectReferenceEntity} objectReference */
-        objectReference => (objectReference.type ?? "") + (
-            objectReference.path
-                ? objectReference.type ? `'"${objectReference.path}"'` : objectReference.path
-                : ""
-        ))
-);
-SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity));
-SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity));
-SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));
+function initializeSerializerFactory() {
+    SerializerFactory.registerSerializer(
+        ObjectEntity,
+        new ObjectSerializer()
+    );
+    SerializerFactory.registerSerializer(
+        PinEntity,
+        new GeneralSerializer(v => `Pin (${v})`, PinEntity, "", ",", true)
+    );
+    SerializerFactory.registerSerializer(
+        FunctionReferenceEntity,
+        new GeneralSerializer(v => `(${v})`, FunctionReferenceEntity, "", ",", false)
+    );
+    SerializerFactory.registerSerializer(
+        LocalizedTextEntity,
+        new GeneralSerializer(v => `NSLOCTEXT(${v})`, LocalizedTextEntity, "", ",", false, "", _ => "")
+    );
+    SerializerFactory.registerSerializer(
+        PinReferenceEntity,
+        new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+    );
+    SerializerFactory.registerSerializer(
+        ObjectReferenceEntity,
+        new CustomSerializer(
+            /** @param {ObjectReferenceEntity} objectReference */
+            objectReference => (objectReference.type ?? "") + (
+                objectReference.path
+                    ? objectReference.type ? `'"${objectReference.path}"'` : objectReference.path
+                    : ""
+            ))
+    );
+    SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity));
+    SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity));
+    SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));
+}
+
+initializeSerializerFactory();
 
 export { Blueprint, GraphLink, GraphNode };

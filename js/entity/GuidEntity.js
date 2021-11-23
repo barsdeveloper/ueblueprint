@@ -13,7 +13,7 @@ export default class GuidEntity extends Entity {
         }
         let guid = ""
         values.forEach(n => {
-            guid += ('00000000' + n.toString(16).toUpperCase()).slice(-8)
+            guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8)
         })
         return new GuidEntity({ valud: guid })
     }
