@@ -1,6 +1,6 @@
 import Entity from "./Entity"
 import Guid from "./primitive/Guid"
-import PathSymbol from "./primitive/PathSymbol"
+import PathSymbol from "./PathSymbolEntity"
 
 export default class PinReferenceEntity extends Entity {
 

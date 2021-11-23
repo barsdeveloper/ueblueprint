@@ -8,7 +8,7 @@ import Parsimmon from "parsimmon"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import Utility from "../Utility"
-import PathSymbol from "../entity/primitive/PathSymbol"
+import PathSymbolEntity from "../entity/PathSymbolEntity"
 
 let P = Parsimmon
 
@@ -25,8 +25,8 @@ export default class Grammar {
     String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
     Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new Guid(v)).desc("32 digit hexadecimal (accepts all the letters for safety) value")
-    PathSymbol = _ => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbol(v))
-    ReferencePath = r => P.seq(P.string("/"), r.PathSymbol.map(v => v.toString()).sepBy1(P.string(".")).tieWith("."))
+    PathSymbolEntity = _ => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
+    ReferencePath = r => P.seq(P.string("/"), r.PathSymbolEntity.map(v => v.toString()).sepBy1(P.string(".")).tieWith("."))
         .tie()
         .atLeast(2)
         .tie()
@@ -62,7 +62,7 @@ export default class Grammar {
         })
     )
     PinReference = r => P.seqMap(
-        r.PathSymbol,
+        r.PathSymbolEntity,
         P.whitespace,
         r.Guid,
         (objectName, _, pinGuid) => new PinReferenceEntity({

@@ -1,16 +1,18 @@
+import Blueprint from "./Blueprint"
+import CustomSerializer from "./serialization/CustomSerializer"
 import FunctionReferenceEntity from "./entity/FunctionReferenceEntity"
 import GeneralSerializer from "./serialization/GeneralSerializer"
+import GraphLink from "./graph/GraphLink"
+import GraphNode from "./graph/GraphNode"
 import LocalizedTextEntity from "./entity/LocalizedTextEntity"
 import ObjectEntity from "./entity/ObjectEntity"
-import ObjectSerializer from "./serialization/ObjectSerializer"
-import PinEntity from "./entity/PinEntity"
-import SerializerFactory from "./serialization/SerializerFactory"
-import Blueprint from "./Blueprint"
-import GraphNode from "./graph/GraphNode"
-import GraphLink from "./graph/GraphLink"
-import PinReferenceEntity from "./entity/PinReferenceEntity"
 import ObjectReferenceEntity from "./entity/ObjectReferenceEntity"
-import CustomSerializer from "./serialization/CustomSerializer"
+import ObjectSerializer from "./serialization/ObjectSerializer"
+import PathSymbolEntity from "./entity/PathSymbolEntity"
+import PinEntity from "./entity/PinEntity"
+import PinReferenceEntity from "./entity/PinReferenceEntity"
+import SerializerFactory from "./serialization/SerializerFactory"
+import ToStringSerializer from "./serialization/ToStringSerializer"
 
 SerializerFactory.registerSerializer(
     ObjectEntity,
@@ -42,5 +44,6 @@ SerializerFactory.registerSerializer(
                 : ""
         ))
 )
+SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity))
 
 export { Blueprint as Blueprint, GraphNode as GraphNode, GraphLink as GraphLink }
