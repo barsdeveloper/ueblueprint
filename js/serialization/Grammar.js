@@ -1,6 +1,6 @@
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
-import Integer from "../entity/primitive/Integer"
+import IntegerEntity from "../entity/IntegerEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
@@ -21,7 +21,7 @@ export default class Grammar {
     None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
     Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
-    Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
+    Integer = _ => P.regex(/[0-9]+/).map(v => new IntegerEntity({ value: v })).desc("an integer")
     String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
     Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
@@ -76,7 +76,7 @@ export default class Grammar {
                 return r.Boolean
             case Number:
                 return r.Number
-            case Integer:
+            case IntegerEntity:
                 return r.Integer
             case String:
                 return r.String

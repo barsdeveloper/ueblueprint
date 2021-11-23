@@ -1,16 +1,11 @@
-import Integer from "./primitive/Integer"
-
 export default class TypeInitialization {
 
     static sanitize(value) {
         if (!(value instanceof Object)) {
             return value // Is already primitive
         }
-        if (value instanceof Boolean || value instanceof Integer || value instanceof Number) {
+        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
             return value.valueOf()
-        }
-        if (value instanceof String) {
-            return value.toString()
         }
         return value
     }

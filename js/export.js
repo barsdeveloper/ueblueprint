@@ -5,6 +5,7 @@ import GeneralSerializer from "./serialization/GeneralSerializer"
 import GraphLink from "./graph/GraphLink"
 import GraphNode from "./graph/GraphNode"
 import GuidEntity from "./entity/GuidEntity"
+import IntegerEntity from "./entity/IntegerEntity"
 import LocalizedTextEntity from "./entity/LocalizedTextEntity"
 import ObjectEntity from "./entity/ObjectEntity"
 import ObjectReferenceEntity from "./entity/ObjectReferenceEntity"
@@ -47,5 +48,6 @@ SerializerFactory.registerSerializer(
 )
 SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity))
 SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity))
+SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity))
 
 export { Blueprint as Blueprint, GraphNode as GraphNode, GraphLink as GraphLink }

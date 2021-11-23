@@ -1,7 +1,6 @@
 import Entity from "../entity/Entity"
 import Grammar from "./Grammar"
 import Parsimmon from "parsimmon"
-import Primitive from "../entity/primitive/Primitive"
 import SerializerFactory from "./SerializerFactory"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
@@ -40,9 +39,6 @@ export default class Serializer {
         }
         if (value instanceof Entity) {
             return serialize(value)
-        }
-        if (value instanceof Primitive) {
-            return value.toString()
         }
     }
 

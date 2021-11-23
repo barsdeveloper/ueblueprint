@@ -114,48 +114,14 @@ class Context {
     }
 }
 
-class Primitive {
-
-    toString() {
-        return "Unimplemented for " + this.constructor.name
-    }
-}
-
-class Integer extends Primitive {
-
-    constructor(value) {
-        super();
-        // Using constructor equality and not instanceof in order to consider both primitives and objects
-        if (value?.constructor === String) {
-            value = Number(value);
-        }
-        if (value?.constructor === Number) {
-            value = Math.round(value);
-        }
-        /** @type {number} */
-        this.value = value;
-    }
-
-    valueOf() {
-        this.value;
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
-
 class TypeInitialization {
 
     static sanitize(value) {
         if (!(value instanceof Object)) {
             return value // Is already primitive
         }
-        if (value instanceof Boolean || value instanceof Integer || value instanceof Number) {
+        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
             return value.valueOf()
-        }
-        if (value instanceof String) {
-            return value.toString()
         }
         return value
     }
@@ -1291,6 +1257,26 @@ class GraphNode extends SelectableDraggable {
 
 customElements.define('u-node', GraphNode);
 
+class IntegerEntity extends Entity {
+
+    static attributes = {
+        value: Number
+    }
+
+    getAttributes() {
+        return IntegerEntity.attributes
+    }
+
+    constructor(options = {}) {
+        super(options);
+        this.value = Math.round(value);
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function getDefaultExportFromCjs (x) {
@@ -1316,7 +1302,7 @@ class Grammar {
     None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
     Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
-    Integer = _ => P.regex(/[0-9]+/).map(v => new Integer(v)).desc("an integer")
+    Integer = _ => P.regex(/[0-9]+/).map(v => new IntegerEntity({ value: v })).desc("an integer")
     String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
     Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
@@ -1371,7 +1357,7 @@ class Grammar {
                 return r.Boolean
             case Number:
                 return r.Number
-            case Integer:
+            case IntegerEntity:
                 return r.Integer
             case String:
                 return r.String
@@ -1511,9 +1497,6 @@ class Serializer {
         }
         if (value instanceof Entity) {
             return serialize(value)
-        }
-        if (value instanceof Primitive) {
-            return value.toString()
         }
     }
 
@@ -2222,5 +2205,6 @@ SerializerFactory.registerSerializer(
 );
 SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity));
 SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity));
+SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));
 
 export { Blueprint, GraphLink, GraphNode };
