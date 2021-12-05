@@ -17,7 +17,7 @@ export default class Drag extends MouseClickDrag {
 
     startDrag() {
         if (isNaN(this.stepSize) || this.stepSize <= 0) {
-            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue('--ueb-grid-snap'))
+            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue("--ueb-grid-snap"))
             if (isNaN(this.stepSize) || this.stepSize <= 0) {
                 this.stepSize = 1
             }

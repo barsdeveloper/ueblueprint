@@ -22,18 +22,18 @@ export default class MouseWheel extends Pointing {
         this.mouseParentWheelHandler = e => e.preventDefault()
 
         if (this.blueprint.focused) {
-            this.movementSpace.addEventListener('wheel', this.mouseWheelHandler, false)
+            this.movementSpace.addEventListener("wheel", this.mouseWheelHandler, false)
         }
     }
 
     blueprintFocused() {
-        this.movementSpace.addEventListener('wheel', this.mouseWheelHandler, false)
-        this.movementSpace.parentElement?.addEventListener('wheel', this.mouseParentWheelHandler)
+        this.movementSpace.addEventListener("wheel", this.mouseWheelHandler, false)
+        this.movementSpace.parentElement?.addEventListener("wheel", this.mouseParentWheelHandler)
     }
 
     blueprintUnfocused() {
-        this.movementSpace.removeEventListener('wheel', this.mouseWheelHandler, false)
-        this.movementSpace.parentElement?.removeEventListener('wheel', this.mouseParentWheelHandler)
+        this.movementSpace.removeEventListener("wheel", this.mouseWheelHandler, false)
+        this.movementSpace.parentElement?.removeEventListener("wheel", this.mouseParentWheelHandler)
     }
 
     /* Subclasses will override the following method */

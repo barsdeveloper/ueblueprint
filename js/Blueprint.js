@@ -54,7 +54,7 @@ export default class Blueprint extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.classList.add('ueb', `ueb-zoom-${this.zoom}`)
+        this.classList.add("ueb", `ueb-zoom-${this.zoom}`)
 
         this.headerElement = this.querySelector('.ueb-viewport-header')
         console.assert(this.headerElement, "Header element not provided by the template.")
@@ -62,13 +62,13 @@ export default class Blueprint extends GraphElement {
         console.assert(this.overlayElement, "Overlay element not provided by the template.")
         this.viewportElement = this.querySelector('.ueb-viewport-body')
         console.assert(this.viewportElement, "Viewport element not provided by the template.")
-        this.gridElement = this.viewportElement.querySelector('.ueb-grid')
+        this.gridElement = this.viewportElement.querySelector(".ueb-grid")
         console.assert(this.gridElement, "Grid element not provided by the template.")
         this.selectorElement = new GraphSelector()
-        this.nodesContainerElement = this.querySelector('[data-nodes]')
+        this.nodesContainerElement = this.querySelector("[data-nodes]")
         console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.")
         this.nodesContainerElement.append(this.selectorElement)
-        this.querySelector('[data-nodes]').append(...this.entity.nodes)
+        this.querySelector("[data-nodes]").append(...this.entity.nodes)
 
 
         this.copyObject = new Copy(this.getGridDOMElement(), this)
@@ -118,7 +118,7 @@ export default class Blueprint extends GraphElement {
             this.viewportElement.scroll({
                 left: value[0],
                 top: value[1],
-                behavior: 'smooth'
+                behavior: "smooth"
             })
         }
     }
@@ -205,8 +205,8 @@ export default class Blueprint extends GraphElement {
         y = Math.round(Math.abs(y))
         this.entity.additional = [this.entity.additional[0] + x, this.entity.additional[1] + y]
         if (this.gridElement) {
-            this.gridElement.style.setProperty('--ueb-additional-x', this.entity.additional[0])
-            this.gridElement.style.setProperty('--ueb-additional-y', this.entity.additional[1])
+            this.gridElement.style.setProperty("--ueb-additional-x", this.entity.additional[0])
+            this.gridElement.style.setProperty("--ueb-additional-y", this.entity.additional[1])
         }
     }
 
@@ -220,8 +220,8 @@ export default class Blueprint extends GraphElement {
         y = Math.round(y)
         this.entity.translateValue = [this.entity.translateValue[0] + x, this.entity.translateValue[1] + y]
         if (this.gridElement) {
-            this.gridElement.style.setProperty('--ueb-translate-x', this.entity.translateValue[0])
-            this.gridElement.style.setProperty('--ueb-translate-y', this.entity.translateValue[1])
+            this.gridElement.style.setProperty("--ueb-translate-x", this.entity.translateValue[0])
+            this.gridElement.style.setProperty("--ueb-translate-y", this.entity.translateValue[1])
         }
     }
 
@@ -279,7 +279,7 @@ export default class Blueprint extends GraphElement {
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-scale'))
+        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue("--ueb-scale"))
     }
 
     compensateTranslation(position) {
@@ -343,4 +343,4 @@ export default class Blueprint extends GraphElement {
     }
 }
 
-customElements.define('u-blueprint', Blueprint)
+customElements.define("u-blueprint", Blueprint)

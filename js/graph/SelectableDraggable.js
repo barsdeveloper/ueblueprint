@@ -28,8 +28,8 @@ export default class SelectableDraggable extends GraphElement {
 
     setLocation(value = [0, 0]) {
         this.location = value
-        this.style.setProperty('--ueb-position-x', this.location[0])
-        this.style.setProperty('--ueb-position-y', this.location[1])
+        this.style.setProperty("--ueb-position-x", this.location[0])
+        this.style.setProperty("--ueb-position-y", this.location[1])
     }
 
     addLocation(value) {
@@ -41,7 +41,7 @@ export default class SelectableDraggable extends GraphElement {
             this.blueprint.unselectAll()
             this.setSelected(true)
         }
-        let dragEvent = new CustomEvent('uDragSelected', {
+        let dragEvent = new CustomEvent("uDragSelected", {
             detail: {
                 instigator: this,
                 value: value
@@ -59,11 +59,11 @@ export default class SelectableDraggable extends GraphElement {
         }
         this.selected = value
         if (this.selected) {
-            this.classList.add('ueb-selected')
-            this.blueprint.addEventListener('uDragSelected', this.dragHandler)
+            this.classList.add("ueb-selected")
+            this.blueprint.addEventListener("uDragSelected", this.dragHandler)
         } else {
-            this.classList.remove('ueb-selected')
-            this.blueprint.removeEventListener('uDragSelected', this.dragHandler)
+            this.classList.remove("ueb-selected")
+            this.blueprint.removeEventListener("uDragSelected", this.dragHandler)
         }
     }
 }

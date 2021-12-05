@@ -34,7 +34,7 @@ class Template {
      * @returns The rendered elements
      */
     getElements(entity) {
-        let aDiv = document.createElement('div');
+        let aDiv = document.createElement("div");
         aDiv.innerHTML = this.render(entity);
         return aDiv.childNodes
     }
@@ -148,7 +148,7 @@ class Utility {
     }
 
     static getScale(element) {
-        return getComputedStyle(element).getPropertyValue('--ueb-scale')
+        return getComputedStyle(element).getPropertyValue("--ueb-scale")
     }
 
     /**
@@ -270,8 +270,8 @@ class MouseClickDrag extends Pointing {
                         e.stopPropagation();
                         self.started = false;
                         // Attach the listeners
-                        movementListenedElement.addEventListener('mousemove', self.mouseStartedMovingHandler);
-                        document.addEventListener('mouseup', self.mouseUpHandler);
+                        movementListenedElement.addEventListener("mousemove", self.mouseStartedMovingHandler);
+                        document.addEventListener("mouseup", self.mouseUpHandler);
                         self.clickedPosition = self.getLocation(e);
                         self.clicked(self.clickedPosition);
                     }
@@ -289,8 +289,8 @@ class MouseClickDrag extends Pointing {
             e.stopPropagation();
 
             // Delegate from now on to self.mouseMoveHandler
-            movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler);
-            movementListenedElement.addEventListener('mousemove', self.mouseMoveHandler);
+            movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler);
+            movementListenedElement.addEventListener("mousemove", self.mouseMoveHandler);
 
             // Do actual actions
             self.startDrag();
@@ -308,16 +308,16 @@ class MouseClickDrag extends Pointing {
         this.mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
                 // Remove the handlers of "mousemove" and "mouseup"
-                movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler);
-                movementListenedElement.removeEventListener('mousemove', self.mouseMoveHandler);
-                document.removeEventListener('mouseup', self.mouseUpHandler);
+                movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler);
+                movementListenedElement.removeEventListener("mousemove", self.mouseMoveHandler);
+                document.removeEventListener("mouseup", self.mouseUpHandler);
                 self.endDrag();
             }
         };
 
-        this.target.addEventListener('mousedown', this.mouseDownHandler);
+        this.target.addEventListener("mousedown", this.mouseDownHandler);
         if (this.clickButton == 2) {
-            this.target.addEventListener('contextmenu', this.preventDefault);
+            this.target.addEventListener("contextmenu", this.preventDefault);
         }
     }
 
@@ -327,9 +327,9 @@ class MouseClickDrag extends Pointing {
 
     unlistenDOMElement() {
         super.unlistenDOMElement();
-        this.target.removeEventListener('mousedown', this.mouseDownHandler);
+        this.target.removeEventListener("mousedown", this.mouseDownHandler);
         if (this.clickButton == 2) {
-            this.target.removeEventListener('contextmenu', this.preventDefault);
+            this.target.removeEventListener("contextmenu", this.preventDefault);
         } blueprintunfocusHandler;
     }
 
@@ -369,7 +369,7 @@ class GraphElement extends HTMLElement {
     }
 
     connectedCallback() {
-        this.blueprint = this.closest('u-blueprint');
+        this.blueprint = this.closest("u-blueprint");
         this.append(...this.template.getElements(this.entity));
     }
 }
@@ -703,7 +703,7 @@ class GraphSelector extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this.classList.add('ueb-selector');
+        this.classList.add("ueb-selector");
         this.dataset.selecting = "false";
     }
 
@@ -714,11 +714,11 @@ class GraphSelector extends GraphElement {
     startSelecting(initialPosition) {
         initialPosition = this.blueprint.compensateTranslation(initialPosition);
         // Set initial position
-        this.style.setProperty('--ueb-select-from-x', initialPosition[0]);
-        this.style.setProperty('--ueb-select-from-y', initialPosition[1]);
+        this.style.setProperty("--ueb-select-from-x", initialPosition[0]);
+        this.style.setProperty("--ueb-select-from-y", initialPosition[1]);
         // Final position coincide with the initial position, at the beginning of selection
-        this.style.setProperty('--ueb-select-to-x', initialPosition[0]);
-        this.style.setProperty('--ueb-select-to-y', initialPosition[1]);
+        this.style.setProperty("--ueb-select-to-x", initialPosition[0]);
+        this.style.setProperty("--ueb-select-to-y", initialPosition[1]);
         this.dataset.selecting = "true";
         this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.getNodes(), this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction);
     }
@@ -729,8 +729,8 @@ class GraphSelector extends GraphElement {
      */
     doSelecting(finalPosition) {
         finalPosition = this.blueprint.compensateTranslation(finalPosition);
-        this.style.setProperty('--ueb-select-to-x', finalPosition[0]);
-        this.style.setProperty('--ueb-select-to-y', finalPosition[1]);
+        this.style.setProperty("--ueb-select-to-x", finalPosition[0]);
+        this.style.setProperty("--ueb-select-to-y", finalPosition[1]);
         this.selectionModel.selectTo(finalPosition);
     }
 
@@ -740,7 +740,7 @@ class GraphSelector extends GraphElement {
     }
 }
 
-customElements.define('u-selector', GraphSelector);
+customElements.define("u-selector", GraphSelector);
 
 class MouseTracking extends Pointing {
 
@@ -993,7 +993,7 @@ class NodeTemplate extends Template {
                         ${output.getPinDisplayName()}
                         <span class="ueb-node-value-icon ${outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
                     </div>
-                    `).join("") ?? ''}
+                    `).join('') ?? ''}
                 </div>
             </div>
         `
@@ -1028,6 +1028,30 @@ class FunctionReferenceEntity extends Entity {
     }
 }
 
+class IntegerEntity extends Entity {
+
+    static attributes = {
+        value: Number
+    }
+
+    getAttributes() {
+        return IntegerEntity.attributes
+    }
+
+    constructor(options = { value: 0 }) {
+        options.value = Math.round(options.value);
+        super(options);
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
 class VariableReferenceEntity extends Entity {
 
     static attributes = {
@@ -1049,10 +1073,13 @@ class ObjectEntity extends Entity {
         bIsPureFunc: new TypeInitialization(Boolean, false, false),
         VariableReference: new TypeInitialization(VariableReferenceEntity, false, null),
         FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
+        EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
-        NodePosX: 0,
-        NodePosY: 0,
+        NodePosX: IntegerEntity,
+        NodePosY: IntegerEntity,
         NodeGuid: GuidEntity,
+        ErrorType: new TypeInitialization(IntegerEntity, false),
+        ErrorMsg: new TypeInitialization(String, false, ""),
         CustomProperties: [PinEntity]
     }
 
@@ -1086,7 +1113,7 @@ class Drag extends MouseClickDrag {
 
     startDrag() {
         if (isNaN(this.stepSize) || this.stepSize <= 0) {
-            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue('--ueb-grid-snap'));
+            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue("--ueb-grid-snap"));
             if (isNaN(this.stepSize) || this.stepSize <= 0) {
                 this.stepSize = 1;
             }
@@ -1137,8 +1164,8 @@ class SelectableDraggable extends GraphElement {
 
     setLocation(value = [0, 0]) {
         this.location = value;
-        this.style.setProperty('--ueb-position-x', this.location[0]);
-        this.style.setProperty('--ueb-position-y', this.location[1]);
+        this.style.setProperty("--ueb-position-x", this.location[0]);
+        this.style.setProperty("--ueb-position-y", this.location[1]);
     }
 
     addLocation(value) {
@@ -1150,7 +1177,7 @@ class SelectableDraggable extends GraphElement {
             this.blueprint.unselectAll();
             this.setSelected(true);
         }
-        let dragEvent = new CustomEvent('uDragSelected', {
+        let dragEvent = new CustomEvent("uDragSelected", {
             detail: {
                 instigator: this,
                 value: value
@@ -1168,11 +1195,11 @@ class SelectableDraggable extends GraphElement {
         }
         this.selected = value;
         if (this.selected) {
-            this.classList.add('ueb-selected');
-            this.blueprint.addEventListener('uDragSelected', this.dragHandler);
+            this.classList.add("ueb-selected");
+            this.blueprint.addEventListener("uDragSelected", this.dragHandler);
         } else {
-            this.classList.remove('ueb-selected');
-            this.blueprint.removeEventListener('uDragSelected', this.dragHandler);
+            this.classList.remove("ueb-selected");
+            this.blueprint.removeEventListener("uDragSelected", this.dragHandler);
         }
     }
 }
@@ -1255,27 +1282,7 @@ class GraphNode extends SelectableDraggable {
     }
 }
 
-customElements.define('u-node', GraphNode);
-
-class IntegerEntity extends Entity {
-
-    static attributes = {
-        value: Number
-    }
-
-    getAttributes() {
-        return IntegerEntity.attributes
-    }
-
-    constructor(options = {}) {
-        super(options);
-        this.value = Math.round(value);
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
+customElements.define("u-node", GraphNode);
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1301,9 +1308,9 @@ class Grammar {
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
     None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
-    Number = _ => P.regex(/[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
-    Integer = _ => P.regex(/[0-9]+/).map(v => new IntegerEntity({ value: v })).desc("an integer")
-    String = _ => P.regex(/(?:[^"\\]|\\")*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
+    Number = _ => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+    Integer = _ => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity({ value: v })).desc("an integer")
+    String = _ => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
     Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
     PathSymbolEntity = _ => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
@@ -1619,15 +1626,19 @@ class Paste extends Context {
             left = Math.min(left, node.location[0]);
             return node
         });
+        if (nodes.length > 0) {
+            this.blueprint.unselectAll();
+        }
         let mousePosition = this.blueprint.entity.mousePosition;
+        this.blueprint.addNode(...nodes);
         nodes.forEach(node => {
             const locationOffset = [
                 mousePosition[0] - left,
                 mousePosition[1] - top
             ];
             node.addLocation(locationOffset);
+            node.setSelected(true);
         });
-        this.blueprint.addNode(...nodes);
     }
 }
 
@@ -1711,18 +1722,18 @@ class MouseWheel extends Pointing {
         this.mouseParentWheelHandler = e => e.preventDefault();
 
         if (this.blueprint.focused) {
-            this.movementSpace.addEventListener('wheel', this.mouseWheelHandler, false);
+            this.movementSpace.addEventListener("wheel", this.mouseWheelHandler, false);
         }
     }
 
     blueprintFocused() {
-        this.movementSpace.addEventListener('wheel', this.mouseWheelHandler, false);
-        this.movementSpace.parentElement?.addEventListener('wheel', this.mouseParentWheelHandler);
+        this.movementSpace.addEventListener("wheel", this.mouseWheelHandler, false);
+        this.movementSpace.parentElement?.addEventListener("wheel", this.mouseParentWheelHandler);
     }
 
     blueprintUnfocused() {
-        this.movementSpace.removeEventListener('wheel', this.mouseWheelHandler, false);
-        this.movementSpace.parentElement?.removeEventListener('wheel', this.mouseParentWheelHandler);
+        this.movementSpace.removeEventListener("wheel", this.mouseWheelHandler, false);
+        this.movementSpace.parentElement?.removeEventListener("wheel", this.mouseParentWheelHandler);
     }
 
     /* Subclasses will override the following method */
@@ -1806,7 +1817,7 @@ class Blueprint extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this.classList.add('ueb', `ueb-zoom-${this.zoom}`);
+        this.classList.add("ueb", `ueb-zoom-${this.zoom}`);
 
         this.headerElement = this.querySelector('.ueb-viewport-header');
         console.assert(this.headerElement, "Header element not provided by the template.");
@@ -1814,13 +1825,13 @@ class Blueprint extends GraphElement {
         console.assert(this.overlayElement, "Overlay element not provided by the template.");
         this.viewportElement = this.querySelector('.ueb-viewport-body');
         console.assert(this.viewportElement, "Viewport element not provided by the template.");
-        this.gridElement = this.viewportElement.querySelector('.ueb-grid');
+        this.gridElement = this.viewportElement.querySelector(".ueb-grid");
         console.assert(this.gridElement, "Grid element not provided by the template.");
         this.selectorElement = new GraphSelector();
-        this.nodesContainerElement = this.querySelector('[data-nodes]');
+        this.nodesContainerElement = this.querySelector("[data-nodes]");
         console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.");
         this.nodesContainerElement.append(this.selectorElement);
-        this.querySelector('[data-nodes]').append(...this.entity.nodes);
+        this.querySelector("[data-nodes]").append(...this.entity.nodes);
 
 
         this.copyObject = new Copy(this.getGridDOMElement(), this);
@@ -1870,7 +1881,7 @@ class Blueprint extends GraphElement {
             this.viewportElement.scroll({
                 left: value[0],
                 top: value[1],
-                behavior: 'smooth'
+                behavior: "smooth"
             });
         }
     }
@@ -1957,8 +1968,8 @@ class Blueprint extends GraphElement {
         y = Math.round(Math.abs(y));
         this.entity.additional = [this.entity.additional[0] + x, this.entity.additional[1] + y];
         if (this.gridElement) {
-            this.gridElement.style.setProperty('--ueb-additional-x', this.entity.additional[0]);
-            this.gridElement.style.setProperty('--ueb-additional-y', this.entity.additional[1]);
+            this.gridElement.style.setProperty("--ueb-additional-x", this.entity.additional[0]);
+            this.gridElement.style.setProperty("--ueb-additional-y", this.entity.additional[1]);
         }
     }
 
@@ -1972,8 +1983,8 @@ class Blueprint extends GraphElement {
         y = Math.round(y);
         this.entity.translateValue = [this.entity.translateValue[0] + x, this.entity.translateValue[1] + y];
         if (this.gridElement) {
-            this.gridElement.style.setProperty('--ueb-translate-x', this.entity.translateValue[0]);
-            this.gridElement.style.setProperty('--ueb-translate-y', this.entity.translateValue[1]);
+            this.gridElement.style.setProperty("--ueb-translate-x", this.entity.translateValue[0]);
+            this.gridElement.style.setProperty("--ueb-translate-y", this.entity.translateValue[1]);
         }
     }
 
@@ -2031,7 +2042,7 @@ class Blueprint extends GraphElement {
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue('--ueb-scale'))
+        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue("--ueb-scale"))
     }
 
     compensateTranslation(position) {
@@ -2095,7 +2106,7 @@ class Blueprint extends GraphElement {
     }
 }
 
-customElements.define('u-blueprint', Blueprint);
+customElements.define("u-blueprint", Blueprint);
 
 class GraphLink extends GraphElement {
 
@@ -2123,7 +2134,7 @@ class GraphLink extends GraphElement {
     }
 }
 
-customElements.define('u-link', GraphLink);
+customElements.define("u-link", GraphLink);
 
 class GeneralSerializer extends Serializer {
 

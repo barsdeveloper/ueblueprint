@@ -50,4 +50,4 @@ export default class GraphNode extends SelectableDraggable {
     }
 }
 
-customElements.define('u-node', GraphNode)
+customElements.define("u-node", GraphNode)

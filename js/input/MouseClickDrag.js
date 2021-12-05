@@ -26,8 +26,8 @@ export default class MouseClickDrag extends Pointing {
                         e.stopPropagation()
                         self.started = false
                         // Attach the listeners
-                        movementListenedElement.addEventListener('mousemove', self.mouseStartedMovingHandler)
-                        document.addEventListener('mouseup', self.mouseUpHandler)
+                        movementListenedElement.addEventListener("mousemove", self.mouseStartedMovingHandler)
+                        document.addEventListener("mouseup", self.mouseUpHandler)
                         self.clickedPosition = self.getLocation(e)
                         self.clicked(self.clickedPosition)
                     }
@@ -45,8 +45,8 @@ export default class MouseClickDrag extends Pointing {
             e.stopPropagation()
 
             // Delegate from now on to self.mouseMoveHandler
-            movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler)
-            movementListenedElement.addEventListener('mousemove', self.mouseMoveHandler)
+            movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler)
+            movementListenedElement.addEventListener("mousemove", self.mouseMoveHandler)
 
             // Do actual actions
             self.startDrag()
@@ -64,16 +64,16 @@ export default class MouseClickDrag extends Pointing {
         this.mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
                 // Remove the handlers of "mousemove" and "mouseup"
-                movementListenedElement.removeEventListener('mousemove', self.mouseStartedMovingHandler)
-                movementListenedElement.removeEventListener('mousemove', self.mouseMoveHandler)
-                document.removeEventListener('mouseup', self.mouseUpHandler)
+                movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler)
+                movementListenedElement.removeEventListener("mousemove", self.mouseMoveHandler)
+                document.removeEventListener("mouseup", self.mouseUpHandler)
                 self.endDrag()
             }
         }
 
-        this.target.addEventListener('mousedown', this.mouseDownHandler)
+        this.target.addEventListener("mousedown", this.mouseDownHandler)
         if (this.clickButton == 2) {
-            this.target.addEventListener('contextmenu', this.preventDefault)
+            this.target.addEventListener("contextmenu", this.preventDefault)
         }
     }
 
@@ -83,9 +83,9 @@ export default class MouseClickDrag extends Pointing {
 
     unlistenDOMElement() {
         super.unlistenDOMElement()
-        this.target.removeEventListener('mousedown', this.mouseDownHandler)
+        this.target.removeEventListener("mousedown", this.mouseDownHandler)
         if (this.clickButton == 2) {
-            this.target.removeEventListener('contextmenu', this.preventDefault)
+            this.target.removeEventListener("contextmenu", this.preventDefault)
         } blueprintunfocusHandler
     }
 

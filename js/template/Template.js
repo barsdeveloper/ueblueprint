@@ -18,7 +18,7 @@ export default class Template {
      * @returns The rendered elements
      */
     getElements(entity) {
-        let aDiv = document.createElement('div')
+        let aDiv = document.createElement("div")
         aDiv.innerHTML = this.render(entity)
         return aDiv.childNodes
     }

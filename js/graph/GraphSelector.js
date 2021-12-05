@@ -14,7 +14,7 @@ export default class GraphSelector extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.classList.add('ueb-selector')
+        this.classList.add("ueb-selector")
         this.dataset.selecting = "false"
     }
 
@@ -25,11 +25,11 @@ export default class GraphSelector extends GraphElement {
     startSelecting(initialPosition) {
         initialPosition = this.blueprint.compensateTranslation(initialPosition)
         // Set initial position
-        this.style.setProperty('--ueb-select-from-x', initialPosition[0])
-        this.style.setProperty('--ueb-select-from-y', initialPosition[1])
+        this.style.setProperty("--ueb-select-from-x", initialPosition[0])
+        this.style.setProperty("--ueb-select-from-y", initialPosition[1])
         // Final position coincide with the initial position, at the beginning of selection
-        this.style.setProperty('--ueb-select-to-x', initialPosition[0])
-        this.style.setProperty('--ueb-select-to-y', initialPosition[1])
+        this.style.setProperty("--ueb-select-to-x", initialPosition[0])
+        this.style.setProperty("--ueb-select-to-y", initialPosition[1])
         this.dataset.selecting = "true"
         this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.getNodes(), this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction)
     }
@@ -40,8 +40,8 @@ export default class GraphSelector extends GraphElement {
      */
     doSelecting(finalPosition) {
         finalPosition = this.blueprint.compensateTranslation(finalPosition)
-        this.style.setProperty('--ueb-select-to-x', finalPosition[0])
-        this.style.setProperty('--ueb-select-to-y', finalPosition[1])
+        this.style.setProperty("--ueb-select-to-x", finalPosition[0])
+        this.style.setProperty("--ueb-select-to-y", finalPosition[1])
         this.selectionModel.selectTo(finalPosition)
     }
 
@@ -51,4 +51,4 @@ export default class GraphSelector extends GraphElement {
     }
 }
 
-customElements.define('u-selector', GraphSelector)
+customElements.define("u-selector", GraphSelector)

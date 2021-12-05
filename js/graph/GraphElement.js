@@ -13,7 +13,7 @@ export default class GraphElement extends HTMLElement {
     }
 
     connectedCallback() {
-        this.blueprint = this.closest('u-blueprint')
+        this.blueprint = this.closest("u-blueprint")
         this.append(...this.template.getElements(this.entity))
     }
 }

@@ -1,6 +1,7 @@
 import Entity from "./Entity"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
+import IntegerEntity from "./IntegerEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"
 import TypeInitialization from "./TypeInitialization"
@@ -14,10 +15,13 @@ export default class ObjectEntity extends Entity {
         bIsPureFunc: new TypeInitialization(Boolean, false, false),
         VariableReference: new TypeInitialization(VariableReferenceEntity, false, null),
         FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
+        EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
-        NodePosX: 0,
-        NodePosY: 0,
+        NodePosX: IntegerEntity,
+        NodePosY: IntegerEntity,
         NodeGuid: GuidEntity,
+        ErrorType: new TypeInitialization(IntegerEntity, false),
+        ErrorMsg: new TypeInitialization(String, false, ""),
         CustomProperties: [PinEntity]
     }
 

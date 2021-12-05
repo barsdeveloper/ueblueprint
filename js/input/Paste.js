@@ -29,14 +29,18 @@ export default class Paste extends Context {
             left = Math.min(left, node.location[0])
             return node
         })
+        if (nodes.length > 0) {
+            this.blueprint.unselectAll()
+        }
         let mousePosition = this.blueprint.entity.mousePosition
+        this.blueprint.addNode(...nodes)
         nodes.forEach(node => {
             const locationOffset = [
                 mousePosition[0] - left,
                 mousePosition[1] - top
             ]
             node.addLocation(locationOffset)
+            node.setSelected(true)
         })
-        this.blueprint.addNode(...nodes)
     }
 }

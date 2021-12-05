@@ -48,7 +48,7 @@ export default class NodeTemplate extends Template {
                         ${output.getPinDisplayName()}
                         <span class="ueb-node-value-icon ${outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
                     </div>
-                    `).join("") ?? ''}
+                    `).join('') ?? ''}
                 </div>
             </div>
         `
