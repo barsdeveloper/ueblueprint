@@ -10,9 +10,9 @@ export default class IntegerEntity extends Entity {
         return IntegerEntity.attributes
     }
 
-    constructor(options = { value: 0 }) {
-        options.value = Math.round(options.value)
+    constructor(options = {}) {
         super(options)
+        this.value = Math.round(this.value)
     }
 
     valueOf() {

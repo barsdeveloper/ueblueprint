@@ -1,8 +1,9 @@
+import html from "./html"
 import Template from "./Template"
 
 export default class BlueprintTemplate extends Template {
     header(element) {
-        return `
+        return html`
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">1:1</div>
             </div>
@@ -10,7 +11,7 @@ export default class BlueprintTemplate extends Template {
     }
 
     overlay() {
-        return `
+        return html`
             <div class="ueb-viewport-overlay"></div>
         `
     }
@@ -21,7 +22,7 @@ export default class BlueprintTemplate extends Template {
      * @returns 
      */
     viewport(element) {
-        return `
+        return html`
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
                     style="--ueb-additional-x:${element.additional[0]}; --ueb-additional-y:${element.additional[1]}; --ueb-translate-x:${element.translateValue[0]}; --ueb-translate-y:${element.translateValue[1]}">
@@ -37,7 +38,7 @@ export default class BlueprintTemplate extends Template {
      * @returns The computed html 
      */
     render(element) {
-        return `
+        return html`
             ${this.header(element)}
             ${this.overlay(element)}
             ${this.viewport(element)}

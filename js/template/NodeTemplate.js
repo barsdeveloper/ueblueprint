@@ -1,3 +1,4 @@
+import html from "./html"
 import PinEntity from "../entity/PinEntity"
 import Template from "./Template"
 
@@ -12,7 +13,7 @@ export default class NodeTemplate extends Template {
      * @returns The computed html 
      */
     header(entity) {
-        return `
+        return html`
             <div class="ueb-node-header">
                 <span class="ueb-node-name">
                     <span class="ueb-node-symbol"></span>
@@ -32,10 +33,10 @@ export default class NodeTemplate extends Template {
         let inputs = entity.CustomProperties.filter(v => v instanceof PinEntity)
         let outputs = inputs.filter(v => v.isOutput())
         inputs = inputs.filter(v => !v.isOutput())
-        return `
+        return html`
             <div class="ueb-node-body">
                 <div class="ueb-node-inputs">
-                    ${inputs.map((input, index) => `
+                    ${inputs.map((input, index) => html`
                     <div class="ueb-node-input ueb-node-value-${input.type}">
                         <span class="ueb-node-value-icon ${inputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
                         ${input.getPinDisplayName()}
@@ -43,7 +44,7 @@ export default class NodeTemplate extends Template {
                     `).join("") ?? ""}
                 </div>
                 <div class="ueb-node-outputs">
-                    ${outputs.map((output, index) => `
+                    ${outputs.map((output, index) => html`
                     <div class="ueb-node-output ueb-node-value-${output.type}">
                         ${output.getPinDisplayName()}
                         <span class="ueb-node-value-icon ${outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
@@ -60,7 +61,7 @@ export default class NodeTemplate extends Template {
      * @returns The computed html 
      */
     render(entity) {
-        return `
+        return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-content">
                     ${this.header(entity)}

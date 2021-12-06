@@ -20,6 +20,8 @@ export default class Context {
         this.blueprint.removeEventListener("blueprintunfocus", this.blueprintunfocusHandler)
     }
 
+
+    /* Subclasses will probabily override the following methods */
     blueprintFocused() {
     }
 
