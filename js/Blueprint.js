@@ -1,4 +1,3 @@
-import BlueprintData from "./BlueprintData"
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import DragScroll from "./input/DragScroll"
 import GraphElement from "./graph/GraphElement"
@@ -15,7 +14,18 @@ import Copy from "./input/Copy"
 export default class Blueprint extends GraphElement {
 
     constructor() {
-        super(new BlueprintData(), new BlueprintTemplate())
+        super({}, new BlueprintTemplate())
+        /** @type {BlueprintTemplate} */
+        this.template
+        /** @type {GraphNode[]}" */
+        this.nodes = new Array()
+        this.expandGridSize = 400
+        /** @type {number[]} */
+        this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
+        /** @type {number[]} */
+        this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
+        /** @type {number[]} */
+        this.mousePosition = [0, 0]
         /** @type {HTMLElement} */
         this.gridElement = null
         /** @type {HTMLElement} */
@@ -54,22 +64,6 @@ export default class Blueprint extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.classList.add("ueb", `ueb-zoom-${this.zoom}`)
-
-        this.headerElement = this.querySelector('.ueb-viewport-header')
-        console.assert(this.headerElement, "Header element not provided by the template.")
-        this.overlayElement = this.querySelector('.ueb-viewport-overlay')
-        console.assert(this.overlayElement, "Overlay element not provided by the template.")
-        this.viewportElement = this.querySelector('.ueb-viewport-body')
-        console.assert(this.viewportElement, "Viewport element not provided by the template.")
-        this.gridElement = this.viewportElement.querySelector(".ueb-grid")
-        console.assert(this.gridElement, "Grid element not provided by the template.")
-        this.selectorElement = new GraphSelector()
-        this.nodesContainerElement = this.querySelector("[data-nodes]")
-        console.assert(this.nodesContainerElement, "Nodes container element not provided by the template.")
-        this.nodesContainerElement.append(this.selectorElement)
-        this.querySelector("[data-nodes]").append(...this.entity.nodes)
-
 
         this.copyObject = new Copy(this.getGridDOMElement(), this)
         this.pasteObject = new Paste(this.getGridDOMElement(), this)
@@ -132,19 +126,19 @@ export default class Blueprint extends GraphElement {
         ]
         let expand = [0, 0]
         for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < 0.25 * this.entity.expandGridSize) {
+            if (delta[i] < 0 && finalScroll[i] < 0.25 * this.expandGridSize) {
                 // Expand if scrolling is diminishing and the remainig space is less that a quarter of an expansion step
                 expand[i] = finalScroll[i]
                 if (expand[i] > 0) {
                     // Final scroll is still in rage (more than zero) but we want to expand to negative (left or top)
-                    expand[i] = -this.entity.expandGridSize
+                    expand[i] = -this.expandGridSize
                 }
-            } else if (delta[i] > 0 && finalScroll[i] > scrollMax[i] - 0.25 * this.entity.expandGridSize) {
+            } else if (delta[i] > 0 && finalScroll[i] > scrollMax[i] - 0.25 * this.expandGridSize) {
                 // Expand if scrolling is increasing and the remainig space is less that a quarter of an expansion step
                 expand[i] = finalScroll[i] - scrollMax[i]
                 if (expand[i] < 0) {
                     // Final scroll is still in rage (less than the maximum scroll) but we want to expand to positive (right or bottom)
-                    expand[i] = this.entity.expandGridSize
+                    expand[i] = this.expandGridSize
                 }
             }
         }
@@ -162,8 +156,8 @@ export default class Blueprint extends GraphElement {
     scrollCenter() {
         const scroll = this.getScroll()
         const offset = [
-            this.entity.translateValue[0] - scroll[0],
-            this.entity.translateValue[1] - scroll[1]
+            this.translateValue[0] - scroll[0],
+            this.translateValue[1] - scroll[1]
         ]
         const targetOffset = this.getViewportSize().map(size => size / 2)
         const deltaOffset = [
@@ -174,7 +168,7 @@ export default class Blueprint extends GraphElement {
     }
 
     getExpandGridSize() {
-        return this.entity.expandGridSize
+        return this.expandGridSize
     }
 
     getViewportSize() {
@@ -203,11 +197,8 @@ export default class Blueprint extends GraphElement {
     _expand(x, y) {
         x = Math.round(Math.abs(x))
         y = Math.round(Math.abs(y))
-        this.entity.additional = [this.entity.additional[0] + x, this.entity.additional[1] + y]
-        if (this.gridElement) {
-            this.gridElement.style.setProperty("--ueb-additional-x", this.entity.additional[0])
-            this.gridElement.style.setProperty("--ueb-additional-y", this.entity.additional[1])
-        }
+        this.additional = [this.additional[0] + x, this.additional[1] + y]
+        this.template.applyExpand(this)
     }
 
     /**
@@ -218,11 +209,8 @@ export default class Blueprint extends GraphElement {
     _translate(x, y) {
         x = Math.round(x)
         y = Math.round(y)
-        this.entity.translateValue = [this.entity.translateValue[0] + x, this.entity.translateValue[1] + y]
-        if (this.gridElement) {
-            this.gridElement.style.setProperty("--ueb-translate-x", this.entity.translateValue[0])
-            this.gridElement.style.setProperty("--ueb-translate-y", this.entity.translateValue[1])
-        }
+        this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y]
+        this.template.applyTranlate(this)
     }
 
     /**
@@ -247,7 +235,7 @@ export default class Blueprint extends GraphElement {
     }
 
     progressiveSnapToGrid(x) {
-        return this.entity.expandGridSize * Math.round(x / this.entity.expandGridSize + 0.5 * Math.sign(x))
+        return this.expandGridSize * Math.round(x / this.expandGridSize + 0.5 * Math.sign(x))
     }
 
     getZoom() {
@@ -260,8 +248,7 @@ export default class Blueprint extends GraphElement {
             return
         }
         let initialScale = this.getScale()
-        this.classList.remove(`ueb-zoom-${this.zoom}`)
-        this.classList.add(`ueb-zoom-${zoom}`)
+        this.template.applyZoom(this, zoom)
         this.zoom = zoom
 
 
@@ -283,8 +270,8 @@ export default class Blueprint extends GraphElement {
     }
 
     compensateTranslation(position) {
-        position[0] -= this.entity.translateValue[0]
-        position[1] -= this.entity.translateValue[1]
+        position[0] -= this.translateValue[0]
+        position[1] -= this.translateValue[1]
         return position
     }
 
@@ -294,7 +281,7 @@ export default class Blueprint extends GraphElement {
      */
     getNodes(selected = false) {
         if (selected) {
-            return this.entity.nodes.filter(
+            return this.nodes.filter(
                 /**
                  * 
                  * @param {GraphNode} node 
@@ -302,7 +289,7 @@ export default class Blueprint extends GraphElement {
                 node => node.selected
             )
         } else {
-            return this.entity.nodes
+            return this.nodes
         }
     }
 
@@ -310,7 +297,7 @@ export default class Blueprint extends GraphElement {
      * Unselect all nodes
      */
     unselectAll() {
-        this.entity.nodes.forEach(node => this.nodeSelectToggleFunction(node, false))
+        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, false))
     }
 
     /**
@@ -323,7 +310,7 @@ export default class Blueprint extends GraphElement {
                 s.push(e)
                 return s
             },
-            this.entity.nodes)
+            this.nodes)
         if (this.nodesContainerElement) {
             this.nodesContainerElement.append(...graphNodes)
         }

@@ -1,4 +1,5 @@
 import GraphElement from "./GraphElement"
+import LinkTemplate from "../template/LinkTemplate"
 
 export default class GraphLink extends GraphElement {
 
@@ -12,17 +13,9 @@ export default class GraphLink extends GraphElement {
      * @param {?PinReference} destination 
      */
     constructor(source, destination) {
-        super()
+        super(this, new LinkTemplate())
         this.source = source
         this.destination = destination
-    }
-
-    render() {
-        return `
-            <svg viewBox="0 0 100 100">
-                <line x1="0" y1="80" x2="100" y2="20" stroke="black" />
-            </svg>
-        `
     }
 }
 

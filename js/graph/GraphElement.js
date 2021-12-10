@@ -8,12 +8,14 @@ export default class GraphElement extends HTMLElement {
         super()
         /** @type {import("../Blueprint").default}" */
         this.blueprint = null
+        /** @type {import("../entity/Entity").default}" */
         this.entity = entity
+        /** @type {import("../template/Template").default}" */
         this.template = template
     }
 
     connectedCallback() {
         this.blueprint = this.closest("u-blueprint")
-        this.append(...this.template.getElements(this.entity))
+        this.template.apply(this)
     }
 }

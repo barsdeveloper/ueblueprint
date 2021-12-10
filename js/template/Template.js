@@ -1,25 +1,23 @@
 /**
- * @typedef {import(""../entity/Entity"").default} Entity
+ * @typedef {import("../graph/GraphElement").default} GraphElement
  */
 export default class Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {Entity} entity Entity representing the element
-     * @returns The computed html 
+     * @param {GraphElement} entity Element of the graph
+     * @returns The result html 
      */
     render(entity) {
         return ""
     }
 
     /**
-     * Returns the html elements rendered by this template.
-     * @param {Entity} entity Entity representing the element
-     * @returns The rendered elements
+     * Applies the style to the element.
+     * @param {GraphElement} element Element of the graph
      */
-    getElements(entity) {
-        let aDiv = document.createElement("div")
-        aDiv.innerHTML = this.render(entity)
-        return aDiv.childNodes
+    apply(element) {
+        // TODO replace with the safer element.setHTML(...) when it will be available
+        element.innerHTML = this.render(element)
     }
 }

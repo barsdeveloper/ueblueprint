@@ -1,21 +1,14 @@
 import FastSelectionModel from "../selection/FastSelectionModel"
 import GraphElement from "./GraphElement"
-import Template from "../template/Template"
+import SelectorTemplate from "../template/SelectorTemplate"
 
 export default class GraphSelector extends GraphElement {
 
     constructor() {
-        super({}, new Template())
-        /**
-         * @type {import("./GraphSelector").default}
-         */
+        super({}, new SelectorTemplate())
         this.selectionModel = null
-    }
-
-    connectedCallback() {
-        super.connectedCallback()
-        this.classList.add("ueb-selector")
-        this.dataset.selecting = "false"
+        /** @type {SelectorTemplate} */
+        this.template
     }
 
     /**
@@ -24,13 +17,7 @@ export default class GraphSelector extends GraphElement {
      */
     startSelecting(initialPosition) {
         initialPosition = this.blueprint.compensateTranslation(initialPosition)
-        // Set initial position
-        this.style.setProperty("--ueb-select-from-x", initialPosition[0])
-        this.style.setProperty("--ueb-select-from-y", initialPosition[1])
-        // Final position coincide with the initial position, at the beginning of selection
-        this.style.setProperty("--ueb-select-to-x", initialPosition[0])
-        this.style.setProperty("--ueb-select-to-y", initialPosition[1])
-        this.dataset.selecting = "true"
+        this.template.applyStartSelecting(this, initialPosition)
         this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.getNodes(), this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction)
     }
 
@@ -40,13 +27,12 @@ export default class GraphSelector extends GraphElement {
      */
     doSelecting(finalPosition) {
         finalPosition = this.blueprint.compensateTranslation(finalPosition)
-        this.style.setProperty("--ueb-select-to-x", finalPosition[0])
-        this.style.setProperty("--ueb-select-to-y", finalPosition[1])
+        this.template.applyDoSelecting(this, finalPosition)
         this.selectionModel.selectTo(finalPosition)
     }
 
     finishSelecting() {
-        this.dataset.selecting = "false"
+        this.template.applyFinishSelecting(this)
         this.selectionModel = null
     }
 }

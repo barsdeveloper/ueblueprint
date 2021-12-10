@@ -1,23 +1,23 @@
 import html from "./html"
 import PinEntity from "../entity/PinEntity"
-import Template from "./Template"
+import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
 
 /**
- * @typedef {import("../entity/ObjectEntity").default} ObjectEntity
+ * @typedef {import("../graph/GraphNode").default} GraphNode
  */
-export default class NodeTemplate extends Template {
+export default class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {ObjectEntity} entity Entity representing the element 
-     * @returns The computed html 
+     * @param {GraphNode} node Graph node element 
+     * @returns The result html 
      */
-    header(entity) {
+    header(node) {
         return html`
             <div class="ueb-node-header">
                 <span class="ueb-node-name">
                     <span class="ueb-node-symbol"></span>
-                    <span class="ueb-node-text">${entity.getNodeDisplayName()}</span>
+                    <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
                 </span>
             </div>
         `
@@ -25,14 +25,14 @@ export default class NodeTemplate extends Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {ObjectEntity} entity Entity representing the element 
-     * @returns The computed html 
+     * @param {GraphNode} node Graph node element 
+     * @returns The result html 
      */
-    body(entity) {
+    body(node) {
         /** @type {PinEntity[]} */
-        let inputs = entity.CustomProperties.filter(v => v instanceof PinEntity)
+        let inputs = node.entity.CustomProperties.filter(v => v instanceof PinEntity)
         let outputs = inputs.filter(v => v.isOutput())
-        inputs = inputs.filter(v => !v.isOutput())
+        inputs = inputs.filter(v => v.isInput())
         return html`
             <div class="ueb-node-body">
                 <div class="ueb-node-inputs">
@@ -57,17 +57,31 @@ export default class NodeTemplate extends Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {ObjectEntity} entity Entity representing the element 
-     * @returns The computed html 
+     * @param {GraphNode} node Graph node element 
+     * @returns The result html 
      */
-    render(entity) {
+    render(node) {
         return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-content">
-                    ${this.header(entity)}
-                    ${this.body(entity)}
+                    ${this.header(node)}
+                    ${this.body(node)}
                 </div>
             </div>
         `
+    }
+
+    /**
+     * Returns the html elements rendered from this template.
+     * @param {GraphNode} node Element of the graph
+     */
+    apply(node) {
+        super.apply(node)
+        node.classList.add("ueb-node")
+        if (node.selected) {
+            node.classList.add("ueb-selected")
+        }
+        node.style.setProperty("--ueb-position-x", node.location[0])
+        node.style.setProperty("--ueb-position-y", node.location[1])
     }
 }

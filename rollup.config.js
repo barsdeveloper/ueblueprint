@@ -11,8 +11,8 @@ export default {
     },
     plugins: [
         nodeResolve({ browser: true }),
-        minifyHTML(),
+        //minifyHTML(),
         commonjs(),
-        terser()
+        //terser()
     ]
 }

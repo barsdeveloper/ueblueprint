@@ -6,31 +6,27 @@ import DragLink from "../input/DragLink"
 
 export default class GraphNode extends SelectableDraggable {
 
-    static fromSerializedObject(str) {
-        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str)
-        return new GraphNode(entity)
-    }
-
     /**
      * 
      * @param {ObjectEntity} entity 
      */
     constructor(entity) {
         super(entity, new NodeTemplate())
+        /** @type {ObjectEntity} */
+        this.entity
         this.graphNodeName = "n/a"
-        this.dragLinkObjects = Array()
+        this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX, this.entity.NodePosY])
+    }
+
+    static fromSerializedObject(str) {
+        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str)
+        return new GraphNode(entity)
     }
 
     connectedCallback() {
         const type = this.getAttribute("type")?.trim()
         super.connectedCallback()
-        this.classList.add("ueb-node")
-        if (this.selected) {
-            this.classList.add("ueb-selected")
-        }
-        this.style.setProperty("--ueb-position-x", this.location[0])
-        this.style.setProperty("--ueb-position-y", this.location[1])
         this.querySelectorAll(".ueb-node-input, .ueb-node-output").forEach(element => {
             this.dragLinkObjects.push(
                 new DragLink(element, this.blueprint, {
