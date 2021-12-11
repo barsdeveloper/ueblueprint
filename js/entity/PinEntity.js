@@ -41,22 +41,6 @@ export default class PinEntity extends Entity {
         return PinEntity.attributes
     }
 
-    /**
-     * 
-     * @returns {String}
-     */
-    getPinDisplayName() {
-        return this.PinName
-    }
-
-    isConnected() {
-        return this.LinkedTo.length > 0
-    }
-
-    getType() {
-        return this.PinType.PinCategory ?? "object"
-    }
-
     isInput() {
         if (!this.bHidden && this.Direction !== "EGPD_Output") {
             return true
@@ -67,5 +51,13 @@ export default class PinEntity extends Entity {
         if (!this.bHidden && this.Direction === "EGPD_Output") {
             return true
         }
+    }
+
+    isConnected() {
+        return this.LinkedTo.length > 0
+    }
+
+    getType() {
+        return this.PinType.PinCategory ?? "object"
     }
 }

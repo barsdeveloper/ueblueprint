@@ -1,4 +1,3 @@
-import Blueprint from "../Blueprint"
 import html from "./html"
 import sanitizeText from "./sanitizeText"
 import Template from "./Template"

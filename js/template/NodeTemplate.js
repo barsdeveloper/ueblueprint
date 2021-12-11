@@ -1,6 +1,7 @@
 import html from "./html"
 import PinEntity from "../entity/PinEntity"
 import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
+import GraphPin from "../graph/GraphPin"
 
 /**
  * @typedef {import("../graph/GraphNode").default} GraphNode
@@ -14,12 +15,6 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     header(node) {
         return html`
-            <div class="ueb-node-header">
-                <span class="ueb-node-name">
-                    <span class="ueb-node-symbol"></span>
-                    <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
-                </span>
-            </div>
         `
     }
 
@@ -29,29 +24,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      * @returns The result html 
      */
     body(node) {
-        /** @type {PinEntity[]} */
         let inputs = node.entity.CustomProperties.filter(v => v instanceof PinEntity)
         let outputs = inputs.filter(v => v.isOutput())
         inputs = inputs.filter(v => v.isInput())
         return html`
-            <div class="ueb-node-body">
-                <div class="ueb-node-inputs">
-                    ${inputs.map((input, index) => html`
-                    <div class="ueb-node-input ueb-node-value-${input.type}">
-                        <span class="ueb-node-value-icon ${inputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
-                        ${input.getPinDisplayName()}
-                    </div>
-                    `).join("") ?? ""}
-                </div>
-                <div class="ueb-node-outputs">
-                    ${outputs.map((output, index) => html`
-                    <div class="ueb-node-output ueb-node-value-${output.type}">
-                        ${output.getPinDisplayName()}
-                        <span class="ueb-node-value-icon ${outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
-                    </div>
-                    `).join('') ?? ''}
-                </div>
-            </div>
         `
     }
 
@@ -64,8 +40,16 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-content">
-                    ${this.header(node)}
-                    ${this.body(node)}
+                    <div class="ueb-node-header">
+                        <span class="ueb-node-name">
+                            <span class="ueb-node-symbol"></span>
+                            <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
+                        </span>
+                    </div>
+                    <div class="ueb-node-body">
+                        <div class="ueb-node-inputs"></div>
+                        <div class="ueb-node-outputs"></div>
+                    </div>
                 </div>
             </div>
         `
@@ -83,5 +67,12 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         }
         node.style.setProperty("--ueb-position-x", node.location[0])
         node.style.setProperty("--ueb-position-y", node.location[1])
+        /** @type {HTMLElement} */
+        let inputContainer = node.querySelector(".ueb-node-inputs")
+        /** @type {HTMLElement} */
+        let outputContainer = node.querySelector(".ueb-node-outputs")
+        let pins = node.getPinEntities()
+        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new GraphPin(v)))
+        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new GraphPin(v)))
     }
 }

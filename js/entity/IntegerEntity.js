@@ -11,6 +11,11 @@ export default class IntegerEntity extends Entity {
     }
 
     constructor(options = {}) {
+        if (options.constructor === Number || options.constructor === String) {
+            options = {
+                value: options
+            }
+        }
         super(options)
         this.value = Math.round(this.value)
     }

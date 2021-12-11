@@ -37,9 +37,9 @@ export default class Paste extends Context {
         nodes.forEach(node => {
             const locationOffset = [
                 mousePosition[0] - left,
-                mousePosition[1] - top
+                mousePosition[1] - top,
             ]
-            node.addLocation(locationOffset)
+            node.addLocation(this.blueprint.compensateTranslation(locationOffset))
             node.setSelected(true)
         })
     }

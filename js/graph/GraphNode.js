@@ -3,6 +3,7 @@ import ObjectEntity from "../entity/ObjectEntity"
 import SelectableDraggable from "./SelectableDraggable"
 import SerializerFactory from "../serialization/SerializerFactory"
 import DragLink from "../input/DragLink"
+import PinEntity from "../entity/PinEntity"
 
 export default class GraphNode extends SelectableDraggable {
 
@@ -24,6 +25,14 @@ export default class GraphNode extends SelectableDraggable {
         return new GraphNode(entity)
     }
 
+    /**
+     * 
+     * @returns {PinEntity[]}
+     */
+    getPinEntities() {
+        return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
+    }
+
     connectedCallback() {
         const type = this.getAttribute("type")?.trim()
         super.connectedCallback()
@@ -40,8 +49,9 @@ export default class GraphNode extends SelectableDraggable {
     }
 
     setLocation(value = [0, 0]) {
-        this.entity.NodePosX = value[0]
-        this.entity.NodePosY = value[1]
+        let nodeType = this.entity.NodePosX.constructor
+        this.entity.NodePosX = new nodeType(value[0])
+        this.entity.NodePosY = new nodeType(value[1])
         super.setLocation(value)
     }
 }

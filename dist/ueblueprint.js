@@ -974,7 +974,7 @@ class PinReferenceEntity extends Entity {
     }
 }
 
-class PinEntity extends Entity {
+class PinEntity$1 extends Entity {
 
     static attributes = {
         PinId: GuidEntity,
@@ -1007,23 +1007,7 @@ class PinEntity extends Entity {
     }
 
     getAttributes() {
-        return PinEntity.attributes
-    }
-
-    /**
-     * 
-     * @returns {String}
-     */
-    getPinDisplayName() {
-        return this.PinName
-    }
-
-    isConnected() {
-        return this.LinkedTo.length > 0
-    }
-
-    getType() {
-        return this.PinType.PinCategory ?? "object"
+        return PinEntity$1.attributes
     }
 
     isInput() {
@@ -1036,6 +1020,14 @@ class PinEntity extends Entity {
         if (!this.bHidden && this.Direction === "EGPD_Output") {
             return true
         }
+    }
+
+    isConnected() {
+        return this.LinkedTo.length > 0
+    }
+
+    getType() {
+        return this.PinType.PinCategory ?? "object"
     }
 }
 
@@ -1067,6 +1059,83 @@ class SelectableDraggableTemplate extends Template {
 }
 
 /**
+ * @typedef {import("../graph/GraphPin").default} GraphPin
+ */
+class PinTemplate extends Template {
+
+    /**
+     * Computes the html content of the pin.
+     * @param {GraphPin} pin Pin entity 
+     * @returns The result html 
+     */
+    render(pin) {
+        if (pin.isInput()) {
+            return html`
+                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+                ${pin.getPinDisplayName()}
+            `
+        } else {
+            return html`
+                ${pin.getPinDisplayName()}
+                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+            `
+        }
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {GraphPin} pin Element of the graph
+     */
+    apply(pin) {
+        super.apply(pin);
+        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + pin.getType());
+    }
+}
+
+class GraphPin extends GraphElement {
+
+    constructor(entity) {
+        super(entity, new PinTemplate());
+        /** @type {import("../entity/PinEntity").default} */
+        this.entity;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+    }
+
+    /**
+     * 
+     * @returns {String}
+     */
+    getPinDisplayName() {
+        return this.entity.PinName
+    }
+
+    getAttributes() {
+        return PinEntity.attributes
+    }
+
+    isInput() {
+        return this.entity.isInput()
+    }
+
+    isOutput() {
+        return this.entity.isOutput()
+    }
+
+    isConnected() {
+        return this.entity.isConnected()
+    }
+
+    getType() {
+        return this.entity.getType()
+    }
+}
+
+customElements.define("u-pin", GraphPin);
+
+/**
  * @typedef {import("../graph/GraphNode").default} GraphNode
  */
 class NodeTemplate extends SelectableDraggableTemplate {
@@ -1078,12 +1147,6 @@ class NodeTemplate extends SelectableDraggableTemplate {
      */
     header(node) {
         return html`
-            <div class="ueb-node-header">
-                <span class="ueb-node-name">
-                    <span class="ueb-node-symbol"></span>
-                    <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
-                </span>
-            </div>
         `
     }
 
@@ -1093,29 +1156,10 @@ class NodeTemplate extends SelectableDraggableTemplate {
      * @returns The result html 
      */
     body(node) {
-        /** @type {PinEntity[]} */
-        let inputs = node.entity.CustomProperties.filter(v => v instanceof PinEntity);
-        let outputs = inputs.filter(v => v.isOutput());
+        let inputs = node.entity.CustomProperties.filter(v => v instanceof PinEntity$1);
+        inputs.filter(v => v.isOutput());
         inputs = inputs.filter(v => v.isInput());
         return html`
-            <div class="ueb-node-body">
-                <div class="ueb-node-inputs">
-                    ${inputs.map((input, index) => html`
-                    <div class="ueb-node-input ueb-node-value-${input.type}">
-                        <span class="ueb-node-value-icon ${inputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
-                        ${input.getPinDisplayName()}
-                    </div>
-                    `).join("") ?? ""}
-                </div>
-                <div class="ueb-node-outputs">
-                    ${outputs.map((output, index) => html`
-                    <div class="ueb-node-output ueb-node-value-${output.type}">
-                        ${output.getPinDisplayName()}
-                        <span class="ueb-node-value-icon ${outputs[index].connected ? 'ueb-node-value-fill' : ''}"></span>
-                    </div>
-                    `).join('') ?? ''}
-                </div>
-            </div>
         `
     }
 
@@ -1128,8 +1172,16 @@ class NodeTemplate extends SelectableDraggableTemplate {
         return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-content">
-                    ${this.header(node)}
-                    ${this.body(node)}
+                    <div class="ueb-node-header">
+                        <span class="ueb-node-name">
+                            <span class="ueb-node-symbol"></span>
+                            <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
+                        </span>
+                    </div>
+                    <div class="ueb-node-body">
+                        <div class="ueb-node-inputs"></div>
+                        <div class="ueb-node-outputs"></div>
+                    </div>
                 </div>
             </div>
         `
@@ -1147,6 +1199,13 @@ class NodeTemplate extends SelectableDraggableTemplate {
         }
         node.style.setProperty("--ueb-position-x", node.location[0]);
         node.style.setProperty("--ueb-position-y", node.location[1]);
+        /** @type {HTMLElement} */
+        let inputContainer = node.querySelector(".ueb-node-inputs");
+        /** @type {HTMLElement} */
+        let outputContainer = node.querySelector(".ueb-node-outputs");
+        let pins = node.getPinEntities();
+        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new GraphPin(v)));
+        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new GraphPin(v)));
     }
 }
 
@@ -1173,6 +1232,11 @@ class IntegerEntity extends Entity {
     }
 
     constructor(options = {}) {
+        if (options.constructor === Number || options.constructor === String) {
+            options = {
+                value: options
+            };
+        }
         super(options);
         this.value = Math.round(this.value);
     }
@@ -1214,7 +1278,7 @@ class ObjectEntity extends Entity {
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
-        CustomProperties: [PinEntity]
+        CustomProperties: [PinEntity$1]
     }
 
     getAttributes() {
@@ -1390,6 +1454,14 @@ class GraphNode extends SelectableDraggable {
         return new GraphNode(entity)
     }
 
+    /**
+     * 
+     * @returns {PinEntity[]}
+     */
+    getPinEntities() {
+        return this.entity.CustomProperties.filter(v => v instanceof PinEntity$1)
+    }
+
     connectedCallback() {
         this.getAttribute("type")?.trim();
         super.connectedCallback();
@@ -1406,8 +1478,9 @@ class GraphNode extends SelectableDraggable {
     }
 
     setLocation(value = [0, 0]) {
-        this.entity.NodePosX = value[0];
-        this.entity.NodePosY = value[1];
+        let nodeType = this.entity.NodePosX.constructor;
+        this.entity.NodePosX = new nodeType(value[0]);
+        this.entity.NodePosY = new nodeType(value[1]);
         super.setLocation(value);
     }
 }
@@ -1439,7 +1512,7 @@ class Grammar {
     None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
     Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
     Number = _ => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
-    Integer = _ => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity({ value: v })).desc("an integer")
+    Integer = _ => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
     String = _ => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
     Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
     Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
@@ -1508,7 +1581,7 @@ class Grammar {
                 return r.PinReference
             case FunctionReferenceEntity:
                 return r.FunctionReference
-            case PinEntity:
+            case PinEntity$1:
                 return r.Pin
             case Array:
                 return P.seqMap(
@@ -1568,8 +1641,8 @@ class Grammar {
     Pin = r => Grammar.CreateMultiAttributeGrammar(
         r,
         P.string("Pin"),
-        PinEntity,
-        attributeKey => Utility.objectGet(PinEntity.attributes, attributeKey)
+        PinEntity$1,
+        attributeKey => Utility.objectGet(PinEntity$1.attributes, attributeKey)
     )
     CustomProperties = r =>
         P.string("CustomProperties")
@@ -1722,7 +1795,7 @@ class ObjectSerializer extends Serializer {
         let result = `Begin Object Class=${this.writeValue(object.Class)} Name=${this.writeValue(object.Name)}
 ${this.subWrite([], object)
             + object
-                .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity).write(pin))
+                .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity$1).write(pin))
                 .join("")}
 End Object`;
         return result
@@ -1764,9 +1837,9 @@ class Paste extends Context {
         nodes.forEach(node => {
             const locationOffset = [
                 mousePosition[0] - left,
-                mousePosition[1] - top
+                mousePosition[1] - top,
             ];
-            node.addLocation(locationOffset);
+            node.addLocation(this.blueprint.compensateTranslation(locationOffset));
             node.setSelected(true);
         });
     }
@@ -2319,8 +2392,8 @@ function initializeSerializerFactory() {
         new ObjectSerializer()
     );
     SerializerFactory.registerSerializer(
-        PinEntity,
-        new GeneralSerializer(v => `Pin (${v})`, PinEntity, "", ",", true)
+        PinEntity$1,
+        new GeneralSerializer(v => `Pin (${v})`, PinEntity$1, "", ",", true)
     );
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,

@@ -285,8 +285,8 @@ u-blueprint[data-focused="true"] .ueb-viewport-body {
     margin-right: auto;
 }
 
-.ueb-node-input,
-.ueb-node-output {
+u-pin {
+    display: block;
     padding: 4px 8px;
     cursor: pointer;
 }
