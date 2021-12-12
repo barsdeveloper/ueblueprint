@@ -675,160 +675,6 @@ class Utility {
     }
 }
 
-class Pointing extends Context {
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
-    }
-
-    /**
-     * 
-     * @param {MouseEvent} mouseEvent 
-     * @returns 
-     */
-    getLocation(mouseEvent) {
-        const scaleCorrection = 1 / Utility.getScale(this.target);
-        const targetOffset = this.movementSpace.getBoundingClientRect();
-        let location = [
-            Math.round((mouseEvent.clientX - targetOffset.x) * scaleCorrection),
-            Math.round((mouseEvent.clientY - targetOffset.y) * scaleCorrection)
-        ];
-        return location
-    }
-}
-
-/**
- * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
- */
-class MouseClickDrag extends Pointing {
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        this.clickButton = options?.clickButton ?? 0;
-        this.exitAnyButton = options?.exitAnyButton ?? true;
-        this.moveEverywhere = options?.moveEverywhere ?? false;
-        this.looseTarget = options?.looseTarget ?? false;
-        this.started = false;
-        this.clickedPosition = [0, 0];
-
-        const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
-        let self = this;
-
-        this.mouseDownHandler = e => {
-            this.blueprint.setFocused(true);
-            switch (e.button) {
-                case self.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                    if (self.looseTarget || e.target == e.currentTarget) {
-                        e.stopPropagation();
-                        self.started = false;
-                        // Attach the listeners
-                        movementListenedElement.addEventListener("mousemove", self.mouseStartedMovingHandler);
-                        document.addEventListener("mouseup", self.mouseUpHandler);
-                        self.clickedPosition = self.getLocation(e);
-                        self.clicked(self.clickedPosition);
-                    }
-                    break
-                default:
-                    if (!self.exitAnyButton) {
-                        self.mouseUpHandler(e);
-                    }
-                    break
-            }
-        };
-
-        this.mouseStartedMovingHandler = e => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Delegate from now on to self.mouseMoveHandler
-            movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler);
-            movementListenedElement.addEventListener("mousemove", self.mouseMoveHandler);
-
-            // Do actual actions
-            self.startDrag();
-            self.started = true;
-        };
-
-        this.mouseMoveHandler = e => {
-            e.preventDefault();
-            e.stopPropagation();
-            const location = self.getLocation(e);
-            const movement = [e.movementX, e.movementY];
-            self.dragTo(location, movement);
-        };
-
-        this.mouseUpHandler = e => {
-            if (!self.exitAnyButton || e.button == self.clickButton) {
-                // Remove the handlers of "mousemove" and "mouseup"
-                movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler);
-                movementListenedElement.removeEventListener("mousemove", self.mouseMoveHandler);
-                document.removeEventListener("mouseup", self.mouseUpHandler);
-                self.endDrag();
-            }
-        };
-
-        this.target.addEventListener("mousedown", this.mouseDownHandler);
-        if (this.clickButton == 2) {
-            this.target.addEventListener("contextmenu", this.preventDefault);
-        }
-    }
-
-    preventDefault(e) {
-        e.preventDefault();
-    }
-
-    unlistenDOMElement() {
-        super.unlistenDOMElement();
-        this.target.removeEventListener("mousedown", this.mouseDownHandler);
-        if (this.clickButton == 2) {
-            this.target.removeEventListener("contextmenu", this.preventDefault);
-        } blueprintunfocusHandler;
-    }
-
-    /* Subclasses will override the following methods */
-    clicked(location) {
-    }
-
-    startDrag() {
-    }
-
-    dragTo(location, movement) {
-    }
-
-    endDrag() {
-    }
-}
-
-class DragScroll extends MouseClickDrag {
-
-    dragTo(location, movement) {
-        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
-    }
-}
-
-class MouseTracking extends Pointing {
-
-    constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
-        super(target, blueprint, options);
-
-        let self = this;
-        this.mousemoveHandler = e => {
-            self.blueprint.entity.mousePosition = self.getLocation(e);
-        };
-    }
-
-    blueprintFocused() {
-        this.target.addEventListener("mousemove", this.mousemoveHandler);
-    }
-
-    blueprintUnfocused() {
-        this.target.removeEventListener("mousemove", this.mousemoveHandler);
-    }
-}
-
 class Entity {
 
     constructor(options = {}) {
@@ -882,6 +728,30 @@ class Entity {
     }
 }
 
+class ObjectReferenceEntity extends Entity {
+
+    static attributes = {
+        type: String,
+        path: String
+    }
+
+    getAttributes() {
+        return ObjectReferenceEntity.attributes
+    }
+}
+
+class FunctionReferenceEntity extends Entity {
+
+    static attributes = {
+        MemberParent: ObjectReferenceEntity,
+        MemberName: ""
+    }
+
+    getAttributes() {
+        return FunctionReferenceEntity.attributes
+    }
+}
+
 class GuidEntity extends Entity {
 
     static attributes = {
@@ -909,6 +779,35 @@ class GuidEntity extends Entity {
     }
 }
 
+class IntegerEntity extends Entity {
+
+    static attributes = {
+        value: Number
+    }
+
+    getAttributes() {
+        return IntegerEntity.attributes
+    }
+
+    constructor(options = {}) {
+        if (options.constructor === Number || options.constructor === String) {
+            options = {
+                value: options
+            };
+        }
+        super(options);
+        this.value = Math.round(this.value);
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
 class LocalizedTextEntity extends Entity {
 
     static attributes = {
@@ -919,18 +818,6 @@ class LocalizedTextEntity extends Entity {
 
     getAttributes() {
         return LocalizedTextEntity.attributes
-    }
-}
-
-class ObjectReferenceEntity extends Entity {
-
-    static attributes = {
-        type: String,
-        path: String
-    }
-
-    getAttributes() {
-        return ObjectReferenceEntity.attributes
     }
 }
 
@@ -1018,224 +905,6 @@ class PinEntity$1 extends Entity {
     }
 }
 
-/**
- * @typedef {import("../graph/SelectableDraggable").default} SelectableDraggable
- */
-class SelectableDraggableTemplate extends Template {
-
-    /**
-     * Returns the html elements rendered from this template.
-     * @param {SelectableDraggable} element Element of the graph
-     */
-    applyLocation(element) {
-        element.style.setProperty("--ueb-position-x", element.location[0]);
-        element.style.setProperty("--ueb-position-y", element.location[1]);
-    }
-
-    /**
-     * Returns the html elements rendered from this template.
-     * @param {SelectableDraggable} element Element of the graph
-     */
-    applySelected(element) {
-        if (element.selected) {
-            element.classList.add("ueb-selected");
-        } else {
-            element.classList.remove("ueb-selected");
-        }
-    }
-}
-
-/**
- * @typedef {import("../graph/GraphPin").default} GraphPin
- */
-class PinTemplate extends Template {
-
-    /**
-     * Computes the html content of the pin.
-     * @param {GraphPin} pin Pin entity 
-     * @returns The result html 
-     */
-    render(pin) {
-        if (pin.isInput()) {
-            return html`
-                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
-                ${pin.getPinDisplayName()}
-            `
-        } else {
-            return html`
-                ${pin.getPinDisplayName()}
-                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
-            `
-        }
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {GraphPin} pin Element of the graph
-     */
-    apply(pin) {
-        super.apply(pin);
-        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + pin.getType());
-    }
-}
-
-class GraphPin extends GraphElement {
-
-    constructor(entity) {
-        super(entity, new PinTemplate());
-        /** @type {import("../entity/PinEntity").default} */
-        this.entity;
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-    }
-
-    /**
-     * 
-     * @returns {String}
-     */
-    getPinDisplayName() {
-        return this.entity.PinName
-    }
-
-    getAttributes() {
-        return PinEntity.attributes
-    }
-
-    isInput() {
-        return this.entity.isInput()
-    }
-
-    isOutput() {
-        return this.entity.isOutput()
-    }
-
-    isConnected() {
-        return this.entity.isConnected()
-    }
-
-    getType() {
-        return this.entity.getType()
-    }
-}
-
-customElements.define("ueb-pin", GraphPin);
-
-/**
- * @typedef {import("../graph/GraphNode").default} GraphNode
- */
-class NodeTemplate extends SelectableDraggableTemplate {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
-     * @returns The result html 
-     */
-    header(node) {
-        return html`
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
-     * @returns The result html 
-     */
-    body(node) {
-        let inputs = node.entity.CustomProperties.filter(v => v instanceof PinEntity$1);
-        inputs.filter(v => v.isOutput());
-        inputs = inputs.filter(v => v.isInput());
-        return html`
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
-     * @returns The result html 
-     */
-    render(node) {
-        return html`
-            <div class="ueb-node-border">
-                <div class="ueb-node-content">
-                    <div class="ueb-node-header">
-                        <span class="ueb-node-name">
-                            <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
-                        </span>
-                    </div>
-                    <div class="ueb-node-body">
-                        <div class="ueb-node-inputs"></div>
-                        <div class="ueb-node-outputs"></div>
-                    </div>
-                </div>
-            </div>
-        `
-    }
-
-    /**
-     * Returns the html elements rendered from this template.
-     * @param {GraphNode} node Element of the graph
-     */
-    apply(node) {
-        super.apply(node);
-        if (node.selected) {
-            node.classList.add("ueb-selected");
-        }
-        node.style.setProperty("--ueb-position-x", node.location[0]);
-        node.style.setProperty("--ueb-position-y", node.location[1]);
-        /** @type {HTMLElement} */
-        let inputContainer = node.querySelector(".ueb-node-inputs");
-        /** @type {HTMLElement} */
-        let outputContainer = node.querySelector(".ueb-node-outputs");
-        let pins = node.getPinEntities();
-        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new GraphPin(v)));
-        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new GraphPin(v)));
-    }
-}
-
-class FunctionReferenceEntity extends Entity {
-
-    static attributes = {
-        MemberParent: ObjectReferenceEntity,
-        MemberName: ""
-    }
-
-    getAttributes() {
-        return FunctionReferenceEntity.attributes
-    }
-}
-
-class IntegerEntity extends Entity {
-
-    static attributes = {
-        value: Number
-    }
-
-    getAttributes() {
-        return IntegerEntity.attributes
-    }
-
-    constructor(options = {}) {
-        if (options.constructor === Number || options.constructor === String) {
-            options = {
-                value: options
-            };
-        }
-        super(options);
-        this.value = Math.round(this.value);
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
-
 class VariableReferenceEntity extends Entity {
 
     static attributes = {
@@ -1279,199 +948,6 @@ class ObjectEntity extends Entity {
         return this.Name
     }
 }
-
-class Drag extends MouseClickDrag {
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize);
-        this.mousePosition = [0, 0];
-    }
-
-    snapToGrid(location) {
-        return [
-            this.stepSize * Math.round(location[0] / this.stepSize),
-            this.stepSize * Math.round(location[1] / this.stepSize)
-        ]
-    }
-
-    startDrag() {
-        if (isNaN(this.stepSize) || this.stepSize <= 0) {
-            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue("--ueb-grid-snap"));
-            if (isNaN(this.stepSize) || this.stepSize <= 0) {
-                this.stepSize = 1;
-            }
-        }
-        // Get the current mouse position
-        this.mousePosition = this.stepSize != 1 ? this.snapToGrid(this.clickedPosition) : this.clickedPosition;
-    }
-
-    dragTo(location, movement) {
-        const mousePosition = this.stepSize != 1 ? this.snapToGrid(location) : location;
-        const d = [mousePosition[0] - this.mousePosition[0], mousePosition[1] - this.mousePosition[1]];
-
-        if (d[0] == 0 && d[1] == 0) {
-            return
-        }
-
-        this.target.dispatchDragEvent(d);
-
-        // Reassign the position of mouse
-        this.mousePosition = mousePosition;
-    }
-}
-
-class SelectableDraggable extends GraphElement {
-
-    constructor(...args) {
-        super(...args);
-        this.dragObject = null;
-        this.location = [0, 0];
-        this.selected = false;
-        /** @type {import("../template/SelectableDraggableTemplate").default} */
-        this.template;
-
-        let self = this;
-        this.dragHandler = (e) => {
-            self.addLocation(e.detail.value);
-        };
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        this.dragObject = new Drag(this, this.blueprint, {
-            looseTarget: true
-        });
-    }
-
-    disconnectedCallback() {
-        this.dragObject.unlistenDOMElement();
-    }
-
-    setLocation(value = [0, 0]) {
-        this.location = value;
-        this.template.applyLocation(this);
-    }
-
-    addLocation(value) {
-        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
-    }
-
-    dispatchDragEvent(value) {
-        if (!this.selected) {
-            this.blueprint.unselectAll();
-            this.setSelected(true);
-        }
-        let dragEvent = new CustomEvent("uDragSelected", {
-            detail: {
-                instigator: this,
-                value: value
-            },
-            bubbles: false,
-            cancelable: true,
-            composed: false,
-        });
-        this.blueprint.dispatchEvent(dragEvent);
-    }
-
-    setSelected(value = true) {
-        if (this.selected == value) {
-            return
-        }
-        this.selected = value;
-        if (this.selected) {
-            this.blueprint.addEventListener("uDragSelected", this.dragHandler);
-        } else {
-            this.blueprint.removeEventListener("uDragSelected", this.dragHandler);
-        }
-        this.template.applySelected(this);
-    }
-}
-
-class SerializerFactory {
-
-    static #serializers = new Map()
-
-    static registerSerializer(entity, object) {
-        SerializerFactory.#serializers.set(entity, object);
-    }
-
-    static getSerializer(entity) {
-        return SerializerFactory.#serializers.get(Utility.getType(entity))
-    }
-}
-
-class DragLink extends MouseClickDrag {
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-    }
-
-    startDrag() {
-        //this.selectorElement.startSelecting(this.clickedPosition)
-    }
-
-    dragTo(location, movement) {
-        //this.selectorElement.doSelecting(location)
-    }
-
-    endDrag() {
-        if (this.started) ;
-    }
-}
-
-class GraphNode extends SelectableDraggable {
-
-    /**
-     * 
-     * @param {ObjectEntity} entity 
-     */
-    constructor(entity) {
-        super(entity, new NodeTemplate());
-        /** @type {ObjectEntity} */
-        this.entity;
-        this.graphNodeName = "n/a";
-        this.dragLinkObjects = [];
-        super.setLocation([this.entity.NodePosX, this.entity.NodePosY]);
-    }
-
-    static fromSerializedObject(str) {
-        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
-        return new GraphNode(entity)
-    }
-
-    /**
-     * 
-     * @returns {PinEntity[]}
-     */
-    getPinEntities() {
-        return this.entity.CustomProperties.filter(v => v instanceof PinEntity$1)
-    }
-
-    connectedCallback() {
-        this.getAttribute("type")?.trim();
-        super.connectedCallback();
-        this.querySelectorAll(".ueb-node-input, .ueb-node-output").forEach(element => {
-            this.dragLinkObjects.push(
-                new DragLink(element, this.blueprint, {
-                    clickButton: 0,
-                    moveEverywhere: true,
-                    exitAnyButton: true,
-                    looseTarget: true
-                })
-            );
-        });
-    }
-
-    setLocation(value = [0, 0]) {
-        let nodeType = this.entity.NodePosX.constructor;
-        this.entity.NodePosX = new nodeType(value[0]);
-        this.entity.NodePosY = new nodeType(value[1]);
-        super.setLocation(value);
-    }
-}
-
-customElements.define("ueb-node", GraphNode);
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1659,6 +1135,19 @@ class Grammar {
     MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
 }
 
+class SerializerFactory {
+
+    static #serializers = new Map()
+
+    static registerSerializer(entity, object) {
+        SerializerFactory.#serializers.set(entity, object);
+    }
+
+    static getSerializer(entity) {
+        return SerializerFactory.#serializers.get(Utility.getType(entity))
+    }
+}
+
 class Serializer {
 
     static grammar = Parsimmon.createLanguage(new Grammar())
@@ -1787,6 +1276,592 @@ End Object`;
         return result
     }
 }
+
+class Copy extends Context {
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+        this.serializer = new ObjectSerializer();
+        let self = this;
+        this.copyHandle = _ => self.copied();
+    }
+
+    blueprintFocused() {
+        document.body.addEventListener("copy", this.copyHandle);
+    }
+
+    blueprintUnfocused() {
+        document.body.removeEventListener("copy", this.copyHandle);
+    }
+
+    copied() {
+        const value = this.blueprint.getNodes(true).map(node => this.serializer.write(node.entity)).join("\n");
+        navigator.clipboard.writeText(value);
+    }
+}
+
+class Pointing extends Context {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
+    }
+
+    /**
+     * 
+     * @param {MouseEvent} mouseEvent 
+     * @returns 
+     */
+    getLocation(mouseEvent) {
+        const scaleCorrection = 1 / Utility.getScale(this.target);
+        const targetOffset = this.movementSpace.getBoundingClientRect();
+        let location = [
+            Math.round((mouseEvent.clientX - targetOffset.x) * scaleCorrection),
+            Math.round((mouseEvent.clientY - targetOffset.y) * scaleCorrection)
+        ];
+        return location
+    }
+}
+
+/**
+ * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
+ */
+class MouseClickDrag extends Pointing {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+        this.clickButton = options?.clickButton ?? 0;
+        this.exitAnyButton = options?.exitAnyButton ?? true;
+        this.moveEverywhere = options?.moveEverywhere ?? false;
+        this.looseTarget = options?.looseTarget ?? false;
+        this.started = false;
+        this.clickedPosition = [0, 0];
+
+        const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
+        let self = this;
+
+        this.mouseDownHandler = e => {
+            this.blueprint.setFocused(true);
+            switch (e.button) {
+                case self.clickButton:
+                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+                    if (self.looseTarget || e.target == e.currentTarget) {
+                        e.stopPropagation();
+                        self.started = false;
+                        // Attach the listeners
+                        movementListenedElement.addEventListener("mousemove", self.mouseStartedMovingHandler);
+                        document.addEventListener("mouseup", self.mouseUpHandler);
+                        self.clickedPosition = self.getLocation(e);
+                        self.clicked(self.clickedPosition);
+                    }
+                    break
+                default:
+                    if (!self.exitAnyButton) {
+                        self.mouseUpHandler(e);
+                    }
+                    break
+            }
+        };
+
+        this.mouseStartedMovingHandler = e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Delegate from now on to self.mouseMoveHandler
+            movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler);
+            movementListenedElement.addEventListener("mousemove", self.mouseMoveHandler);
+
+            // Do actual actions
+            self.startDrag();
+            self.started = true;
+        };
+
+        this.mouseMoveHandler = e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const location = self.getLocation(e);
+            const movement = [e.movementX, e.movementY];
+            self.dragTo(location, movement);
+        };
+
+        this.mouseUpHandler = e => {
+            if (!self.exitAnyButton || e.button == self.clickButton) {
+                // Remove the handlers of "mousemove" and "mouseup"
+                movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler);
+                movementListenedElement.removeEventListener("mousemove", self.mouseMoveHandler);
+                document.removeEventListener("mouseup", self.mouseUpHandler);
+                self.endDrag();
+            }
+        };
+
+        this.target.addEventListener("mousedown", this.mouseDownHandler);
+        if (this.clickButton == 2) {
+            this.target.addEventListener("contextmenu", this.preventDefault);
+        }
+    }
+
+    preventDefault(e) {
+        e.preventDefault();
+    }
+
+    unlistenDOMElement() {
+        super.unlistenDOMElement();
+        this.target.removeEventListener("mousedown", this.mouseDownHandler);
+        if (this.clickButton == 2) {
+            this.target.removeEventListener("contextmenu", this.preventDefault);
+        }
+    }
+
+    /* Subclasses will override the following methods */
+    clicked(location) {
+    }
+
+    startDrag() {
+    }
+
+    dragTo(location, movement) {
+    }
+
+    endDrag() {
+    }
+}
+
+class DragScroll extends MouseClickDrag {
+
+    dragTo(location, movement) {
+        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
+    }
+}
+
+class KeyboardShortcut extends Context {
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+
+        /** @type {String[]} */
+        this.key = this.options.key;
+        this.ctrlKey = options.ctrlKey ?? false;
+        this.shiftKey = options.shiftKey ?? false;
+        this.altKey = options.altKey ?? false;
+        this.metaKey = options.metaKey ?? false;
+
+        let self = this;
+        this.keyDownHandler = e => {
+            if (
+                e.code == self.key
+                && e.ctrlKey === self.ctrlKey
+                && e.shiftKey === self.shiftKey
+                && e.altKey === self.altKey
+                && e.metaKey === self.metaKey
+            ) {
+                self.fire();
+            }
+        };
+    }
+
+    blueprintFocused() {
+        document.addEventListener("keydown", this.keyDownHandler);
+    }
+
+    blueprintUnfocused() {
+        document.removeEventListener("keydown", this.keyDownHandler);
+    }
+
+    fire() {
+    }
+}
+
+class KeyvoardCanc extends KeyboardShortcut {
+
+    constructor(target, blueprint, options = {}) {
+        options.key = "Delete";
+        super(target, blueprint, options);
+    }
+
+    fire() {
+        this.blueprint.deleteNode(...this.blueprint.getNodes(true));
+    }
+}
+
+class MouseTracking extends Pointing {
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+
+        let self = this;
+        this.mousemoveHandler = e => {
+            self.blueprint.entity.mousePosition = self.getLocation(e);
+        };
+    }
+
+    blueprintFocused() {
+        this.target.addEventListener("mousemove", this.mousemoveHandler);
+    }
+
+    blueprintUnfocused() {
+        this.target.removeEventListener("mousemove", this.mousemoveHandler);
+    }
+}
+
+/**
+ * @typedef {import("../graph/SelectableDraggable").default} SelectableDraggable
+ */
+class SelectableDraggableTemplate extends Template {
+
+    /**
+     * Returns the html elements rendered from this template.
+     * @param {SelectableDraggable} element Element of the graph
+     */
+    applyLocation(element) {
+        element.style.setProperty("--ueb-position-x", element.location[0]);
+        element.style.setProperty("--ueb-position-y", element.location[1]);
+    }
+
+    /**
+     * Returns the html elements rendered from this template.
+     * @param {SelectableDraggable} element Element of the graph
+     */
+    applySelected(element) {
+        if (element.selected) {
+            element.classList.add("ueb-selected");
+        } else {
+            element.classList.remove("ueb-selected");
+        }
+    }
+}
+
+/**
+ * @typedef {import("../graph/GraphPin").default} GraphPin
+ */
+class PinTemplate extends Template {
+
+    /**
+     * Computes the html content of the pin.
+     * @param {GraphPin} pin Pin entity 
+     * @returns The result html 
+     */
+    render(pin) {
+        if (pin.isInput()) {
+            return html`
+                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+                ${pin.getPinDisplayName()}
+            `
+        } else {
+            return html`
+                ${pin.getPinDisplayName()}
+                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+            `
+        }
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {GraphPin} pin Element of the graph
+     */
+    apply(pin) {
+        super.apply(pin);
+        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + pin.getType());
+    }
+}
+
+class GraphPin extends GraphElement {
+
+    constructor(entity) {
+        super(entity, new PinTemplate());
+        /** @type {import("../entity/PinEntity").default} */
+        this.entity;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+    }
+
+    /**
+     * 
+     * @returns {String}
+     */
+    getPinDisplayName() {
+        return this.entity.PinName
+    }
+
+    getAttributes() {
+        return PinEntity.attributes
+    }
+
+    isInput() {
+        return this.entity.isInput()
+    }
+
+    isOutput() {
+        return this.entity.isOutput()
+    }
+
+    isConnected() {
+        return this.entity.isConnected()
+    }
+
+    getType() {
+        return this.entity.getType()
+    }
+}
+
+customElements.define("ueb-pin", GraphPin);
+
+/**
+ * @typedef {import("../graph/GraphNode").default} GraphNode
+ */
+class NodeTemplate extends SelectableDraggableTemplate {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {GraphNode} node Graph node element 
+     * @returns The result html 
+     */
+    header(node) {
+        return html`
+        `
+    }
+
+    /**
+     * Computes the html content of the target element.
+     * @param {GraphNode} node Graph node element 
+     * @returns The result html 
+     */
+    body(node) {
+        let inputs = node.entity.CustomProperties.filter(v => v instanceof PinEntity$1);
+        inputs.filter(v => v.isOutput());
+        inputs = inputs.filter(v => v.isInput());
+        return html`
+        `
+    }
+
+    /**
+     * Computes the html content of the target element.
+     * @param {GraphNode} node Graph node element 
+     * @returns The result html 
+     */
+    render(node) {
+        return html`
+            <div class="ueb-node-border">
+                <div class="ueb-node-content">
+                    <div class="ueb-node-header">
+                        <span class="ueb-node-name">
+                            <span class="ueb-node-symbol"></span>
+                            <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
+                        </span>
+                    </div>
+                    <div class="ueb-node-body">
+                        <div class="ueb-node-inputs"></div>
+                        <div class="ueb-node-outputs"></div>
+                    </div>
+                </div>
+            </div>
+        `
+    }
+
+    /**
+     * Returns the html elements rendered from this template.
+     * @param {GraphNode} node Element of the graph
+     */
+    apply(node) {
+        super.apply(node);
+        if (node.selected) {
+            node.classList.add("ueb-selected");
+        }
+        node.style.setProperty("--ueb-position-x", node.location[0]);
+        node.style.setProperty("--ueb-position-y", node.location[1]);
+        /** @type {HTMLElement} */
+        let inputContainer = node.querySelector(".ueb-node-inputs");
+        /** @type {HTMLElement} */
+        let outputContainer = node.querySelector(".ueb-node-outputs");
+        let pins = node.getPinEntities();
+        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new GraphPin(v)));
+        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new GraphPin(v)));
+    }
+}
+
+class Drag extends MouseClickDrag {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+        this.stepSize = parseInt(options?.stepSize);
+        this.mousePosition = [0, 0];
+    }
+
+    snapToGrid(location) {
+        return [
+            this.stepSize * Math.round(location[0] / this.stepSize),
+            this.stepSize * Math.round(location[1] / this.stepSize)
+        ]
+    }
+
+    startDrag() {
+        if (isNaN(this.stepSize) || this.stepSize <= 0) {
+            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue("--ueb-grid-snap"));
+            if (isNaN(this.stepSize) || this.stepSize <= 0) {
+                this.stepSize = 1;
+            }
+        }
+        // Get the current mouse position
+        this.mousePosition = this.stepSize != 1 ? this.snapToGrid(this.clickedPosition) : this.clickedPosition;
+    }
+
+    dragTo(location, movement) {
+        const mousePosition = this.stepSize != 1 ? this.snapToGrid(location) : location;
+        const d = [mousePosition[0] - this.mousePosition[0], mousePosition[1] - this.mousePosition[1]];
+
+        if (d[0] == 0 && d[1] == 0) {
+            return
+        }
+
+        this.target.dispatchDragEvent(d);
+
+        // Reassign the position of mouse
+        this.mousePosition = mousePosition;
+    }
+}
+
+class SelectableDraggable extends GraphElement {
+
+    constructor(...args) {
+        super(...args);
+        this.dragObject = null;
+        this.location = [0, 0];
+        this.selected = false;
+        /** @type {import("../template/SelectableDraggableTemplate").default} */
+        this.template;
+
+        let self = this;
+        this.dragHandler = (e) => {
+            self.addLocation(e.detail.value);
+        };
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.dragObject = new Drag(this, this.blueprint, {
+            looseTarget: true
+        });
+    }
+
+    disconnectedCallback() {
+        this.dragObject.unlistenDOMElement();
+    }
+
+    setLocation(value = [0, 0]) {
+        this.location = value;
+        this.template.applyLocation(this);
+    }
+
+    addLocation(value) {
+        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
+    }
+
+    dispatchDragEvent(value) {
+        if (!this.selected) {
+            this.blueprint.unselectAll();
+            this.setSelected(true);
+        }
+        let dragEvent = new CustomEvent("uDragSelected", {
+            detail: {
+                instigator: this,
+                value: value
+            },
+            bubbles: false,
+            cancelable: true,
+            composed: false,
+        });
+        this.blueprint.dispatchEvent(dragEvent);
+    }
+
+    setSelected(value = true) {
+        if (this.selected == value) {
+            return
+        }
+        this.selected = value;
+        if (this.selected) {
+            this.blueprint.addEventListener("uDragSelected", this.dragHandler);
+        } else {
+            this.blueprint.removeEventListener("uDragSelected", this.dragHandler);
+        }
+        this.template.applySelected(this);
+    }
+}
+
+class DragLink extends MouseClickDrag {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+    }
+
+    startDrag() {
+        //this.selectorElement.startSelecting(this.clickedPosition)
+    }
+
+    dragTo(location, movement) {
+        //this.selectorElement.doSelecting(location)
+    }
+
+    endDrag() {
+        if (this.started) ;
+    }
+}
+
+class GraphNode extends SelectableDraggable {
+
+    /**
+     * 
+     * @param {ObjectEntity} entity 
+     */
+    constructor(entity) {
+        super(entity, new NodeTemplate());
+        /** @type {ObjectEntity} */
+        this.entity;
+        this.graphNodeName = "n/a";
+        this.dragLinkObjects = [];
+        super.setLocation([this.entity.NodePosX, this.entity.NodePosY]);
+    }
+
+    static fromSerializedObject(str) {
+        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
+        return new GraphNode(entity)
+    }
+
+    /**
+     * 
+     * @returns {PinEntity[]}
+     */
+    getPinEntities() {
+        return this.entity.CustomProperties.filter(v => v instanceof PinEntity$1)
+    }
+
+    connectedCallback() {
+        this.getAttribute("type")?.trim();
+        super.connectedCallback();
+        this.querySelectorAll(".ueb-node-input, .ueb-node-output").forEach(element => {
+            this.dragLinkObjects.push(
+                new DragLink(element, this.blueprint, {
+                    clickButton: 0,
+                    moveEverywhere: true,
+                    exitAnyButton: true,
+                    looseTarget: true
+                })
+            );
+        });
+    }
+
+    setLocation(value = [0, 0]) {
+        let nodeType = this.entity.NodePosX.constructor;
+        this.entity.NodePosX = new nodeType(value[0]);
+        this.entity.NodePosY = new nodeType(value[1]);
+        super.setLocation(value);
+    }
+}
+
+customElements.define("ueb-node", GraphNode);
 
 class Paste extends Context {
 
@@ -1939,30 +2014,6 @@ class Zoom extends MouseWheel {
     }
 }
 
-class Copy extends Context {
-
-    constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
-        super(target, blueprint, options);
-        this.serializer = new ObjectSerializer();
-        let self = this;
-        this.copyHandle = _ => self.copied();
-    }
-
-    blueprintFocused() {
-        document.body.addEventListener("copy", this.copyHandle);
-    }
-
-    blueprintUnfocused() {
-        document.body.removeEventListener("copy", this.copyHandle);
-    }
-
-    copied() {
-        const value = this.blueprint.getNodes(true).map(node => this.serializer.write(node.entity)).join("\n");
-        navigator.clipboard.writeText(value);
-    }
-}
-
 /** @typedef {import("./graph/GraphNode").default} GraphNode */
 class Blueprint extends GraphElement {
 
@@ -1971,7 +2022,7 @@ class Blueprint extends GraphElement {
         /** @type {BlueprintTemplate} */
         this.template;
         /** @type {GraphNode[]}" */
-        this.nodes = new Array();
+        this.nodes = [];
         this.expandGridSize = 400;
         /** @type {number[]} */
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0];
@@ -1989,8 +2040,6 @@ class Blueprint extends GraphElement {
         this.selectorElement = null;
         /** @type {HTMLElement} */
         this.nodesContainerElement = null;
-        this.dragObject = null;
-        this.selectObject = null;
         /** @type {number} */
         this.zoom = 0;
         /** @type {HTMLElement} */
@@ -2020,21 +2069,20 @@ class Blueprint extends GraphElement {
 
         this.copyObject = new Copy(this.getGridDOMElement(), this);
         this.pasteObject = new Paste(this.getGridDOMElement(), this);
-
-        this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
-            clickButton: 2,
-            moveEverywhere: true,
-            exitAnyButton: false
-        });
+        this.cancObject = new KeyvoardCanc(this.getGridDOMElement(), this);
 
         this.zoomObject = new Zoom(this.getGridDOMElement(), this, {
             looseTarget: true
         });
-
         this.selectObject = new Select(this.getGridDOMElement(), this, {
             clickButton: 0,
             moveEverywhere: true,
             exitAnyButton: true
+        });
+        this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
+            clickButton: 2,
+            moveEverywhere: true,
+            exitAnyButton: false
         });
 
         this.unfocusObject = new Unfocus(this.getGridDOMElement(), this);
@@ -2261,12 +2309,32 @@ class Blueprint extends GraphElement {
         [...graphNodes].reduce(
             (s, e) => {
                 s.push(e);
+                if (this.nodesContainerElement) {
+                    this.nodesContainerElement.appendChild(e);
+                }
                 return s
             },
             this.nodes);
-        if (this.nodesContainerElement) {
-            this.nodesContainerElement.append(...graphNodes);
+    }
+
+    /**
+     * 
+     * @param  {...GraphNode} graphNodes 
+     */
+    deleteNode(...graphNodes) {
+        let deleteNodes = [...graphNodes];
+        if (deleteNodes.length == 0) {
+            return
         }
+        let currentDeleteI = 0;
+        this.nodes = this.nodes.filter(v => {
+            if (v == deleteNodes[currentDeleteI]) {
+                ++currentDeleteI;
+                v.remove();
+                return false
+            }
+            return true
+        });
     }
 
     setFocused(value = true) {

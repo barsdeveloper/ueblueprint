@@ -2,7 +2,7 @@ import Context from "./Context"
 
 export default class KeyboardShortcut extends Context {
 
-    constructor(target, blueprint, options) {
+    constructor(target, blueprint, options = {}) {
         options.wantsFocusCallback = true
         super(target, blueprint, options)
 
@@ -15,7 +15,6 @@ export default class KeyboardShortcut extends Context {
 
         let self = this
         this.keyDownHandler = e => {
-            e.preventDefault()
             if (
                 e.code == self.key
                 && e.ctrlKey === self.ctrlKey
