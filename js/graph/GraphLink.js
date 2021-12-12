@@ -19,4 +19,4 @@ export default class GraphLink extends GraphElement {
     }
 }
 
-customElements.define("u-link", GraphLink)
+customElements.define("ueb-link", GraphLink)

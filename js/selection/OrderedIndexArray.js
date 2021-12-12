@@ -70,13 +70,6 @@ export default class OrderedIndexArray {
             || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
             ++this.currentPosition
         }
-        /*
-        let newArray = new Uint32Array(this.array.length + 1)
-        newArray.set(this.array.subarray(0, position), 0)
-        newArray[position] = element
-        newArray.set(this.array.subarray(position), position + 1)
-        this.array = newArray
-        */
         this.shiftRight(position)
         this.array[position] = element
         ++this.length
@@ -102,12 +95,6 @@ export default class OrderedIndexArray {
         if (position < this.currentPosition) {
             --this.currentPosition
         }
-        /*
-        let newArray = new Uint32Array(this.array.length - 1)
-        newArray.set(this.array.subarray(0, position), 0)
-        newArray.set(this.array.subarray(position + 1), position)
-        this.array = newArray
-        */
         this.shiftLeft(position)
         --this.length
         return position

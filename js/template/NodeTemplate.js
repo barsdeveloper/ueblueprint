@@ -61,7 +61,6 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     apply(node) {
         super.apply(node)
-        node.classList.add("ueb-node")
         if (node.selected) {
             node.classList.add("ueb-selected")
         }

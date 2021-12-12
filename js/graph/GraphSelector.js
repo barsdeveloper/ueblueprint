@@ -37,4 +37,4 @@ export default class GraphSelector extends GraphElement {
     }
 }
 
-customElements.define("u-selector", GraphSelector)
+customElements.define("ueb-selector", GraphSelector)

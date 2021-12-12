@@ -1,5 +1,4 @@
-.ueb-draggable,
-.ueb-node {
+.ueb-draggable {
     /* Indicate the element draggable */
     cursor: move;
     /* It will be positioned absolutely */

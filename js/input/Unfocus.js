@@ -19,7 +19,7 @@ export default class Unfocus extends Context {
      */
     clickedSomewhere(e) {
         // If target is inside the blueprint grid
-        if (e.target.closest("u-blueprint")) {
+        if (e.target.closest("ueb-blueprint")) {
             return
         }
         this.blueprint.setFocused(false)

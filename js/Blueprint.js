@@ -330,4 +330,4 @@ export default class Blueprint extends GraphElement {
     }
 }
 
-customElements.define("u-blueprint", Blueprint)
+customElements.define("ueb-blueprint", Blueprint)

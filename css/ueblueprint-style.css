@@ -26,7 +26,7 @@
     --ueb-node-radius: 7px;
 }
 
-u-blueprint {
+ueb-blueprint {
     display: block;
     position: relative;
     font-family: Roboto, Noto, Oxygen, Ubuntu, "Open Sans", "Helvetica Neue",
@@ -58,7 +58,7 @@ u-blueprint {
     scrollbar-width: 0;
 }
 
-u-blueprint[data-focused="true"] .ueb-viewport-body {
+ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     overflow: scroll;
 }
 
@@ -210,7 +210,7 @@ u-blueprint[data-focused="true"] .ueb-viewport-body {
         translateY(calc(var(--ueb-translate-y) * 1px));
 }
 
-.ueb-node {
+ueb-node {
     display: block;
     position: absolute;
     transform: translateX(calc(var(--ueb-position-x) * 1px))
@@ -285,9 +285,12 @@ u-blueprint[data-focused="true"] .ueb-viewport-body {
     margin-right: auto;
 }
 
-u-pin {
+ueb-pin {
     display: block;
     padding: 4px 8px;
+}
+
+ueb-selector[data-selecting="false"] ~ ueb-node ueb-pin {
     cursor: pointer;
 }
 

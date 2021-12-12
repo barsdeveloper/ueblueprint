@@ -42,4 +42,4 @@ export default class GraphPin extends GraphElement {
     }
 }
 
-customElements.define("u-pin", GraphPin)
+customElements.define("ueb-pin", GraphPin)

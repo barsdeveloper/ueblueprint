@@ -105,13 +105,6 @@ class OrderedIndexArray {
             || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
             ++this.currentPosition;
         }
-        /*
-        let newArray = new Uint32Array(this.array.length + 1)
-        newArray.set(this.array.subarray(0, position), 0)
-        newArray[position] = element
-        newArray.set(this.array.subarray(position), position + 1)
-        this.array = newArray
-        */
         this.shiftRight(position);
         this.array[position] = element;
         ++this.length;
@@ -137,12 +130,6 @@ class OrderedIndexArray {
         if (position < this.currentPosition) {
             --this.currentPosition;
         }
-        /*
-        let newArray = new Uint32Array(this.array.length - 1)
-        newArray.set(this.array.subarray(0, position), 0)
-        newArray.set(this.array.subarray(position + 1), position)
-        this.array = newArray
-        */
         this.shiftLeft(position);
         --this.length;
         return position
@@ -367,7 +354,7 @@ class GraphElement extends HTMLElement {
     }
 
     connectedCallback() {
-        this.blueprint = this.closest("u-blueprint");
+        this.blueprint = this.closest("ueb-blueprint");
         this.template.apply(this);
     }
 }
@@ -454,7 +441,7 @@ class GraphSelector extends GraphElement {
     }
 }
 
-customElements.define("u-selector", GraphSelector);
+customElements.define("ueb-selector", GraphSelector);
 
 /** @typedef {import("../Blueprint").default} Blueprint */
 class BlueprintTemplate extends Template {
@@ -704,8 +691,8 @@ class Pointing extends Context {
         const scaleCorrection = 1 / Utility.getScale(this.target);
         const targetOffset = this.movementSpace.getBoundingClientRect();
         let location = [
-            (mouseEvent.clientX - targetOffset.x) * scaleCorrection,
-            (mouseEvent.clientY - targetOffset.y) * scaleCorrection
+            Math.round((mouseEvent.clientX - targetOffset.x) * scaleCorrection),
+            Math.round((mouseEvent.clientY - targetOffset.y) * scaleCorrection)
         ];
         return location
     }
@@ -1133,7 +1120,7 @@ class GraphPin extends GraphElement {
     }
 }
 
-customElements.define("u-pin", GraphPin);
+customElements.define("ueb-pin", GraphPin);
 
 /**
  * @typedef {import("../graph/GraphNode").default} GraphNode
@@ -1193,7 +1180,6 @@ class NodeTemplate extends SelectableDraggableTemplate {
      */
     apply(node) {
         super.apply(node);
-        node.classList.add("ueb-node");
         if (node.selected) {
             node.classList.add("ueb-selected");
         }
@@ -1485,7 +1471,7 @@ class GraphNode extends SelectableDraggable {
     }
 }
 
-customElements.define("u-node", GraphNode);
+customElements.define("ueb-node", GraphNode);
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1888,7 +1874,7 @@ class Unfocus extends Context {
      */
     clickedSomewhere(e) {
         // If target is inside the blueprint grid
-        if (e.target.closest("u-blueprint")) {
+        if (e.target.closest("ueb-blueprint")) {
             return
         }
         this.blueprint.setFocused(false);
@@ -2297,7 +2283,7 @@ class Blueprint extends GraphElement {
     }
 }
 
-customElements.define("u-blueprint", Blueprint);
+customElements.define("ueb-blueprint", Blueprint);
 
 /**
  * @typedef {import("../graph/GraphLink").default} GraphLink
@@ -2336,7 +2322,7 @@ class GraphLink extends GraphElement {
     }
 }
 
-customElements.define("u-link", GraphLink);
+customElements.define("ueb-link", GraphLink);
 
 class GeneralSerializer extends Serializer {
 
