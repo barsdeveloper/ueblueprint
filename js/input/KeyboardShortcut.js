@@ -27,6 +27,16 @@ export default class KeyboardShortcut extends Context {
         }
     }
 
+    /**
+     * 
+     * @param {String} keyString
+     * @returns {Object}
+     */
+    static keyOptionsParse(options, keyString) {
+        options.key = keyString
+        return options
+    }
+
     blueprintFocused() {
         document.addEventListener("keydown", this.keyDownHandler)
     }

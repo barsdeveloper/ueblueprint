@@ -1,4 +1,4 @@
-import html from "./html"
+import sanitizeText from "./sanitizeText"
 import Template from "./Template"
 
 /**
@@ -11,8 +11,8 @@ export default class SelectableDraggableTemplate extends Template {
      * @param {SelectableDraggable} element Element of the graph
      */
     applyLocation(element) {
-        element.style.setProperty("--ueb-position-x", element.location[0])
-        element.style.setProperty("--ueb-position-y", element.location[1])
+        element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]))
+        element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]))
     }
 
     /**

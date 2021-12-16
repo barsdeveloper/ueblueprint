@@ -14,7 +14,8 @@
 <body>
     <div>Hello</div>
     <script type="module">
-        import { Blueprint, GraphNode } from "./dist/ueblueprint.js"
+        import { Blueprint, GraphNode, Configuration } from "./dist/ueblueprint.js"
+        Configuration.deleteNodesKeyboardKey = "Delete"
         let node1 = GraphNode.fromSerializedObject(`Begin Object Class=/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator Name="K2Node_CommutativeAssociativeBinaryOperator_1"
    bIsPureFunc=True
    FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")

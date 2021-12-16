@@ -1,4 +1,5 @@
 import html from "./html"
+import sanitizeText from "./sanitizeText"
 import Template from "./Template"
 
 /**
@@ -31,6 +32,6 @@ export default class PinTemplate extends Template {
      */
     apply(pin) {
         super.apply(pin)
-        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + pin.getType())
+        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + sanitizeText(pin.getType()))
     }
 }

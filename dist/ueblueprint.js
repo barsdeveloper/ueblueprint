@@ -1,38 +1,3 @@
-const html = String.raw;
-
-const div = document.createElement("div");
-
-function sanitizeText(value) {
-    div.textContent = value;
-    value = div.textContent;
-    div.innerHTML = "";
-    return value
-}
-
-/**
- * @typedef {import("../graph/GraphElement").default} GraphElement
- */
-class Template {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphElement} entity Element of the graph
-     * @returns The result html 
-     */
-    render(entity) {
-        return ""
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {GraphElement} element Element of the graph
-     */
-    apply(element) {
-        // TODO replace with the safer element.setHTML(...) when it will be available
-        element.innerHTML = this.render(element);
-    }
-}
-
 class OrderedIndexArray {
 
     /**
@@ -359,6 +324,47 @@ class GraphElement extends HTMLElement {
     }
 }
 
+document.createElement("div");
+
+const tagReplacement = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+};
+
+function sanitizeText(value) {
+    if (value.constructor === String) {
+        return value.replace(/[&<>'"]/g, tag => tagReplacement[tag])
+    }
+    return value
+}
+
+/**
+ * @typedef {import("../graph/GraphElement").default} GraphElement
+ */
+class Template {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {GraphElement} entity Element of the graph
+     * @returns The result html 
+     */
+    render(entity) {
+        return ""
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {GraphElement} element Element of the graph
+     */
+    apply(element) {
+        // TODO replace with the safer element.setHTML(...) when it will be available
+        element.innerHTML = this.render(element);
+    }
+}
+
 /**
  * @typedef {import("../graph/GraphSelector").default} GraphSelector
  */
@@ -380,11 +386,11 @@ class SelectorTemplate extends Template {
      */
     applyStartSelecting(selector, initialPosition) {
         // Set initial position
-        selector.style.setProperty("--ueb-select-from-x", initialPosition[0]);
-        selector.style.setProperty("--ueb-select-from-y", initialPosition[1]);
+        selector.style.setProperty("--ueb-select-from-x", sanitizeText(initialPosition[0]));
+        selector.style.setProperty("--ueb-select-from-y", sanitizeText(initialPosition[1]));
         // Final position coincide with the initial position, at the beginning of selection
-        selector.style.setProperty("--ueb-select-to-x", initialPosition[0]);
-        selector.style.setProperty("--ueb-select-to-y", initialPosition[1]);
+        selector.style.setProperty("--ueb-select-to-x", sanitizeText(initialPosition[0]));
+        selector.style.setProperty("--ueb-select-to-y", sanitizeText(initialPosition[1]));
         selector.dataset.selecting = "true";
     }
 
@@ -393,8 +399,8 @@ class SelectorTemplate extends Template {
      * @param {GraphSelector} selector Selector element
      */
     applyDoSelecting(selector, finalPosition) {
-        selector.style.setProperty("--ueb-select-to-x", finalPosition[0]);
-        selector.style.setProperty("--ueb-select-to-y", finalPosition[1]);
+        selector.style.setProperty("--ueb-select-to-x", sanitizeText(finalPosition[0]));
+        selector.style.setProperty("--ueb-select-to-y", sanitizeText(finalPosition[1]));
     }
 
     /**
@@ -442,6 +448,8 @@ class GraphSelector extends GraphElement {
 }
 
 customElements.define("ueb-selector", GraphSelector);
+
+const html = String.raw;
 
 /** @typedef {import("../Blueprint").default} Blueprint */
 class BlueprintTemplate extends Template {
@@ -515,7 +523,7 @@ class BlueprintTemplate extends Template {
      */
     applyZoom(blueprint, newZoom) {
         blueprint.classList.remove(`ueb-zoom-${blueprint.zoom}`);
-        blueprint.classList.add(`ueb-zoom-${newZoom}`);
+        blueprint.classList.add(sanitizeText`ueb-zoom-${newZoom}`);
     }
 
     /**
@@ -523,8 +531,8 @@ class BlueprintTemplate extends Template {
      * @param {Blueprint} brueprint The blueprint element
      */
     applyExpand(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-additional-x", blueprint.additional[0]);
-        blueprint.gridElement.style.setProperty("--ueb-additional-y", blueprint.additional[1]);
+        blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText(blueprint.additional[0]));
+        blueprint.gridElement.style.setProperty("--ueb-additional-y", sanitizeText(blueprint.additional[1]));
     }
 
     /**
@@ -532,8 +540,8 @@ class BlueprintTemplate extends Template {
      * @param {Blueprint} brueprint The blueprint element
      */
     applyTranlate(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-translate-x", blueprint.translateValue[0]);
-        blueprint.gridElement.style.setProperty("--ueb-translate-y", blueprint.translateValue[1]);
+        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(blueprint.translateValue[0]));
+        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(blueprint.translateValue[1]));
     }
 }
 
@@ -1461,6 +1469,16 @@ class KeyboardShortcut extends Context {
         };
     }
 
+    /**
+     * 
+     * @param {String} keyString
+     * @returns {Object}
+     */
+    static keyOptionsParse(options, keyString) {
+        options.key = keyString;
+        return options
+    }
+
     blueprintFocused() {
         document.addEventListener("keydown", this.keyDownHandler);
     }
@@ -1473,10 +1491,21 @@ class KeyboardShortcut extends Context {
     }
 }
 
+class Configuration {
+
+    static deleteNodesKeyboardKey = "Delete"
+}
+
 class KeyvoardCanc extends KeyboardShortcut {
 
+    /**
+     * 
+     * @param {HTMLElement} target 
+     * @param {import("../Blueprint").default} blueprint 
+     * @param {OBject} options 
+     */
     constructor(target, blueprint, options = {}) {
-        options.key = "Delete";
+        options = KeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
         super(target, blueprint, options);
     }
 
@@ -1503,33 +1532,6 @@ class MouseTracking extends Pointing {
 
     blueprintUnfocused() {
         this.target.removeEventListener("mousemove", this.mousemoveHandler);
-    }
-}
-
-/**
- * @typedef {import("../graph/SelectableDraggable").default} SelectableDraggable
- */
-class SelectableDraggableTemplate extends Template {
-
-    /**
-     * Returns the html elements rendered from this template.
-     * @param {SelectableDraggable} element Element of the graph
-     */
-    applyLocation(element) {
-        element.style.setProperty("--ueb-position-x", element.location[0]);
-        element.style.setProperty("--ueb-position-y", element.location[1]);
-    }
-
-    /**
-     * Returns the html elements rendered from this template.
-     * @param {SelectableDraggable} element Element of the graph
-     */
-    applySelected(element) {
-        if (element.selected) {
-            element.classList.add("ueb-selected");
-        } else {
-            element.classList.remove("ueb-selected");
-        }
     }
 }
 
@@ -1563,7 +1565,7 @@ class PinTemplate extends Template {
      */
     apply(pin) {
         super.apply(pin);
-        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + pin.getType());
+        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + sanitizeText(pin.getType()));
     }
 }
 
@@ -1611,6 +1613,33 @@ class GraphPin extends GraphElement {
 customElements.define("ueb-pin", GraphPin);
 
 /**
+ * @typedef {import("../graph/SelectableDraggable").default} SelectableDraggable
+ */
+class SelectableDraggableTemplate extends Template {
+
+    /**
+     * Returns the html elements rendered from this template.
+     * @param {SelectableDraggable} element Element of the graph
+     */
+    applyLocation(element) {
+        element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]));
+        element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]));
+    }
+
+    /**
+     * Returns the html elements rendered from this template.
+     * @param {SelectableDraggable} element Element of the graph
+     */
+    applySelected(element) {
+        if (element.selected) {
+            element.classList.add("ueb-selected");
+        } else {
+            element.classList.remove("ueb-selected");
+        }
+    }
+}
+
+/**
  * @typedef {import("../graph/GraphNode").default} GraphNode
  */
 class NodeTemplate extends SelectableDraggableTemplate {
@@ -1650,7 +1679,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                     <div class="ueb-node-header">
                         <span class="ueb-node-name">
                             <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
+                            <span class="ueb-node-text">${sanitizeText(node.entity.getNodeDisplayName())}</span>
                         </span>
                     </div>
                     <div class="ueb-node-body">
@@ -1671,8 +1700,8 @@ class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected");
         }
-        node.style.setProperty("--ueb-position-x", node.location[0]);
-        node.style.setProperty("--ueb-position-y", node.location[1]);
+        node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
+        node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
         /** @type {HTMLElement} */
         let inputContainer = node.querySelector(".ueb-node-inputs");
         /** @type {HTMLElement} */
@@ -2478,4 +2507,4 @@ function initializeSerializerFactory() {
 
 initializeSerializerFactory();
 
-export { Blueprint, GraphLink, GraphNode };
+export { Blueprint, Configuration, GraphLink, GraphNode };

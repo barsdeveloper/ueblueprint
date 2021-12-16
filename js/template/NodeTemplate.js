@@ -1,7 +1,8 @@
+import GraphPin from "../graph/GraphPin"
 import html from "./html"
 import PinEntity from "../entity/PinEntity"
+import sanitizeText from "./sanitizeText"
 import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
-import GraphPin from "../graph/GraphPin"
 
 /**
  * @typedef {import("../graph/GraphNode").default} GraphNode
@@ -43,7 +44,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                     <div class="ueb-node-header">
                         <span class="ueb-node-name">
                             <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${node.entity.getNodeDisplayName()}</span>
+                            <span class="ueb-node-text">${sanitizeText(node.entity.getNodeDisplayName())}</span>
                         </span>
                     </div>
                     <div class="ueb-node-body">
@@ -64,8 +65,8 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected")
         }
-        node.style.setProperty("--ueb-position-x", node.location[0])
-        node.style.setProperty("--ueb-position-y", node.location[1])
+        node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]))
+        node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]))
         /** @type {HTMLElement} */
         let inputContainer = node.querySelector(".ueb-node-inputs")
         /** @type {HTMLElement} */

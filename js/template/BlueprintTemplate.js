@@ -1,7 +1,7 @@
+import GraphSelector from "../graph/GraphSelector"
 import html from "./html"
 import sanitizeText from "./sanitizeText"
 import Template from "./Template"
-import GraphSelector from "../graph/GraphSelector"
 
 /** @typedef {import("../Blueprint").default} Blueprint */
 export default class BlueprintTemplate extends Template {
@@ -75,7 +75,7 @@ export default class BlueprintTemplate extends Template {
      */
     applyZoom(blueprint, newZoom) {
         blueprint.classList.remove(`ueb-zoom-${blueprint.zoom}`)
-        blueprint.classList.add(`ueb-zoom-${newZoom}`)
+        blueprint.classList.add(sanitizeText`ueb-zoom-${newZoom}`)
     }
 
     /**
@@ -83,8 +83,8 @@ export default class BlueprintTemplate extends Template {
      * @param {Blueprint} brueprint The blueprint element
      */
     applyExpand(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-additional-x", blueprint.additional[0])
-        blueprint.gridElement.style.setProperty("--ueb-additional-y", blueprint.additional[1])
+        blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText(blueprint.additional[0]))
+        blueprint.gridElement.style.setProperty("--ueb-additional-y", sanitizeText(blueprint.additional[1]))
     }
 
     /**
@@ -92,7 +92,7 @@ export default class BlueprintTemplate extends Template {
      * @param {Blueprint} brueprint The blueprint element
      */
     applyTranlate(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-translate-x", blueprint.translateValue[0])
-        blueprint.gridElement.style.setProperty("--ueb-translate-y", blueprint.translateValue[1])
+        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(blueprint.translateValue[0]))
+        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(blueprint.translateValue[1]))
     }
 }

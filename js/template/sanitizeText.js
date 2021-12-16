@@ -1,9 +1,17 @@
 const div = document.createElement("div")
 
+const tagReplacement = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+}
+
 function sanitizeText(value) {
-    div.textContent = value
-    value = div.textContent
-    div.innerHTML = ""
+    if (value.constructor === String) {
+        return value.replace(/[&<>'"]/g, tag => tagReplacement[tag])
+    }
     return value
 }
 

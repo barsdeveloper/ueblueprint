@@ -5,10 +5,10 @@ import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
 import Parsimmon from "parsimmon"
+import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import Utility from "../Utility"
-import PathSymbolEntity from "../entity/PathSymbolEntity"
 
 let P = Parsimmon
 

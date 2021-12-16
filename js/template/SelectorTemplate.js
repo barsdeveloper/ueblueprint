@@ -1,3 +1,4 @@
+import sanitizeText from "./sanitizeText"
 import Template from "./Template"
 
 /**
@@ -21,11 +22,11 @@ export default class SelectorTemplate extends Template {
      */
     applyStartSelecting(selector, initialPosition) {
         // Set initial position
-        selector.style.setProperty("--ueb-select-from-x", initialPosition[0])
-        selector.style.setProperty("--ueb-select-from-y", initialPosition[1])
+        selector.style.setProperty("--ueb-select-from-x", sanitizeText(initialPosition[0]))
+        selector.style.setProperty("--ueb-select-from-y", sanitizeText(initialPosition[1]))
         // Final position coincide with the initial position, at the beginning of selection
-        selector.style.setProperty("--ueb-select-to-x", initialPosition[0])
-        selector.style.setProperty("--ueb-select-to-y", initialPosition[1])
+        selector.style.setProperty("--ueb-select-to-x", sanitizeText(initialPosition[0]))
+        selector.style.setProperty("--ueb-select-to-y", sanitizeText(initialPosition[1]))
         selector.dataset.selecting = "true"
     }
 
@@ -34,8 +35,8 @@ export default class SelectorTemplate extends Template {
      * @param {GraphSelector} selector Selector element
      */
     applyDoSelecting(selector, finalPosition) {
-        selector.style.setProperty("--ueb-select-to-x", finalPosition[0])
-        selector.style.setProperty("--ueb-select-to-y", finalPosition[1])
+        selector.style.setProperty("--ueb-select-to-x", sanitizeText(finalPosition[0]))
+        selector.style.setProperty("--ueb-select-to-y", sanitizeText(finalPosition[1]))
     }
 
     /**
