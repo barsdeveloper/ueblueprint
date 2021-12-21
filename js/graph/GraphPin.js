@@ -1,5 +1,6 @@
 import GraphElement from "./GraphElement"
 import PinTemplate from "../template/PinTemplate"
+import DragLink from "../input/DragLink"
 
 export default class GraphPin extends GraphElement {
 
@@ -7,10 +8,15 @@ export default class GraphPin extends GraphElement {
         super(entity, new PinTemplate())
         /** @type {import("../entity/PinEntity").default} */
         this.entity
+        /** @type {HTMLElement} */
+        this.clickableElement = null
     }
 
     connectedCallback() {
         super.connectedCallback()
+        new DragLink(this.clickableElement, this.blueprint, {
+            moveEverywhere: true
+        })
     }
 
     /**

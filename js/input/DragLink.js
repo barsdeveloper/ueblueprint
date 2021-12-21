@@ -7,7 +7,8 @@ export default class DragLink extends MouseClickDrag {
     }
 
     startDrag() {
-        //this.selectorElement.startSelecting(this.clickedPosition)
+        let a = 12
+        console.log(a)
     }
 
     dragTo(location, movement) {

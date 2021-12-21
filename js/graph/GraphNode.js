@@ -36,16 +36,6 @@ export default class GraphNode extends SelectableDraggable {
     connectedCallback() {
         const type = this.getAttribute("type")?.trim()
         super.connectedCallback()
-        this.querySelectorAll(".ueb-node-input, .ueb-node-output").forEach(element => {
-            this.dragLinkObjects.push(
-                new DragLink(element, this.blueprint, {
-                    clickButton: 0,
-                    moveEverywhere: true,
-                    exitAnyButton: true,
-                    looseTarget: true
-                })
-            )
-        })
     }
 
     setLocation(value = [0, 0]) {

@@ -23,6 +23,7 @@ export default class MouseClickDrag extends Pointing {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
+                        e.preventDefault()
                         e.stopPropagation()
                         self.started = false
                         // Attach the listeners

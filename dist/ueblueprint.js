@@ -522,8 +522,8 @@ class BlueprintTemplate extends Template {
      * @param {Blueprint} brueprint The blueprint element
      */
     applyZoom(blueprint, newZoom) {
-        blueprint.classList.remove(`ueb-zoom-${blueprint.zoom}`);
-        blueprint.classList.add(sanitizeText`ueb-zoom-${newZoom}`);
+        blueprint.classList.remove("ueb-zoom-" + sanitizeText(blueprint.zoom));
+        blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom));
     }
 
     /**
@@ -1355,6 +1355,7 @@ class MouseClickDrag extends Pointing {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
+                        e.preventDefault();
                         e.stopPropagation();
                         self.started = false;
                         // Attach the listeners
@@ -1549,11 +1550,11 @@ class PinTemplate extends Template {
         if (pin.isInput()) {
             return html`
                 <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
-                ${pin.getPinDisplayName()}
+                ${sanitizeText(pin.getPinDisplayName())}
             `
         } else {
             return html`
-                ${pin.getPinDisplayName()}
+                ${sanitizeText(pin.getPinDisplayName())}
                 <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
             `
         }
@@ -1566,6 +1567,27 @@ class PinTemplate extends Template {
     apply(pin) {
         super.apply(pin);
         pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + sanitizeText(pin.getType()));
+        pin.clickableElement = pin.querySelector(".ueb-node-value-icon");
+    }
+}
+
+class DragLink extends MouseClickDrag {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+    }
+
+    startDrag() {
+        let a = 12;
+        console.log(a);
+    }
+
+    dragTo(location, movement) {
+        //this.selectorElement.doSelecting(location)
+    }
+
+    endDrag() {
+        if (this.started) ;
     }
 }
 
@@ -1575,10 +1597,15 @@ class GraphPin extends GraphElement {
         super(entity, new PinTemplate());
         /** @type {import("../entity/PinEntity").default} */
         this.entity;
+        /** @type {HTMLElement} */
+        this.clickableElement = null;
     }
 
     connectedCallback() {
         super.connectedCallback();
+        new DragLink(this.clickableElement, this.blueprint, {
+            moveEverywhere: true
+        });
     }
 
     /**
@@ -1712,7 +1739,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
     }
 }
 
-class Drag extends MouseClickDrag {
+class DragMove extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
@@ -1771,7 +1798,7 @@ class SelectableDraggable extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this.dragObject = new Drag(this, this.blueprint, {
+        this.dragObject = new DragMove(this, this.blueprint, {
             looseTarget: true
         });
     }
@@ -1820,25 +1847,6 @@ class SelectableDraggable extends GraphElement {
     }
 }
 
-class DragLink extends MouseClickDrag {
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-    }
-
-    startDrag() {
-        //this.selectorElement.startSelecting(this.clickedPosition)
-    }
-
-    dragTo(location, movement) {
-        //this.selectorElement.doSelecting(location)
-    }
-
-    endDrag() {
-        if (this.started) ;
-    }
-}
-
 class GraphNode extends SelectableDraggable {
 
     /**
@@ -1870,16 +1878,6 @@ class GraphNode extends SelectableDraggable {
     connectedCallback() {
         this.getAttribute("type")?.trim();
         super.connectedCallback();
-        this.querySelectorAll(".ueb-node-input, .ueb-node-output").forEach(element => {
-            this.dragLinkObjects.push(
-                new DragLink(element, this.blueprint, {
-                    clickButton: 0,
-                    moveEverywhere: true,
-                    exitAnyButton: true,
-                    looseTarget: true
-                })
-            );
-        });
     }
 
     setLocation(value = [0, 0]) {

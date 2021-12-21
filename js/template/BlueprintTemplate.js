@@ -74,8 +74,8 @@ export default class BlueprintTemplate extends Template {
      * @param {Blueprint} brueprint The blueprint element
      */
     applyZoom(blueprint, newZoom) {
-        blueprint.classList.remove(`ueb-zoom-${blueprint.zoom}`)
-        blueprint.classList.add(sanitizeText`ueb-zoom-${newZoom}`)
+        blueprint.classList.remove("ueb-zoom-" + sanitizeText(blueprint.zoom))
+        blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom))
     }
 
     /**

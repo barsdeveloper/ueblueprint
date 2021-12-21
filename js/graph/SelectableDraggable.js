@@ -1,4 +1,4 @@
-import Drag from "../input/Drag"
+import DragMove from "../input/DragMove"
 import GraphElement from "./GraphElement"
 
 export default class SelectableDraggable extends GraphElement {
@@ -19,7 +19,7 @@ export default class SelectableDraggable extends GraphElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.dragObject = new Drag(this, this.blueprint, {
+        this.dragObject = new DragMove(this, this.blueprint, {
             looseTarget: true
         })
     }

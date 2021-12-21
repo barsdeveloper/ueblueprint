@@ -16,11 +16,11 @@ export default class PinTemplate extends Template {
         if (pin.isInput()) {
             return html`
                 <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
-                ${pin.getPinDisplayName()}
+                ${sanitizeText(pin.getPinDisplayName())}
             `
         } else {
             return html`
-                ${pin.getPinDisplayName()}
+                ${sanitizeText(pin.getPinDisplayName())}
                 <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
             `
         }
@@ -33,5 +33,6 @@ export default class PinTemplate extends Template {
     apply(pin) {
         super.apply(pin)
         pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + sanitizeText(pin.getType()))
+        pin.clickableElement = pin.querySelector(".ueb-node-value-icon")
     }
 }
