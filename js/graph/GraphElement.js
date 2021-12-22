@@ -18,4 +18,7 @@ export default class GraphElement extends HTMLElement {
         this.blueprint = this.closest("ueb-blueprint")
         this.template.apply(this)
     }
+
+    disconnectedCallback() {
+    }
 }

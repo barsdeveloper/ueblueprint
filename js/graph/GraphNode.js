@@ -2,7 +2,6 @@ import NodeTemplate from "../template/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"
 import SelectableDraggable from "./SelectableDraggable"
 import SerializerFactory from "../serialization/SerializerFactory"
-import DragLink from "../input/DragLink"
 import PinEntity from "../entity/PinEntity"
 
 export default class GraphNode extends SelectableDraggable {
@@ -15,7 +14,6 @@ export default class GraphNode extends SelectableDraggable {
         super(entity, new NodeTemplate())
         /** @type {ObjectEntity} */
         this.entity
-        this.graphNodeName = "n/a"
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX, this.entity.NodePosY])
     }
@@ -23,6 +21,15 @@ export default class GraphNode extends SelectableDraggable {
     static fromSerializedObject(str) {
         let entity = SerializerFactory.getSerializer(ObjectEntity).read(str)
         return new GraphNode(entity)
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.dispatchDeleteEvent()
     }
 
     /**
@@ -43,6 +50,14 @@ export default class GraphNode extends SelectableDraggable {
         this.entity.NodePosX = new nodeType(value[0])
         this.entity.NodePosY = new nodeType(value[1])
         super.setLocation(value)
+    }
+
+    dispatchDeleteEvent(value) {
+        let dragEvent = new CustomEvent("ueb-node-delete", {
+            bubbles: true,
+            cancelable: true,
+        })
+        this.dispatchEvent(dragEvent)
     }
 }
 

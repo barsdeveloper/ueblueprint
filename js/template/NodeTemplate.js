@@ -57,7 +57,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
     }
 
     /**
-     * Returns the html elements rendered from this template.
+     * Applies the style to the element.
      * @param {GraphNode} node Element of the graph
      */
     apply(node) {

@@ -33,7 +33,7 @@ export default class Paste extends Context {
             this.blueprint.unselectAll()
         }
         let mousePosition = this.blueprint.entity.mousePosition
-        this.blueprint.addNode(...nodes)
+        this.blueprint.addGraphElement(...nodes)
         nodes.forEach(node => {
             const locationOffset = [
                 mousePosition[0] - left,

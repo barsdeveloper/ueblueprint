@@ -16,6 +16,6 @@ export default class KeyvoardCanc extends KeyboardShortcut {
     }
 
     fire() {
-        this.blueprint.deleteNode(...this.blueprint.getNodes(true))
+        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))
     }
 }

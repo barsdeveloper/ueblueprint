@@ -1,6 +1,7 @@
 import GraphElement from "./GraphElement"
 import PinTemplate from "../template/PinTemplate"
 import DragLink from "../input/DragLink"
+import GraphLink from "./GraphLink"
 
 export default class GraphPin extends GraphElement {
 
@@ -45,6 +46,23 @@ export default class GraphPin extends GraphElement {
 
     getType() {
         return this.entity.getType()
+    }
+
+    /**
+     * 
+     * @returns {GraphLink} The link created
+     */
+    dragLink() {
+        let link = new GraphLink(this)
+        return link
+    }
+
+    /**
+     * Returns The exact location where the link originates from or arrives at.
+     * @returns {Number[]} The location array
+     */
+    getLinkLocation() {
+        return [0, 0];
     }
 }
 

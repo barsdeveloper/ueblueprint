@@ -18,4 +18,32 @@ export default class LinkTemplate extends Template {
             </svg>
         `
     }
+
+    /**
+     * Applies the style to the element.
+     * @param {GraphLink} link Element of the graph
+     */
+    apply(link) {
+        super.apply(link)
+
+    }
+
+    /**
+     * Applies the style relative to the source pin location.
+     * @param {GraphLink} link Link element
+     */
+    applySourceLocation(link, initialPosition) {
+        // Set initial position
+        link.style.setProperty("--ueb-link-from-x", sanitizeText(initialPosition[0]))
+        link.style.setProperty("--ueb-link-from-y", sanitizeText(initialPosition[1]))
+    }
+
+    /**
+     * Applies the style relative to the destination pin location.
+     * @param {GraphLink} link Link element
+     */
+    applyDestinationLocation(link, finalPosition) {
+        link.style.setProperty("--ueb-link-to-x", sanitizeText(finalPosition[0]))
+        link.style.setProperty("--ueb-link-to-y", sanitizeText(finalPosition[1]))
+    }
 }

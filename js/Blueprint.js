@@ -10,8 +10,9 @@ import Select from "./input/Select"
 import Unfocus from "./input/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/Zoom"
+import GraphNode from "./graph/GraphNode"
+import GraphLink from "./graph/GraphLink"
 
-/** @typedef {import("./graph/GraphNode").default} GraphNode */
 export default class Blueprint extends GraphElement {
 
     constructor() {
@@ -20,6 +21,8 @@ export default class Blueprint extends GraphElement {
         this.template
         /** @type {GraphNode[]}" */
         this.nodes = []
+        /** @type {GraphLink[]}" */
+        this.links = []
         this.expandGridSize = 400
         /** @type {number[]} */
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
@@ -300,32 +303,42 @@ export default class Blueprint extends GraphElement {
 
     /**
      * 
-     * @param  {...GraphNode} graphNodes 
+     * @param  {...GraphElement} graphElements 
      */
-    addNode(...graphNodes) {
-        [...graphNodes].reduce(
-            (s, e) => {
-                s.push(e)
-                if (this.nodesContainerElement) {
-                    this.nodesContainerElement.appendChild(e)
-                }
-                return s
-            },
-            this.nodes)
+    addGraphElement(...graphElements) {
+        [...graphElements].forEach(v => {
+            if (v instanceof GraphNode) {
+                this.nodes.push(v)
+                this.nodesContainerElement?.appendChild(v)
+            }
+            if (v instanceof GraphLink) {
+                this.links.push(v)
+                this.nodesContainerElement?.appendChild(v)
+            }
+        })
     }
 
     /**
      * 
-     * @param  {...GraphNode} graphNodes 
+     * @param  {...GraphElement} graphElements 
      */
-    deleteNode(...graphNodes) {
-        let deleteNodes = [...graphNodes]
-        if (deleteNodes.length == 0) {
+    removeGraphElement(...graphElements) {
+        let deleteElements = [...graphElements]
+        if (deleteElements.length == 0) {
             return
         }
         let currentDeleteI = 0
         this.nodes = this.nodes.filter(v => {
-            if (v == deleteNodes[currentDeleteI]) {
+            if (v == deleteElements[currentDeleteI]) {
+                ++currentDeleteI
+                v.remove()
+                return false
+            }
+            return true
+        })
+        currentDeleteI = 0
+        this.links = this.links.filter(v => {
+            if (v == deleteElements[currentDeleteI]) {
                 ++currentDeleteI
                 v.remove()
                 return false

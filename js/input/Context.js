@@ -16,6 +16,7 @@ export default class Context {
     }
 
     unlistenDOMElement() {
+        this.blueprintUnfocused()
         this.blueprint.removeEventListener("blueprintfocus", this.blueprintfocusHandler)
         this.blueprint.removeEventListener("blueprintunfocus", this.blueprintunfocusHandler)
     }

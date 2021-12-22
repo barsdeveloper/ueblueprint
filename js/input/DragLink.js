@@ -4,11 +4,15 @@ export default class DragLink extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
+        /** @type {import("../graph/GraphPin").default} */
+        this.target
+        /** @type {import("../graph/GraphLink").default} */
+        this.link
     }
 
     startDrag() {
-        let a = 12
-        console.log(a)
+        let link = this.target.dragLink()
+
     }
 
     dragTo(location, movement) {
