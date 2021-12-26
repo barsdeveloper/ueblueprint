@@ -1,8 +1,0 @@
-.ueb-draggable {
-    /* Indicate the element draggable */
-    cursor: move;
-    /* It will be positioned absolutely */
-    position: absolute;
-    /* Doesn't allow to select the content inside */
-    user-select: none;
-}
