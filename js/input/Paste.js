@@ -21,14 +21,18 @@ export default class Paste extends Context {
     }
 
     pasted(value) {
-        let top = Number.MAX_SAFE_INTEGER
-        let left = Number.MAX_SAFE_INTEGER
+        let top = 0
+        let left = 0
+        let count = 0
         let nodes = this.serializer.readMultiple(value).map(entity => {
             let node = new GraphNode(entity)
-            top = Math.min(top, node.location[1])
-            left = Math.min(left, node.location[0])
+            top += node.location[1]
+            left += node.location[0]
+            ++count
             return node
         })
+        top /= count
+        left /= count
         if (nodes.length > 0) {
             this.blueprint.unselectAll()
         }

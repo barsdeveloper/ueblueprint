@@ -17,10 +17,7 @@ export default class DragMove extends MouseClickDrag {
 
     startDrag() {
         if (isNaN(this.stepSize) || this.stepSize <= 0) {
-            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue("--ueb-grid-snap"))
-            if (isNaN(this.stepSize) || this.stepSize <= 0) {
-                this.stepSize = 1
-            }
+            this.stepSize = this.blueprint.gridSnap
         }
         // Get the current mouse position
         this.mousePosition = this.stepSize != 1 ? this.snapToGrid(this.clickedPosition) : this.clickedPosition

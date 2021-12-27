@@ -318,6 +318,10 @@ class GraphElement extends HTMLElement {
         this.template = template;
     }
 
+    getTemplate() {
+        return this.template
+    }
+
     connectedCallback() {
         this.blueprint = this.closest("ueb-blueprint");
         this.template.apply(this);
@@ -380,7 +384,7 @@ class SelectorTemplate extends Template {
     apply(selector) {
         super.apply(selector);
         selector.classList.add("ueb-selector");
-        selector.dataset.selecting = "false";
+        this.applyFinishSelecting(selector);
     }
 
     /**
@@ -410,7 +414,7 @@ class SelectorTemplate extends Template {
      * Applies the style relative to selection finishing.
      * @param {GraphSelector} selector Selector element
      */
-    applyFinishSelecting(selector, finalPosition) {
+    applyFinishSelecting(selector) {
         selector.dataset.selecting = "false";
     }
 }
@@ -506,7 +510,7 @@ class BlueprintTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {Blueprint} brueprint The blueprint element
+     * @param {Blueprint} blueprint The blueprint element
      */
     apply(blueprint) {
         super.apply(blueprint);
@@ -518,11 +522,12 @@ class BlueprintTemplate extends Template {
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
         blueprint.selectorElement = new GraphSelector();
         blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.nodes);
+        this.applyEndDragScrolling(blueprint);
     }
 
     /**
      * Applies the style to the element.
-     * @param {Blueprint} brueprint The blueprint element
+     * @param {Blueprint} blueprint The blueprint element
      */
     applyZoom(blueprint, newZoom) {
         blueprint.classList.remove("ueb-zoom-" + sanitizeText$1(blueprint.zoom));
@@ -531,7 +536,7 @@ class BlueprintTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {Blueprint} brueprint The blueprint element
+     * @param {Blueprint} blueprint The blueprint element
      */
     applyExpand(blueprint) {
         blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText$1(blueprint.additional[0]));
@@ -540,11 +545,27 @@ class BlueprintTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {Blueprint} brueprint The blueprint element
+     * @param {Blueprint} blueprint The blueprint element
      */
     applyTranlate(blueprint) {
         blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText$1(blueprint.translateValue[0]));
         blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText$1(blueprint.translateValue[1]));
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyStartDragScrolling(blueprint) {
+        blueprint.gridElement.dataset.dragScrolling = true;
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyEndDragScrolling(blueprint) {
+        blueprint.gridElement.dataset.dragScrolling = false;
     }
 }
 
@@ -1442,8 +1463,16 @@ class MouseClickDrag extends Pointing {
 
 class DragScroll extends MouseClickDrag {
 
+    startDrag() {
+        this.blueprint.template.applyStartDragScrolling(this.blueprint);
+    }
+
     dragTo(location, movement) {
         this.blueprint.scrollDelta([-movement[0], -movement[1]]);
+    }
+
+    endDrag() {
+        this.blueprint.template.applyEndDragScrolling(this.blueprint);
     }
 }
 
@@ -1499,6 +1528,9 @@ class KeyboardShortcut extends Context {
 class Configuration {
 
     static deleteNodesKeyboardKey = "Delete"
+    static expandGridSize = 400
+    static gridSize = 16
+    static gridSnap = 16
 }
 
 class KeyvoardCanc extends KeyboardShortcut {
@@ -1887,10 +1919,7 @@ class DragMove extends MouseClickDrag {
 
     startDrag() {
         if (isNaN(this.stepSize) || this.stepSize <= 0) {
-            this.stepSize = parseInt(getComputedStyle(this.target).getPropertyValue("--ueb-grid-snap"));
-            if (isNaN(this.stepSize) || this.stepSize <= 0) {
-                this.stepSize = 1;
-            }
+            this.stepSize = this.blueprint.gridSnap;
         }
         // Get the current mouse position
         this.mousePosition = this.stepSize != 1 ? this.snapToGrid(this.clickedPosition) : this.clickedPosition;
@@ -2055,14 +2084,18 @@ class Paste extends Context {
     }
 
     pasted(value) {
-        let top = Number.MAX_SAFE_INTEGER;
-        let left = Number.MAX_SAFE_INTEGER;
+        let top = 0;
+        let left = 0;
+        let count = 0;
         let nodes = this.serializer.readMultiple(value).map(entity => {
             let node = new GraphNode(entity);
-            top = Math.min(top, node.location[1]);
-            left = Math.min(left, node.location[0]);
+            top += node.location[1];
+            left += node.location[0];
+            ++count;
             return node
         });
+        top /= count;
+        left /= count;
         if (nodes.length > 0) {
             this.blueprint.unselectAll();
         }
@@ -2193,11 +2226,15 @@ class Blueprint extends GraphElement {
         super({}, new BlueprintTemplate());
         /** @type {BlueprintTemplate} */
         this.template;
+        /** @type {number} */
+        this.gridSize = Configuration.gridSize;
+        /** @type {number} */
+        this.gridSnap = Configuration.gridSnap;
         /** @type {GraphNode[]}" */
         this.nodes = [];
         /** @type {GraphLink[]}" */
         this.links = [];
-        this.expandGridSize = 400;
+        this.expandGridSize = Configuration.expandGridSize;
         /** @type {number[]} */
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0];
         /** @type {number[]} */
@@ -2238,6 +2275,30 @@ class Blueprint extends GraphElement {
         };
     }
 
+    /**
+     * Expand the grid, considers the absolute value of params
+     * @param {number} x - Horizontal expansion value
+     * @param {number} y - Vertical expansion value
+     */
+    #expand(x, y) {
+        x = Math.round(Math.abs(x));
+        y = Math.round(Math.abs(y));
+        this.additional = [this.additional[0] + x, this.additional[1] + y];
+        this.template.applyExpand(this);
+    }
+
+    /**
+     * Moves the content of the grid according to the coordinates
+     * @param {number} x - Horizontal translation value
+     * @param {number} y - Vertical translation value
+     */
+    #translate(x, y) {
+        x = Math.round(x);
+        y = Math.round(y);
+        this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y];
+        this.template.applyTranlate(this);
+    }
+
     connectedCallback() {
         super.connectedCallback();
 
@@ -2246,17 +2307,18 @@ class Blueprint extends GraphElement {
         this.cancObject = new KeyvoardCanc(this.getGridDOMElement(), this);
 
         this.zoomObject = new Zoom(this.getGridDOMElement(), this, {
-            looseTarget: true
+            looseTarget: true,
         });
         this.selectObject = new Select(this.getGridDOMElement(), this, {
             clickButton: 0,
+            exitAnyButton: true,
             moveEverywhere: true,
-            exitAnyButton: true
         });
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
             clickButton: 2,
+            exitAnyButton: false,
+            looseTarget: true,
             moveEverywhere: true,
-            exitAnyButton: false
         });
 
         this.unfocusObject = new Unfocus(this.getGridDOMElement(), this);
@@ -2364,28 +2426,11 @@ class Blueprint extends GraphElement {
         ]
     }
 
-    /**
-     * Expand the grid, considers the absolute value of params
-     * @param {number} x - Horizontal expansion value
-     * @param {number} y - Vertical expansion value
-     */
-    _expand(x, y) {
-        x = Math.round(Math.abs(x));
-        y = Math.round(Math.abs(y));
-        this.additional = [this.additional[0] + x, this.additional[1] + y];
-        this.template.applyExpand(this);
-    }
-
-    /**
-     * Moves the content of the grid according to the coordinates
-     * @param {number} x - Horizontal translation value
-     * @param {number} y - Vertical translation value
-     */
-    _translate(x, y) {
-        x = Math.round(x);
-        y = Math.round(y);
-        this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y];
-        this.template.applyTranlate(this);
+    snapToGrid(location) {
+        return [
+            this.gridSnap * Math.round(location[0] / this.gridSnap),
+            this.gridSnap * Math.round(location[1] / this.gridSnap)
+        ]
     }
 
     /**
@@ -2398,9 +2443,9 @@ class Blueprint extends GraphElement {
         let scaledX = x / scale;
         let scaledY = y / scale;
         // First expand the grid to contain the additional space
-        this._expand(scaledX, scaledY);
+        this.#expand(scaledX, scaledY);
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        this._translate(scaledX < 0 ? -scaledX : 0, scaledY < 0 ? -scaledY : 0);
+        this.#translate(scaledX < 0 ? -scaledX : 0, scaledY < 0 ? -scaledY : 0);
         if (x < 0) {
             this.viewportElement.scrollLeft -= x;
         }

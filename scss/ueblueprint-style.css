@@ -116,6 +116,10 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     overflow           : hidden;
 }
 
+.ueb-grid[data-drag-scrolling="true"] {
+    cursor: grabbing;
+}
+
 .ueb-zoom--.ueb,
 .ueb {
     /* 16/16 */
@@ -204,7 +208,7 @@ ueb-node {
     will-change  : transform;
 }
 
-ueb-selector[data-selecting="false"]~ueb-node {
+.ueb-grid[data-drag-scrolling="false"] ueb-selector[data-selecting="false"]~ueb-node {
     cursor: move;
 }
 
@@ -278,11 +282,15 @@ ueb-pin {
     padding: 1px 2px;
 }
 
+.ueb-grid[data-drag-scrolling="false"] {
+    cursor: default;
+}
+
 ueb-selector[data-selecting="false"]~ueb-node ueb-pin:hover {
     background: var(--ueb-node-value-background);
 }
 
-ueb-selector[data-selecting="false"]~ueb-node ueb-pin .ueb-node-value-icon {
+.ueb-grid[data-drag-scrolling="false"] ueb-selector[data-selecting="false"]~ueb-node ueb-pin .ueb-node-value-icon {
     cursor: crosshair;
 }
 

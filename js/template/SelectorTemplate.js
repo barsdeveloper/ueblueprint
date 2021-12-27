@@ -13,7 +13,7 @@ export default class SelectorTemplate extends Template {
     apply(selector) {
         super.apply(selector)
         selector.classList.add("ueb-selector")
-        selector.dataset.selecting = "false"
+        this.applyFinishSelecting(selector)
     }
 
     /**
@@ -43,7 +43,7 @@ export default class SelectorTemplate extends Template {
      * Applies the style relative to selection finishing.
      * @param {GraphSelector} selector Selector element
      */
-    applyFinishSelecting(selector, finalPosition) {
+    applyFinishSelecting(selector) {
         selector.dataset.selecting = "false"
     }
 }

@@ -14,6 +14,10 @@ export default class GraphElement extends HTMLElement {
         this.template = template
     }
 
+    getTemplate() {
+        return this.template
+    }
+
     connectedCallback() {
         this.blueprint = this.closest("ueb-blueprint")
         this.template.apply(this)

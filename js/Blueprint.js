@@ -12,6 +12,7 @@ import Utility from "./Utility"
 import Zoom from "./input/Zoom"
 import GraphNode from "./graph/GraphNode"
 import GraphLink from "./graph/GraphLink"
+import Configuration from "./Configuration"
 
 export default class Blueprint extends GraphElement {
 
@@ -19,11 +20,15 @@ export default class Blueprint extends GraphElement {
         super({}, new BlueprintTemplate())
         /** @type {BlueprintTemplate} */
         this.template
+        /** @type {number} */
+        this.gridSize = Configuration.gridSize
+        /** @type {number} */
+        this.gridSnap = Configuration.gridSnap
         /** @type {GraphNode[]}" */
         this.nodes = []
         /** @type {GraphLink[]}" */
         this.links = []
-        this.expandGridSize = 400
+        this.expandGridSize = Configuration.expandGridSize
         /** @type {number[]} */
         this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
         /** @type {number[]} */
@@ -64,6 +69,30 @@ export default class Blueprint extends GraphElement {
         }
     }
 
+    /**
+     * Expand the grid, considers the absolute value of params
+     * @param {number} x - Horizontal expansion value
+     * @param {number} y - Vertical expansion value
+     */
+    #expand(x, y) {
+        x = Math.round(Math.abs(x))
+        y = Math.round(Math.abs(y))
+        this.additional = [this.additional[0] + x, this.additional[1] + y]
+        this.template.applyExpand(this)
+    }
+
+    /**
+     * Moves the content of the grid according to the coordinates
+     * @param {number} x - Horizontal translation value
+     * @param {number} y - Vertical translation value
+     */
+    #translate(x, y) {
+        x = Math.round(x)
+        y = Math.round(y)
+        this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y]
+        this.template.applyTranlate(this)
+    }
+
     connectedCallback() {
         super.connectedCallback()
 
@@ -72,17 +101,18 @@ export default class Blueprint extends GraphElement {
         this.cancObject = new KeyboardCanc(this.getGridDOMElement(), this)
 
         this.zoomObject = new Zoom(this.getGridDOMElement(), this, {
-            looseTarget: true
+            looseTarget: true,
         })
         this.selectObject = new Select(this.getGridDOMElement(), this, {
             clickButton: 0,
+            exitAnyButton: true,
             moveEverywhere: true,
-            exitAnyButton: true
         })
         this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
             clickButton: 2,
+            exitAnyButton: false,
+            looseTarget: true,
             moveEverywhere: true,
-            exitAnyButton: false
         })
 
         this.unfocusObject = new Unfocus(this.getGridDOMElement(), this)
@@ -190,28 +220,11 @@ export default class Blueprint extends GraphElement {
         ]
     }
 
-    /**
-     * Expand the grid, considers the absolute value of params
-     * @param {number} x - Horizontal expansion value
-     * @param {number} y - Vertical expansion value
-     */
-    _expand(x, y) {
-        x = Math.round(Math.abs(x))
-        y = Math.round(Math.abs(y))
-        this.additional = [this.additional[0] + x, this.additional[1] + y]
-        this.template.applyExpand(this)
-    }
-
-    /**
-     * Moves the content of the grid according to the coordinates
-     * @param {number} x - Horizontal translation value
-     * @param {number} y - Vertical translation value
-     */
-    _translate(x, y) {
-        x = Math.round(x)
-        y = Math.round(y)
-        this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y]
-        this.template.applyTranlate(this)
+    snapToGrid(location) {
+        return [
+            this.gridSnap * Math.round(location[0] / this.gridSnap),
+            this.gridSnap * Math.round(location[1] / this.gridSnap)
+        ]
     }
 
     /**
@@ -224,9 +237,9 @@ export default class Blueprint extends GraphElement {
         let scaledX = x / scale
         let scaledY = y / scale
         // First expand the grid to contain the additional space
-        this._expand(scaledX, scaledY)
+        this.#expand(scaledX, scaledY)
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        this._translate(scaledX < 0 ? -scaledX : 0, scaledY < 0 ? -scaledY : 0)
+        this.#translate(scaledX < 0 ? -scaledX : 0, scaledY < 0 ? -scaledY : 0)
         if (x < 0) {
             this.viewportElement.scrollLeft -= x
         }

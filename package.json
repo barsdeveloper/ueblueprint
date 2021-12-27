@@ -4,7 +4,7 @@
   "description": "Unreal Engine's Blueprint visualisation library",
   "main": "ueblueprint.js",
   "scripts": {
-    "build": "rollup --config && sass scss:css --style=compressed"
+    "build": "rollup --config && sass scss:dist/css --style=compressed"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
     "@rollup/plugin-commonjs": "^21.0.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
     "rollup": "^2.58.0",
+    "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-minify-html-template-literals": "^1.2.0",
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.45.1",

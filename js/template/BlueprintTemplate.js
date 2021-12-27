@@ -55,7 +55,7 @@ export default class BlueprintTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {Blueprint} brueprint The blueprint element
+     * @param {Blueprint} blueprint The blueprint element
      */
     apply(blueprint) {
         super.apply(blueprint)
@@ -67,11 +67,12 @@ export default class BlueprintTemplate extends Template {
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]")
         blueprint.selectorElement = new GraphSelector()
         blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.nodes)
+        this.applyEndDragScrolling(blueprint)
     }
 
     /**
      * Applies the style to the element.
-     * @param {Blueprint} brueprint The blueprint element
+     * @param {Blueprint} blueprint The blueprint element
      */
     applyZoom(blueprint, newZoom) {
         blueprint.classList.remove("ueb-zoom-" + sanitizeText(blueprint.zoom))
@@ -80,7 +81,7 @@ export default class BlueprintTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {Blueprint} brueprint The blueprint element
+     * @param {Blueprint} blueprint The blueprint element
      */
     applyExpand(blueprint) {
         blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText(blueprint.additional[0]))
@@ -89,10 +90,26 @@ export default class BlueprintTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {Blueprint} brueprint The blueprint element
+     * @param {Blueprint} blueprint The blueprint element
      */
     applyTranlate(blueprint) {
         blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(blueprint.translateValue[0]))
         blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(blueprint.translateValue[1]))
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyStartDragScrolling(blueprint) {
+        blueprint.gridElement.dataset.dragScrolling = true
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyEndDragScrolling(blueprint) {
+        blueprint.gridElement.dataset.dragScrolling = false
     }
 }
