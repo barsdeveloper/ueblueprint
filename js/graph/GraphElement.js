@@ -1,17 +1,27 @@
+/**
+ * @typedef {import("../Blueprint").default} Blueprint
+ * @typedef {import("../entity/Entity").default} Entity
+ * @typedef {import("../input/Context").default} Context
+ * @typedef {import("../template/Template").default} Template
+ */
+
 export default class GraphElement extends HTMLElement {
 
     /**
      * 
-     * @param {import("../template/Template").default} template The template to render this node
+     * @param {Entity} entity The entity containing blueprint related data for this graph element
+     * @param {Template} template The template to render this node
      */
     constructor(entity, template) {
         super()
-        /** @type {import("../Blueprint").default}" */
+        /** @type {Blueprint}" */
         this.blueprint = null
-        /** @type {import("../entity/Entity").default}" */
+        /** @type {Entity}" */
         this.entity = entity
-        /** @type {import("../template/Template").default}" */
+        /** @type {Template}" */
         this.template = template
+        /** @type {Context[]} */
+        this.inputObjects = []
     }
 
     getTemplate() {
@@ -21,8 +31,14 @@ export default class GraphElement extends HTMLElement {
     connectedCallback() {
         this.blueprint = this.closest("ueb-blueprint")
         this.template.apply(this)
+        this.inputObjects = this.createInputObjects()
     }
 
     disconnectedCallback() {
+        this.inputObjects.forEach(v => v.unlistenDOMElement())
+    }
+
+    createInputObjects() {
+        return []
     }
 }

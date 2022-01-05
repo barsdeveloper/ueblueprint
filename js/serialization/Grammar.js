@@ -113,25 +113,28 @@ export default class Grammar {
         }
     }
     // Meta grammar
-    static CreateAttributeGrammar = (r, attributeGrammar, attributeSupplier, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
-        attributeGrammar.skip(valueSeparator)
+    static CreateAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
+        r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
                 const attributeKey = attributeName.split(".")
-                const attribute = attributeSupplier(attributeKey)
+                const attribute = Utility.objectGet(entityType.attributes, attributeKey)
                 let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
+                // Returns attributeSetter: a function called with an object as argument that will set the correct attribute value
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
-                ) // returns attributeSetter:  a function called with an object as argument that will set the correct attribute value
+                )
             })
     // Meta grammar
-    static CreateMultiAttributeGrammar = (r, keyGrammar, entityType, attributeSupplier) =>
+    static CreateMultiAttributeGrammar = (r, entityType) =>
         /**
          * Basically this creates a parser that looks for a string like 'Key (A=False,B="Something",)'
          * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
          */
         P.seqMap(
-            P.seq(keyGrammar, P.optWhitespace, P.string("(")),
-            Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeSupplier)
+            entityType.lookbehind
+                ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
+                : P.string("("),
+            Grammar.CreateAttributeGrammar(r, entityType)
                 .trim(P.optWhitespace)
                 .sepBy(P.string(","))
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma
@@ -141,18 +144,8 @@ export default class Grammar {
                 attributes.forEach(attributeSetter => attributeSetter(result))
                 return result
             })
-    FunctionReference = r => Grammar.CreateMultiAttributeGrammar(
-        r,
-        P.succeed(),
-        FunctionReferenceEntity,
-        attributeKey => Utility.objectGet(FunctionReferenceEntity.attributes, attributeKey)
-    )
-    Pin = r => Grammar.CreateMultiAttributeGrammar(
-        r,
-        P.string("Pin"),
-        PinEntity,
-        attributeKey => Utility.objectGet(PinEntity.attributes, attributeKey)
-    )
+    FunctionReference = r => Grammar.CreateMultiAttributeGrammar(r, FunctionReferenceEntity)
+    Pin = r => Grammar.CreateMultiAttributeGrammar(r, PinEntity)
     CustomProperties = r =>
         P.string("CustomProperties")
             .then(P.whitespace)
@@ -169,7 +162,7 @@ export default class Grammar {
         P
             .alt(
                 r.CustomProperties,
-                Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeKey => Utility.objectGet(ObjectEntity.attributes, attributeKey))
+                Grammar.CreateAttributeGrammar(r, ObjectEntity)
             )
             .sepBy1(P.whitespace),
         P.seq(r.WhitespaceNewline, P.string("End"), P.whitespace, P.string("Object")),

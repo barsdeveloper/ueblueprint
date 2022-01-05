@@ -1,7 +1,10 @@
 import BlueprintTemplate from "./template/BlueprintTemplate"
+import Configuration from "./Configuration"
 import Copy from "./input/Copy"
 import DragScroll from "./input/DragScroll"
 import GraphElement from "./graph/GraphElement"
+import GraphLink from "./graph/GraphLink"
+import GraphNode from "./graph/GraphNode"
 import GraphSelector from "./graph/GraphSelector"
 import KeyboardCanc from "./input/KeyboardCanc"
 import MouseTracking from "./input/MouseTracking"
@@ -10,9 +13,6 @@ import Select from "./input/Select"
 import Unfocus from "./input/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/Zoom"
-import GraphNode from "./graph/GraphNode"
-import GraphLink from "./graph/GraphLink"
-import Configuration from "./Configuration"
 
 export default class Blueprint extends GraphElement {
 
@@ -93,30 +93,28 @@ export default class Blueprint extends GraphElement {
         this.template.applyTranlate(this)
     }
 
-    connectedCallback() {
-        super.connectedCallback()
-
-        this.copyObject = new Copy(this.getGridDOMElement(), this)
-        this.pasteObject = new Paste(this.getGridDOMElement(), this)
-        this.cancObject = new KeyboardCanc(this.getGridDOMElement(), this)
-
-        this.zoomObject = new Zoom(this.getGridDOMElement(), this, {
-            looseTarget: true,
-        })
-        this.selectObject = new Select(this.getGridDOMElement(), this, {
-            clickButton: 0,
-            exitAnyButton: true,
-            moveEverywhere: true,
-        })
-        this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
-            clickButton: 2,
-            exitAnyButton: false,
-            looseTarget: true,
-            moveEverywhere: true,
-        })
-
-        this.unfocusObject = new Unfocus(this.getGridDOMElement(), this)
-        this.mouseTrackingObject = new MouseTracking(this.getGridDOMElement(), this)
+    createInputObjects() {
+        return [
+            new Copy(this.getGridDOMElement(), this),
+            new Paste(this.getGridDOMElement(), this),
+            new KeyboardCanc(this.getGridDOMElement(), this),
+            new Zoom(this.getGridDOMElement(), this, {
+                looseTarget: true,
+            }),
+            new Select(this.getGridDOMElement(), this, {
+                clickButton: 0,
+                exitAnyButton: true,
+                moveEverywhere: true,
+            }),
+            new DragScroll(this.getGridDOMElement(), this, {
+                clickButton: 2,
+                exitAnyButton: false,
+                looseTarget: true,
+                moveEverywhere: true,
+            }),
+            new Unfocus(this.getGridDOMElement(), this),
+            new MouseTracking(this.getGridDOMElement(), this),
+        ]
     }
 
     getGridDOMElement() {
@@ -126,9 +124,6 @@ export default class Blueprint extends GraphElement {
     disconnectedCallback() {
         super.disconnectedCallback()
         setSelected(false)
-        this.dragObject.unlistenDOMElement()
-        this.selectObject.unlistenDOMElement()
-        this.pasteObject.unlistenDOMElement()
     }
 
     getScroll() {
@@ -364,7 +359,7 @@ export default class Blueprint extends GraphElement {
         if (this.focused == value) {
             return;
         }
-        let event = new CustomEvent(value ? "blueprintfocus" : "blueprintunfocus")
+        let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus")
         this.focused = value
         this.dataset.focused = this.focused
         if (!this.focused) {

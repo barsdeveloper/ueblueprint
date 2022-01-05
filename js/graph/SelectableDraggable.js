@@ -17,16 +17,12 @@ export default class SelectableDraggable extends GraphElement {
         }
     }
 
-    connectedCallback() {
-        super.connectedCallback()
-        this.dragObject = new DragMove(this, this.blueprint, {
-            looseTarget: true
-        })
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback()
-        this.dragObject.unlistenDOMElement()
+    createInputObjects() {
+        return [
+            new DragMove(this, this.blueprint, {
+                looseTarget: true
+            }),
+        ]
     }
 
     setLocation(value = [0, 0]) {

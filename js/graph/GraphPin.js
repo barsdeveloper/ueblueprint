@@ -13,11 +13,12 @@ export default class GraphPin extends GraphElement {
         this.clickableElement = null
     }
 
-    connectedCallback() {
-        super.connectedCallback()
-        new DragLink(this.clickableElement, this.blueprint, {
-            moveEverywhere: true
-        })
+    createInputObjects() {
+        return [
+            new DragLink(this.clickableElement, this.blueprint, {
+                moveEverywhere: true
+            }),
+        ]
     }
 
     /**

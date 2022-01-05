@@ -302,20 +302,30 @@ class FastSelectionModel {
 
 }
 
+/**
+ * @typedef {import("../Blueprint").default} Blueprint
+ * @typedef {import("../entity/Entity").default} Entity
+ * @typedef {import("../input/Context").default} Context
+ * @typedef {import("../template/Template").default} Template
+ */
+
 class GraphElement extends HTMLElement {
 
     /**
      * 
-     * @param {import("../template/Template").default} template The template to render this node
+     * @param {Entity} entity The entity containing blueprint related data for this graph element
+     * @param {Template} template The template to render this node
      */
     constructor(entity, template) {
         super();
-        /** @type {import("../Blueprint").default}" */
+        /** @type {Blueprint}" */
         this.blueprint = null;
-        /** @type {import("../entity/Entity").default}" */
+        /** @type {Entity}" */
         this.entity = entity;
-        /** @type {import("../template/Template").default}" */
+        /** @type {Template}" */
         this.template = template;
+        /** @type {Context[]} */
+        this.inputObjects = [];
     }
 
     getTemplate() {
@@ -325,9 +335,15 @@ class GraphElement extends HTMLElement {
     connectedCallback() {
         this.blueprint = this.closest("ueb-blueprint");
         this.template.apply(this);
+        this.inputObjects = this.createInputObjects();
     }
 
     disconnectedCallback() {
+        this.inputObjects.forEach(v => v.unlistenDOMElement());
+    }
+
+    createInputObjects() {
+        return []
     }
 }
 
@@ -569,6 +585,14 @@ class BlueprintTemplate extends Template {
     }
 }
 
+class Configuration {
+
+    static deleteNodesKeyboardKey = "Delete"
+    static expandGridSize = 400
+    static gridSize = 16
+    static gridSnap = 16
+}
+
 class Context {
 
     constructor(target, blueprint, options) {
@@ -577,19 +601,19 @@ class Context {
         /** @type {import("../Blueprint").default}" */
         this.blueprint = blueprint;
         this.options = options;
+        let self = this;
+        this.blueprintFocusHandler = _ => self.blueprintFocused();
+        this.blueprintUnfocusHandler = _ => self.blueprintUnfocused();
         if (options?.wantsFocusCallback ?? false) {
-            let self = this;
-            this.blueprintfocusHandler = _ => self.blueprintFocused();
-            this.blueprintunfocusHandler = _ => self.blueprintUnfocused();
-            this.blueprint.addEventListener("blueprintfocus", this.blueprintfocusHandler);
-            this.blueprint.addEventListener("blueprintunfocus", this.blueprintunfocusHandler);
+            this.blueprint.addEventListener("blueprint-focus", this.blueprintFocusHandler);
+            this.blueprint.addEventListener("blueprint-unfocus", this.blueprintUnfocusHandler);
         }
     }
 
     unlistenDOMElement() {
         this.blueprintUnfocused();
-        this.blueprint.removeEventListener("blueprintfocus", this.blueprintfocusHandler);
-        this.blueprint.removeEventListener("blueprintunfocus", this.blueprintunfocusHandler);
+        this.blueprint.removeEventListener("blueprint-focus", this.blueprintFocusHandler);
+        this.blueprint.removeEventListener("blueprint-unfocus", this.blueprintUnfocusHandler);
     }
 
 
@@ -883,6 +907,7 @@ class PinReferenceEntity extends Entity {
 
 class PinEntity$1 extends Entity {
 
+    static lookbehind = "Pin"
     static attributes = {
         PinId: GuidEntity,
         PinName: "",
@@ -1099,25 +1124,28 @@ class Grammar {
         }
     }
     // Meta grammar
-    static CreateAttributeGrammar = (r, attributeGrammar, attributeSupplier, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
-        attributeGrammar.skip(valueSeparator)
+    static CreateAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
+        r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
                 const attributeKey = attributeName.split(".");
-                const attribute = attributeSupplier(attributeKey);
+                const attribute = Utility.objectGet(entityType.attributes, attributeKey);
                 let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue);
+                // Returns attributeSetter: a function called with an object as argument that will set the correct attribute value
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
-                ) // returns attributeSetter:  a function called with an object as argument that will set the correct attribute value
+                )
             })
     // Meta grammar
-    static CreateMultiAttributeGrammar = (r, keyGrammar, entityType, attributeSupplier) =>
+    static CreateMultiAttributeGrammar = (r, entityType) =>
         /**
          * Basically this creates a parser that looks for a string like 'Key (A=False,B="Something",)'
          * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
          */
         P.seqMap(
-            P.seq(keyGrammar, P.optWhitespace, P.string("(")),
-            Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeSupplier)
+            entityType.lookbehind
+                ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
+                : P.string("("),
+            Grammar.CreateAttributeGrammar(r, entityType)
                 .trim(P.optWhitespace)
                 .sepBy(P.string(","))
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma
@@ -1127,18 +1155,8 @@ class Grammar {
                 attributes.forEach(attributeSetter => attributeSetter(result));
                 return result
             })
-    FunctionReference = r => Grammar.CreateMultiAttributeGrammar(
-        r,
-        P.succeed(),
-        FunctionReferenceEntity,
-        attributeKey => Utility.objectGet(FunctionReferenceEntity.attributes, attributeKey)
-    )
-    Pin = r => Grammar.CreateMultiAttributeGrammar(
-        r,
-        P.string("Pin"),
-        PinEntity$1,
-        attributeKey => Utility.objectGet(PinEntity$1.attributes, attributeKey)
-    )
+    FunctionReference = r => Grammar.CreateMultiAttributeGrammar(r, FunctionReferenceEntity)
+    Pin = r => Grammar.CreateMultiAttributeGrammar(r, PinEntity$1)
     CustomProperties = r =>
         P.string("CustomProperties")
             .then(P.whitespace)
@@ -1155,7 +1173,7 @@ class Grammar {
         P
             .alt(
                 r.CustomProperties,
-                Grammar.CreateAttributeGrammar(r, r.AttributeName, attributeKey => Utility.objectGet(ObjectEntity.attributes, attributeKey))
+                Grammar.CreateAttributeGrammar(r, ObjectEntity)
             )
             .sepBy1(P.whitespace),
         P.seq(r.WhitespaceNewline, P.string("End"), P.whitespace, P.string("Object")),
@@ -1317,15 +1335,15 @@ class Copy extends Context {
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
-        this.copyHandle = _ => self.copied();
+        this.copyHandler = _ => self.copied();
     }
 
     blueprintFocused() {
-        document.body.addEventListener("copy", this.copyHandle);
+        document.body.addEventListener("copy", this.copyHandler);
     }
 
     blueprintUnfocused() {
-        document.body.removeEventListener("copy", this.copyHandle);
+        document.body.removeEventListener("copy", this.copyHandler);
     }
 
     copied() {
@@ -1476,99 +1494,50 @@ class DragScroll extends MouseClickDrag {
     }
 }
 
-class KeyboardShortcut extends Context {
+/**
+ * @typedef {import("../graph/GraphLink").default} GraphLink
+ */
+class LinkTemplate extends Template {
 
-    constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
-        super(target, blueprint, options);
-
-        /** @type {String[]} */
-        this.key = this.options.key;
-        this.ctrlKey = options.ctrlKey ?? false;
-        this.shiftKey = options.shiftKey ?? false;
-        this.altKey = options.altKey ?? false;
-        this.metaKey = options.metaKey ?? false;
-
-        let self = this;
-        this.keyDownHandler = e => {
-            if (
-                e.code == self.key
-                && e.ctrlKey === self.ctrlKey
-                && e.shiftKey === self.shiftKey
-                && e.altKey === self.altKey
-                && e.metaKey === self.metaKey
-            ) {
-                self.fire();
-            }
-        };
+    /**
+     * Computes the html content of the target element.
+     * @param {GraphLink} link Link connecting two graph nodes 
+     * @returns The result html 
+     */
+    render(link) {
+        return html`
+            <svg viewBox="0 0 100 100">
+                <line x1="0" y1="80" x2="100" y2="20" stroke="black" />
+            </svg>
+        `
     }
 
     /**
-     * 
-     * @param {String} keyString
-     * @returns {Object}
+     * Applies the style to the element.
+     * @param {GraphLink} link Element of the graph
      */
-    static keyOptionsParse(options, keyString) {
-        options.key = keyString;
-        return options
+    apply(link) {
+        super.apply(link);
+
     }
-
-    blueprintFocused() {
-        document.addEventListener("keydown", this.keyDownHandler);
-    }
-
-    blueprintUnfocused() {
-        document.removeEventListener("keydown", this.keyDownHandler);
-    }
-
-    fire() {
-    }
-}
-
-class Configuration {
-
-    static deleteNodesKeyboardKey = "Delete"
-    static expandGridSize = 400
-    static gridSize = 16
-    static gridSnap = 16
-}
-
-class KeyvoardCanc extends KeyboardShortcut {
 
     /**
-     * 
-     * @param {HTMLElement} target 
-     * @param {import("../Blueprint").default} blueprint 
-     * @param {OBject} options 
+     * Applies the style relative to the source pin location.
+     * @param {GraphLink} link Link element
      */
-    constructor(target, blueprint, options = {}) {
-        options = KeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
-        super(target, blueprint, options);
+    applySourceLocation(link, initialPosition) {
+        // Set initial position
+        link.style.setProperty("--ueb-link-from-x", sanitizeText(initialPosition[0]));
+        link.style.setProperty("--ueb-link-from-y", sanitizeText(initialPosition[1]));
     }
 
-    fire() {
-        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
-    }
-}
-
-class MouseTracking extends Pointing {
-
-    constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
-        super(target, blueprint, options);
-
-        let self = this;
-        this.mousemoveHandler = e => {
-            self.blueprint.entity.mousePosition = self.getLocation(e);
-        };
-    }
-
-    blueprintFocused() {
-        this.target.addEventListener("mousemove", this.mousemoveHandler);
-    }
-
-    blueprintUnfocused() {
-        this.target.removeEventListener("mousemove", this.mousemoveHandler);
+    /**
+     * Applies the style relative to the destination pin location.
+     * @param {GraphLink} link Link element
+     */
+    applyDestinationLocation(link, finalPosition) {
+        link.style.setProperty("--ueb-link-to-x", sanitizeText(finalPosition[0]));
+        link.style.setProperty("--ueb-link-to-y", sanitizeText(finalPosition[1]));
     }
 }
 
@@ -1631,112 +1600,6 @@ class DragLink extends MouseClickDrag {
     }
 }
 
-/**
- * @typedef {import("../graph/GraphLink").default} GraphLink
- */
-class LinkTemplate extends Template {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphLink} link Link connecting two graph nodes 
-     * @returns The result html 
-     */
-    render(link) {
-        return html`
-            <svg viewBox="0 0 100 100">
-                <line x1="0" y1="80" x2="100" y2="20" stroke="black" />
-            </svg>
-        `
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {GraphLink} link Element of the graph
-     */
-    apply(link) {
-        super.apply(link);
-
-    }
-
-    /**
-     * Applies the style relative to the source pin location.
-     * @param {GraphLink} link Link element
-     */
-    applySourceLocation(link, initialPosition) {
-        // Set initial position
-        link.style.setProperty("--ueb-link-from-x", sanitizeText(initialPosition[0]));
-        link.style.setProperty("--ueb-link-from-y", sanitizeText(initialPosition[1]));
-    }
-
-    /**
-     * Applies the style relative to the destination pin location.
-     * @param {GraphLink} link Link element
-     */
-    applyDestinationLocation(link, finalPosition) {
-        link.style.setProperty("--ueb-link-to-x", sanitizeText(finalPosition[0]));
-        link.style.setProperty("--ueb-link-to-y", sanitizeText(finalPosition[1]));
-    }
-}
-
-/**
- * @type {import("./GraphPin").default} GraphPin
- */
-class GraphLink extends GraphElement {
-
-    /** @type {GraphPin} */
-    #source
-    /** @type {GraphPin} */
-    #destination
-    #nodeDeleteHandler = _ => this.blueprint.removeGraphElement(this)
-    #nodeDragSourceHandler = _ => this.setSourceLocation(this.#source.getLinkLocation())
-    #nodeDragDestinatonHandler = _ => this.setDestinationLocation(this.#destination.getLinkLocation())
-
-    /**
-     * @param {?GraphPin} source 
-     * @param {?GraphPin} destination 
-     */
-    constructor(source, destination) {
-        super(this, new LinkTemplate());
-        /** @type {import("../template/LinkTemplate").default} */
-        this.template;
-        this.setSource(source);
-        this.setDestination(destination);
-    }
-
-    setSourceLocation(location) {
-        this.template.applySourceLocation(this.#source.getLinkLocation());
-    }
-
-    setDestinationLocation(location) {
-        this.template.applyDestinationLocation(this.#destination.getLinkLocation());
-    }
-
-    /**
-     * @param {GraphPin} graphPin 
-     */
-    setSourcePin(graphPin) {
-        this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
-        this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
-        this.#source = graphPin;
-        this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
-        this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
-    }
-
-    /**
-     * 
-     * @param {GraphPin} graphPin 
-     */
-    setDestinationPin(graphPin) {
-        this.#destination?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
-        this.#destination?.removeEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler);
-        this.#destination = graphPin;
-        this.#destination?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
-        this.#destination?.addEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler);
-    }
-}
-
-customElements.define("ueb-link", GraphLink);
-
 class GraphPin extends GraphElement {
 
     constructor(entity) {
@@ -1747,11 +1610,12 @@ class GraphPin extends GraphElement {
         this.clickableElement = null;
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-        new DragLink(this.clickableElement, this.blueprint, {
-            moveEverywhere: true
-        });
+    createInputObjects() {
+        return [
+            new DragLink(this.clickableElement, this.blueprint, {
+                moveEverywhere: true
+            }),
+        ]
     }
 
     /**
@@ -1801,6 +1665,65 @@ class GraphPin extends GraphElement {
 }
 
 customElements.define("ueb-pin", GraphPin);
+
+/**
+ * @type {import("./GraphPin").default} GraphPin
+ */
+class GraphLink extends GraphElement {
+
+    /** @type {GraphPin} */
+    #source
+    /** @type {GraphPin} */
+    #destination
+    #nodeDeleteHandler = _ => this.blueprint.removeGraphElement(this)
+    #nodeDragSourceHandler = _ => this.setSourceLocation(this.#source.getLinkLocation())
+    #nodeDragDestinatonHandler = _ => this.setDestinationLocation(this.#destination.getLinkLocation())
+
+    /**
+     * @param {?GraphPin} source
+     * @param {?GraphPin} destination
+     */
+    constructor(source, destination) {
+        super(this, new LinkTemplate());
+        /** @type {import("../template/LinkTemplate").default} */
+        this.template;
+        this.setSource(source);
+        this.setDestination(destination);
+    }
+
+    setSourceLocation(location) {
+        this.template.applySourceLocation(this.#source.getLinkLocation());
+    }
+
+    setDestinationLocation(location) {
+        this.template.applyDestinationLocation(this.#destination.getLinkLocation());
+    }
+
+    /**
+     * @param {GraphPin} graphPin 
+     */
+    setSourcePin(graphPin) {
+        this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
+        this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
+        this.#source = graphPin;
+        this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
+        this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
+    }
+
+    /**
+     * 
+     * @param {GraphPin} graphPin 
+     */
+    setDestinationPin(graphPin) {
+        this.#destination?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
+        this.#destination?.removeEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler);
+        this.#destination = graphPin;
+        this.#destination?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
+        this.#destination?.addEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler);
+    }
+}
+
+customElements.define("ueb-link", GraphLink);
 
 /**
  * @typedef {import("../graph/SelectableDraggable").default} SelectableDraggable
@@ -1956,16 +1879,12 @@ class SelectableDraggable extends GraphElement {
         };
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-        this.dragObject = new DragMove(this, this.blueprint, {
-            looseTarget: true
-        });
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this.dragObject.unlistenDOMElement();
+    createInputObjects() {
+        return [
+            new DragMove(this, this.blueprint, {
+                looseTarget: true
+            }),
+        ]
     }
 
     setLocation(value = [0, 0]) {
@@ -2025,10 +1944,6 @@ class GraphNode extends SelectableDraggable {
         return new GraphNode(entity)
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-    }
-
     disconnectedCallback() {
         super.disconnectedCallback();
         this.dispatchDeleteEvent();
@@ -2064,6 +1979,94 @@ class GraphNode extends SelectableDraggable {
 }
 
 customElements.define("ueb-node", GraphNode);
+
+class KeyboardShortcut extends Context {
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+
+        /** @type {String[]} */
+        this.key = this.options.key;
+        this.ctrlKey = options.ctrlKey ?? false;
+        this.shiftKey = options.shiftKey ?? false;
+        this.altKey = options.altKey ?? false;
+        this.metaKey = options.metaKey ?? false;
+
+        let self = this;
+        this.keyDownHandler = e => {
+            if (
+                e.code == self.key
+                && e.ctrlKey === self.ctrlKey
+                && e.shiftKey === self.shiftKey
+                && e.altKey === self.altKey
+                && e.metaKey === self.metaKey
+            ) {
+                self.fire();
+            }
+        };
+    }
+
+    /**
+     * 
+     * @param {String} keyString
+     * @returns {Object}
+     */
+    static keyOptionsParse(options, keyString) {
+        options.key = keyString;
+        return options
+    }
+
+    blueprintFocused() {
+        document.addEventListener("keydown", this.keyDownHandler);
+    }
+
+    blueprintUnfocused() {
+        document.removeEventListener("keydown", this.keyDownHandler);
+    }
+
+    fire() {
+    }
+}
+
+class KeyvoardCanc extends KeyboardShortcut {
+
+    /**
+     * 
+     * @param {HTMLElement} target 
+     * @param {import("../Blueprint").default} blueprint 
+     * @param {OBject} options 
+     */
+    constructor(target, blueprint, options = {}) {
+        options = KeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
+        super(target, blueprint, options);
+    }
+
+    fire() {
+        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
+    }
+}
+
+class MouseTracking extends Pointing {
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+
+        let self = this;
+        this.mousemoveHandler = e => {
+            self.blueprint.entity.mousePosition = self.getLocation(e);
+        };
+    }
+
+    blueprintFocused() {
+        this.target.addEventListener("mousemove", this.mousemoveHandler);
+    }
+
+    blueprintUnfocused() {
+        this.target.removeEventListener("mousemove", this.mousemoveHandler);
+    }
+}
 
 class Paste extends Context {
 
@@ -2299,30 +2302,28 @@ class Blueprint extends GraphElement {
         this.template.applyTranlate(this);
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-
-        this.copyObject = new Copy(this.getGridDOMElement(), this);
-        this.pasteObject = new Paste(this.getGridDOMElement(), this);
-        this.cancObject = new KeyvoardCanc(this.getGridDOMElement(), this);
-
-        this.zoomObject = new Zoom(this.getGridDOMElement(), this, {
-            looseTarget: true,
-        });
-        this.selectObject = new Select(this.getGridDOMElement(), this, {
-            clickButton: 0,
-            exitAnyButton: true,
-            moveEverywhere: true,
-        });
-        this.dragObject = new DragScroll(this.getGridDOMElement(), this, {
-            clickButton: 2,
-            exitAnyButton: false,
-            looseTarget: true,
-            moveEverywhere: true,
-        });
-
-        this.unfocusObject = new Unfocus(this.getGridDOMElement(), this);
-        this.mouseTrackingObject = new MouseTracking(this.getGridDOMElement(), this);
+    createInputObjects() {
+        return [
+            new Copy(this.getGridDOMElement(), this),
+            new Paste(this.getGridDOMElement(), this),
+            new KeyvoardCanc(this.getGridDOMElement(), this),
+            new Zoom(this.getGridDOMElement(), this, {
+                looseTarget: true,
+            }),
+            new Select(this.getGridDOMElement(), this, {
+                clickButton: 0,
+                exitAnyButton: true,
+                moveEverywhere: true,
+            }),
+            new DragScroll(this.getGridDOMElement(), this, {
+                clickButton: 2,
+                exitAnyButton: false,
+                looseTarget: true,
+                moveEverywhere: true,
+            }),
+            new Unfocus(this.getGridDOMElement(), this),
+            new MouseTracking(this.getGridDOMElement(), this),
+        ]
     }
 
     getGridDOMElement() {
@@ -2332,9 +2333,6 @@ class Blueprint extends GraphElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         setSelected(false);
-        this.dragObject.unlistenDOMElement();
-        this.selectObject.unlistenDOMElement();
-        this.pasteObject.unlistenDOMElement();
     }
 
     getScroll() {
@@ -2570,7 +2568,7 @@ class Blueprint extends GraphElement {
         if (this.focused == value) {
             return;
         }
-        let event = new CustomEvent(value ? "blueprintfocus" : "blueprintunfocus");
+        let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus");
         this.focused = value;
         this.dataset.focused = this.focused;
         if (!this.focused) {

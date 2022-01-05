@@ -23,10 +23,6 @@ export default class GraphNode extends SelectableDraggable {
         return new GraphNode(entity)
     }
 
-    connectedCallback() {
-        super.connectedCallback()
-    }
-
     disconnectedCallback() {
         super.disconnectedCallback()
         this.dispatchDeleteEvent()

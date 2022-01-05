@@ -8,15 +8,15 @@ export default class Copy extends Context {
         super(target, blueprint, options)
         this.serializer = new ObjectSerializer()
         let self = this
-        this.copyHandle = _ => self.copied()
+        this.copyHandler = _ => self.copied()
     }
 
     blueprintFocused() {
-        document.body.addEventListener("copy", this.copyHandle)
+        document.body.addEventListener("copy", this.copyHandler)
     }
 
     blueprintUnfocused() {
-        document.body.removeEventListener("copy", this.copyHandle)
+        document.body.removeEventListener("copy", this.copyHandler)
     }
 
     copied() {

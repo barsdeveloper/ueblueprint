@@ -7,6 +7,7 @@ import TypeInitialization from "./TypeInitialization"
 
 export default class PinEntity extends Entity {
 
+    static lookbehind = "Pin"
     static attributes = {
         PinId: GuidEntity,
         PinName: "",

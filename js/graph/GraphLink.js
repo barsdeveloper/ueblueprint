@@ -17,8 +17,8 @@ export default class GraphLink extends GraphElement {
     #nodeDragDestinatonHandler = _ => this.setDestinationLocation(this.#destination.getLinkLocation())
 
     /**
-     * @param {?GraphPin} source 
-     * @param {?GraphPin} destination 
+     * @param {?GraphPin} source
+     * @param {?GraphPin} destination
      */
     constructor(source, destination) {
         super(this, new LinkTemplate())
