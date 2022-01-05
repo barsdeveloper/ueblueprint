@@ -1,5 +1,5 @@
-import Context from "./Context"
-import ObjectSerializer from "../serialization/ObjectSerializer"
+import Context from "../Context"
+import ObjectSerializer from "../../serialization/ObjectSerializer"
 
 export default class Copy extends Context {
 

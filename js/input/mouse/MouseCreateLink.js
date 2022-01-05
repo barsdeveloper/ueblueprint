@@ -1,12 +1,12 @@
 import MouseClickDrag from "./MouseClickDrag"
 
-export default class DragLink extends MouseClickDrag {
+export default class MouseCreateLink extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
-        /** @type {import("../graph/GraphPin").default} */
+        /** @type {import("../../graph/GraphPin").default} */
         this.target
-        /** @type {import("../graph/GraphLink").default} */
+        /** @type {import("../../graph/GraphLink").default} */
         this.link
     }
 

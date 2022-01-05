@@ -1,18 +1,18 @@
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import Configuration from "./Configuration"
-import Copy from "./input/Copy"
-import DragScroll from "./input/DragScroll"
+import Copy from "./input/common/Copy"
+import MouseScrollGraph from "./input/mouse/MouseScrollGraph"
 import GraphElement from "./graph/GraphElement"
 import GraphLink from "./graph/GraphLink"
 import GraphNode from "./graph/GraphNode"
 import GraphSelector from "./graph/GraphSelector"
-import KeyboardCanc from "./input/KeyboardCanc"
-import MouseTracking from "./input/MouseTracking"
-import Paste from "./input/Paste"
-import Select from "./input/Select"
-import Unfocus from "./input/Unfocus"
+import KeyboardCanc from "./input/keybaord/KeyboardCanc"
+import MouseTracking from "./input/mouse/MouseTracking"
+import Paste from "./input/common/Paste"
+import Select from "./input/mouse/Select"
+import Unfocus from "./input/mouse/Unfocus"
 import Utility from "./Utility"
-import Zoom from "./input/Zoom"
+import Zoom from "./input/mouse/Zoom"
 
 export default class Blueprint extends GraphElement {
 
@@ -106,7 +106,7 @@ export default class Blueprint extends GraphElement {
                 exitAnyButton: true,
                 moveEverywhere: true,
             }),
-            new DragScroll(this.getGridDOMElement(), this, {
+            new MouseScrollGraph(this.getGridDOMElement(), this, {
                 clickButton: 2,
                 exitAnyButton: false,
                 looseTarget: true,

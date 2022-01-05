@@ -5,7 +5,7 @@ export default class MouseWheel extends Pointing {
     /**
      * 
      * @param {HTMLElement} target 
-     * @param {import("../Blueprint").default} blueprint 
+     * @param {import("../../Blueprint").default} blueprint 
      * @param {Object} options 
      */
     constructor(target, blueprint, options) {

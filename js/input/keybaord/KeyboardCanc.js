@@ -1,5 +1,5 @@
 import KeyboardShortcut from "./KeyboardShortcut"
-import Configuration from "../Configuration"
+import Configuration from "../../Configuration"
 
 
 export default class KeyvoardCanc extends KeyboardShortcut {
@@ -7,7 +7,7 @@ export default class KeyvoardCanc extends KeyboardShortcut {
     /**
      * 
      * @param {HTMLElement} target 
-     * @param {import("../Blueprint").default} blueprint 
+     * @param {import("../../Blueprint").default} blueprint 
      * @param {OBject} options 
      */
     constructor(target, blueprint, options = {}) {

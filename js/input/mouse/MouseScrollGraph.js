@@ -1,6 +1,6 @@
 import MouseClickDrag from "./MouseClickDrag"
 
-export default class DragScroll extends MouseClickDrag {
+export default class MouseScrollGraph extends MouseClickDrag {
 
     startDrag() {
         this.blueprint.template.applyStartDragScrolling(this.blueprint)

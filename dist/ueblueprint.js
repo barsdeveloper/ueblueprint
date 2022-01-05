@@ -1479,7 +1479,7 @@ class MouseClickDrag extends Pointing {
     }
 }
 
-class DragScroll extends MouseClickDrag {
+class MouseScrollGraph extends MouseClickDrag {
 
     startDrag() {
         this.blueprint.template.applyStartDragScrolling(this.blueprint);
@@ -1576,13 +1576,13 @@ class PinTemplate extends Template {
     }
 }
 
-class DragLink extends MouseClickDrag {
+class MouseCreateLink extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-        /** @type {import("../graph/GraphPin").default} */
+        /** @type {import("../../graph/GraphPin").default} */
         this.target;
-        /** @type {import("../graph/GraphLink").default} */
+        /** @type {import("../../graph/GraphLink").default} */
         this.link;
     }
 
@@ -1612,7 +1612,7 @@ class GraphPin extends GraphElement {
 
     createInputObjects() {
         return [
-            new DragLink(this.clickableElement, this.blueprint, {
+            new MouseCreateLink(this.clickableElement, this.blueprint, {
                 moveEverywhere: true
             }),
         ]
@@ -1825,7 +1825,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
     }
 }
 
-class DragMove extends MouseClickDrag {
+class MouseMoveNodes extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
@@ -1881,7 +1881,7 @@ class SelectableDraggable extends GraphElement {
 
     createInputObjects() {
         return [
-            new DragMove(this, this.blueprint, {
+            new MouseMoveNodes(this, this.blueprint, {
                 looseTarget: true
             }),
         ]
@@ -2034,7 +2034,7 @@ class KeyvoardCanc extends KeyboardShortcut {
     /**
      * 
      * @param {HTMLElement} target 
-     * @param {import("../Blueprint").default} blueprint 
+     * @param {import("../../Blueprint").default} blueprint 
      * @param {OBject} options 
      */
     constructor(target, blueprint, options = {}) {
@@ -2178,7 +2178,7 @@ class MouseWheel extends Pointing {
     /**
      * 
      * @param {HTMLElement} target 
-     * @param {import("../Blueprint").default} blueprint 
+     * @param {import("../../Blueprint").default} blueprint 
      * @param {Object} options 
      */
     constructor(target, blueprint, options) {
@@ -2315,7 +2315,7 @@ class Blueprint extends GraphElement {
                 exitAnyButton: true,
                 moveEverywhere: true,
             }),
-            new DragScroll(this.getGridDOMElement(), this, {
+            new MouseScrollGraph(this.getGridDOMElement(), this, {
                 clickButton: 2,
                 exitAnyButton: false,
                 looseTarget: true,

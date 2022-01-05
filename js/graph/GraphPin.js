@@ -1,6 +1,6 @@
 import GraphElement from "./GraphElement"
 import PinTemplate from "../template/PinTemplate"
-import DragLink from "../input/DragLink"
+import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import GraphLink from "./GraphLink"
 
 export default class GraphPin extends GraphElement {
@@ -15,7 +15,7 @@ export default class GraphPin extends GraphElement {
 
     createInputObjects() {
         return [
-            new DragLink(this.clickableElement, this.blueprint, {
+            new MouseCreateLink(this.clickableElement, this.blueprint, {
                 moveEverywhere: true
             }),
         ]

@@ -1,6 +1,6 @@
-import GraphNode from "../graph/GraphNode"
-import ObjectSerializer from "../serialization/ObjectSerializer"
-import Context from "./Context"
+import GraphNode from "../../graph/GraphNode"
+import ObjectSerializer from "../../serialization/ObjectSerializer"
+import Context from "../Context"
 
 export default class Paste extends Context {
 

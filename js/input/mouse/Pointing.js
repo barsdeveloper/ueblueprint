@@ -1,5 +1,5 @@
-import Context from "./Context"
-import Utility from "../Utility"
+import Context from "../Context"
+import Utility from "../../Utility"
 
 export default class Pointing extends Context {
 

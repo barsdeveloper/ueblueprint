@@ -1,4 +1,4 @@
-import DragMove from "../input/DragMove"
+import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 import GraphElement from "./GraphElement"
 
 export default class SelectableDraggable extends GraphElement {
@@ -19,7 +19,7 @@ export default class SelectableDraggable extends GraphElement {
 
     createInputObjects() {
         return [
-            new DragMove(this, this.blueprint, {
+            new MouseMoveNodes(this, this.blueprint, {
                 looseTarget: true
             }),
         ]

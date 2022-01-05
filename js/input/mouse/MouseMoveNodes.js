@@ -1,6 +1,6 @@
 import MouseClickDrag from "./MouseClickDrag"
 
-export default class DragMove extends MouseClickDrag {
+export default class MouseMoveNodes extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
