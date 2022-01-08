@@ -4,8 +4,9 @@ import Serializer from "./Serializer"
 export default class GeneralSerializer extends Serializer {
 
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
+        wrap = wrap ?? (v => `(${v})`)
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter)
-        this.wrap = wrap ?? (v => `(${v})`)
+        this.wrap = wrap
     }
 
     read(value) {

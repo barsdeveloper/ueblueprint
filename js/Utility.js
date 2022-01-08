@@ -1,3 +1,4 @@
+import Configuration from "./Configuration"
 import TypeInitialization from "./entity/TypeInitialization"
 
 export default class Utility {
@@ -76,5 +77,20 @@ export default class Utility {
             default:
                 return constructor
         }
+    }
+
+    /**
+     * 
+     * @param {Number[]} location 
+     * @param {Number} gridSize 
+     */
+    static snapToGrid(location, gridSize = Configuration.gridSize) {
+        if (gridSize === 1) {
+            return location
+        }
+        return [
+            gridSize * Math.round(location[0] / gridSize),
+            gridSize * Math.round(location[1] / gridSize)
+        ]
     }
 }

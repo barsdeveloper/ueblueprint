@@ -48,7 +48,7 @@ export default class Grammar {
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
     AttributeAnyValue = r => P.alt(r.Null, r.None, r.Boolean, r.Number, r.Integer, r.String, r.Guid, r.Reference, r.LocalizedText)
     LocalizedText = r => P.seqMap(
-        P.string("NSLOCTEXT").skip(P.optWhitespace).skip(P.string("(")),
+        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")),
         r.String.trim(P.optWhitespace), // namespace
         P.string(","),
         r.String.trim(P.optWhitespace), // key

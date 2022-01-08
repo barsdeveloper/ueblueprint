@@ -45,6 +45,7 @@ export default class Paste extends Context {
             ]
             node.addLocation(this.blueprint.compensateTranslation(locationOffset))
             node.setSelected(true)
+            node.snapToGrid()
         })
     }
 }

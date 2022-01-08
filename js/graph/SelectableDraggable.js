@@ -61,4 +61,11 @@ export default class SelectableDraggable extends GraphElement {
         })
         this.blueprint.dispatchEvent(dragEvent)
     }
+
+    snapToGrid() {
+        let snappedLocation = this.blueprint.snapToGrid(this.location)
+        if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
+            this.setLocation(snappedLocation)
+        }
+    }
 }

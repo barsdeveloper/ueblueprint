@@ -1,6 +1,5 @@
 import GraphElement from "./GraphElement"
 import LinkTemplate from "../template/LinkTemplate"
-import GraphPin from "./GraphPin"
 
 
 /**

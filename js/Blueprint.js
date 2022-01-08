@@ -22,8 +22,6 @@ export default class Blueprint extends GraphElement {
         this.template
         /** @type {number} */
         this.gridSize = Configuration.gridSize
-        /** @type {number} */
-        this.gridSnap = Configuration.gridSnap
         /** @type {GraphNode[]}" */
         this.nodes = []
         /** @type {GraphLink[]}" */
@@ -216,10 +214,7 @@ export default class Blueprint extends GraphElement {
     }
 
     snapToGrid(location) {
-        return [
-            this.gridSnap * Math.round(location[0] / this.gridSnap),
-            this.gridSnap * Math.round(location[1] / this.gridSnap)
-        ]
+        return Utility.snapToGrid(location, this.gridSize)
     }
 
     /**
@@ -357,7 +352,7 @@ export default class Blueprint extends GraphElement {
 
     setFocused(value = true) {
         if (this.focused == value) {
-            return;
+            return
         }
         let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus")
         this.focused = value

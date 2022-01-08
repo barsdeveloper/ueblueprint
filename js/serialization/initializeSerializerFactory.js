@@ -20,7 +20,7 @@ export default function initializeSerializerFactory() {
     )
     SerializerFactory.registerSerializer(
         PinEntity,
-        new GeneralSerializer(v => `Pin (${v})`, PinEntity, "", ",", true)
+        new GeneralSerializer(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
     )
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
@@ -28,7 +28,7 @@ export default function initializeSerializerFactory() {
     )
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new GeneralSerializer(v => `NSLOCTEXT(${v})`, LocalizedTextEntity, "", ",", false, "", _ => "")
+        new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ",", false, "", _ => "")
     )
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
