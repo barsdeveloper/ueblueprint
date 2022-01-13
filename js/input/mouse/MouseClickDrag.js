@@ -31,6 +31,7 @@ export default class MouseClickDrag extends Pointing {
                         document.addEventListener("mouseup", self.mouseUpHandler)
                         self.clickedPosition = self.getLocation(e)
                         self.clicked(self.clickedPosition)
+                        return true
                     }
                     break
                 default:
@@ -39,6 +40,7 @@ export default class MouseClickDrag extends Pointing {
                     }
                     break
             }
+            return false
         }
 
         this.mouseStartedMovingHandler = e => {

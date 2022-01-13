@@ -18,6 +18,7 @@ export default class MouseWheel extends Pointing {
             e.preventDefault()
             const location = self.getLocation(e)
             self.wheel(Math.sign(e.deltaY), location)
+            return true
         }
         this.mouseParentWheelHandler = e => e.preventDefault()
 

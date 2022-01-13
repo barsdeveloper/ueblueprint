@@ -590,6 +590,98 @@ class Configuration {
     static deleteNodesKeyboardKey = "Delete"
     static expandGridSize = 400
     static gridSize = 16
+    static selectAllKeyboardKey = "Ctrl+A"
+    static keysSeparator = "+"
+    static ModifierKeys = [
+        "Ctrl",
+        "Shift",
+        "Alt",
+        "Meta"
+    ]
+    static Keys = {
+        "Backspace": "Backspace",
+        "Tab": "Tab",
+        "Enter": "Enter",
+        "Pause": "Pause",
+        "CapsLock": "CapsLock",
+        "Escape": "Escape",
+        "Space": "Space",
+        "PageUp": "PageUp",
+        "PageDown": "PageDown",
+        "End": "End",
+        "Home": "Home",
+        "ArrowLeft": "ArrowLeft",
+        "ArrowUp": "ArrowUp",
+        "ArrowRight": "ArrowRight",
+        "ArrowDown": "ArrowDown",
+        "PrintScreen": "PrintScreen",
+        "Insert": "Insert",
+        "Delete": "Delete",
+        "Digit0": "Digit0",
+        "Digit1": "Digit1",
+        "Digit2": "Digit2",
+        "Digit3": "Digit3",
+        "Digit4": "Digit4",
+        "Digit5": "Digit5",
+        "Digit6": "Digit6",
+        "Digit7": "Digit7",
+        "Digit8": "Digit8",
+        "Digit9": "Digit9",
+        "A": "KeyA",
+        "B": "KeyB",
+        "C": "KeyC",
+        "D": "KeyD",
+        "E": "KeyE",
+        "F": "KeyF",
+        "G": "KeyG",
+        "H": "KeyH",
+        "I": "KeyI",
+        "K": "KeyK",
+        "L": "KeyL",
+        "M": "KeyM",
+        "N": "KeyN",
+        "O": "KeyO",
+        "P": "KeyP",
+        "Q": "KeyQ",
+        "R": "KeyR",
+        "S": "KeyS",
+        "T": "KeyT",
+        "U": "KeyU",
+        "V": "KeyV",
+        "W": "KeyW",
+        "X": "KeyX",
+        "Y": "KeyY",
+        "Z": "KeyZ",
+        "Numpad0": "Numpad0",
+        "Numpad1": "Numpad1",
+        "Numpad2": "Numpad2",
+        "Numpad3": "Numpad3",
+        "Numpad4": "Numpad4",
+        "Numpad5": "Numpad5",
+        "Numpad6": "Numpad6",
+        "Numpad7": "Numpad7",
+        "Numpad8": "Numpad8",
+        "Numpad9": "Numpad9",
+        "NumpadMultiply": "NumpadMultiply",
+        "NumpadAdd": "NumpadAdd",
+        "NumpadSubtract": "NumpadSubtract",
+        "NumpadDecimal": "NumpadDecimal",
+        "NumpadDivide": "NumpadDivide",
+        "F1": "F1",
+        "F2": "F2",
+        "F3": "F3",
+        "F4": "F4",
+        "F5": "F5",
+        "F6": "F6",
+        "F7": "F7",
+        "F8": "F8",
+        "F9": "F9",
+        "F10": "F10",
+        "F11": "F11",
+        "F12": "F12",
+        "NumLock": "NumLock",
+        "ScrollLock": "ScrollLock",
+    }
 }
 
 class Context {
@@ -1036,60 +1128,60 @@ var parsimmon_umd_min = {exports: {}};
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
 
-let P = Parsimmon;
+let P$1 = Parsimmon;
 
 class Grammar {
     // General
-    InlineWhitespace = _ => P.regex(/[^\S\n]+/).desc("inline whitespace")
-    InlineOptWhitespace = _ => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
-    WhitespaceNewline = _ => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
-    Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
-    None = _ => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
-    Boolean = _ => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
-    Number = _ => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
-    Integer = _ => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
-    String = _ => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).desc('string (with possibility to escape the quote using \")')
-    Word = _ => P.regex(/[a-zA-Z]+/).desc("a word")
-    Guid = _ => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
-    PathSymbolEntity = _ => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
-    ReferencePath = r => P.seq(P.string("/"), r.PathSymbolEntity.map(v => v.toString()).sepBy1(P.string(".")).tieWith("."))
+    InlineWhitespace = _ => P$1.regex(/[^\S\n]+/).desc("inline whitespace")
+    InlineOptWhitespace = _ => P$1.regex(/[^\S\n]*/).desc("inline optional whitespace")
+    WhitespaceNewline = _ => P$1.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
+    Null = r => P$1.seq(P$1.string("("), r.InlineOptWhitespace, P$1.string(")")).map(_ => null).desc("null: ()")
+    None = _ => P$1.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
+    Boolean = _ => P$1.alt(P$1.string("True"), P$1.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
+    Number = _ => P$1.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+    Integer = _ => P$1.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
+    String = _ => P$1.regex(/(?:[^"\\]|\\.)*/).wrap(P$1.string('"'), P$1.string('"')).desc('string (with possibility to escape the quote using \")')
+    Word = _ => P$1.regex(/[a-zA-Z]+/).desc("a word")
+    Guid = _ => P$1.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
+    PathSymbolEntity = _ => P$1.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
+    ReferencePath = r => P$1.seq(P$1.string("/"), r.PathSymbolEntity.map(v => v.toString()).sepBy1(P$1.string(".")).tieWith("."))
         .tie()
         .atLeast(2)
         .tie()
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
-    Reference = r => P.alt(
+    Reference = r => P$1.alt(
         r.None,
         r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path })),
-        P.seqMap(
+        P$1.seqMap(
             r.Word,
-            P.optWhitespace,
-            P.alt(P.string(`"`), P.string(`'"`)).chain(
+            P$1.optWhitespace,
+            P$1.alt(P$1.string(`"`), P$1.string(`'"`)).chain(
                 result => r.ReferencePath.skip(
-                    P.string(result.split("").reverse().join(""))
+                    P$1.string(result.split("").reverse().join(""))
                 )
             ),
             (referenceType, _, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
         )
     )
-    AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
-    AttributeAnyValue = r => P.alt(r.Null, r.None, r.Boolean, r.Number, r.Integer, r.String, r.Guid, r.Reference, r.LocalizedText)
-    LocalizedText = r => P.seqMap(
-        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")),
-        r.String.trim(P.optWhitespace), // namespace
-        P.string(","),
-        r.String.trim(P.optWhitespace), // key
-        P.string(","),
-        r.String.trim(P.optWhitespace), // value
-        P.string(")"),
+    AttributeName = r => r.Word.sepBy1(P$1.string(".")).tieWith(".").desc('words separated by ""')
+    AttributeAnyValue = r => P$1.alt(r.Null, r.None, r.Boolean, r.Number, r.Integer, r.String, r.Guid, r.Reference, r.LocalizedText)
+    LocalizedText = r => P$1.seqMap(
+        P$1.string(LocalizedTextEntity.lookbehind).skip(P$1.optWhitespace).skip(P$1.string("(")),
+        r.String.trim(P$1.optWhitespace), // namespace
+        P$1.string(","),
+        r.String.trim(P$1.optWhitespace), // key
+        P$1.string(","),
+        r.String.trim(P$1.optWhitespace), // value
+        P$1.string(")"),
         (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
             namespace: namespace,
             key: key,
             value: value
         })
     )
-    PinReference = r => P.seqMap(
+    PinReference = r => P$1.seqMap(
         r.PathSymbolEntity,
-        P.whitespace,
+        P$1.whitespace,
         r.Guid,
         (objectName, _, pinGuid) => new PinReferenceEntity({
             objectName: objectName,
@@ -1119,8 +1211,8 @@ class Grammar {
             case PinEntity$1:
                 return r.Pin
             case Array:
-                return P.seqMap(
-                    P.string("("),
+                return P$1.seqMap(
+                    P$1.string("("),
                     attributeType
                         .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
                         .reduce((accum, cur) =>
@@ -1128,10 +1220,10 @@ class Grammar {
                                 ? r.AttributeAnyValue
                                 : accum.or(cur)
                         )
-                        .trim(P.optWhitespace)
-                        .sepBy(P.string(","))
-                        .skip(P.regex(/,?\s*/)),
-                    P.string(")"),
+                        .trim(P$1.optWhitespace)
+                        .sepBy(P$1.string(","))
+                        .skip(P$1.regex(/,?\s*/)),
+                    P$1.string(")"),
                     (_, grammar, __) => grammar
                 )
             default:
@@ -1139,7 +1231,7 @@ class Grammar {
         }
     }
     // Meta grammar
-    static CreateAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
+    static CreateAttributeGrammar = (r, entityType, valueSeparator = P$1.string("=").trim(P$1.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
                 const attributeKey = attributeName.split(".");
@@ -1156,15 +1248,15 @@ class Grammar {
          * Basically this creates a parser that looks for a string like 'Key (A=False,B="Something",)'
          * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
          */
-        P.seqMap(
+        P$1.seqMap(
             entityType.lookbehind
-                ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
-                : P.string("("),
+                ? P$1.seq(P$1.string(entityType.lookbehind), P$1.optWhitespace, P$1.string("("))
+                : P$1.string("("),
             Grammar.CreateAttributeGrammar(r, entityType)
-                .trim(P.optWhitespace)
-                .sepBy(P.string(","))
-                .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma
-            P.string(')'),
+                .trim(P$1.optWhitespace)
+                .sepBy(P$1.string(","))
+                .skip(P$1.regex(/,?/).then(P$1.optWhitespace)), // Optional trailing comma
+            P$1.string(')'),
             (_, attributes, __) => {
                 let result = new entityType();
                 attributes.forEach(attributeSetter => attributeSetter(result));
@@ -1173,8 +1265,8 @@ class Grammar {
     FunctionReference = r => Grammar.CreateMultiAttributeGrammar(r, FunctionReferenceEntity)
     Pin = r => Grammar.CreateMultiAttributeGrammar(r, PinEntity$1)
     CustomProperties = r =>
-        P.string("CustomProperties")
-            .then(P.whitespace)
+        P$1.string("CustomProperties")
+            .then(P$1.whitespace)
             .then(r.Pin)
             .map(pin => entity => {
                 /** @type {Array} */
@@ -1183,22 +1275,22 @@ class Grammar {
                 Utility.objectSet(entity, ["CustomProperties"], properties, true);
             })
 
-    Object = r => P.seqMap(
-        P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
-        P
+    Object = r => P$1.seqMap(
+        P$1.seq(P$1.string("Begin"), P$1.whitespace, P$1.string("Object"), P$1.whitespace),
+        P$1
             .alt(
                 r.CustomProperties,
                 Grammar.CreateAttributeGrammar(r, ObjectEntity)
             )
-            .sepBy1(P.whitespace),
-        P.seq(r.WhitespaceNewline, P.string("End"), P.whitespace, P.string("Object")),
+            .sepBy1(P$1.whitespace),
+        P$1.seq(r.WhitespaceNewline, P$1.string("End"), P$1.whitespace, P$1.string("Object")),
         (_, attributes, __) => {
             let result = new ObjectEntity();
             attributes.forEach(attributeSetter => attributeSetter(result));
             return result
         }
     )
-    MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
+    MultipleObject = r => r.Object.sepBy1(P$1.whitespace).trim(P$1.optWhitespace)
 }
 
 class SerializerFactory {
@@ -1350,7 +1442,10 @@ class Copy extends Context {
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
-        this.copyHandler = _ => self.copied();
+        this.copyHandler = _ => {
+            self.copied();
+            return true
+        };
     }
 
     blueprintFocused() {
@@ -1421,6 +1516,7 @@ class MouseClickDrag extends Pointing {
                         document.addEventListener("mouseup", self.mouseUpHandler);
                         self.clickedPosition = self.getLocation(e);
                         self.clicked(self.clickedPosition);
+                        return true
                     }
                     break
                 default:
@@ -1429,6 +1525,7 @@ class MouseClickDrag extends Pointing {
                     }
                     break
             }
+            return false
         };
 
         this.mouseStartedMovingHandler = e => {
@@ -2012,7 +2109,36 @@ class GraphNode extends SelectableDraggable {
 
 customElements.define("ueb-node", GraphNode);
 
+let P = Parsimmon;
+
+class KeyGrammar {
+
+    // Creates a grammar where each alternative is the string from ModifierKey mapped to a number for bit or use
+    ModifierKey = r => P.alt(...Configuration.ModifierKeys.map((v, i) => P.string(v).map(_ => 1 << i)))
+    Key = r => P.alt(...Object.keys(Configuration.Keys).map(v => P.string(v))).map(v => Configuration.Keys[v])
+    KeyboardShortcut = r => P.alt(
+        P.seqMap(
+            P.seqMap(r.ModifierKey, P.optWhitespace, P.string(Configuration.keysSeparator), (v, _, __) => v)
+                .atLeast(1)
+                .map(v => v.reduce((acc, cur) => acc | cur)),
+            P.optWhitespace,
+            r.Key,
+            (modifierKeysFlag, _, key) => ({
+                key: key,
+                ctrlKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Ctrl"))),
+                shiftKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Shift"))),
+                altKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Alt"))),
+                metaKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Meta")))
+            })
+        ),
+        r.Key.map(v => ({ key: v }))
+    )
+        .trim(P.optWhitespace)
+}
+
 class KeyboardShortcut extends Context {
+
+    static keyGrammar = P.createLanguage(new KeyGrammar())
 
     constructor(target, blueprint, options = {}) {
         options.wantsFocusCallback = true;
@@ -2035,7 +2161,10 @@ class KeyboardShortcut extends Context {
                 && e.metaKey === self.metaKey
             ) {
                 self.fire();
+                e.preventDefault();
+                return true
             }
+            return false
         };
     }
 
@@ -2045,7 +2174,10 @@ class KeyboardShortcut extends Context {
      * @returns {Object}
      */
     static keyOptionsParse(options, keyString) {
-        options.key = keyString;
+        options = {
+            ...options,
+            ...KeyboardShortcut.keyGrammar.KeyboardShortcut.parse(keyString).value
+        };
         return options
     }
 
@@ -2088,6 +2220,7 @@ class MouseTracking extends Pointing {
         let self = this;
         this.mousemoveHandler = e => {
             self.blueprint.entity.mousePosition = self.getLocation(e);
+            return true
         };
     }
 
@@ -2145,6 +2278,7 @@ class Paste extends Context {
             node.setSelected(true);
             node.snapToGrid();
         });
+        return true
     }
 }
 
@@ -2224,6 +2358,7 @@ class MouseWheel extends Pointing {
             e.preventDefault();
             const location = self.getLocation(e);
             self.wheel(Math.sign(e.deltaY), location);
+            return true
         };
         this.mouseParentWheelHandler = e => e.preventDefault();
 
@@ -2253,6 +2388,24 @@ class Zoom extends MouseWheel {
         let zoomLevel = this.blueprint.getZoom();
         zoomLevel -= variation;
         this.blueprint.setZoom(zoomLevel, location);
+    }
+}
+
+class KeyboardSelectAll extends KeyboardShortcut {
+
+    /**
+     * 
+     * @param {HTMLElement} target 
+     * @param {import("../../Blueprint").default} blueprint 
+     * @param {Object} options 
+     */
+    constructor(target, blueprint, options = {}) {
+        options = KeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey);
+        super(target, blueprint, options);
+    }
+
+    fire() {
+        this.blueprint.selectAll();
     }
 }
 
@@ -2335,9 +2488,11 @@ class Blueprint extends GraphElement {
 
     createInputObjects() {
         return [
+
             new Copy(this.getGridDOMElement(), this),
             new Paste(this.getGridDOMElement(), this),
             new KeyvoardCanc(this.getGridDOMElement(), this),
+            new KeyboardSelectAll(this.getGridDOMElement, this),
             new Zoom(this.getGridDOMElement(), this, {
                 looseTarget: true,
             }),
@@ -2353,7 +2508,7 @@ class Blueprint extends GraphElement {
                 moveEverywhere: true,
             }),
             new Unfocus(this.getGridDOMElement(), this),
-            new MouseTracking(this.getGridDOMElement(), this),
+            new MouseTracking(this.getGridDOMElement(), this)
         ]
     }
 
@@ -2537,6 +2692,13 @@ class Blueprint extends GraphElement {
         } else {
             return this.nodes
         }
+    }
+
+    /**
+     * Select all nodes
+     */
+    selectAll() {
+        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, true));
     }
 
     /**

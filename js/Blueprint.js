@@ -13,6 +13,7 @@ import Select from "./input/mouse/Select"
 import Unfocus from "./input/mouse/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/mouse/Zoom"
+import KeyboardSelectAll from "./input/keybaord/KeyboardSelectAll"
 
 export default class Blueprint extends GraphElement {
 
@@ -93,9 +94,11 @@ export default class Blueprint extends GraphElement {
 
     createInputObjects() {
         return [
+
             new Copy(this.getGridDOMElement(), this),
             new Paste(this.getGridDOMElement(), this),
             new KeyboardCanc(this.getGridDOMElement(), this),
+            new KeyboardSelectAll(this.getGridDOMElement, this),
             new Zoom(this.getGridDOMElement(), this, {
                 looseTarget: true,
             }),
@@ -111,7 +114,7 @@ export default class Blueprint extends GraphElement {
                 moveEverywhere: true,
             }),
             new Unfocus(this.getGridDOMElement(), this),
-            new MouseTracking(this.getGridDOMElement(), this),
+            new MouseTracking(this.getGridDOMElement(), this)
         ]
     }
 
@@ -295,6 +298,13 @@ export default class Blueprint extends GraphElement {
         } else {
             return this.nodes
         }
+    }
+
+    /**
+     * Select all nodes
+     */
+    selectAll() {
+        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, true))
     }
 
     /**

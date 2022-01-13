@@ -47,5 +47,6 @@ export default class Paste extends Context {
             node.setSelected(true)
             node.snapToGrid()
         })
+        return true
     }
 }

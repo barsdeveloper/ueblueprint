@@ -9,6 +9,7 @@ export default class MouseTracking extends Pointing {
         let self = this
         this.mousemoveHandler = e => {
             self.blueprint.entity.mousePosition = self.getLocation(e)
+            return true
         }
     }
 
