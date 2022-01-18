@@ -1,8 +1,8 @@
 import NodeTemplate from "../template/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"
+import PinEntity from "../entity/PinEntity"
 import SelectableDraggable from "./SelectableDraggable"
 import SerializerFactory from "../serialization/SerializerFactory"
-import PinEntity from "../entity/PinEntity"
 
 export default class GraphNode extends SelectableDraggable {
 

@@ -10,6 +10,16 @@ export default class Utility {
         return getComputedStyle(element).getPropertyValue("--ueb-scale")
     }
 
+    static convertLocation(viewportLocation, movementElement) {
+        const scaleCorrection = 1 / Utility.getScale(movementElement)
+        const targetOffset = movementElement.getBoundingClientRect()
+        let location = [
+            Math.round((viewportLocation[0] - targetOffset.x) * scaleCorrection),
+            Math.round((viewportLocation[1] - targetOffset.y) * scaleCorrection)
+        ]
+        return location
+    }
+
     /**
      * Sets a value in an object
      * @param {String[]} keys The chained keys to access from object in order to set the value

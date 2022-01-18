@@ -1,4 +1,5 @@
 import html from "./html"
+import sanitizeText from "./sanitizeText"
 import Template from "./Template"
 
 /**
@@ -25,7 +26,6 @@ export default class LinkTemplate extends Template {
      */
     apply(link) {
         super.apply(link)
-
     }
 
     /**
@@ -34,8 +34,8 @@ export default class LinkTemplate extends Template {
      */
     applySourceLocation(link, initialPosition) {
         // Set initial position
-        link.style.setProperty("--ueb-link-from-x", sanitizeText(initialPosition[0]))
-        link.style.setProperty("--ueb-link-from-y", sanitizeText(initialPosition[1]))
+        link.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]))
+        link.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]))
     }
 
     /**
@@ -43,7 +43,7 @@ export default class LinkTemplate extends Template {
      * @param {GraphLink} link Link element
      */
     applyDestinationLocation(link, finalPosition) {
-        link.style.setProperty("--ueb-link-to-x", sanitizeText(finalPosition[0]))
-        link.style.setProperty("--ueb-link-to-y", sanitizeText(finalPosition[1]))
+        link.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]))
+        link.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]))
     }
 }

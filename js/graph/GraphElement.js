@@ -14,11 +14,11 @@ export default class GraphElement extends HTMLElement {
      */
     constructor(entity, template) {
         super()
-        /** @type {Blueprint}" */
+        /** @type {Blueprint} */
         this.blueprint = null
-        /** @type {Entity}" */
+        /** @type {Entity} */
         this.entity = entity
-        /** @type {Template}" */
+        /** @type {Template} */
         this.template = template
         /** @type {Context[]} */
         this.inputObjects = []

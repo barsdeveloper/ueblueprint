@@ -3,7 +3,7 @@ import LinkTemplate from "../template/LinkTemplate"
 
 
 /**
- * @type {import("./GraphPin").default} GraphPin
+ * @typedef {import("./GraphPin").default} GraphPin
  */
 export default class GraphLink extends GraphElement {
 
@@ -20,19 +20,30 @@ export default class GraphLink extends GraphElement {
      * @param {?GraphPin} destination
      */
     constructor(source, destination) {
-        super(this, new LinkTemplate())
+        super({}, new LinkTemplate())
         /** @type {import("../template/LinkTemplate").default} */
         this.template
-        this.setSource(source)
-        this.setDestination(destination)
+        this.setSourcePin(source)
+        this.setDestinationPin(destination)
     }
 
     setSourceLocation(location) {
-        this.template.applySourceLocation(this.#source.getLinkLocation())
+        if (location == null) {
+            location = this.#source.template.getLinkLocation(this.#source)
+        }
+        this.template.applySourceLocation(this, location)
     }
 
     setDestinationLocation(location) {
-        this.template.applyDestinationLocation(this.#destination.getLinkLocation())
+        if (location == null) {
+            location = this.#destination.template.getLinkLocation(this.#destination)
+        }
+        this.template.applyDestinationLocation(this, location)
+    }
+
+
+    getSourcePin() {
+        return this.#source
     }
 
     /**
@@ -44,6 +55,12 @@ export default class GraphLink extends GraphElement {
         this.#source = graphPin
         this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler)
         this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler)
+        this.setSourceLocation()
+        this.originatesFromInput = this.#destination == null
+    }
+
+    getDestinationPin() {
+        return this.#destination
     }
 
     /**
@@ -56,6 +73,7 @@ export default class GraphLink extends GraphElement {
         this.#destination = graphPin
         this.#destination?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler)
         this.#destination?.addEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler)
+        this.originatesFromInput = false
     }
 }
 

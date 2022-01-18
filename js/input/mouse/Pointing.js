@@ -13,13 +13,7 @@ export default class Pointing extends Context {
      * @param {MouseEvent} mouseEvent 
      * @returns 
      */
-    getLocation(mouseEvent) {
-        const scaleCorrection = 1 / Utility.getScale(this.target)
-        const targetOffset = this.movementSpace.getBoundingClientRect()
-        let location = [
-            Math.round((mouseEvent.clientX - targetOffset.x) * scaleCorrection),
-            Math.round((mouseEvent.clientY - targetOffset.y) * scaleCorrection)
-        ]
-        return location
+    locationFromEvent(mouseEvent) {
+        return Utility.convertLocation([mouseEvent.clientX, mouseEvent.clientY], this.movementSpace)
     }
 }

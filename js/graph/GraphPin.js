@@ -1,7 +1,6 @@
 import GraphElement from "./GraphElement"
 import PinTemplate from "../template/PinTemplate"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
-import GraphLink from "./GraphLink"
 
 export default class GraphPin extends GraphElement {
 
@@ -9,6 +8,8 @@ export default class GraphPin extends GraphElement {
         super(entity, new PinTemplate())
         /** @type {import("../entity/PinEntity").default} */
         this.entity
+        /** @type {PinTemplate} */
+        this.template
         /** @type {HTMLElement} */
         this.clickableElement = null
     }
@@ -16,7 +17,8 @@ export default class GraphPin extends GraphElement {
     createInputObjects() {
         return [
             new MouseCreateLink(this.clickableElement, this.blueprint, {
-                moveEverywhere: true
+                moveEverywhere: true,
+                looseTarget: true
             }),
         ]
     }
@@ -47,15 +49,6 @@ export default class GraphPin extends GraphElement {
 
     getType() {
         return this.entity.getType()
-    }
-
-    /**
-     * 
-     * @returns {GraphLink} The link created
-     */
-    dragLink() {
-        let link = new GraphLink(this)
-        return link
     }
 
     /**

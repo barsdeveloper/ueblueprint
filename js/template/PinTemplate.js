@@ -1,3 +1,4 @@
+import Utility from "../Utility"
 import html from "./html"
 import sanitizeText from "./sanitizeText"
 import Template from "./Template"
@@ -33,6 +34,18 @@ export default class PinTemplate extends Template {
     apply(pin) {
         super.apply(pin)
         pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + sanitizeText(pin.getType()))
-        pin.clickableElement = pin.querySelector(".ueb-node-value-icon")
+        pin.clickableElement = pin
+    }
+
+    /**
+     * 
+     * @param {GraphPin} pin 
+     * @returns 
+     */
+    getLinkLocation(pin) {
+        const rect = pin.querySelector(".ueb-node-value-icon").getBoundingClientRect()
+        return Utility.convertLocation(
+            [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
+            pin.blueprint.gridElement)
     }
 }

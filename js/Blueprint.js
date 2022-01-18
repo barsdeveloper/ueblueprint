@@ -1,19 +1,19 @@
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import Configuration from "./Configuration"
 import Copy from "./input/common/Copy"
-import MouseScrollGraph from "./input/mouse/MouseScrollGraph"
 import GraphElement from "./graph/GraphElement"
 import GraphLink from "./graph/GraphLink"
 import GraphNode from "./graph/GraphNode"
 import GraphSelector from "./graph/GraphSelector"
 import KeyboardCanc from "./input/keybaord/KeyboardCanc"
+import KeyboardSelectAll from "./input/keybaord/KeyboardSelectAll"
+import MouseScrollGraph from "./input/mouse/MouseScrollGraph"
 import MouseTracking from "./input/mouse/MouseTracking"
 import Paste from "./input/common/Paste"
 import Select from "./input/mouse/Select"
 import Unfocus from "./input/mouse/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/mouse/Zoom"
-import KeyboardSelectAll from "./input/keybaord/KeyboardSelectAll"
 
 export default class Blueprint extends GraphElement {
 
@@ -94,7 +94,6 @@ export default class Blueprint extends GraphElement {
 
     createInputObjects() {
         return [
-
             new Copy(this.getGridDOMElement(), this),
             new Paste(this.getGridDOMElement(), this),
             new KeyboardCanc(this.getGridDOMElement(), this),

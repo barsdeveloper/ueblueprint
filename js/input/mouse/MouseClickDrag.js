@@ -29,7 +29,7 @@ export default class MouseClickDrag extends Pointing {
                         // Attach the listeners
                         movementListenedElement.addEventListener("mousemove", self.mouseStartedMovingHandler)
                         document.addEventListener("mouseup", self.mouseUpHandler)
-                        self.clickedPosition = self.getLocation(e)
+                        self.clickedPosition = self.locationFromEvent(e)
                         self.clicked(self.clickedPosition)
                         return true
                     }
@@ -59,7 +59,7 @@ export default class MouseClickDrag extends Pointing {
         this.mouseMoveHandler = e => {
             e.preventDefault()
             e.stopPropagation()
-            const location = self.getLocation(e)
+            const location = self.locationFromEvent(e)
             const movement = [e.movementX, e.movementY]
             self.dragTo(location, movement)
         }
