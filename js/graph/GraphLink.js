@@ -23,6 +23,7 @@ export default class GraphLink extends GraphElement {
         super({}, new LinkTemplate())
         /** @type {import("../template/LinkTemplate").default} */
         this.template
+        this.originatesFromInput = false
         this.setSourcePin(source)
         this.setDestinationPin(destination)
     }
@@ -53,10 +54,10 @@ export default class GraphLink extends GraphElement {
         this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler)
         this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler)
         this.#source = graphPin
+        this.originatesFromInput = graphPin.isInput()
         this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler)
         this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler)
         this.setSourceLocation()
-        this.originatesFromInput = this.#destination == null
     }
 
     getDestinationPin() {
@@ -73,7 +74,6 @@ export default class GraphLink extends GraphElement {
         this.#destination = graphPin
         this.#destination?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler)
         this.#destination?.addEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler)
-        this.originatesFromInput = false
     }
 }
 

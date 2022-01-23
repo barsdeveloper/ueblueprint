@@ -14,8 +14,8 @@ export default class LinkTemplate extends Template {
      */
     render(link) {
         return html`
-            <svg viewBox="0 0 100 100">
-                <line x1="0" y1="80" x2="100" y2="20" stroke="black" />
+            <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M 0 0 C 20 0, 30 0, 50 50 S 70 100, 100 100" stroke="black" stroke-width="2" fill="none" vector-effect="non-scaling-stroke" />
             </svg>
         `
     }
@@ -33,6 +33,7 @@ export default class LinkTemplate extends Template {
      * @param {GraphLink} link Link element
      */
     applySourceLocation(link, initialPosition) {
+        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0")
         // Set initial position
         link.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]))
         link.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]))

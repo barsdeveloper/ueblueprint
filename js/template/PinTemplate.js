@@ -33,7 +33,8 @@ export default class PinTemplate extends Template {
      */
     apply(pin) {
         super.apply(pin)
-        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + sanitizeText(pin.getType()))
+        pin.classList.add(
+            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"), "ueb-node-value-" + sanitizeText(pin.getType()))
         pin.clickableElement = pin
     }
 

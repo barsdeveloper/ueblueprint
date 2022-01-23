@@ -1062,15 +1062,11 @@ class PinEntity$1 extends Entity {
     }
 
     isInput() {
-        if (!this.bHidden && this.Direction !== "EGPD_Output") {
-            return true
-        }
+        return !this.bHidden && this.Direction !== "EGPD_Output"
     }
 
     isOutput() {
-        if (!this.bHidden && this.Direction === "EGPD_Output") {
-            return true
-        }
+        return !this.bHidden && this.Direction === "EGPD_Output"
     }
 
     isConnected() {
@@ -1486,8 +1482,8 @@ class LinkTemplate extends Template {
      */
     render(link) {
         return html`
-            <svg viewBox="0 0 100 100">
-                <line x1="0" y1="80" x2="100" y2="20" stroke="black" />
+            <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M 0 0 C 20 0, 30 0, 50 50 S 70 100, 100 100" stroke="black" stroke-width="2" fill="none" vector-effect="non-scaling-stroke" />
             </svg>
         `
     }
@@ -1505,6 +1501,7 @@ class LinkTemplate extends Template {
      * @param {GraphLink} link Link element
      */
     applySourceLocation(link, initialPosition) {
+        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0");
         // Set initial position
         link.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]));
         link.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]));
@@ -1541,6 +1538,7 @@ class GraphLink extends GraphElement {
         super({}, new LinkTemplate());
         /** @type {import("../template/LinkTemplate").default} */
         this.template;
+        this.originatesFromInput = false;
         this.setSourcePin(source);
         this.setDestinationPin(destination);
     }
@@ -1571,10 +1569,10 @@ class GraphLink extends GraphElement {
         this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
         this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
         this.#source = graphPin;
+        this.originatesFromInput = graphPin.isInput();
         this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
         this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
         this.setSourceLocation();
-        this.originatesFromInput = this.#destination == null;
     }
 
     getDestinationPin() {
@@ -1591,7 +1589,6 @@ class GraphLink extends GraphElement {
         this.#destination = graphPin;
         this.#destination?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
         this.#destination?.addEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler);
-        this.originatesFromInput = false;
     }
 }
 
@@ -1627,7 +1624,8 @@ class PinTemplate extends Template {
      */
     apply(pin) {
         super.apply(pin);
-        pin.classList.add("ueb-node-" + pin.isInput() ? "input" : "output", "ueb-node-value-" + sanitizeText(pin.getType()));
+        pin.classList.add(
+            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"), "ueb-node-value-" + sanitizeText(pin.getType()));
         pin.clickableElement = pin;
     }
 

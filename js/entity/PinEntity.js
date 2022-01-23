@@ -43,15 +43,11 @@ export default class PinEntity extends Entity {
     }
 
     isInput() {
-        if (!this.bHidden && this.Direction !== "EGPD_Output") {
-            return true
-        }
+        return !this.bHidden && this.Direction !== "EGPD_Output"
     }
 
     isOutput() {
-        if (!this.bHidden && this.Direction === "EGPD_Output") {
-            return true
-        }
+        return !this.bHidden && this.Direction === "EGPD_Output"
     }
 
     isConnected() {

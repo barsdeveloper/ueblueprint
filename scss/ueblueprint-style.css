@@ -433,3 +433,26 @@ ueb-link {
     position : absolute;
     border   : 2px solid red;
 }
+
+ueb-link svg {
+    width     : 100%;
+    height    : 100%;
+    transform : scale(
+            /* x */
+            clamp(-1, calc(var(--ueb-to-x) - var(--ueb-from-x)), 1),
+            /* y */
+            clamp(-1, calc(var(--ueb-to-y) - var(--ueb-from-y)), 1));
+    overflow : visible;
+}
+
+ueb-link svg path {
+    --value      : clamp(0, calc(), 1);
+    /* Taylor expansion of arcsin around 0 */
+    --asin-term1 : var(--value);
+    --asin-term2 : calc(1 / 6 * var(--value) * var(--value) * var(--value));
+    --asin-term3 : calc(3 / 40 * var(--value) * var(--value) * var(--value) * var(--value) * var(--value));
+    --asin-term4 : calc(5 / 112 * var(--value) * var(--value) * var(--value) * var(--value) * var(--value) * var(--value) * var(--value));
+    --asin       : calc(var(--asin-term1) + var(--asin-term2) + var(--asin-term3) + var(--asin-term4));
+    transform    : skewX(calc(1rad * var(--asin)));
+
+}
