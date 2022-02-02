@@ -26,6 +26,7 @@ export default class LinkTemplate extends Template {
      */
     apply(link) {
         super.apply(link)
+        link.classList.add("ueb-positioned")
     }
 
     /**
@@ -46,5 +47,8 @@ export default class LinkTemplate extends Template {
     applyDestinationLocation(link, finalPosition) {
         link.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]))
         link.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]))
+        const height = Math.abs(link.style.getPropertyValue("--ueb-from-y") - finalPosition[1])
+        let skew = Math.atan(height / (finalPosition[0] - link.style.getPropertyValue("--ueb-from-x"))) - Math.PI / 2
+        link.style.setProperty("--ueb-link-skew", skew)
     }
 }

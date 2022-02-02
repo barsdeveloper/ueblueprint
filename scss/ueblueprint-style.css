@@ -329,13 +329,13 @@ ueb-pin {
     border-left   : 0.3em solid var(--ueb-node-value-color);
 }
 
-ueb-selector[data-selecting="true"],
-ueb-link {
-    visibility : visible;
-    top        : min(var(--ueb-from-y) * 1px, var(--ueb-to-y) * 1px);
-    left       : min(var(--ueb-from-x) * 1px, var(--ueb-to-x) * 1px);
-    width      : calc(max(var(--ueb-from-x) - var(--ueb-to-x), var(--ueb-to-x) - var(--ueb-from-x)) * 1px);
-    height     : calc(max(var(--ueb-from-y) - var(--ueb-to-y), var(--ueb-to-y) - var(--ueb-from-y)) * 1px);
+.ueb-positioned {
+    --ueb-computed-min-x  : min(var(--ueb-from-x), var(--ueb-to-x));
+    --ueb-computed-max-x  : max(var(--ueb-from-x), var(--ueb-to-x));
+    --ueb-computed-min-y  : min(var(--ueb-from-y), var(--ueb-to-y));
+    --ueb-computed-max-y  : max(var(--ueb-from-y), var(--ueb-to-y));
+    --ueb-computed-width  : max(var(--ueb-from-x) - var(--ueb-to-x), var(--ueb-to-x) - var(--ueb-from-x));
+    --ueb-computed-height : max(var(--ueb-from-y) - var(--ueb-to-y), var(--ueb-to-y) - var(--ueb-from-y));
 }
 
 ueb-selector {
@@ -424,35 +424,49 @@ ueb-selector {
     background-repeat : no-repeat;
 }
 
+ueb-selector[data-selecting="true"] {
+    visibility : visible;
+    top        : calc(var(--ueb-computed-min-y) * 1px);
+    left       : calc(var(--ueb-computed-min-x) * 1px);
+    width      : calc(var(--ueb-computed-width) * 1px);
+    height     : calc(var(--ueb-computed-height) * 1px);
+}
+
 ueb-selector>* {
     visibility : visible;
 }
 
 ueb-link {
-    display  : block;
-    position : absolute;
-    border   : 2px solid red;
+    --ueb-width-threshold : 50;
+    display               : block;
+    position              : absolute;
+    top                   : calc(var(--ueb-computed-min-y) * 1px);
+    left                  : calc(var(--ueb-from-x) * 1px);
+    width                 : calc(max(
+                /* 1 */
+                var(--ueb-to-x) - var(--ueb-from-x),
+                /* 3 */
+                var(--ueb-width-threshold)) * 1px);
+    height : calc(var(--ueb-computed-height) * 1px);
+    border : 1px solid red;
 }
 
 ueb-link svg {
     width     : 100%;
     height    : 100%;
-    transform : scale(
-            /* x */
-            clamp(-1, calc(var(--ueb-to-x) - var(--ueb-from-x)), 1),
-            /* y */
-            clamp(-1, calc(var(--ueb-to-y) - var(--ueb-from-y)), 1));
-    overflow : visible;
+    transform : scaleY(clamp(-1, calc(var(--ueb-to-y) - var(--ueb-from-y)), 1));
+    overflow  : visible;
 }
 
 ueb-link svg path {
-    --value      : clamp(0, calc(), 1);
-    /* Taylor expansion of arcsin around 0 */
-    --asin-term1 : var(--value);
-    --asin-term2 : calc(1 / 6 * var(--value) * var(--value) * var(--value));
-    --asin-term3 : calc(3 / 40 * var(--value) * var(--value) * var(--value) * var(--value) * var(--value));
-    --asin-term4 : calc(5 / 112 * var(--value) * var(--value) * var(--value) * var(--value) * var(--value) * var(--value) * var(--value));
-    --asin       : calc(var(--asin-term1) + var(--asin-term2) + var(--asin-term3) + var(--asin-term4));
-    transform    : skewX(calc(1rad * var(--asin)));
-
+    /* flag stating whether or not the width of the link is below threshold or not */
+    --ueb-width-below-threshold : clamp(
+            /* min */
+            0,
+            /* input */
+            calc(var(--ueb-width-threshold) - (var(--ueb-to-x) - var(--ueb-from-x))),
+            /* max */
+            1);
+    transform        : skewX(calc(var(--ueb-width-below-threshold) * var(--ueb-link-skew) * -1rad));
+    transform-origin : 0 0;
 }
