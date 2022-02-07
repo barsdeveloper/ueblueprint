@@ -104,6 +104,7 @@ export default class Blueprint extends GraphElement {
             new Select(this.getGridDOMElement(), this, {
                 clickButton: 0,
                 exitAnyButton: true,
+                looseTarget: true,
                 moveEverywhere: true,
             }),
             new MouseScrollGraph(this.getGridDOMElement(), this, {

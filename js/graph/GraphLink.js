@@ -6,7 +6,6 @@ import LinkTemplate from "../template/LinkTemplate"
  * @typedef {import("./GraphPin").default} GraphPin
  */
 export default class GraphLink extends GraphElement {
-
     /** @type {GraphPin} */
     #source
     /** @type {GraphPin} */
@@ -23,7 +22,11 @@ export default class GraphLink extends GraphElement {
         super({}, new LinkTemplate())
         /** @type {import("../template/LinkTemplate").default} */
         this.template
+        /** @type {SVGPathElement} */
+        this.pathElement = null
         this.originatesFromInput = false
+        this.sourceLocation = [0, 0]
+        this.destinationLocation = [0, 0]
         this.setSourcePin(source)
         this.setDestinationPin(destination)
     }
@@ -32,14 +35,16 @@ export default class GraphLink extends GraphElement {
         if (location == null) {
             location = this.#source.template.getLinkLocation(this.#source)
         }
-        this.template.applySourceLocation(this, location)
+        this.sourceLocation = location
+        this.template.applySourceLocation(this)
     }
 
     setDestinationLocation(location) {
         if (location == null) {
             location = this.#destination.template.getLinkLocation(this.#destination)
         }
-        this.template.applyDestinationLocation(this, location)
+        this.destinationLocation = location
+        this.template.applyDestinationLocation(this)
     }
 
 

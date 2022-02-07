@@ -1,10 +1,20 @@
 export default class Configuration {
-
+    static fontSize = "13px"
+    static gridSize = "16"
+    static gridLineWidth = "2px"
+    static gridLineColor = "#353535"
+    static gridSet = "8"
+    static gridSetLineColor = "#161616"
+    static gridAxisLineColor = "black"
+    static gridSnap = "16px"
+    static nodeRadius = "8px"
     static deleteNodesKeyboardKey = "Delete"
     static expandGridSize = 400
-    static gridSize = 16
     static selectAllKeyboardKey = "Ctrl+A"
     static keysSeparator = "+"
+    static linkMinWidth = "20px"
+    static linkRightSVGPath = (c1, c2) => `M 0 0 C ${c1} 0, ${c2} 0, 50 50 S ${100 - c1} 100, 100 100`
+    static linkLeftSVGPath = "M 100 0 c 20 0, 30 0, 50 50 S 70 100, 100 100"
     static ModifierKeys = [
         "Ctrl",
         "Shift",
@@ -12,6 +22,7 @@ export default class Configuration {
         "Meta"
     ]
     static Keys = {
+        /* UE name: JS name */
         "Backspace": "Backspace",
         "Tab": "Tab",
         "Enter": "Enter",

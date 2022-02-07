@@ -10,6 +10,12 @@ export default class Utility {
         return getComputedStyle(element).getPropertyValue("--ueb-scale")
     }
 
+    /**
+     * 
+     * @param {Number[]} viewportLocation 
+     * @param {HTMLElement} movementElement 
+     * @returns 
+     */
     static convertLocation(viewportLocation, movementElement) {
         const scaleCorrection = 1 / Utility.getScale(movementElement)
         const targetOffset = movementElement.getBoundingClientRect()

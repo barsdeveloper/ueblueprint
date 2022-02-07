@@ -45,8 +45,8 @@ export default class PinTemplate extends Template {
      */
     getLinkLocation(pin) {
         const rect = pin.querySelector(".ueb-node-value-icon").getBoundingClientRect()
-        return Utility.convertLocation(
+        return pin.blueprint.compensateTranslation(Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            pin.blueprint.gridElement)
+            pin.blueprint.gridElement))
     }
 }

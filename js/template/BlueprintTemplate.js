@@ -1,3 +1,4 @@
+import Configuration from "../Configuration"
 import GraphSelector from "../graph/GraphSelector"
 import html from "./html"
 import sanitizeText from "./sanitizeText"
@@ -60,6 +61,17 @@ export default class BlueprintTemplate extends Template {
     apply(blueprint) {
         super.apply(blueprint)
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`)
+        Object.entries({
+            "--ueb-font-size": sanitizeText(Configuration.fontSize),
+            "--ueb-grid-size": `calc(${sanitizeText(Configuration.gridSize)} * 1px)`,
+            "--ueb-grid-line-width": sanitizeText(Configuration.gridLineWidth),
+            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
+            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
+            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
+            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
+            "--ueb-grid-snap": sanitizeText(Configuration.gridSnap),
+            "--ueb-node-radius": sanitizeText(Configuration.nodeRadius)
+        }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]))
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header')
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay')
         blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body')
@@ -102,7 +114,7 @@ export default class BlueprintTemplate extends Template {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyStartDragScrolling(blueprint) {
-        blueprint.gridElement.dataset.dragScrolling = true
+        blueprint.dataset.dragScrolling = true
     }
 
     /**
@@ -110,6 +122,6 @@ export default class BlueprintTemplate extends Template {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyEndDragScrolling(blueprint) {
-        blueprint.gridElement.dataset.dragScrolling = false
+        blueprint.dataset.dragScrolling = false
     }
 }

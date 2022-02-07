@@ -27,7 +27,7 @@ export default class SelectorTemplate extends Template {
         // Final position coincide with the initial position, at the beginning of selection
         selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]))
         selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]))
-        selector.dataset.selecting = "true"
+        selector.blueprint.dataset.selecting = "true"
     }
 
     /**
@@ -44,6 +44,6 @@ export default class SelectorTemplate extends Template {
      * @param {GraphSelector} selector Selector element
      */
     applyFinishSelecting(selector) {
-        selector.dataset.selecting = "false"
+        selector.blueprint.dataset.selecting = "false"
     }
 }

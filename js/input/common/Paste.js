@@ -43,7 +43,7 @@ export default class Paste extends Context {
                 mousePosition[0] - left,
                 mousePosition[1] - top,
             ]
-            node.addLocation(this.blueprint.compensateTranslation(locationOffset))
+            node.addLocation(locationOffset)
             node.setSelected(true)
             node.snapToGrid()
         })

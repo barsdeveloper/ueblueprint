@@ -16,7 +16,6 @@ export default class GraphSelector extends GraphElement {
      * @param {number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
      */
     startSelecting(initialPosition) {
-        initialPosition = this.blueprint.compensateTranslation(initialPosition)
         this.template.applyStartSelecting(this, initialPosition)
         this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.getNodes(), this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction)
     }
@@ -26,7 +25,6 @@ export default class GraphSelector extends GraphElement {
      * @param {number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
      */
     doSelecting(finalPosition) {
-        finalPosition = this.blueprint.compensateTranslation(finalPosition)
         this.template.applyDoSelecting(this, finalPosition)
         this.selectionModel.selectTo(finalPosition)
     }

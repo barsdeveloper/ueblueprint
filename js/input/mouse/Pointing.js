@@ -14,6 +14,9 @@ export default class Pointing extends Context {
      * @returns 
      */
     locationFromEvent(mouseEvent) {
-        return Utility.convertLocation([mouseEvent.clientX, mouseEvent.clientY], this.movementSpace)
+        return this.blueprint.compensateTranslation(
+            Utility.convertLocation(
+                [mouseEvent.clientX, mouseEvent.clientY],
+                this.movementSpace))
     }
 }
