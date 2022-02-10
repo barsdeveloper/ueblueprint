@@ -1,20 +1,22 @@
 class Configuration {
-    static fontSize = "13px"
-    static gridSize = "16"
-    static gridLineWidth = "2px"
-    static gridLineColor = "#353535"
-    static gridSet = "8"
-    static gridSetLineColor = "#161616"
-    static gridAxisLineColor = "black"
-    static gridSnap = "16px"
-    static nodeRadius = "8px"
     static deleteNodesKeyboardKey = "Delete"
     static expandGridSize = 400
-    static selectAllKeyboardKey = "Ctrl+A"
+    static fontSize = "13px"
+    static gridAxisLineColor = "black"
+    static gridLineColor = "#353535"
+    static gridLineWidth = 2 // in pixel
+    static gridSet = 8
+    static gridSetLineColor = "#161616"
+    static gridSize = 16 // in pixel
     static keysSeparator = "+"
-    static linkMinWidth = "20px"
-    static linkRightSVGPath = (c1, c2) => `M 0 0 C ${c1} 0, ${c2} 0, 50 50 S ${100 - c1} 100, 100 100`
     static linkLeftSVGPath = "M 100 0 c 20 0, 30 0, 50 50 S 70 100, 100 100"
+    static linkMinWidth = 128 // in pixel
+    static linkRightSVGPath = (start, c1, c2) => {
+        const endPoint = 100 - start;
+        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${endPoint - c1 + start} 100, ${endPoint} 100`
+    }
+    static nodeRadius = 8 // in pixel
+    static selectAllKeyboardKey = "Ctrl+A"
     static ModifierKeys = [
         "Ctrl",
         "Shift",
@@ -644,14 +646,14 @@ class BlueprintTemplate extends Template {
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`);
         Object.entries({
             "--ueb-font-size": sanitizeText(Configuration.fontSize),
-            "--ueb-grid-size": `calc(${sanitizeText(Configuration.gridSize)} * 1px)`,
-            "--ueb-grid-line-width": sanitizeText(Configuration.gridLineWidth),
+            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
+            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
             "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
             "--ueb-grid-set": sanitizeText(Configuration.gridSet),
             "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
             "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
-            "--ueb-grid-snap": sanitizeText(Configuration.gridSnap),
-            "--ueb-node-radius": sanitizeText(Configuration.nodeRadius)
+            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
+            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
         }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]));
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header');
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay');
@@ -1530,8 +1532,7 @@ class LinkTemplate extends Template {
      * @param {GraphLink} link Link element
      */
     applySourceLocation(link) {
-        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0");
-        // Set initial position
+        link.style.setProperty("--ueb-from-output", link.originatesFromOutput ? "0" : "1");
         link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
         link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
     }
@@ -1541,11 +1542,25 @@ class LinkTemplate extends Template {
      * @param {GraphLink} link Link element
      */
     applyDestinationLocation(link) {
+        const dx = Math.abs(link.sourceLocation[0] - link.destinationLocation[0]);
+        const width = Math.max(dx, Configuration.linkMinWidth);
+        const height = Math.abs(link.sourceLocation[1] - link.destinationLocation[1]);
+        const ratio = Math.max(width, 1) / Math.max(height, 1);
+        let start = dx < width ? (width - dx) / width * 100 / 2 : 0;
         link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]));
         link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]));
-        const r = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1)
-            / Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1);
-        const d = Configuration.linkRightSVGPath(20, Math.max(40 / r, 30));
+        link.style.setProperty("margin-left", `-${start}px`);
+        const xInverted = link.destinationLocation[0] < link.sourceLocation[0];
+        if (xInverted) {
+            if (dx < width) {
+                start = start + dx / width * 100;
+            } else {
+                start = 100;
+            }
+        }
+        const c1 = start + 20;
+        const c2 = Math.max(40 / ratio, 30) + start * 1.5;
+        const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d);
     }
@@ -1573,7 +1588,7 @@ class GraphLink extends GraphElement {
         this.template;
         /** @type {SVGPathElement} */
         this.pathElement = null;
-        this.originatesFromInput = false;
+        this.originatesFromOutput = false;
         this.sourceLocation = [0, 0];
         this.destinationLocation = [0, 0];
         this.setSourcePin(source);
@@ -1608,7 +1623,7 @@ class GraphLink extends GraphElement {
         this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
         this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
         this.#source = graphPin;
-        this.originatesFromInput = graphPin.isInput();
+        this.originatesFromOutput = graphPin.isInput();
         this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
         this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
         this.setSourceLocation();

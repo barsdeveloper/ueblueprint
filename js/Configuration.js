@@ -1,20 +1,22 @@
 export default class Configuration {
-    static fontSize = "13px"
-    static gridSize = "16"
-    static gridLineWidth = "2px"
-    static gridLineColor = "#353535"
-    static gridSet = "8"
-    static gridSetLineColor = "#161616"
-    static gridAxisLineColor = "black"
-    static gridSnap = "16px"
-    static nodeRadius = "8px"
     static deleteNodesKeyboardKey = "Delete"
     static expandGridSize = 400
-    static selectAllKeyboardKey = "Ctrl+A"
+    static fontSize = "13px"
+    static gridAxisLineColor = "black"
+    static gridLineColor = "#353535"
+    static gridLineWidth = 2 // in pixel
+    static gridSet = 8
+    static gridSetLineColor = "#161616"
+    static gridSize = 16 // in pixel
     static keysSeparator = "+"
-    static linkMinWidth = "20px"
-    static linkRightSVGPath = (c1, c2) => `M 0 0 C ${c1} 0, ${c2} 0, 50 50 S ${100 - c1} 100, 100 100`
     static linkLeftSVGPath = "M 100 0 c 20 0, 30 0, 50 50 S 70 100, 100 100"
+    static linkMinWidth = 128 // in pixel
+    static linkRightSVGPath = (start, c1, c2) => {
+        const endPoint = 100 - start
+        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${endPoint - c1 + start} 100, ${endPoint} 100`
+    }
+    static nodeRadius = 8 // in pixel
+    static selectAllKeyboardKey = "Ctrl+A"
     static ModifierKeys = [
         "Ctrl",
         "Shift",

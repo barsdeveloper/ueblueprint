@@ -424,16 +424,25 @@ ueb-selector>* {
 }
 
 ueb-link {
-    --ueb-width-threshold: 50;
-    display              : block;
-    border               : 1px solid red;
+    --ueb-computed-width-px   : calc(var(--ueb-computed-width) * 1px);
+    display                   : block;
+    min-width                 : calc(var(--ueb-link-min-width) * 1px);
+    // border                 : 1px solid red;
 }
 
 ueb-link svg {
-    width    : 100%;
-    height   : 100%;
-    transform: scaleY(clamp(-1, calc(var(--ueb-to-y) - var(--ueb-from-y)), 1));
-    overflow : visible;
+    --ueb-output-invert: calc(2 * var(--ueb-from-output) - 1);
+    position           : absolute;
+    top                : 0;
+    left               : 0;
+    width              : 100%;
+    height             : 100%;
+    transform          : scaleY(clamp(
+                /* Mirror just when it starts from output */
+                -1,
+                calc((var(--ueb-to-y) - var(--ueb-from-y)) * var(--ueb-output-invert)),
+                1));
+    overflow: visible;
 }
 
 ueb-link svg path {

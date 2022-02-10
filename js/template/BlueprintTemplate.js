@@ -63,14 +63,14 @@ export default class BlueprintTemplate extends Template {
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`)
         Object.entries({
             "--ueb-font-size": sanitizeText(Configuration.fontSize),
-            "--ueb-grid-size": `calc(${sanitizeText(Configuration.gridSize)} * 1px)`,
-            "--ueb-grid-line-width": sanitizeText(Configuration.gridLineWidth),
+            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
+            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
             "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
             "--ueb-grid-set": sanitizeText(Configuration.gridSet),
             "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
             "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
-            "--ueb-grid-snap": sanitizeText(Configuration.gridSnap),
-            "--ueb-node-radius": sanitizeText(Configuration.nodeRadius)
+            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
+            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
         }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]))
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header')
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay')
