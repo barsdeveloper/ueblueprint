@@ -2,6 +2,11 @@ import Configuration from "./Configuration"
 import TypeInitialization from "./entity/TypeInitialization"
 
 export default class Utility {
+
+    static sigmoid(x, curvature = 1.7) {
+        return 1 / (1 + (x / Math.pow(1 - x, -curvature)))
+    }
+
     static clamp(val, min, max) {
         return Math.min(Math.max(val, min), max)
     }

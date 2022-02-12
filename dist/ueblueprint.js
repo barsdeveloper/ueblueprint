@@ -9,8 +9,9 @@ class Configuration {
     static gridSetLineColor = "#161616"
     static gridSize = 16 // in pixel
     static keysSeparator = "+"
+    static linkCurveOffset = 20
     static linkLeftSVGPath = "M 100 0 c 20 0, 30 0, 50 50 S 70 100, 100 100"
-    static linkMinWidth = 128 // in pixel
+    static linkMinWidth = 100 // in pixel
     static linkRightSVGPath = (start, c1, c2) => {
         const endPoint = 100 - start;
         return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${endPoint - c1 + start} 100, ${endPoint} 100`
@@ -770,6 +771,11 @@ class TypeInitialization {
 }
 
 class Utility {
+
+    static sigmoid(x, curvature = 1.7) {
+        return 1 / (1 + (x / Math.pow(1 - x, -curvature)))
+    }
+
     static clamp(val, min, max) {
         return Math.min(Math.max(val, min), max)
     }
@@ -1512,7 +1518,7 @@ class LinkTemplate extends Template {
     render(link) {
         return html`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path stroke="black" fill="none" vector-effect="non-scaling-stroke" />
+                <path stroke="green" fill="none" vector-effect="non-scaling-stroke" />
             </svg>
         `
     }
@@ -1532,7 +1538,7 @@ class LinkTemplate extends Template {
      * @param {GraphLink} link Link element
      */
     applySourceLocation(link) {
-        link.style.setProperty("--ueb-from-output", link.originatesFromOutput ? "0" : "1");
+        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "0" : "1");
         link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
         link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
     }
@@ -1542,24 +1548,28 @@ class LinkTemplate extends Template {
      * @param {GraphLink} link Link element
      */
     applyDestinationLocation(link) {
-        const dx = Math.abs(link.sourceLocation[0] - link.destinationLocation[0]);
+        const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
         const height = Math.abs(link.sourceLocation[1] - link.destinationLocation[1]);
-        const ratio = Math.max(width, 1) / Math.max(height, 1);
-        let start = dx < width ? (width - dx) / width * 100 / 2 : 0;
+        const fillRatio = dx / width;
+        const aspectRatio = Math.max(width, 1) / Math.max(height, 1);
+        let start = dx < width
+            ? (width - dx) / width * 100 / 2
+            : 0;
         link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]));
         link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]));
         link.style.setProperty("margin-left", `-${start}px`);
-        const xInverted = link.destinationLocation[0] < link.sourceLocation[0];
-        if (xInverted) {
-            if (dx < width) {
-                start = start + dx / width * 100;
-            } else {
-                start = 100;
-            }
+        let c1 = 20;
+        const xInverted = link.originatesFromInput
+            ? link.sourceLocation[0] < link.destinationLocation[0]
+            : link.destinationLocation[0] < link.sourceLocation[0];
+        if (!xInverted) {
+            c1 = start + c1 * fillRatio;
+        } else {
+            start = start + fillRatio * 100;
+            c1 = start + c1 * fillRatio * 100 / width;
         }
-        const c1 = start + 20;
-        const c2 = Math.max(40 / ratio, 30) + start * 1.5;
+        const c2 = Math.max(40 / aspectRatio, 30) + start * 1.5;
         const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d);
@@ -1588,7 +1598,7 @@ class GraphLink extends GraphElement {
         this.template;
         /** @type {SVGPathElement} */
         this.pathElement = null;
-        this.originatesFromOutput = false;
+        this.originatesFromInput = false;
         this.sourceLocation = [0, 0];
         this.destinationLocation = [0, 0];
         this.setSourcePin(source);
@@ -1623,7 +1633,7 @@ class GraphLink extends GraphElement {
         this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
         this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
         this.#source = graphPin;
-        this.originatesFromOutput = graphPin.isInput();
+        this.originatesFromInput = graphPin.isInput();
         this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
         this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
         this.setSourceLocation();

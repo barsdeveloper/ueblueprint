@@ -424,14 +424,14 @@ ueb-selector>* {
 }
 
 ueb-link {
-    --ueb-computed-width-px   : calc(var(--ueb-computed-width) * 1px);
-    display                   : block;
-    min-width                 : calc(var(--ueb-link-min-width) * 1px);
-    // border                 : 1px solid red;
+    --ueb-computed-width-px: calc(var(--ueb-computed-width) * 1px);
+    display                : block;
+    min-width              : calc(var(--ueb-link-min-width) * 1px);
+    border                 : 1px solid red;
 }
 
 ueb-link svg {
-    --ueb-output-invert: calc(2 * var(--ueb-from-output) - 1);
+    --ueb-output-invert: calc(2 * var(--ueb-from-input) - 1);
     position           : absolute;
     top                : 0;
     left               : 0;

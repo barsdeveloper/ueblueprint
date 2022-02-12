@@ -9,8 +9,9 @@ export default class Configuration {
     static gridSetLineColor = "#161616"
     static gridSize = 16 // in pixel
     static keysSeparator = "+"
+    static linkCurveOffset = 20
     static linkLeftSVGPath = "M 100 0 c 20 0, 30 0, 50 50 S 70 100, 100 100"
-    static linkMinWidth = 128 // in pixel
+    static linkMinWidth = 100 // in pixel
     static linkRightSVGPath = (start, c1, c2) => {
         const endPoint = 100 - start
         return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${endPoint - c1 + start} 100, ${endPoint} 100`

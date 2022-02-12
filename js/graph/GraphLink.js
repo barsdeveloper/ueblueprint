@@ -24,7 +24,7 @@ export default class GraphLink extends GraphElement {
         this.template
         /** @type {SVGPathElement} */
         this.pathElement = null
-        this.originatesFromOutput = false
+        this.originatesFromInput = false
         this.sourceLocation = [0, 0]
         this.destinationLocation = [0, 0]
         this.setSourcePin(source)
@@ -59,7 +59,7 @@ export default class GraphLink extends GraphElement {
         this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler)
         this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler)
         this.#source = graphPin
-        this.originatesFromOutput = graphPin.isInput()
+        this.originatesFromInput = graphPin.isInput()
         this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler)
         this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler)
         this.setSourceLocation()
