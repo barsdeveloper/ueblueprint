@@ -14,11 +14,11 @@ export default class Copy extends Context {
         }
     }
 
-    blueprintFocused() {
+    listenEvents() {
         document.body.addEventListener("copy", this.copyHandler)
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         document.body.removeEventListener("copy", this.copyHandler)
     }
 

@@ -1,3 +1,4 @@
+import Configuration from "../../Configuration"
 import Pointing from "./Pointing"
 
 /**
@@ -54,6 +55,12 @@ export default class MouseClickDrag extends Pointing {
             // Do actual actions
             self.startDrag()
             self.started = true
+            const dragEvent = new CustomEvent(Configuration.trackingMouseEventName.begin, {
+                bubbles: true,
+                cancelable: true
+            })
+            this.target.dispatchEvent(dragEvent)
+            return true
         }
 
         this.mouseMoveHandler = e => {
@@ -62,6 +69,8 @@ export default class MouseClickDrag extends Pointing {
             const location = self.locationFromEvent(e)
             const movement = [e.movementX, e.movementY]
             self.dragTo(location, movement)
+            self.blueprint.entity.mousePosition = self.locationFromEvent(e)
+            return true
         }
 
         this.mouseUpHandler = e => {
@@ -71,7 +80,14 @@ export default class MouseClickDrag extends Pointing {
                 movementListenedElement.removeEventListener("mousemove", self.mouseMoveHandler)
                 document.removeEventListener("mouseup", self.mouseUpHandler)
                 self.endDrag()
+                const dragEvent = new CustomEvent(Configuration.trackingMouseEventName.end, {
+                    bubbles: true,
+                    cancelable: true
+                })
+                this.target.dispatchEvent(dragEvent)
+                return true
             }
+            return false
         }
 
         this.target.addEventListener("mousedown", this.mouseDownHandler)

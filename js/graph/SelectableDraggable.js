@@ -1,3 +1,4 @@
+import Configuration from "../Configuration"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 import GraphElement from "./GraphElement"
 
@@ -40,9 +41,9 @@ export default class SelectableDraggable extends GraphElement {
         }
         this.selected = value
         if (this.selected) {
-            this.blueprint.addEventListener("ueb-node-drag", this.dragHandler)
+            this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler)
         } else {
-            this.blueprint.removeEventListener("ueb-node-drag", this.dragHandler)
+            this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
         }
         this.template.applySelected(this)
     }
@@ -52,14 +53,14 @@ export default class SelectableDraggable extends GraphElement {
             this.blueprint.unselectAll()
             this.setSelected(true)
         }
-        let dragEvent = new CustomEvent("ueb-node-drag", {
+        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             detail: {
-                instigator: this,
                 value: value
             },
+            bubbles: true,
             cancelable: true
         })
-        this.blueprint.dispatchEvent(dragEvent)
+        this.dispatchEvent(dragEvent)
     }
 
     snapToGrid() {

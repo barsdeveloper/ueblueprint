@@ -3,6 +3,7 @@ import ObjectEntity from "../entity/ObjectEntity"
 import PinEntity from "../entity/PinEntity"
 import SelectableDraggable from "./SelectableDraggable"
 import SerializerFactory from "../serialization/SerializerFactory"
+import Configuration from "../Configuration"
 
 export default class GraphNode extends SelectableDraggable {
 
@@ -49,7 +50,7 @@ export default class GraphNode extends SelectableDraggable {
     }
 
     dispatchDeleteEvent(value) {
-        let dragEvent = new CustomEvent("ueb-node-delete", {
+        let dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             bubbles: true,
             cancelable: true,
         })

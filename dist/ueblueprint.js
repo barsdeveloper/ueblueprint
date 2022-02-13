@@ -16,8 +16,14 @@ class Configuration {
         const endPoint = 100 - start;
         return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${endPoint - c1 + start} 100, ${endPoint} 100`
     }
+    static nodeDeleteEventName = "ueb-node-delete"
+    static nodeDragEventName = "ueb-node-drag"
     static nodeRadius = 8 // in pixel
     static selectAllKeyboardKey = "Ctrl+A"
+    static trackingMouseEventName = {
+        begin: "ueb-tracking-mouse-begin",
+        end: "ueb-tracking-mouse-end"
+    }
     static ModifierKeys = [
         "Ctrl",
         "Shift",
@@ -719,8 +725,8 @@ class Context {
         this.blueprint = blueprint;
         this.options = options;
         let self = this;
-        this.blueprintFocusHandler = _ => self.blueprintFocused();
-        this.blueprintUnfocusHandler = _ => self.blueprintUnfocused();
+        this.blueprintFocusHandler = _ => self.listenEvents();
+        this.blueprintUnfocusHandler = _ => self.unlistenEvents();
         if (options?.wantsFocusCallback ?? false) {
             this.blueprint.addEventListener("blueprint-focus", this.blueprintFocusHandler);
             this.blueprint.addEventListener("blueprint-unfocus", this.blueprintUnfocusHandler);
@@ -728,17 +734,17 @@ class Context {
     }
 
     unlistenDOMElement() {
-        this.blueprintUnfocused();
+        this.unlistenEvents();
         this.blueprint.removeEventListener("blueprint-focus", this.blueprintFocusHandler);
         this.blueprint.removeEventListener("blueprint-unfocus", this.blueprintUnfocusHandler);
     }
 
 
     /* Subclasses will probabily override the following methods */
-    blueprintFocused() {
+    listenEvents() {
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
     }
 }
 
@@ -1491,11 +1497,11 @@ class Copy extends Context {
         };
     }
 
-    blueprintFocused() {
+    listenEvents() {
         document.body.addEventListener("copy", this.copyHandler);
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         document.body.removeEventListener("copy", this.copyHandler);
     }
 
@@ -1547,19 +1553,23 @@ class LinkTemplate extends Template {
      * Applies the style relative to the destination pin location.
      * @param {GraphLink} link Link element
      */
-    applyDestinationLocation(link) {
+    applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
-        const height = Math.abs(link.sourceLocation[1] - link.destinationLocation[1]);
+        const height = Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1);
         const fillRatio = dx / width;
-        const aspectRatio = Math.max(width, 1) / Math.max(height, 1);
+        const aspectRatio = width / height;
         let start = dx < width
             ? (width - dx) / width * 100 / 2
             : 0;
-        link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]));
-        link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]));
-        link.style.setProperty("margin-left", `-${start}px`);
-        let c1 = 20;
+        {
+            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
+            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
+            link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]));
+            link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]));
+            link.style.setProperty("margin-left", `-${start}px`);
+        }
+        let c1 = 15;
         const xInverted = link.originatesFromInput
             ? link.sourceLocation[0] < link.destinationLocation[0]
             : link.destinationLocation[0] < link.sourceLocation[0];
@@ -1569,7 +1579,7 @@ class LinkTemplate extends Template {
             start = start + fillRatio * 100;
             c1 = start + c1 * fillRatio * 100 / width;
         }
-        const c2 = Math.max(40 / aspectRatio, 30) + start * 1.5;
+        let c2 = Math.max(40 / aspectRatio, 30) + start * 1.4;
         const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d);
@@ -1584,9 +1594,9 @@ class GraphLink extends GraphElement {
     #source
     /** @type {GraphPin} */
     #destination
-    #nodeDeleteHandler = _ => this.blueprint.removeGraphElement(this)
-    #nodeDragSourceHandler = _ => this.setSourceLocation(this.#source.getLinkLocation())
-    #nodeDragDestinatonHandler = _ => this.setDestinationLocation(this.#destination.getLinkLocation())
+    #nodeDeleteHandler
+    #nodeDragSourceHandler
+    #nodeDragDestinatonHandler
 
     /**
      * @param {?GraphPin} source
@@ -1601,10 +1611,39 @@ class GraphLink extends GraphElement {
         this.originatesFromInput = false;
         this.sourceLocation = [0, 0];
         this.destinationLocation = [0, 0];
+        const self = this;
+        this.#nodeDeleteHandler = _ => self.blueprint.removeGraphElement(self);
+        this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value);
+        this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value);
         this.setSourcePin(source);
         this.setDestinationPin(destination);
     }
 
+    /**
+     * 
+     * @returns {Number[]} 
+     */
+    getSourceLocation() {
+        return this.sourceLocation
+    }
+
+    /**
+     * 
+     * @param {Number[]} offset 
+     */
+    addSourceLocation(offset) {
+        const location = [
+            this.sourceLocation[0] + offset[0],
+            this.sourceLocation[1] + offset[1]
+        ];
+        this.sourceLocation = location;
+        this.template.applyFullLocation(this);
+    }
+
+    /**
+     * 
+     * @param {Number[]} location 
+     */
     setSourceLocation(location) {
         if (location == null) {
             location = this.#source.template.getLinkLocation(this.#source);
@@ -1613,15 +1652,43 @@ class GraphLink extends GraphElement {
         this.template.applySourceLocation(this);
     }
 
+    /**
+     * 
+     * @returns {Number[]}
+     */
+    getDestinationLocation() {
+        return this.destinationLocation
+    }
+
+    /**
+     * 
+     * @param {Number[]} offset 
+     */
+    addDestinationLocation(offset) {
+        const location = [
+            this.destinationLocation[0] + offset[0],
+            this.destinationLocation[1] + offset[1]
+        ];
+        this.setDestinationLocation(location);
+    }
+
+    /**
+     * 
+     * @param {Number[]} location 
+     */
     setDestinationLocation(location) {
         if (location == null) {
             location = this.#destination.template.getLinkLocation(this.#destination);
         }
         this.destinationLocation = location;
-        this.template.applyDestinationLocation(this);
+        this.template.applyFullLocation(this);
     }
 
 
+    /**
+     * 
+     * @returns {GraphPin}
+     */
     getSourcePin() {
         return this.#source
     }
@@ -1630,15 +1697,25 @@ class GraphLink extends GraphElement {
      * @param {GraphPin} graphPin 
      */
     setSourcePin(graphPin) {
-        this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
-        this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
+        if (this.#source) {
+            const nodeElement = this.#source.getGraphNode();
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDragSourceHandler);
+        }
         this.#source = graphPin;
-        this.originatesFromInput = graphPin.isInput();
-        this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
-        this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler);
-        this.setSourceLocation();
+        if (this.#source) {
+            const nodeElement = this.#source.getGraphNode();
+            this.originatesFromInput = graphPin.isInput();
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDragSourceHandler);
+            this.setSourceLocation();
+        }
     }
 
+    /**
+     * 
+     * @returns {GraphPin}
+     */
     getDestinationPin() {
         return this.#destination
     }
@@ -1648,11 +1725,17 @@ class GraphLink extends GraphElement {
      * @param {GraphPin} graphPin 
      */
     setDestinationPin(graphPin) {
-        this.#destination?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler);
-        this.#destination?.removeEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler);
+        if (this.#destination) {
+            const nodeElement = this.#source.getGraphNode();
+            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDragDestinatonHandler);
+        }
         this.#destination = graphPin;
-        this.#destination?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler);
-        this.#destination?.addEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler);
+        if (this.#destination) {
+            const nodeElement = this.#source.getGraphNode();
+            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDragDestinatonHandler);
+        }
     }
 }
 
@@ -1780,6 +1863,12 @@ class MouseClickDrag extends Pointing {
             // Do actual actions
             self.startDrag();
             self.started = true;
+            const dragEvent = new CustomEvent(Configuration.trackingMouseEventName.begin, {
+                bubbles: true,
+                cancelable: true
+            });
+            this.target.dispatchEvent(dragEvent);
+            return true
         };
 
         this.mouseMoveHandler = e => {
@@ -1788,6 +1877,8 @@ class MouseClickDrag extends Pointing {
             const location = self.locationFromEvent(e);
             const movement = [e.movementX, e.movementY];
             self.dragTo(location, movement);
+            self.blueprint.entity.mousePosition = self.locationFromEvent(e);
+            return true
         };
 
         this.mouseUpHandler = e => {
@@ -1797,7 +1888,14 @@ class MouseClickDrag extends Pointing {
                 movementListenedElement.removeEventListener("mousemove", self.mouseMoveHandler);
                 document.removeEventListener("mouseup", self.mouseUpHandler);
                 self.endDrag();
+                const dragEvent = new CustomEvent(Configuration.trackingMouseEventName.end, {
+                    bubbles: true,
+                    cancelable: true
+                });
+                this.target.dispatchEvent(dragEvent);
+                return true
             }
+            return false
         };
 
         this.target.addEventListener("mousedown", this.mouseDownHandler);
@@ -1943,7 +2041,11 @@ class GraphPin extends GraphElement {
      * @returns {Number[]} The location array
      */
     getLinkLocation() {
-        return [0, 0];
+        return this.template.getLinkLocation(this)
+    }
+
+    getGraphNode() {
+        return this.closest("ueb-node")
     }
 }
 
@@ -2136,9 +2238,9 @@ class SelectableDraggable extends GraphElement {
         }
         this.selected = value;
         if (this.selected) {
-            this.blueprint.addEventListener("ueb-node-drag", this.dragHandler);
+            this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
         } else {
-            this.blueprint.removeEventListener("ueb-node-drag", this.dragHandler);
+            this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
         }
         this.template.applySelected(this);
     }
@@ -2148,14 +2250,14 @@ class SelectableDraggable extends GraphElement {
             this.blueprint.unselectAll();
             this.setSelected(true);
         }
-        let dragEvent = new CustomEvent("ueb-node-drag", {
+        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             detail: {
-                instigator: this,
                 value: value
             },
+            bubbles: true,
             cancelable: true
         });
-        this.blueprint.dispatchEvent(dragEvent);
+        this.dispatchEvent(dragEvent);
     }
 
     snapToGrid() {
@@ -2211,7 +2313,7 @@ class GraphNode extends SelectableDraggable {
     }
 
     dispatchDeleteEvent(value) {
-        let dragEvent = new CustomEvent("ueb-node-delete", {
+        let dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             bubbles: true,
             cancelable: true,
         });
@@ -2293,11 +2395,11 @@ class KeyboardShortcut extends Context {
         return options
     }
 
-    blueprintFocused() {
+    listenEvents() {
         document.addEventListener("keydown", this.keyDownHandler);
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         document.removeEventListener("keydown", this.keyDownHandler);
     }
 
@@ -2362,19 +2464,44 @@ class MouseTracking extends Pointing {
         options.wantsFocusCallback = true;
         super(target, blueprint, options);
 
+        this.trackingStolen = null;
         let self = this;
         this.mousemoveHandler = e => {
             self.blueprint.entity.mousePosition = self.locationFromEvent(e);
             return true
         };
+        this.trackingMouseStolenHandler = e => {
+            this.trackingStolen = e.target;
+            self.unlistenMouseMove();
+            return true
+        };
+        this.trackingMouseGaveBackHandler = e => {
+            if (!this.trackingStolen == e.target) {
+                return false
+            }
+            self.listenMouseMove();
+            return true
+        };
     }
 
-    blueprintFocused() {
+    listenMouseMove() {
         this.target.addEventListener("mousemove", this.mousemoveHandler);
     }
 
-    blueprintUnfocused() {
+    unlistenMouseMove() {
         this.target.removeEventListener("mousemove", this.mousemoveHandler);
+    }
+
+    listenEvents() {
+        this.listenMouseMove();
+        this.blueprint.addEventListener(Configuration.trackingMouseEventName.begin, this.trackingMouseStolenHandler);
+        this.blueprint.addEventListener(Configuration.trackingMouseEventName.end, this.trackingMouseGaveBackHandler);
+    }
+
+    unlistenEvents() {
+        this.unlistenMouseMove();
+        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.begin, this.trackingMouseStolenHandler);
+        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.end, this.trackingMouseGaveBackHandler);
     }
 }
 
@@ -2388,11 +2515,11 @@ class Paste extends Context {
         this.pasteHandle = e => self.pasted(e.clipboardData.getData("Text"));
     }
 
-    blueprintFocused() {
+    listenEvents() {
         document.body.addEventListener("paste", this.pasteHandle);
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         document.body.removeEventListener("paste", this.pasteHandle);
     }
 
@@ -2476,11 +2603,11 @@ class Unfocus extends Context {
         this.blueprint.setFocused(false);
     }
 
-    blueprintFocused() {
+    listenEvents() {
         document.addEventListener("click", this.clickHandler);
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         document.removeEventListener("click", this.clickHandler);
     }
 }
@@ -2512,12 +2639,12 @@ class MouseWheel extends Pointing {
         }
     }
 
-    blueprintFocused() {
+    listenEvents() {
         this.movementSpace.addEventListener("wheel", this.mouseWheelHandler, false);
         this.movementSpace.parentElement?.addEventListener("wheel", this.mouseParentWheelHandler);
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         this.movementSpace.removeEventListener("wheel", this.mouseWheelHandler, false);
         this.movementSpace.parentElement?.removeEventListener("wheel", this.mouseParentWheelHandler);
     }
@@ -2781,6 +2908,8 @@ class Blueprint extends GraphElement {
 
 
         if (center) {
+            center[0] += this.translateValue[0];
+            center[1] += this.translateValue[1];
             let relativeScale = this.getScale() / initialScale;
             let newCenter = [
                 relativeScale * center[0],

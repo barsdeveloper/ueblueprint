@@ -74,11 +74,11 @@ export default class KeyboardShortcut extends Context {
         return options
     }
 
-    blueprintFocused() {
+    listenEvents() {
         document.addEventListener("keydown", this.keyDownHandler)
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         document.removeEventListener("keydown", this.keyDownHandler)
     }
 

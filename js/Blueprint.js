@@ -260,6 +260,8 @@ export default class Blueprint extends GraphElement {
 
 
         if (center) {
+            center[0] += this.translateValue[0]
+            center[1] += this.translateValue[1]
             let relativeScale = this.getScale() / initialScale
             let newCenter = [
                 relativeScale * center[0],

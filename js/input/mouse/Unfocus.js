@@ -25,11 +25,11 @@ export default class Unfocus extends Context {
         this.blueprint.setFocused(false)
     }
 
-    blueprintFocused() {
+    listenEvents() {
         document.addEventListener("click", this.clickHandler)
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         document.removeEventListener("click", this.clickHandler)
     }
 }

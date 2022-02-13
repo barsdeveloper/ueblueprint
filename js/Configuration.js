@@ -16,8 +16,14 @@ export default class Configuration {
         const endPoint = 100 - start
         return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${endPoint - c1 + start} 100, ${endPoint} 100`
     }
+    static nodeDeleteEventName = "ueb-node-delete"
+    static nodeDragEventName = "ueb-node-drag"
     static nodeRadius = 8 // in pixel
     static selectAllKeyboardKey = "Ctrl+A"
+    static trackingMouseEventName = {
+        begin: "ueb-tracking-mouse-begin",
+        end: "ueb-tracking-mouse-end"
+    }
     static ModifierKeys = [
         "Ctrl",
         "Shift",

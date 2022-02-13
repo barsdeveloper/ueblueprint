@@ -1,5 +1,6 @@
 import GraphElement from "./GraphElement"
 import LinkTemplate from "../template/LinkTemplate"
+import Configuration from "../Configuration"
 
 
 /**
@@ -10,9 +11,9 @@ export default class GraphLink extends GraphElement {
     #source
     /** @type {GraphPin} */
     #destination
-    #nodeDeleteHandler = _ => this.blueprint.removeGraphElement(this)
-    #nodeDragSourceHandler = _ => this.setSourceLocation(this.#source.getLinkLocation())
-    #nodeDragDestinatonHandler = _ => this.setDestinationLocation(this.#destination.getLinkLocation())
+    #nodeDeleteHandler
+    #nodeDragSourceHandler
+    #nodeDragDestinatonHandler
 
     /**
      * @param {?GraphPin} source
@@ -27,10 +28,39 @@ export default class GraphLink extends GraphElement {
         this.originatesFromInput = false
         this.sourceLocation = [0, 0]
         this.destinationLocation = [0, 0]
+        const self = this
+        this.#nodeDeleteHandler = _ => self.blueprint.removeGraphElement(self)
+        this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value)
+        this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value)
         this.setSourcePin(source)
         this.setDestinationPin(destination)
     }
 
+    /**
+     * 
+     * @returns {Number[]} 
+     */
+    getSourceLocation() {
+        return this.sourceLocation
+    }
+
+    /**
+     * 
+     * @param {Number[]} offset 
+     */
+    addSourceLocation(offset) {
+        const location = [
+            this.sourceLocation[0] + offset[0],
+            this.sourceLocation[1] + offset[1]
+        ]
+        this.sourceLocation = location
+        this.template.applyFullLocation(this)
+    }
+
+    /**
+     * 
+     * @param {Number[]} location 
+     */
     setSourceLocation(location) {
         if (location == null) {
             location = this.#source.template.getLinkLocation(this.#source)
@@ -39,15 +69,43 @@ export default class GraphLink extends GraphElement {
         this.template.applySourceLocation(this)
     }
 
+    /**
+     * 
+     * @returns {Number[]}
+     */
+    getDestinationLocation() {
+        return this.destinationLocation
+    }
+
+    /**
+     * 
+     * @param {Number[]} offset 
+     */
+    addDestinationLocation(offset) {
+        const location = [
+            this.destinationLocation[0] + offset[0],
+            this.destinationLocation[1] + offset[1]
+        ]
+        this.setDestinationLocation(location)
+    }
+
+    /**
+     * 
+     * @param {Number[]} location 
+     */
     setDestinationLocation(location) {
         if (location == null) {
             location = this.#destination.template.getLinkLocation(this.#destination)
         }
         this.destinationLocation = location
-        this.template.applyDestinationLocation(this)
+        this.template.applyFullLocation(this)
     }
 
 
+    /**
+     * 
+     * @returns {GraphPin}
+     */
     getSourcePin() {
         return this.#source
     }
@@ -56,15 +114,25 @@ export default class GraphLink extends GraphElement {
      * @param {GraphPin} graphPin 
      */
     setSourcePin(graphPin) {
-        this.#source?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler)
-        this.#source?.removeEventListener("ueb-node-drag", this.#nodeDragSourceHandler)
+        if (this.#source) {
+            const nodeElement = this.#source.getGraphNode()
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDragSourceHandler)
+        }
         this.#source = graphPin
-        this.originatesFromInput = graphPin.isInput()
-        this.#source?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler)
-        this.#source?.addEventListener("ueb-node-drag", this.#nodeDragSourceHandler)
-        this.setSourceLocation()
+        if (this.#source) {
+            const nodeElement = this.#source.getGraphNode()
+            this.originatesFromInput = graphPin.isInput()
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDragSourceHandler)
+            this.setSourceLocation()
+        }
     }
 
+    /**
+     * 
+     * @returns {GraphPin}
+     */
     getDestinationPin() {
         return this.#destination
     }
@@ -74,11 +142,17 @@ export default class GraphLink extends GraphElement {
      * @param {GraphPin} graphPin 
      */
     setDestinationPin(graphPin) {
-        this.#destination?.removeEventListener("ueb-node-delete", this.#nodeDeleteHandler)
-        this.#destination?.removeEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler)
+        if (this.#destination) {
+            const nodeElement = this.#source.getGraphNode()
+            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDragDestinatonHandler)
+        }
         this.#destination = graphPin
-        this.#destination?.addEventListener("ueb-node-delete", this.#nodeDeleteHandler)
-        this.#destination?.addEventListener("ueb-node-drag", this.#nodeDragDestinatonHandler)
+        if (this.#destination) {
+            const nodeElement = this.#source.getGraphNode()
+            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDragDestinatonHandler)
+        }
     }
 }
 

@@ -56,7 +56,11 @@ export default class GraphPin extends GraphElement {
      * @returns {Number[]} The location array
      */
     getLinkLocation() {
-        return [0, 0];
+        return this.template.getLinkLocation(this)
+    }
+
+    getGraphNode() {
+        return this.closest("ueb-node")
     }
 }
 

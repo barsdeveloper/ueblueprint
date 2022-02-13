@@ -46,19 +46,23 @@ export default class LinkTemplate extends Template {
      * Applies the style relative to the destination pin location.
      * @param {GraphLink} link Link element
      */
-    applyDestinationLocation(link) {
+    applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1)
         const width = Math.max(dx, Configuration.linkMinWidth)
-        const height = Math.abs(link.sourceLocation[1] - link.destinationLocation[1])
+        const height = Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1)
         const fillRatio = dx / width
-        const aspectRatio = Math.max(width, 1) / Math.max(height, 1)
+        const aspectRatio = width / height
         let start = dx < width
             ? (width - dx) / width * 100 / 2
             : 0
-        link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]))
-        link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]))
-        link.style.setProperty("margin-left", `-${start}px`)
-        let c1 = 20
+        {
+            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
+            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
+            link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]))
+            link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]))
+            link.style.setProperty("margin-left", `-${start}px`)
+        }
+        let c1 = 15
         const xInverted = link.originatesFromInput
             ? link.sourceLocation[0] < link.destinationLocation[0]
             : link.destinationLocation[0] < link.sourceLocation[0]
@@ -68,7 +72,7 @@ export default class LinkTemplate extends Template {
             start = start + fillRatio * 100
             c1 = start + c1 * fillRatio * 100 / width
         }
-        const c2 = Math.max(40 / aspectRatio, 30) + start * 1.5
+        let c2 = Math.max(40 / aspectRatio, 30) + start * 1.4
         const d = Configuration.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d)

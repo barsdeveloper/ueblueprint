@@ -12,11 +12,11 @@ export default class Paste extends Context {
         this.pasteHandle = e => self.pasted(e.clipboardData.getData("Text"))
     }
 
-    blueprintFocused() {
+    listenEvents() {
         document.body.addEventListener("paste", this.pasteHandle)
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         document.body.removeEventListener("paste", this.pasteHandle)
     }
 

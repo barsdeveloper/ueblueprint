@@ -27,12 +27,12 @@ export default class MouseWheel extends Pointing {
         }
     }
 
-    blueprintFocused() {
+    listenEvents() {
         this.movementSpace.addEventListener("wheel", this.mouseWheelHandler, false)
         this.movementSpace.parentElement?.addEventListener("wheel", this.mouseParentWheelHandler)
     }
 
-    blueprintUnfocused() {
+    unlistenEvents() {
         this.movementSpace.removeEventListener("wheel", this.mouseWheelHandler, false)
         this.movementSpace.parentElement?.removeEventListener("wheel", this.mouseParentWheelHandler)
     }
