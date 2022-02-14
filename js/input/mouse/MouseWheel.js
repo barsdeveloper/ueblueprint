@@ -2,6 +2,9 @@ import Pointing from "./Pointing"
 
 export default class MouseWheel extends Pointing {
 
+    #mouseWheelHandler
+    #mouseParentWheelHandler
+
     /**
      * 
      * @param {HTMLElement} target 
@@ -14,27 +17,26 @@ export default class MouseWheel extends Pointing {
         this.looseTarget = options?.looseTarget ?? true
         let self = this
 
-        this.mouseWheelHandler = e => {
+        this.#mouseWheelHandler = e => {
             e.preventDefault()
             const location = self.locationFromEvent(e)
             self.wheel(Math.sign(e.deltaY), location)
-            return true
         }
-        this.mouseParentWheelHandler = e => e.preventDefault()
+        this.#mouseParentWheelHandler = e => e.preventDefault()
 
         if (this.blueprint.focused) {
-            this.movementSpace.addEventListener("wheel", this.mouseWheelHandler, false)
+            this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false)
         }
     }
 
     listenEvents() {
-        this.movementSpace.addEventListener("wheel", this.mouseWheelHandler, false)
-        this.movementSpace.parentElement?.addEventListener("wheel", this.mouseParentWheelHandler)
+        this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false)
+        this.movementSpace.parentElement?.addEventListener("wheel", this.#mouseParentWheelHandler)
     }
 
     unlistenEvents() {
-        this.movementSpace.removeEventListener("wheel", this.mouseWheelHandler, false)
-        this.movementSpace.parentElement?.removeEventListener("wheel", this.mouseParentWheelHandler)
+        this.movementSpace.removeEventListener("wheel", this.#mouseWheelHandler, false)
+        this.movementSpace.parentElement?.removeEventListener("wheel", this.#mouseParentWheelHandler)
     }
 
     /* Subclasses will override the following method */

@@ -3,23 +3,22 @@ import ObjectSerializer from "../../serialization/ObjectSerializer"
 
 export default class Copy extends Context {
 
+    #copyHandler
+
     constructor(target, blueprint, options = {}) {
         options.wantsFocusCallback = true
         super(target, blueprint, options)
         this.serializer = new ObjectSerializer()
         let self = this
-        this.copyHandler = _ => {
-            self.copied()
-            return true
-        }
+        this.#copyHandler = _ => self.copied()
     }
 
     listenEvents() {
-        document.body.addEventListener("copy", this.copyHandler)
+        document.body.addEventListener("copy", this.#copyHandler)
     }
 
     unlistenEvents() {
-        document.body.removeEventListener("copy", this.copyHandler)
+        document.body.removeEventListener("copy", this.#copyHandler)
     }
 
     copied() {

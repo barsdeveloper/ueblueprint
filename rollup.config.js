@@ -14,7 +14,7 @@ export default {
         nodeResolve({ browser: true }),
         //minifyHTML(),
         commonjs(),
-        //terser()
+        //terser(),
         copy({
             targets: [
                 {

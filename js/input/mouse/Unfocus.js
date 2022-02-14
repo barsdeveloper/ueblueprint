@@ -2,34 +2,35 @@ import Context from "../Context"
 
 export default class Unfocus extends Context {
 
+    #clickHandler
+
     constructor(target, blueprint, options = {}) {
         options.wantsFocusCallback = true
         super(target, blueprint, options)
 
         let self = this
-        this.clickHandler = e => self.clickedSomewhere(e)
+        this.#clickHandler = e => self.clickedSomewhere(e.target)
         if (this.blueprint.focuse) {
-            document.addEventListener("click", this.clickHandler)
+            document.addEventListener("click", this.#clickHandler)
         }
     }
 
     /**
      * 
-     * @param {MouseEvent} e 
+     * @param {HTMLElement} e 
      */
-    clickedSomewhere(e) {
-        // If target is inside the blueprint grid
-        if (e.target.closest("ueb-blueprint")) {
-            return
+    clickedSomewhere(target) {
+        // If target is outside the blueprint grid
+        if (!target.closest("ueb-blueprint")) {
+            this.blueprint.setFocused(false)
         }
-        this.blueprint.setFocused(false)
     }
 
     listenEvents() {
-        document.addEventListener("click", this.clickHandler)
+        document.addEventListener("click", this.#clickHandler)
     }
 
     unlistenEvents() {
-        document.removeEventListener("click", this.clickHandler)
+        document.removeEventListener("click", this.#clickHandler)
     }
 }

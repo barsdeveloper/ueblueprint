@@ -6,105 +6,120 @@ import Pointing from "./Pointing"
  */
 export default class MouseClickDrag extends Pointing {
 
+    #mouseDownHandler = _ => { }
+    #mouseStartedMovingHandler
+    #mouseMoveHandler
+    #mouseUpHandler
+    #trackingMouse = false
+
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
         this.clickButton = options?.clickButton ?? 0
         this.exitAnyButton = options?.exitAnyButton ?? true
         this.moveEverywhere = options?.moveEverywhere ?? false
         this.looseTarget = options?.looseTarget ?? false
+        this.consumeClickEvent = options?.consumeClickEvent ?? true
         this.started = false
         this.clickedPosition = [0, 0]
 
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace
         let self = this
 
-        this.mouseDownHandler = e => {
+        /**
+         * 
+         * @param {MouseEvent} e 
+         */
+        this.#mouseDownHandler = e => {
             this.blueprint.setFocused(true)
             switch (e.button) {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
                         e.preventDefault()
-                        e.stopPropagation()
+                        if (this.consumeClickEvent) {
+                            e.stopImmediatePropagation() // Captured, don't call anyone else
+                        }
                         self.started = false
                         // Attach the listeners
-                        movementListenedElement.addEventListener("mousemove", self.mouseStartedMovingHandler)
-                        document.addEventListener("mouseup", self.mouseUpHandler)
+                        movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler)
+                        document.addEventListener("mouseup", self.#mouseUpHandler)
                         self.clickedPosition = self.locationFromEvent(e)
                         self.clicked(self.clickedPosition)
-                        return true
                     }
                     break
                 default:
                     if (!self.exitAnyButton) {
-                        self.mouseUpHandler(e)
+                        self.#mouseUpHandler(e)
                     }
                     break
             }
-            return false
         }
 
-        this.mouseStartedMovingHandler = e => {
+        /**
+         * 
+         * @param {MouseEvent} e 
+         */
+        this.#mouseStartedMovingHandler = e => {
             e.preventDefault()
-            e.stopPropagation()
-
-            // Delegate from now on to self.mouseMoveHandler
-            movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler)
-            movementListenedElement.addEventListener("mousemove", self.mouseMoveHandler)
+            // Delegate from now on to self.#mouseMoveHandler
+            movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
+            movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler)
 
             // Do actual actions
             self.startDrag()
             self.started = true
-            const dragEvent = new CustomEvent(Configuration.trackingMouseEventName.begin, {
-                bubbles: true,
-                cancelable: true
-            })
-            this.target.dispatchEvent(dragEvent)
-            return true
+            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin)
+            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
+            self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
         }
 
-        this.mouseMoveHandler = e => {
+        this.#mouseMoveHandler = e => {
             e.preventDefault()
-            e.stopPropagation()
             const location = self.locationFromEvent(e)
             const movement = [e.movementX, e.movementY]
             self.dragTo(location, movement)
-            self.blueprint.entity.mousePosition = self.locationFromEvent(e)
-            return true
-        }
-
-        this.mouseUpHandler = e => {
-            if (!self.exitAnyButton || e.button == self.clickButton) {
-                // Remove the handlers of "mousemove" and "mouseup"
-                movementListenedElement.removeEventListener("mousemove", self.mouseStartedMovingHandler)
-                movementListenedElement.removeEventListener("mousemove", self.mouseMoveHandler)
-                document.removeEventListener("mouseup", self.mouseUpHandler)
-                self.endDrag()
-                const dragEvent = new CustomEvent(Configuration.trackingMouseEventName.end, {
-                    bubbles: true,
-                    cancelable: true
-                })
-                this.target.dispatchEvent(dragEvent)
-                return true
+            if (self.#trackingMouse) {
+                self.blueprint.entity.mousePosition = self.locationFromEvent(e)
             }
-            return false
         }
 
-        this.target.addEventListener("mousedown", this.mouseDownHandler)
+        this.#mouseUpHandler = e => {
+            if (!self.exitAnyButton || e.button == self.clickButton) {
+                e.preventDefault()
+                // Remove the handlers of "mousemove" and "mouseup"
+                movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
+                movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler)
+                document.removeEventListener("mouseup", self.#mouseUpHandler)
+                self.endDrag()
+                if (self.#trackingMouse) {
+                    const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end)
+                    this.target.dispatchEvent(dragEvent)
+                    self.#trackingMouse = false
+                }
+            }
+        }
+
+        this.target.addEventListener("mousedown", this.#mouseDownHandler)
         if (this.clickButton == 2) {
-            this.target.addEventListener("contextmenu", this.preventDefault)
+            this.target.addEventListener("contextmenu", e => e.preventDefault())
         }
     }
 
-    preventDefault(e) {
-        e.preventDefault()
+    getEvent(eventName) {
+        return new CustomEvent(eventName, {
+            detail: {
+                tracker: this
+            },
+            bubbles: true,
+            cancelable: true
+        })
     }
 
     unlistenDOMElement() {
         super.unlistenDOMElement()
-        this.target.removeEventListener("mousedown", this.mouseDownHandler)
+        this.target.removeEventListener("mousedown", this.#mouseDownHandler)
         if (this.clickButton == 2) {
-            this.target.removeEventListener("contextmenu", this.preventDefault)
+            this.target.removeEventListener("contextmenu", e => e.preventDefault())
         }
     }
 

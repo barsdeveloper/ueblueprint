@@ -4,20 +4,22 @@ import Context from "../Context"
 
 export default class Paste extends Context {
 
+    #pasteHandle
+
     constructor(target, blueprint, options = {}) {
         options.wantsFocusCallback = true
         super(target, blueprint, options)
         this.serializer = new ObjectSerializer()
         let self = this
-        this.pasteHandle = e => self.pasted(e.clipboardData.getData("Text"))
+        this.#pasteHandle = e => self.pasted(e.clipboardData.getData("Text"))
     }
 
     listenEvents() {
-        document.body.addEventListener("paste", this.pasteHandle)
+        document.body.addEventListener("paste", this.#pasteHandle)
     }
 
     unlistenEvents() {
-        document.body.removeEventListener("paste", this.pasteHandle)
+        document.body.removeEventListener("paste", this.#pasteHandle)
     }
 
     pasted(value) {
