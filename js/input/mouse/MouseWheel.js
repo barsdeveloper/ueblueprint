@@ -2,7 +2,10 @@ import Pointing from "./Pointing"
 
 export default class MouseWheel extends Pointing {
 
+    /** @type {(e: WheelEvent) => void} */
     #mouseWheelHandler
+
+    /** @type {(e: WheelEvent) => void} */
     #mouseParentWheelHandler
 
     /**

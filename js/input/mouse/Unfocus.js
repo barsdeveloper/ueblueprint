@@ -2,6 +2,7 @@ import Context from "../Context"
 
 export default class Unfocus extends Context {
 
+    /** @type {(e: WheelEvent) => void} */
     #clickHandler
 
     constructor(target, blueprint, options = {}) {

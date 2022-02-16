@@ -3,9 +3,16 @@ import Pointing from "./Pointing"
 
 export default class MouseTracking extends Pointing {
 
+    /** @type {Pointing} */
     #mouseTracker = null
+
+    /** @type {(e: MouseEvent) => void} */
     #mousemoveHandler
+
+    /** @type {(e: CustomEvent) => void} */
     #trackingMouseStolenHandler
+
+    /** @type {(e: CustomEvent) => void} */
     #trackingMouseGaveBackHandler
 
     constructor(target, blueprint, options = {}) {
@@ -14,18 +21,10 @@ export default class MouseTracking extends Pointing {
 
         let self = this
 
-        /**
-         * 
-         * @param {MouseEvent} e 
-         */
         this.#mousemoveHandler = e => {
             self.blueprint.entity.mousePosition = self.locationFromEvent(e)
         }
 
-        /**
-         * 
-         * @param {CustomEvent} e 
-         */
         this.#trackingMouseStolenHandler = e => {
             if (!self.#mouseTracker) {
                 e.preventDefault()
@@ -34,10 +33,6 @@ export default class MouseTracking extends Pointing {
             }
         }
 
-        /**
-         * 
-         * @param {CustomEvent} e 
-         */
         this.#trackingMouseGaveBackHandler = e => {
             if (self.#mouseTracker == e.detail.tracker) {
                 e.preventDefault()

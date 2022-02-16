@@ -6,10 +6,19 @@ import Pointing from "./Pointing"
  */
 export default class MouseClickDrag extends Pointing {
 
-    #mouseDownHandler = _ => { }
+    /** @type {(e: MouseEvent) => void} */
+    #mouseDownHandler
+
+    /** @type {(e: MouseEvent) => void} */
     #mouseStartedMovingHandler
+
+    /** @type {(e: MouseEvent) => void} */
     #mouseMoveHandler
+
+    /** @type {(e: MouseEvent) => void} */
     #mouseUpHandler
+
+    /** @type {Boolean} */
     #trackingMouse = false
 
     constructor(target, blueprint, options) {
@@ -25,10 +34,6 @@ export default class MouseClickDrag extends Pointing {
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace
         let self = this
 
-        /**
-         * 
-         * @param {MouseEvent} e 
-         */
         this.#mouseDownHandler = e => {
             this.blueprint.setFocused(true)
             switch (e.button) {
@@ -55,10 +60,6 @@ export default class MouseClickDrag extends Pointing {
             }
         }
 
-        /**
-         * 
-         * @param {MouseEvent} e 
-         */
         this.#mouseStartedMovingHandler = e => {
             e.preventDefault()
             // Delegate from now on to self.#mouseMoveHandler
