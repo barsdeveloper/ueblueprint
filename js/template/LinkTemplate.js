@@ -73,13 +73,10 @@ export default class LinkTemplate extends Template {
             link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]))
             link.style.setProperty("margin-left", `-${start}px`)
         }
-        let c1 = 15
-        if (!xInverted) {
-            c1 = start + c1 * fillRatio
-        } else {
+        if (xInverted) {
             start = start + fillRatio * 100
-            c1 = start + c1 * fillRatio
         }
+        const c1 = start + 15 * fillRatio
         let c2 = Math.max(40 / aspectRatio, 30) + start
         const c2Decreasing = -0.05
         const getMaxC2 = (m, p) => {
@@ -88,9 +85,7 @@ export default class LinkTemplate extends Template {
             return x => a / x + q
         }
         const controlPoint = [500, 140]
-        if (xInverted) {
-            c2 = Math.min(c2, getMaxC2(c2Decreasing, controlPoint)(width))
-        }
+        c2 = Math.min(c2, getMaxC2(c2Decreasing, controlPoint)(width))
         const d = Configuration.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d)
