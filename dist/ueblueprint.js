@@ -4,20 +4,27 @@ class Configuration {
     static fontSize = "13px"
     static gridAxisLineColor = "black"
     static gridLineColor = "#353535"
-    static gridLineWidth = 2 // in pixel
+    static gridLineWidth = 2 // pixel
     static gridSet = 8
     static gridSetLineColor = "#161616"
-    static gridSize = 16 // in pixel
+    static gridSize = 16 // pixel
     static keysSeparator = "+"
-    static linkCurveOffset = 20
-    static linkLeftSVGPath = "M 100 0 c 20 0, 30 0, 50 50 S 70 100, 100 100"
-    static linkMinWidth = 100 // in pixel
+    static linkCurveHeight = 15 // pixel
+    static linkCurveWidth = 80 // pixel
+    static linkMinWidth = 100 // pixel
+    /**
+     * @param {Number} start 
+     * @param {Number} c1 
+     * @param {Number} c2 
+     * @returns {String}
+     */
     static linkRightSVGPath = (start, c1, c2) => {
-        const endPoint = 100 - start;
-        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${endPoint - c1 + start} 100, ${endPoint} 100`
+        let end = 100 - start;
+        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
     }
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragEventName = "ueb-node-drag"
+    static nodeDragLocalEventName = "ueb-node-drag-local"
     static nodeRadius = 8 // in pixel
     static selectAllKeyboardKey = "Ctrl+A"
     static trackingMouseEventName = {
@@ -1515,6 +1522,14 @@ class Copy extends Context {
  */
 class LinkTemplate extends Template {
 
+    static pixelToUnit(pixels, pixelFullSize) {
+        return pixels * 100 / pixelFullSize
+    }
+
+    static unitToPixel(units, pixelFullSize) {
+        return Math.round(units * pixelFullSize / 100)
+    }
+
     /**
      * Computes the html content of the target element.
      * @param {GraphLink} link Link connecting two graph nodes 
@@ -1558,9 +1573,12 @@ class LinkTemplate extends Template {
         const height = Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1);
         const fillRatio = dx / width;
         const aspectRatio = width / height;
-        let start = dx < width
-            ? (width - dx) / width * 100 / 2
-            : 0;
+        const xInverted = link.originatesFromInput
+            ? link.sourceLocation[0] < link.destinationLocation[0]
+            : link.destinationLocation[0] < link.sourceLocation[0];
+        let start = dx < width // If under minimum width
+            ? (width - dx) / 2 // Start from half the empty space
+            : 0; // Otherwise start from the beginning
         {
             link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
             link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
@@ -1569,16 +1587,23 @@ class LinkTemplate extends Template {
             link.style.setProperty("margin-left", `-${start}px`);
         }
         let c1 = 15;
-        const xInverted = link.originatesFromInput
-            ? link.sourceLocation[0] < link.destinationLocation[0]
-            : link.destinationLocation[0] < link.sourceLocation[0];
         if (!xInverted) {
             c1 = start + c1 * fillRatio;
         } else {
             start = start + fillRatio * 100;
-            c1 = start + c1 * fillRatio * 100 / width;
+            c1 = start + c1 * fillRatio;
         }
-        let c2 = Math.max(40 / aspectRatio, 30) + start * 1.4;
+        let c2 = Math.max(40 / aspectRatio, 30) + start;
+        const c2Decreasing = -0.05;
+        const getMaxC2 = (m, p) => {
+            const a = -m * p[0] * p[0];
+            const q = p[1] - a / p[0];
+            return x => a / x + q
+        };
+        const controlPoint = [500, 140];
+        if (xInverted) {
+            c2 = Math.min(c2, getMaxC2(c2Decreasing, controlPoint)(width));
+        }
         const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d);
@@ -1699,14 +1724,14 @@ class GraphLink extends GraphElement {
         if (this.#source) {
             const nodeElement = this.#source.getGraphNode();
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDragSourceHandler);
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
         }
         this.#source = graphPin;
         if (this.#source) {
             const nodeElement = this.#source.getGraphNode();
             this.originatesFromInput = graphPin.isInput();
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDragSourceHandler);
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
             this.setSourceLocation();
         }
     }
@@ -1726,14 +1751,14 @@ class GraphLink extends GraphElement {
     setDestinationPin(graphPin) {
         if (this.#destination) {
             const nodeElement = this.#source.getGraphNode();
-            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDragDestinatonHandler);
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
         }
         this.#destination = graphPin;
         if (this.#destination) {
             const nodeElement = this.#source.getGraphNode();
-            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDragDestinatonHandler);
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
         }
     }
 }
@@ -1813,10 +1838,19 @@ class Pointing extends Context {
  */
 class MouseClickDrag extends Pointing {
 
-    #mouseDownHandler = _ => { }
+    /** @type {(e: MouseEvent) => void} */
+    #mouseDownHandler
+
+    /** @type {(e: MouseEvent) => void} */
     #mouseStartedMovingHandler
+
+    /** @type {(e: MouseEvent) => void} */
     #mouseMoveHandler
+
+    /** @type {(e: MouseEvent) => void} */
     #mouseUpHandler
+
+    /** @type {Boolean} */
     #trackingMouse = false
 
     constructor(target, blueprint, options) {
@@ -1832,10 +1866,6 @@ class MouseClickDrag extends Pointing {
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
         let self = this;
 
-        /**
-         * 
-         * @param {MouseEvent} e 
-         */
         this.#mouseDownHandler = e => {
             this.blueprint.setFocused(true);
             switch (e.button) {
@@ -1862,10 +1892,6 @@ class MouseClickDrag extends Pointing {
             }
         };
 
-        /**
-         * 
-         * @param {MouseEvent} e 
-         */
         this.#mouseStartedMovingHandler = e => {
             e.preventDefault();
             // Delegate from now on to self.#mouseMoveHandler
@@ -2238,8 +2264,17 @@ class SelectableDraggable extends GraphElement {
     }
 
     setLocation(value = [0, 0]) {
+        const d = [value[0] - this.location[0], value[1] - this.location[1]];
+        const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
+            detail: {
+                value: d
+            },
+            bubbles: false,
+            cancelable: true
+        });
         this.location = value;
         this.template.applyLocation(this);
+        this.dispatchEvent(dragLocalEvent);
     }
 
     addLocation(value) {
@@ -2474,9 +2509,16 @@ class MouseScrollGraph extends MouseClickDrag {
 
 class MouseTracking extends Pointing {
 
+    /** @type {Pointing} */
     #mouseTracker = null
+
+    /** @type {(e: MouseEvent) => void} */
     #mousemoveHandler
+
+    /** @type {(e: CustomEvent) => void} */
     #trackingMouseStolenHandler
+
+    /** @type {(e: CustomEvent) => void} */
     #trackingMouseGaveBackHandler
 
     constructor(target, blueprint, options = {}) {
@@ -2485,18 +2527,10 @@ class MouseTracking extends Pointing {
 
         let self = this;
 
-        /**
-         * 
-         * @param {MouseEvent} e 
-         */
         this.#mousemoveHandler = e => {
             self.blueprint.entity.mousePosition = self.locationFromEvent(e);
         };
 
-        /**
-         * 
-         * @param {CustomEvent} e 
-         */
         this.#trackingMouseStolenHandler = e => {
             if (!self.#mouseTracker) {
                 e.preventDefault();
@@ -2505,10 +2539,6 @@ class MouseTracking extends Pointing {
             }
         };
 
-        /**
-         * 
-         * @param {CustomEvent} e 
-         */
         this.#trackingMouseGaveBackHandler = e => {
             if (self.#mouseTracker == e.detail.tracker) {
                 e.preventDefault();
@@ -2616,6 +2646,7 @@ class Select extends MouseClickDrag {
 
 class Unfocus extends Context {
 
+    /** @type {(e: WheelEvent) => void} */
     #clickHandler
 
     constructor(target, blueprint, options = {}) {
@@ -2651,7 +2682,10 @@ class Unfocus extends Context {
 
 class MouseWheel extends Pointing {
 
+    /** @type {(e: WheelEvent) => void} */
     #mouseWheelHandler
+
+    /** @type {(e: WheelEvent) => void} */
     #mouseParentWheelHandler
 
     /**

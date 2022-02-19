@@ -27,8 +27,17 @@ export default class SelectableDraggable extends GraphElement {
     }
 
     setLocation(value = [0, 0]) {
+        const d = [value[0] - this.location[0], value[1] - this.location[1]]
+        const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
+            detail: {
+                value: d
+            },
+            bubbles: false,
+            cancelable: true
+        })
         this.location = value
         this.template.applyLocation(this)
+        this.dispatchEvent(dragLocalEvent)
     }
 
     addLocation(value) {

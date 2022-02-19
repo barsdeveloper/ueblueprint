@@ -4,20 +4,27 @@ export default class Configuration {
     static fontSize = "13px"
     static gridAxisLineColor = "black"
     static gridLineColor = "#353535"
-    static gridLineWidth = 2 // in pixel
+    static gridLineWidth = 2 // pixel
     static gridSet = 8
     static gridSetLineColor = "#161616"
-    static gridSize = 16 // in pixel
+    static gridSize = 16 // pixel
     static keysSeparator = "+"
-    static linkCurveOffset = 20
-    static linkLeftSVGPath = "M 100 0 c 20 0, 30 0, 50 50 S 70 100, 100 100"
-    static linkMinWidth = 100 // in pixel
+    static linkCurveHeight = 15 // pixel
+    static linkCurveWidth = 80 // pixel
+    static linkMinWidth = 100 // pixel
+    /**
+     * @param {Number} start 
+     * @param {Number} c1 
+     * @param {Number} c2 
+     * @returns {String}
+     */
     static linkRightSVGPath = (start, c1, c2) => {
-        const endPoint = 100 - start
-        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${endPoint - c1 + start} 100, ${endPoint} 100`
+        let end = 100 - start
+        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
     }
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragEventName = "ueb-node-drag"
+    static nodeDragLocalEventName = "ueb-node-drag-local"
     static nodeRadius = 8 // in pixel
     static selectAllKeyboardKey = "Ctrl+A"
     static trackingMouseEventName = {

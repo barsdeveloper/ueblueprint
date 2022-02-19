@@ -117,14 +117,14 @@ export default class GraphLink extends GraphElement {
         if (this.#source) {
             const nodeElement = this.#source.getGraphNode()
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDragSourceHandler)
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
         }
         this.#source = graphPin
         if (this.#source) {
             const nodeElement = this.#source.getGraphNode()
             this.originatesFromInput = graphPin.isInput()
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDragSourceHandler)
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
             this.setSourceLocation()
         }
     }
@@ -144,14 +144,14 @@ export default class GraphLink extends GraphElement {
     setDestinationPin(graphPin) {
         if (this.#destination) {
             const nodeElement = this.#source.getGraphNode()
-            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(Configuration.nodeDragEventName, this.#nodeDragDestinatonHandler)
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
         }
         this.#destination = graphPin
         if (this.#destination) {
             const nodeElement = this.#source.getGraphNode()
-            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(Configuration.nodeDragEventName, this.#nodeDragDestinatonHandler)
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
         }
     }
 }
