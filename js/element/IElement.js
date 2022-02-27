@@ -1,8 +1,8 @@
 /**
  * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../entity/IEntity").IEntity} IEntity
- * @typedef {import("../input/Context").default} Context
- * @typedef {import("../template/Template").default} Template
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../input/IContext").default} IContext
+ * @typedef {import("../template/ITemplate").default} ITemplate
  */
 
 export default class IElement extends HTMLElement {
@@ -10,7 +10,7 @@ export default class IElement extends HTMLElement {
     /**
      * 
      * @param {IEntity} entity The entity containing blueprint related data for this graph element
-     * @param {Template} template The template to render this node
+     * @param {ITemplate} template The template to render this node
      */
     constructor(entity, template) {
         super()
@@ -18,9 +18,9 @@ export default class IElement extends HTMLElement {
         this.blueprint = null
         /** @type {IEntity} */
         this.entity = entity
-        /** @type {Template} */
+        /** @type {ITemplate} */
         this.template = template
-        /** @type {Context[]} */
+        /** @type {IContext[]} */
         this.inputObjects = []
     }
 

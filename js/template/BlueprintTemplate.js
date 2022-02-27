@@ -2,10 +2,10 @@ import Configuration from "../Configuration"
 import html from "./html"
 import sanitizeText from "./sanitizeText"
 import SelectorElement from "../element/SelectorElement"
-import Template from "./Template"
+import ITemplate from "./ITemplate"
 
 /** @typedef {import("../Blueprint").default} Blueprint */
-export default class BlueprintTemplate extends Template {
+export default class BlueprintTemplate extends ITemplate {
     header(element) {
         return html`
             <div class="ueb-viewport-header">

@@ -1,6 +1,6 @@
-import MouseClickDrag from "./MouseClickDrag"
+import IMouseClickDrag from "./IMouseClickDrag"
 
-export default class Select extends MouseClickDrag {
+export default class Select extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)

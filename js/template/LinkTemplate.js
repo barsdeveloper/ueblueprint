@@ -1,13 +1,13 @@
 import html from "./html"
 import sanitizeText from "./sanitizeText"
-import Template from "./Template"
+import ITemplate from "./ITemplate"
 import Configuration from "../Configuration"
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
-export default class LinkTemplate extends Template {
+export default class LinkTemplate extends ITemplate {
 
     static pixelToUnit(pixels, pixelFullSize) {
         return pixels * 100 / pixelFullSize

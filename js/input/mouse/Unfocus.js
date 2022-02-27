@@ -1,6 +1,6 @@
-import Context from "../Context"
+import IContext from "../IContext"
 
-export default class Unfocus extends Context {
+export default class Unfocus extends IContext {
 
     /** @type {(e: WheelEvent) => void} */
     #clickHandler

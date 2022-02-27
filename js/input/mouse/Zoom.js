@@ -1,6 +1,6 @@
-import MouseWheel from "./MouseWheel"
+import IMouseWheel from "./IMouseWheel"
 
-export default class Zoom extends MouseWheel {
+export default class Zoom extends IMouseWheel {
 
     wheel(variation, location) {
         let zoomLevel = this.blueprint.getZoom()

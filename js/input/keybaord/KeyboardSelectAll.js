@@ -1,7 +1,7 @@
-import KeyboardShortcut from "./KeyboardShortcut"
+import IKeyboardShortcut from "./IKeyboardShortcut"
 import Configuration from "../../Configuration"
 
-export default class KeyboardSelectAll extends KeyboardShortcut {
+export default class KeyboardSelectAll extends IKeyboardShortcut {
 
     /**
      * 
@@ -10,7 +10,7 @@ export default class KeyboardSelectAll extends KeyboardShortcut {
      * @param {Object} options 
      */
     constructor(target, blueprint, options = {}) {
-        options = KeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey)
+        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey)
         super(target, blueprint, options)
     }
 

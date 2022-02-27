@@ -1,10 +1,10 @@
 import sanitizeText from "./sanitizeText"
-import Template from "./Template"
+import ITemplate from "./ITemplate"
 
 /**
  * @typedef {import("../element/SelectorElement").default} SelectorElement
  */
-export default class SelectorTemplate extends Template {
+export default class SelectorTemplate extends ITemplate {
 
     /**
      * Applies the style to the element.

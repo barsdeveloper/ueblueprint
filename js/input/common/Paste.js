@@ -1,8 +1,8 @@
 import NodeElement from "../../element/NodeElement"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
-import Context from "../Context"
+import IContext from "../IContext"
 
-export default class Paste extends Context {
+export default class Paste extends IContext {
 
     #pasteHandle
 

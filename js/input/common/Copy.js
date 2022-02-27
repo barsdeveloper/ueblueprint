@@ -1,7 +1,7 @@
-import Context from "../Context"
+import IContext from "../IContext"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
 
-export default class Copy extends Context {
+export default class Copy extends IContext {
 
     #copyHandler
 

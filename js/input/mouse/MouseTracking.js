@@ -1,9 +1,9 @@
 import Configuration from "../../Configuration"
-import Pointing from "./Pointing"
+import IPointing from "./IPointing"
 
-export default class MouseTracking extends Pointing {
+export default class MouseTracking extends IPointing {
 
-    /** @type {Pointing} */
+    /** @type {IPointing} */
     #mouseTracker = null
 
     /** @type {(e: MouseEvent) => void} */

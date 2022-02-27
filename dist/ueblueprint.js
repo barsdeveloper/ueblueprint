@@ -451,9 +451,9 @@ class FastSelectionModel {
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../entity/IEntity").IEntity} IEntity
- * @typedef {import("../input/Context").default} Context
- * @typedef {import("../template/Template").default} Template
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../input/IContext").default} IContext
+ * @typedef {import("../template/ITemplate").default} ITemplate
  */
 
 class IElement extends HTMLElement {
@@ -461,7 +461,7 @@ class IElement extends HTMLElement {
     /**
      * 
      * @param {IEntity} entity The entity containing blueprint related data for this graph element
-     * @param {Template} template The template to render this node
+     * @param {ITemplate} template The template to render this node
      */
     constructor(entity, template) {
         super();
@@ -469,9 +469,9 @@ class IElement extends HTMLElement {
         this.blueprint = null;
         /** @type {IEntity} */
         this.entity = entity;
-        /** @type {Template} */
+        /** @type {ITemplate} */
         this.template = template;
-        /** @type {Context[]} */
+        /** @type {IContext[]} */
         this.inputObjects = [];
     }
 
@@ -497,7 +497,7 @@ class IElement extends HTMLElement {
 /**
  * @typedef {import("../element/IElement").default} IElement
  */
-class Template {
+class ITemplate {
 
     /**
      * Computes the html content of the target element.
@@ -521,7 +521,7 @@ class Template {
 /**
  * @typedef {import("../element/SelectorElement").default} SelectorElement
  */
-class SelectorTemplate extends Template {
+class SelectorTemplate extends ITemplate {
 
     /**
      * Applies the style to the element.
@@ -603,7 +603,7 @@ class SelectorElement extends IElement {
 customElements.define(SelectorElement.tagName, SelectorElement);
 
 /** @typedef {import("../Blueprint").default} Blueprint */
-class BlueprintTemplate extends Template {
+class BlueprintTemplate extends ITemplate {
     header(element) {
         return html`
             <div class="ueb-viewport-header">
@@ -724,7 +724,7 @@ class BlueprintTemplate extends Template {
     }
 }
 
-class Context {
+class IContext {
 
     constructor(target, blueprint, options) {
         /** @type {HTMLElement} */
@@ -1362,7 +1362,7 @@ class SerializerFactory {
     }
 }
 
-class Serializer {
+class ISerializer {
 
     static grammar = Parsimmon.createLanguage(new Grammar())
 
@@ -1435,7 +1435,7 @@ class Serializer {
     }
 }
 
-class ObjectSerializer extends Serializer {
+class ObjectSerializer extends ISerializer {
 
     constructor() {
         super(ObjectEntity, "   ", "\n", false);
@@ -1453,7 +1453,7 @@ class ObjectSerializer extends Serializer {
     }
 
     read(value) {
-        const parseResult = Serializer.grammar.Object.parse(value);
+        const parseResult = ISerializer.grammar.Object.parse(value);
         if (!parseResult.status) {
             console.error("Error when trying to parse the object.");
             return parseResult
@@ -1467,7 +1467,7 @@ class ObjectSerializer extends Serializer {
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
-        const parseResult = Serializer.grammar.MultipleObject.parse(value);
+        const parseResult = ISerializer.grammar.MultipleObject.parse(value);
         if (!parseResult.status) {
             console.error("Error when trying to parse the object.");
             return parseResult
@@ -1491,7 +1491,7 @@ End Object`;
     }
 }
 
-class Copy extends Context {
+class Copy extends IContext {
 
     #copyHandler
 
@@ -1521,7 +1521,7 @@ class Copy extends Context {
  * @typedef {import("../element/LinkElement").default} LinkElement
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
-class LinkTemplate extends Template {
+class LinkTemplate extends ITemplate {
 
     static pixelToUnit(pixels, pixelFullSize) {
         return pixels * 100 / pixelFullSize
@@ -1796,7 +1796,7 @@ customElements.define(LinkElement.tagName, LinkElement);
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
-class PinTemplate extends Template {
+class PinTemplate extends ITemplate {
 
     /**
      * Computes the html content of the pin.
@@ -1844,7 +1844,7 @@ class PinTemplate extends Template {
 /**
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
-class LinkMessageTemplate extends Template {
+class LinkMessageTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
@@ -1929,7 +1929,7 @@ class LinkMessageElement extends IElement {
 
 customElements.define(LinkMessageElement.tagName, LinkMessageElement);
 
-class Pointing extends Context {
+class IPointing extends IContext {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
@@ -1952,7 +1952,7 @@ class Pointing extends Context {
 /**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  */
-class MouseClickDrag extends Pointing {
+class IMouseClickDrag extends IPointing {
 
     /** @type {(e: MouseEvent) => void} */
     #mouseDownHandler
@@ -2087,7 +2087,7 @@ class MouseClickDrag extends Pointing {
 }
 
 /** @typedef {import("../../element/PinElement").default} PinElement */
-class MouseCreateLink extends MouseClickDrag {
+class MouseCreateLink extends IMouseClickDrag {
 
     /** @type {NodeListOf<PinElement>} */
     #listenedPins
@@ -2229,7 +2229,7 @@ customElements.define(PinElement.tagName, PinElement);
 /**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
-class SelectableDraggableTemplate extends Template {
+class SelectableDraggableTemplate extends ITemplate {
 
     /**
      * Returns the html elements rendered from this template.
@@ -2304,9 +2304,9 @@ class NodeTemplate extends SelectableDraggableTemplate {
 }
 
 /**
- * @typedef {import("../../element/ISelectableDraggableElement").ISelectableDraggableElement} ISelectableDraggableElement
+ * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
-class MouseMoveNodes extends MouseClickDrag {
+class MouseMoveNodes extends IMouseClickDrag {
 
     /**
      * 
@@ -2515,7 +2515,7 @@ class KeyGrammar {
         .trim(P.optWhitespace)
 }
 
-class KeyboardShortcut extends Context {
+class IKeyboardShortcut extends IContext {
 
     static keyGrammar = P.createLanguage(new KeyGrammar())
 
@@ -2555,7 +2555,7 @@ class KeyboardShortcut extends Context {
     static keyOptionsParse(options, keyString) {
         options = {
             ...options,
-            ...KeyboardShortcut.keyGrammar.KeyboardShortcut.parse(keyString).value
+            ...IKeyboardShortcut.keyGrammar.KeyboardShortcut.parse(keyString).value
         };
         return options
     }
@@ -2572,7 +2572,7 @@ class KeyboardShortcut extends Context {
     }
 }
 
-class KeyvoardCanc extends KeyboardShortcut {
+class KeyvoardCanc extends IKeyboardShortcut {
 
     /**
      * 
@@ -2581,7 +2581,7 @@ class KeyvoardCanc extends KeyboardShortcut {
      * @param {OBject} options 
      */
     constructor(target, blueprint, options = {}) {
-        options = KeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
+        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
         super(target, blueprint, options);
     }
 
@@ -2590,7 +2590,7 @@ class KeyvoardCanc extends KeyboardShortcut {
     }
 }
 
-class KeyboardSelectAll extends KeyboardShortcut {
+class KeyboardSelectAll extends IKeyboardShortcut {
 
     /**
      * 
@@ -2599,7 +2599,7 @@ class KeyboardSelectAll extends KeyboardShortcut {
      * @param {Object} options 
      */
     constructor(target, blueprint, options = {}) {
-        options = KeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey);
+        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey);
         super(target, blueprint, options);
     }
 
@@ -2608,7 +2608,7 @@ class KeyboardSelectAll extends KeyboardShortcut {
     }
 }
 
-class MouseScrollGraph extends MouseClickDrag {
+class MouseScrollGraph extends IMouseClickDrag {
 
     startDrag() {
         this.blueprint.template.applyStartDragScrolling(this.blueprint);
@@ -2623,9 +2623,9 @@ class MouseScrollGraph extends MouseClickDrag {
     }
 }
 
-class MouseTracking extends Pointing {
+class MouseTracking extends IPointing {
 
-    /** @type {Pointing} */
+    /** @type {IPointing} */
     #mouseTracker = null
 
     /** @type {(e: MouseEvent) => void} */
@@ -2685,7 +2685,7 @@ class MouseTracking extends Pointing {
     }
 }
 
-class Paste extends Context {
+class Paste extends IContext {
 
     #pasteHandle
 
@@ -2736,7 +2736,7 @@ class Paste extends Context {
     }
 }
 
-class Select extends MouseClickDrag {
+class Select extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
@@ -2760,7 +2760,7 @@ class Select extends MouseClickDrag {
     }
 }
 
-class Unfocus extends Context {
+class Unfocus extends IContext {
 
     /** @type {(e: WheelEvent) => void} */
     #clickHandler
@@ -2796,7 +2796,7 @@ class Unfocus extends Context {
     }
 }
 
-class MouseWheel extends Pointing {
+class IMouseWheel extends IPointing {
 
     /** @type {(e: WheelEvent) => void} */
     #mouseWheelHandler
@@ -2843,7 +2843,7 @@ class MouseWheel extends Pointing {
     }
 }
 
-class Zoom extends MouseWheel {
+class Zoom extends IMouseWheel {
 
     wheel(variation, location) {
         let zoomLevel = this.blueprint.getZoom();
@@ -3216,7 +3216,7 @@ class Blueprint extends IElement {
 
 customElements.define(Blueprint.tagName, Blueprint);
 
-class GeneralSerializer extends Serializer {
+class GeneralSerializer extends ISerializer {
 
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`);
@@ -3225,7 +3225,7 @@ class GeneralSerializer extends Serializer {
     }
 
     read(value) {
-        let grammar = Grammar.getGrammarForType(Serializer.grammar, this.entityType);
+        let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType);
         const parseResult = grammar.parse(value);
         if (!parseResult.status) {
             console.error("Error when trying to parse the entity " + this.entityType.prototype.constructor.name);

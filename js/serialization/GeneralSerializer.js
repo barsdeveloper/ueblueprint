@@ -1,7 +1,7 @@
 import Grammar from "./Grammar"
-import Serializer from "./Serializer"
+import ISerializer from "./ISerializer"
 
-export default class GeneralSerializer extends Serializer {
+export default class GeneralSerializer extends ISerializer {
 
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`)
@@ -10,7 +10,7 @@ export default class GeneralSerializer extends Serializer {
     }
 
     read(value) {
-        let grammar = Grammar.getGrammarForType(Serializer.grammar, this.entityType)
+        let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType)
         const parseResult = grammar.parse(value)
         if (!parseResult.status) {
             console.error("Error when trying to parse the entity " + this.entityType.prototype.constructor.name)

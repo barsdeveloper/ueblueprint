@@ -1,10 +1,10 @@
 import sanitizeText from "./sanitizeText"
-import Template from "./Template"
+import ITemplate from "./ITemplate"
 
 /**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
-export default class SelectableDraggableTemplate extends Template {
+export default class SelectableDraggableTemplate extends ITemplate {
 
     /**
      * Returns the html elements rendered from this template.

@@ -1,9 +1,9 @@
 import ObjectEntity from "../entity/ObjectEntity"
 import PinEntity from "../entity/PinEntity"
-import Serializer from "./Serializer"
+import ISerializer from "./ISerializer"
 import SerializerFactory from "./SerializerFactory"
 
-export default class ObjectSerializer extends Serializer {
+export default class ObjectSerializer extends ISerializer {
 
     constructor() {
         super(ObjectEntity, "   ", "\n", false)
@@ -21,7 +21,7 @@ export default class ObjectSerializer extends Serializer {
     }
 
     read(value) {
-        const parseResult = Serializer.grammar.Object.parse(value)
+        const parseResult = ISerializer.grammar.Object.parse(value)
         if (!parseResult.status) {
             console.error("Error when trying to parse the object.")
             return parseResult
@@ -35,7 +35,7 @@ export default class ObjectSerializer extends Serializer {
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
-        const parseResult = Serializer.grammar.MultipleObject.parse(value)
+        const parseResult = ISerializer.grammar.MultipleObject.parse(value)
         if (!parseResult.status) {
             console.error("Error when trying to parse the object.")
             return parseResult

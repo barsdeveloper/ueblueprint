@@ -1,10 +1,10 @@
-import MouseClickDrag from "./MouseClickDrag"
+import IMouseClickDrag from "./IMouseClickDrag"
 import Utility from "../../Utility"
 
 /**
- * @typedef {import("../../element/ISelectableDraggableElement").ISelectableDraggableElement} ISelectableDraggableElement
+ * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
-export default class MouseMoveNodes extends MouseClickDrag {
+export default class MouseMoveNodes extends IMouseClickDrag {
 
     /**
      * 

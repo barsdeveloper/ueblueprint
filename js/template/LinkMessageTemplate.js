@@ -1,11 +1,11 @@
 import LinkElement from "../element/LinkElement"
 import html from "./html"
-import Template from "./Template"
+import ITemplate from "./ITemplate"
 
 /**
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
-export default class LinkMessageTemplate extends Template {
+export default class LinkMessageTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
