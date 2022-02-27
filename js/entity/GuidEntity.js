@@ -1,6 +1,6 @@
-import Entity from "./Entity"
+import IEntity from "./IEntity"
 
-export default class GuidEntity extends Entity {
+export default class GuidEntity extends IEntity {
 
     static attributes = {
         value: String

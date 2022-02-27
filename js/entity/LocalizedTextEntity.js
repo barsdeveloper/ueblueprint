@@ -1,6 +1,6 @@
-import Entity from "./Entity"
+import IEntity from "./IEntity"
 
-export default class LocalizedTextEntity extends Entity {
+export default class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
     static attributes = {

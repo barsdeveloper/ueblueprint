@@ -1,6 +1,6 @@
-import Entity from "./Entity"
+import IEntity from "./IEntity"
 
-export default class KeyBinding extends Entity {
+export default class KeyBinding extends IEntity {
 
     static attributes = {
         bCtrlDown: false,

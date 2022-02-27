@@ -1,10 +1,10 @@
 import Blueprint from "./Blueprint"
 import Configuration from "./Configuration"
-import GraphLink from "./graph/GraphLink"
-import GraphNode from "./graph/GraphNode"
+import LinkElement from "./element/LinkElement"
+import NodeElement from "./element/NodeElement"
 
 import initializeSerializerFactory from "./serialization/initializeSerializerFactory"
 
 initializeSerializerFactory()
 
-export { Blueprint as Blueprint, GraphNode as GraphNode, GraphLink as GraphLink, Configuration as Configuration }
+export { Blueprint as Blueprint, NodeElement as NodeElement, LinkElement as LinkElement, Configuration as Configuration }

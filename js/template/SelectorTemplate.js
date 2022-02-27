@@ -2,13 +2,13 @@ import sanitizeText from "./sanitizeText"
 import Template from "./Template"
 
 /**
- * @typedef {import("../graph/GraphSelector").default} GraphSelector
+ * @typedef {import("../element/SelectorElement").default} SelectorElement
  */
 export default class SelectorTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphSelector} selector Selector element
+     * @param {SelectorElement} selector Selector element
      */
     apply(selector) {
         super.apply(selector)
@@ -18,7 +18,7 @@ export default class SelectorTemplate extends Template {
 
     /**
      * Applies the style relative to selection beginning.
-     * @param {GraphSelector} selector Selector element
+     * @param {SelectorElement} selector Selector element
      */
     applyStartSelecting(selector, initialPosition) {
         // Set initial position
@@ -32,7 +32,7 @@ export default class SelectorTemplate extends Template {
 
     /**
      * Applies the style relative to selection.
-     * @param {GraphSelector} selector Selector element
+     * @param {SelectorElement} selector Selector element
      */
     applyDoSelecting(selector, finalPosition) {
         selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]))
@@ -41,7 +41,7 @@ export default class SelectorTemplate extends Template {
 
     /**
      * Applies the style relative to selection finishing.
-     * @param {GraphSelector} selector Selector element
+     * @param {SelectorElement} selector Selector element
      */
     applyFinishSelecting(selector) {
         selector.blueprint.dataset.selecting = "false"

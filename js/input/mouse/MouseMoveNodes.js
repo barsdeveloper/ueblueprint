@@ -2,13 +2,13 @@ import MouseClickDrag from "./MouseClickDrag"
 import Utility from "../../Utility"
 
 /**
- * @typedef {import("../../graph/SelectableDraggable").default} SelectableDraggable
+ * @typedef {import("../../element/ISelectableDraggableElement").ISelectableDraggableElement} ISelectableDraggableElement
  */
 export default class MouseMoveNodes extends MouseClickDrag {
 
     /**
      * 
-     * @param {SelectableDraggable} target 
+     * @param {ISelectableDraggableElement} target 
      * @param {*} blueprint 
      * @param {*} options 
      */
@@ -16,7 +16,7 @@ export default class MouseMoveNodes extends MouseClickDrag {
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize)
         this.mouseLocation = [0, 0]
-        /** @type {SelectableDraggable} */
+        /** @type {ISelectableDraggableElement} */
         this.target
     }
 

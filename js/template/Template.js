@@ -1,11 +1,11 @@
 /**
- * @typedef {import("../graph/GraphElement").default} GraphElement
+ * @typedef {import("../element/IElement").default} IElement
  */
 export default class Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphElement} entity Element of the graph
+     * @param {IElement} entity Element of the graph
      * @returns The result html 
      */
     render(entity) {
@@ -14,7 +14,7 @@ export default class Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphElement} element Element of the graph
+     * @param {IElement} element Element of the graph
      */
     apply(element) {
         // TODO replace with the safer element.setHTML(...) when it will be available

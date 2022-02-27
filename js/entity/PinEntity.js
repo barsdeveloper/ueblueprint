@@ -1,11 +1,11 @@
-import Entity from "./Entity"
+import IEntity from "./IEntity"
 import GuidEntity from "./GuidEntity"
 import LocalizedTextEntity from "./LocalizedTextEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinReferenceEntity from "./PinReferenceEntity"
 import TypeInitialization from "./TypeInitialization"
 
-export default class PinEntity extends Entity {
+export default class PinEntity extends IEntity {
 
     static lookbehind = "Pin"
     static attributes = {

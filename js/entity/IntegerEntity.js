@@ -1,6 +1,6 @@
-import Entity from "./Entity"
+import IEntity from "./IEntity"
 
-export default class IntegerEntity extends Entity {
+export default class IntegerEntity extends IEntity {
 
     static attributes = {
         value: Number

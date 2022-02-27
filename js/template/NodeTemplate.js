@@ -1,17 +1,17 @@
-import GraphPin from "../graph/GraphPin"
+import PinElement from "../element/PinElement"
 import html from "./html"
 import PinEntity from "../entity/PinEntity"
 import sanitizeText from "./sanitizeText"
 import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
 
 /**
- * @typedef {import("../graph/GraphNode").default} GraphNode
+ * @typedef {import("../element/NodeElement").default} NodeElement
  */
 export default class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
+     * @param {NodeElement} node Graph node element 
      * @returns The result html 
      */
     render(node) {
@@ -35,7 +35,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * Applies the style to the element.
-     * @param {GraphNode} node Element of the graph
+     * @param {NodeElement} node Element of the graph
      */
     apply(node) {
         super.apply(node)
@@ -49,7 +49,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         /** @type {HTMLElement} */
         let outputContainer = node.querySelector(".ueb-node-outputs")
         let pins = node.getPinEntities()
-        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new GraphPin(v)))
-        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new GraphPin(v)))
+        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)))
+        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)))
     }
 }

@@ -1,15 +1,15 @@
-import GraphLink from "../graph/GraphLink"
+import LinkElement from "../element/LinkElement"
 import html from "./html"
 import Template from "./Template"
 
 /**
- * @typedef {import("../graph/GraphLinkMessage").default} GraphLinkMessage
+ * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
 export default class LinkMessageTemplate extends Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphLinkMessage} linkMessage attached to link destination
+     * @param {LinkMessageElement} linkMessage attached to link destination
      * @returns The result html 
      */
     render(linkMessage) {
@@ -21,11 +21,11 @@ export default class LinkMessageTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphLinkMessage} linkMessage element
+     * @param {LinkMessageElement} linkMessage element
      */
     apply(linkMessage) {
         super.apply(linkMessage)
-        linkMessage.linkElement = linkMessage.closest(GraphLink.tagName)
+        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName)
         linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
             linkMessage.linkElement.getSourcePin(),
             linkMessage.linkElement.getDestinationPin()

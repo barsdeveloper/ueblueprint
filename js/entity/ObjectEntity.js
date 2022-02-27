@@ -1,4 +1,4 @@
-import Entity from "./Entity"
+import IEntity from "./IEntity"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
 import IntegerEntity from "./IntegerEntity"
@@ -7,7 +7,7 @@ import PinEntity from "./PinEntity"
 import TypeInitialization from "./TypeInitialization"
 import VariableReferenceEntity from "./VariableReferenceEntity"
 
-export default class ObjectEntity extends Entity {
+export default class ObjectEntity extends IEntity {
 
     static attributes = {
         Class: ObjectReferenceEntity,

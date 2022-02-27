@@ -1,40 +1,40 @@
-import LinkMessageTemplate from "../template/LinkMessageTemplate";
-import GraphElement from "./GraphElement";
+import IElement from "./IElement"
+import LinkMessageTemplate from "../template/LinkMessageTemplate"
 
 /**
- * @typedef {import("./GraphPin").default} GraphPin
- * @typedef {import("./GraphLink").default} GraphLink
- * @typedef {(sourcePin: GraphPin, sourcePin: GraphPin) => String} LinkRetrieval
+ * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("./LinkElement").default} LinkElement
+ * @typedef {(sourcePin: PinElement, sourcePin: PinElement) => String} LinkRetrieval
  */
-export default class GraphLinkMessage extends GraphElement {
+export default class LinkMessageElement extends IElement {
 
     static tagName = "ueb-link-message"
-    static CONVERT_TYPE = _ => new GraphLinkMessage(
+    static convertType = _ => new LinkMessageElement(
         "ueb-icon-conver-type",
         /** @type {LinkRetrieval} */
         (s, d) => `Convert ${s.getType()} to ${d.getType()}.`
     )
-    static DIRECTIONS_INCOMPATIBLE = _ => new GraphLinkMessage(
+    static directionsIncompatible = _ => new LinkMessageElement(
         "ueb-icon-directions-incompatible",
         /** @type {LinkRetrieval} */
         (s, d) => "Directions are not compatbile."
     )
-    static PLACE_NODE = _ => new GraphLinkMessage(
+    static placeNode = _ => new LinkMessageElement(
         "ueb-icon-place-node",
         /** @type {LinkRetrieval} */
         (s, d) => "Place a new node."
     )
-    static REPLACE_LiNK = _ => new GraphLinkMessage(
+    static replaceLink = _ => new LinkMessageElement(
         "ueb-icon-replace-link",
         /** @type {LinkRetrieval} */
         (s, d) => "Replace existing input connections."
     )
-    static SAME_NODE = _ => new GraphLinkMessage(
+    static sameNode = _ => new LinkMessageElement(
         "ueb-icon-same-node",
         /** @type {LinkRetrieval} */
         (s, d) => "Both are on the same node."
     )
-    static TYPES_INCOMPATIBLE = _ => new GraphLinkMessage(
+    static typesIncompatible = _ => new LinkMessageElement(
         "ueb-icon-types-incompatible",
         /** @type {LinkRetrieval} */
         (s, d) => `${s.getType()} is not compatible with ${d.getType()}.`
@@ -44,7 +44,7 @@ export default class GraphLinkMessage extends GraphElement {
     icon
     /** @type {String} */
     message
-    /** @type {GraphLink} */
+    /** @type {LinkElement} */
     linkElement
 
     constructor(icon, message) {
@@ -55,4 +55,4 @@ export default class GraphLinkMessage extends GraphElement {
 
 }
 
-customElements.define(GraphLinkMessage.tagName, GraphLinkMessage)
+customElements.define(LinkMessageElement.tagName, LinkMessageElement)

@@ -1,4 +1,4 @@
-import GraphNode from "../../graph/GraphNode"
+import NodeElement from "../../element/NodeElement"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
 import Context from "../Context"
 
@@ -27,7 +27,7 @@ export default class Paste extends Context {
         let left = 0
         let count = 0
         let nodes = this.serializer.readMultiple(value).map(entity => {
-            let node = new GraphNode(entity)
+            let node = new NodeElement(entity)
             top += node.location[1]
             left += node.location[0]
             ++count

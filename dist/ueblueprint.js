@@ -124,6 +124,28 @@ class Configuration {
     }
 }
 
+/**
+ * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
+ */
+const html = String.raw;
+
+document.createElement("div");
+
+const tagReplacement = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+};
+
+function sanitizeText(value) {
+    if (value.constructor === String) {
+        return value.replace(/[&<>'"]/g, tag => tagReplacement[tag])
+    }
+    return value
+}
+
 class OrderedIndexArray {
 
     /**
@@ -429,23 +451,23 @@ class FastSelectionModel {
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../entity/Entity").default} Entity
+ * @typedef {import("../entity/IEntity").IEntity} IEntity
  * @typedef {import("../input/Context").default} Context
  * @typedef {import("../template/Template").default} Template
  */
 
-class GraphElement extends HTMLElement {
+class IElement extends HTMLElement {
 
     /**
      * 
-     * @param {Entity} entity The entity containing blueprint related data for this graph element
+     * @param {IEntity} entity The entity containing blueprint related data for this graph element
      * @param {Template} template The template to render this node
      */
     constructor(entity, template) {
         super();
         /** @type {Blueprint} */
         this.blueprint = null;
-        /** @type {Entity} */
+        /** @type {IEntity} */
         this.entity = entity;
         /** @type {Template} */
         this.template = template;
@@ -472,31 +494,14 @@ class GraphElement extends HTMLElement {
     }
 }
 
-document.createElement("div");
-
-const tagReplacement = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;'
-};
-
-function sanitizeText(value) {
-    if (value.constructor === String) {
-        return value.replace(/[&<>'"]/g, tag => tagReplacement[tag])
-    }
-    return value
-}
-
 /**
- * @typedef {import("../graph/GraphElement").default} GraphElement
+ * @typedef {import("../element/IElement").default} IElement
  */
 class Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphElement} entity Element of the graph
+     * @param {IElement} entity Element of the graph
      * @returns The result html 
      */
     render(entity) {
@@ -505,7 +510,7 @@ class Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphElement} element Element of the graph
+     * @param {IElement} element Element of the graph
      */
     apply(element) {
         // TODO replace with the safer element.setHTML(...) when it will be available
@@ -514,13 +519,13 @@ class Template {
 }
 
 /**
- * @typedef {import("../graph/GraphSelector").default} GraphSelector
+ * @typedef {import("../element/SelectorElement").default} SelectorElement
  */
 class SelectorTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphSelector} selector Selector element
+     * @param {SelectorElement} selector Selector element
      */
     apply(selector) {
         super.apply(selector);
@@ -530,7 +535,7 @@ class SelectorTemplate extends Template {
 
     /**
      * Applies the style relative to selection beginning.
-     * @param {GraphSelector} selector Selector element
+     * @param {SelectorElement} selector Selector element
      */
     applyStartSelecting(selector, initialPosition) {
         // Set initial position
@@ -544,7 +549,7 @@ class SelectorTemplate extends Template {
 
     /**
      * Applies the style relative to selection.
-     * @param {GraphSelector} selector Selector element
+     * @param {SelectorElement} selector Selector element
      */
     applyDoSelecting(selector, finalPosition) {
         selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]));
@@ -553,14 +558,14 @@ class SelectorTemplate extends Template {
 
     /**
      * Applies the style relative to selection finishing.
-     * @param {GraphSelector} selector Selector element
+     * @param {SelectorElement} selector Selector element
      */
     applyFinishSelecting(selector) {
         selector.blueprint.dataset.selecting = "false";
     }
 }
 
-class GraphSelector extends GraphElement {
+class SelectorElement extends IElement {
 
     static tagName = "ueb-selector"
 
@@ -595,12 +600,7 @@ class GraphSelector extends GraphElement {
     }
 }
 
-customElements.define(GraphSelector.tagName, GraphSelector);
-
-/**
- * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
- */
-const html = String.raw;
+customElements.define(SelectorElement.tagName, SelectorElement);
 
 /** @typedef {import("../Blueprint").default} Blueprint */
 class BlueprintTemplate extends Template {
@@ -675,7 +675,7 @@ class BlueprintTemplate extends Template {
         blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body');
         blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid");
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
-        blueprint.selectorElement = new GraphSelector();
+        blueprint.selectorElement = new SelectorElement();
         blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.getNodes());
         this.applyEndDragScrolling(blueprint);
     }
@@ -898,7 +898,7 @@ class Utility {
     }
 }
 
-class Entity {
+class IEntity {
 
     constructor(options = {}) {
         /**
@@ -951,7 +951,7 @@ class Entity {
     }
 }
 
-class ObjectReferenceEntity extends Entity {
+class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
         type: String,
@@ -963,7 +963,7 @@ class ObjectReferenceEntity extends Entity {
     }
 }
 
-class FunctionReferenceEntity extends Entity {
+class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
         MemberParent: ObjectReferenceEntity,
@@ -975,7 +975,7 @@ class FunctionReferenceEntity extends Entity {
     }
 }
 
-class GuidEntity extends Entity {
+class GuidEntity extends IEntity {
 
     static attributes = {
         value: String
@@ -1002,7 +1002,7 @@ class GuidEntity extends Entity {
     }
 }
 
-class IntegerEntity extends Entity {
+class IntegerEntity extends IEntity {
 
     static attributes = {
         value: Number
@@ -1031,7 +1031,7 @@ class IntegerEntity extends Entity {
     }
 }
 
-class LocalizedTextEntity extends Entity {
+class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
     static attributes = {
@@ -1045,7 +1045,7 @@ class LocalizedTextEntity extends Entity {
     }
 }
 
-class PathSymbolEntity extends Entity {
+class PathSymbolEntity extends IEntity {
 
     static attributes = {
         value: String
@@ -1060,7 +1060,7 @@ class PathSymbolEntity extends Entity {
     }
 }
 
-class PinReferenceEntity extends Entity {
+class PinReferenceEntity extends IEntity {
 
     static attributes = {
         objectName: PathSymbolEntity,
@@ -1072,7 +1072,7 @@ class PinReferenceEntity extends Entity {
     }
 }
 
-class PinEntity$1 extends Entity {
+class PinEntity$1 extends IEntity {
 
     static lookbehind = "Pin"
     static attributes = {
@@ -1126,7 +1126,7 @@ class PinEntity$1 extends Entity {
     }
 }
 
-class VariableReferenceEntity extends Entity {
+class VariableReferenceEntity extends IEntity {
 
     static attributes = {
         MemberName: String,
@@ -1139,7 +1139,7 @@ class VariableReferenceEntity extends Entity {
     }
 }
 
-class ObjectEntity extends Entity {
+class ObjectEntity extends IEntity {
 
     static attributes = {
         Class: ObjectReferenceEntity,
@@ -1394,7 +1394,7 @@ class Serializer {
         if (value instanceof Array) {
             return `(${value.map(v => serialize(v) + ",")})`
         }
-        if (value instanceof Entity) {
+        if (value instanceof IEntity) {
             return serialize(value)
         }
     }
@@ -1518,8 +1518,8 @@ class Copy extends Context {
 }
 
 /**
- * @typedef {import("../graph/GraphLink").default} GraphLink
- * @typedef {import("../graph/GraphLinkMessage").default} GraphLinkMessage
+ * @typedef {import("../element/LinkElement").default} LinkElement
+ * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
 class LinkTemplate extends Template {
 
@@ -1533,7 +1533,7 @@ class LinkTemplate extends Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphLink} link connecting two graph nodes 
+     * @param {LinkElement} link connecting two graph nodes 
      * @returns The result html 
      */
     render(link) {
@@ -1546,7 +1546,7 @@ class LinkTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphLink} link Element of the graph
+     * @param {LinkElement} link Element of the graph
      */
     apply(link) {
         super.apply(link);
@@ -1559,7 +1559,7 @@ class LinkTemplate extends Template {
 
     /**
      * Applies the style relative to the source pin location.
-     * @param {GraphLink} link Link element
+     * @param {LinkElement} link Link element
      */
     applySourceLocation(link) {
         link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "0" : "1");
@@ -1569,7 +1569,7 @@ class LinkTemplate extends Template {
 
     /**
      * Applies the style relative to the destination pin location.
-     * @param {GraphLink} link Link element
+     * @param {LinkElement} link Link element
      */
     applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1);
@@ -1611,8 +1611,8 @@ class LinkTemplate extends Template {
 
     /**
      * 
-     * @param {GraphLink} link element
-     * @param {GraphLinkMessage} linkMessage 
+     * @param {LinkElement} link element
+     * @param {LinkMessageElement} linkMessage 
      */
     applyLinkMessage(link, linkMessage) {
         link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove());
@@ -1622,15 +1622,15 @@ class LinkTemplate extends Template {
 }
 
 /**
- * @typedef {import("./GraphPin").default} GraphPin
- * @typedef {import("./GraphLinkMessage").default} GraphLinkMessage
+ * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("./LinkMessageElement").default} LinkMessageElement
  */
-class GraphLink extends GraphElement {
+class LinkElement extends IElement {
 
     static tagName = "ueb-link"
-    /** @type {GraphPin} */
+    /** @type {PinElement} */
     #source
-    /** @type {GraphPin} */
+    /** @type {PinElement} */
     #destination
     #nodeDeleteHandler
     #nodeDragSourceHandler
@@ -1638,14 +1638,14 @@ class GraphLink extends GraphElement {
     sourceLocation = [0, 0]
     /** @type {SVGPathElement} */
     pathElement
-    /** @type {GraphLinkMessage} */
+    /** @type {LinkMessageElement} */
     linkMessageElement
     originatesFromInput = false
     destinationLocation = [0, 0]
 
     /**
-     * @param {?GraphPin} source
-     * @param {?GraphPin} destination
+     * @param {?PinElement} source
+     * @param {?PinElement} destination
      */
     constructor(source, destination) {
         super({}, new LinkTemplate());
@@ -1730,25 +1730,25 @@ class GraphLink extends GraphElement {
 
     /**
      * 
-     * @returns {GraphPin}
+     * @returns {PinElement}
      */
     getSourcePin() {
         return this.#source
     }
 
     /**
-     * @param {GraphPin} graphPin 
+     * @param {PinElement} pin 
      */
-    setSourcePin(graphPin) {
+    setSourcePin(pin) {
         if (this.#source) {
-            const nodeElement = this.#source.getGraphNode();
+            const nodeElement = this.#source.getNodeElement();
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
         }
-        this.#source = graphPin;
+        this.#source = pin;
         if (this.#source) {
-            const nodeElement = this.#source.getGraphNode();
-            this.originatesFromInput = graphPin.isInput();
+            const nodeElement = this.#source.getNodeElement();
+            this.originatesFromInput = pin.isInput();
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
             this.setSourceLocation();
@@ -1757,7 +1757,7 @@ class GraphLink extends GraphElement {
 
     /**
      * 
-     * @returns {GraphPin}
+     * @returns {PinElement}
      */
     getDestinationPin() {
         return this.#destination
@@ -1765,17 +1765,17 @@ class GraphLink extends GraphElement {
 
     /**
      * 
-     * @param {GraphPin} graphPin 
+     * @param {PinElement} pin 
      */
-    setDestinationPin(graphPin) {
+    setDestinationPin(pin) {
         if (this.#destination) {
-            const nodeElement = this.#destination.getGraphNode();
+            const nodeElement = this.#destination.getNodeElement();
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
         }
-        this.#destination = graphPin;
+        this.#destination = pin;
         if (this.#destination) {
-            const nodeElement = this.#destination.getGraphNode();
+            const nodeElement = this.#destination.getNodeElement();
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
             this.setDestinationLocation();
@@ -1784,23 +1784,23 @@ class GraphLink extends GraphElement {
 
     /**
      * 
-     * @param {GraphLinkMessage} linkMessage 
+     * @param {LinkMessageElement} linkMessage 
      */
     setLinkMessage(linkMessage) {
         this.template.applyLinkMessage(this, linkMessage);
     }
 }
 
-customElements.define(GraphLink.tagName, GraphLink);
+customElements.define(LinkElement.tagName, LinkElement);
 
 /**
- * @typedef {import("../graph/GraphPin").default} GraphPin
+ * @typedef {import("../element/PinElement").default} PinElement
  */
 class PinTemplate extends Template {
 
     /**
      * Computes the html content of the pin.
-     * @param {GraphPin} pin Pin entity 
+     * @param {PinElement} pin html element 
      * @returns The result html 
      */
     render(pin) {
@@ -1819,7 +1819,7 @@ class PinTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphPin} pin Element of the graph
+     * @param {PinElement} pin element of the graph
      */
     apply(pin) {
         super.apply(pin);
@@ -1830,7 +1830,7 @@ class PinTemplate extends Template {
 
     /**
      * 
-     * @param {GraphPin} pin 
+     * @param {PinElement} pin 
      * @returns 
      */
     getLinkLocation(pin) {
@@ -1842,13 +1842,13 @@ class PinTemplate extends Template {
 }
 
 /**
- * @typedef {import("../graph/GraphLinkMessage").default} GraphLinkMessage
+ * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
 class LinkMessageTemplate extends Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphLinkMessage} linkMessage attached to link destination
+     * @param {LinkMessageElement} linkMessage attached to link destination
      * @returns The result html 
      */
     render(linkMessage) {
@@ -1860,11 +1860,11 @@ class LinkMessageTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphLinkMessage} linkMessage element
+     * @param {LinkMessageElement} linkMessage element
      */
     apply(linkMessage) {
         super.apply(linkMessage);
-        linkMessage.linkElement = linkMessage.closest(GraphLink.tagName);
+        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName);
         linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
             linkMessage.linkElement.getSourcePin(),
             linkMessage.linkElement.getDestinationPin()
@@ -1874,39 +1874,39 @@ class LinkMessageTemplate extends Template {
 }
 
 /**
- * @typedef {import("./GraphPin").default} GraphPin
- * @typedef {import("./GraphLink").default} GraphLink
- * @typedef {(sourcePin: GraphPin, sourcePin: GraphPin) => String} LinkRetrieval
+ * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("./LinkElement").default} LinkElement
+ * @typedef {(sourcePin: PinElement, sourcePin: PinElement) => String} LinkRetrieval
  */
-class GraphLinkMessage extends GraphElement {
+class LinkMessageElement extends IElement {
 
     static tagName = "ueb-link-message"
-    static CONVERT_TYPE = _ => new GraphLinkMessage(
+    static convertType = _ => new LinkMessageElement(
         "ueb-icon-conver-type",
         /** @type {LinkRetrieval} */
         (s, d) => `Convert ${s.getType()} to ${d.getType()}.`
     )
-    static DIRECTIONS_INCOMPATIBLE = _ => new GraphLinkMessage(
+    static directionsIncompatible = _ => new LinkMessageElement(
         "ueb-icon-directions-incompatible",
         /** @type {LinkRetrieval} */
         (s, d) => "Directions are not compatbile."
     )
-    static PLACE_NODE = _ => new GraphLinkMessage(
+    static placeNode = _ => new LinkMessageElement(
         "ueb-icon-place-node",
         /** @type {LinkRetrieval} */
         (s, d) => "Place a new node."
     )
-    static REPLACE_LiNK = _ => new GraphLinkMessage(
+    static replaceLink = _ => new LinkMessageElement(
         "ueb-icon-replace-link",
         /** @type {LinkRetrieval} */
         (s, d) => "Replace existing input connections."
     )
-    static SAME_NODE = _ => new GraphLinkMessage(
+    static sameNode = _ => new LinkMessageElement(
         "ueb-icon-same-node",
         /** @type {LinkRetrieval} */
         (s, d) => "Both are on the same node."
     )
-    static TYPES_INCOMPATIBLE = _ => new GraphLinkMessage(
+    static typesIncompatible = _ => new LinkMessageElement(
         "ueb-icon-types-incompatible",
         /** @type {LinkRetrieval} */
         (s, d) => `${s.getType()} is not compatible with ${d.getType()}.`
@@ -1916,7 +1916,7 @@ class GraphLinkMessage extends GraphElement {
     icon
     /** @type {String} */
     message
-    /** @type {GraphLink} */
+    /** @type {LinkElement} */
     linkElement
 
     constructor(icon, message) {
@@ -1927,7 +1927,7 @@ class GraphLinkMessage extends GraphElement {
 
 }
 
-customElements.define(GraphLinkMessage.tagName, GraphLinkMessage);
+customElements.define(LinkMessageElement.tagName, LinkMessageElement);
 
 class Pointing extends Context {
 
@@ -2086,10 +2086,10 @@ class MouseClickDrag extends Pointing {
     }
 }
 
-/** @typedef {import("../../graph/GraphPin").default} GraphPin */
+/** @typedef {import("../../element/PinElement").default} PinElement */
 class MouseCreateLink extends MouseClickDrag {
 
-    /** @type {NodeListOf<GraphPin>} */
+    /** @type {NodeListOf<PinElement>} */
     #listenedPins
 
     /** @type {(e: MouseEvent) => void} */
@@ -2100,9 +2100,9 @@ class MouseCreateLink extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-        /** @type {import("../../graph/GraphPin").default} */
+        /** @type {import("../../element/PinElement").PinElement} */
         this.target;
-        /** @type {import("../../graph/GraphLink").default} */
+        /** @type {import("../../element/LinkElement").LinkElement} */
         this.link;
         /** @type {import("../../entity/PinEntity").default} */
         this.enteredPin;
@@ -2121,8 +2121,8 @@ class MouseCreateLink extends MouseClickDrag {
     }
 
     startDrag() {
-        this.link = new GraphLink(this.target, null);
-        this.link.setLinkMessage(GraphLinkMessage.PLACE_NODE());
+        this.link = new LinkElement(this.target, null);
+        this.link.setLinkMessage(LinkMessageElement.placeNode());
         this.blueprint.nodesContainerElement.insertBefore(this.link, this.blueprint.selectorElement.nextElementSibling);
         this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName);
         this.#listenedPins.forEach(pin => {
@@ -2156,7 +2156,7 @@ class MouseCreateLink extends MouseClickDrag {
     }
 }
 
-class GraphPin extends GraphElement {
+class PinElement extends IElement {
 
     static tagName = "ueb-pin"
 
@@ -2219,21 +2219,21 @@ class GraphPin extends GraphElement {
         return this.template.getLinkLocation(this)
     }
 
-    getGraphNode() {
+    getNodeElement() {
         return this.closest("ueb-node")
     }
 }
 
-customElements.define(GraphPin.tagName, GraphPin);
+customElements.define(PinElement.tagName, PinElement);
 
 /**
- * @typedef {import("../graph/SelectableDraggable").default} SelectableDraggable
+ * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 class SelectableDraggableTemplate extends Template {
 
     /**
      * Returns the html elements rendered from this template.
-     * @param {SelectableDraggable} element Element of the graph
+     * @param {ISelectableDraggableElement} element Element of the graph
      */
     applyLocation(element) {
         element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]));
@@ -2242,7 +2242,7 @@ class SelectableDraggableTemplate extends Template {
 
     /**
      * Returns the html elements rendered from this template.
-     * @param {SelectableDraggable} element Element of the graph
+     * @param {ISelectableDraggableElement} element Element of the graph
      */
     applySelected(element) {
         if (element.selected) {
@@ -2254,13 +2254,13 @@ class SelectableDraggableTemplate extends Template {
 }
 
 /**
- * @typedef {import("../graph/GraphNode").default} GraphNode
+ * @typedef {import("../element/NodeElement").default} NodeElement
  */
 class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
+     * @param {NodeElement} node Graph node element 
      * @returns The result html 
      */
     render(node) {
@@ -2284,7 +2284,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * Applies the style to the element.
-     * @param {GraphNode} node Element of the graph
+     * @param {NodeElement} node Element of the graph
      */
     apply(node) {
         super.apply(node);
@@ -2298,19 +2298,19 @@ class NodeTemplate extends SelectableDraggableTemplate {
         /** @type {HTMLElement} */
         let outputContainer = node.querySelector(".ueb-node-outputs");
         let pins = node.getPinEntities();
-        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new GraphPin(v)));
-        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new GraphPin(v)));
+        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)));
+        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)));
     }
 }
 
 /**
- * @typedef {import("../../graph/SelectableDraggable").default} SelectableDraggable
+ * @typedef {import("../../element/ISelectableDraggableElement").ISelectableDraggableElement} ISelectableDraggableElement
  */
 class MouseMoveNodes extends MouseClickDrag {
 
     /**
      * 
-     * @param {SelectableDraggable} target 
+     * @param {ISelectableDraggableElement} target 
      * @param {*} blueprint 
      * @param {*} options 
      */
@@ -2318,7 +2318,7 @@ class MouseMoveNodes extends MouseClickDrag {
         super(target, blueprint, options);
         this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize);
         this.mouseLocation = [0, 0];
-        /** @type {SelectableDraggable} */
+        /** @type {ISelectableDraggableElement} */
         this.target;
     }
 
@@ -2351,14 +2351,16 @@ class MouseMoveNodes extends MouseClickDrag {
     }
 }
 
-class SelectableDraggable extends GraphElement {
+/** @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate */
+
+class ISelectableDraggableElement extends IElement {
 
     constructor(...args) {
         super(...args);
         this.dragObject = null;
         this.location = [0, 0];
         this.selected = false;
-        /** @type {import("../template/SelectableDraggableTemplate").default} */
+        /** @type {SelectableDraggableTemplate} */
         this.template;
 
         let self = this;
@@ -2429,7 +2431,7 @@ class SelectableDraggable extends GraphElement {
     }
 }
 
-class GraphNode extends SelectableDraggable {
+class NodeElement extends ISelectableDraggableElement {
 
     static tagName = "ueb-node"
 
@@ -2447,7 +2449,7 @@ class GraphNode extends SelectableDraggable {
 
     static fromSerializedObject(str) {
         let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
-        return new GraphNode(entity)
+        return new NodeElement(entity)
     }
 
     disconnectedCallback() {
@@ -2484,7 +2486,7 @@ class GraphNode extends SelectableDraggable {
     }
 }
 
-customElements.define(GraphNode.tagName, GraphNode);
+customElements.define(NodeElement.tagName, NodeElement);
 
 let P = Parsimmon;
 
@@ -2708,7 +2710,7 @@ class Paste extends Context {
         let left = 0;
         let count = 0;
         let nodes = this.serializer.readMultiple(value).map(entity => {
-            let node = new GraphNode(entity);
+            let node = new NodeElement(entity);
             top += node.location[1];
             left += node.location[0];
             ++count;
@@ -2850,14 +2852,14 @@ class Zoom extends MouseWheel {
     }
 }
 
-class Blueprint extends GraphElement {
+class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
     /** @type {number} */
     gridSize = Configuration.gridSize
-    /** @type {GraphNode[]}" */
+    /** @type {NodeElement[]}" */
     nodes = []
-    /** @type {GraphLink[]}" */
+    /** @type {LinkElement[]}" */
     links = []
     expandGridSize = Configuration.expandGridSize
     /** @type {number[]} */
@@ -2872,7 +2874,7 @@ class Blueprint extends GraphElement {
     viewportElement = null
     /** @type {HTMLElement} */
     overlayElement = null
-    /** @type {GraphSelector} */
+    /** @type {SelectorElement} */
     selectorElement = null
     /** @type {HTMLElement} */
     nodesContainerElement = null
@@ -2881,7 +2883,7 @@ class Blueprint extends GraphElement {
     /** @type {HTMLElement} */
     headerElement = null
     focused = false
-    /** @type {(node: GraphNode) => BoundariesInfo} */
+    /** @type {(node: NodeElement) => BoundariesInfo} */
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect();
         let gridRect = this.nodesContainerElement.getBoundingClientRect();
@@ -2894,7 +2896,7 @@ class Blueprint extends GraphElement {
             secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
         }
     }
-    /** @type {(node: GraphNode, selected: bool) => void}} */
+    /** @type {(node: NodeElement, selected: bool) => void}} */
     nodeSelectToggleFunction = (node, selected) => {
         node.setSelected(selected);
     }
@@ -3122,7 +3124,7 @@ class Blueprint extends GraphElement {
 
     /**
      * Returns the list of nodes in this blueprint. It can filter the list providing just the selected ones.
-     * @returns {GraphNode[]} Nodes
+     * @returns {NodeElement[]} Nodes
      */
     getNodes(selected = false) {
         if (selected) {
@@ -3136,7 +3138,7 @@ class Blueprint extends GraphElement {
 
     /**
      * Returns the list of links in this blueprint.
-     * @returns {GraphLink[]} Nodes
+     * @returns {LinkElement[]} Nodes
      */
     getLinks() {
         return this.links
@@ -3158,7 +3160,7 @@ class Blueprint extends GraphElement {
 
     /**
      * 
-     * @param  {...GraphElement} graphElements 
+     * @param  {...IElement} graphElements 
      */
     addGraphElement(...graphElements) {
         if (this.nodesContainerElement) {
@@ -3166,14 +3168,14 @@ class Blueprint extends GraphElement {
                 if (element.closest(Blueprint.tagName) != this) {
                     this.nodesContainerElement.appendChild(element);
                 }
-                this.nodes = [...this.querySelectorAll(GraphNode.tagName)];
-                this.links = [...this.querySelectorAll(GraphLink.tagName)];
+                this.nodes = [...this.querySelectorAll(NodeElement.tagName)];
+                this.links = [...this.querySelectorAll(LinkElement.tagName)];
             });
         } else {
             graphElements.forEach(element => {
-                if (element instanceof GraphNode) {
+                if (element instanceof NodeElement) {
                     this.nodes.push(element);
-                } else if (element instanceof GraphLink) {
+                } else if (element instanceof LinkElement) {
                     this.links.push(element);
                 }
             });
@@ -3182,7 +3184,7 @@ class Blueprint extends GraphElement {
 
     /**
      * 
-     * @param  {...GraphElement} graphElements 
+     * @param  {...IElement} graphElements 
      */
     removeGraphElement(...graphElements) {
         let removed = false;
@@ -3193,8 +3195,8 @@ class Blueprint extends GraphElement {
             }
         });
         if (removed) {
-            this.nodes = [...this.querySelectorAll(GraphNode.tagName)];
-            this.links = [...this.querySelectorAll(GraphLink.tagName)];
+            this.nodes = [...this.querySelectorAll(NodeElement.tagName)];
+            this.links = [...this.querySelectorAll(LinkElement.tagName)];
         }
     }
 
@@ -3301,4 +3303,4 @@ function initializeSerializerFactory() {
 
 initializeSerializerFactory();
 
-export { Blueprint, Configuration, GraphLink, GraphNode };
+export { Blueprint, Configuration, LinkElement, NodeElement };

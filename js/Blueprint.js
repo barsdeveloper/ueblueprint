@@ -1,10 +1,10 @@
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import Configuration from "./Configuration"
 import Copy from "./input/common/Copy"
-import GraphElement from "./graph/GraphElement"
-import GraphLink from "./graph/GraphLink"
-import GraphNode from "./graph/GraphNode"
-import GraphSelector from "./graph/GraphSelector"
+import IElement from "./element/IElement"
+import LinkElement from "./element/LinkElement"
+import NodeElement from "./element/NodeElement"
+import SelectorElement from "./element/SelectorElement"
 import KeyboardCanc from "./input/keybaord/KeyboardCanc"
 import KeyboardSelectAll from "./input/keybaord/KeyboardSelectAll"
 import MouseScrollGraph from "./input/mouse/MouseScrollGraph"
@@ -15,14 +15,14 @@ import Unfocus from "./input/mouse/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/mouse/Zoom"
 
-export default class Blueprint extends GraphElement {
+export default class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
     /** @type {number} */
     gridSize = Configuration.gridSize
-    /** @type {GraphNode[]}" */
+    /** @type {NodeElement[]}" */
     nodes = []
-    /** @type {GraphLink[]}" */
+    /** @type {LinkElement[]}" */
     links = []
     expandGridSize = Configuration.expandGridSize
     /** @type {number[]} */
@@ -37,7 +37,7 @@ export default class Blueprint extends GraphElement {
     viewportElement = null
     /** @type {HTMLElement} */
     overlayElement = null
-    /** @type {GraphSelector} */
+    /** @type {SelectorElement} */
     selectorElement = null
     /** @type {HTMLElement} */
     nodesContainerElement = null
@@ -46,7 +46,7 @@ export default class Blueprint extends GraphElement {
     /** @type {HTMLElement} */
     headerElement = null
     focused = false
-    /** @type {(node: GraphNode) => BoundariesInfo} */
+    /** @type {(node: NodeElement) => BoundariesInfo} */
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect()
         let gridRect = this.nodesContainerElement.getBoundingClientRect()
@@ -59,7 +59,7 @@ export default class Blueprint extends GraphElement {
             secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
         }
     }
-    /** @type {(node: GraphNode, selected: bool) => void}} */
+    /** @type {(node: NodeElement, selected: bool) => void}} */
     nodeSelectToggleFunction = (node, selected) => {
         node.setSelected(selected)
     }
@@ -287,7 +287,7 @@ export default class Blueprint extends GraphElement {
 
     /**
      * Returns the list of nodes in this blueprint. It can filter the list providing just the selected ones.
-     * @returns {GraphNode[]} Nodes
+     * @returns {NodeElement[]} Nodes
      */
     getNodes(selected = false) {
         if (selected) {
@@ -301,7 +301,7 @@ export default class Blueprint extends GraphElement {
 
     /**
      * Returns the list of links in this blueprint.
-     * @returns {GraphLink[]} Nodes
+     * @returns {LinkElement[]} Nodes
      */
     getLinks() {
         return this.links
@@ -323,7 +323,7 @@ export default class Blueprint extends GraphElement {
 
     /**
      * 
-     * @param  {...GraphElement} graphElements 
+     * @param  {...IElement} graphElements 
      */
     addGraphElement(...graphElements) {
         if (this.nodesContainerElement) {
@@ -331,14 +331,14 @@ export default class Blueprint extends GraphElement {
                 if (element.closest(Blueprint.tagName) != this) {
                     this.nodesContainerElement.appendChild(element)
                 }
-                this.nodes = [...this.querySelectorAll(GraphNode.tagName)]
-                this.links = [...this.querySelectorAll(GraphLink.tagName)]
+                this.nodes = [...this.querySelectorAll(NodeElement.tagName)]
+                this.links = [...this.querySelectorAll(LinkElement.tagName)]
             })
         } else {
             graphElements.forEach(element => {
-                if (element instanceof GraphNode) {
+                if (element instanceof NodeElement) {
                     this.nodes.push(element)
-                } else if (element instanceof GraphLink) {
+                } else if (element instanceof LinkElement) {
                     this.links.push(element)
                 }
             })
@@ -347,7 +347,7 @@ export default class Blueprint extends GraphElement {
 
     /**
      * 
-     * @param  {...GraphElement} graphElements 
+     * @param  {...IElement} graphElements 
      */
     removeGraphElement(...graphElements) {
         let removed = false
@@ -358,8 +358,8 @@ export default class Blueprint extends GraphElement {
             }
         })
         if (removed) {
-            this.nodes = [...this.querySelectorAll(GraphNode.tagName)]
-            this.links = [...this.querySelectorAll(GraphLink.tagName)]
+            this.nodes = [...this.querySelectorAll(NodeElement.tagName)]
+            this.links = [...this.querySelectorAll(LinkElement.tagName)]
         }
     }
 

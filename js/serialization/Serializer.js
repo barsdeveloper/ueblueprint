@@ -1,4 +1,4 @@
-import Entity from "../entity/Entity"
+import IEntity from "../entity/IEntity"
 import Grammar from "./Grammar"
 import Parsimmon from "parsimmon"
 import SerializerFactory from "./SerializerFactory"
@@ -37,7 +37,7 @@ export default class Serializer {
         if (value instanceof Array) {
             return `(${value.map(v => serialize(v) + ",")})`
         }
-        if (value instanceof Entity) {
+        if (value instanceof IEntity) {
             return serialize(value)
         }
     }

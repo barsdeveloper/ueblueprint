@@ -1,11 +1,11 @@
-import GraphLink from "../../graph/GraphLink"
-import GraphLinkMessage from "../../graph/GraphLinkMessage"
+import LinkElement from "../../element/LinkElement"
+import LinkMessageElement from "../../element/LinkMessageElement"
 import MouseClickDrag from "./MouseClickDrag"
 
-/** @typedef {import("../../graph/GraphPin").default} GraphPin */
+/** @typedef {import("../../element/PinElement").default} PinElement */
 export default class MouseCreateLink extends MouseClickDrag {
 
-    /** @type {NodeListOf<GraphPin>} */
+    /** @type {NodeListOf<PinElement>} */
     #listenedPins
 
     /** @type {(e: MouseEvent) => void} */
@@ -16,9 +16,9 @@ export default class MouseCreateLink extends MouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
-        /** @type {import("../../graph/GraphPin").default} */
+        /** @type {import("../../element/PinElement").PinElement} */
         this.target
-        /** @type {import("../../graph/GraphLink").default} */
+        /** @type {import("../../element/LinkElement").LinkElement} */
         this.link
         /** @type {import("../../entity/PinEntity").default} */
         this.enteredPin
@@ -37,8 +37,8 @@ export default class MouseCreateLink extends MouseClickDrag {
     }
 
     startDrag() {
-        this.link = new GraphLink(this.target, null)
-        this.link.setLinkMessage(GraphLinkMessage.PLACE_NODE())
+        this.link = new LinkElement(this.target, null)
+        this.link.setLinkMessage(LinkMessageElement.placeNode())
         this.blueprint.nodesContainerElement.insertBefore(this.link, this.blueprint.selectorElement.nextElementSibling)
         this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName)
         this.#listenedPins.forEach(pin => {

@@ -4,13 +4,13 @@ import sanitizeText from "./sanitizeText"
 import Template from "./Template"
 
 /**
- * @typedef {import("../graph/GraphPin").default} GraphPin
+ * @typedef {import("../element/PinElement").default} PinElement
  */
 export default class PinTemplate extends Template {
 
     /**
      * Computes the html content of the pin.
-     * @param {GraphPin} pin Pin entity 
+     * @param {PinElement} pin html element 
      * @returns The result html 
      */
     render(pin) {
@@ -29,7 +29,7 @@ export default class PinTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphPin} pin Element of the graph
+     * @param {PinElement} pin element of the graph
      */
     apply(pin) {
         super.apply(pin)
@@ -40,7 +40,7 @@ export default class PinTemplate extends Template {
 
     /**
      * 
-     * @param {GraphPin} pin 
+     * @param {PinElement} pin 
      * @returns 
      */
     getLinkLocation(pin) {

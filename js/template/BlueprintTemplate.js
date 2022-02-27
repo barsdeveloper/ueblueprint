@@ -1,7 +1,7 @@
 import Configuration from "../Configuration"
-import GraphSelector from "../graph/GraphSelector"
 import html from "./html"
 import sanitizeText from "./sanitizeText"
+import SelectorElement from "../element/SelectorElement"
 import Template from "./Template"
 
 /** @typedef {import("../Blueprint").default} Blueprint */
@@ -77,7 +77,7 @@ export default class BlueprintTemplate extends Template {
         blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body')
         blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid")
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]")
-        blueprint.selectorElement = new GraphSelector()
+        blueprint.selectorElement = new SelectorElement()
         blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.getNodes())
         this.applyEndDragScrolling(blueprint)
     }

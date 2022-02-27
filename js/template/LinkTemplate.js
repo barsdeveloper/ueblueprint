@@ -4,8 +4,8 @@ import Template from "./Template"
 import Configuration from "../Configuration"
 
 /**
- * @typedef {import("../graph/GraphLink").default} GraphLink
- * @typedef {import("../graph/GraphLinkMessage").default} GraphLinkMessage
+ * @typedef {import("../element/LinkElement").default} LinkElement
+ * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
 export default class LinkTemplate extends Template {
 
@@ -19,7 +19,7 @@ export default class LinkTemplate extends Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphLink} link connecting two graph nodes 
+     * @param {LinkElement} link connecting two graph nodes 
      * @returns The result html 
      */
     render(link) {
@@ -32,7 +32,7 @@ export default class LinkTemplate extends Template {
 
     /**
      * Applies the style to the element.
-     * @param {GraphLink} link Element of the graph
+     * @param {LinkElement} link Element of the graph
      */
     apply(link) {
         super.apply(link)
@@ -45,7 +45,7 @@ export default class LinkTemplate extends Template {
 
     /**
      * Applies the style relative to the source pin location.
-     * @param {GraphLink} link Link element
+     * @param {LinkElement} link Link element
      */
     applySourceLocation(link) {
         link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "0" : "1")
@@ -55,7 +55,7 @@ export default class LinkTemplate extends Template {
 
     /**
      * Applies the style relative to the destination pin location.
-     * @param {GraphLink} link Link element
+     * @param {LinkElement} link Link element
      */
     applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1)
@@ -97,8 +97,8 @@ export default class LinkTemplate extends Template {
 
     /**
      * 
-     * @param {GraphLink} link element
-     * @param {GraphLinkMessage} linkMessage 
+     * @param {LinkElement} link element
+     * @param {LinkMessageElement} linkMessage 
      */
     applyLinkMessage(link, linkMessage) {
         link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove())

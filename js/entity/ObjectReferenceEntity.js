@@ -1,6 +1,6 @@
-import Entity from "./Entity"
+import IEntity from "./IEntity"
 
-export default class ObjectReferenceEntity extends Entity {
+export default class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
         type: String,
