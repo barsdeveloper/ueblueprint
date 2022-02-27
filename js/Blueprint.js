@@ -17,55 +17,57 @@ import Zoom from "./input/mouse/Zoom"
 
 export default class Blueprint extends GraphElement {
 
+    static tagName = "ueb-blueprint"
+    /** @type {number} */
+    gridSize = Configuration.gridSize
+    /** @type {GraphNode[]}" */
+    nodes = []
+    /** @type {GraphLink[]}" */
+    links = []
+    expandGridSize = Configuration.expandGridSize
+    /** @type {number[]} */
+    additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
+    /** @type {number[]} */
+    translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
+    /** @type {number[]} */
+    mousePosition = [0, 0]
+    /** @type {HTMLElement} */
+    gridElement = null
+    /** @type {HTMLElement} */
+    viewportElement = null
+    /** @type {HTMLElement} */
+    overlayElement = null
+    /** @type {GraphSelector} */
+    selectorElement = null
+    /** @type {HTMLElement} */
+    nodesContainerElement = null
+    /** @type {number} */
+    zoom = 0
+    /** @type {HTMLElement} */
+    headerElement = null
+    focused = false
+    /** @type {(node: GraphNode) => BoundariesInfo} */
+    nodeBoundariesSupplier = node => {
+        let rect = node.getBoundingClientRect()
+        let gridRect = this.nodesContainerElement.getBoundingClientRect()
+        const scaleCorrection = 1 / this.getScale()
+        return {
+            primaryInf: (rect.left - gridRect.left) * scaleCorrection,
+            primarySup: (rect.right - gridRect.right) * scaleCorrection,
+            // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
+            secondaryInf: (rect.top - gridRect.top) * scaleCorrection,
+            secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
+        }
+    }
+    /** @type {(node: GraphNode, selected: bool) => void}} */
+    nodeSelectToggleFunction = (node, selected) => {
+        node.setSelected(selected)
+    }
+
     constructor() {
         super({}, new BlueprintTemplate())
         /** @type {BlueprintTemplate} */
         this.template
-        /** @type {number} */
-        this.gridSize = Configuration.gridSize
-        /** @type {GraphNode[]}" */
-        this.nodes = []
-        /** @type {GraphLink[]}" */
-        this.links = []
-        this.expandGridSize = Configuration.expandGridSize
-        /** @type {number[]} */
-        this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
-        /** @type {number[]} */
-        this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
-        /** @type {number[]} */
-        this.mousePosition = [0, 0]
-        /** @type {HTMLElement} */
-        this.gridElement = null
-        /** @type {HTMLElement} */
-        this.viewportElement = null
-        /** @type {HTMLElement} */
-        this.overlayElement = null
-        /** @type {GraphSelector} */
-        this.selectorElement = null
-        /** @type {HTMLElement} */
-        this.nodesContainerElement = null
-        /** @type {number} */
-        this.zoom = 0
-        /** @type {HTMLElement} */
-        this.headerElement = null
-        this.focused = false
-        /** @type {(node: GraphNode) => BoundariesInfo} */
-        this.nodeBoundariesSupplier = node => {
-            let rect = node.getBoundingClientRect()
-            let gridRect = this.nodesContainerElement.getBoundingClientRect()
-            const scaleCorrection = 1 / this.getScale()
-            return {
-                primaryInf: (rect.left - gridRect.left) * scaleCorrection,
-                primarySup: (rect.right - gridRect.right) * scaleCorrection,
-                // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-                secondaryInf: (rect.top - gridRect.top) * scaleCorrection,
-                secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
-            }
-        }
-        /** @type {(node: GraphNode, selected: bool) => void}} */
-        this.nodeSelectToggleFunction = (node, selected) => {
-            node.setSelected(selected)
-        }
     }
 
     /**
@@ -258,7 +260,6 @@ export default class Blueprint extends GraphElement {
         this.template.applyZoom(this, zoom)
         this.zoom = zoom
 
-
         if (center) {
             center[0] += this.translateValue[0]
             center[1] += this.translateValue[1]
@@ -285,16 +286,12 @@ export default class Blueprint extends GraphElement {
     }
 
     /**
-     * 
+     * Returns the list of nodes in this blueprint. It can filter the list providing just the selected ones.
      * @returns {GraphNode[]} Nodes
      */
     getNodes(selected = false) {
         if (selected) {
             return this.nodes.filter(
-                /**
-                 * 
-                 * @param {GraphNode} node 
-                 */
                 node => node.selected
             )
         } else {
@@ -303,17 +300,25 @@ export default class Blueprint extends GraphElement {
     }
 
     /**
+     * Returns the list of links in this blueprint.
+     * @returns {GraphLink[]} Nodes
+     */
+    getLinks() {
+        return this.links
+    }
+
+    /**
      * Select all nodes
      */
     selectAll() {
-        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, true))
+        this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, true))
     }
 
     /**
      * Unselect all nodes
      */
     unselectAll() {
-        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, false))
+        this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, false))
     }
 
     /**
@@ -321,16 +326,23 @@ export default class Blueprint extends GraphElement {
      * @param  {...GraphElement} graphElements 
      */
     addGraphElement(...graphElements) {
-        [...graphElements].forEach(v => {
-            if (v instanceof GraphNode) {
-                this.nodes.push(v)
-                this.nodesContainerElement?.appendChild(v)
-            }
-            if (v instanceof GraphLink) {
-                this.links.push(v)
-                this.nodesContainerElement?.appendChild(v)
-            }
-        })
+        if (this.nodesContainerElement) {
+            graphElements.forEach(element => {
+                if (element.closest(Blueprint.tagName) != this) {
+                    this.nodesContainerElement.appendChild(element)
+                }
+                this.nodes = [...this.querySelectorAll(GraphNode.tagName)]
+                this.links = [...this.querySelectorAll(GraphLink.tagName)]
+            })
+        } else {
+            graphElements.forEach(element => {
+                if (element instanceof GraphNode) {
+                    this.nodes.push(element)
+                } else if (element instanceof GraphLink) {
+                    this.links.push(element)
+                }
+            })
+        }
     }
 
     /**
@@ -338,28 +350,17 @@ export default class Blueprint extends GraphElement {
      * @param  {...GraphElement} graphElements 
      */
     removeGraphElement(...graphElements) {
-        let deleteElements = [...graphElements]
-        if (deleteElements.length == 0) {
-            return
+        let removed = false
+        graphElements.forEach(element => {
+            if (element.closest(Blueprint.tagName) == this) {
+                element.remove()
+                removed = false
+            }
+        })
+        if (removed) {
+            this.nodes = [...this.querySelectorAll(GraphNode.tagName)]
+            this.links = [...this.querySelectorAll(GraphLink.tagName)]
         }
-        let currentDeleteI = 0
-        this.nodes = this.nodes.filter(v => {
-            if (v == deleteElements[currentDeleteI]) {
-                ++currentDeleteI
-                v.remove()
-                return false
-            }
-            return true
-        })
-        currentDeleteI = 0
-        this.links = this.links.filter(v => {
-            if (v == deleteElements[currentDeleteI]) {
-                ++currentDeleteI
-                v.remove()
-                return false
-            }
-            return true
-        })
     }
 
     setFocused(value = true) {
@@ -376,4 +377,4 @@ export default class Blueprint extends GraphElement {
     }
 }
 
-customElements.define("ueb-blueprint", Blueprint)
+customElements.define(Blueprint.tagName, Blueprint)

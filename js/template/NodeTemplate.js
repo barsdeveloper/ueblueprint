@@ -14,29 +14,6 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      * @param {GraphNode} node Graph node element 
      * @returns The result html 
      */
-    header(node) {
-        return html`
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
-     * @returns The result html 
-     */
-    body(node) {
-        let inputs = node.entity.CustomProperties.filter(v => v instanceof PinEntity)
-        let outputs = inputs.filter(v => v.isOutput())
-        inputs = inputs.filter(v => v.isInput())
-        return html`
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
-     * @returns The result html 
-     */
     render(node) {
         return html`
             <div class="ueb-node-border">

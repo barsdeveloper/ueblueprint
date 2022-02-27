@@ -4,6 +4,8 @@ import SelectorTemplate from "../template/SelectorTemplate"
 
 export default class GraphSelector extends GraphElement {
 
+    static tagName = "ueb-selector"
+
     constructor() {
         super({}, new SelectorTemplate())
         this.selectionModel = null
@@ -35,4 +37,4 @@ export default class GraphSelector extends GraphElement {
     }
 }
 
-customElements.define("ueb-selector", GraphSelector)
+customElements.define(GraphSelector.tagName, GraphSelector)

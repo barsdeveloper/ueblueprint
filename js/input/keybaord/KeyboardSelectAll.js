@@ -1,7 +1,6 @@
 import KeyboardShortcut from "./KeyboardShortcut"
 import Configuration from "../../Configuration"
 
-
 export default class KeyboardSelectAll extends KeyboardShortcut {
 
     /**

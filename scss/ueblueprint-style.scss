@@ -463,3 +463,16 @@ ueb-link svg path {
 ueb-link svg path:hover {
     stroke-width: 5;
 }
+
+ueb-link-message {
+    display      : block;
+    position     : absolute;
+    left         : calc(var(--ueb-start-percentage) + 15px);
+    bottom       : -42px;
+    border       : 1px solid #000;
+    padding      : 4px 8px;
+    border-radius: 2px;
+    background   : linear-gradient(to bottom, #2a2a2a 0, #151515 50%, #2a2a2a 100%);
+    color        : var(--ueb-node-value-dim-color);
+    white-space  : nowrap;
+}

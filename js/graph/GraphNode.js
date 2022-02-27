@@ -7,6 +7,8 @@ import Configuration from "../Configuration"
 
 export default class GraphNode extends SelectableDraggable {
 
+    static tagName = "ueb-node"
+
     /**
      * 
      * @param {ObjectEntity} entity 
@@ -50,12 +52,12 @@ export default class GraphNode extends SelectableDraggable {
     }
 
     dispatchDeleteEvent(value) {
-        let dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
+        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName, {
             bubbles: true,
             cancelable: true,
         })
-        this.dispatchEvent(dragEvent)
+        this.dispatchEvent(deleteEvent)
     }
 }
 
-customElements.define("ueb-node", GraphNode)
+customElements.define(GraphNode.tagName, GraphNode)

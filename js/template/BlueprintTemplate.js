@@ -78,7 +78,7 @@ export default class BlueprintTemplate extends Template {
         blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid")
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]")
         blueprint.selectorElement = new GraphSelector()
-        blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.nodes)
+        blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.getNodes())
         this.applyEndDragScrolling(blueprint)
     }
 

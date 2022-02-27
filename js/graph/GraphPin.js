@@ -4,6 +4,8 @@ import MouseCreateLink from "../input/mouse/MouseCreateLink"
 
 export default class GraphPin extends GraphElement {
 
+    static tagName = "ueb-pin"
+
     constructor(entity) {
         super(entity, new PinTemplate())
         /** @type {import("../entity/PinEntity").default} */
@@ -51,6 +53,10 @@ export default class GraphPin extends GraphElement {
         return this.entity.getType()
     }
 
+    getClickableElement() {
+        return this.clickableElement
+    }
+
     /**
      * Returns The exact location where the link originates from or arrives at.
      * @returns {Number[]} The location array
@@ -64,4 +70,4 @@ export default class GraphPin extends GraphElement {
     }
 }
 
-customElements.define("ueb-pin", GraphPin)
+customElements.define(GraphPin.tagName, GraphPin)

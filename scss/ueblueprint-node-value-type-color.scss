@@ -1,6 +1,8 @@
 .ueb {
-    $ueb-node-value-color : white;
-    --ueb-node-value-color: #{$ueb-node-value-color};
+    $ueb-node-value-color     : white;
+    $ueb-node-value-dim-color : #afafaf;
+    --ueb-node-value-color    : #{$ueb-node-value-color};
+    --ueb-node-value-dim-color: #{$ueb-node-value-dim-color};
 }
 
 .ueb-node-value-boolean {

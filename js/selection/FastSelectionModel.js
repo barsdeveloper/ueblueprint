@@ -140,7 +140,6 @@ export default class FastSelectionModel {
                 this.initialPosition[0] < this.boundaries.primaryP.v && this.initialPosition[0] < finalPosition[0])
         }
 
-
         const secondaryBoundaryCrossed = (index, added) => {
             this.selectFunc(this.rectangles[index], added)
             this.computeBoundaries(finalPosition)

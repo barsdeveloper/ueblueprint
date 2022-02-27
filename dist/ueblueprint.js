@@ -4,7 +4,7 @@ class Configuration {
     static fontSize = "13px"
     static gridAxisLineColor = "black"
     static gridLineColor = "#353535"
-    static gridLineWidth = 2 // pixel
+    static gridLineWidth = 1 // pixel
     static gridSet = 8
     static gridSetLineColor = "#161616"
     static gridSize = 16 // pixel
@@ -405,7 +405,6 @@ class FastSelectionModel {
                 this.initialPosition[0] < this.boundaries.primaryP.v && this.initialPosition[0] < finalPosition[0]);
         }
 
-
         const secondaryBoundaryCrossed = (index, added) => {
             this.selectFunc(this.rectangles[index], added);
             this.computeBoundaries(finalPosition);
@@ -563,6 +562,8 @@ class SelectorTemplate extends Template {
 
 class GraphSelector extends GraphElement {
 
+    static tagName = "ueb-selector"
+
     constructor() {
         super({}, new SelectorTemplate());
         this.selectionModel = null;
@@ -594,7 +595,7 @@ class GraphSelector extends GraphElement {
     }
 }
 
-customElements.define("ueb-selector", GraphSelector);
+customElements.define(GraphSelector.tagName, GraphSelector);
 
 /**
  * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
@@ -675,7 +676,7 @@ class BlueprintTemplate extends Template {
         blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid");
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
         blueprint.selectorElement = new GraphSelector();
-        blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.nodes);
+        blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.getNodes());
         this.applyEndDragScrolling(blueprint);
     }
 
@@ -745,7 +746,6 @@ class Context {
         this.blueprint.removeEventListener("blueprint-focus", this.blueprintFocusHandler);
         this.blueprint.removeEventListener("blueprint-unfocus", this.blueprintUnfocusHandler);
     }
-
 
     /* Subclasses will probabily override the following methods */
     listenEvents() {
@@ -1519,6 +1519,7 @@ class Copy extends Context {
 
 /**
  * @typedef {import("../graph/GraphLink").default} GraphLink
+ * @typedef {import("../graph/GraphLinkMessage").default} GraphLinkMessage
  */
 class LinkTemplate extends Template {
 
@@ -1532,7 +1533,7 @@ class LinkTemplate extends Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphLink} link Link connecting two graph nodes 
+     * @param {GraphLink} link connecting two graph nodes 
      * @returns The result html 
      */
     render(link) {
@@ -1551,6 +1552,9 @@ class LinkTemplate extends Template {
         super.apply(link);
         link.classList.add("ueb-positioned");
         link.pathElement = link.querySelector("path");
+        if (link.linkMessageElement) {
+            link.appendChild(link.linkMessageElement);
+        }
     }
 
     /**
@@ -1587,11 +1591,12 @@ class LinkTemplate extends Template {
             link.style.setProperty("margin-left", `-${start}px`);
         }
         if (xInverted) {
-            start = start + dx;
+            start += fillRatio * 100;
         }
+        link.style.setProperty("--ueb-start-percentage", `${100 - start}%`);
         const c1 = start + 15 * fillRatio;
         let c2 = Math.max(40 / aspectRatio, 30) + start;
-        const c2Decreasing = -0.05;
+        const c2Decreasing = -0.06;
         const getMaxC2 = (m, p) => {
             const a = -m * p[0] * p[0];
             const q = p[1] - a / p[0];
@@ -1603,12 +1608,26 @@ class LinkTemplate extends Template {
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d);
     }
+
+    /**
+     * 
+     * @param {GraphLink} link element
+     * @param {GraphLinkMessage} linkMessage 
+     */
+    applyLinkMessage(link, linkMessage) {
+        link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove());
+        link.appendChild(linkMessage);
+        link.linkMessageElement = linkMessage;
+    }
 }
 
 /**
  * @typedef {import("./GraphPin").default} GraphPin
+ * @typedef {import("./GraphLinkMessage").default} GraphLinkMessage
  */
 class GraphLink extends GraphElement {
+
+    static tagName = "ueb-link"
     /** @type {GraphPin} */
     #source
     /** @type {GraphPin} */
@@ -1616,6 +1635,13 @@ class GraphLink extends GraphElement {
     #nodeDeleteHandler
     #nodeDragSourceHandler
     #nodeDragDestinatonHandler
+    sourceLocation = [0, 0]
+    /** @type {SVGPathElement} */
+    pathElement
+    /** @type {GraphLinkMessage} */
+    linkMessageElement
+    originatesFromInput = false
+    destinationLocation = [0, 0]
 
     /**
      * @param {?GraphPin} source
@@ -1625,17 +1651,16 @@ class GraphLink extends GraphElement {
         super({}, new LinkTemplate());
         /** @type {import("../template/LinkTemplate").default} */
         this.template;
-        /** @type {SVGPathElement} */
-        this.pathElement = null;
-        this.originatesFromInput = false;
-        this.sourceLocation = [0, 0];
-        this.destinationLocation = [0, 0];
         const self = this;
-        this.#nodeDeleteHandler = _ => self.blueprint.removeGraphElement(self);
+        this.#nodeDeleteHandler = _ => self.remove();
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value);
         this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value);
-        this.setSourcePin(source);
-        this.setDestinationPin(destination);
+        if (source) {
+            this.setSourcePin(source);
+        }
+        if (destination) {
+            this.setDestinationPin(destination);
+        }
     }
 
     /**
@@ -1703,7 +1728,6 @@ class GraphLink extends GraphElement {
         this.template.applyFullLocation(this);
     }
 
-
     /**
      * 
      * @returns {GraphPin}
@@ -1745,20 +1769,29 @@ class GraphLink extends GraphElement {
      */
     setDestinationPin(graphPin) {
         if (this.#destination) {
-            const nodeElement = this.#source.getGraphNode();
+            const nodeElement = this.#destination.getGraphNode();
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
         }
         this.#destination = graphPin;
         if (this.#destination) {
-            const nodeElement = this.#source.getGraphNode();
+            const nodeElement = this.#destination.getGraphNode();
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
+            this.setDestinationLocation();
         }
+    }
+
+    /**
+     * 
+     * @param {GraphLinkMessage} linkMessage 
+     */
+    setLinkMessage(linkMessage) {
+        this.template.applyLinkMessage(this, linkMessage);
     }
 }
 
-customElements.define("ueb-link", GraphLink);
+customElements.define(GraphLink.tagName, GraphLink);
 
 /**
  * @typedef {import("../graph/GraphPin").default} GraphPin
@@ -1807,6 +1840,94 @@ class PinTemplate extends Template {
             pin.blueprint.gridElement))
     }
 }
+
+/**
+ * @typedef {import("../graph/GraphLinkMessage").default} GraphLinkMessage
+ */
+class LinkMessageTemplate extends Template {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {GraphLinkMessage} linkMessage attached to link destination
+     * @returns The result html 
+     */
+    render(linkMessage) {
+        return html`
+            <span class="${linkMessage.icon}"></span>
+            <span class="ueb-link-message"></span>
+        `
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {GraphLinkMessage} linkMessage element
+     */
+    apply(linkMessage) {
+        super.apply(linkMessage);
+        linkMessage.linkElement = linkMessage.closest(GraphLink.tagName);
+        linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
+            linkMessage.linkElement.getSourcePin(),
+            linkMessage.linkElement.getDestinationPin()
+        );
+    }
+
+}
+
+/**
+ * @typedef {import("./GraphPin").default} GraphPin
+ * @typedef {import("./GraphLink").default} GraphLink
+ * @typedef {(sourcePin: GraphPin, sourcePin: GraphPin) => String} LinkRetrieval
+ */
+class GraphLinkMessage extends GraphElement {
+
+    static tagName = "ueb-link-message"
+    static CONVERT_TYPE = _ => new GraphLinkMessage(
+        "ueb-icon-conver-type",
+        /** @type {LinkRetrieval} */
+        (s, d) => `Convert ${s.getType()} to ${d.getType()}.`
+    )
+    static DIRECTIONS_INCOMPATIBLE = _ => new GraphLinkMessage(
+        "ueb-icon-directions-incompatible",
+        /** @type {LinkRetrieval} */
+        (s, d) => "Directions are not compatbile."
+    )
+    static PLACE_NODE = _ => new GraphLinkMessage(
+        "ueb-icon-place-node",
+        /** @type {LinkRetrieval} */
+        (s, d) => "Place a new node."
+    )
+    static REPLACE_LiNK = _ => new GraphLinkMessage(
+        "ueb-icon-replace-link",
+        /** @type {LinkRetrieval} */
+        (s, d) => "Replace existing input connections."
+    )
+    static SAME_NODE = _ => new GraphLinkMessage(
+        "ueb-icon-same-node",
+        /** @type {LinkRetrieval} */
+        (s, d) => "Both are on the same node."
+    )
+    static TYPES_INCOMPATIBLE = _ => new GraphLinkMessage(
+        "ueb-icon-types-incompatible",
+        /** @type {LinkRetrieval} */
+        (s, d) => `${s.getType()} is not compatible with ${d.getType()}.`
+    )
+
+    /** @type {String} */
+    icon
+    /** @type {String} */
+    message
+    /** @type {GraphLink} */
+    linkElement
+
+    constructor(icon, message) {
+        super({}, new LinkMessageTemplate());
+        this.icon = icon;
+        this.message = message;
+    }
+
+}
+
+customElements.define(GraphLinkMessage.tagName, GraphLinkMessage);
 
 class Pointing extends Context {
 
@@ -1965,7 +2086,11 @@ class MouseClickDrag extends Pointing {
     }
 }
 
+/** @typedef {import("../../graph/GraphPin").default} GraphPin */
 class MouseCreateLink extends MouseClickDrag {
+
+    /** @type {NodeListOf<GraphPin>} */
+    #listenedPins
 
     /** @type {(e: MouseEvent) => void} */
     #mouseenterHandler
@@ -1997,12 +2122,15 @@ class MouseCreateLink extends MouseClickDrag {
 
     startDrag() {
         this.link = new GraphLink(this.target, null);
+        this.link.setLinkMessage(GraphLinkMessage.PLACE_NODE());
         this.blueprint.nodesContainerElement.insertBefore(this.link, this.blueprint.selectorElement.nextElementSibling);
-        this.blueprint.querySelectorAll("ueb-pin." + this.target.isInput() ? "output" : "input")
-            .forEach(pin => {
-                pin.addEventListener("mouseenter", this.#mouseenterHandler);
-                pin.addEventListener("mouseleave", this.#mouseleaveHandler);
-            });
+        this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName);
+        this.#listenedPins.forEach(pin => {
+            if (pin != this.target) {
+                pin.getClickableElement().addEventListener("mouseenter", this.#mouseenterHandler);
+                pin.getClickableElement().addEventListener("mouseleave", this.#mouseleaveHandler);
+            }
+        });
     }
 
     dragTo(location, movement) {
@@ -2010,19 +2138,27 @@ class MouseCreateLink extends MouseClickDrag {
     }
 
     endDrag() {
-        this.blueprint.querySelectorAll("ueb-pin." + this.target.isInput() ? "output" : "input")
-            .forEach(pin => {
-                pin.removeEventListener("mouseenter", this.#mouseenterHandler);
-                pin.removeEventListener("mouseleave", this.#mouseleaveHandler);
-            });
-        if (this.enteredPin) {
-            this.link.setDestinationPin(this.link);
+        this.#listenedPins.forEach(pin => {
+            pin.removeEventListener("mouseenter", this.#mouseenterHandler);
+            pin.removeEventListener("mouseleave", this.#mouseleaveHandler);
+        });
+        if (this.enteredPin && !this.blueprint.getLinks().find(
+            link =>
+                link.getSourcePin() == this.target && link.getDestinationPin() == this.enteredPin
+                || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
+        )) {
+            this.link.setDestinationPin(this.enteredPin);
+            this.blueprint.addGraphElement(this.link);
+        } else {
+            this.link.remove();
         }
         this.link = null;
     }
 }
 
 class GraphPin extends GraphElement {
+
+    static tagName = "ueb-pin"
 
     constructor(entity) {
         super(entity, new PinTemplate());
@@ -2071,6 +2207,10 @@ class GraphPin extends GraphElement {
         return this.entity.getType()
     }
 
+    getClickableElement() {
+        return this.clickableElement
+    }
+
     /**
      * Returns The exact location where the link originates from or arrives at.
      * @returns {Number[]} The location array
@@ -2084,7 +2224,7 @@ class GraphPin extends GraphElement {
     }
 }
 
-customElements.define("ueb-pin", GraphPin);
+customElements.define(GraphPin.tagName, GraphPin);
 
 /**
  * @typedef {import("../graph/SelectableDraggable").default} SelectableDraggable
@@ -2117,29 +2257,6 @@ class SelectableDraggableTemplate extends Template {
  * @typedef {import("../graph/GraphNode").default} GraphNode
  */
 class NodeTemplate extends SelectableDraggableTemplate {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
-     * @returns The result html 
-     */
-    header(node) {
-        return html`
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {GraphNode} node Graph node element 
-     * @returns The result html 
-     */
-    body(node) {
-        let inputs = node.entity.CustomProperties.filter(v => v instanceof PinEntity$1);
-        inputs.filter(v => v.isOutput());
-        inputs = inputs.filter(v => v.isInput());
-        return html`
-        `
-    }
 
     /**
      * Computes the html content of the target element.
@@ -2314,6 +2431,8 @@ class SelectableDraggable extends GraphElement {
 
 class GraphNode extends SelectableDraggable {
 
+    static tagName = "ueb-node"
+
     /**
      * 
      * @param {ObjectEntity} entity 
@@ -2357,15 +2476,15 @@ class GraphNode extends SelectableDraggable {
     }
 
     dispatchDeleteEvent(value) {
-        let dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
+        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName, {
             bubbles: true,
             cancelable: true,
         });
-        this.dispatchEvent(dragEvent);
+        this.dispatchEvent(deleteEvent);
     }
 }
 
-customElements.define("ueb-node", GraphNode);
+customElements.define(GraphNode.tagName, GraphNode);
 
 let P = Parsimmon;
 
@@ -2733,55 +2852,57 @@ class Zoom extends MouseWheel {
 
 class Blueprint extends GraphElement {
 
+    static tagName = "ueb-blueprint"
+    /** @type {number} */
+    gridSize = Configuration.gridSize
+    /** @type {GraphNode[]}" */
+    nodes = []
+    /** @type {GraphLink[]}" */
+    links = []
+    expandGridSize = Configuration.expandGridSize
+    /** @type {number[]} */
+    additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
+    /** @type {number[]} */
+    translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
+    /** @type {number[]} */
+    mousePosition = [0, 0]
+    /** @type {HTMLElement} */
+    gridElement = null
+    /** @type {HTMLElement} */
+    viewportElement = null
+    /** @type {HTMLElement} */
+    overlayElement = null
+    /** @type {GraphSelector} */
+    selectorElement = null
+    /** @type {HTMLElement} */
+    nodesContainerElement = null
+    /** @type {number} */
+    zoom = 0
+    /** @type {HTMLElement} */
+    headerElement = null
+    focused = false
+    /** @type {(node: GraphNode) => BoundariesInfo} */
+    nodeBoundariesSupplier = node => {
+        let rect = node.getBoundingClientRect();
+        let gridRect = this.nodesContainerElement.getBoundingClientRect();
+        const scaleCorrection = 1 / this.getScale();
+        return {
+            primaryInf: (rect.left - gridRect.left) * scaleCorrection,
+            primarySup: (rect.right - gridRect.right) * scaleCorrection,
+            // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
+            secondaryInf: (rect.top - gridRect.top) * scaleCorrection,
+            secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
+        }
+    }
+    /** @type {(node: GraphNode, selected: bool) => void}} */
+    nodeSelectToggleFunction = (node, selected) => {
+        node.setSelected(selected);
+    }
+
     constructor() {
         super({}, new BlueprintTemplate());
         /** @type {BlueprintTemplate} */
         this.template;
-        /** @type {number} */
-        this.gridSize = Configuration.gridSize;
-        /** @type {GraphNode[]}" */
-        this.nodes = [];
-        /** @type {GraphLink[]}" */
-        this.links = [];
-        this.expandGridSize = Configuration.expandGridSize;
-        /** @type {number[]} */
-        this.additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0];
-        /** @type {number[]} */
-        this.translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0];
-        /** @type {number[]} */
-        this.mousePosition = [0, 0];
-        /** @type {HTMLElement} */
-        this.gridElement = null;
-        /** @type {HTMLElement} */
-        this.viewportElement = null;
-        /** @type {HTMLElement} */
-        this.overlayElement = null;
-        /** @type {GraphSelector} */
-        this.selectorElement = null;
-        /** @type {HTMLElement} */
-        this.nodesContainerElement = null;
-        /** @type {number} */
-        this.zoom = 0;
-        /** @type {HTMLElement} */
-        this.headerElement = null;
-        this.focused = false;
-        /** @type {(node: GraphNode) => BoundariesInfo} */
-        this.nodeBoundariesSupplier = node => {
-            let rect = node.getBoundingClientRect();
-            let gridRect = this.nodesContainerElement.getBoundingClientRect();
-            const scaleCorrection = 1 / this.getScale();
-            return {
-                primaryInf: (rect.left - gridRect.left) * scaleCorrection,
-                primarySup: (rect.right - gridRect.right) * scaleCorrection,
-                // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-                secondaryInf: (rect.top - gridRect.top) * scaleCorrection,
-                secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
-            }
-        };
-        /** @type {(node: GraphNode, selected: bool) => void}} */
-        this.nodeSelectToggleFunction = (node, selected) => {
-            node.setSelected(selected);
-        };
     }
 
     /**
@@ -2974,7 +3095,6 @@ class Blueprint extends GraphElement {
         this.template.applyZoom(this, zoom);
         this.zoom = zoom;
 
-
         if (center) {
             center[0] += this.translateValue[0];
             center[1] += this.translateValue[1];
@@ -3001,16 +3121,12 @@ class Blueprint extends GraphElement {
     }
 
     /**
-     * 
+     * Returns the list of nodes in this blueprint. It can filter the list providing just the selected ones.
      * @returns {GraphNode[]} Nodes
      */
     getNodes(selected = false) {
         if (selected) {
             return this.nodes.filter(
-                /**
-                 * 
-                 * @param {GraphNode} node 
-                 */
                 node => node.selected
             )
         } else {
@@ -3019,17 +3135,25 @@ class Blueprint extends GraphElement {
     }
 
     /**
+     * Returns the list of links in this blueprint.
+     * @returns {GraphLink[]} Nodes
+     */
+    getLinks() {
+        return this.links
+    }
+
+    /**
      * Select all nodes
      */
     selectAll() {
-        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, true));
+        this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, true));
     }
 
     /**
      * Unselect all nodes
      */
     unselectAll() {
-        this.nodes.forEach(node => this.nodeSelectToggleFunction(node, false));
+        this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, false));
     }
 
     /**
@@ -3037,16 +3161,23 @@ class Blueprint extends GraphElement {
      * @param  {...GraphElement} graphElements 
      */
     addGraphElement(...graphElements) {
-        [...graphElements].forEach(v => {
-            if (v instanceof GraphNode) {
-                this.nodes.push(v);
-                this.nodesContainerElement?.appendChild(v);
-            }
-            if (v instanceof GraphLink) {
-                this.links.push(v);
-                this.nodesContainerElement?.appendChild(v);
-            }
-        });
+        if (this.nodesContainerElement) {
+            graphElements.forEach(element => {
+                if (element.closest(Blueprint.tagName) != this) {
+                    this.nodesContainerElement.appendChild(element);
+                }
+                this.nodes = [...this.querySelectorAll(GraphNode.tagName)];
+                this.links = [...this.querySelectorAll(GraphLink.tagName)];
+            });
+        } else {
+            graphElements.forEach(element => {
+                if (element instanceof GraphNode) {
+                    this.nodes.push(element);
+                } else if (element instanceof GraphLink) {
+                    this.links.push(element);
+                }
+            });
+        }
     }
 
     /**
@@ -3054,28 +3185,17 @@ class Blueprint extends GraphElement {
      * @param  {...GraphElement} graphElements 
      */
     removeGraphElement(...graphElements) {
-        let deleteElements = [...graphElements];
-        if (deleteElements.length == 0) {
-            return
+        let removed = false;
+        graphElements.forEach(element => {
+            if (element.closest(Blueprint.tagName) == this) {
+                element.remove();
+                removed = false;
+            }
+        });
+        if (removed) {
+            this.nodes = [...this.querySelectorAll(GraphNode.tagName)];
+            this.links = [...this.querySelectorAll(GraphLink.tagName)];
         }
-        let currentDeleteI = 0;
-        this.nodes = this.nodes.filter(v => {
-            if (v == deleteElements[currentDeleteI]) {
-                ++currentDeleteI;
-                v.remove();
-                return false
-            }
-            return true
-        });
-        currentDeleteI = 0;
-        this.links = this.links.filter(v => {
-            if (v == deleteElements[currentDeleteI]) {
-                ++currentDeleteI;
-                v.remove();
-                return false
-            }
-            return true
-        });
     }
 
     setFocused(value = true) {
@@ -3092,7 +3212,7 @@ class Blueprint extends GraphElement {
     }
 }
 
-customElements.define("ueb-blueprint", Blueprint);
+customElements.define(Blueprint.tagName, Blueprint);
 
 class GeneralSerializer extends Serializer {
 

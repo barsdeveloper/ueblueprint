@@ -2,10 +2,10 @@ import html from "./html"
 import sanitizeText from "./sanitizeText"
 import Template from "./Template"
 import Configuration from "../Configuration"
-import Utility from "../Utility"
 
 /**
  * @typedef {import("../graph/GraphLink").default} GraphLink
+ * @typedef {import("../graph/GraphLinkMessage").default} GraphLinkMessage
  */
 export default class LinkTemplate extends Template {
 
@@ -19,7 +19,7 @@ export default class LinkTemplate extends Template {
 
     /**
      * Computes the html content of the target element.
-     * @param {GraphLink} link Link connecting two graph nodes 
+     * @param {GraphLink} link connecting two graph nodes 
      * @returns The result html 
      */
     render(link) {
@@ -38,6 +38,9 @@ export default class LinkTemplate extends Template {
         super.apply(link)
         link.classList.add("ueb-positioned")
         link.pathElement = link.querySelector("path")
+        if (link.linkMessageElement) {
+            link.appendChild(link.linkMessageElement)
+        }
     }
 
     /**
@@ -74,11 +77,12 @@ export default class LinkTemplate extends Template {
             link.style.setProperty("margin-left", `-${start}px`)
         }
         if (xInverted) {
-            start = start + fillRatio * 100
+            start += fillRatio * 100
         }
+        link.style.setProperty("--ueb-start-percentage", `${100 - start}%`)
         const c1 = start + 15 * fillRatio
         let c2 = Math.max(40 / aspectRatio, 30) + start
-        const c2Decreasing = -0.05
+        const c2Decreasing = -0.06
         const getMaxC2 = (m, p) => {
             const a = -m * p[0] * p[0]
             const q = p[1] - a / p[0]
@@ -89,5 +93,16 @@ export default class LinkTemplate extends Template {
         const d = Configuration.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d)
+    }
+
+    /**
+     * 
+     * @param {GraphLink} link element
+     * @param {GraphLinkMessage} linkMessage 
+     */
+    applyLinkMessage(link, linkMessage) {
+        link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove())
+        link.appendChild(linkMessage)
+        link.linkMessageElement = linkMessage
     }
 }

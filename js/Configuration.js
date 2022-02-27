@@ -4,7 +4,7 @@ export default class Configuration {
     static fontSize = "13px"
     static gridAxisLineColor = "black"
     static gridLineColor = "#353535"
-    static gridLineWidth = 2 // pixel
+    static gridLineWidth = 1 // pixel
     static gridSet = 8
     static gridSetLineColor = "#161616"
     static gridSize = 16 // pixel

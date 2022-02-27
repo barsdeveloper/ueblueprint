@@ -1,7 +1,12 @@
 import GraphLink from "../../graph/GraphLink"
+import GraphLinkMessage from "../../graph/GraphLinkMessage"
 import MouseClickDrag from "./MouseClickDrag"
 
+/** @typedef {import("../../graph/GraphPin").default} GraphPin */
 export default class MouseCreateLink extends MouseClickDrag {
+
+    /** @type {NodeListOf<GraphPin>} */
+    #listenedPins
 
     /** @type {(e: MouseEvent) => void} */
     #mouseenterHandler
@@ -33,12 +38,15 @@ export default class MouseCreateLink extends MouseClickDrag {
 
     startDrag() {
         this.link = new GraphLink(this.target, null)
+        this.link.setLinkMessage(GraphLinkMessage.PLACE_NODE())
         this.blueprint.nodesContainerElement.insertBefore(this.link, this.blueprint.selectorElement.nextElementSibling)
-        this.blueprint.querySelectorAll("ueb-pin." + this.target.isInput() ? "output" : "input")
-            .forEach(pin => {
-                pin.addEventListener("mouseenter", this.#mouseenterHandler)
-                pin.addEventListener("mouseleave", this.#mouseleaveHandler)
-            })
+        this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName)
+        this.#listenedPins.forEach(pin => {
+            if (pin != this.target) {
+                pin.getClickableElement().addEventListener("mouseenter", this.#mouseenterHandler)
+                pin.getClickableElement().addEventListener("mouseleave", this.#mouseleaveHandler)
+            }
+        })
     }
 
     dragTo(location, movement) {
@@ -46,15 +54,19 @@ export default class MouseCreateLink extends MouseClickDrag {
     }
 
     endDrag() {
-        this.blueprint.querySelectorAll("ueb-pin." + this.target.isInput() ? "output" : "input")
-            .forEach(pin => {
-                pin.removeEventListener("mouseenter", this.#mouseenterHandler)
-                pin.removeEventListener("mouseleave", this.#mouseleaveHandler)
-            })
-        if (this.enteredPin) {
-            this.link.setDestinationPin(this.link)
+        this.#listenedPins.forEach(pin => {
+            pin.removeEventListener("mouseenter", this.#mouseenterHandler)
+            pin.removeEventListener("mouseleave", this.#mouseleaveHandler)
+        })
+        if (this.enteredPin && !this.blueprint.getLinks().find(
+            link =>
+                link.getSourcePin() == this.target && link.getDestinationPin() == this.enteredPin
+                || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
+        )) {
+            this.link.setDestinationPin(this.enteredPin)
+            this.blueprint.addGraphElement(this.link)
         } else {
-            // this.link.remove()
+            this.link.remove()
         }
         this.link = null
     }

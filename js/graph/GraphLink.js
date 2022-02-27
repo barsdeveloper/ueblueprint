@@ -2,11 +2,13 @@ import GraphElement from "./GraphElement"
 import LinkTemplate from "../template/LinkTemplate"
 import Configuration from "../Configuration"
 
-
 /**
  * @typedef {import("./GraphPin").default} GraphPin
+ * @typedef {import("./GraphLinkMessage").default} GraphLinkMessage
  */
 export default class GraphLink extends GraphElement {
+
+    static tagName = "ueb-link"
     /** @type {GraphPin} */
     #source
     /** @type {GraphPin} */
@@ -14,6 +16,13 @@ export default class GraphLink extends GraphElement {
     #nodeDeleteHandler
     #nodeDragSourceHandler
     #nodeDragDestinatonHandler
+    sourceLocation = [0, 0]
+    /** @type {SVGPathElement} */
+    pathElement
+    /** @type {GraphLinkMessage} */
+    linkMessageElement
+    originatesFromInput = false
+    destinationLocation = [0, 0]
 
     /**
      * @param {?GraphPin} source
@@ -23,17 +32,16 @@ export default class GraphLink extends GraphElement {
         super({}, new LinkTemplate())
         /** @type {import("../template/LinkTemplate").default} */
         this.template
-        /** @type {SVGPathElement} */
-        this.pathElement = null
-        this.originatesFromInput = false
-        this.sourceLocation = [0, 0]
-        this.destinationLocation = [0, 0]
         const self = this
-        this.#nodeDeleteHandler = _ => self.blueprint.removeGraphElement(self)
+        this.#nodeDeleteHandler = _ => self.remove()
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value)
         this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value)
-        this.setSourcePin(source)
-        this.setDestinationPin(destination)
+        if (source) {
+            this.setSourcePin(source)
+        }
+        if (destination) {
+            this.setDestinationPin(destination)
+        }
     }
 
     /**
@@ -101,7 +109,6 @@ export default class GraphLink extends GraphElement {
         this.template.applyFullLocation(this)
     }
 
-
     /**
      * 
      * @returns {GraphPin}
@@ -143,17 +150,26 @@ export default class GraphLink extends GraphElement {
      */
     setDestinationPin(graphPin) {
         if (this.#destination) {
-            const nodeElement = this.#source.getGraphNode()
+            const nodeElement = this.#destination.getGraphNode()
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
         }
         this.#destination = graphPin
         if (this.#destination) {
-            const nodeElement = this.#source.getGraphNode()
+            const nodeElement = this.#destination.getGraphNode()
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
+            this.setDestinationLocation()
         }
+    }
+
+    /**
+     * 
+     * @param {GraphLinkMessage} linkMessage 
+     */
+    setLinkMessage(linkMessage) {
+        this.template.applyLinkMessage(this, linkMessage)
     }
 }
 
-customElements.define("ueb-link", GraphLink)
+customElements.define(GraphLink.tagName, GraphLink)
