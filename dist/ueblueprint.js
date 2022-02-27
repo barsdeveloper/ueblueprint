@@ -1787,7 +1787,12 @@ class LinkElement extends IElement {
      * @param {LinkMessageElement} linkMessage 
      */
     setLinkMessage(linkMessage) {
-        this.template.applyLinkMessage(this, linkMessage);
+        if (linkMessage) {
+            this.template.applyLinkMessage(this, linkMessage);
+        } else if (this.linkMessageElement) {
+            this.linkMessageElement.remove();
+            this.linkMessageElement = null;
+        }
     }
 }
 
@@ -2086,7 +2091,10 @@ class IMouseClickDrag extends IPointing {
     }
 }
 
-/** @typedef {import("../../element/PinElement").default} PinElement */
+/** 
+ * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/LinkElement").default} LinkElement
+ */
 class MouseCreateLink extends IMouseClickDrag {
 
     /** @type {NodeListOf<PinElement>} */
@@ -2100,11 +2108,11 @@ class MouseCreateLink extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-        /** @type {import("../../element/PinElement").PinElement} */
+        /** @type {PinElement} */
         this.target;
-        /** @type {import("../../element/LinkElement").LinkElement} */
+        /** @type {LinkElement} */
         this.link;
-        /** @type {import("../../entity/PinEntity").default} */
+        /** @type {PinElement} */
         this.enteredPin;
 
         let self = this;
@@ -2148,6 +2156,7 @@ class MouseCreateLink extends IMouseClickDrag {
                 || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
         )) {
             this.link.setDestinationPin(this.enteredPin);
+            this.link.setLinkMessage(null);
             this.blueprint.addGraphElement(this.link);
         } else {
             this.link.remove();

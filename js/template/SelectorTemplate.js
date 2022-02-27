@@ -1,5 +1,5 @@
-import sanitizeText from "./sanitizeText"
 import ITemplate from "./ITemplate"
+import sanitizeText from "./sanitizeText"
 
 /**
  * @typedef {import("../element/SelectorElement").default} SelectorElement

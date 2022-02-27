@@ -1,5 +1,5 @@
-import IEntity from "../entity/IEntity"
 import Grammar from "./Grammar"
+import IEntity from "../entity/IEntity"
 import Parsimmon from "parsimmon"
 import SerializerFactory from "./SerializerFactory"
 import TypeInitialization from "../entity/TypeInitialization"

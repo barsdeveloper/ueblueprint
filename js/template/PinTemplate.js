@@ -1,7 +1,7 @@
-import Utility from "../Utility"
 import html from "./html"
-import sanitizeText from "./sanitizeText"
 import ITemplate from "./ITemplate"
+import sanitizeText from "./sanitizeText"
+import Utility from "../Utility"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement

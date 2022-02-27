@@ -1,6 +1,5 @@
-import PinElement from "../element/PinElement"
 import html from "./html"
-import PinEntity from "../entity/PinEntity"
+import PinElement from "../element/PinElement"
 import sanitizeText from "./sanitizeText"
 import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
 

@@ -1,7 +1,7 @@
-import html from "./html"
-import sanitizeText from "./sanitizeText"
-import ITemplate from "./ITemplate"
 import Configuration from "../Configuration"
+import html from "./html"
+import ITemplate from "./ITemplate"
+import sanitizeText from "./sanitizeText"
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement

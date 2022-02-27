@@ -1,6 +1,6 @@
+import ISerializer from "./ISerializer"
 import ObjectEntity from "../entity/ObjectEntity"
 import PinEntity from "../entity/PinEntity"
-import ISerializer from "./ISerializer"
 import SerializerFactory from "./SerializerFactory"
 
 export default class ObjectSerializer extends ISerializer {

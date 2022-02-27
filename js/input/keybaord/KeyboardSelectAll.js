@@ -1,5 +1,5 @@
-import IKeyboardShortcut from "./IKeyboardShortcut"
 import Configuration from "../../Configuration"
+import IKeyboardShortcut from "./IKeyboardShortcut"
 
 export default class KeyboardSelectAll extends IKeyboardShortcut {
 

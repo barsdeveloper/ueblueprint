@@ -1,8 +1,11 @@
+import IMouseClickDrag from "./IMouseClickDrag"
 import LinkElement from "../../element/LinkElement"
 import LinkMessageElement from "../../element/LinkMessageElement"
-import IMouseClickDrag from "./IMouseClickDrag"
 
-/** @typedef {import("../../element/PinElement").default} PinElement */
+/** 
+ * @typedef {import("../../element/LinkElement").default} LinkElement
+ * @typedef {import("../../element/PinElement").default} PinElement
+ */
 export default class MouseCreateLink extends IMouseClickDrag {
 
     /** @type {NodeListOf<PinElement>} */
@@ -16,11 +19,11 @@ export default class MouseCreateLink extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
-        /** @type {import("../../element/PinElement").PinElement} */
+        /** @type {PinElement} */
         this.target
-        /** @type {import("../../element/LinkElement").LinkElement} */
+        /** @type {LinkElement} */
         this.link
-        /** @type {import("../../entity/PinEntity").default} */
+        /** @type {PinElement} */
         this.enteredPin
 
         let self = this
@@ -64,6 +67,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
                 || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
         )) {
             this.link.setDestinationPin(this.enteredPin)
+            this.link.setLinkMessage(null)
             this.blueprint.addGraphElement(this.link)
         } else {
             this.link.remove()

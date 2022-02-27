@@ -1,6 +1,6 @@
+import Configuration from "../Configuration"
 import IElement from "./IElement"
 import LinkTemplate from "../template/LinkTemplate"
-import Configuration from "../Configuration"
 
 /**
  * @typedef {import("./PinElement").default} PinElement
@@ -168,7 +168,12 @@ export default class LinkElement extends IElement {
      * @param {LinkMessageElement} linkMessage 
      */
     setLinkMessage(linkMessage) {
-        this.template.applyLinkMessage(this, linkMessage)
+        if (linkMessage) {
+            this.template.applyLinkMessage(this, linkMessage)
+        } else if (this.linkMessageElement) {
+            this.linkMessageElement.remove()
+            this.linkMessageElement = null
+        }
     }
 }
 

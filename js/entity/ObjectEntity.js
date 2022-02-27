@@ -1,6 +1,6 @@
-import IEntity from "./IEntity"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
+import IEntity from "./IEntity"
 import IntegerEntity from "./IntegerEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"

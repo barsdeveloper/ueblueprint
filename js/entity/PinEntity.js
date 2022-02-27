@@ -1,5 +1,5 @@
-import IEntity from "./IEntity"
 import GuidEntity from "./GuidEntity"
+import IEntity from "./IEntity"
 import LocalizedTextEntity from "./LocalizedTextEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinReferenceEntity from "./PinReferenceEntity"

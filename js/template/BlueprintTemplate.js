@@ -1,8 +1,8 @@
 import Configuration from "../Configuration"
 import html from "./html"
+import ITemplate from "./ITemplate"
 import sanitizeText from "./sanitizeText"
 import SelectorElement from "../element/SelectorElement"
-import ITemplate from "./ITemplate"
 
 /** @typedef {import("../Blueprint").default} Blueprint */
 export default class BlueprintTemplate extends ITemplate {

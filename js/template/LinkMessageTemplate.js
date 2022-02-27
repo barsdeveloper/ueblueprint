@@ -1,6 +1,6 @@
-import LinkElement from "../element/LinkElement"
 import html from "./html"
 import ITemplate from "./ITemplate"
+import LinkElement from "../element/LinkElement"
 
 /**
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement

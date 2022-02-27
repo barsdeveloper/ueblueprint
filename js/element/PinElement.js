@@ -1,6 +1,6 @@
 import IElement from "./IElement"
-import PinTemplate from "../template/PinTemplate"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
+import PinTemplate from "../template/PinTemplate"
 
 export default class PinElement extends IElement {
 

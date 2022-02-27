@@ -1,6 +1,6 @@
 import Configuration from "../Configuration"
-import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 import IElement from "./IElement"
+import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
 /** @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate */
 
