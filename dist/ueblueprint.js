@@ -1643,12 +1643,24 @@ class KeyboardSelectAll extends IKeyboardShortcut {
  */
 class LinkTemplate extends ITemplate {
 
-    static pixelToUnit(pixels, pixelFullSize) {
-        return pixels * 100 / pixelFullSize
-    }
+    static c1DecreasingSpeed = -0.15
+    static c1ControlPoint = [100, 15]
+    static c2DecreasingSpeed = -0.06
+    static c2ControlPoint = [500, 140]
 
-    static unitToPixel(units, pixelFullSize) {
-        return Math.round(units * pixelFullSize / 100)
+    /**
+     * Returns the value of inverse multiplication function y = a / x + q. The value of a and q are calculated using
+     * the derivative of that function y' = -a / x^2 at the point p (x = p[0] and y = p[1]). This means
+     * y'(p[0]) = m => -a / p[0]^2 = m => a = -m * p[0]^2. Now, in order to determine q we can use the starting
+     * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
+     * @param {Number} m slope
+     * @param {Number[]} p reference point
+     * @returns Maximum value
+     */
+    static decreasingValue = (m, p) => {
+        const a = -m * p[0] ** 2;
+        const q = p[1] - a / p[0];
+        return x => a / x + q
     }
 
     /**
@@ -1740,16 +1752,24 @@ class LinkTemplate extends ITemplate {
             start += fillRatio * 100;
         }
         link.style.setProperty("--ueb-start-percentage", `${100 - start}%`);
-        const c1 = start + 15 * fillRatio;
+        const c1
+            = start
+            + (xInverted
+                ? LinkTemplate.decreasingValue(
+                    LinkTemplate.c1DecreasingSpeed,
+                    LinkTemplate.c1ControlPoint
+                )(width)
+                : 15
+            )
+            * fillRatio;
         let c2 = Math.max(40 / aspectRatio, 30) + start;
-        const c2Decreasing = -0.06;
-        const getMaxC2 = (m, p) => {
-            const a = -m * p[0] * p[0];
-            const q = p[1] - a / p[0];
-            return x => a / x + q
-        };
-        const controlPoint = [500, 140];
-        c2 = Math.min(c2, getMaxC2(c2Decreasing, controlPoint)(width));
+        c2 = Math.min(
+            c2,
+            LinkTemplate.decreasingValue(
+                LinkTemplate.c2DecreasingSpeed,
+                LinkTemplate.c2ControlPoint
+            )(width)
+        );
         const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d);
