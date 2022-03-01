@@ -23,9 +23,13 @@ export default class LinkTemplate extends ITemplate {
      * @returns The result html 
      */
     render(link) {
+        const uniqueId = crypto.randomUUID()
         return html`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path stroke="green" fill="none" vector-effect="non-scaling-stroke" />
+                <g>
+                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" />
+                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
+                </g>
             </svg>
         `
     }
@@ -35,17 +39,39 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkElement} link Element of the graph
      */
     apply(link) {
-        super.apply(link)
-        link.classList.add("ueb-positioned")
-        link.pathElement = link.querySelector("path")
         if (link.linkMessageElement) {
             link.appendChild(link.linkMessageElement)
         }
+        super.apply(link)
+        link.classList.add("ueb-positioned")
+        link.pathElement = link.querySelector("path")
+    }
+
+    /**
+     * 
+     * @param {LinkElement} link element
+     */
+    applyStartDragging(link) {
+        link.blueprint.dataset.creatingLink = true
+        const referencePin = link.getSourcePin() ?? link.getDestinationPin()
+        if (referencePin) {
+            link.style.setProperty("--ueb-node-value-color", referencePin.getColor())
+        }
+        link.classList.add("ueb-link-dragging")
+    }
+
+    /**
+     * 
+     * @param {LinkElement} link element
+     */
+    applyFinishDragging(link) {
+        link.blueprint.dataset.creatingLink = false
+        link.classList.remove("ueb-link-dragging")
     }
 
     /**
      * Applies the style relative to the source pin location.
-     * @param {LinkElement} link Link element
+     * @param {LinkElement} link element
      */
     applySourceLocation(link) {
         link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "0" : "1")
@@ -88,8 +114,8 @@ export default class LinkTemplate extends ITemplate {
             const q = p[1] - a / p[0]
             return x => a / x + q
         }
-        const controlPoint = [500, 140]
-        c2 = Math.min(c2, getMaxC2(c2Decreasing, controlPoint)(width))
+        const controlPointC2 = [500, 140]
+        c2 = Math.min(c2, getMaxC2(c2Decreasing, controlPointC2)(width))
         const d = Configuration.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d
         link.pathElement.setAttribute("d", d)

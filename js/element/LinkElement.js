@@ -175,6 +175,14 @@ export default class LinkElement extends IElement {
             this.linkMessageElement = null
         }
     }
+
+    startDragging() {
+        this.template.applyStartDragging(this)
+    }
+
+    finishDragging() {
+        this.template.applyFinishDragging(this)
+    }
 }
 
 customElements.define(LinkElement.tagName, LinkElement)

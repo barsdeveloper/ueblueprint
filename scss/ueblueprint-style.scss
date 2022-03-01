@@ -446,22 +446,13 @@ ueb-link svg {
 }
 
 ueb-link svg path {
-    /* flag stating whether or not the width of the link is below threshold or not */
-    --ueb-width-below-threshold: clamp(
-            /* min */
-            0,
-            /* input */
-            calc(var(--ueb-width-threshold) - (var(--ueb-to-x) - var(--ueb-from-x))),
-            /* max */
-            1);
-    transform       : skewX(calc(var(--ueb-width-below-threshold) * var(--ueb-link-skew) * -1rad));
-    transform-origin: 0 0;
-    stroke-width    : 2;
-    transition      : stroke-width 0.5s;
+    stroke: var(--ueb-node-value-color);
 }
 
-ueb-link svg path:hover {
+ueb-link.ueb-link-dragging svg path,
+ueb-link svg g:hover path {
     stroke-width: 5;
+    transition  : stroke-width 0.8s;
 }
 
 ueb-link-message {
@@ -475,4 +466,5 @@ ueb-link-message {
     background   : linear-gradient(to bottom, #2a2a2a 0, #151515 50%, #2a2a2a 100%);
     color        : var(--ueb-node-value-dim-color);
     white-space  : nowrap;
+    z-index      : 1000000;
 }

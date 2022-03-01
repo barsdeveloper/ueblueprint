@@ -6,14 +6,23 @@ export default class PinElement extends IElement {
 
     static tagName = "ueb-pin"
 
+    /** @type {HTMLElement} */
+    clickableElement
+
+    /** @type {String} */
+    #color
+
     constructor(entity) {
         super(entity, new PinTemplate())
         /** @type {import("../entity/PinEntity").default} */
         this.entity
         /** @type {PinTemplate} */
         this.template
-        /** @type {HTMLElement} */
-        this.clickableElement = null
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-node-value-color")
     }
 
     createInputObjects() {
@@ -55,6 +64,10 @@ export default class PinElement extends IElement {
 
     getClickableElement() {
         return this.clickableElement
+    }
+
+    getColor() {
+        return this.#color
     }
 
     /**

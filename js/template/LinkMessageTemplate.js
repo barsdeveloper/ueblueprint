@@ -1,6 +1,7 @@
 import html from "./html"
 import ITemplate from "./ITemplate"
 import LinkElement from "../element/LinkElement"
+import sanitizeText from "./sanitizeText"
 
 /**
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
@@ -14,7 +15,7 @@ export default class LinkMessageTemplate extends ITemplate {
      */
     render(linkMessage) {
         return html`
-            <span class="${linkMessage.icon}"></span>
+            <span class="${sanitizeText(linkMessage.icon)}"></span>
             <span class="ueb-link-message"></span>
         `
     }

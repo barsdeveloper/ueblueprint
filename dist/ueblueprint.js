@@ -129,6 +129,30 @@ class Configuration {
  */
 const html = String.raw;
 
+/**
+ * @typedef {import("../element/IElement").default} IElement
+ */
+class ITemplate {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {IElement} entity Element of the graph
+     * @returns The result html 
+     */
+    render(entity) {
+        return ""
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {IElement} element Element of the graph
+     */
+    apply(element) {
+        // TODO replace with the safer element.setHTML(...) when it will be available
+        element.innerHTML = this.render(element);
+    }
+}
+
 document.createElement("div");
 
 const tagReplacement = {
@@ -491,30 +515,6 @@ class IElement extends HTMLElement {
 
     createInputObjects() {
         return []
-    }
-}
-
-/**
- * @typedef {import("../element/IElement").default} IElement
- */
-class ITemplate {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {IElement} entity Element of the graph
-     * @returns The result html 
-     */
-    render(entity) {
-        return ""
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {IElement} element Element of the graph
-     */
-    apply(element) {
-        // TODO replace with the safer element.setHTML(...) when it will be available
-        element.innerHTML = this.render(element);
     }
 }
 
@@ -1517,6 +1517,126 @@ class Copy extends IContext {
     }
 }
 
+let P = Parsimmon;
+
+class KeyGrammar {
+
+    // Creates a grammar where each alternative is the string from ModifierKey mapped to a number for bit or use
+    ModifierKey = r => P.alt(...Configuration.ModifierKeys.map((v, i) => P.string(v).map(_ => 1 << i)))
+    Key = r => P.alt(...Object.keys(Configuration.Keys).map(v => P.string(v))).map(v => Configuration.Keys[v])
+    KeyboardShortcut = r => P.alt(
+        P.seqMap(
+            P.seqMap(r.ModifierKey, P.optWhitespace, P.string(Configuration.keysSeparator), (v, _, __) => v)
+                .atLeast(1)
+                .map(v => v.reduce((acc, cur) => acc | cur)),
+            P.optWhitespace,
+            r.Key,
+            (modifierKeysFlag, _, key) => ({
+                key: key,
+                ctrlKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Ctrl"))),
+                shiftKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Shift"))),
+                altKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Alt"))),
+                metaKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Meta")))
+            })
+        ),
+        r.Key.map(v => ({ key: v }))
+    )
+        .trim(P.optWhitespace)
+}
+
+class IKeyboardShortcut extends IContext {
+
+    static keyGrammar = P.createLanguage(new KeyGrammar())
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+
+        /** @type {String[]} */
+        this.key = this.options.key;
+        this.ctrlKey = options.ctrlKey ?? false;
+        this.shiftKey = options.shiftKey ?? false;
+        this.altKey = options.altKey ?? false;
+        this.metaKey = options.metaKey ?? false;
+
+        let self = this;
+        this.keyDownHandler = e => {
+            if (
+                e.code == self.key
+                && e.ctrlKey === self.ctrlKey
+                && e.shiftKey === self.shiftKey
+                && e.altKey === self.altKey
+                && e.metaKey === self.metaKey
+            ) {
+                self.fire();
+                e.preventDefault();
+                return true
+            }
+            return false
+        };
+    }
+
+    /**
+     * 
+     * @param {String} keyString
+     * @returns {Object}
+     */
+    static keyOptionsParse(options, keyString) {
+        options = {
+            ...options,
+            ...IKeyboardShortcut.keyGrammar.KeyboardShortcut.parse(keyString).value
+        };
+        return options
+    }
+
+    listenEvents() {
+        document.addEventListener("keydown", this.keyDownHandler);
+    }
+
+    unlistenEvents() {
+        document.removeEventListener("keydown", this.keyDownHandler);
+    }
+
+    fire() {
+    }
+}
+
+class KeyvoardCanc extends IKeyboardShortcut {
+
+    /**
+     * 
+     * @param {HTMLElement} target 
+     * @param {import("../../Blueprint").default} blueprint 
+     * @param {OBject} options 
+     */
+    constructor(target, blueprint, options = {}) {
+        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
+        super(target, blueprint, options);
+    }
+
+    fire() {
+        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
+    }
+}
+
+class KeyboardSelectAll extends IKeyboardShortcut {
+
+    /**
+     * 
+     * @param {HTMLElement} target 
+     * @param {import("../../Blueprint").default} blueprint 
+     * @param {Object} options 
+     */
+    constructor(target, blueprint, options = {}) {
+        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey);
+        super(target, blueprint, options);
+    }
+
+    fire() {
+        this.blueprint.selectAll();
+    }
+}
+
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
@@ -1537,9 +1657,13 @@ class LinkTemplate extends ITemplate {
      * @returns The result html 
      */
     render(link) {
+        const uniqueId = crypto.randomUUID();
         return html`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path stroke="green" fill="none" vector-effect="non-scaling-stroke" />
+                <g>
+                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" />
+                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
+                </g>
             </svg>
         `
     }
@@ -1549,17 +1673,39 @@ class LinkTemplate extends ITemplate {
      * @param {LinkElement} link Element of the graph
      */
     apply(link) {
-        super.apply(link);
-        link.classList.add("ueb-positioned");
-        link.pathElement = link.querySelector("path");
         if (link.linkMessageElement) {
             link.appendChild(link.linkMessageElement);
         }
+        super.apply(link);
+        link.classList.add("ueb-positioned");
+        link.pathElement = link.querySelector("path");
+    }
+
+    /**
+     * 
+     * @param {LinkElement} link element
+     */
+    applyStartDragging(link) {
+        link.blueprint.dataset.creatingLink = true;
+        const referencePin = link.getSourcePin() ?? link.getDestinationPin();
+        if (referencePin) {
+            link.style.setProperty("--ueb-node-value-color", referencePin.getColor());
+        }
+        link.classList.add("ueb-link-dragging");
+    }
+
+    /**
+     * 
+     * @param {LinkElement} link element
+     */
+    applyFinishDragging(link) {
+        link.blueprint.dataset.creatingLink = false;
+        link.classList.remove("ueb-link-dragging");
     }
 
     /**
      * Applies the style relative to the source pin location.
-     * @param {LinkElement} link Link element
+     * @param {LinkElement} link element
      */
     applySourceLocation(link) {
         link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "0" : "1");
@@ -1794,145 +1940,17 @@ class LinkElement extends IElement {
             this.linkMessageElement = null;
         }
     }
+
+    startDragging() {
+        this.template.applyStartDragging(this);
+    }
+
+    finishDragging() {
+        this.template.applyFinishDragging(this);
+    }
 }
 
 customElements.define(LinkElement.tagName, LinkElement);
-
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- */
-class PinTemplate extends ITemplate {
-
-    /**
-     * Computes the html content of the pin.
-     * @param {PinElement} pin html element 
-     * @returns The result html 
-     */
-    render(pin) {
-        if (pin.isInput()) {
-            return html`
-                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
-                ${sanitizeText(pin.getPinDisplayName())}
-            `
-        } else {
-            return html`
-                ${sanitizeText(pin.getPinDisplayName())}
-                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
-            `
-        }
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {PinElement} pin element of the graph
-     */
-    apply(pin) {
-        super.apply(pin);
-        pin.classList.add(
-            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"), "ueb-node-value-" + sanitizeText(pin.getType()));
-        pin.clickableElement = pin;
-    }
-
-    /**
-     * 
-     * @param {PinElement} pin 
-     * @returns 
-     */
-    getLinkLocation(pin) {
-        const rect = pin.querySelector(".ueb-node-value-icon").getBoundingClientRect();
-        return pin.blueprint.compensateTranslation(Utility.convertLocation(
-            [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            pin.blueprint.gridElement))
-    }
-}
-
-/**
- * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
- */
-class LinkMessageTemplate extends ITemplate {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {LinkMessageElement} linkMessage attached to link destination
-     * @returns The result html 
-     */
-    render(linkMessage) {
-        return html`
-            <span class="${linkMessage.icon}"></span>
-            <span class="ueb-link-message"></span>
-        `
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {LinkMessageElement} linkMessage element
-     */
-    apply(linkMessage) {
-        super.apply(linkMessage);
-        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName);
-        linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
-            linkMessage.linkElement.getSourcePin(),
-            linkMessage.linkElement.getDestinationPin()
-        );
-    }
-
-}
-
-/**
- * @typedef {import("./PinElement").default} PinElement
- * @typedef {import("./LinkElement").default} LinkElement
- * @typedef {(sourcePin: PinElement, sourcePin: PinElement) => String} LinkRetrieval
- */
-class LinkMessageElement extends IElement {
-
-    static tagName = "ueb-link-message"
-    static convertType = _ => new LinkMessageElement(
-        "ueb-icon-conver-type",
-        /** @type {LinkRetrieval} */
-        (s, d) => `Convert ${s.getType()} to ${d.getType()}.`
-    )
-    static directionsIncompatible = _ => new LinkMessageElement(
-        "ueb-icon-directions-incompatible",
-        /** @type {LinkRetrieval} */
-        (s, d) => "Directions are not compatbile."
-    )
-    static placeNode = _ => new LinkMessageElement(
-        "ueb-icon-place-node",
-        /** @type {LinkRetrieval} */
-        (s, d) => "Place a new node."
-    )
-    static replaceLink = _ => new LinkMessageElement(
-        "ueb-icon-replace-link",
-        /** @type {LinkRetrieval} */
-        (s, d) => "Replace existing input connections."
-    )
-    static sameNode = _ => new LinkMessageElement(
-        "ueb-icon-same-node",
-        /** @type {LinkRetrieval} */
-        (s, d) => "Both are on the same node."
-    )
-    static typesIncompatible = _ => new LinkMessageElement(
-        "ueb-icon-types-incompatible",
-        /** @type {LinkRetrieval} */
-        (s, d) => `${s.getType()} is not compatible with ${d.getType()}.`
-    )
-
-    /** @type {String} */
-    icon
-    /** @type {String} */
-    message
-    /** @type {LinkElement} */
-    linkElement
-
-    constructor(icon, message) {
-        super({}, new LinkMessageTemplate());
-        this.icon = icon;
-        this.message = message;
-    }
-
-}
-
-customElements.define(LinkMessageElement.tagName, LinkMessageElement);
 
 class IPointing extends IContext {
 
@@ -2091,224 +2109,80 @@ class IMouseClickDrag extends IPointing {
     }
 }
 
-/** 
- * @typedef {import("../../element/PinElement").default} PinElement
- * @typedef {import("../../element/LinkElement").default} LinkElement
- */
-class MouseCreateLink extends IMouseClickDrag {
-
-    /** @type {NodeListOf<PinElement>} */
-    #listenedPins
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseenterHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseleaveHandler
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        /** @type {PinElement} */
-        this.target;
-        /** @type {LinkElement} */
-        this.link;
-        /** @type {PinElement} */
-        this.enteredPin;
-
-        let self = this;
-        this.#mouseenterHandler = e => {
-            if (!self.enteredPin) {
-                self.enteredPin = e.target;
-            }
-        };
-        this.#mouseleaveHandler = e => {
-            if (self.enteredPin == e.target) {
-                self.enteredPin = null;
-            }
-        };
-    }
+class MouseScrollGraph extends IMouseClickDrag {
 
     startDrag() {
-        this.link = new LinkElement(this.target, null);
-        this.link.setLinkMessage(LinkMessageElement.placeNode());
-        this.blueprint.nodesContainerElement.insertBefore(this.link, this.blueprint.selectorElement.nextElementSibling);
-        this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName);
-        this.#listenedPins.forEach(pin => {
-            if (pin != this.target) {
-                pin.getClickableElement().addEventListener("mouseenter", this.#mouseenterHandler);
-                pin.getClickableElement().addEventListener("mouseleave", this.#mouseleaveHandler);
-            }
-        });
+        this.blueprint.template.applyStartDragScrolling(this.blueprint);
     }
 
     dragTo(location, movement) {
-        this.link.setDestinationLocation(location);
+        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
     }
 
     endDrag() {
-        this.#listenedPins.forEach(pin => {
-            pin.removeEventListener("mouseenter", this.#mouseenterHandler);
-            pin.removeEventListener("mouseleave", this.#mouseleaveHandler);
-        });
-        if (this.enteredPin && !this.blueprint.getLinks().find(
-            link =>
-                link.getSourcePin() == this.target && link.getDestinationPin() == this.enteredPin
-                || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
-        )) {
-            this.link.setDestinationPin(this.enteredPin);
-            this.link.setLinkMessage(null);
-            this.blueprint.addGraphElement(this.link);
-        } else {
-            this.link.remove();
-        }
-        this.link = null;
+        this.blueprint.template.applyEndDragScrolling(this.blueprint);
     }
 }
 
-class PinElement extends IElement {
+class MouseTracking extends IPointing {
 
-    static tagName = "ueb-pin"
+    /** @type {IPointing} */
+    #mouseTracker = null
 
-    constructor(entity) {
-        super(entity, new PinTemplate());
-        /** @type {import("../entity/PinEntity").default} */
-        this.entity;
-        /** @type {PinTemplate} */
-        this.template;
-        /** @type {HTMLElement} */
-        this.clickableElement = null;
+    /** @type {(e: MouseEvent) => void} */
+    #mousemoveHandler
+
+    /** @type {(e: CustomEvent) => void} */
+    #trackingMouseStolenHandler
+
+    /** @type {(e: CustomEvent) => void} */
+    #trackingMouseGaveBackHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+
+        let self = this;
+
+        this.#mousemoveHandler = e => {
+            self.blueprint.entity.mousePosition = self.locationFromEvent(e);
+        };
+
+        this.#trackingMouseStolenHandler = e => {
+            if (!self.#mouseTracker) {
+                e.preventDefault();
+                this.#mouseTracker = e.detail.tracker;
+                self.unlistenMouseMove();
+            }
+        };
+
+        this.#trackingMouseGaveBackHandler = e => {
+            if (self.#mouseTracker == e.detail.tracker) {
+                e.preventDefault();
+                self.#mouseTracker = null;
+                self.listenMouseMove();
+            }
+        };
     }
 
-    createInputObjects() {
-        return [
-            new MouseCreateLink(this.clickableElement, this.blueprint, {
-                moveEverywhere: true,
-                looseTarget: true
-            }),
-        ]
+    listenMouseMove() {
+        this.target.addEventListener("mousemove", this.#mousemoveHandler);
     }
 
-    /**
-     * 
-     * @returns {String}
-     */
-    getPinDisplayName() {
-        return this.entity.PinName
+    unlistenMouseMove() {
+        this.target.removeEventListener("mousemove", this.#mousemoveHandler);
     }
 
-    getAttributes() {
-        return PinEntity.attributes
+    listenEvents() {
+        this.listenMouseMove();
+        this.blueprint.addEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler);
+        this.blueprint.addEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler);
     }
 
-    isInput() {
-        return this.entity.isInput()
-    }
-
-    isOutput() {
-        return this.entity.isOutput()
-    }
-
-    isConnected() {
-        return this.entity.isConnected()
-    }
-
-    getType() {
-        return this.entity.getType()
-    }
-
-    getClickableElement() {
-        return this.clickableElement
-    }
-
-    /**
-     * Returns The exact location where the link originates from or arrives at.
-     * @returns {Number[]} The location array
-     */
-    getLinkLocation() {
-        return this.template.getLinkLocation(this)
-    }
-
-    getNodeElement() {
-        return this.closest("ueb-node")
-    }
-}
-
-customElements.define(PinElement.tagName, PinElement);
-
-/**
- * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
- */
-class SelectableDraggableTemplate extends ITemplate {
-
-    /**
-     * Returns the html elements rendered from this template.
-     * @param {ISelectableDraggableElement} element Element of the graph
-     */
-    applyLocation(element) {
-        element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]));
-        element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]));
-    }
-
-    /**
-     * Returns the html elements rendered from this template.
-     * @param {ISelectableDraggableElement} element Element of the graph
-     */
-    applySelected(element) {
-        if (element.selected) {
-            element.classList.add("ueb-selected");
-        } else {
-            element.classList.remove("ueb-selected");
-        }
-    }
-}
-
-/**
- * @typedef {import("../element/NodeElement").default} NodeElement
- */
-class NodeTemplate extends SelectableDraggableTemplate {
-
-    /**
-     * Computes the html content of the target element.
-     * @param {NodeElement} node Graph node element 
-     * @returns The result html 
-     */
-    render(node) {
-        return html`
-            <div class="ueb-node-border">
-                <div class="ueb-node-content">
-                    <div class="ueb-node-header">
-                        <span class="ueb-node-name">
-                            <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${sanitizeText(node.entity.getNodeDisplayName())}</span>
-                        </span>
-                    </div>
-                    <div class="ueb-node-body">
-                        <div class="ueb-node-inputs"></div>
-                        <div class="ueb-node-outputs"></div>
-                    </div>
-                </div>
-            </div>
-        `
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {NodeElement} node Element of the graph
-     */
-    apply(node) {
-        super.apply(node);
-        if (node.selected) {
-            node.classList.add("ueb-selected");
-        }
-        node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
-        node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
-        /** @type {HTMLElement} */
-        let inputContainer = node.querySelector(".ueb-node-inputs");
-        /** @type {HTMLElement} */
-        let outputContainer = node.querySelector(".ueb-node-outputs");
-        let pins = node.getPinEntities();
-        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)));
-        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)));
+    unlistenEvents() {
+        this.unlistenMouseMove();
+        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler);
+        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler);
     }
 }
 
@@ -2440,6 +2314,379 @@ class ISelectableDraggableElement extends IElement {
     }
 }
 
+/**
+ * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
+ */
+class LinkMessageTemplate extends ITemplate {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {LinkMessageElement} linkMessage attached to link destination
+     * @returns The result html 
+     */
+    render(linkMessage) {
+        return html`
+            <span class="${sanitizeText(linkMessage.icon)}"></span>
+            <span class="ueb-link-message"></span>
+        `
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {LinkMessageElement} linkMessage element
+     */
+    apply(linkMessage) {
+        super.apply(linkMessage);
+        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName);
+        linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
+            linkMessage.linkElement.getSourcePin(),
+            linkMessage.linkElement.getDestinationPin()
+        );
+    }
+
+}
+
+/**
+ * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("./LinkElement").default} LinkElement
+ * @typedef {(sourcePin: PinElement, sourcePin: PinElement) => String} LinkRetrieval
+ */
+class LinkMessageElement extends IElement {
+
+    static tagName = "ueb-link-message"
+    static convertType = _ => new LinkMessageElement(
+        "ueb-icon-conver-type",
+        /** @type {LinkRetrieval} */
+        (s, d) => `Convert ${s.getType()} to ${d.getType()}.`
+    )
+    static directionsIncompatible = _ => new LinkMessageElement(
+        "ueb-icon-directions-incompatible",
+        /** @type {LinkRetrieval} */
+        (s, d) => "Directions are not compatbile."
+    )
+    static placeNode = _ => new LinkMessageElement(
+        "ueb-icon-place-node",
+        /** @type {LinkRetrieval} */
+        (s, d) => "Place a new node."
+    )
+    static replaceLink = _ => new LinkMessageElement(
+        "ueb-icon-replace-link",
+        /** @type {LinkRetrieval} */
+        (s, d) => "Replace existing input connections."
+    )
+    static sameNode = _ => new LinkMessageElement(
+        "ueb-icon-same-node",
+        /** @type {LinkRetrieval} */
+        (s, d) => "Both are on the same node."
+    )
+    static typesIncompatible = _ => new LinkMessageElement(
+        "ueb-icon-types-incompatible",
+        /** @type {LinkRetrieval} */
+        (s, d) => `${s.getType()} is not compatible with ${d.getType()}.`
+    )
+
+    /** @type {String} */
+    icon
+    /** @type {String} */
+    message
+    /** @type {LinkElement} */
+    linkElement
+
+    constructor(icon, message) {
+        super({}, new LinkMessageTemplate());
+        this.icon = icon;
+        this.message = message;
+    }
+
+}
+
+customElements.define(LinkMessageElement.tagName, LinkMessageElement);
+
+/** 
+ * @typedef {import("../../element/LinkElement").default} LinkElement
+ * @typedef {import("../../element/PinElement").default} PinElement
+ */
+class MouseCreateLink extends IMouseClickDrag {
+
+    /** @type {NodeListOf<PinElement>} */
+    #listenedPins
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseenterHandler
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseleaveHandler
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+        /** @type {PinElement} */
+        this.target;
+        /** @type {LinkElement} */
+        this.link;
+        /** @type {PinElement} */
+        this.enteredPin;
+
+        let self = this;
+        this.#mouseenterHandler = e => {
+            if (!self.enteredPin) {
+                self.enteredPin = e.target;
+            }
+        };
+        this.#mouseleaveHandler = e => {
+            if (self.enteredPin == e.target) {
+                self.enteredPin = null;
+            }
+        };
+    }
+
+    startDrag() {
+        this.link = new LinkElement(this.target, null);
+        this.link.setLinkMessage(LinkMessageElement.placeNode());
+        this.blueprint.nodesContainerElement.prepend(this.link);
+        this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName);
+        this.#listenedPins.forEach(pin => {
+            if (pin != this.target) {
+                pin.getClickableElement().addEventListener("mouseenter", this.#mouseenterHandler);
+                pin.getClickableElement().addEventListener("mouseleave", this.#mouseleaveHandler);
+            }
+        });
+        this.link.startDragging();
+    }
+
+    dragTo(location, movement) {
+        this.link.setDestinationLocation(location);
+    }
+
+    endDrag() {
+        this.#listenedPins.forEach(pin => {
+            pin.removeEventListener("mouseenter", this.#mouseenterHandler);
+            pin.removeEventListener("mouseleave", this.#mouseleaveHandler);
+        });
+        if (this.enteredPin && !this.blueprint.getLinks().find(
+            link =>
+                link.getSourcePin() == this.target && link.getDestinationPin() == this.enteredPin
+                || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
+        )) {
+            this.blueprint.addGraphElement(this.link);
+            this.link.setDestinationPin(this.enteredPin);
+            this.link.setLinkMessage(null);
+            this.link.finishDragging();
+        } else {
+            this.link.finishDragging();
+            this.link.remove();
+        }
+        this.link = null;
+    }
+}
+
+/**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+class PinTemplate extends ITemplate {
+
+    /**
+     * Computes the html content of the pin.
+     * @param {PinElement} pin html element 
+     * @returns The result html 
+     */
+    render(pin) {
+        if (pin.isInput()) {
+            return html`
+                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+                ${sanitizeText(pin.getPinDisplayName())}
+            `
+        } else {
+            return html`
+                ${sanitizeText(pin.getPinDisplayName())}
+                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+            `
+        }
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {PinElement} pin element of the graph
+     */
+    apply(pin) {
+        super.apply(pin);
+        pin.classList.add(
+            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"), "ueb-node-value-" + sanitizeText(pin.getType()));
+        pin.clickableElement = pin;
+    }
+
+    /**
+     * 
+     * @param {PinElement} pin 
+     * @returns 
+     */
+    getLinkLocation(pin) {
+        const rect = pin.querySelector(".ueb-node-value-icon").getBoundingClientRect();
+        return pin.blueprint.compensateTranslation(Utility.convertLocation(
+            [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
+            pin.blueprint.gridElement))
+    }
+}
+
+class PinElement extends IElement {
+
+    static tagName = "ueb-pin"
+
+    /** @type {HTMLElement} */
+    clickableElement
+
+    /** @type {String} */
+    #color
+
+    constructor(entity) {
+        super(entity, new PinTemplate());
+        /** @type {import("../entity/PinEntity").default} */
+        this.entity;
+        /** @type {PinTemplate} */
+        this.template;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-node-value-color");
+    }
+
+    createInputObjects() {
+        return [
+            new MouseCreateLink(this.clickableElement, this.blueprint, {
+                moveEverywhere: true,
+                looseTarget: true
+            }),
+        ]
+    }
+
+    /**
+     * 
+     * @returns {String}
+     */
+    getPinDisplayName() {
+        return this.entity.PinName
+    }
+
+    getAttributes() {
+        return PinEntity.attributes
+    }
+
+    isInput() {
+        return this.entity.isInput()
+    }
+
+    isOutput() {
+        return this.entity.isOutput()
+    }
+
+    isConnected() {
+        return this.entity.isConnected()
+    }
+
+    getType() {
+        return this.entity.getType()
+    }
+
+    getClickableElement() {
+        return this.clickableElement
+    }
+
+    getColor() {
+        return this.#color
+    }
+
+    /**
+     * Returns The exact location where the link originates from or arrives at.
+     * @returns {Number[]} The location array
+     */
+    getLinkLocation() {
+        return this.template.getLinkLocation(this)
+    }
+
+    getNodeElement() {
+        return this.closest("ueb-node")
+    }
+}
+
+customElements.define(PinElement.tagName, PinElement);
+
+/**
+ * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ */
+class SelectableDraggableTemplate extends ITemplate {
+
+    /**
+     * Returns the html elements rendered from this template.
+     * @param {ISelectableDraggableElement} element Element of the graph
+     */
+    applyLocation(element) {
+        element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]));
+        element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]));
+    }
+
+    /**
+     * Returns the html elements rendered from this template.
+     * @param {ISelectableDraggableElement} element Element of the graph
+     */
+    applySelected(element) {
+        if (element.selected) {
+            element.classList.add("ueb-selected");
+        } else {
+            element.classList.remove("ueb-selected");
+        }
+    }
+}
+
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ */
+class NodeTemplate extends SelectableDraggableTemplate {
+
+    /**
+     * Computes the html content of the target element.
+     * @param {NodeElement} node Graph node element 
+     * @returns The result html 
+     */
+    render(node) {
+        return html`
+            <div class="ueb-node-border">
+                <div class="ueb-node-content">
+                    <div class="ueb-node-header">
+                        <span class="ueb-node-name">
+                            <span class="ueb-node-symbol"></span>
+                            <span class="ueb-node-text">${sanitizeText(node.entity.getNodeDisplayName())}</span>
+                        </span>
+                    </div>
+                    <div class="ueb-node-body">
+                        <div class="ueb-node-inputs"></div>
+                        <div class="ueb-node-outputs"></div>
+                    </div>
+                </div>
+            </div>
+        `
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {NodeElement} node Element of the graph
+     */
+    apply(node) {
+        super.apply(node);
+        if (node.selected) {
+            node.classList.add("ueb-selected");
+        }
+        node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
+        node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
+        /** @type {HTMLElement} */
+        let inputContainer = node.querySelector(".ueb-node-inputs");
+        /** @type {HTMLElement} */
+        let outputContainer = node.querySelector(".ueb-node-outputs");
+        let pins = node.getPinEntities();
+        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)));
+        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)));
+    }
+}
+
 class NodeElement extends ISelectableDraggableElement {
 
     static tagName = "ueb-node"
@@ -2496,203 +2743,6 @@ class NodeElement extends ISelectableDraggableElement {
 }
 
 customElements.define(NodeElement.tagName, NodeElement);
-
-let P = Parsimmon;
-
-class KeyGrammar {
-
-    // Creates a grammar where each alternative is the string from ModifierKey mapped to a number for bit or use
-    ModifierKey = r => P.alt(...Configuration.ModifierKeys.map((v, i) => P.string(v).map(_ => 1 << i)))
-    Key = r => P.alt(...Object.keys(Configuration.Keys).map(v => P.string(v))).map(v => Configuration.Keys[v])
-    KeyboardShortcut = r => P.alt(
-        P.seqMap(
-            P.seqMap(r.ModifierKey, P.optWhitespace, P.string(Configuration.keysSeparator), (v, _, __) => v)
-                .atLeast(1)
-                .map(v => v.reduce((acc, cur) => acc | cur)),
-            P.optWhitespace,
-            r.Key,
-            (modifierKeysFlag, _, key) => ({
-                key: key,
-                ctrlKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Ctrl"))),
-                shiftKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Shift"))),
-                altKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Alt"))),
-                metaKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Meta")))
-            })
-        ),
-        r.Key.map(v => ({ key: v }))
-    )
-        .trim(P.optWhitespace)
-}
-
-class IKeyboardShortcut extends IContext {
-
-    static keyGrammar = P.createLanguage(new KeyGrammar())
-
-    constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
-        super(target, blueprint, options);
-
-        /** @type {String[]} */
-        this.key = this.options.key;
-        this.ctrlKey = options.ctrlKey ?? false;
-        this.shiftKey = options.shiftKey ?? false;
-        this.altKey = options.altKey ?? false;
-        this.metaKey = options.metaKey ?? false;
-
-        let self = this;
-        this.keyDownHandler = e => {
-            if (
-                e.code == self.key
-                && e.ctrlKey === self.ctrlKey
-                && e.shiftKey === self.shiftKey
-                && e.altKey === self.altKey
-                && e.metaKey === self.metaKey
-            ) {
-                self.fire();
-                e.preventDefault();
-                return true
-            }
-            return false
-        };
-    }
-
-    /**
-     * 
-     * @param {String} keyString
-     * @returns {Object}
-     */
-    static keyOptionsParse(options, keyString) {
-        options = {
-            ...options,
-            ...IKeyboardShortcut.keyGrammar.KeyboardShortcut.parse(keyString).value
-        };
-        return options
-    }
-
-    listenEvents() {
-        document.addEventListener("keydown", this.keyDownHandler);
-    }
-
-    unlistenEvents() {
-        document.removeEventListener("keydown", this.keyDownHandler);
-    }
-
-    fire() {
-    }
-}
-
-class KeyvoardCanc extends IKeyboardShortcut {
-
-    /**
-     * 
-     * @param {HTMLElement} target 
-     * @param {import("../../Blueprint").default} blueprint 
-     * @param {OBject} options 
-     */
-    constructor(target, blueprint, options = {}) {
-        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
-        super(target, blueprint, options);
-    }
-
-    fire() {
-        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
-    }
-}
-
-class KeyboardSelectAll extends IKeyboardShortcut {
-
-    /**
-     * 
-     * @param {HTMLElement} target 
-     * @param {import("../../Blueprint").default} blueprint 
-     * @param {Object} options 
-     */
-    constructor(target, blueprint, options = {}) {
-        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey);
-        super(target, blueprint, options);
-    }
-
-    fire() {
-        this.blueprint.selectAll();
-    }
-}
-
-class MouseScrollGraph extends IMouseClickDrag {
-
-    startDrag() {
-        this.blueprint.template.applyStartDragScrolling(this.blueprint);
-    }
-
-    dragTo(location, movement) {
-        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
-    }
-
-    endDrag() {
-        this.blueprint.template.applyEndDragScrolling(this.blueprint);
-    }
-}
-
-class MouseTracking extends IPointing {
-
-    /** @type {IPointing} */
-    #mouseTracker = null
-
-    /** @type {(e: MouseEvent) => void} */
-    #mousemoveHandler
-
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseStolenHandler
-
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseGaveBackHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
-        super(target, blueprint, options);
-
-        let self = this;
-
-        this.#mousemoveHandler = e => {
-            self.blueprint.entity.mousePosition = self.locationFromEvent(e);
-        };
-
-        this.#trackingMouseStolenHandler = e => {
-            if (!self.#mouseTracker) {
-                e.preventDefault();
-                this.#mouseTracker = e.detail.tracker;
-                self.unlistenMouseMove();
-            }
-        };
-
-        this.#trackingMouseGaveBackHandler = e => {
-            if (self.#mouseTracker == e.detail.tracker) {
-                e.preventDefault();
-                self.#mouseTracker = null;
-                self.listenMouseMove();
-            }
-        };
-    }
-
-    listenMouseMove() {
-        this.target.addEventListener("mousemove", this.#mousemoveHandler);
-    }
-
-    unlistenMouseMove() {
-        this.target.removeEventListener("mousemove", this.#mousemoveHandler);
-    }
-
-    listenEvents() {
-        this.listenMouseMove();
-        this.blueprint.addEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler);
-        this.blueprint.addEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler);
-    }
-
-    unlistenEvents() {
-        this.unlistenMouseMove();
-        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler);
-        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler);
-    }
-}
 
 class Paste extends IContext {
 

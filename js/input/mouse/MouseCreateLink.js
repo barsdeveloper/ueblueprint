@@ -42,7 +42,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
     startDrag() {
         this.link = new LinkElement(this.target, null)
         this.link.setLinkMessage(LinkMessageElement.placeNode())
-        this.blueprint.nodesContainerElement.insertBefore(this.link, this.blueprint.selectorElement.nextElementSibling)
+        this.blueprint.nodesContainerElement.prepend(this.link)
         this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName)
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
@@ -50,6 +50,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
                 pin.getClickableElement().addEventListener("mouseleave", this.#mouseleaveHandler)
             }
         })
+        this.link.startDragging()
     }
 
     dragTo(location, movement) {
@@ -66,10 +67,12 @@ export default class MouseCreateLink extends IMouseClickDrag {
                 link.getSourcePin() == this.target && link.getDestinationPin() == this.enteredPin
                 || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
         )) {
+            this.blueprint.addGraphElement(this.link)
             this.link.setDestinationPin(this.enteredPin)
             this.link.setLinkMessage(null)
-            this.blueprint.addGraphElement(this.link)
+            this.link.finishDragging()
         } else {
+            this.link.finishDragging()
             this.link.remove()
         }
         this.link = null
