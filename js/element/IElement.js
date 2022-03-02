@@ -7,6 +7,8 @@
 
 export default class IElement extends HTMLElement {
 
+    static tagName = ""
+
     /**
      * 
      * @param {IEntity} entity The entity containing blueprint related data for this graph element

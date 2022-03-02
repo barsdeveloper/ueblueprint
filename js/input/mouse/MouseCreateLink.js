@@ -17,32 +17,51 @@ export default class MouseCreateLink extends IMouseClickDrag {
     /** @type {(e: MouseEvent) => void} */
     #mouseleaveHandler
 
+    /** @type {LinkElement} */
+    link
+
+    /** @type {PinElement} */
+    enteredPin
+
+    linkValid = false
+
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
         /** @type {PinElement} */
         this.target
-        /** @type {LinkElement} */
-        this.link
-        /** @type {PinElement} */
-        this.enteredPin
 
         let self = this
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
+                linkValid = false
                 self.enteredPin = e.target
+                const a = self.enteredPin, b = self.target
+                if (a.getNodeElement() == b.getNodeElement()) {
+                    this.setLinkMessage(LinkMessageElement.sameNode())
+                } else if (a.isOutput() == b.isOutput()) {
+                    this.setLinkMessage(LinkMessageElement.directionsIncompatible())
+                } else if (a.isOutput() == b.isOutput()) {
+                    this.setLinkMessage(LinkMessageElement.directionsIncompatible())
+                } else if (self.blueprint.getLinks([a, b]).length) {
+                    this.setLinkMessage(LinkMessageElement.replaceLink())
+                    linkValid = true
+                } else {
+                    this.setLinkMessage(LinkMessageElement.correct())
+                    linkValid = true
+                }
             }
         }
         this.#mouseleaveHandler = e => {
             if (self.enteredPin == e.target) {
                 self.enteredPin = null
+                this.setLinkMessage(LinkMessageElement.placeNode())
             }
         }
     }
 
     startDrag() {
         this.link = new LinkElement(this.target, null)
-        this.link.setLinkMessage(LinkMessageElement.placeNode())
-        this.blueprint.nodesContainerElement.prepend(this.link)
+        this.setLinkMessage(LinkMessageElement.placeNode())
         this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName)
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
@@ -62,11 +81,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
             pin.removeEventListener("mouseenter", this.#mouseenterHandler)
             pin.removeEventListener("mouseleave", this.#mouseleaveHandler)
         })
-        if (this.enteredPin && !this.blueprint.getLinks().find(
-            link =>
-                link.getSourcePin() == this.target && link.getDestinationPin() == this.enteredPin
-                || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
-        )) {
+        if (this.enteredPin) {
             this.blueprint.addGraphElement(this.link)
             this.link.setDestinationPin(this.enteredPin)
             this.link.setLinkMessage(null)
@@ -75,6 +90,12 @@ export default class MouseCreateLink extends IMouseClickDrag {
             this.link.finishDragging()
             this.link.remove()
         }
+        this.enteredPin = null
         this.link = null
+    }
+
+    setLinkMessage(linkMessage) {
+        this.link.setLinkMessage(linkMessage)
+        this.blueprint.nodesContainerElement.prepend(this.link)
     }
 }

@@ -9,10 +9,10 @@ import sanitizeText from "./sanitizeText"
  */
 export default class LinkTemplate extends ITemplate {
 
-    static c1DecreasingSpeed = -0.15
+    static c1DecreasingSpeed = -0.1
     static c1ControlPoint = [100, 15]
-    static c2DecreasingSpeed = -0.06
-    static c2ControlPoint = [500, 140]
+    static c2DecreasingSpeed = -0.07
+    static c2ControlPoint = [500, 130]
 
     /**
      * Returns the value of inverse multiplication function y = a / x + q. The value of a and q are calculated using
@@ -51,10 +51,10 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkElement} link Element of the graph
      */
     apply(link) {
+        super.apply(link)
         if (link.linkMessageElement) {
             link.appendChild(link.linkMessageElement)
         }
-        super.apply(link)
         link.classList.add("ueb-positioned")
         link.pathElement = link.querySelector("path")
     }
@@ -128,13 +128,13 @@ export default class LinkTemplate extends ITemplate {
                 : 15
             )
             * fillRatio
-        let c2 = Math.max(40 / aspectRatio, 30) + start
+        let c2 = Math.max(25 / aspectRatio, 30) + start
         c2 = Math.min(
             c2,
             LinkTemplate.decreasingValue(
                 LinkTemplate.c2DecreasingSpeed,
                 LinkTemplate.c2ControlPoint
-            )(width)
+            )(dx)
         )
         const d = Configuration.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d

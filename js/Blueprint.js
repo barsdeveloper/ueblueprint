@@ -303,7 +303,16 @@ export default class Blueprint extends IElement {
      * Returns the list of links in this blueprint.
      * @returns {LinkElement[]} Nodes
      */
-    getLinks() {
+    getLinks([a, b] = []) {
+        if (a == null != b == null) {
+            const pin = a ?? b
+            return this.links.filter(link => link.getSourcePin() == pin || link.getDestinationPin() == pin)
+        }
+        if (a != null && b != null) {
+            return this.links.filter(link =>
+                link.getSourcePin() == a && link.getDestinationPin() == b
+                || link.getSourcePin() == b && link.getDestinationPin() == a)
+        }
         return this.links
     }
 

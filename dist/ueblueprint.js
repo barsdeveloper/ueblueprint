@@ -482,6 +482,8 @@ class FastSelectionModel {
 
 class IElement extends HTMLElement {
 
+    static tagName = ""
+
     /**
      * 
      * @param {IEntity} entity The entity containing blueprint related data for this graph element
@@ -1643,10 +1645,10 @@ class KeyboardSelectAll extends IKeyboardShortcut {
  */
 class LinkTemplate extends ITemplate {
 
-    static c1DecreasingSpeed = -0.15
+    static c1DecreasingSpeed = -0.1
     static c1ControlPoint = [100, 15]
-    static c2DecreasingSpeed = -0.06
-    static c2ControlPoint = [500, 140]
+    static c2DecreasingSpeed = -0.07
+    static c2ControlPoint = [500, 130]
 
     /**
      * Returns the value of inverse multiplication function y = a / x + q. The value of a and q are calculated using
@@ -1685,10 +1687,10 @@ class LinkTemplate extends ITemplate {
      * @param {LinkElement} link Element of the graph
      */
     apply(link) {
+        super.apply(link);
         if (link.linkMessageElement) {
             link.appendChild(link.linkMessageElement);
         }
-        super.apply(link);
         link.classList.add("ueb-positioned");
         link.pathElement = link.querySelector("path");
     }
@@ -1762,13 +1764,13 @@ class LinkTemplate extends ITemplate {
                 : 15
             )
             * fillRatio;
-        let c2 = Math.max(40 / aspectRatio, 30) + start;
+        let c2 = Math.max(25 / aspectRatio, 30) + start;
         c2 = Math.min(
             c2,
             LinkTemplate.decreasingValue(
                 LinkTemplate.c2DecreasingSpeed,
                 LinkTemplate.c2ControlPoint
-            )(width)
+            )(dx)
         );
         const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d
@@ -2357,11 +2359,16 @@ class LinkMessageTemplate extends ITemplate {
      */
     apply(linkMessage) {
         super.apply(linkMessage);
-        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName);
-        linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
+        const linkMessageSetup = _ => linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
             linkMessage.linkElement.getSourcePin(),
             linkMessage.linkElement.getDestinationPin()
         );
+        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName);
+        if (linkMessage.linkElement) {
+            linkMessageSetup();
+        } else {
+            window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage);
+        }
     }
 
 }
@@ -2378,6 +2385,11 @@ class LinkMessageElement extends IElement {
         "ueb-icon-conver-type",
         /** @type {LinkRetrieval} */
         (s, d) => `Convert ${s.getType()} to ${d.getType()}.`
+    )
+    static correct = _ => new LinkMessageElement(
+        "ueb-icon-correct",
+        /** @type {LinkRetrieval} */
+        (s, d) => ""
     )
     static directionsIncompatible = _ => new LinkMessageElement(
         "ueb-icon-directions-incompatible",
@@ -2450,19 +2462,31 @@ class MouseCreateLink extends IMouseClickDrag {
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
                 self.enteredPin = e.target;
+                const a = self.enteredPin, b = self.target;
+                if (a.getNodeElement() == b.getNodeElement()) {
+                    this.setLinkMessage(LinkMessageElement.sameNode());
+                } else if (a.isOutput() == b.isOutput()) {
+                    this.setLinkMessage(LinkMessageElement.directionsIncompatible());
+                } else if (a.isOutput() == b.isOutput()) {
+                    this.setLinkMessage(LinkMessageElement.directionsIncompatible());
+                } else if (self.blueprint.getLinks([a, b]).length) {
+                    this.setLinkMessage(LinkMessageElement.replaceLink());
+                } else {
+                    this.setLinkMessage(LinkMessageElement.correct());
+                }
             }
         };
         this.#mouseleaveHandler = e => {
             if (self.enteredPin == e.target) {
                 self.enteredPin = null;
+                this.setLinkMessage(LinkMessageElement.placeNode());
             }
         };
     }
 
     startDrag() {
         this.link = new LinkElement(this.target, null);
-        this.link.setLinkMessage(LinkMessageElement.placeNode());
-        this.blueprint.nodesContainerElement.prepend(this.link);
+        this.setLinkMessage(LinkMessageElement.placeNode());
         this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName);
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
@@ -2495,7 +2519,13 @@ class MouseCreateLink extends IMouseClickDrag {
             this.link.finishDragging();
             this.link.remove();
         }
+        this.enteredPin = null;
         this.link = null;
+    }
+
+    setLinkMessage(linkMessage) {
+        this.link.setLinkMessage(linkMessage);
+        this.blueprint.nodesContainerElement.prepend(this.link);
     }
 }
 
@@ -3219,7 +3249,16 @@ class Blueprint extends IElement {
      * Returns the list of links in this blueprint.
      * @returns {LinkElement[]} Nodes
      */
-    getLinks() {
+    getLinks([a, b] = []) {
+        if (a == null != b == null) {
+            const pin = a ?? b;
+            return this.links.filter(link => link.getSourcePin() == pin || link.getDestinationPin() == pin)
+        }
+        if (a != null && b != null) {
+            return this.links.filter(link =>
+                link.getSourcePin() == a && link.getDestinationPin() == b
+                || link.getSourcePin() == b && link.getDestinationPin() == a)
+        }
         return this.links
     }
 

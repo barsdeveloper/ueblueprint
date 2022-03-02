@@ -427,7 +427,6 @@ ueb-link {
     --ueb-computed-width-px: calc(var(--ueb-computed-width) * 1px);
     display                : block;
     min-width              : calc(var(--ueb-link-min-width) * 1px);
-    border                 : 1px solid red;
 }
 
 ueb-link svg {

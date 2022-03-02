@@ -26,11 +26,16 @@ export default class LinkMessageTemplate extends ITemplate {
      */
     apply(linkMessage) {
         super.apply(linkMessage)
-        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName)
-        linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
+        const linkMessageSetup = _ => linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
             linkMessage.linkElement.getSourcePin(),
             linkMessage.linkElement.getDestinationPin()
         )
+        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName)
+        if (linkMessage.linkElement) {
+            linkMessageSetup()
+        } else {
+            window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage)
+        }
     }
 
 }

@@ -14,6 +14,11 @@ export default class LinkMessageElement extends IElement {
         /** @type {LinkRetrieval} */
         (s, d) => `Convert ${s.getType()} to ${d.getType()}.`
     )
+    static correct = _ => new LinkMessageElement(
+        "ueb-icon-correct",
+        /** @type {LinkRetrieval} */
+        (s, d) => ""
+    )
     static directionsIncompatible = _ => new LinkMessageElement(
         "ueb-icon-directions-incompatible",
         /** @type {LinkRetrieval} */
