@@ -33,7 +33,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         let self = this
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
-                linkValid = false
+                self.linkValid = false
                 self.enteredPin = e.target
                 const a = self.enteredPin, b = self.target
                 if (a.getNodeElement() == b.getNodeElement()) {
@@ -44,16 +44,17 @@ export default class MouseCreateLink extends IMouseClickDrag {
                     this.setLinkMessage(LinkMessageElement.directionsIncompatible())
                 } else if (self.blueprint.getLinks([a, b]).length) {
                     this.setLinkMessage(LinkMessageElement.replaceLink())
-                    linkValid = true
+                    self.linkValid = true
                 } else {
                     this.setLinkMessage(LinkMessageElement.correct())
-                    linkValid = true
+                    self.linkValid = true
                 }
             }
         }
         this.#mouseleaveHandler = e => {
             if (self.enteredPin == e.target) {
                 self.enteredPin = null
+                self.linkValid = false
                 this.setLinkMessage(LinkMessageElement.placeNode())
             }
         }

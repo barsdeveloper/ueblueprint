@@ -424,28 +424,34 @@ ueb-selector>* {
 }
 
 ueb-link {
+    --ueb-y-direct         : clamp(0, var(--ueb-to-y) - var(--ueb-from-y) + 1, 1);
     --ueb-computed-width-px: calc(var(--ueb-computed-width) * 1px);
     display                : block;
     min-width              : calc(var(--ueb-link-min-width) * 1px);
+    /*
+     * This makes the element transparent to the hover events so that multiple path elements can stand nearby and have
+     * their hover behavior correctly firing.
+     */
+    visibility             : hidden;
 }
 
 ueb-link svg {
-    --ueb-output-invert: calc(2 * var(--ueb-from-input) - 1);
-    position           : absolute;
-    top                : 0;
-    left               : 0;
-    width              : 100%;
-    height             : 100%;
-    transform          : scaleY(clamp(
-                /* Mirror just when it starts from output */
-                -1,
-                calc((var(--ueb-to-y) - var(--ueb-from-y)) * var(--ueb-output-invert)),
-                1));
-    overflow: visible;
+    --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
+    --ueb-y-direct-coefficient  : calc(2* var(--ueb-y-direct) - 1);
+    position                    : absolute;
+    top                         : 0;
+    left                        : 0;
+    width                       : 100%;
+    height                      : 100%;
+    min-height                  : 1px;
+    transform                   : scaleY(calc(var(--ueb-y-direct-coefficient) * var(--ueb-from-input-coefficient)));
+    overflow                    : visible;
 }
 
 ueb-link svg path {
-    stroke: var(--ueb-node-value-color);
+    visibility  : visible;
+    stroke      : var(--ueb-node-value-color);
+    stroke-width: 1;
 }
 
 ueb-link.ueb-link-dragging svg path,
@@ -456,9 +462,10 @@ ueb-link svg g:hover path {
 
 ueb-link-message {
     display      : block;
+    visibility   : visible;
     position     : absolute;
+    top          : calc(100% * var(--ueb-y-direct) + 22px);
     left         : calc(var(--ueb-start-percentage) + 15px);
-    bottom       : -42px;
     border       : 1px solid #000;
     padding      : 4px 8px;
     border-radius: 2px;

@@ -2449,18 +2449,23 @@ class MouseCreateLink extends IMouseClickDrag {
     /** @type {(e: MouseEvent) => void} */
     #mouseleaveHandler
 
+    /** @type {LinkElement} */
+    link
+
+    /** @type {PinElement} */
+    enteredPin
+
+    linkValid = false
+
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
         /** @type {PinElement} */
         this.target;
-        /** @type {LinkElement} */
-        this.link;
-        /** @type {PinElement} */
-        this.enteredPin;
 
         let self = this;
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
+                self.linkValid = false;
                 self.enteredPin = e.target;
                 const a = self.enteredPin, b = self.target;
                 if (a.getNodeElement() == b.getNodeElement()) {
@@ -2471,14 +2476,17 @@ class MouseCreateLink extends IMouseClickDrag {
                     this.setLinkMessage(LinkMessageElement.directionsIncompatible());
                 } else if (self.blueprint.getLinks([a, b]).length) {
                     this.setLinkMessage(LinkMessageElement.replaceLink());
+                    self.linkValid = true;
                 } else {
                     this.setLinkMessage(LinkMessageElement.correct());
+                    self.linkValid = true;
                 }
             }
         };
         this.#mouseleaveHandler = e => {
             if (self.enteredPin == e.target) {
                 self.enteredPin = null;
+                self.linkValid = false;
                 this.setLinkMessage(LinkMessageElement.placeNode());
             }
         };
@@ -2506,11 +2514,7 @@ class MouseCreateLink extends IMouseClickDrag {
             pin.removeEventListener("mouseenter", this.#mouseenterHandler);
             pin.removeEventListener("mouseleave", this.#mouseleaveHandler);
         });
-        if (this.enteredPin && !this.blueprint.getLinks().find(
-            link =>
-                link.getSourcePin() == this.target && link.getDestinationPin() == this.enteredPin
-                || link.getSourcePin() == this.enteredPin && link.getDestinationPin() == this.target
-        )) {
+        if (this.enteredPin) {
             this.blueprint.addGraphElement(this.link);
             this.link.setDestinationPin(this.enteredPin);
             this.link.setLinkMessage(null);
