@@ -1645,13 +1645,8 @@ class KeyboardSelectAll extends IKeyboardShortcut {
  */
 class LinkTemplate extends ITemplate {
 
-    static c1DecreasingSpeed = -0.1
-    static c1ControlPoint = [100, 15]
-    static c2DecreasingSpeed = -0.07
-    static c2ControlPoint = [500, 130]
-
     /**
-     * Returns the value of inverse multiplication function y = a / x + q. The value of a and q are calculated using
+     * Returns a function performing the inverse multiplication y = a / x + q. The value of a and q are calculated using
      * the derivative of that function y' = -a / x^2 at the point p (x = p[0] and y = p[1]). This means
      * y'(p[0]) = m => -a / p[0]^2 = m => a = -m * p[0]^2. Now, in order to determine q we can use the starting
      * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
@@ -1659,11 +1654,43 @@ class LinkTemplate extends ITemplate {
      * @param {Number[]} p reference point
      * @returns Maximum value
      */
-    static decreasingValue = (m, p) => {
+    static decreasingValue(m, p) {
         const a = -m * p[0] ** 2;
         const q = p[1] - a / p[0];
         return x => a / x + q
     }
+
+    /*
+     * Returns a function performing a clamped line passing through two points. It is clamped after and before the
+     * points. It is easier explained with an example.
+     *            b ______
+     *             /
+     *            /
+     *           /
+     *          /
+     *         /
+     *  ______/ a
+     */
+    static clampedLine(a, b) {
+        if (a[0] > b[0]) {
+            const temp = a;
+            a = b;
+            b = temp;
+        }
+        const m = (b[1] - a[1]) / (b[0] - a[0]);
+        const q = a[1] - m * a[0];
+        return x => x < a[0]
+            ? a[1]
+            : x > b[0]
+                ? b[1]
+                : m * x + q
+    }
+
+    static c1DecreasingValue = LinkTemplate.decreasingValue(-0.1, [100, 15])
+
+    static c2DecreasingValue = LinkTemplate.decreasingValue(-0.06, [500, 130])
+
+    static c1Clamped = LinkTemplate.clampedLine([0, 100], [100, 30])
 
     /**
      * Computes the html content of the target element.
@@ -1734,9 +1761,8 @@ class LinkTemplate extends ITemplate {
     applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
-        const height = Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1);
+        Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1);
         const fillRatio = dx / width;
-        const aspectRatio = width / height;
         const xInverted = link.originatesFromInput
             ? link.sourceLocation[0] < link.destinationLocation[0]
             : link.destinationLocation[0] < link.sourceLocation[0];
@@ -1756,23 +1782,17 @@ class LinkTemplate extends ITemplate {
         const c1
             = start
             + (xInverted
-                ? LinkTemplate.decreasingValue(
-                    LinkTemplate.c1DecreasingSpeed,
-                    LinkTemplate.c1ControlPoint
-                )(width)
-                : 15
+                ? LinkTemplate.c1DecreasingValue(width)
+                : 10
             )
             * fillRatio;
-        let c2 = Math.max(25 / aspectRatio, 30) + start;
+        let c2 = LinkTemplate.clampedLine([0, 100], [100, 30])(xInverted ? -dx : dx) + start;
         c2 = Math.min(
             c2,
-            LinkTemplate.decreasingValue(
-                LinkTemplate.c2DecreasingSpeed,
-                LinkTemplate.c2ControlPoint
-            )(dx)
+            LinkTemplate.c2DecreasingValue(width)
         );
         const d = Configuration.linkRightSVGPath(start, c1, c2);
-        // TODO move to CSS when Firefox will support property d
+        // TODO move to CSS when Firefox will support property d and css will have enough functions
         link.pathElement.setAttribute("d", d);
     }
 
