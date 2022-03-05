@@ -86,7 +86,7 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkElement} link element
      */
     applySourceLocation(link) {
-        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "0" : "1")
+        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0")
         link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
         link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
     }
@@ -107,17 +107,16 @@ export default class LinkTemplate extends ITemplate {
         let start = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0 // Otherwise start from the beginning
-        {
-            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
-            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
-            link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]))
-            link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]))
-            link.style.setProperty("margin-left", `-${start}px`)
-        }
+
+        link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
+        link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
+        link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]))
+        link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]))
+        link.style.setProperty("margin-left", `-${start}px`)
         if (xInverted) {
             start += fillRatio * 100
         }
-        link.style.setProperty("--ueb-start-percentage", `${100 - start}%`)
+        link.style.setProperty("--ueb-start-percentage", `${start}%`)
         const c1
             = start
             + (xInverted

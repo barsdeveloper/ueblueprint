@@ -65,13 +65,12 @@ export default class IMouseClickDrag extends IPointing {
             // Delegate from now on to self.#mouseMoveHandler
             movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler)
-
+            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
+            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin)
+            self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
             // Do actual actions
             self.startDrag()
             self.started = true
-            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin)
-            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-            self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
         }
 
         this.#mouseMoveHandler = e => {
@@ -128,7 +127,7 @@ export default class IMouseClickDrag extends IPointing {
     clicked(location) {
     }
 
-    startDrag() {
+    startDrag(location) {
     }
 
     dragTo(location, movement) {

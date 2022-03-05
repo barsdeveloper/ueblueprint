@@ -424,27 +424,27 @@ ueb-selector>* {
 }
 
 ueb-link {
-    --ueb-y-direct         : clamp(0, var(--ueb-to-y) - var(--ueb-from-y) + 1, 1);
-    --ueb-computed-width-px: calc(var(--ueb-computed-width) * 1px);
-    display                : block;
-    min-width              : calc(var(--ueb-link-min-width) * 1px);
+    --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
+    /* when from-y > to-y */
+    --ueb-y-opposite            : clamp(0, var(--ueb-from-y) - var(--ueb-to-y) - 1, 1);
+    display                     : block;
+    min-width                   : calc(var(--ueb-link-min-width) * 1px);
     /*
      * This makes the element transparent to the hover events so that multiple path elements can stand nearby and have
      * their hover behavior correctly firing.
      */
-    visibility             : hidden;
+    visibility                  : hidden;
 }
 
 ueb-link svg {
-    --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
-    --ueb-y-direct-coefficient  : calc(2* var(--ueb-y-direct) - 1);
+    --ueb-y-opposite-coefficient: calc(2* var(--ueb-y-opposite) - 1);
     position                    : absolute;
     top                         : 0;
     left                        : 0;
     width                       : 100%;
     height                      : 100%;
     min-height                  : 1px;
-    transform                   : scaleY(calc(var(--ueb-y-direct-coefficient) * var(--ueb-from-input-coefficient)));
+    transform                   : scaleY(calc(var(--ueb-y-opposite-coefficient) * var(--ueb-from-input-coefficient)));
     overflow                    : visible;
 }
 
@@ -461,11 +461,17 @@ ueb-link svg g:hover path {
 }
 
 ueb-link-message {
-    display      : block;
-    visibility   : visible;
-    position     : absolute;
-    top          : calc(100% * var(--ueb-y-direct) + 22px);
-    left         : calc(var(--ueb-start-percentage) + 15px);
+    display   : block;
+    visibility: visible;
+    position  : absolute;
+    top       : calc(100% * (1 - var(--ueb-y-opposite)) + 22px);
+    left      : calc(
+            /* If originates from an output pin, start with 100% */
+            (1 - var(--ueb-from-input)) * 100%
+            /* If originates from an input pin, then sum, otherwise subtract */
+            + (var(--ueb-from-input-coefficient)) * var(--ueb-start-percentage)
+            /* Fixed offset */
+            + 15px);
     border       : 1px solid #000;
     padding      : 4px 8px;
     border-radius: 2px;

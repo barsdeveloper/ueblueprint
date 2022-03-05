@@ -71,6 +71,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
             }
         })
         this.link.startDragging()
+        this.link.setDestinationLocation(this.clickedPosition)
     }
 
     dragTo(location, movement) {
