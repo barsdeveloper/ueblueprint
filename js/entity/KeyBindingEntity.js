@@ -9,8 +9,4 @@ export default class KeyBindingEntity extends IEntity {
         Key: String,
         CommandName: String,
     }
-
-    getAttributes() {
-        return KeyBindingEntity.attributes
-    }
 }

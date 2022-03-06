@@ -272,11 +272,11 @@ ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
 }
 
 ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node ueb-pin:hover {
-    background: var(--ueb-node-value-background);
+    background: var(--ueb-pin-background);
     cursor    : crosshair;
 }
 
-.ueb-node-value-icon {
+.ueb-pin-icon {
     display       : inline-block;
     position      : relative;
     width         : 0.85em;
@@ -285,7 +285,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node ueb-
     margin        : 0 0.4em -1px 0.1em;
 }
 
-.ueb-node-value-icon::before {
+.ueb-pin-icon::before {
     content      : "";
     display      : block;
     position     : absolute;
@@ -293,15 +293,15 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node ueb-
     right        : 0;
     bottom       : 0;
     left         : 0;
-    border       : 2px solid var(--ueb-node-value-color);
+    border       : 2px solid var(--ueb-pin-color);
     border-radius: 50%;
 }
 
-.ueb-node-value-fill::before {
-    background: var(--ueb-node-value-color);
+ueb-pin.ueb-pin-fill .ueb-pin-icon::before {
+    background: var(--ueb-pin-color);
 }
 
-.ueb-node-value-icon::after {
+.ueb-pin-icon::after {
     content      : "";
     display      : block;
     position     : absolute;
@@ -311,7 +311,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node ueb-
     height       : 0;
     border-top   : 0.3em solid transparent;
     border-bottom: 0.3em solid transparent;
-    border-left  : 0.3em solid var(--ueb-node-value-color);
+    border-left  : 0.3em solid var(--ueb-pin-color);
 }
 
 .ueb-positioned {
@@ -450,7 +450,7 @@ ueb-link svg {
 
 ueb-link svg path {
     visibility  : visible;
-    stroke      : var(--ueb-node-value-color);
+    stroke      : var(--ueb-pin-color);
     stroke-width: 1;
 }
 
@@ -476,7 +476,7 @@ ueb-link-message {
     padding      : 4px 8px;
     border-radius: 2px;
     background   : linear-gradient(to bottom, #2a2a2a 0, #151515 50%, #2a2a2a 100%);
-    color        : var(--ueb-node-value-dim-color);
+    color        : var(--ueb-pin-dim-color);
     white-space  : nowrap;
     z-index      : 1000000;
 }

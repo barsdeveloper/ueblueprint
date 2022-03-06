@@ -6,8 +6,4 @@ export default class ObjectReferenceEntity extends IEntity {
         type: String,
         path: String
     }
-
-    getAttributes() {
-        return ObjectReferenceEntity.attributes
-    }
 }

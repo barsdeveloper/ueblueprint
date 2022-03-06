@@ -949,7 +949,7 @@ class IEntity {
                 target[property] = defaultValue;
             }
         };
-        defineAllAttributes([], this, this.getAttributes());
+        defineAllAttributes([], this, this.constructor.attributes);
     }
 }
 
@@ -959,10 +959,6 @@ class ObjectReferenceEntity extends IEntity {
         type: String,
         path: String
     }
-
-    getAttributes() {
-        return ObjectReferenceEntity.attributes
-    }
 }
 
 class FunctionReferenceEntity extends IEntity {
@@ -970,10 +966,6 @@ class FunctionReferenceEntity extends IEntity {
     static attributes = {
         MemberParent: ObjectReferenceEntity,
         MemberName: ""
-    }
-
-    getAttributes() {
-        return FunctionReferenceEntity.attributes
     }
 }
 
@@ -995,10 +987,6 @@ class GuidEntity extends IEntity {
         return new GuidEntity({ valud: guid })
     }
 
-    getAttributes() {
-        return GuidEntity.attributes
-    }
-
     toString() {
         return this.value
     }
@@ -1008,10 +996,6 @@ class IntegerEntity extends IEntity {
 
     static attributes = {
         value: Number
-    }
-
-    getAttributes() {
-        return IntegerEntity.attributes
     }
 
     constructor(options = {}) {
@@ -1041,20 +1025,12 @@ class LocalizedTextEntity extends IEntity {
         key: String,
         value: String
     }
-
-    getAttributes() {
-        return LocalizedTextEntity.attributes
-    }
 }
 
 class PathSymbolEntity extends IEntity {
 
     static attributes = {
         value: String
-    }
-
-    getAttributes() {
-        return PathSymbolEntity.attributes
     }
 
     toString() {
@@ -1068,13 +1044,9 @@ class PinReferenceEntity extends IEntity {
         objectName: PathSymbolEntity,
         pinGuid: GuidEntity
     }
-
-    getAttributes() {
-        return PinReferenceEntity.attributes
-    }
 }
 
-class PinEntity$1 extends IEntity {
+class PinEntity extends IEntity {
 
     static lookbehind = "Pin"
     static attributes = {
@@ -1107,10 +1079,6 @@ class PinEntity$1 extends IEntity {
         bOrphanedPin: false,
     }
 
-    getAttributes() {
-        return PinEntity$1.attributes
-    }
-
     isInput() {
         return !this.bHidden && this.Direction !== "EGPD_Output"
     }
@@ -1135,10 +1103,6 @@ class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: false
     }
-
-    getAttributes() {
-        return VariableReferenceEntity.attributes
-    }
 }
 
 class ObjectEntity extends IEntity {
@@ -1156,11 +1120,7 @@ class ObjectEntity extends IEntity {
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
-        CustomProperties: [PinEntity$1]
-    }
-
-    getAttributes() {
-        return ObjectEntity.attributes
+        CustomProperties: [PinEntity]
     }
 
     /**
@@ -1266,7 +1226,7 @@ class Grammar {
                 return r.PinReference
             case FunctionReferenceEntity:
                 return r.FunctionReference
-            case PinEntity$1:
+            case PinEntity:
                 return r.Pin
             case Array:
                 return P$1.seqMap(
@@ -1321,7 +1281,7 @@ class Grammar {
                 return result
             })
     FunctionReference = r => Grammar.CreateMultiAttributeGrammar(r, FunctionReferenceEntity)
-    Pin = r => Grammar.CreateMultiAttributeGrammar(r, PinEntity$1)
+    Pin = r => Grammar.CreateMultiAttributeGrammar(r, PinEntity)
     CustomProperties = r =>
         P$1.string("CustomProperties")
             .then(P$1.whitespace)
@@ -1486,7 +1446,7 @@ class ObjectSerializer extends ISerializer {
         let result = `Begin Object Class=${this.writeValue(object.Class)} Name=${this.writeValue(object.Name)}
 ${this.subWrite([], object)
             + object
-                .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity$1).write(pin))
+                .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity).write(pin))
                 .join("")}
 End Object`;
         return result
@@ -1730,7 +1690,7 @@ class LinkTemplate extends ITemplate {
         link.blueprint.dataset.creatingLink = true;
         const referencePin = link.getSourcePin() ?? link.getDestinationPin();
         if (referencePin) {
-            link.style.setProperty("--ueb-node-value-color", referencePin.getColor());
+            link.style.setProperty("--ueb-pin-color", referencePin.getColor());
         }
         link.classList.add("ueb-link-dragging");
     }
@@ -2565,13 +2525,13 @@ class PinTemplate extends ITemplate {
     render(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+                <span class="ueb-pin-icon"></span>
                 ${sanitizeText(pin.getPinDisplayName())}
             `
         } else {
             return html`
                 ${sanitizeText(pin.getPinDisplayName())}
-                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+                <span class="ueb-pin-icon"></span>
             `
         }
     }
@@ -2583,8 +2543,23 @@ class PinTemplate extends ITemplate {
     apply(pin) {
         super.apply(pin);
         pin.classList.add(
-            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"), "ueb-node-value-" + sanitizeText(pin.getType()));
+            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
+            "ueb-pin-" + sanitizeText(pin.getType()),
+            pin.isConnected() ? "ueb-pin-fill" : null
+        );
         pin.clickableElement = pin;
+    }
+
+    /**
+     * Applies the connection style to the element.
+     * @param {PinElement} pin 
+     */
+    applyConnected(pin) {
+        if (pin.isConnected()) {
+            pin.classList.add("ueb-pin-fill");
+        } else {
+            pin.classList.remove("ueb-pin-fill");
+        }
     }
 
     /**
@@ -2593,7 +2568,7 @@ class PinTemplate extends ITemplate {
      * @returns 
      */
     getLinkLocation(pin) {
-        const rect = pin.querySelector(".ueb-node-value-icon").getBoundingClientRect();
+        const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect();
         return pin.blueprint.compensateTranslation(Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
             pin.blueprint.gridElement))
@@ -2620,7 +2595,7 @@ class PinElement extends IElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-node-value-color");
+        this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-pin-color");
     }
 
     createInputObjects() {
@@ -2638,10 +2613,6 @@ class PinElement extends IElement {
      */
     getPinDisplayName() {
         return this.entity.PinName
-    }
-
-    getAttributes() {
-        return PinEntity.attributes
     }
 
     isInput() {
@@ -2791,7 +2762,7 @@ class NodeElement extends ISelectableDraggableElement {
      * @returns {PinEntity[]}
      */
     getPinEntities() {
-        return this.entity.CustomProperties.filter(v => v instanceof PinEntity$1)
+        return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
     connectedCallback() {
@@ -3412,8 +3383,8 @@ function initializeSerializerFactory() {
         new ObjectSerializer()
     );
     SerializerFactory.registerSerializer(
-        PinEntity$1,
-        new GeneralSerializer(v => `${PinEntity$1.lookbehind} (${v})`, PinEntity$1, "", ",", true)
+        PinEntity,
+        new GeneralSerializer(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
     );
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,

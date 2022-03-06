@@ -8,8 +8,4 @@ export default class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: false
     }
-
-    getAttributes() {
-        return VariableReferenceEntity.attributes
-    }
 }

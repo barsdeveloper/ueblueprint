@@ -95,7 +95,7 @@ export default class LinkTemplate extends ITemplate {
         link.blueprint.dataset.creatingLink = true
         const referencePin = link.getSourcePin() ?? link.getDestinationPin()
         if (referencePin) {
-            link.style.setProperty("--ueb-node-value-color", referencePin.getColor())
+            link.style.setProperty("--ueb-pin-color", referencePin.getColor())
         }
         link.classList.add("ueb-link-dragging")
     }

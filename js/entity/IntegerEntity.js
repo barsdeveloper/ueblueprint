@@ -6,10 +6,6 @@ export default class IntegerEntity extends IEntity {
         value: Number
     }
 
-    getAttributes() {
-        return IntegerEntity.attributes
-    }
-
     constructor(options = {}) {
         if (options.constructor === Number || options.constructor === String) {
             options = {

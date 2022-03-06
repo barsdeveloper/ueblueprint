@@ -18,10 +18,6 @@ export default class GuidEntity extends IEntity {
         return new GuidEntity({ valud: guid })
     }
 
-    getAttributes() {
-        return GuidEntity.attributes
-    }
-
     toString() {
         return this.value
     }

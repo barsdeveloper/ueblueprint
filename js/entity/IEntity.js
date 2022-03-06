@@ -50,6 +50,6 @@ export default class IEntity {
                 target[property] = defaultValue
             }
         }
-        defineAllAttributes([], this, this.getAttributes())
+        defineAllAttributes([], this, this.constructor.attributes)
     }
 }

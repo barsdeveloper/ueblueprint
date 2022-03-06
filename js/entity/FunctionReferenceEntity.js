@@ -7,8 +7,4 @@ export default class FunctionReferenceEntity extends IEntity {
         MemberParent: ObjectReferenceEntity,
         MemberName: ""
     }
-
-    getAttributes() {
-        return FunctionReferenceEntity.attributes
-    }
 }

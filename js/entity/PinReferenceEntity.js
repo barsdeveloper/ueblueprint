@@ -8,8 +8,4 @@ export default class PinReferenceEntity extends IEntity {
         objectName: PathSymbol,
         pinGuid: GuidEntity
     }
-
-    getAttributes() {
-        return PinReferenceEntity.attributes
-    }
 }

@@ -22,7 +22,7 @@ export default class PinElement extends IElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-node-value-color")
+        this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-pin-color")
     }
 
     createInputObjects() {
@@ -40,10 +40,6 @@ export default class PinElement extends IElement {
      */
     getPinDisplayName() {
         return this.entity.PinName
-    }
-
-    getAttributes() {
-        return PinEntity.attributes
     }
 
     isInput() {

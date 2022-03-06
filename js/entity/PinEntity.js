@@ -38,10 +38,6 @@ export default class PinEntity extends IEntity {
         bOrphanedPin: false,
     }
 
-    getAttributes() {
-        return PinEntity.attributes
-    }
-
     isInput() {
         return !this.bHidden && this.Direction !== "EGPD_Output"
     }

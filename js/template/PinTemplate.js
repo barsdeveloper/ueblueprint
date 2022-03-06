@@ -16,13 +16,13 @@ export default class PinTemplate extends ITemplate {
     render(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+                <span class="ueb-pin-icon"></span>
                 ${sanitizeText(pin.getPinDisplayName())}
             `
         } else {
             return html`
                 ${sanitizeText(pin.getPinDisplayName())}
-                <span class="ueb-node-value-icon ${pin.isConnected() ? 'ueb-node-value-fill' : ''}"></span>
+                <span class="ueb-pin-icon"></span>
             `
         }
     }
@@ -34,8 +34,23 @@ export default class PinTemplate extends ITemplate {
     apply(pin) {
         super.apply(pin)
         pin.classList.add(
-            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"), "ueb-node-value-" + sanitizeText(pin.getType()))
+            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
+            "ueb-pin-" + sanitizeText(pin.getType()),
+            pin.isConnected() ? "ueb-pin-fill" : null
+        )
         pin.clickableElement = pin
+    }
+
+    /**
+     * Applies the connection style to the element.
+     * @param {PinElement} pin 
+     */
+    applyConnected(pin) {
+        if (pin.isConnected()) {
+            pin.classList.add("ueb-pin-fill")
+        } else {
+            pin.classList.remove("ueb-pin-fill")
+        }
     }
 
     /**
@@ -44,7 +59,7 @@ export default class PinTemplate extends ITemplate {
      * @returns 
      */
     getLinkLocation(pin) {
-        const rect = pin.querySelector(".ueb-node-value-icon").getBoundingClientRect()
+        const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect()
         return pin.blueprint.compensateTranslation(Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
             pin.blueprint.gridElement))

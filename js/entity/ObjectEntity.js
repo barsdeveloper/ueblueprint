@@ -25,10 +25,6 @@ export default class ObjectEntity extends IEntity {
         CustomProperties: [PinEntity]
     }
 
-    getAttributes() {
-        return ObjectEntity.attributes
-    }
-
     /**
      * 
      * @returns {String} The name of the node

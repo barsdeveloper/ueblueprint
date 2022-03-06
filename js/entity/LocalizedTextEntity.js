@@ -8,8 +8,4 @@ export default class LocalizedTextEntity extends IEntity {
         key: String,
         value: String
     }
-
-    getAttributes() {
-        return LocalizedTextEntity.attributes
-    }
 }

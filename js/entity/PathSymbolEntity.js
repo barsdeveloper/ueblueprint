@@ -6,10 +6,6 @@ export default class PathSymbolEntity extends IEntity {
         value: String
     }
 
-    getAttributes() {
-        return PathSymbolEntity.attributes
-    }
-
     toString() {
         return this.value
     }
