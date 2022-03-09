@@ -997,6 +997,8 @@ class GuidEntity extends IEntity {
         return new GuidEntity({ valud: guid })
     }
 
+    /** @type {String} */ value
+
     toString() {
         return this.value
     }
@@ -1017,6 +1019,8 @@ class IntegerEntity extends IEntity {
         super(options);
         this.value = Math.round(this.value);
     }
+
+    /** @type {Number} */ value
 
     valueOf() {
         return this.value
@@ -1060,6 +1064,9 @@ class PinReferenceEntity extends IEntity {
         objectName: PathSymbolEntity,
         pinGuid: GuidEntity
     }
+
+    /** @type {PathSymbolEntity} */ objectName
+    /** @type {GuidEntity} */ pinGuid
 }
 
 /**
@@ -1162,6 +1169,10 @@ class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: false
     }
+
+    /** @type {String} */ MemberName
+    /** @type {GuidEntity} */ MemberGuid
+    /** @type {Boolean} */ bSelfContext
 }
 
 class ObjectEntity extends IEntity {

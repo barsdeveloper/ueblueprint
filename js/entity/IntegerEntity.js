@@ -16,6 +16,8 @@ export default class IntegerEntity extends IEntity {
         this.value = Math.round(this.value)
     }
 
+    /** @type {Number} */ value
+
     valueOf() {
         return this.value
     }
