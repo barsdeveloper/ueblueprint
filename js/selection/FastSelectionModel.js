@@ -1,22 +1,24 @@
 import OrderedIndexArray from "./OrderedIndexArray"
 
+/**
+ * @typedef {{
+ *      primaryInf: number,
+ *      primarySup: number,
+ *      secondaryInf: number,
+ *      secondarySup: number
+ * }} BoundariesInfo
+ * @typedef {{
+ *      primaryBoundary: number,
+ *      secondaryBoundary: number,
+ *      insertionPosition: number,
+ *      rectangle: number
+ *      onSecondaryAxis: Boolean
+ * }} Metadata
+ * @typedef {numeric} Rectangle
+ */
 export default class FastSelectionModel {
 
     /**
-     * @typedef {{
-     *      primaryInf: number,
-     *      primarySup: number,
-     *      secondaryInf: number,
-     *      secondarySup: number
-     * }} BoundariesInfo
-     * @typedef {{
-     *      primaryBoundary: number,
-     *      secondaryBoundary: number,
-     *      insertionPosition: number,
-     *      rectangle: number
-     *      onSecondaryAxis: Boolean
-     * }} Metadata
-     * @typedef {numeric} Rectangle
      * @param {number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
      * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
      * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.

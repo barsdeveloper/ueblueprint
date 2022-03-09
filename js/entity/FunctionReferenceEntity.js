@@ -7,4 +7,7 @@ export default class FunctionReferenceEntity extends IEntity {
         MemberParent: ObjectReferenceEntity,
         MemberName: ""
     }
+
+    /** @type {ObjectReferenceEntity} */ MemberParent
+    /** @type {String} */ MemberName
 }

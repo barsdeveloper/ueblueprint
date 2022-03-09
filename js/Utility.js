@@ -44,11 +44,14 @@ export default class Utility {
             console.error("Expected keys to be an array.")
         }
         if (keys.length == 1) {
-            if (create || keys[0] in target) {
+            if (create || keys[0] in target || target[keys[0]] === undefined) {
                 target[keys[0]] = value
                 return true
             }
         } else if (keys.length > 0) {
+            if (create && target[keys[0]] === undefined) {
+                target[keys[0]] = {}
+            }
             return Utility.objectSet(target[keys[0]], keys.slice(1), value, create)
         }
         return false
@@ -65,7 +68,7 @@ export default class Utility {
         if (keys.constructor != Array) {
             console.error("Expected keys to be an array.")
         }
-        if (keys.length == 0 || !(keys[0] in source)) {
+        if (keys.length == 0 || !(keys[0] in source) || source[keys[0]] === undefined) {
             return defaultValue
         }
         if (keys.length == 1) {

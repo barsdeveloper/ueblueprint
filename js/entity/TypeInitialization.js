@@ -11,7 +11,6 @@ export default class TypeInitialization {
     }
 
     /**
-     * 
      * @param {typeof Object} type 
      * @param {boolean} showDefault 
      * @param {*} value

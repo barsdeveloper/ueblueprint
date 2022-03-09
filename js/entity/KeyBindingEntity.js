@@ -9,4 +9,10 @@ export default class KeyBindingEntity extends IEntity {
         Key: String,
         CommandName: String,
     }
+
+    /** @type {Boolean} */ bCtrlDown
+    /** @type {Boolean} */ bAltDown
+    /** @type {Boolean} */ bShiftDown
+    /** @type {String} */ Key
+    /** @type {String} */ CommandName
 }

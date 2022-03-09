@@ -25,8 +25,21 @@ export default class ObjectEntity extends IEntity {
         CustomProperties: [PinEntity]
     }
 
+    /** @type {ObjectReferenceEntity} */ Class
+    /** @type {String} */ Name
+    /** @type {Boolean} */ bIsPureFunc
+    /** @type {VariableReferenceEntity} */ VariableReference
+    /** @type {FunctionReferenceEntity} */ FunctionReference
+    /** @type {FunctionReferenceEntity} */ EventReference
+    /** @type {ObjectReferenceEntity} */ TargetType
+    /** @type {IntegerEntity} */ NodePosX
+    /** @type {IntegerEntity} */ NodePosY
+    /** @type {GuidEntity} */ NodeGuid
+    /** @type {IntegerEntity} */ ErrorType
+    /** @type {String} */ ErrorMsg
+    /** @type {PinEntity[]} */ CustomProperties
+
     /**
-     * 
      * @returns {String} The name of the node
      */
     getNodeDisplayName() {
