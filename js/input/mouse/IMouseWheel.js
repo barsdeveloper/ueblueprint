@@ -9,10 +9,9 @@ export default class IMouseWheel extends IPointing {
     #mouseParentWheelHandler
 
     /**
-     * 
-     * @param {HTMLElement} target 
-     * @param {import("../../Blueprint").default} blueprint 
-     * @param {Object} options 
+     * @param {HTMLElement} target
+     * @param {import("../../Blueprint").default} blueprint
+     * @param {Object} options
      */
     constructor(target, blueprint, options) {
         options.wantsFocusCallback = true

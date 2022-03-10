@@ -5,10 +5,9 @@ export default class IEntity {
 
     constructor(options = {}) {
         /**
-         * 
-         * @param {String[]} prefix 
-         * @param {Object} target 
-         * @param {Object} properties 
+         * @param {String[]} prefix
+         * @param {Object} target
+         * @param {Object} properties
          */
         const defineAllAttributes = (prefix, target, properties) => {
             let fullKey = prefix.concat("")
@@ -23,7 +22,7 @@ export default class IEntity {
                 }
                 /*
                  * The value can either be:
-                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World") 
+                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World")
                  *     - TypeInitialization: contains the maximum amount of information about the attribute.
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.

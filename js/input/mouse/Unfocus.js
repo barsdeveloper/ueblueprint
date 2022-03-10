@@ -17,8 +17,7 @@ export default class Unfocus extends IContext {
     }
 
     /**
-     * 
-     * @param {HTMLElement} e 
+     * @param {HTMLElement} e
      */
     clickedSomewhere(target) {
         // If target is outside the blueprint grid

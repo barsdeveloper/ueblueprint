@@ -1,5 +1,6 @@
 import IEntity from "./IEntity"
 
+
 export default class GuidEntity extends IEntity {
 
     static attributes = {
@@ -15,10 +16,8 @@ export default class GuidEntity extends IEntity {
         values.forEach(n => {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8)
         })
-        return new GuidEntity({ valud: guid })
+        return new GuidEntity({ value: guid })
     }
-
-    /** @type {String} */ value
 
     toString() {
         return this.value

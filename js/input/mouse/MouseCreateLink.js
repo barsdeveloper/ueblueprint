@@ -2,7 +2,7 @@ import IMouseClickDrag from "./IMouseClickDrag"
 import LinkElement from "../../element/LinkElement"
 import LinkMessageElement from "../../element/LinkMessageElement"
 
-/** 
+/**
  * @typedef {import("../../element/LinkElement").default} LinkElement
  * @typedef {import("../../element/PinElement").default} PinElement
  */

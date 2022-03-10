@@ -42,6 +42,11 @@ export default class ISerializer {
         }
     }
 
+    /**
+     * @param {String[]} key
+     * @param {Object} object
+     * @returns {String}
+     */
     subWrite(key, object) {
         let result = ""
         let fullKey = key.concat("")

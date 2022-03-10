@@ -10,8 +10,8 @@ export default class PinTemplate extends ITemplate {
 
     /**
      * Computes the html content of the pin.
-     * @param {PinElement} pin html element 
-     * @returns The result html 
+     * @param {PinElement} pin html element
+     * @returns The result html
      */
     render(pin) {
         if (pin.isInput()) {
@@ -43,7 +43,7 @@ export default class PinTemplate extends ITemplate {
 
     /**
      * Applies the connection style to the element.
-     * @param {PinElement} pin 
+     * @param {PinElement} pin
      */
     applyConnected(pin) {
         if (pin.isConnected()) {
@@ -54,9 +54,7 @@ export default class PinTemplate extends ITemplate {
     }
 
     /**
-     * 
-     * @param {PinElement} pin 
-     * @returns 
+     * @param {PinElement} pin
      */
     getLinkLocation(pin) {
         const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect()

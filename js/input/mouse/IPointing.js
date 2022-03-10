@@ -9,9 +9,7 @@ export default class IPointing extends IContext {
     }
 
     /**
-     * 
-     * @param {MouseEvent} mouseEvent 
-     * @returns 
+     * @param {MouseEvent} mouseEvent
      */
     locationFromEvent(mouseEvent) {
         return this.blueprint.compensateTranslation(

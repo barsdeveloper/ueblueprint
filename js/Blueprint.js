@@ -331,8 +331,7 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * 
-     * @param  {...IElement} graphElements 
+     * @param  {...IElement} graphElements
      */
     addGraphElement(...graphElements) {
         if (this.nodesContainerElement) {
@@ -355,8 +354,7 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * 
-     * @param  {...IElement} graphElements 
+     * @param  {...IElement} graphElements
      */
     removeGraphElement(...graphElements) {
         let removed = false

@@ -11,8 +11,8 @@ export default class TypeInitialization {
     }
 
     /**
-     * @param {typeof Object} type 
-     * @param {boolean} showDefault 
+     * @param {typeof Object} type
+     * @param {boolean} showDefault
      * @param {*} value
      */
     constructor(type, showDefault = true, value = undefined) {

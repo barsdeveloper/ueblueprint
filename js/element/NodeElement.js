@@ -10,8 +10,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     static tagName = "ueb-node"
 
     /**
-     * 
-     * @param {ObjectEntity} entity 
+     * @param {ObjectEntity} entity
      */
     constructor(entity) {
         super(entity, new NodeTemplate())
@@ -32,7 +31,6 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     /**
-     * 
      * @returns {PinEntity[]}
      */
     getPinEntities() {

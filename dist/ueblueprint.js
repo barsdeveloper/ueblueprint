@@ -13,9 +13,9 @@ class Configuration {
     static linkCurveWidth = 80 // pixel
     static linkMinWidth = 100 // pixel
     /**
-     * @param {Number} start 
-     * @param {Number} c1 
-     * @param {Number} c2 
+     * @param {Number} start
+     * @param {Number} c1
+     * @param {Number} c2
      * @returns {String}
      */
     static linkRightSVGPath = (start, c1, c2) => {
@@ -137,7 +137,7 @@ class ITemplate {
     /**
      * Computes the html content of the target element.
      * @param {IElement} entity Element of the graph
-     * @returns The result html 
+     * @returns The result html
      */
     render(entity) {
         return ""
@@ -184,7 +184,6 @@ class OrderedIndexArray {
     }
 
     /**
-     * 
      * @param {number} index The index of the value to return
      * @returns The element of the array
      */
@@ -230,7 +229,7 @@ class OrderedIndexArray {
         }
     }
 
-    /** 
+    /**
      * Inserts the element in the array.
      * @param element {number} The value to insert into the array.
      * @returns {number} The position into occupied by value into the array.
@@ -389,7 +388,7 @@ class FastSelectionModel {
 
     computeBoundaries() {
         this.boundaries = {
-            // Primary axis negative expanding 
+            // Primary axis negative expanding
             primaryN: {
                 v: this.primaryOrder.getPrevValue(),
                 i: this.primaryOrder.getPrev()
@@ -487,7 +486,6 @@ class IElement extends HTMLElement {
     static tagName = ""
 
     /**
-     * 
      * @param {IEntity} entity The entity containing blueprint related data for this graph element
      * @param {ITemplate} template The template to render this node
      */
@@ -623,9 +621,8 @@ class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * 
-     * @param {Blueprint} element 
-     * @returns 
+     * @param {Blueprint} element
+     * @returns
      */
     viewport(element) {
         return html`
@@ -645,8 +642,8 @@ class BlueprintTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {HTMLElement} element Target element 
-     * @returns The computed html 
+     * @param {HTMLElement} element Target element
+     * @returns The computed html
      */
     render(element) {
         return html`
@@ -772,8 +769,8 @@ class TypeInitialization {
     }
 
     /**
-     * @param {typeof Object} type 
-     * @param {boolean} showDefault 
+     * @param {typeof Object} type
+     * @param {boolean} showDefault
      * @param {*} value
      */
     constructor(type, showDefault = true, value = undefined) {
@@ -801,10 +798,9 @@ class Utility {
     }
 
     /**
-     * 
-     * @param {Number[]} viewportLocation 
-     * @param {HTMLElement} movementElement 
-     * @returns 
+     * @param {Number[]} viewportLocation
+     * @param {HTMLElement} movementElement
+     * @returns
      */
     static convertLocation(viewportLocation, movementElement) {
         const scaleCorrection = 1 / Utility.getScale(movementElement);
@@ -818,14 +814,14 @@ class Utility {
 
     /**
      * Sets a value in an object
+     * @param {Object} target Object holding the data
      * @param {String[]} keys The chained keys to access from object in order to set the value
-     * @param {any} value Value to be set
-     * @param {Object} target Object holding the data 
+     * @param {*} value Value to be set
      * @param {Boolean} create Whether to create or not the key in case it doesn't exist
      * @returns {Boolean} Returns true on succes, false otherwise
      */
     static objectSet(target, keys, value, create = false) {
-        if (keys.constructor != Array) {
+        if (!(keys instanceof Array)) {
             console.error("Expected keys to be an array.");
         }
         if (keys.length == 1) {
@@ -834,7 +830,7 @@ class Utility {
                 return true
             }
         } else if (keys.length > 0) {
-            if (create && target[keys[0]] === undefined) {
+            if (create && !(target[keys[0]] instanceof Object)) {
                 target[keys[0]] = {};
             }
             return Utility.objectSet(target[keys[0]], keys.slice(1), value, create)
@@ -844,13 +840,13 @@ class Utility {
 
     /**
      * Gets a value from an object, gives defaultValue in case of failure
-     * @param {Object} source Object holding the data 
+     * @param {Object} source Object holding the data
      * @param {String[]} keys The chained keys to access from object in order to get the value
      * @param {any} defaultValue Value to return in case from doesn't have it
      * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
      */
     static objectGet(source, keys, defaultValue = null) {
-        if (keys.constructor != Array) {
+        if (!(keys instanceof Array)) {
             console.error("Expected keys to be an array.");
         }
         if (keys.length == 0 || !(keys[0] in source) || source[keys[0]] === undefined) {
@@ -869,8 +865,8 @@ class Utility {
     }
 
     /**
-     * 
-     * @param {String} value 
+     *
+     * @param {String} value
      */
     static FirstCapital(value) {
         return value.charAt(0).toUpperCase() + value.substring(1)
@@ -889,9 +885,8 @@ class Utility {
     }
 
     /**
-     * 
-     * @param {Number[]} location 
-     * @param {Number} gridSize 
+     * @param {Number[]} location
+     * @param {Number} gridSize
      */
     static snapToGrid(location, gridSize = Configuration.gridSize) {
         if (gridSize === 1) {
@@ -908,10 +903,9 @@ class IEntity {
 
     constructor(options = {}) {
         /**
-         * 
-         * @param {String[]} prefix 
-         * @param {Object} target 
-         * @param {Object} properties 
+         * @param {String[]} prefix
+         * @param {Object} target
+         * @param {Object} properties
          */
         const defineAllAttributes = (prefix, target, properties) => {
             let fullKey = prefix.concat("");
@@ -926,7 +920,7 @@ class IEntity {
                 }
                 /*
                  * The value can either be:
-                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World") 
+                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World")
                  *     - TypeInitialization: contains the maximum amount of information about the attribute.
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.
@@ -963,9 +957,6 @@ class ObjectReferenceEntity extends IEntity {
         type: String,
         path: String
     }
-
-    /** @type {String} */ type
-    /** @type {String} */ path
 }
 
 class FunctionReferenceEntity extends IEntity {
@@ -994,10 +985,8 @@ class GuidEntity extends IEntity {
         values.forEach(n => {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
         });
-        return new GuidEntity({ valud: guid })
+        return new GuidEntity({ value: guid })
     }
-
-    /** @type {String} */ value
 
     toString() {
         return this.value
@@ -1020,8 +1009,6 @@ class IntegerEntity extends IEntity {
         this.value = Math.round(this.value);
     }
 
-    /** @type {Number} */ value
-
     valueOf() {
         return this.value
     }
@@ -1039,15 +1026,9 @@ class LocalizedTextEntity extends IEntity {
         key: String,
         value: String
     }
-
-    /** @type {String} */ namespace
-    /** @type {String} */ key
-    /** @type {String} */ value
 }
 
 class PathSymbolEntity extends IEntity {
-
-    //value
 
     static attributes = {
         value: String
@@ -1064,9 +1045,6 @@ class PinReferenceEntity extends IEntity {
         objectName: PathSymbolEntity,
         pinGuid: GuidEntity
     }
-
-    /** @type {PathSymbolEntity} */ objectName
-    /** @type {GuidEntity} */ pinGuid
 }
 
 /**
@@ -1116,23 +1094,6 @@ class PinEntity extends IEntity {
         bOrphanedPin: false,
     }
 
-    /** @type {GuidEntity} */ PinId
-    /** @type {String} */ PinName
-    /** @type {LocalizedTextEntity} */ PinFriendlyName
-    /** @type {String} */ PinToolTip
-    /** @type {String} */ Direction
-    /** @type {PinTypeObjectType} */ PinType
-    /** @type {PinReferenceEntity[]} */ LinkedTo
-    /** @type {String} */ DefaultValue
-    /** @type {String} */ AutogeneratedDefaultValue
-    /** @type {GuidEntity} */ PersistentGuid
-    /** @type {Boolean} */ bHidden
-    /** @type {Boolean} */ bNotConnectable
-    /** @type {Boolean} */ bDefaultValueIsReadOnly
-    /** @type {Boolean} */ bDefaultValueIsIgnored
-    /** @type {Boolean} */ bAdvancedView
-    /** @type {Boolean} */ bOrphanedPin
-
     isInput() {
         return !this.bHidden && this.Direction !== "EGPD_Output"
     }
@@ -1146,8 +1107,7 @@ class PinEntity extends IEntity {
     }
 
     /**
-     * 
-     * @param {PinReferenceEntity} pinReferenceEntity 
+     * @param {PinReferenceEntity} pinReferenceEntity
      */
     connectTo(pinReferenceEntity) {
         /** @type {PinReferenceEntity[]} */
@@ -1169,10 +1129,6 @@ class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: false
     }
-
-    /** @type {String} */ MemberName
-    /** @type {GuidEntity} */ MemberGuid
-    /** @type {Boolean} */ bSelfContext
 }
 
 class ObjectEntity extends IEntity {
@@ -1192,20 +1148,6 @@ class ObjectEntity extends IEntity {
         ErrorMsg: new TypeInitialization(String, false, ""),
         CustomProperties: [PinEntity]
     }
-
-    /** @type {ObjectReferenceEntity} */ Class
-    /** @type {String} */ Name
-    /** @type {Boolean} */ bIsPureFunc
-    /** @type {VariableReferenceEntity} */ VariableReference
-    /** @type {FunctionReferenceEntity} */ FunctionReference
-    /** @type {FunctionReferenceEntity} */ EventReference
-    /** @type {ObjectReferenceEntity} */ TargetType
-    /** @type {IntegerEntity} */ NodePosX
-    /** @type {IntegerEntity} */ NodePosY
-    /** @type {GuidEntity} */ NodeGuid
-    /** @type {IntegerEntity} */ ErrorType
-    /** @type {String} */ ErrorMsg
-    /** @type {PinEntity[]} */ CustomProperties
 
     /**
      * @returns {String} The name of the node
@@ -1444,6 +1386,11 @@ class ISerializer {
         }
     }
 
+    /**
+     * @param {String[]} key
+     * @param {Object} object
+     * @returns {String}
+     */
     subWrite(key, object) {
         let result = "";
         let fullKey = key.concat("");
@@ -1507,8 +1454,7 @@ class ObjectSerializer extends ISerializer {
     }
 
     /**
-     * 
-     * @param {String} value 
+     * @param {String} value
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
@@ -1521,9 +1467,7 @@ class ObjectSerializer extends ISerializer {
     }
 
     /**
-     * 
-     * @param {ObjectEntity} object 
-     * @returns 
+     * @param {ObjectEntity} object
      */
     write(object) {
         let result = `Begin Object Class=${this.writeValue(object.Class)} Name=${this.writeValue(object.Name)}
@@ -1622,7 +1566,6 @@ class IKeyboardShortcut extends IContext {
     }
 
     /**
-     * 
      * @param {String} keyString
      * @returns {Object}
      */
@@ -1649,10 +1592,9 @@ class IKeyboardShortcut extends IContext {
 class KeyvoardCanc extends IKeyboardShortcut {
 
     /**
-     * 
-     * @param {HTMLElement} target 
-     * @param {import("../../Blueprint").default} blueprint 
-     * @param {OBject} options 
+     * @param {HTMLElement} target
+     * @param {import("../../Blueprint").default} blueprint
+     * @param {OBject} options
      */
     constructor(target, blueprint, options = {}) {
         options = IKeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
@@ -1667,10 +1609,9 @@ class KeyvoardCanc extends IKeyboardShortcut {
 class KeyboardSelectAll extends IKeyboardShortcut {
 
     /**
-     * 
-     * @param {HTMLElement} target 
-     * @param {import("../../Blueprint").default} blueprint 
-     * @param {Object} options 
+     * @param {HTMLElement} target
+     * @param {import("../../Blueprint").default} blueprint
+     * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
         options = IKeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey);
@@ -1737,8 +1678,8 @@ class LinkTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {LinkElement} link connecting two graph nodes 
-     * @returns The result html 
+     * @param {LinkElement} link connecting two graph nodes
+     * @returns The result html
      */
     render(link) {
         const uniqueId = crypto.randomUUID();
@@ -1766,7 +1707,6 @@ class LinkTemplate extends ITemplate {
     }
 
     /**
-     * 
      * @param {LinkElement} link element
      */
     applyStartDragging(link) {
@@ -1779,7 +1719,6 @@ class LinkTemplate extends ITemplate {
     }
 
     /**
-     * 
      * @param {LinkElement} link element
      */
     applyFinishDragging(link) {
@@ -1840,9 +1779,8 @@ class LinkTemplate extends ITemplate {
     }
 
     /**
-     * 
      * @param {LinkElement} link element
-     * @param {LinkMessageElement} linkMessage 
+     * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {
         link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove());
@@ -1894,16 +1832,14 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @returns {Number[]} 
+     * @returns {Number[]}
      */
     getSourceLocation() {
         return this.sourceLocation
     }
 
     /**
-     * 
-     * @param {Number[]} offset 
+     * @param {Number[]} offset
      */
     addSourceLocation(offset) {
         const location = [
@@ -1915,8 +1851,7 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {Number[]} location 
+     * @param {Number[]} location
      */
     setSourceLocation(location) {
         if (location == null) {
@@ -1927,7 +1862,6 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
      * @returns {Number[]}
      */
     getDestinationLocation() {
@@ -1935,8 +1869,7 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {Number[]} offset 
+     * @param {Number[]} offset
      */
     addDestinationLocation(offset) {
         const location = [
@@ -1947,8 +1880,7 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {Number[]} location 
+     * @param {Number[]} location
      */
     setDestinationLocation(location) {
         if (location == null) {
@@ -1959,7 +1891,6 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
      * @returns {PinElement}
      */
     getSourcePin() {
@@ -1967,7 +1898,7 @@ class LinkElement extends IElement {
     }
 
     /**
-     * @param {PinElement} pin 
+     * @param {PinElement} pin
      */
     setSourcePin(pin) {
         if (this.#source) {
@@ -1986,7 +1917,6 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
      * @returns {PinElement}
      */
     getDestinationPin() {
@@ -1994,8 +1924,7 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {PinElement} pin 
+     * @param {PinElement} pin
      */
     setDestinationPin(pin) {
         if (this.#destination) {
@@ -2013,8 +1942,7 @@ class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {LinkMessageElement} linkMessage 
+     * @param {LinkMessageElement} linkMessage
      */
     setLinkMessage(linkMessage) {
         if (linkMessage) {
@@ -2044,9 +1972,7 @@ class IPointing extends IContext {
     }
 
     /**
-     * 
-     * @param {MouseEvent} mouseEvent 
-     * @returns 
+     * @param {MouseEvent} mouseEvent
      */
     locationFromEvent(mouseEvent) {
         return this.blueprint.compensateTranslation(
@@ -2275,10 +2201,9 @@ class MouseTracking extends IPointing {
 class MouseMoveNodes extends IMouseClickDrag {
 
     /**
-     * 
-     * @param {ISelectableDraggableElement} target 
-     * @param {*} blueprint 
-     * @param {*} options 
+     * @param {ISelectableDraggableElement} target
+     * @param {*} blueprint
+     * @param {*} options
      */
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
@@ -2404,8 +2329,7 @@ class LinkMessageTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {LinkMessageElement} linkMessage attached to link destination
-     * @returns The result html 
+     * @param {LinkMessageElement} linkMessage
      */
     render(linkMessage) {
         return html`
@@ -2416,7 +2340,7 @@ class LinkMessageTemplate extends ITemplate {
 
     /**
      * Applies the style to the element.
-     * @param {LinkMessageElement} linkMessage element
+     * @param {LinkMessageElement} linkMessage
      */
     apply(linkMessage) {
         super.apply(linkMessage);
@@ -2495,7 +2419,7 @@ class LinkMessageElement extends IElement {
 
 customElements.define(LinkMessageElement.tagName, LinkMessageElement);
 
-/** 
+/**
  * @typedef {import("../../element/LinkElement").default} LinkElement
  * @typedef {import("../../element/PinElement").default} PinElement
  */
@@ -2602,8 +2526,8 @@ class PinTemplate extends ITemplate {
 
     /**
      * Computes the html content of the pin.
-     * @param {PinElement} pin html element 
-     * @returns The result html 
+     * @param {PinElement} pin html element
+     * @returns The result html
      */
     render(pin) {
         if (pin.isInput()) {
@@ -2635,7 +2559,7 @@ class PinTemplate extends ITemplate {
 
     /**
      * Applies the connection style to the element.
-     * @param {PinElement} pin 
+     * @param {PinElement} pin
      */
     applyConnected(pin) {
         if (pin.isConnected()) {
@@ -2646,9 +2570,7 @@ class PinTemplate extends ITemplate {
     }
 
     /**
-     * 
-     * @param {PinElement} pin 
-     * @returns 
+     * @param {PinElement} pin
      */
     getLinkLocation(pin) {
         const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect();
@@ -2691,7 +2613,6 @@ class PinElement extends IElement {
     }
 
     /**
-     * 
      * @returns {String}
      */
     getPinDisplayName() {
@@ -2771,8 +2692,8 @@ class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {NodeElement} node Graph node element 
-     * @returns The result html 
+     * @param {NodeElement} node Graph node element
+     * @returns The result html
      */
     render(node) {
         return html`
@@ -2819,8 +2740,7 @@ class NodeElement extends ISelectableDraggableElement {
     static tagName = "ueb-node"
 
     /**
-     * 
-     * @param {ObjectEntity} entity 
+     * @param {ObjectEntity} entity
      */
     constructor(entity) {
         super(entity, new NodeTemplate());
@@ -2841,7 +2761,6 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     /**
-     * 
      * @returns {PinEntity[]}
      */
     getPinEntities() {
@@ -2963,8 +2882,7 @@ class Unfocus extends IContext {
     }
 
     /**
-     * 
-     * @param {HTMLElement} e 
+     * @param {HTMLElement} e
      */
     clickedSomewhere(target) {
         // If target is outside the blueprint grid
@@ -2991,10 +2909,9 @@ class IMouseWheel extends IPointing {
     #mouseParentWheelHandler
 
     /**
-     * 
-     * @param {HTMLElement} target 
-     * @param {import("../../Blueprint").default} blueprint 
-     * @param {Object} options 
+     * @param {HTMLElement} target
+     * @param {import("../../Blueprint").default} blueprint
+     * @param {Object} options
      */
     constructor(target, blueprint, options) {
         options.wantsFocusCallback = true;
@@ -3354,8 +3271,7 @@ class Blueprint extends IElement {
     }
 
     /**
-     * 
-     * @param  {...IElement} graphElements 
+     * @param  {...IElement} graphElements
      */
     addGraphElement(...graphElements) {
         if (this.nodesContainerElement) {
@@ -3378,8 +3294,7 @@ class Blueprint extends IElement {
     }
 
     /**
-     * 
-     * @param  {...IElement} graphElements 
+     * @param  {...IElement} graphElements
      */
     removeGraphElement(...graphElements) {
         let removed = false;

@@ -35,7 +35,6 @@ export default class PinElement extends IElement {
     }
 
     /**
-     * 
      * @returns {String}
      */
     getPinDisplayName() {

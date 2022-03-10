@@ -13,9 +13,9 @@ export default class Configuration {
     static linkCurveWidth = 80 // pixel
     static linkMinWidth = 100 // pixel
     /**
-     * @param {Number} start 
-     * @param {Number} c1 
-     * @param {Number} c2 
+     * @param {Number} start
+     * @param {Number} c1
+     * @param {Number} c2
      * @returns {String}
      */
     static linkRightSVGPath = (start, c1, c2) => {

@@ -21,9 +21,8 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * 
-     * @param {Blueprint} element 
-     * @returns 
+     * @param {Blueprint} element
+     * @returns
      */
     viewport(element) {
         return html`
@@ -43,8 +42,8 @@ export default class BlueprintTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {HTMLElement} element Target element 
-     * @returns The computed html 
+     * @param {HTMLElement} element Target element
+     * @returns The computed html
      */
     render(element) {
         return html`

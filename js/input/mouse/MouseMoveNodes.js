@@ -7,10 +7,9 @@ import Utility from "../../Utility"
 export default class MouseMoveNodes extends IMouseClickDrag {
 
     /**
-     * 
-     * @param {ISelectableDraggableElement} target 
-     * @param {*} blueprint 
-     * @param {*} options 
+     * @param {ISelectableDraggableElement} target
+     * @param {*} blueprint
+     * @param {*} options
      */
     constructor(target, blueprint, options) {
         super(target, blueprint, options)

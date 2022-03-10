@@ -78,7 +78,7 @@ export default class FastSelectionModel {
 
     computeBoundaries() {
         this.boundaries = {
-            // Primary axis negative expanding 
+            // Primary axis negative expanding
             primaryN: {
                 v: this.primaryOrder.getPrevValue(),
                 i: this.primaryOrder.getPrev()

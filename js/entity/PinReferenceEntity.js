@@ -8,7 +8,4 @@ export default class PinReferenceEntity extends IEntity {
         objectName: PathSymbolEntity,
         pinGuid: GuidEntity
     }
-
-    /** @type {PathSymbolEntity} */ objectName
-    /** @type {GuidEntity} */ pinGuid
 }

@@ -6,7 +6,7 @@ export default class ITemplate {
     /**
      * Computes the html content of the target element.
      * @param {IElement} entity Element of the graph
-     * @returns The result html 
+     * @returns The result html
      */
     render(entity) {
         return ""

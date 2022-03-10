@@ -10,8 +10,8 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {NodeElement} node Graph node element 
-     * @returns The result html 
+     * @param {NodeElement} node Graph node element
+     * @returns The result html
      */
     render(node) {
         return html`

@@ -6,7 +6,4 @@ export default class ObjectReferenceEntity extends IEntity {
         type: String,
         path: String
     }
-
-    /** @type {String} */ type
-    /** @type {String} */ path
 }

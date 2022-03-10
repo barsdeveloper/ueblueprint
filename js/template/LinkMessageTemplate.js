@@ -10,8 +10,7 @@ export default class LinkMessageTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {LinkMessageElement} linkMessage attached to link destination
-     * @returns The result html 
+     * @param {LinkMessageElement} linkMessage
      */
     render(linkMessage) {
         return html`
@@ -22,7 +21,7 @@ export default class LinkMessageTemplate extends ITemplate {
 
     /**
      * Applies the style to the element.
-     * @param {LinkMessageElement} linkMessage element
+     * @param {LinkMessageElement} linkMessage
      */
     apply(linkMessage) {
         super.apply(linkMessage)

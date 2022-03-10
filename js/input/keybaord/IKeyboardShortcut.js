@@ -62,7 +62,6 @@ export default class IKeyboardShortcut extends IContext {
     }
 
     /**
-     * 
      * @param {String} keyString
      * @returns {Object}
      */

@@ -30,8 +30,7 @@ export default class ObjectSerializer extends ISerializer {
     }
 
     /**
-     * 
-     * @param {String} value 
+     * @param {String} value
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
@@ -44,9 +43,7 @@ export default class ObjectSerializer extends ISerializer {
     }
 
     /**
-     * 
-     * @param {ObjectEntity} object 
-     * @returns 
+     * @param {ObjectEntity} object
      */
     write(object) {
         let result = `Begin Object Class=${this.writeValue(object.Class)} Name=${this.writeValue(object.Name)}

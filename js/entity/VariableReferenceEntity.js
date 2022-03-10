@@ -8,8 +8,4 @@ export default class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: false
     }
-
-    /** @type {String} */ MemberName
-    /** @type {GuidEntity} */ MemberGuid
-    /** @type {Boolean} */ bSelfContext
 }

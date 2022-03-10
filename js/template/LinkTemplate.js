@@ -59,8 +59,8 @@ export default class LinkTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {LinkElement} link connecting two graph nodes 
-     * @returns The result html 
+     * @param {LinkElement} link connecting two graph nodes
+     * @returns The result html
      */
     render(link) {
         const uniqueId = crypto.randomUUID()
@@ -88,7 +88,6 @@ export default class LinkTemplate extends ITemplate {
     }
 
     /**
-     * 
      * @param {LinkElement} link element
      */
     applyStartDragging(link) {
@@ -101,7 +100,6 @@ export default class LinkTemplate extends ITemplate {
     }
 
     /**
-     * 
      * @param {LinkElement} link element
      */
     applyFinishDragging(link) {
@@ -163,9 +161,8 @@ export default class LinkTemplate extends ITemplate {
     }
 
     /**
-     * 
      * @param {LinkElement} link element
-     * @param {LinkMessageElement} linkMessage 
+     * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {
         link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove())

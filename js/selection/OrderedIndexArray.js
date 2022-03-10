@@ -12,7 +12,6 @@ export default class OrderedIndexArray {
     }
 
     /**
-     * 
      * @param {number} index The index of the value to return
      * @returns The element of the array
      */
@@ -58,7 +57,7 @@ export default class OrderedIndexArray {
         }
     }
 
-    /** 
+    /**
      * Inserts the element in the array.
      * @param element {number} The value to insert into the array.
      * @returns {number} The position into occupied by value into the array.

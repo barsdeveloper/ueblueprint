@@ -16,10 +16,9 @@ export default class Utility {
     }
 
     /**
-     * 
-     * @param {Number[]} viewportLocation 
-     * @param {HTMLElement} movementElement 
-     * @returns 
+     * @param {Number[]} viewportLocation
+     * @param {HTMLElement} movementElement
+     * @returns
      */
     static convertLocation(viewportLocation, movementElement) {
         const scaleCorrection = 1 / Utility.getScale(movementElement)
@@ -33,14 +32,14 @@ export default class Utility {
 
     /**
      * Sets a value in an object
+     * @param {Object} target Object holding the data
      * @param {String[]} keys The chained keys to access from object in order to set the value
-     * @param {any} value Value to be set
-     * @param {Object} target Object holding the data 
+     * @param {*} value Value to be set
      * @param {Boolean} create Whether to create or not the key in case it doesn't exist
      * @returns {Boolean} Returns true on succes, false otherwise
      */
     static objectSet(target, keys, value, create = false) {
-        if (keys.constructor != Array) {
+        if (!(keys instanceof Array)) {
             console.error("Expected keys to be an array.")
         }
         if (keys.length == 1) {
@@ -49,7 +48,7 @@ export default class Utility {
                 return true
             }
         } else if (keys.length > 0) {
-            if (create && target[keys[0]] === undefined) {
+            if (create && !(target[keys[0]] instanceof Object)) {
                 target[keys[0]] = {}
             }
             return Utility.objectSet(target[keys[0]], keys.slice(1), value, create)
@@ -59,13 +58,13 @@ export default class Utility {
 
     /**
      * Gets a value from an object, gives defaultValue in case of failure
-     * @param {Object} source Object holding the data 
+     * @param {Object} source Object holding the data
      * @param {String[]} keys The chained keys to access from object in order to get the value
      * @param {any} defaultValue Value to return in case from doesn't have it
      * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
      */
     static objectGet(source, keys, defaultValue = null) {
-        if (keys.constructor != Array) {
+        if (!(keys instanceof Array)) {
             console.error("Expected keys to be an array.")
         }
         if (keys.length == 0 || !(keys[0] in source) || source[keys[0]] === undefined) {
@@ -84,8 +83,8 @@ export default class Utility {
     }
 
     /**
-     * 
-     * @param {String} value 
+     *
+     * @param {String} value
      */
     static FirstCapital(value) {
         return value.charAt(0).toUpperCase() + value.substring(1)
@@ -104,9 +103,8 @@ export default class Utility {
     }
 
     /**
-     * 
-     * @param {Number[]} location 
-     * @param {Number} gridSize 
+     * @param {Number[]} location
+     * @param {Number} gridSize
      */
     static snapToGrid(location, gridSize = Configuration.gridSize) {
         if (gridSize === 1) {

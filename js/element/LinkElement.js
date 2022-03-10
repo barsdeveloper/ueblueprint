@@ -45,16 +45,14 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @returns {Number[]} 
+     * @returns {Number[]}
      */
     getSourceLocation() {
         return this.sourceLocation
     }
 
     /**
-     * 
-     * @param {Number[]} offset 
+     * @param {Number[]} offset
      */
     addSourceLocation(offset) {
         const location = [
@@ -66,8 +64,7 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {Number[]} location 
+     * @param {Number[]} location
      */
     setSourceLocation(location) {
         if (location == null) {
@@ -78,7 +75,6 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
      * @returns {Number[]}
      */
     getDestinationLocation() {
@@ -86,8 +82,7 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {Number[]} offset 
+     * @param {Number[]} offset
      */
     addDestinationLocation(offset) {
         const location = [
@@ -98,8 +93,7 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {Number[]} location 
+     * @param {Number[]} location
      */
     setDestinationLocation(location) {
         if (location == null) {
@@ -110,7 +104,6 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
      * @returns {PinElement}
      */
     getSourcePin() {
@@ -118,7 +111,7 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * @param {PinElement} pin 
+     * @param {PinElement} pin
      */
     setSourcePin(pin) {
         if (this.#source) {
@@ -137,7 +130,6 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
      * @returns {PinElement}
      */
     getDestinationPin() {
@@ -145,8 +137,7 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {PinElement} pin 
+     * @param {PinElement} pin
      */
     setDestinationPin(pin) {
         if (this.#destination) {
@@ -164,8 +155,7 @@ export default class LinkElement extends IElement {
     }
 
     /**
-     * 
-     * @param {LinkMessageElement} linkMessage 
+     * @param {LinkMessageElement} linkMessage
      */
     setLinkMessage(linkMessage) {
         if (linkMessage) {
