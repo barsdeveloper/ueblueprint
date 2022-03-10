@@ -65,17 +65,49 @@ export default class PinEntity extends IEntity {
     }
 
     /**
-     * @param {PinReferenceEntity} pinReferenceEntity
+     * @param {String} targetObjectName
+     * @param {PinEntity} targetPinEntity
      */
-    connectTo(pinReferenceEntity) {
+    linkTo(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo
-        this.LinkedTo.forEach(reference => {
+        const pinExists = !this.LinkedTo.find(
+            /** @type {PinReferenceEntity} */
+            pinReferenceEntity => {
+                return pinReferenceEntity.objectName == targetObjectName
+                    && pinReferenceEntity.pinGuid == targetPinEntity.PinId
+            })
+        if (pinExists) {
+            this.LinkedTo.push(new PinReferenceEntity({
+                objectName: targetObjectName,
+                pinGuid: targetPinEntity.PinId
+            }))
+            return true
+        }
+        return false
+    }
 
-        })
+    /**
+     * @param {String} targetObjectName
+     * @param {PinEntity} targetPinEntity
+     */
+    unlinkFrom(targetObjectName, targetPinEntity) {
+        /** @type {PinReferenceEntity[]} */
+        this.LinkedTo
+        const indexElement = this.LinkedTo.findIndex(
+            /** @type {PinReferenceEntity} */
+            pinReferenceEntity => {
+                return pinReferenceEntity.objectName == targetObjectName
+                    && pinReferenceEntity.pinGuid == targetPinEntity.PinId
+            })
+        if (indexElement >= 0) {
+            this.LinkedTo.splice(indexElement, 1)
+            return true
+        }
+        return false
     }
 
     getType() {
-        return this.PinType.PinCategory ?? "object"
+        return this.PinType.PinCategory
     }
 }

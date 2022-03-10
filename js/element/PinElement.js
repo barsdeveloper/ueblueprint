@@ -2,9 +2,15 @@ import IElement from "./IElement"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import PinTemplate from "../template/PinTemplate"
 
+/**
+ * @typedef {import("./NodeElement").default} NodeElement
+ */
 export default class PinElement extends IElement {
 
     static tagName = "ueb-pin"
+
+    /** @type {NodeElement} */
+    nodeElement
 
     /** @type {HTMLElement} */
     clickableElement
@@ -37,8 +43,15 @@ export default class PinElement extends IElement {
     /**
      * @returns {String}
      */
-    getPinDisplayName() {
+    getPinName() {
         return this.entity.PinName
+    }
+
+    /**
+     * @returns {String}
+     */
+    getPinDisplayName() {
+        return this.entity.PinFriendlyName
     }
 
     isInput() {
@@ -75,6 +88,20 @@ export default class PinElement extends IElement {
 
     getNodeElement() {
         return this.closest("ueb-node")
+    }
+
+    /**
+     * @param {PinElement} targetPinElement
+     */
+    linkTo(targetPinElement) {
+        this.entity.linkTo(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
+    }
+
+    /**
+     * @param {PinElement} targetPinElement
+     */
+    unlinkFrom(targetPinElement) {
+        this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
     }
 }
 

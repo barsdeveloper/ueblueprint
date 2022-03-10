@@ -42,6 +42,19 @@ export default class LinkElement extends IElement {
         if (destination) {
             this.setDestinationPin(destination)
         }
+        if (source && destination) {
+            this.#linkPins()
+        }
+    }
+
+    #linkPins() {
+        this.#source.linkTo(this.#destination)
+        this.#destination.linkTo(this.#source)
+    }
+
+    #unlinkPins() {
+        this.#source.unlinkFrom(this.#destination)
+        this.#destination.unlinkFrom(this.#source)
     }
 
     /**
@@ -118,6 +131,9 @@ export default class LinkElement extends IElement {
             const nodeElement = this.#source.getNodeElement()
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+            if (this.#destination) {
+                this.#unlinkPins()
+            }
         }
         this.#source = pin
         if (this.#source) {
@@ -126,6 +142,9 @@ export default class LinkElement extends IElement {
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
             this.setSourceLocation()
+            if (this.#destination) {
+                this.#linkPins()
+            }
         }
     }
 
@@ -144,6 +163,9 @@ export default class LinkElement extends IElement {
             const nodeElement = this.#destination.getNodeElement()
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
+            if (this.#source) {
+                this.#unlinkPins()
+            }
         }
         this.#destination = pin
         if (this.#destination) {
@@ -151,6 +173,9 @@ export default class LinkElement extends IElement {
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
             this.setDestinationLocation()
+            if (this.#source) {
+                this.#linkPins()
+            }
         }
     }
 

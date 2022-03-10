@@ -4,6 +4,7 @@ import sanitizeText from "./sanitizeText"
 import Utility from "../Utility"
 
 /**
+ * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
 export default class PinTemplate extends ITemplate {
@@ -39,6 +40,10 @@ export default class PinTemplate extends ITemplate {
             pin.isConnected() ? "ueb-pin-fill" : null
         )
         pin.clickableElement = pin
+        pin.nodeElement = pin.closest("ueb-node")
+        if (!pin.nodeElement) {
+            window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage)
+        }
     }
 
     /**

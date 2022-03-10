@@ -1107,18 +1107,50 @@ class PinEntity extends IEntity {
     }
 
     /**
-     * @param {PinReferenceEntity} pinReferenceEntity
+     * @param {String} targetObjectName
+     * @param {PinEntity} targetPinEntity
      */
-    connectTo(pinReferenceEntity) {
+    linkTo(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
-        this.LinkedTo.forEach(reference => {
+        const pinExists = !this.LinkedTo.find(
+            /** @type {PinReferenceEntity} */
+            pinReferenceEntity => {
+                return pinReferenceEntity.objectName == targetObjectName
+                    && pinReferenceEntity.pinGuid == targetPinEntity.PinId
+            });
+        if (pinExists) {
+            this.LinkedTo.push(new PinReferenceEntity({
+                objectName: targetObjectName,
+                pinGuid: targetPinEntity.PinId
+            }));
+            return true
+        }
+        return false
+    }
 
-        });
+    /**
+     * @param {String} targetObjectName
+     * @param {PinEntity} targetPinEntity
+     */
+    unlinkFrom(targetObjectName, targetPinEntity) {
+        /** @type {PinReferenceEntity[]} */
+        this.LinkedTo;
+        const indexElement = this.LinkedTo.findIndex(
+            /** @type {PinReferenceEntity} */
+            pinReferenceEntity => {
+                return pinReferenceEntity.objectName == targetObjectName
+                    && pinReferenceEntity.pinGuid == targetPinEntity.PinId
+            });
+        if (indexElement >= 0) {
+            this.LinkedTo.splice(indexElement, 1);
+            return true
+        }
+        return false
     }
 
     getType() {
-        return this.PinType.PinCategory ?? "object"
+        return this.PinType.PinCategory
     }
 }
 
@@ -1152,7 +1184,7 @@ class ObjectEntity extends IEntity {
     /**
      * @returns {String} The name of the node
      */
-    getNodeDisplayName() {
+    getName() {
         return this.Name
     }
 }
@@ -1644,7 +1676,7 @@ class LinkTemplate extends ITemplate {
         return x => a / x + q
     }
 
-    /*
+    /**
      * Returns a function performing a clamped line passing through two points. It is clamped after and before the
      * points. It is easier explained with an example.
      *            b ______
@@ -1674,7 +1706,7 @@ class LinkTemplate extends ITemplate {
 
     static c2DecreasingValue = LinkTemplate.decreasingValue(-0.06, [500, 130])
 
-    static c1Clamped = LinkTemplate.clampedLine([0, 100], [100, 30])
+    static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
     /**
      * Computes the html content of the target element.
@@ -1768,11 +1800,8 @@ class LinkTemplate extends ITemplate {
                 : 10
             )
             * fillRatio;
-        let c2 = LinkTemplate.clampedLine([0, 100], [100, 30])(xInverted ? -dx : dx) + start;
-        c2 = Math.min(
-            c2,
-            LinkTemplate.c2DecreasingValue(width)
-        );
+        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start;
+        c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width));
         const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d and css will have enough functions
         link.pathElement.setAttribute("d", d);
@@ -1829,6 +1858,19 @@ class LinkElement extends IElement {
         if (destination) {
             this.setDestinationPin(destination);
         }
+        if (source && destination) {
+            this.#linkPins();
+        }
+    }
+
+    #linkPins() {
+        this.#source.linkTo(this.#destination);
+        this.#destination.linkTo(this.#source);
+    }
+
+    #unlinkPins() {
+        this.#source.unlinkFrom(this.#destination);
+        this.#destination.unlinkFrom(this.#source);
     }
 
     /**
@@ -1905,6 +1947,9 @@ class LinkElement extends IElement {
             const nodeElement = this.#source.getNodeElement();
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
+            if (this.#destination) {
+                this.#unlinkPins();
+            }
         }
         this.#source = pin;
         if (this.#source) {
@@ -1913,6 +1958,9 @@ class LinkElement extends IElement {
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
             this.setSourceLocation();
+            if (this.#destination) {
+                this.#linkPins();
+            }
         }
     }
 
@@ -1931,6 +1979,9 @@ class LinkElement extends IElement {
             const nodeElement = this.#destination.getNodeElement();
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
+            if (this.#source) {
+                this.#unlinkPins();
+            }
         }
         this.#destination = pin;
         if (this.#destination) {
@@ -1938,6 +1989,9 @@ class LinkElement extends IElement {
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
             this.setDestinationLocation();
+            if (this.#source) {
+                this.#linkPins();
+            }
         }
     }
 
@@ -2520,6 +2574,7 @@ class MouseCreateLink extends IMouseClickDrag {
 }
 
 /**
+ * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
 class PinTemplate extends ITemplate {
@@ -2555,6 +2610,10 @@ class PinTemplate extends ITemplate {
             pin.isConnected() ? "ueb-pin-fill" : null
         );
         pin.clickableElement = pin;
+        pin.nodeElement = pin.closest("ueb-node");
+        if (!pin.nodeElement) {
+            window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage);
+        }
     }
 
     /**
@@ -2580,9 +2639,15 @@ class PinTemplate extends ITemplate {
     }
 }
 
+/**
+ * @typedef {import("./NodeElement").default} NodeElement
+ */
 class PinElement extends IElement {
 
     static tagName = "ueb-pin"
+
+    /** @type {NodeElement} */
+    nodeElement
 
     /** @type {HTMLElement} */
     clickableElement
@@ -2615,8 +2680,15 @@ class PinElement extends IElement {
     /**
      * @returns {String}
      */
-    getPinDisplayName() {
+    getPinName() {
         return this.entity.PinName
+    }
+
+    /**
+     * @returns {String}
+     */
+    getPinDisplayName() {
+        return this.entity.PinFriendlyName
     }
 
     isInput() {
@@ -2653,6 +2725,20 @@ class PinElement extends IElement {
 
     getNodeElement() {
         return this.closest("ueb-node")
+    }
+
+    /**
+     * @param {PinElement} targetPinElement
+     */
+    linkTo(targetPinElement) {
+        this.entity.linkTo(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity);
+    }
+
+    /**
+     * @param {PinElement} targetPinElement
+     */
+    unlinkFrom(targetPinElement) {
+        this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity);
     }
 }
 
@@ -2702,7 +2788,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                     <div class="ueb-node-header">
                         <span class="ueb-node-name">
                             <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${sanitizeText(node.entity.getNodeDisplayName())}</span>
+                            <span class="ueb-node-text">${sanitizeText(node.entity.getName())}</span>
                         </span>
                     </div>
                     <div class="ueb-node-body">
@@ -2758,6 +2844,10 @@ class NodeElement extends ISelectableDraggableElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.dispatchDeleteEvent();
+    }
+
+    getNodeName() {
+        return this.entity.getName()
     }
 
     /**

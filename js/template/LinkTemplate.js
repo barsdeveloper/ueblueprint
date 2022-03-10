@@ -25,7 +25,7 @@ export default class LinkTemplate extends ITemplate {
         return x => a / x + q
     }
 
-    /*
+    /**
      * Returns a function performing a clamped line passing through two points. It is clamped after and before the
      * points. It is easier explained with an example.
      *            b ______
@@ -55,7 +55,7 @@ export default class LinkTemplate extends ITemplate {
 
     static c2DecreasingValue = LinkTemplate.decreasingValue(-0.06, [500, 130])
 
-    static c1Clamped = LinkTemplate.clampedLine([0, 100], [100, 30])
+    static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
     /**
      * Computes the html content of the target element.
@@ -150,11 +150,8 @@ export default class LinkTemplate extends ITemplate {
                 : 10
             )
             * fillRatio
-        let c2 = LinkTemplate.clampedLine([0, 100], [100, 30])(xInverted ? -dx : dx) + start
-        c2 = Math.min(
-            c2,
-            LinkTemplate.c2DecreasingValue(width)
-        )
+        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start
+        c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width))
         const d = Configuration.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d and css will have enough functions
         link.pathElement.setAttribute("d", d)

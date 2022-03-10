@@ -20,7 +20,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                     <div class="ueb-node-header">
                         <span class="ueb-node-name">
                             <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${sanitizeText(node.entity.getNodeDisplayName())}</span>
+                            <span class="ueb-node-text">${sanitizeText(node.entity.getName())}</span>
                         </span>
                     </div>
                     <div class="ueb-node-body">

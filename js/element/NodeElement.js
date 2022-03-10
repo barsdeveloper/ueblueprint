@@ -30,6 +30,10 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.dispatchDeleteEvent()
     }
 
+    getNodeName() {
+        return this.entity.getName()
+    }
+
     /**
      * @returns {PinEntity[]}
      */
