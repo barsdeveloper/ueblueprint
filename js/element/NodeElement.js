@@ -16,6 +16,8 @@ export default class NodeElement extends ISelectableDraggableElement {
         super(entity, new NodeTemplate())
         /** @type {ObjectEntity} */
         this.entity
+        /** @type {NodeTemplate} */
+        this.template
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX, this.entity.NodePosY])
     }
@@ -32,6 +34,10 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     getNodeName() {
         return this.entity.getName()
+    }
+
+    getPinElements() {
+        return this.template.getPinElements(this)
     }
 
     /**

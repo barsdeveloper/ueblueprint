@@ -51,4 +51,11 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)))
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)))
     }
+
+    /**
+     * @param {NodeElement} node
+     */
+    getPinElements(node) {
+        return node.querySelectorAll(PinElement.tagName)
+    }
 }

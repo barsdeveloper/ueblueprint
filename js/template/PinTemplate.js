@@ -2,6 +2,7 @@ import html from "./html"
 import ITemplate from "./ITemplate"
 import sanitizeText from "./sanitizeText"
 import Utility from "../Utility"
+import NodeElement from "../element/NodeElement"
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
@@ -36,14 +37,14 @@ export default class PinTemplate extends ITemplate {
         super.apply(pin)
         pin.classList.add(
             "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
-            "ueb-pin-" + sanitizeText(pin.getType()),
-            pin.isConnected() ? "ueb-pin-fill" : null
+            "ueb-pin-" + sanitizeText(pin.getType())
         )
         pin.clickableElement = pin
-        pin.nodeElement = pin.closest("ueb-node")
+        pin.nodeElement = pin.closest(NodeElement.tagName)
         if (!pin.nodeElement) {
             window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage)
         }
+        pin.getLin
     }
 
     /**

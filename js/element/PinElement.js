@@ -4,6 +4,7 @@ import PinTemplate from "../template/PinTemplate"
 
 /**
  * @typedef {import("./NodeElement").default} NodeElement
+ * @typedef {import("../entity/GuidEntity").default} GuidEntity
  */
 export default class PinElement extends IElement {
 
@@ -40,6 +41,11 @@ export default class PinElement extends IElement {
         ]
     }
 
+    /** @type {GuidEntity} */
+    GetPinId() {
+        return this.entity.PinId
+    }
+
     /**
      * @returns {String}
      */
@@ -51,7 +57,7 @@ export default class PinElement extends IElement {
      * @returns {String}
      */
     getPinDisplayName() {
-        return this.entity.PinFriendlyName
+        return this.entity.PinName
     }
 
     isInput() {
@@ -88,6 +94,12 @@ export default class PinElement extends IElement {
 
     getNodeElement() {
         return this.closest("ueb-node")
+    }
+
+    getLinks() {
+        return this.entity.LinkedTo.map(pinReference =>
+            pinReference
+        )
     }
 
     /**

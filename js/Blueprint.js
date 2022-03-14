@@ -18,6 +18,7 @@ import Zoom from "./input/mouse/Zoom"
 export default class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
+    #pinGuidMap = new Map()
     /** @type {number} */
     gridSize = Configuration.gridSize
     /** @type {NodeElement[]}" */
@@ -334,22 +335,36 @@ export default class Blueprint extends IElement {
      * @param  {...IElement} graphElements
      */
     addGraphElement(...graphElements) {
+        const intoArray = element => {
+            if (element instanceof NodeElement) {
+                this.nodes.push(element)
+                element.getPinElements().forEach(
+                    pinElement => this.#pinGuidMap[
+                        pinElement.]
+                )
+            } else if (element instanceof LinkElement) {
+                this.links.push(element)
+            }
+        }
         if (this.nodesContainerElement) {
             graphElements.forEach(element => {
                 if (element.closest(Blueprint.tagName) != this) {
+                    // If not already the in target DOM position
                     this.nodesContainerElement.appendChild(element)
+                    intoArray(element)
                 }
-                this.nodes = [...this.querySelectorAll(NodeElement.tagName)]
-                this.links = [...this.querySelectorAll(LinkElement.tagName)]
             })
         } else {
-            graphElements.forEach(element => {
-                if (element instanceof NodeElement) {
-                    this.nodes.push(element)
-                } else if (element instanceof LinkElement) {
-                    this.links.push(element)
-                }
-            })
+            graphElements
+                .filter(element => {
+                    if (element instanceof NodeElement) {
+                        return !this.nodes.includes(element)
+                    } else if (element instanceof LinkElement) {
+                        return !this.links.includes(element)
+                    }
+                    return false
+                })
+                .forEach(intoArray)
         }
     }
 

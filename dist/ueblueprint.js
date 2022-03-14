@@ -944,7 +944,7 @@ class IEntity {
                 if (defaultValue instanceof Function) {
                     defaultValue = TypeInitialization.sanitize(new defaultValue());
                 }
-                target[property] = defaultValue;
+                target[property] = TypeInitialization.sanitize(defaultValue);
             }
         };
         defineAllAttributes([], this, this.constructor.attributes);
@@ -2053,8 +2053,9 @@ class IMouseClickDrag extends IPointing {
     /** @type {(e: MouseEvent) => void} */
     #mouseUpHandler
 
-    /** @type {Boolean} */
     #trackingMouse = false
+
+    started = false
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
@@ -2063,7 +2064,6 @@ class IMouseClickDrag extends IPointing {
         this.moveEverywhere = options?.moveEverywhere ?? false;
         this.looseTarget = options?.looseTarget ?? false;
         this.consumeClickEvent = options?.consumeClickEvent ?? true;
-        this.started = false;
         this.clickedPosition = [0, 0];
 
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
@@ -2079,10 +2079,8 @@ class IMouseClickDrag extends IPointing {
                         if (this.consumeClickEvent) {
                             e.stopImmediatePropagation(); // Captured, don't call anyone else
                         }
-                        self.started = false;
                         // Attach the listeners
                         movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler);
-                        document.addEventListener("mouseup", self.#mouseUpHandler);
                         self.clickedPosition = self.locationFromEvent(e);
                         self.clicked(self.clickedPosition);
                     }
@@ -2097,9 +2095,13 @@ class IMouseClickDrag extends IPointing {
 
         this.#mouseStartedMovingHandler = e => {
             e.preventDefault();
+            if (this.consumeClickEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            }
             // Delegate from now on to self.#mouseMoveHandler
             movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
+            document.addEventListener("mouseup", self.#mouseUpHandler);
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
             const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
             self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
@@ -2110,6 +2112,9 @@ class IMouseClickDrag extends IPointing {
 
         this.#mouseMoveHandler = e => {
             e.preventDefault();
+            if (this.consumeClickEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            }
             const location = self.locationFromEvent(e);
             const movement = [e.movementX, e.movementY];
             self.dragTo(location, movement);
@@ -2121,6 +2126,9 @@ class IMouseClickDrag extends IPointing {
         this.#mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
                 e.preventDefault();
+                if (this.consumeClickEvent) {
+                    e.stopImmediatePropagation(); // Captured, don't call anyone else
+                }
                 // Remove the handlers of "mousemove" and "mouseup"
                 movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
                 movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler);
@@ -2131,6 +2139,7 @@ class IMouseClickDrag extends IPointing {
                     this.target.dispatchEvent(dragEvent);
                     self.#trackingMouse = false;
                 }
+                self.started = false;
             }
         };
 
@@ -2504,6 +2513,7 @@ class MouseCreateLink extends IMouseClickDrag {
         let self = this;
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
+                e.preventDefault();
                 self.linkValid = false;
                 self.enteredPin = e.target;
                 const a = self.enteredPin, b = self.target;
@@ -2524,6 +2534,7 @@ class MouseCreateLink extends IMouseClickDrag {
         };
         this.#mouseleaveHandler = e => {
             if (self.enteredPin == e.target) {
+                e.preventDefault();
                 self.enteredPin = null;
                 self.linkValid = false;
                 this.setLinkMessage(LinkMessageElement.placeNode());
@@ -2565,6 +2576,7 @@ class MouseCreateLink extends IMouseClickDrag {
         }
         this.enteredPin = null;
         this.link = null;
+        this.#listenedPins = null;
     }
 
     setLinkMessage(linkMessage) {
@@ -2606,11 +2618,10 @@ class PinTemplate extends ITemplate {
         super.apply(pin);
         pin.classList.add(
             "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
-            "ueb-pin-" + sanitizeText(pin.getType()),
-            pin.isConnected() ? "ueb-pin-fill" : null
+            "ueb-pin-" + sanitizeText(pin.getType())
         );
         pin.clickableElement = pin;
-        pin.nodeElement = pin.closest("ueb-node");
+        pin.nodeElement = pin.closest(NodeElement.tagName);
         if (!pin.nodeElement) {
             window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage);
         }
@@ -2688,7 +2699,7 @@ class PinElement extends IElement {
      * @returns {String}
      */
     getPinDisplayName() {
-        return this.entity.PinFriendlyName
+        return this.entity.PinName
     }
 
     isInput() {

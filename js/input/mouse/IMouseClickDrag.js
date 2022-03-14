@@ -18,8 +18,9 @@ export default class IMouseClickDrag extends IPointing {
     /** @type {(e: MouseEvent) => void} */
     #mouseUpHandler
 
-    /** @type {Boolean} */
     #trackingMouse = false
+
+    started = false
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
@@ -28,7 +29,6 @@ export default class IMouseClickDrag extends IPointing {
         this.moveEverywhere = options?.moveEverywhere ?? false
         this.looseTarget = options?.looseTarget ?? false
         this.consumeClickEvent = options?.consumeClickEvent ?? true
-        this.started = false
         this.clickedPosition = [0, 0]
 
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace
@@ -44,10 +44,8 @@ export default class IMouseClickDrag extends IPointing {
                         if (this.consumeClickEvent) {
                             e.stopImmediatePropagation() // Captured, don't call anyone else
                         }
-                        self.started = false
                         // Attach the listeners
                         movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler)
-                        document.addEventListener("mouseup", self.#mouseUpHandler)
                         self.clickedPosition = self.locationFromEvent(e)
                         self.clicked(self.clickedPosition)
                     }
@@ -62,9 +60,13 @@ export default class IMouseClickDrag extends IPointing {
 
         this.#mouseStartedMovingHandler = e => {
             e.preventDefault()
+            if (this.consumeClickEvent) {
+                e.stopImmediatePropagation() // Captured, don't call anyone else
+            }
             // Delegate from now on to self.#mouseMoveHandler
             movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler)
+            document.addEventListener("mouseup", self.#mouseUpHandler)
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
             const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin)
             self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
@@ -75,6 +77,9 @@ export default class IMouseClickDrag extends IPointing {
 
         this.#mouseMoveHandler = e => {
             e.preventDefault()
+            if (this.consumeClickEvent) {
+                e.stopImmediatePropagation() // Captured, don't call anyone else
+            }
             const location = self.locationFromEvent(e)
             const movement = [e.movementX, e.movementY]
             self.dragTo(location, movement)
@@ -86,6 +91,9 @@ export default class IMouseClickDrag extends IPointing {
         this.#mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
                 e.preventDefault()
+                if (this.consumeClickEvent) {
+                    e.stopImmediatePropagation() // Captured, don't call anyone else
+                }
                 // Remove the handlers of "mousemove" and "mouseup"
                 movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
                 movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler)
@@ -96,6 +104,7 @@ export default class IMouseClickDrag extends IPointing {
                     this.target.dispatchEvent(dragEvent)
                     self.#trackingMouse = false
                 }
+                self.started = false
             }
         }
 

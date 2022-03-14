@@ -46,7 +46,7 @@ export default class IEntity {
                 if (defaultValue instanceof Function) {
                     defaultValue = TypeInitialization.sanitize(new defaultValue())
                 }
-                target[property] = defaultValue
+                target[property] = TypeInitialization.sanitize(defaultValue)
             }
         }
         defineAllAttributes([], this, this.constructor.attributes)

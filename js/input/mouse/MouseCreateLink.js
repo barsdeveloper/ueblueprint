@@ -33,6 +33,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         let self = this
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
+                e.preventDefault()
                 self.linkValid = false
                 self.enteredPin = e.target
                 const a = self.enteredPin, b = self.target
@@ -53,6 +54,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         }
         this.#mouseleaveHandler = e => {
             if (self.enteredPin == e.target) {
+                e.preventDefault()
                 self.enteredPin = null
                 self.linkValid = false
                 this.setLinkMessage(LinkMessageElement.placeNode())
@@ -94,6 +96,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         }
         this.enteredPin = null
         this.link = null
+        this.#listenedPins = null
     }
 
     setLinkMessage(linkMessage) {
