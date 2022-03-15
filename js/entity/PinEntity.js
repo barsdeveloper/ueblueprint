@@ -71,13 +71,13 @@ export default class PinEntity extends IEntity {
     linkTo(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo
-        const pinExists = !this.LinkedTo.find(
+        const linkExists = this.LinkedTo.find(
             /** @type {PinReferenceEntity} */
             pinReferenceEntity => {
                 return pinReferenceEntity.objectName == targetObjectName
                     && pinReferenceEntity.pinGuid == targetPinEntity.PinId
             })
-        if (pinExists) {
+        if (!linkExists) {
             this.LinkedTo.push(new PinReferenceEntity({
                 objectName: targetObjectName,
                 pinGuid: targetPinEntity.PinId

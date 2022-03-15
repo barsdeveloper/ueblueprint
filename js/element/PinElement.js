@@ -107,6 +107,7 @@ export default class PinElement extends IElement {
      */
     linkTo(targetPinElement) {
         this.entity.linkTo(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
+        this.template.applyConnected(this)
     }
 
     /**
@@ -114,6 +115,7 @@ export default class PinElement extends IElement {
      */
     unlinkFrom(targetPinElement) {
         this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
+        this.template.applyConnected(this)
     }
 }
 

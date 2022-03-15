@@ -1,8 +1,9 @@
 import html from "./html"
 import ITemplate from "./ITemplate"
+import LinkElement from "../element/LinkElement"
+import NodeElement from "../element/NodeElement"
 import sanitizeText from "./sanitizeText"
 import Utility from "../Utility"
-import NodeElement from "../element/NodeElement"
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
@@ -40,11 +41,15 @@ export default class PinTemplate extends ITemplate {
             "ueb-pin-" + sanitizeText(pin.getType())
         )
         pin.clickableElement = pin
-        pin.nodeElement = pin.closest(NodeElement.tagName)
-        if (!pin.nodeElement) {
-            window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage)
-        }
-        pin.getLin
+        window.customElements.whenDefined(NodeElement.tagName).then(pin.nodeElement = pin.closest(NodeElement.tagName))
+        pin.getLinks().forEach(pinReference => {
+            const targetPin = pin.blueprint.getPin(pinReference.pinGuid)
+            if (linkedToPin) {
+                const [sourcePin, destinationPin] = pin.isOutput() ? [pin, targetPin] : [targetPin, pin]
+                pin.blueprint.addGraphElement(new LinkElement(sourcePin, destinationPin))
+            }
+        })
+
     }
 
     /**

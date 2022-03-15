@@ -1113,13 +1113,13 @@ class PinEntity extends IEntity {
     linkTo(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
-        const pinExists = !this.LinkedTo.find(
+        const linkExists = this.LinkedTo.find(
             /** @type {PinReferenceEntity} */
             pinReferenceEntity => {
                 return pinReferenceEntity.objectName == targetObjectName
                     && pinReferenceEntity.pinGuid == targetPinEntity.PinId
             });
-        if (pinExists) {
+        if (!linkExists) {
             this.LinkedTo.push(new PinReferenceEntity({
                 objectName: targetObjectName,
                 pinGuid: targetPinEntity.PinId
@@ -1411,7 +1411,7 @@ class ISerializer {
                 return `"${value}"`
         }
         if (value instanceof Array) {
-            return `(${value.map(v => serialize(v) + ",")})`
+            return `(${value.map(v => serialize(v) + ",").join("")})`
         }
         if (value instanceof IEntity) {
             return serialize(value)
@@ -1869,8 +1869,15 @@ class LinkElement extends IElement {
     }
 
     #unlinkPins() {
-        this.#source.unlinkFrom(this.#destination);
-        this.#destination.unlinkFrom(this.#source);
+        if (this.#source && this.#destination) {
+            this.#source.unlinkFrom(this.#destination);
+            this.#destination.unlinkFrom(this.#source);
+        }
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.#unlinkPins();
     }
 
     /**
@@ -2544,6 +2551,7 @@ class MouseCreateLink extends IMouseClickDrag {
 
     startDrag() {
         this.link = new LinkElement(this.target, null);
+        this.blueprint.nodesContainerElement.prepend(this.link);
         this.setLinkMessage(LinkMessageElement.placeNode());
         this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName);
         this.#listenedPins.forEach(pin => {
@@ -2581,7 +2589,6 @@ class MouseCreateLink extends IMouseClickDrag {
 
     setLinkMessage(linkMessage) {
         this.link.setLinkMessage(linkMessage);
-        this.blueprint.nodesContainerElement.prepend(this.link);
     }
 }
 
@@ -2621,10 +2628,15 @@ class PinTemplate extends ITemplate {
             "ueb-pin-" + sanitizeText(pin.getType())
         );
         pin.clickableElement = pin;
-        pin.nodeElement = pin.closest(NodeElement.tagName);
-        if (!pin.nodeElement) {
-            window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage);
-        }
+        window.customElements.whenDefined(NodeElement.tagName).then(pin.nodeElement = pin.closest(NodeElement.tagName));
+        pin.getLinks().forEach(pinReference => {
+            const targetPin = pin.blueprint.getPin(pinReference.pinGuid);
+            if (linkedToPin) {
+                const [sourcePin, destinationPin] = pin.isOutput() ? [pin, targetPin] : [targetPin, pin];
+                pin.blueprint.addGraphElement(new LinkElement(sourcePin, destinationPin));
+            }
+        });
+
     }
 
     /**
@@ -2652,6 +2664,7 @@ class PinTemplate extends ITemplate {
 
 /**
  * @typedef {import("./NodeElement").default} NodeElement
+ * @typedef {import("../entity/GuidEntity").default} GuidEntity
  */
 class PinElement extends IElement {
 
@@ -2686,6 +2699,11 @@ class PinElement extends IElement {
                 looseTarget: true
             }),
         ]
+    }
+
+    /** @type {GuidEntity} */
+    GetPinId() {
+        return this.entity.PinId
     }
 
     /**
@@ -2738,11 +2756,18 @@ class PinElement extends IElement {
         return this.closest("ueb-node")
     }
 
+    getLinks() {
+        return this.entity.LinkedTo.map(pinReference =>
+            pinReference
+        )
+    }
+
     /**
      * @param {PinElement} targetPinElement
      */
     linkTo(targetPinElement) {
         this.entity.linkTo(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity);
+        this.template.applyConnected(this);
     }
 
     /**
@@ -2750,6 +2775,7 @@ class PinElement extends IElement {
      */
     unlinkFrom(targetPinElement) {
         this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity);
+        this.template.applyConnected(this);
     }
 }
 
@@ -2830,6 +2856,14 @@ class NodeTemplate extends SelectableDraggableTemplate {
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)));
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)));
     }
+
+    /**
+     * @param {NodeElement} node
+     * @returns {NodeListOf<PinElement>}
+     */
+    getPinElements(node) {
+        return node.querySelectorAll(PinElement.tagName)
+    }
 }
 
 class NodeElement extends ISelectableDraggableElement {
@@ -2843,6 +2877,8 @@ class NodeElement extends ISelectableDraggableElement {
         super(entity, new NodeTemplate());
         /** @type {ObjectEntity} */
         this.entity;
+        /** @type {NodeTemplate} */
+        this.template;
         this.dragLinkObjects = [];
         super.setLocation([this.entity.NodePosX, this.entity.NodePosY]);
     }
@@ -2859,6 +2895,10 @@ class NodeElement extends ISelectableDraggableElement {
 
     getNodeName() {
         return this.entity.getName()
+    }
+
+    getPinElements() {
+        return this.template.getPinElements(this)
     }
 
     /**
@@ -3056,9 +3096,15 @@ class Zoom extends IMouseWheel {
     }
 }
 
+/**
+ * @typedef {import("./entity/GuidEntity").default} GuidEntity
+ * @typedef {import("./element/PinElement").default} PinElement
+ */
 class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
+    /** @type {WeakMap<GuidEntity, PinElement>} */
+    #pinGuidMap = new WeakMap()
     /** @type {number} */
     gridSize = Configuration.gridSize
     /** @type {NodeElement[]}" */
@@ -3328,7 +3374,6 @@ class Blueprint extends IElement {
 
     /**
      * Returns the list of nodes in this blueprint. It can filter the list providing just the selected ones.
-     * @returns {NodeElement[]} Nodes
      */
     getNodes(selected = false) {
         if (selected) {
@@ -3338,6 +3383,13 @@ class Blueprint extends IElement {
         } else {
             return this.nodes
         }
+    }
+
+    /**
+     * @param {GuidEntity} guid
+     */
+    getPin(guid) {
+        return this.#pinGuidMap[guid]
     }
 
     /**
@@ -3375,22 +3427,35 @@ class Blueprint extends IElement {
      * @param  {...IElement} graphElements
      */
     addGraphElement(...graphElements) {
+        const intoArray = element => {
+            if (element instanceof NodeElement) {
+                this.nodes.push(element);
+                element.getPinElements().forEach(
+                    pinElement => this.#pinGuidMap[pinElement.GetPinId()] = pinElement
+                );
+            } else if (element instanceof LinkElement) {
+                this.links.push(element);
+            }
+        };
         if (this.nodesContainerElement) {
             graphElements.forEach(element => {
                 if (element.closest(Blueprint.tagName) != this) {
+                    // If not already the in target DOM position
                     this.nodesContainerElement.appendChild(element);
+                    intoArray(element);
                 }
-                this.nodes = [...this.querySelectorAll(NodeElement.tagName)];
-                this.links = [...this.querySelectorAll(LinkElement.tagName)];
             });
         } else {
-            graphElements.forEach(element => {
-                if (element instanceof NodeElement) {
-                    this.nodes.push(element);
-                } else if (element instanceof LinkElement) {
-                    this.links.push(element);
-                }
-            });
+            graphElements
+                .filter(element => {
+                    if (element instanceof NodeElement) {
+                        return !this.nodes.includes(element)
+                    } else if (element instanceof LinkElement) {
+                        return !this.links.includes(element)
+                    }
+                    return false
+                })
+                .forEach(intoArray);
         }
     }
 

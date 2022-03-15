@@ -54,6 +54,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * @param {NodeElement} node
+     * @returns {NodeListOf<PinElement>}
      */
     getPinElements(node) {
         return node.querySelectorAll(PinElement.tagName)

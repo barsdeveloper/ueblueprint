@@ -53,8 +53,15 @@ export default class LinkElement extends IElement {
     }
 
     #unlinkPins() {
-        this.#source.unlinkFrom(this.#destination)
-        this.#destination.unlinkFrom(this.#source)
+        if (this.#source && this.#destination) {
+            this.#source.unlinkFrom(this.#destination)
+            this.#destination.unlinkFrom(this.#source)
+        }
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.#unlinkPins()
     }
 
     /**

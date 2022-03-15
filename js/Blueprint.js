@@ -15,10 +15,15 @@ import Unfocus from "./input/mouse/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/mouse/Zoom"
 
+/**
+ * @typedef {import("./entity/GuidEntity").default} GuidEntity
+ * @typedef {import("./element/PinElement").default} PinElement
+ */
 export default class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
-    #pinGuidMap = new Map()
+    /** @type {WeakMap<GuidEntity, PinElement>} */
+    #pinGuidMap = new WeakMap()
     /** @type {number} */
     gridSize = Configuration.gridSize
     /** @type {NodeElement[]}" */
@@ -288,7 +293,6 @@ export default class Blueprint extends IElement {
 
     /**
      * Returns the list of nodes in this blueprint. It can filter the list providing just the selected ones.
-     * @returns {NodeElement[]} Nodes
      */
     getNodes(selected = false) {
         if (selected) {
@@ -298,6 +302,13 @@ export default class Blueprint extends IElement {
         } else {
             return this.nodes
         }
+    }
+
+    /**
+     * @param {GuidEntity} guid
+     */
+    getPin(guid) {
+        return this.#pinGuidMap[guid]
     }
 
     /**
@@ -339,8 +350,7 @@ export default class Blueprint extends IElement {
             if (element instanceof NodeElement) {
                 this.nodes.push(element)
                 element.getPinElements().forEach(
-                    pinElement => this.#pinGuidMap[
-                        pinElement.]
+                    pinElement => this.#pinGuidMap[pinElement.GetPinId()] = pinElement
                 )
             } else if (element instanceof LinkElement) {
                 this.links.push(element)

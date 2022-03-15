@@ -35,7 +35,7 @@ export default class ISerializer {
                 return `"${value}"`
         }
         if (value instanceof Array) {
-            return `(${value.map(v => serialize(v) + ",")})`
+            return `(${value.map(v => serialize(v) + ",").join("")})`
         }
         if (value instanceof IEntity) {
             return serialize(value)

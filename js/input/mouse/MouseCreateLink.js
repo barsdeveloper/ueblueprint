@@ -64,6 +64,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
 
     startDrag() {
         this.link = new LinkElement(this.target, null)
+        this.blueprint.nodesContainerElement.prepend(this.link)
         this.setLinkMessage(LinkMessageElement.placeNode())
         this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName)
         this.#listenedPins.forEach(pin => {
@@ -101,6 +102,5 @@ export default class MouseCreateLink extends IMouseClickDrag {
 
     setLinkMessage(linkMessage) {
         this.link.setLinkMessage(linkMessage)
-        this.blueprint.nodesContainerElement.prepend(this.link)
     }
 }
