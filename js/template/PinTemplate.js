@@ -44,7 +44,7 @@ export default class PinTemplate extends ITemplate {
         window.customElements.whenDefined(NodeElement.tagName).then(pin.nodeElement = pin.closest(NodeElement.tagName))
         pin.getLinks().forEach(pinReference => {
             const targetPin = pin.blueprint.getPin(pinReference.pinGuid)
-            if (linkedToPin) {
+            if (targetPin) {
                 const [sourcePin, destinationPin] = pin.isOutput() ? [pin, targetPin] : [targetPin, pin]
                 pin.blueprint.addGraphElement(new LinkElement(sourcePin, destinationPin))
             }
