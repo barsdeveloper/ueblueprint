@@ -3,7 +3,7 @@ import IEntity from "./IEntity"
 export default class PathSymbolEntity extends IEntity {
 
     static attributes = {
-        value: String
+        value: String,
     }
 
     toString() {

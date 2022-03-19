@@ -6,6 +6,6 @@ export default class VariableReferenceEntity extends IEntity {
     static attributes = {
         MemberName: String,
         MemberGuid: GuidEntity,
-        bSelfContext: false
+        bSelfContext: false,
     }
 }

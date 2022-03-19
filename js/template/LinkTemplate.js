@@ -154,7 +154,7 @@ export default class LinkTemplate extends ITemplate {
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width))
         const d = Configuration.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d and css will have enough functions
-        link.pathElement.setAttribute("d", d)
+        link.pathElement?.setAttribute("d", d)
     }
 
     /**

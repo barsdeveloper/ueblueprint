@@ -22,11 +22,11 @@ export default class ObjectEntity extends IEntity {
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
-        CustomProperties: [PinEntity]
+        CustomProperties: [PinEntity],
     }
 
     /**
-     * @returns {String} The name of the node
+     * @returns {String}
      */
     getName() {
         return this.Name

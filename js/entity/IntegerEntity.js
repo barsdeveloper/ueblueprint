@@ -3,13 +3,13 @@ import IEntity from "./IEntity"
 export default class IntegerEntity extends IEntity {
 
     static attributes = {
-        value: Number
+        value: Number,
     }
 
     constructor(options = {}) {
-        if (options.constructor === Number || options.constructor === String) {
+        if (options.constructor == Number || options.constructor == String) {
             options = {
-                value: options
+                value: options,
             }
         }
         super(options)

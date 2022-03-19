@@ -51,14 +51,14 @@ export default class ISerializer {
         let result = ""
         let fullKey = key.concat("")
         const last = fullKey.length - 1
-        for (const property in object) {
+        for (const property of Object.getOwnPropertyNames(object)) {
             fullKey[last] = property
             const value = object[property]
             if (object[property]?.constructor === Object) {
                 // Recursive call when finding an object
                 result += (result.length ? this.separator : "")
                     + this.subWrite(fullKey, value)
-            } else if (this.showProperty(fullKey, value)) {
+            } else if (value !== undefined && this.showProperty(fullKey, value)) {
                 result += (result.length ? this.separator : "")
                     + this.prefix
                     + this.attributeKeyPrinter(fullKey)

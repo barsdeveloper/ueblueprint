@@ -46,6 +46,11 @@ export default class PinElement extends IElement {
         return this.entity.PinId
     }
 
+    /** @type {GuidEntity} */
+    GetPinIdValue() {
+        return this.GetPinId().value
+    }
+
     /**
      * @returns {String}
      */
@@ -92,14 +97,17 @@ export default class PinElement extends IElement {
         return this.template.getLinkLocation(this)
     }
 
+    /**
+     * @returns {NodeElement}
+     */
     getNodeElement() {
         return this.closest("ueb-node")
     }
 
     getLinks() {
-        return this.entity.LinkedTo.map(pinReference =>
+        return this.entity.LinkedTo?.map(pinReference =>
             pinReference
-        )
+        ) ?? []
     }
 
     /**

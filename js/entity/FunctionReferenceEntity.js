@@ -5,9 +5,6 @@ export default class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
         MemberParent: ObjectReferenceEntity,
-        MemberName: ""
+        MemberName: "",
     }
-
-    /** @type {ObjectReferenceEntity} */ MemberParent
-    /** @type {String} */ MemberName
 }

@@ -12,7 +12,7 @@ export default class IEntity {
         const defineAllAttributes = (prefix, target, properties) => {
             let fullKey = prefix.concat("")
             const last = fullKey.length - 1
-            for (let property in properties) {
+            for (let property of Object.getOwnPropertyNames(properties)) {
                 fullKey[last] = property
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (properties[property]?.constructor === Object) {
@@ -22,7 +22,7 @@ export default class IEntity {
                 }
                 /*
                  * The value can either be:
-                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World")
+                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World").
                  *     - TypeInitialization: contains the maximum amount of information about the attribute.
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.
@@ -35,6 +35,7 @@ export default class IEntity {
                 let defaultValue = properties[property]
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
+                        target[property] = undefined // to preserve the order
                         continue
                     }
                     defaultValue = defaultValue.value

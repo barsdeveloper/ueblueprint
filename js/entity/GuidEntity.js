@@ -4,7 +4,7 @@ import IEntity from "./IEntity"
 export default class GuidEntity extends IEntity {
 
     static attributes = {
-        value: String
+        value: String,
     }
 
     static generateGuid(random = true) {
@@ -17,6 +17,10 @@ export default class GuidEntity extends IEntity {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8)
         })
         return new GuidEntity({ value: guid })
+    }
+
+    valueOf() {
+        return this.value
     }
 
     toString() {

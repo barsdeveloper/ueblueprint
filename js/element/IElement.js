@@ -42,4 +42,11 @@ export default class IElement extends HTMLElement {
     createInputObjects() {
         return []
     }
+
+    /**
+     * @param {IElement} element
+     */
+    isSameGraph(element) {
+        return this.blueprint && this.blueprint == element?.blueprint
+    }
 }

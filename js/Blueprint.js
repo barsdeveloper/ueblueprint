@@ -7,6 +7,7 @@ import KeyboardSelectAll from "./input/keybaord/KeyboardSelectAll"
 import LinkElement from "./element/LinkElement"
 import MouseScrollGraph from "./input/mouse/MouseScrollGraph"
 import MouseTracking from "./input/mouse/MouseTracking"
+import MultiKeyWeakMap from "./MultiKeyMap"
 import NodeElement from "./element/NodeElement"
 import Paste from "./input/common/Paste"
 import Select from "./input/mouse/Select"
@@ -14,6 +15,7 @@ import SelectorElement from "./element/SelectorElement"
 import Unfocus from "./input/mouse/Unfocus"
 import Utility from "./Utility"
 import Zoom from "./input/mouse/Zoom"
+import PinReferenceEntity from "./entity/PinReferenceEntity"
 
 /**
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
@@ -22,8 +24,21 @@ import Zoom from "./input/mouse/Zoom"
 export default class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
-    /** @type {WeakMap<GuidEntity, PinElement>} */
-    #pinGuidMap = new WeakMap()
+    /** @type {MultiKeyWeakMap<String, PinElement>} */
+    #pinGuidMap = new Proxy(new MultiKeyWeakMap(), {
+        get(target, p, receiver) {
+            if (p instanceof PinReferenceEntity) {
+                p = [p.objectName, p.pinGuid]
+            }
+            return Reflect.get(target, p)
+        },
+        set(target, p, value) {
+            if (p instanceof PinReferenceEntity) {
+                p = [p.objectName, p.pinGuid]
+            }
+            return Reflect.set(target, p, value)
+        }
+    })
     /** @type {number} */
     gridSize = Configuration.gridSize
     /** @type {NodeElement[]}" */
@@ -305,10 +320,10 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * @param {GuidEntity} guid
+     * @param {PinReferenceEntity} pinReference
      */
-    getPin(guid) {
-        return this.#pinGuidMap[guid]
+    getPin(pinReference) {
+        return this.#pinGuidMap[pinReference]
     }
 
     /**
@@ -350,7 +365,12 @@ export default class Blueprint extends IElement {
             if (element instanceof NodeElement) {
                 this.nodes.push(element)
                 element.getPinElements().forEach(
-                    pinElement => this.#pinGuidMap[pinElement.GetPinId()] = pinElement
+                    pinElement => this.#pinGuidMap[
+                        new PinReferenceEntity({
+                            objectName: pinElement.getNodeElement().getNodeName(),
+                            pinGuid: pinElement.GetPinId(),
+                        })
+                    ] = pinElement
                 )
             } else if (element instanceof LinkElement) {
                 this.links.push(element)

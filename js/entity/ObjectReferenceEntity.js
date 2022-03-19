@@ -4,6 +4,6 @@ export default class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
         type: String,
-        path: String
+        path: String,
     }
 }

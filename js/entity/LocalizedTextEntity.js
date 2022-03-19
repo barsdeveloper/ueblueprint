@@ -6,6 +6,6 @@ export default class LocalizedTextEntity extends IEntity {
     static attributes = {
         namespace: String,
         key: String,
-        value: String
+        value: String,
     }
 }

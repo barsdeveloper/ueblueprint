@@ -6,6 +6,6 @@ export default class PinReferenceEntity extends IEntity {
 
     static attributes = {
         objectName: PathSymbolEntity,
-        pinGuid: GuidEntity
+        pinGuid: GuidEntity,
     }
 }

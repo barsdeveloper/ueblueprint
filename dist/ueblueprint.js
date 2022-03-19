@@ -518,6 +518,13 @@ class IElement extends HTMLElement {
     createInputObjects() {
         return []
     }
+
+    /**
+     * @param {IElement} element
+     */
+    isSameGraph(element) {
+        return this.blueprint && this.blueprint == element?.blueprint
+    }
 }
 
 /**
@@ -813,6 +820,26 @@ class Utility {
     }
 
     /**
+     * Gets a value from an object, gives defaultValue in case of failure
+     * @param {Object} target Object holding the data
+     * @param {String[]} keys The chained keys to access from object in order to get the value
+     * @param {any} defaultValue Value to return in case from doesn't have it
+     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
+     */
+    static objectGet(target, keys, defaultValue = undefined) {
+        if (!(keys instanceof Array)) {
+            console.error("Expected keys to be an array.");
+        }
+        if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
+            return defaultValue
+        }
+        if (keys.length == 1) {
+            return target[keys[0]]
+        }
+        return Utility.objectGet(target[keys[0]], keys.slice(1), defaultValue)
+    }
+
+    /**
      * Sets a value in an object
      * @param {Object} target Object holding the data
      * @param {String[]} keys The chained keys to access from object in order to set the value
@@ -820,7 +847,7 @@ class Utility {
      * @param {Boolean} create Whether to create or not the key in case it doesn't exist
      * @returns {Boolean} Returns true on succes, false otherwise
      */
-    static objectSet(target, keys, value, create = false) {
+    static objectSet(target, keys, value, create = false, defaultDictType = Object) {
         if (!(keys instanceof Array)) {
             console.error("Expected keys to be an array.");
         }
@@ -831,31 +858,11 @@ class Utility {
             }
         } else if (keys.length > 0) {
             if (create && !(target[keys[0]] instanceof Object)) {
-                target[keys[0]] = {};
+                target[keys[0]] = new defaultDictType();
             }
-            return Utility.objectSet(target[keys[0]], keys.slice(1), value, create)
+            return Utility.objectSet(target[keys[0]], keys.slice(1), value, create, defaultDictType)
         }
         return false
-    }
-
-    /**
-     * Gets a value from an object, gives defaultValue in case of failure
-     * @param {Object} source Object holding the data
-     * @param {String[]} keys The chained keys to access from object in order to get the value
-     * @param {any} defaultValue Value to return in case from doesn't have it
-     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
-     */
-    static objectGet(source, keys, defaultValue = null) {
-        if (!(keys instanceof Array)) {
-            console.error("Expected keys to be an array.");
-        }
-        if (keys.length == 0 || !(keys[0] in source) || source[keys[0]] === undefined) {
-            return defaultValue
-        }
-        if (keys.length == 1) {
-            return source[keys[0]]
-        }
-        return Utility.objectGet(source[keys[0]], keys.slice(1), defaultValue)
     }
 
     static equals(a, b) {
@@ -865,7 +872,6 @@ class Utility {
     }
 
     /**
-     *
      * @param {String} value
      */
     static FirstCapital(value) {
@@ -910,7 +916,7 @@ class IEntity {
         const defineAllAttributes = (prefix, target, properties) => {
             let fullKey = prefix.concat("");
             const last = fullKey.length - 1;
-            for (let property in properties) {
+            for (let property of Object.getOwnPropertyNames(properties)) {
                 fullKey[last] = property;
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (properties[property]?.constructor === Object) {
@@ -920,7 +926,7 @@ class IEntity {
                 }
                 /*
                  * The value can either be:
-                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World")
+                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World").
                  *     - TypeInitialization: contains the maximum amount of information about the attribute.
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.
@@ -933,6 +939,7 @@ class IEntity {
                 let defaultValue = properties[property];
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
+                        target[property] = undefined; // to preserve the order
                         continue
                     }
                     defaultValue = defaultValue.value;
@@ -955,7 +962,7 @@ class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
         type: String,
-        path: String
+        path: String,
     }
 }
 
@@ -963,17 +970,14 @@ class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
         MemberParent: ObjectReferenceEntity,
-        MemberName: ""
+        MemberName: "",
     }
-
-    /** @type {ObjectReferenceEntity} */ MemberParent
-    /** @type {String} */ MemberName
 }
 
 class GuidEntity extends IEntity {
 
     static attributes = {
-        value: String
+        value: String,
     }
 
     static generateGuid(random = true) {
@@ -988,6 +992,10 @@ class GuidEntity extends IEntity {
         return new GuidEntity({ value: guid })
     }
 
+    valueOf() {
+        return this.value
+    }
+
     toString() {
         return this.value
     }
@@ -996,13 +1004,13 @@ class GuidEntity extends IEntity {
 class IntegerEntity extends IEntity {
 
     static attributes = {
-        value: Number
+        value: Number,
     }
 
     constructor(options = {}) {
-        if (options.constructor === Number || options.constructor === String) {
+        if (options.constructor == Number || options.constructor == String) {
             options = {
-                value: options
+                value: options,
             };
         }
         super(options);
@@ -1024,14 +1032,14 @@ class LocalizedTextEntity extends IEntity {
     static attributes = {
         namespace: String,
         key: String,
-        value: String
+        value: String,
     }
 }
 
 class PathSymbolEntity extends IEntity {
 
     static attributes = {
-        value: String
+        value: String,
     }
 
     toString() {
@@ -1043,7 +1051,7 @@ class PinReferenceEntity extends IEntity {
 
     static attributes = {
         objectName: PathSymbolEntity,
-        pinGuid: GuidEntity
+        pinGuid: GuidEntity,
     }
 }
 
@@ -1113,13 +1121,13 @@ class PinEntity extends IEntity {
     linkTo(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
-        const linkExists = this.LinkedTo.find(
+        const linkFound = this.LinkedTo.find(
             /** @type {PinReferenceEntity} */
             pinReferenceEntity => {
                 return pinReferenceEntity.objectName == targetObjectName
-                    && pinReferenceEntity.pinGuid == targetPinEntity.PinId
+                    && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
             });
-        if (!linkExists) {
+        if (!linkFound) {
             this.LinkedTo.push(new PinReferenceEntity({
                 objectName: targetObjectName,
                 pinGuid: targetPinEntity.PinId
@@ -1159,7 +1167,7 @@ class VariableReferenceEntity extends IEntity {
     static attributes = {
         MemberName: String,
         MemberGuid: GuidEntity,
-        bSelfContext: false
+        bSelfContext: false,
     }
 }
 
@@ -1178,11 +1186,11 @@ class ObjectEntity extends IEntity {
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
-        CustomProperties: [PinEntity]
+        CustomProperties: [PinEntity],
     }
 
     /**
-     * @returns {String} The name of the node
+     * @returns {String}
      */
     getName() {
         return this.Name
@@ -1427,14 +1435,14 @@ class ISerializer {
         let result = "";
         let fullKey = key.concat("");
         const last = fullKey.length - 1;
-        for (const property in object) {
+        for (const property of Object.getOwnPropertyNames(object)) {
             fullKey[last] = property;
             const value = object[property];
             if (object[property]?.constructor === Object) {
                 // Recursive call when finding an object
                 result += (result.length ? this.separator : "")
                     + this.subWrite(fullKey, value);
-            } else if (this.showProperty(fullKey, value)) {
+            } else if (value !== undefined && this.showProperty(fullKey, value)) {
                 result += (result.length ? this.separator : "")
                     + this.prefix
                     + this.attributeKeyPrinter(fullKey)
@@ -1507,7 +1515,7 @@ ${this.subWrite([], object)
             + object
                 .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity).write(pin))
                 .join("")}
-End Object`;
+End Object\n`;
         return result
     }
 }
@@ -1804,7 +1812,7 @@ class LinkTemplate extends ITemplate {
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width));
         const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d and css will have enough functions
-        link.pathElement.setAttribute("d", d);
+        link.pathElement?.setAttribute("d", d);
     }
 
     /**
@@ -2088,6 +2096,7 @@ class IMouseClickDrag extends IPointing {
                         }
                         // Attach the listeners
                         movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler);
+                        document.addEventListener("mouseup", self.#mouseUpHandler);
                         self.clickedPosition = self.locationFromEvent(e);
                         self.clicked(self.clickedPosition);
                     }
@@ -2108,7 +2117,6 @@ class IMouseClickDrag extends IPointing {
             // Delegate from now on to self.#mouseMoveHandler
             movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
-            document.addEventListener("mouseup", self.#mouseUpHandler);
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
             const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
             self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
@@ -2140,7 +2148,9 @@ class IMouseClickDrag extends IPointing {
                 movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
                 movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler);
                 document.removeEventListener("mouseup", self.#mouseUpHandler);
-                self.endDrag();
+                if (self.started) {
+                    self.endDrag();
+                }
                 if (self.#trackingMouse) {
                     const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end);
                     this.target.dispatchEvent(dragEvent);
@@ -2262,6 +2272,38 @@ class MouseTracking extends IPointing {
         this.unlistenMouseMove();
         this.blueprint.removeEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler);
         this.blueprint.removeEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler);
+    }
+}
+
+/**
+ * @template Key
+ * @template Value
+ */
+class MultiKeyWeakMap {
+
+    map = new WeakMap()
+
+    constructor() {
+        return new Proxy(this.map, this)
+    }
+
+    /**
+     * @param {WeakMap} target
+     * @param {Key} p
+     * @param {*} receiver
+     * @returns {Value}
+     */
+    get(target, p, receiver) {
+        return Utility.objectGet(target, p)
+    }
+
+    /**
+     * @param {WeakMap} target
+     * @param {Key} p
+     * @param {Value} value
+     */
+    set(target, p, value) {
+        return Utility.objectSet(target, p, value, true, WeakMap)
     }
 }
 
@@ -2628,15 +2670,14 @@ class PinTemplate extends ITemplate {
             "ueb-pin-" + sanitizeText(pin.getType())
         );
         pin.clickableElement = pin;
-        window.customElements.whenDefined(NodeElement.tagName).then(pin.nodeElement = pin.closest(NodeElement.tagName));
+        window.customElements.whenDefined("ueb-node").then(pin.nodeElement = pin.closest("ueb-node"));
         pin.getLinks().forEach(pinReference => {
-            const targetPin = pin.blueprint.getPin(pinReference.pinGuid);
+            const targetPin = pin.blueprint.getPin(pinReference);
             if (targetPin) {
                 const [sourcePin, destinationPin] = pin.isOutput() ? [pin, targetPin] : [targetPin, pin];
                 pin.blueprint.addGraphElement(new LinkElement(sourcePin, destinationPin));
             }
         });
-
     }
 
     /**
@@ -2706,6 +2747,11 @@ class PinElement extends IElement {
         return this.entity.PinId
     }
 
+    /** @type {GuidEntity} */
+    GetPinIdValue() {
+        return this.GetPinId().value
+    }
+
     /**
      * @returns {String}
      */
@@ -2752,14 +2798,17 @@ class PinElement extends IElement {
         return this.template.getLinkLocation(this)
     }
 
+    /**
+     * @returns {NodeElement}
+     */
     getNodeElement() {
         return this.closest("ueb-node")
     }
 
     getLinks() {
-        return this.entity.LinkedTo.map(pinReference =>
+        return this.entity.LinkedTo?.map(pinReference =>
             pinReference
-        )
+        ) ?? []
     }
 
     /**
@@ -3103,8 +3152,21 @@ class Zoom extends IMouseWheel {
 class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
-    /** @type {WeakMap<GuidEntity, PinElement>} */
-    #pinGuidMap = new WeakMap()
+    /** @type {MultiKeyWeakMap<String, PinElement>} */
+    #pinGuidMap = new Proxy(new MultiKeyWeakMap(), {
+        get(target, p, receiver) {
+            if (p instanceof PinReferenceEntity) {
+                p = [p.objectName, p.pinGuid];
+            }
+            return Reflect.get(target, p)
+        },
+        set(target, p, value) {
+            if (p instanceof PinReferenceEntity) {
+                p = [p.objectName, p.pinGuid];
+            }
+            return Reflect.set(target, p, value)
+        }
+    })
     /** @type {number} */
     gridSize = Configuration.gridSize
     /** @type {NodeElement[]}" */
@@ -3386,10 +3448,10 @@ class Blueprint extends IElement {
     }
 
     /**
-     * @param {GuidEntity} guid
+     * @param {PinReferenceEntity} pinReference
      */
-    getPin(guid) {
-        return this.#pinGuidMap[guid]
+    getPin(pinReference) {
+        return this.#pinGuidMap[pinReference]
     }
 
     /**
@@ -3431,7 +3493,12 @@ class Blueprint extends IElement {
             if (element instanceof NodeElement) {
                 this.nodes.push(element);
                 element.getPinElements().forEach(
-                    pinElement => this.#pinGuidMap[pinElement.GetPinId()] = pinElement
+                    pinElement => this.#pinGuidMap[
+                        new PinReferenceEntity({
+                            objectName: pinElement.getNodeElement().getNodeName(),
+                            pinGuid: pinElement.GetPinId(),
+                        })
+                    ] = pinElement
                 );
             } else if (element instanceof LinkElement) {
                 this.links.push(element);
@@ -3556,7 +3623,7 @@ function initializeSerializerFactory() {
     );
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ",", false, "", _ => "")
+        new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
     );
     SerializerFactory.registerSerializer(
         PinReferenceEntity,

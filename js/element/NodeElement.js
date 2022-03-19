@@ -2,8 +2,8 @@ import Configuration from "../Configuration"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"
 import NodeTemplate from "../template/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"
-import PinEntity from "../entity/PinEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
+import PinEntity from "../entity/PinEntity"
 
 export default class NodeElement extends ISelectableDraggableElement {
 

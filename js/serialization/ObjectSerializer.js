@@ -51,7 +51,7 @@ ${this.subWrite([], object)
             + object
                 .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity).write(pin))
                 .join("")}
-End Object`
+End Object\n`
         return result
     }
 }

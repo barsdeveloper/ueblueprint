@@ -31,6 +31,26 @@ export default class Utility {
     }
 
     /**
+     * Gets a value from an object, gives defaultValue in case of failure
+     * @param {Object} target Object holding the data
+     * @param {String[]} keys The chained keys to access from object in order to get the value
+     * @param {any} defaultValue Value to return in case from doesn't have it
+     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
+     */
+    static objectGet(target, keys, defaultValue = undefined) {
+        if (!(keys instanceof Array)) {
+            console.error("Expected keys to be an array.")
+        }
+        if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
+            return defaultValue
+        }
+        if (keys.length == 1) {
+            return target[keys[0]]
+        }
+        return Utility.objectGet(target[keys[0]], keys.slice(1), defaultValue)
+    }
+
+    /**
      * Sets a value in an object
      * @param {Object} target Object holding the data
      * @param {String[]} keys The chained keys to access from object in order to set the value
@@ -38,7 +58,7 @@ export default class Utility {
      * @param {Boolean} create Whether to create or not the key in case it doesn't exist
      * @returns {Boolean} Returns true on succes, false otherwise
      */
-    static objectSet(target, keys, value, create = false) {
+    static objectSet(target, keys, value, create = false, defaultDictType = Object) {
         if (!(keys instanceof Array)) {
             console.error("Expected keys to be an array.")
         }
@@ -49,31 +69,11 @@ export default class Utility {
             }
         } else if (keys.length > 0) {
             if (create && !(target[keys[0]] instanceof Object)) {
-                target[keys[0]] = {}
+                target[keys[0]] = new defaultDictType()
             }
-            return Utility.objectSet(target[keys[0]], keys.slice(1), value, create)
+            return Utility.objectSet(target[keys[0]], keys.slice(1), value, create, defaultDictType)
         }
         return false
-    }
-
-    /**
-     * Gets a value from an object, gives defaultValue in case of failure
-     * @param {Object} source Object holding the data
-     * @param {String[]} keys The chained keys to access from object in order to get the value
-     * @param {any} defaultValue Value to return in case from doesn't have it
-     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
-     */
-    static objectGet(source, keys, defaultValue = null) {
-        if (!(keys instanceof Array)) {
-            console.error("Expected keys to be an array.")
-        }
-        if (keys.length == 0 || !(keys[0] in source) || source[keys[0]] === undefined) {
-            return defaultValue
-        }
-        if (keys.length == 1) {
-            return source[keys[0]]
-        }
-        return Utility.objectGet(source[keys[0]], keys.slice(1), defaultValue)
     }
 
     static equals(a, b) {
@@ -83,7 +83,6 @@ export default class Utility {
     }
 
     /**
-     *
      * @param {String} value
      */
     static FirstCapital(value) {

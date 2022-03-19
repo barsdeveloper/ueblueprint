@@ -28,7 +28,7 @@ export default function initializeSerializerFactory() {
     )
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ",", false, "", _ => "")
+        new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
     )
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
