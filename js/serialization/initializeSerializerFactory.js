@@ -40,7 +40,7 @@ export default function initializeSerializerFactory() {
             /** @param {ObjectReferenceEntity} objectReference */
             objectReference => (objectReference.type ?? "") + (
                 objectReference.path
-                    ? objectReference.type ? `'"${objectReference.path}"'` : objectReference.path
+                    ? objectReference.type ? `'"${objectReference.path}"'` : `"${objectReference.path}"`
                     : ""
             ))
     )

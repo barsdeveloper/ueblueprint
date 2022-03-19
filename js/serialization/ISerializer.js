@@ -66,7 +66,7 @@ export default class ISerializer {
                     + this.writeValue(value)
             }
         }
-        if (this.trailingSeparator && result.length && fullKey.length === 0) {
+        if (this.trailingSeparator && result.length && fullKey.length === 1) {
             // append separator at the end if asked and there was printed content
             result += this.separator
         }
