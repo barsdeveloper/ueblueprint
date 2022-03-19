@@ -41,6 +41,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected")
         }
+        node.dataset.name = node.getNodeName()
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]))
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]))
         /** @type {HTMLElement} */

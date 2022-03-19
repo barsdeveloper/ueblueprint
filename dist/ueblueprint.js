@@ -611,7 +611,10 @@ class SelectorElement extends IElement {
 
 customElements.define(SelectorElement.tagName, SelectorElement);
 
-/** @typedef {import("../Blueprint").default} Blueprint */
+/**
+ * @typedef {import("../Blueprint").default} Blueprint
+ * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ */
 class BlueprintTemplate extends ITemplate {
     header(element) {
         return html`
@@ -729,6 +732,18 @@ class BlueprintTemplate extends ITemplate {
      */
     applyEndDragScrolling(blueprint) {
         blueprint.dataset.dragScrolling = false;
+    }
+
+    /**
+     * 
+     * @param {Blueprint} blueprint 
+     * @param {PinReferenceEntity} pinReference 
+     * @returns 
+     */
+    getPin(blueprint, pinReference) {
+        return blueprint.querySelector(
+            `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
+        )
     }
 }
 
@@ -2276,38 +2291,6 @@ class MouseTracking extends IPointing {
 }
 
 /**
- * @template Key
- * @template Value
- */
-class MultiKeyWeakMap {
-
-    map = new WeakMap()
-
-    constructor() {
-        return new Proxy(this.map, this)
-    }
-
-    /**
-     * @param {WeakMap} target
-     * @param {Key} p
-     * @param {*} receiver
-     * @returns {Value}
-     */
-    get(target, p, receiver) {
-        return Utility.objectGet(target, p)
-    }
-
-    /**
-     * @param {WeakMap} target
-     * @param {Key} p
-     * @param {Value} value
-     */
-    set(target, p, value) {
-        return Utility.objectSet(target, p, value, true, WeakMap)
-    }
-}
-
-/**
  * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 class MouseMoveNodes extends IMouseClickDrag {
@@ -2669,6 +2652,7 @@ class PinTemplate extends ITemplate {
             "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
             "ueb-pin-" + sanitizeText(pin.getType())
         );
+        pin.dataset.id = pin.GetPinIdValue();
         pin.clickableElement = pin;
         window.customElements.whenDefined("ueb-node").then(pin.nodeElement = pin.closest("ueb-node"));
         pin.getLinks().forEach(pinReference => {
@@ -2742,12 +2726,12 @@ class PinElement extends IElement {
         ]
     }
 
-    /** @type {GuidEntity} */
+    /** @return {GuidEntity} */
     GetPinId() {
         return this.entity.PinId
     }
 
-    /** @type {GuidEntity} */
+    /** @return {String} */
     GetPinIdValue() {
         return this.GetPinId().value
     }
@@ -2895,6 +2879,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected");
         }
+        node.dataset.name = node.getNodeName();
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
         /** @type {HTMLElement} */
@@ -3146,27 +3131,13 @@ class Zoom extends IMouseWheel {
 }
 
 /**
- * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./element/PinElement").default} PinElement
+ * @typedef {import("./entity/GuidEntity").default} GuidEntity
+ * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
  */
 class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
-    /** @type {MultiKeyWeakMap<String, PinElement>} */
-    #pinGuidMap = new Proxy(new MultiKeyWeakMap(), {
-        get(target, p, receiver) {
-            if (p instanceof PinReferenceEntity) {
-                p = [p.objectName, p.pinGuid];
-            }
-            return Reflect.get(target, p)
-        },
-        set(target, p, value) {
-            if (p instanceof PinReferenceEntity) {
-                p = [p.objectName, p.pinGuid];
-            }
-            return Reflect.set(target, p, value)
-        }
-    })
     /** @type {number} */
     gridSize = Configuration.gridSize
     /** @type {NodeElement[]}" */
@@ -3451,7 +3422,7 @@ class Blueprint extends IElement {
      * @param {PinReferenceEntity} pinReference
      */
     getPin(pinReference) {
-        return this.#pinGuidMap[pinReference]
+        return this.template.getPin(this, pinReference)
     }
 
     /**
@@ -3492,14 +3463,6 @@ class Blueprint extends IElement {
         const intoArray = element => {
             if (element instanceof NodeElement) {
                 this.nodes.push(element);
-                element.getPinElements().forEach(
-                    pinElement => this.#pinGuidMap[
-                        new PinReferenceEntity({
-                            objectName: pinElement.getNodeElement().getNodeName(),
-                            pinGuid: pinElement.GetPinId(),
-                        })
-                    ] = pinElement
-                );
             } else if (element instanceof LinkElement) {
                 this.links.push(element);
             }

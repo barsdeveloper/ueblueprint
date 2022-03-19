@@ -41,12 +41,12 @@ export default class PinElement extends IElement {
         ]
     }
 
-    /** @type {GuidEntity} */
+    /** @return {GuidEntity} */
     GetPinId() {
         return this.entity.PinId
     }
 
-    /** @type {GuidEntity} */
+    /** @return {String} */
     GetPinIdValue() {
         return this.GetPinId().value
     }

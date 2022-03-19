@@ -4,7 +4,10 @@ import ITemplate from "./ITemplate"
 import sanitizeText from "./sanitizeText"
 import SelectorElement from "../element/SelectorElement"
 
-/** @typedef {import("../Blueprint").default} Blueprint */
+/**
+ * @typedef {import("../Blueprint").default} Blueprint
+ * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ */
 export default class BlueprintTemplate extends ITemplate {
     header(element) {
         return html`
@@ -122,5 +125,17 @@ export default class BlueprintTemplate extends ITemplate {
      */
     applyEndDragScrolling(blueprint) {
         blueprint.dataset.dragScrolling = false
+    }
+
+    /**
+     * 
+     * @param {Blueprint} blueprint 
+     * @param {PinReferenceEntity} pinReference 
+     * @returns 
+     */
+    getPin(blueprint, pinReference) {
+        return blueprint.querySelector(
+            `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
+        )
     }
 }
