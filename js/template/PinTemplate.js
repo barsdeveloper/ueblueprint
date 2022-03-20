@@ -40,6 +40,9 @@ export default class PinTemplate extends ITemplate {
             "ueb-pin-" + sanitizeText(pin.getType())
         )
         pin.dataset.id = pin.GetPinIdValue()
+        if (pin.entity.bAdvancedView) {
+            pin.dataset.advancedView = "true"
+        }
         pin.clickableElement = pin
         window.customElements.whenDefined("ueb-node").then(pin.nodeElement = pin.closest("ueb-node"))
         pin.getLinks().forEach(pinReference => {

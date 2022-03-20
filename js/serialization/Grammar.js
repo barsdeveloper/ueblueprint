@@ -1,5 +1,6 @@
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
+import Identifier from "../entity/Identifier"
 import IntegerEntity from "../entity/IntegerEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
@@ -46,6 +47,9 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     Guid = r => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
+
+    /** @param {Grammar} */
+    Identifier = r => P.regex(/\w+/).map(v => new Identifier(v))
 
     /** @param {Grammar} r */
     PathSymbolEntity = r => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
@@ -121,6 +125,8 @@ export default class Grammar {
                 return r.String
             case GuidEntity:
                 return r.Guid
+            case Identifier:
+                return r.Identifier
             case ObjectReferenceEntity:
                 return r.Reference
             case LocalizedTextEntity:

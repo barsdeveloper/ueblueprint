@@ -12,6 +12,7 @@ import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "./SerializerFactory"
 import ToStringSerializer from "./ToStringSerializer"
+import Identifier from "../entity/Identifier"
 
 export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
@@ -44,6 +45,7 @@ export default function initializeSerializerFactory() {
                     : ""
             ))
     )
+    SerializerFactory.registerSerializer(Identifier, new ToStringSerializer(Identifier))
     SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity))
     SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity))
     SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity))

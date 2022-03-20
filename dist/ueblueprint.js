@@ -1016,6 +1016,36 @@ class GuidEntity extends IEntity {
     }
 }
 
+class Identifier extends IEntity {
+
+    static attributes = {
+        value: String,
+    }
+
+    constructor(options = {}) {
+        // Not instanceof to pick also primitive string
+        if (options.constructor === String) {
+            options = {
+                value: options
+            };
+        }
+        super(options);
+        /** @type {String} */
+        this.value;
+        if (!this.value.match(/\w+/)) {
+            throw new Error("The value must be an identifier (/\w+/).")
+        }
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
 class IntegerEntity extends IEntity {
 
     static attributes = {
@@ -1199,6 +1229,7 @@ class ObjectEntity extends IEntity {
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
+        AdvancedPinDisplay: new TypeInitialization(Identifier, false, null),
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
@@ -1263,6 +1294,9 @@ class Grammar {
 
     /** @param {Grammar} r */
     Guid = r => P$1.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
+
+    /** @param {Grammar} */
+    Identifier = r => P$1.regex(/\w+/).map(v => new Identifier(v))
 
     /** @param {Grammar} r */
     PathSymbolEntity = r => P$1.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
@@ -1338,6 +1372,8 @@ class Grammar {
                 return r.String
             case GuidEntity:
                 return r.Guid
+            case Identifier:
+                return r.Identifier
             case ObjectReferenceEntity:
                 return r.Reference
             case LocalizedTextEntity:
@@ -1508,7 +1544,7 @@ class ISerializer {
                 // Recursive call when finding an object
                 result += (result.length ? this.separator : "")
                     + this.subWrite(fullKey, value);
-            } else if (value !== undefined && this.showProperty(fullKey, value)) {
+            } else if (value !== undefined && this.showProperty(object, fullKey, value)) {
                 result += (result.length ? this.separator : "")
                     + this.prefix
                     + this.attributeKeyPrinter(fullKey)
@@ -1523,7 +1559,7 @@ class ISerializer {
         return result
     }
 
-    showProperty(attributeKey, attributeValue) {
+    showProperty(object, attributeKey, attributeValue) {
         const attributes = this.entityType.attributes;
         const attribute = Utility.objectGet(attributes, attributeKey);
         if (attribute instanceof TypeInitialization) {
@@ -1539,7 +1575,7 @@ class ObjectSerializer extends ISerializer {
         super(ObjectEntity, "   ", "\n", false);
     }
 
-    showProperty(attributeKey, attributeValue) {
+    showProperty(object, attributeKey, attributeValue) {
         switch (attributeKey.toString()) {
             case "Class":
             case "Name":
@@ -1547,7 +1583,7 @@ class ObjectSerializer extends ISerializer {
                 // Serielized separately
                 return false
         }
-        return super.showProperty(attributeKey, attributeValue)
+        return super.showProperty(object, attributeKey, attributeValue)
     }
 
     read(value) {
@@ -1579,7 +1615,12 @@ class ObjectSerializer extends ISerializer {
         let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(object.Name)}
 ${this.subWrite([], object)
             + object
-                .CustomProperties.map(pin => this.separator + this.prefix + "CustomProperties " + SerializerFactory.getSerializer(PinEntity).write(pin))
+                .CustomProperties.map(pin =>
+                    this.separator
+                    + this.prefix
+                    + "CustomProperties "
+                    + SerializerFactory.getSerializer(PinEntity).write(pin)
+                )
                 .join("")}
 End Object\n`;
         return result
@@ -2704,6 +2745,9 @@ class PinTemplate extends ITemplate {
             "ueb-pin-" + sanitizeText(pin.getType())
         );
         pin.dataset.id = pin.GetPinIdValue();
+        if (pin.entity.bAdvancedView) {
+            pin.dataset.advancedView = "true";
+        }
         pin.clickableElement = pin;
         window.customElements.whenDefined("ueb-node").then(pin.nodeElement = pin.closest("ueb-node"));
         pin.getLinks().forEach(pinReference => {
@@ -2931,6 +2975,9 @@ class NodeTemplate extends SelectableDraggableTemplate {
             node.classList.add("ueb-selected");
         }
         node.dataset.name = node.getNodeName();
+        if (node.entity.AdvancedPinDisplay) {
+            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay;
+        }
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
         /** @type {HTMLElement} */
@@ -3653,6 +3700,7 @@ function initializeSerializerFactory() {
                     : ""
             ))
     );
+    SerializerFactory.registerSerializer(Identifier, new ToStringSerializer(Identifier));
     SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity));
     SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity));
     SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));

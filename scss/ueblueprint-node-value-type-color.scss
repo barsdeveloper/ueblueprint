@@ -10,7 +10,7 @@
     --ueb-pin-color: #{$ueb-pin-color};
 }
 
-.ueb-pin-integer {
+.ueb-pin-int {
     $ueb-pin-color : #1fe0ad;
     --ueb-pin-color: #{$ueb-pin-color};
 }
@@ -41,7 +41,7 @@
     --ueb-pin-color: #{$ueb-pin-color};
 }
 
-.ueb-pin-objectreference {
+.ueb-pin-object {
     $ueb-pin-color : #00a8f2;
     --ueb-pin-color: #{$ueb-pin-color};
 }

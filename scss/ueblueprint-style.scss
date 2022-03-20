@@ -105,6 +105,10 @@ ueb-blueprint[data-drag-scrolling="true"] .ueb-grid {
     cursor: grabbing;
 }
 
+ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
+    cursor: default;
+}
+
 .ueb-zoom--.ueb,
 .ueb {
     /* 16/16 */
@@ -203,10 +207,6 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     border-radius: calc(var(--ueb-node-radius) * 1.4);
 }
 
-.ueb-selected {
-    z-index: 1;
-}
-
 .ueb-selected>.ueb-node-border {
     background-image:
         linear-gradient(to right, #f1b000 0%, #f1b000 100%),
@@ -267,13 +267,17 @@ ueb-pin {
     padding: 1px 2px;
 }
 
-ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
-    cursor: default;
+ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
+    display: none;
 }
 
-ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node ueb-pin:hover {
+ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-pin:hover {
     background: var(--ueb-pin-background);
     cursor    : crosshair;
+}
+
+.ueb-node-outputs ueb-pin {
+    text-align: right;
 }
 
 .ueb-pin-icon {

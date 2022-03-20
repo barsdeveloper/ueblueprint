@@ -58,7 +58,7 @@ export default class ISerializer {
                 // Recursive call when finding an object
                 result += (result.length ? this.separator : "")
                     + this.subWrite(fullKey, value)
-            } else if (value !== undefined && this.showProperty(fullKey, value)) {
+            } else if (value !== undefined && this.showProperty(object, fullKey, value)) {
                 result += (result.length ? this.separator : "")
                     + this.prefix
                     + this.attributeKeyPrinter(fullKey)
@@ -73,7 +73,7 @@ export default class ISerializer {
         return result
     }
 
-    showProperty(attributeKey, attributeValue) {
+    showProperty(object, attributeKey, attributeValue) {
         const attributes = this.entityType.attributes
         const attribute = Utility.objectGet(attributes, attributeKey)
         if (attribute instanceof TypeInitialization) {

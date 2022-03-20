@@ -42,6 +42,9 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
             node.classList.add("ueb-selected")
         }
         node.dataset.name = node.getNodeName()
+        if (node.entity.AdvancedPinDisplay) {
+            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay
+        }
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]))
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]))
         /** @type {HTMLElement} */
