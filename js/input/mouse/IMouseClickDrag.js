@@ -101,6 +101,7 @@ export default class IMouseClickDrag extends IPointing {
                 if (self.started) {
                     self.endDrag()
                 }
+                self.unclicked()
                 if (self.#trackingMouse) {
                     const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end)
                     this.target.dispatchEvent(dragEvent)
@@ -145,5 +146,8 @@ export default class IMouseClickDrag extends IPointing {
     }
 
     endDrag() {
+    }
+
+    unclicked(location) {
     }
 }

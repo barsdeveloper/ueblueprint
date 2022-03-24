@@ -3,6 +3,7 @@ import Configuration from "./Configuration"
 import Copy from "./input/common/Copy"
 import IElement from "./element/IElement"
 import KeyboardCanc from "./input/keybaord/KeyboardCanc"
+import KeyboardEnableZoom from "./input/keybaord/KeyboardEnableZoom"
 import KeyboardSelectAll from "./input/keybaord/KeyboardSelectAll"
 import LinkElement from "./element/LinkElement"
 import MouseScrollGraph from "./input/mouse/MouseScrollGraph"
@@ -121,7 +122,8 @@ export default class Blueprint extends IElement {
                 moveEverywhere: true,
             }),
             new Unfocus(this.getGridDOMElement(), this),
-            new MouseTracking(this.getGridDOMElement(), this)
+            new MouseTracking(this.getGridDOMElement(), this),
+            new KeyboardEnableZoom(this.getGridDOMElement(), this),
         ]
     }
 
@@ -257,7 +259,7 @@ export default class Blueprint extends IElement {
     }
 
     setZoom(zoom, center) {
-        zoom = Utility.clamp(zoom, -12, 0)
+        zoom = Utility.clamp(zoom, Configuration.minZoom, Configuration.maxZoom)
         if (zoom == this.zoom) {
             return
         }

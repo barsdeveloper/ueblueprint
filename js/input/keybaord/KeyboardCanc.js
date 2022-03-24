@@ -1,7 +1,7 @@
 import Configuration from "../../Configuration"
 import IKeyboardShortcut from "./IKeyboardShortcut"
 
-export default class KeyvoardCanc extends IKeyboardShortcut {
+export default class KeyboardCanc extends IKeyboardShortcut {
 
     /**
      * @param {HTMLElement} target
@@ -9,7 +9,10 @@ export default class KeyvoardCanc extends IKeyboardShortcut {
      * @param {OBject} options
      */
     constructor(target, blueprint, options = {}) {
-        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey)
+        options = {
+            ...options,
+            activationKeys: Configuration.deleteNodesKeyboardKey
+        }
         super(target, blueprint, options)
     }
 

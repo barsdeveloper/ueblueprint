@@ -18,7 +18,11 @@ export default class Select extends IMouseClickDrag {
     endDrag() {
         if (this.started) {
             this.selectorElement.finishSelecting()
-        } else {
+        }
+    }
+
+    unclicked() {
+        if (!this.started) {
             this.blueprint.unselectAll()
         }
     }

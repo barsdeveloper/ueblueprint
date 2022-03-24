@@ -262,6 +262,14 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     padding-right: 8px;
 }
 
+.ueb-node-expand {
+    display: none;
+}
+
+ueb-node[data-advanced-display] .ueb-node-expand {
+    display: block;
+}
+
 ueb-pin {
     display: block;
     padding: 1px 2px;

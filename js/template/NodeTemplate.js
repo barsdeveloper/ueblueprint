@@ -28,6 +28,9 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-outputs"></div>
                     </div>
                 </div>
+                <div class="ueb-node-expand">
+                    <span class="ueb-node-expand-icon"></span>
+                </div>
             </div>
         `
     }

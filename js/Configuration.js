@@ -1,5 +1,6 @@
 export default class Configuration {
     static deleteNodesKeyboardKey = "Delete"
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
     static expandGridSize = 400
     static fontSize = "13px"
     static gridAxisLineColor = "black"
@@ -22,11 +23,13 @@ export default class Configuration {
         let end = 100 - start
         return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
     }
+    static maxZoom = 7
+    static minZoom = -12
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragLocalEventName = "ueb-node-drag-local"
     static nodeRadius = 8 // in pixel
-    static selectAllKeyboardKey = "Ctrl+A"
+    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end"
@@ -41,6 +44,12 @@ export default class Configuration {
         /* UE name: JS name */
         "Backspace": "Backspace",
         "Tab": "Tab",
+        "LeftControl": "ControlLeft",
+        "RightControl": "ControlRight",
+        "LeftShift": "ShiftLeft",
+        "RightShift": "ShiftRight",
+        "LeftAlt": "AltLeft",
+        "RightAlt": "AltRight",
         "Enter": "Enter",
         "Pause": "Pause",
         "CapsLock": "CapsLock",
@@ -50,23 +59,23 @@ export default class Configuration {
         "PageDown": "PageDown",
         "End": "End",
         "Home": "Home",
-        "ArrowLeft": "ArrowLeft",
-        "ArrowUp": "ArrowUp",
-        "ArrowRight": "ArrowRight",
-        "ArrowDown": "ArrowDown",
+        "ArrowLeft": "Left",
+        "ArrowUp": "Up",
+        "ArrowRight": "Right",
+        "ArrowDown": "Down",
         "PrintScreen": "PrintScreen",
         "Insert": "Insert",
         "Delete": "Delete",
-        "Digit0": "Digit0",
-        "Digit1": "Digit1",
-        "Digit2": "Digit2",
-        "Digit3": "Digit3",
-        "Digit4": "Digit4",
-        "Digit5": "Digit5",
-        "Digit6": "Digit6",
-        "Digit7": "Digit7",
-        "Digit8": "Digit8",
-        "Digit9": "Digit9",
+        "Zero": "Digit0",
+        "One": "Digit1",
+        "Two": "Digit2",
+        "Three": "Digit3",
+        "Four": "Digit4",
+        "Five": "Digit5",
+        "Six": "Digit6",
+        "Seven": "Digit7",
+        "Eight": "Digit8",
+        "Nine": "Digit9",
         "A": "KeyA",
         "B": "KeyB",
         "C": "KeyC",
@@ -92,21 +101,21 @@ export default class Configuration {
         "X": "KeyX",
         "Y": "KeyY",
         "Z": "KeyZ",
-        "Numpad0": "Numpad0",
-        "Numpad1": "Numpad1",
-        "Numpad2": "Numpad2",
-        "Numpad3": "Numpad3",
-        "Numpad4": "Numpad4",
-        "Numpad5": "Numpad5",
-        "Numpad6": "Numpad6",
-        "Numpad7": "Numpad7",
-        "Numpad8": "Numpad8",
-        "Numpad9": "Numpad9",
-        "NumpadMultiply": "NumpadMultiply",
-        "NumpadAdd": "NumpadAdd",
-        "NumpadSubtract": "NumpadSubtract",
-        "NumpadDecimal": "NumpadDecimal",
-        "NumpadDivide": "NumpadDivide",
+        "NumPadZero": "Numpad0",
+        "NumPadOne": "Numpad1",
+        "NumPadTwo": "Numpad2",
+        "NumPadThree": "Numpad3",
+        "NumPadFour": "Numpad4",
+        "NumPadFive": "Numpad5",
+        "NumPadSix": "Numpad6",
+        "NumPadSeven": "Numpad7",
+        "NumPadEight": "Numpad8",
+        "NumPadNine": "Numpad9",
+        "Multiply": "NumpadMultiply",
+        "Add": "NumpadAdd",
+        "Subtract": "NumpadSubtract",
+        "Decimal": "NumpadDecimal",
+        "Divide": "NumpadDivide",
         "F1": "F1",
         "F2": "F2",
         "F3": "F3",

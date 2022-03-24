@@ -72,16 +72,14 @@ export default class PinEntity extends IEntity {
     linkTo(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo
-        const linkFound = this.LinkedTo.find(
-            /** @type {PinReferenceEntity} */
-            pinReferenceEntity => {
-                return pinReferenceEntity.objectName == targetObjectName
-                    && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
-            })
+        const linkFound = this.LinkedTo?.find(pinReferenceEntity => {
+            return pinReferenceEntity.objectName == targetObjectName
+                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+        })
         if (!linkFound) {
-            this.LinkedTo.push(new PinReferenceEntity({
+            (this.LinkedTo ?? (this.LinkedTo = [])).push(new PinReferenceEntity({
                 objectName: targetObjectName,
-                pinGuid: targetPinEntity.PinId
+                pinGuid: targetPinEntity.PinId,
             }))
             return true
         }
@@ -95,14 +93,16 @@ export default class PinEntity extends IEntity {
     unlinkFrom(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo
-        const indexElement = this.LinkedTo.findIndex(
-            /** @type {PinReferenceEntity} */
-            pinReferenceEntity => {
-                return pinReferenceEntity.objectName == targetObjectName
-                    && pinReferenceEntity.pinGuid == targetPinEntity.PinId
-            })
+        const indexElement = this.LinkedTo.findIndex(pinReferenceEntity => {
+            return pinReferenceEntity.objectName == targetObjectName
+                && pinReferenceEntity.pinGuid == targetPinEntity.PinId
+        })
         if (indexElement >= 0) {
-            this.LinkedTo.splice(indexElement, 1)
+            if (this.LinkedTo.length == 1) {
+                this.LinkedTo = undefined
+            } else {
+                this.LinkedTo.splice(indexElement, 1)
+            }
             return true
         }
         return false

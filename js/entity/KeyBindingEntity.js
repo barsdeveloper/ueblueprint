@@ -1,12 +1,17 @@
+import IdentifierEntity from "./IdentifierEntity"
 import IEntity from "./IEntity"
 
 export default class KeyBindingEntity extends IEntity {
 
     static attributes = {
-        bCtrlDown: false,
-        bAltDown: false,
-        bShiftDown: false,
-        Key: String,
-        CommandName: String,
+        ActionName: "",
+        bShift: false,
+        bCtrl: false,
+        bAlt: false,
+        bCmd: false,
+        Key: IdentifierEntity,
+    }
+    constructor(options = {}) {
+        super(options)
     }
 }

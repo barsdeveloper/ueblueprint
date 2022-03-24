@@ -1,5 +1,6 @@
 class Configuration {
     static deleteNodesKeyboardKey = "Delete"
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
     static expandGridSize = 400
     static fontSize = "13px"
     static gridAxisLineColor = "black"
@@ -22,11 +23,13 @@ class Configuration {
         let end = 100 - start;
         return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
     }
+    static maxZoom = 7
+    static minZoom = -12
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragLocalEventName = "ueb-node-drag-local"
     static nodeRadius = 8 // in pixel
-    static selectAllKeyboardKey = "Ctrl+A"
+    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end"
@@ -41,6 +44,12 @@ class Configuration {
         /* UE name: JS name */
         "Backspace": "Backspace",
         "Tab": "Tab",
+        "LeftControl": "ControlLeft",
+        "RightControl": "ControlRight",
+        "LeftShift": "ShiftLeft",
+        "RightShift": "ShiftRight",
+        "LeftAlt": "AltLeft",
+        "RightAlt": "AltRight",
         "Enter": "Enter",
         "Pause": "Pause",
         "CapsLock": "CapsLock",
@@ -50,23 +59,23 @@ class Configuration {
         "PageDown": "PageDown",
         "End": "End",
         "Home": "Home",
-        "ArrowLeft": "ArrowLeft",
-        "ArrowUp": "ArrowUp",
-        "ArrowRight": "ArrowRight",
-        "ArrowDown": "ArrowDown",
+        "ArrowLeft": "Left",
+        "ArrowUp": "Up",
+        "ArrowRight": "Right",
+        "ArrowDown": "Down",
         "PrintScreen": "PrintScreen",
         "Insert": "Insert",
         "Delete": "Delete",
-        "Digit0": "Digit0",
-        "Digit1": "Digit1",
-        "Digit2": "Digit2",
-        "Digit3": "Digit3",
-        "Digit4": "Digit4",
-        "Digit5": "Digit5",
-        "Digit6": "Digit6",
-        "Digit7": "Digit7",
-        "Digit8": "Digit8",
-        "Digit9": "Digit9",
+        "Zero": "Digit0",
+        "One": "Digit1",
+        "Two": "Digit2",
+        "Three": "Digit3",
+        "Four": "Digit4",
+        "Five": "Digit5",
+        "Six": "Digit6",
+        "Seven": "Digit7",
+        "Eight": "Digit8",
+        "Nine": "Digit9",
         "A": "KeyA",
         "B": "KeyB",
         "C": "KeyC",
@@ -92,21 +101,21 @@ class Configuration {
         "X": "KeyX",
         "Y": "KeyY",
         "Z": "KeyZ",
-        "Numpad0": "Numpad0",
-        "Numpad1": "Numpad1",
-        "Numpad2": "Numpad2",
-        "Numpad3": "Numpad3",
-        "Numpad4": "Numpad4",
-        "Numpad5": "Numpad5",
-        "Numpad6": "Numpad6",
-        "Numpad7": "Numpad7",
-        "Numpad8": "Numpad8",
-        "Numpad9": "Numpad9",
-        "NumpadMultiply": "NumpadMultiply",
-        "NumpadAdd": "NumpadAdd",
-        "NumpadSubtract": "NumpadSubtract",
-        "NumpadDecimal": "NumpadDecimal",
-        "NumpadDivide": "NumpadDivide",
+        "NumPadZero": "Numpad0",
+        "NumPadOne": "Numpad1",
+        "NumPadTwo": "Numpad2",
+        "NumPadThree": "Numpad3",
+        "NumPadFour": "Numpad4",
+        "NumPadFive": "Numpad5",
+        "NumPadSix": "Numpad6",
+        "NumPadSeven": "Numpad7",
+        "NumPadEight": "Numpad8",
+        "NumPadNine": "Numpad9",
+        "Multiply": "NumpadMultiply",
+        "Add": "NumpadAdd",
+        "Subtract": "NumpadSubtract",
+        "Decimal": "NumpadDecimal",
+        "Divide": "NumpadDivide",
         "F1": "F1",
         "F2": "F2",
         "F3": "F3",
@@ -485,19 +494,27 @@ class IElement extends HTMLElement {
 
     static tagName = ""
 
+    /** @type {Blueprint} */
+    blueprint
+
+    /** @type {IEntity} */
+    entity
+
+    /** @type {ITemplate} */
+    template
+
+    /** @type {IContext[]} */
+    inputObjects = []
+
     /**
      * @param {IEntity} entity The entity containing blueprint related data for this graph element
      * @param {ITemplate} template The template to render this node
      */
     constructor(entity, template) {
         super();
-        /** @type {Blueprint} */
         this.blueprint = null;
-        /** @type {IEntity} */
         this.entity = entity;
-        /** @type {ITemplate} */
         this.template = template;
-        /** @type {IContext[]} */
         this.inputObjects = [];
     }
 
@@ -515,15 +532,23 @@ class IElement extends HTMLElement {
         this.inputObjects.forEach(v => v.unlistenDOMElement());
     }
 
-    createInputObjects() {
-        return []
+    /** @param {IElement} element */
+    isSameGraph(element) {
+        return this.blueprint && this.blueprint == element?.blueprint
     }
 
     /**
-     * @param {IElement} element
+     * @template {} T
+     * @param {new () => T} type
+     * @returns {T}
      */
-    isSameGraph(element) {
-        return this.blueprint && this.blueprint == element?.blueprint
+    getInputObject(type) {
+        return this.inputObjects.find(object => object.constructor == type)
+    }
+
+    // Subclasses will want to override
+    createInputObjects() {
+        return []
     }
 }
 
@@ -538,7 +563,6 @@ class SelectorTemplate extends ITemplate {
      */
     apply(selector) {
         super.apply(selector);
-        selector.classList.add("ueb-positioned");
         this.applyFinishSelecting(selector);
     }
 
@@ -749,15 +773,37 @@ class BlueprintTemplate extends ITemplate {
 
 class IContext {
 
+    /** @type {HTMLElement} */
+    target
+
+    /** @type {import("../Blueprint").default}" */
+    blueprint
+
+    /** @type {Object} */
+    options
+
+    #hasFocus = false
+
+    get hasFocus() {
+        return this.#hasFocus
+    }
+
+    set hasFocus(_) {
+    }
+
     constructor(target, blueprint, options) {
-        /** @type {HTMLElement} */
         this.target = target;
-        /** @type {import("../Blueprint").default}" */
         this.blueprint = blueprint;
         this.options = options;
         let self = this;
-        this.blueprintFocusHandler = _ => self.listenEvents();
-        this.blueprintUnfocusHandler = _ => self.unlistenEvents();
+        this.blueprintFocusHandler = _ => {
+            this.#hasFocus = true;
+            self.listenEvents();
+        };
+        this.blueprintUnfocusHandler = _ => {
+            self.unlistenEvents();
+            this.#hasFocus = false;
+        };
         if (options?.wantsFocusCallback ?? false) {
             this.blueprint.addEventListener("blueprint-focus", this.blueprintFocusHandler);
             this.blueprint.addEventListener("blueprint-unfocus", this.blueprintUnfocusHandler);
@@ -947,7 +993,7 @@ class IEntity {
                  *     - A proper value.
                  */
                 const value = Utility.objectGet(options, fullKey);
-                if (value !== null) {
+                if (value !== undefined) {
                     target[property] = value;
                     continue
                 }
@@ -1016,7 +1062,7 @@ class GuidEntity extends IEntity {
     }
 }
 
-class Identifier extends IEntity {
+class IdentifierEntity extends IEntity {
 
     static attributes = {
         value: String,
@@ -1030,11 +1076,6 @@ class Identifier extends IEntity {
             };
         }
         super(options);
-        /** @type {String} */
-        this.value;
-        if (!this.value.match(/\w+/)) {
-            throw new Error("The value must be an identifier (/\w+/).")
-        }
     }
 
     valueOf() {
@@ -1068,6 +1109,21 @@ class IntegerEntity extends IEntity {
 
     toString() {
         return this.value.toString()
+    }
+}
+
+class KeyBindingEntity extends IEntity {
+
+    static attributes = {
+        ActionName: "",
+        bShift: false,
+        bCtrl: false,
+        bAlt: false,
+        bCmd: false,
+        Key: IdentifierEntity,
+    }
+    constructor(options = {}) {
+        super(options);
     }
 }
 
@@ -1167,16 +1223,14 @@ class PinEntity extends IEntity {
     linkTo(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
-        const linkFound = this.LinkedTo.find(
-            /** @type {PinReferenceEntity} */
-            pinReferenceEntity => {
-                return pinReferenceEntity.objectName == targetObjectName
-                    && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
-            });
+        const linkFound = this.LinkedTo?.find(pinReferenceEntity => {
+            return pinReferenceEntity.objectName == targetObjectName
+                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+        });
         if (!linkFound) {
-            this.LinkedTo.push(new PinReferenceEntity({
+            (this.LinkedTo ?? (this.LinkedTo = [])).push(new PinReferenceEntity({
                 objectName: targetObjectName,
-                pinGuid: targetPinEntity.PinId
+                pinGuid: targetPinEntity.PinId,
             }));
             return true
         }
@@ -1190,14 +1244,16 @@ class PinEntity extends IEntity {
     unlinkFrom(targetObjectName, targetPinEntity) {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
-        const indexElement = this.LinkedTo.findIndex(
-            /** @type {PinReferenceEntity} */
-            pinReferenceEntity => {
-                return pinReferenceEntity.objectName == targetObjectName
-                    && pinReferenceEntity.pinGuid == targetPinEntity.PinId
-            });
+        const indexElement = this.LinkedTo.findIndex(pinReferenceEntity => {
+            return pinReferenceEntity.objectName == targetObjectName
+                && pinReferenceEntity.pinGuid == targetPinEntity.PinId
+        });
         if (indexElement >= 0) {
-            this.LinkedTo.splice(indexElement, 1);
+            if (this.LinkedTo.length == 1) {
+                this.LinkedTo = undefined;
+            } else {
+                this.LinkedTo.splice(indexElement, 1);
+            }
             return true
         }
         return false
@@ -1229,7 +1285,7 @@ class ObjectEntity extends IEntity {
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
-        AdvancedPinDisplay: new TypeInitialization(Identifier, false, null),
+        AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
@@ -1258,106 +1314,11 @@ var parsimmon_umd_min = {exports: {}};
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
 
-let P$1 = Parsimmon;
+let P = Parsimmon;
 
 class Grammar {
 
-    /** @param {Grammar} r */
-    InlineWhitespace = r => P$1.regex(/[^\S\n]+/).desc("inline whitespace")
-
-    /** @param {Grammar} r */
-    InlineOptWhitespace = r => P$1.regex(/[^\S\n]*/).desc("inline optional whitespace")
-
-    /** @param {Grammar} r */
-    WhitespaceNewline = r => P$1.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
-
-    /** @param {Grammar} r */
-    Null = r => P$1.seq(P$1.string("("), r.InlineOptWhitespace, P$1.string(")")).map(_ => null).desc("null: ()")
-
-    /** @param {Grammar} r */
-    None = r => P$1.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
-
-    /** @param {Grammar} r */
-    Boolean = r => P$1.alt(P$1.string("True"), P$1.string("False")).map(v => v === "True" ? true : false).desc("either True or False")
-
-    /** @param {Grammar} r */
-    Number = r => P$1.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
-
-    /** @param {Grammar} r */
-    Integer = r => P$1.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
-
-    /** @param {Grammar} r */
-    String = r => P$1.regex(/(?:[^"\\]|\\.)*/).wrap(P$1.string('"'), P$1.string('"')).desc('string (with possibility to escape the quote using \")')
-
-    /** @param {Grammar} r */
-    Word = r => P$1.regex(/[a-zA-Z]+/).desc("a word")
-
-    /** @param {Grammar} r */
-    Guid = r => P$1.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal (accepts all the letters for safety) value")
-
-    /** @param {Grammar} */
-    Identifier = r => P$1.regex(/\w+/).map(v => new Identifier(v))
-
-    /** @param {Grammar} r */
-    PathSymbolEntity = r => P$1.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
-
-    /** @param {Grammar} r */
-    ReferencePath = r => P$1.seq(P$1.string("/"), r.PathSymbolEntity.map(v => v.toString()).sepBy1(P$1.string(".")).tieWith("."))
-        .tie()
-        .atLeast(2)
-        .tie()
-        .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
-
-    /** @param {Grammar} r */
-    Reference = r => P$1.alt(
-        r.None,
-        ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))].flatMap(
-            v => [v, v.trim(P$1.string('"'))]
-        ),
-        P$1.seqMap(
-            r.Word,
-            P$1.optWhitespace,
-            P$1.alt(P$1.string('"'), P$1.string('\'"')).chain(
-                result => r.ReferencePath.skip(
-                    P$1.string(result.split("").reverse().join(""))
-                )
-            ),
-            (referenceType, _, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
-        )
-    )
-
-    /** @param {Grammar} r */
-    AttributeName = r => r.Word.sepBy1(P$1.string(".")).tieWith(".").desc('words separated by ""')
-
-    /** @param {Grammar} r */
-    AttributeAnyValue = r => P$1.alt(r.Null, r.None, r.Boolean, r.Number, r.Integer, r.String, r.Guid, r.Reference, r.LocalizedText)
-
-    /** @param {Grammar} r */
-    LocalizedText = r => P$1.seqMap(
-        P$1.string(LocalizedTextEntity.lookbehind).skip(P$1.optWhitespace).skip(P$1.string("(")),
-        r.String.trim(P$1.optWhitespace), // namespace
-        P$1.string(","),
-        r.String.trim(P$1.optWhitespace), // key
-        P$1.string(","),
-        r.String.trim(P$1.optWhitespace), // value
-        P$1.string(")"),
-        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
-            namespace: namespace,
-            key: key,
-            value: value
-        })
-    )
-
-    /** @param {Grammar} r */
-    PinReference = r => P$1.seqMap(
-        r.PathSymbolEntity,
-        P$1.whitespace,
-        r.Guid,
-        (objectName, _, pinGuid) => new PinReferenceEntity({
-            objectName: objectName,
-            pinGuid: pinGuid
-        })
-    )
+    /*   ---   Factory   ---   */
 
     /** @param {Grammar} r */
     static getGrammarForType(r, attributeType, defaultGrammar) {
@@ -1372,7 +1333,7 @@ class Grammar {
                 return r.String
             case GuidEntity:
                 return r.Guid
-            case Identifier:
+            case IdentifierEntity:
                 return r.Identifier
             case ObjectReferenceEntity:
                 return r.Reference
@@ -1385,8 +1346,8 @@ class Grammar {
             case PinEntity:
                 return r.Pin
             case Array:
-                return P$1.seqMap(
-                    P$1.string("("),
+                return P.seqMap(
+                    P.string("("),
                     attributeType
                         .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
                         .reduce((accum, cur) =>
@@ -1394,10 +1355,10 @@ class Grammar {
                                 ? r.AttributeAnyValue
                                 : accum.or(cur)
                         )
-                        .trim(P$1.optWhitespace)
-                        .sepBy(P$1.string(","))
-                        .skip(P$1.regex(/,?\s*/)),
-                    P$1.string(")"),
+                        .trim(P.optWhitespace)
+                        .sepBy(P.string(","))
+                        .skip(P.regex(/,?\s*/)),
+                    P.string(")"),
                     (_, grammar, __) => grammar
                 )
             default:
@@ -1406,7 +1367,7 @@ class Grammar {
     }
 
     /** @param {Grammar} r */
-    static CreateAttributeGrammar = (r, entityType, valueSeparator = P$1.string("=").trim(P$1.optWhitespace)) =>
+    static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
                 const attributeKey = attributeName.split(".");
@@ -1419,36 +1380,165 @@ class Grammar {
             })
 
     /** @param {Grammar} r */
-    static CreateMultiAttributeGrammar = (r, entityType) =>
+    static createMultiAttributeGrammar = (r, entityType) =>
         /**
          * Basically this creates a parser that looks for a string like 'Key (A=False,B="Something",)'
          * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
          */
-        P$1.seqMap(
+        P.seqMap(
             entityType.lookbehind
-                ? P$1.seq(P$1.string(entityType.lookbehind), P$1.optWhitespace, P$1.string("("))
-                : P$1.string("("),
-            Grammar.CreateAttributeGrammar(r, entityType)
-                .trim(P$1.optWhitespace)
-                .sepBy(P$1.string(","))
-                .skip(P$1.regex(/,?/).then(P$1.optWhitespace)), // Optional trailing comma
-            P$1.string(')'),
+                ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
+                : P.string("("),
+            Grammar.createAttributeGrammar(r, entityType)
+                .trim(P.optWhitespace)
+                .sepBy(P.string(","))
+                .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma
+            P.string(')'),
             (_, attributes, __) => {
                 let result = new entityType();
                 attributes.forEach(attributeSetter => attributeSetter(result));
                 return result
             })
 
-    /** @param {Grammar} r */
-    FunctionReference = r => Grammar.CreateMultiAttributeGrammar(r, FunctionReferenceEntity)
+    /*   ---   General   ---   */
 
     /** @param {Grammar} r */
-    Pin = r => Grammar.CreateMultiAttributeGrammar(r, PinEntity)
+    InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("inline whitespace")
+
+    /** @param {Grammar} r */
+    InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
+
+    /** @param {Grammar} r */
+    MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
+
+    /** @param {Grammar} r */
+    Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
+
+    /** @param {Grammar} r */
+    Boolean = r => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false)
+        .desc("either True or False")
+
+    /** @param {Grammar} r */
+    Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+
+    /** @param {Grammar} r */
+    Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
+
+    /** @param {Grammar} r */
+    String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"'))
+        .desc('string (with possibility to escape the quote using \")')
+
+    /** @param {Grammar} r */
+    ReferencePath = r => P.seq(
+        P.string("/"),
+        r.PathSymbol
+            .map(v => v.toString())
+            .sepBy1(P.string("."))
+            .tieWith(".")
+    )
+        .tie()
+        .atLeast(2)
+        .tie()
+        .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
+
+    /** @param {Grammar} r */
+    AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
+
+    /*   ---   Entity   ---   */
+
+    /** @param {Grammar} r */
+    None = r => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
+
+    /** @param {Grammar} r */
+    Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
+
+    /** @param {Grammar} r */
+    Guid = r => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v }))
+        .desc("32 digit hexadecimal (accepts all the letters for safety) value")
+
+    /** @param {Grammar} */
+    Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
+
+    /** @param {Grammar} r */
+    PathSymbol = r => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
+
+    /** @param {Grammar} r */
+    Reference = r => P.alt(
+        r.None,
+        ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
+            .flatMap(referencePath => [
+                referencePath, // version having just path
+                referencePath.trim(P.string('"')) // Version having path surround with double quotes
+            ]),
+        P.seqMap(
+            r.Word, // Goes into referenceType
+            P.optWhitespace, // Goes into _ (ignored)
+            P.alt(...[r.ReferencePath].flatMap(referencePath => [
+                referencePath.wrap(P.string(`"`), P.string(`"`)),
+                referencePath.wrap(P.string(`'"`), P.string(`"'`))
+            ])), // Goes into referencePath
+            (referenceType, _, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
+        ),
+        r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
+    )
+
+    /** @param {Grammar} r */
+    LocalizedText = r => P.seqMap(
+        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _ (ignored)
+        r.String.trim(P.optWhitespace), // Goes into namespace
+        P.string(","), // Goes into __ (ignored)
+        r.String.trim(P.optWhitespace), // Goes into key
+        P.string(","), // Goes into ___ (ignored)
+        r.String.trim(P.optWhitespace), // Goes into value
+        P.string(")"), // Goes into ____ (ignored)
+        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
+            namespace: namespace,
+            key: key,
+            value: value
+        })
+    )
+
+    /** @param {Grammar} r */
+    AttributeAnyValue = r => P.alt(
+        r.Null,
+        r.None,
+        r.Boolean,
+        r.Number,
+        r.Integer,
+        r.String,
+        r.Guid,
+        r.Reference,
+        r.LocalizedText)
+
+    /** @param {Grammar} r */
+    PinReference = r => P.seqMap(
+        r.PathSymbol, // Goes into objectNAme
+        P.whitespace, // Goes into _ (ignored)
+        r.Guid, // Goes into pinGuid
+        (objectName, _, pinGuid) => new PinReferenceEntity({
+            objectName: objectName,
+            pinGuid: pinGuid
+        })
+    )
+
+    /** @param {Grammar} r */
+    FunctionReference = r => Grammar.createMultiAttributeGrammar(r, FunctionReferenceEntity)
+
+    /** @param {Grammar} r */
+    KeyBinding = r => P.alt(
+        r.Identifier.map(identifier => new KeyBindingEntity({
+            Key: identifier
+        })),
+        Grammar.createMultiAttributeGrammar(r, KeyBindingEntity)
+    )
+
+    /** @param {Grammar} r */
+    Pin = r => Grammar.createMultiAttributeGrammar(r, PinEntity)
 
     /** @param {Grammar} r */
     CustomProperties = r =>
-        P$1.string("CustomProperties")
-            .then(P$1.whitespace)
+        P.string("CustomProperties")
+            .then(P.whitespace)
             .then(r.Pin)
             .map(pin => entity => {
                 /** @type {Array} */
@@ -1458,15 +1548,15 @@ class Grammar {
             })
 
     /** @param {Grammar} r */
-    Object = r => P$1.seqMap(
-        P$1.seq(P$1.string("Begin"), P$1.whitespace, P$1.string("Object"), P$1.whitespace),
-        P$1
+    Object = r => P.seqMap(
+        P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
+        P
             .alt(
                 r.CustomProperties,
-                Grammar.CreateAttributeGrammar(r, ObjectEntity)
+                Grammar.createAttributeGrammar(r, ObjectEntity)
             )
-            .sepBy1(P$1.whitespace),
-        P$1.seq(r.WhitespaceNewline, P$1.string("End"), P$1.whitespace, P$1.string("Object")),
+            .sepBy1(P.whitespace),
+        P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
         (_, attributes, __) => {
             let result = new ObjectEntity();
             attributes.forEach(attributeSetter => attributeSetter(result));
@@ -1475,7 +1565,7 @@ class Grammar {
     )
 
     /** @param {Grammar} r */
-    MultipleObject = r => r.Object.sepBy1(P$1.whitespace).trim(P$1.optWhitespace)
+    MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
 }
 
 class SerializerFactory {
@@ -1653,75 +1743,70 @@ class Copy extends IContext {
     }
 }
 
-let P = Parsimmon;
-
-class KeyGrammar {
-
-    // Creates a grammar where each alternative is the string from ModifierKey mapped to a number for bit or use
-    ModifierKey = r => P.alt(...Configuration.ModifierKeys.map((v, i) => P.string(v).map(_ => 1 << i)))
-    Key = r => P.alt(...Object.keys(Configuration.Keys).map(v => P.string(v))).map(v => Configuration.Keys[v])
-    KeyboardShortcut = r => P.alt(
-        P.seqMap(
-            P.seqMap(r.ModifierKey, P.optWhitespace, P.string(Configuration.keysSeparator), (v, _, __) => v)
-                .atLeast(1)
-                .map(v => v.reduce((acc, cur) => acc | cur)),
-            P.optWhitespace,
-            r.Key,
-            (modifierKeysFlag, _, key) => ({
-                key: key,
-                ctrlKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Ctrl"))),
-                shiftKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Shift"))),
-                altKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Alt"))),
-                metaKey: Boolean(modifierKeysFlag & (1 << Configuration.ModifierKeys.indexOf("Meta")))
-            })
-        ),
-        r.Key.map(v => ({ key: v }))
-    )
-        .trim(P.optWhitespace)
-}
-
 class IKeyboardShortcut extends IContext {
 
-    static keyGrammar = P.createLanguage(new KeyGrammar())
+    /** @type {KeyBindingEntity} */
+    #activationKeys
 
     constructor(target, blueprint, options = {}) {
         options.wantsFocusCallback = true;
+        options.activationKeys ??= [];
+        if (!(options.activationKeys instanceof Array)) {
+            options.activationKeys = [options.activationKeys];
+        }
+        options.activationKeys = options.activationKeys.map(v => {
+            if (v instanceof KeyBindingEntity) {
+                return v
+            }
+            if (v.constructor === String) {
+                const parsed = ISerializer.grammar.KeyBinding.parse(v);
+                if (parsed.status) {
+                    return parsed.value
+                }
+            }
+            throw new Error("Unexpected key value")
+        });
+
         super(target, blueprint, options);
 
-        /** @type {String[]} */
-        this.key = this.options.key;
-        this.ctrlKey = options.ctrlKey ?? false;
-        this.shiftKey = options.shiftKey ?? false;
-        this.altKey = options.altKey ?? false;
-        this.metaKey = options.metaKey ?? false;
+        this.#activationKeys = this.options.activationKeys ?? [];
 
         let self = this;
+        /** @param {KeyboardEvent} e */
         this.keyDownHandler = e => {
             if (
-                e.code == self.key
-                && e.ctrlKey === self.ctrlKey
-                && e.shiftKey === self.shiftKey
-                && e.altKey === self.altKey
-                && e.metaKey === self.metaKey
-            ) {
-                self.fire();
+                self.#activationKeys.some(keyEntry =>
+                    keyEntry.bShift === e.shiftKey
+                    && keyEntry.bCtrl === e.ctrlKey
+                    && keyEntry.bAlt === e.altKey
+                    && keyEntry.bCmd === e.metaKey
+                    && Configuration.Keys[keyEntry.Key] === e.code
+                )) {
                 e.preventDefault();
-                return true
+                self.fire();
+                document.removeEventListener("keydown", self.keyDownHandler);
+                document.addEventListener("keyup", self.keyUpHandler);
             }
-            return false
         };
-    }
 
-    /**
-     * @param {String} keyString
-     * @returns {Object}
-     */
-    static keyOptionsParse(options, keyString) {
-        options = {
-            ...options,
-            ...IKeyboardShortcut.keyGrammar.KeyboardShortcut.parse(keyString).value
+        /** @param {KeyboardEvent} e */
+        this.keyUpHandler = e => {
+            if (
+                self.#activationKeys.some(keyEntry =>
+                    keyEntry.bShift && e.key === "Shift"
+                    || keyEntry.bCtrl && e.key === "Control"
+                    || keyEntry.bAlt && e.key === "Alt"
+                    || keyEntry.bCmd && e.key === "Meta" // Unsure about this, what key is that?
+                    || Configuration.Keys[keyEntry.Key] === e.code
+
+                )) {
+                e.preventDefault();
+                self.unfire();
+                document.removeEventListener("keyup", this.keyUpHandler);
+                document.addEventListener("keydown", this.keyDownHandler);
+            }
         };
-        return options
+
     }
 
     listenEvents() {
@@ -1732,11 +1817,16 @@ class IKeyboardShortcut extends IContext {
         document.removeEventListener("keydown", this.keyDownHandler);
     }
 
+    // Subclasses will want to override
+
     fire() {
+    }
+
+    unfire() {
     }
 }
 
-class KeyvoardCanc extends IKeyboardShortcut {
+class KeyboardCanc extends IKeyboardShortcut {
 
     /**
      * @param {HTMLElement} target
@@ -1744,12 +1834,134 @@ class KeyvoardCanc extends IKeyboardShortcut {
      * @param {OBject} options
      */
     constructor(target, blueprint, options = {}) {
-        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.deleteNodesKeyboardKey);
+        options = {
+            ...options,
+            activationKeys: Configuration.deleteNodesKeyboardKey
+        };
         super(target, blueprint, options);
     }
 
     fire() {
         this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
+    }
+}
+
+class IPointing extends IContext {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
+    }
+
+    /**
+     * @param {MouseEvent} mouseEvent
+     */
+    locationFromEvent(mouseEvent) {
+        return this.blueprint.compensateTranslation(
+            Utility.convertLocation(
+                [mouseEvent.clientX, mouseEvent.clientY],
+                this.movementSpace))
+    }
+}
+
+class IMouseWheel extends IPointing {
+
+    /** @type {(e: WheelEvent) => void} */
+    #mouseWheelHandler
+
+    /** @type {(e: WheelEvent) => void} */
+    #mouseParentWheelHandler
+
+    /**
+     * @param {HTMLElement} target
+     * @param {import("../../Blueprint").default} blueprint
+     * @param {Object} options
+     */
+    constructor(target, blueprint, options) {
+        options.wantsFocusCallback = true;
+        super(target, blueprint, options);
+        this.looseTarget = options?.looseTarget ?? true;
+        let self = this;
+
+        this.#mouseWheelHandler = e => {
+            e.preventDefault();
+            const location = self.locationFromEvent(e);
+            self.wheel(Math.sign(e.deltaY), location);
+        };
+        this.#mouseParentWheelHandler = e => e.preventDefault();
+
+        if (this.blueprint.focused) {
+            this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false);
+        }
+    }
+
+    listenEvents() {
+        this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false);
+        this.movementSpace.parentElement?.addEventListener("wheel", this.#mouseParentWheelHandler);
+    }
+
+    unlistenEvents() {
+        this.movementSpace.removeEventListener("wheel", this.#mouseWheelHandler, false);
+        this.movementSpace.parentElement?.removeEventListener("wheel", this.#mouseParentWheelHandler);
+    }
+
+    /* Subclasses will override the following method */
+    wheel(variation, location) {
+    }
+}
+
+class Zoom extends IMouseWheel {
+
+    #enableZoonIn = false
+
+    get enableZoonIn() {
+        return this.#enableZoonIn
+    }
+
+    set enableZoonIn(value) {
+        value = Boolean(value);
+        if (value == this.#enableZoonIn) {
+            return
+        }
+        this.#enableZoonIn = value;
+    }
+
+    wheel(variation, location) {
+        let zoomLevel = this.blueprint.getZoom();
+        variation = -variation;
+        if (!this.enableZoonIn && zoomLevel == 0 && variation > 0) {
+            return
+        }
+        zoomLevel += variation;
+        this.blueprint.setZoom(zoomLevel, location);
+    }
+}
+
+class KeyboardEnableZoom extends IKeyboardShortcut {
+
+    /** @type {} */
+    #zoomInputObject
+
+    /**
+     * @param {HTMLElement} target
+     * @param {import("../../Blueprint").default} blueprint
+     * @param {OBject} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options = {
+            ...options,
+            activationKeys: Configuration.enableZoomIn
+        };
+        super(target, blueprint, options);
+    }
+
+    fire() {
+        this.zoomInputObject = this.blueprint.getInputObject(Zoom);
+        zoomInputObject.enableZoonIn = true;
+    }
+
+    unfire() {
+        this.#zoomInputObject.enableZoom = false;
     }
 }
 
@@ -1761,7 +1973,10 @@ class KeyboardSelectAll extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options = IKeyboardShortcut.keyOptionsParse(options, Configuration.selectAllKeyboardKey);
+        options = {
+            ...options,
+            activationKeys: Configuration.selectAllKeyboardKey
+        };
         super(target, blueprint, options);
     }
 
@@ -2140,24 +2355,6 @@ class LinkElement extends IElement {
 
 customElements.define(LinkElement.tagName, LinkElement);
 
-class IPointing extends IContext {
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
-    }
-
-    /**
-     * @param {MouseEvent} mouseEvent
-     */
-    locationFromEvent(mouseEvent) {
-        return this.blueprint.compensateTranslation(
-            Utility.convertLocation(
-                [mouseEvent.clientX, mouseEvent.clientY],
-                this.movementSpace))
-    }
-}
-
 /**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  */
@@ -2258,6 +2455,7 @@ class IMouseClickDrag extends IPointing {
                 if (self.started) {
                     self.endDrag();
                 }
+                self.unclicked();
                 if (self.#trackingMouse) {
                     const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end);
                     this.target.dispatchEvent(dragEvent);
@@ -2302,6 +2500,9 @@ class IMouseClickDrag extends IPointing {
     }
 
     endDrag() {
+    }
+
+    unclicked(location) {
     }
 }
 
@@ -2961,6 +3162,9 @@ class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-outputs"></div>
                     </div>
                 </div>
+                <div class="ueb-node-expand">
+                    <span class="ueb-node-expand-icon"></span>
+                </div>
             </div>
         `
     }
@@ -3132,7 +3336,11 @@ class Select extends IMouseClickDrag {
     endDrag() {
         if (this.started) {
             this.selectorElement.finishSelecting();
-        } else {
+        }
+    }
+
+    unclicked() {
+        if (!this.started) {
             this.blueprint.unselectAll();
         }
     }
@@ -3170,61 +3378,6 @@ class Unfocus extends IContext {
 
     unlistenEvents() {
         document.removeEventListener("click", this.#clickHandler);
-    }
-}
-
-class IMouseWheel extends IPointing {
-
-    /** @type {(e: WheelEvent) => void} */
-    #mouseWheelHandler
-
-    /** @type {(e: WheelEvent) => void} */
-    #mouseParentWheelHandler
-
-    /**
-     * @param {HTMLElement} target
-     * @param {import("../../Blueprint").default} blueprint
-     * @param {Object} options
-     */
-    constructor(target, blueprint, options) {
-        options.wantsFocusCallback = true;
-        super(target, blueprint, options);
-        this.looseTarget = options?.looseTarget ?? true;
-        let self = this;
-
-        this.#mouseWheelHandler = e => {
-            e.preventDefault();
-            const location = self.locationFromEvent(e);
-            self.wheel(Math.sign(e.deltaY), location);
-        };
-        this.#mouseParentWheelHandler = e => e.preventDefault();
-
-        if (this.blueprint.focused) {
-            this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false);
-        }
-    }
-
-    listenEvents() {
-        this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false);
-        this.movementSpace.parentElement?.addEventListener("wheel", this.#mouseParentWheelHandler);
-    }
-
-    unlistenEvents() {
-        this.movementSpace.removeEventListener("wheel", this.#mouseWheelHandler, false);
-        this.movementSpace.parentElement?.removeEventListener("wheel", this.#mouseParentWheelHandler);
-    }
-
-    /* Subclasses will override the following method */
-    wheel(variation, location) {
-    }
-}
-
-class Zoom extends IMouseWheel {
-
-    wheel(variation, location) {
-        let zoomLevel = this.blueprint.getZoom();
-        zoomLevel -= variation;
-        this.blueprint.setZoom(zoomLevel, location);
     }
 }
 
@@ -3316,7 +3469,7 @@ class Blueprint extends IElement {
         return [
             new Copy(this.getGridDOMElement(), this),
             new Paste(this.getGridDOMElement(), this),
-            new KeyvoardCanc(this.getGridDOMElement(), this),
+            new KeyboardCanc(this.getGridDOMElement(), this),
             new KeyboardSelectAll(this.getGridDOMElement, this),
             new Zoom(this.getGridDOMElement(), this, {
                 looseTarget: true,
@@ -3334,7 +3487,8 @@ class Blueprint extends IElement {
                 moveEverywhere: true,
             }),
             new Unfocus(this.getGridDOMElement(), this),
-            new MouseTracking(this.getGridDOMElement(), this)
+            new MouseTracking(this.getGridDOMElement(), this),
+            new KeyboardEnableZoom(this.getGridDOMElement(), this),
         ]
     }
 
@@ -3470,7 +3624,7 @@ class Blueprint extends IElement {
     }
 
     setZoom(zoom, center) {
-        zoom = Utility.clamp(zoom, -12, 0);
+        zoom = Utility.clamp(zoom, Configuration.minZoom, Configuration.maxZoom);
         if (zoom == this.zoom) {
             return
         }
@@ -3670,26 +3824,37 @@ class ToStringSerializer extends GeneralSerializer {
 }
 
 function initializeSerializerFactory() {
+
     SerializerFactory.registerSerializer(
         ObjectEntity,
         new ObjectSerializer()
     );
+
     SerializerFactory.registerSerializer(
         PinEntity,
         new GeneralSerializer(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
     );
+
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
         new GeneralSerializer(v => `(${v})`, FunctionReferenceEntity, "", ",", false)
     );
+
+    SerializerFactory.registerSerializer(
+        KeyBindingEntity,
+        new GeneralSerializer(v => `(${v})`, KeyBindingEntity, "", ",", false)
+    );
+
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
         new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
     );
+
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
     );
+
     SerializerFactory.registerSerializer(
         ObjectReferenceEntity,
         new CustomSerializer(
@@ -3700,9 +3865,13 @@ function initializeSerializerFactory() {
                     : ""
             ))
     );
-    SerializerFactory.registerSerializer(Identifier, new ToStringSerializer(Identifier));
+
+    SerializerFactory.registerSerializer(IdentifierEntity, new ToStringSerializer(IdentifierEntity));
+
     SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity));
+
     SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity));
+
     SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));
 }
 

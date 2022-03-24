@@ -1,7 +1,7 @@
 import IEntity from "./IEntity"
 
 
-export default class Identifier extends IEntity {
+export default class IdentifierEntity extends IEntity {
 
     static attributes = {
         value: String,
@@ -15,11 +15,6 @@ export default class Identifier extends IEntity {
             }
         }
         super(options)
-        /** @type {String} */
-        this.value
-        if (!this.value.match(/\w+/)) {
-            throw new Error("The value must be an identifier (/\w+/).")
-        }
     }
 
     valueOf() {

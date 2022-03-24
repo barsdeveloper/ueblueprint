@@ -28,7 +28,7 @@ export default class IEntity {
                  *     - A proper value.
                  */
                 const value = Utility.objectGet(options, fullKey)
-                if (value !== null) {
+                if (value !== undefined) {
                     target[property] = value
                     continue
                 }

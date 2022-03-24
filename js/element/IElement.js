@@ -9,19 +9,27 @@ export default class IElement extends HTMLElement {
 
     static tagName = ""
 
+    /** @type {Blueprint} */
+    blueprint
+
+    /** @type {IEntity} */
+    entity
+
+    /** @type {ITemplate} */
+    template
+
+    /** @type {IContext[]} */
+    inputObjects = []
+
     /**
      * @param {IEntity} entity The entity containing blueprint related data for this graph element
      * @param {ITemplate} template The template to render this node
      */
     constructor(entity, template) {
         super()
-        /** @type {Blueprint} */
         this.blueprint = null
-        /** @type {IEntity} */
         this.entity = entity
-        /** @type {ITemplate} */
         this.template = template
-        /** @type {IContext[]} */
         this.inputObjects = []
     }
 
@@ -39,14 +47,22 @@ export default class IElement extends HTMLElement {
         this.inputObjects.forEach(v => v.unlistenDOMElement())
     }
 
-    createInputObjects() {
-        return []
+    /** @param {IElement} element */
+    isSameGraph(element) {
+        return this.blueprint && this.blueprint == element?.blueprint
     }
 
     /**
-     * @param {IElement} element
+     * @template {} T
+     * @param {new () => T} type
+     * @returns {T}
      */
-    isSameGraph(element) {
-        return this.blueprint && this.blueprint == element?.blueprint
+    getInputObject(type) {
+        return this.inputObjects.find(object => object.constructor == type)
+    }
+
+    // Subclasses will want to override
+    createInputObjects() {
+        return []
     }
 }

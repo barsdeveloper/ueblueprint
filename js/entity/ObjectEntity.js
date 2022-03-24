@@ -1,6 +1,6 @@
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
-import Identifier from "./Identifier"
+import IdentifierEntity from "./IdentifierEntity"
 import IEntity from "./IEntity"
 import IntegerEntity from "./IntegerEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
@@ -20,7 +20,7 @@ export default class ObjectEntity extends IEntity {
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
-        AdvancedPinDisplay: new TypeInitialization(Identifier, false, null),
+        AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),

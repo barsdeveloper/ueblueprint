@@ -18,7 +18,7 @@ export default {
         copy({
             targets: [
                 {
-                    src: ["font/*"],
+                    src: ["assets/fonts/*"],
                     dest: "dist/font"
                 }
             ]

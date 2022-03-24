@@ -6,12 +6,12 @@
 }
 
 .ueb-pin-boolean {
-    $ueb-pin-color : #930000;
+    $ueb-pin-color : rgb(30%, 0, 0);
     --ueb-pin-color: #{$ueb-pin-color};
 }
 
-.ueb-pin-int {
-    $ueb-pin-color : #1fe0ad;
+.ueb-pin-class {
+    $ueb-pin-color : #5800bb;
     --ueb-pin-color: #{$ueb-pin-color};
 }
 
@@ -20,8 +20,19 @@
     --ueb-pin-color: #{$ueb-pin-color};
 }
 
-.ueb-pin-vector {
-    $ueb-pin-color : #fcc823;
+.ueb-pin-int {
+    $ueb-pin-color : #1fe0ad;
+    --ueb-pin-color: #{$ueb-pin-color};
+}
+
+.ueb-pin-name {
+    $ueb-pin-color : #cb81fc;
+    --ueb-pin-color: #{$ueb-pin-color};
+}
+
+.ueb-pin-object {
+    $ueb-pin-color : #00a8f2;
+    $ueb-pin-color : rgba(0%, 40%, 01%);
     --ueb-pin-color: #{$ueb-pin-color};
 }
 
@@ -36,12 +47,7 @@
     --ueb-pin-background: linear-gradient(90deg, #fc00d220, #fc00d280 15%, #fc00d250 85%, transparent);
 }
 
-.ueb-pin-name {
-    $ueb-pin-color : #cb81fc;
-    --ueb-pin-color: #{$ueb-pin-color};
-}
-
-.ueb-pin-object {
-    $ueb-pin-color : #00a8f2;
+.ueb-pin-vector {
+    $ueb-pin-color : #fcc823;
     --ueb-pin-color: #{$ueb-pin-color};
 }

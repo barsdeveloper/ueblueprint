@@ -12,7 +12,6 @@ export default class SelectorTemplate extends ITemplate {
      */
     apply(selector) {
         super.apply(selector)
-        selector.classList.add("ueb-positioned")
         this.applyFinishSelecting(selector)
     }
 
