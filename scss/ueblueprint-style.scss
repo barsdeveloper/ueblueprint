@@ -98,6 +98,7 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     background-repeat  : repeat-x, repeat-y, repeat, repeat, repeat, repeat;
     transform          : scale(var(--ueb-scale), var(--ueb-scale));
     transform-origin   : 0 0;
+    backface-visibility: hidden;
     overflow           : hidden;
 }
 
@@ -111,34 +112,56 @@ ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
 
 .ueb-zoom--.ueb,
 .ueb {
-    /* 16/16 */
     --ueb-scale           : 1;
     --ueb-grid-actual-size: var(--ueb-grid-size);
 }
 
+.ueb-zoom-7.ueb {
+    --ueb-scale: 2;
+}
+
+.ueb-zoom-6.ueb {
+    --ueb-scale: 1.875;
+}
+
+.ueb-zoom-5.ueb {
+    --ueb-scale: 1.75;
+}
+
+.ueb-zoom-4.ueb {
+    --ueb-scale: 1.675;
+}
+
+.ueb-zoom-3.ueb {
+    --ueb-scale: 1.5;
+}
+
+.ueb-zoom-2.ueb {
+    --ueb-scale: 1.375;
+}
+
+.ueb-zoom-1.ueb {
+    --ueb-scale: 1.25;
+}
+
 .ueb-zoom--1.ueb {
-    /* 14/16 */
     --ueb-scale: 0.875;
 }
 
 .ueb-zoom--2.ueb {
-    /* 12/16 */
     --ueb-scale: 0.75;
 }
 
 .ueb-zoom--3.ueb {
-    /* 10.8/16 */
     --ueb-scale: 0.675;
 }
 
 .ueb-zoom--4.ueb {
-    /* 8/16 */
     --ueb-scale           : 0.5;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
 .ueb-zoom--5.ueb {
-    /* 6/16 */
     --ueb-scale           : 0.375;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
@@ -164,19 +187,16 @@ ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
 }
 
 .ueb-zoom--10.ueb {
-    /* 12/16 */
     --ueb-scale           : 0.2;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--11.ueb {
-    /* 12/16 */
     --ueb-scale           : 0.166666;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
 
 .ueb-zoom--12.ueb {
-    /* 12/16 */
     --ueb-scale           : 0.133333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
@@ -194,7 +214,6 @@ ueb-node {
     transform    : translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
     border-radius: var(--ueb-node-radius);
     box-shadow   : 0 0 1px 0 black, 1px 4px 6px 0 rgba(0, 0, 0, 0.3);
-    will-change  : transform;
 }
 
 ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {

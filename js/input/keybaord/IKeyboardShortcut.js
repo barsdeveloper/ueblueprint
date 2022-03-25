@@ -30,16 +30,19 @@ export default class IKeyboardShortcut extends IContext {
 
         this.#activationKeys = this.options.activationKeys ?? []
 
+        const wantsShift = keyEntry => keyEntry.bShift || keyEntry.Key == "LeftShift" || keyEntry.Key == "RightShift"
+        const wantsCtrl = keyEntry => keyEntry.bCtrl || keyEntry.Key == "LeftControl" || keyEntry.Key == "RightControl"
+        const wantsAlt = keyEntry => keyEntry.bAlt || keyEntry.Key == "LeftAlt" || keyEntry.Key == "RightAlt"
+
         let self = this
         /** @param {KeyboardEvent} e */
         this.keyDownHandler = e => {
             if (
                 self.#activationKeys.some(keyEntry =>
-                    keyEntry.bShift === e.shiftKey
-                    && keyEntry.bCtrl === e.ctrlKey
-                    && keyEntry.bAlt === e.altKey
-                    && keyEntry.bCmd === e.metaKey
-                    && Configuration.Keys[keyEntry.Key] === e.code
+                    wantsShift(keyEntry) == e.shiftKey
+                    && wantsCtrl(keyEntry) == e.ctrlKey
+                    && wantsAlt(keyEntry) == e.altKey
+                    && Configuration.Keys[keyEntry.Key] == e.code
                 )) {
                 e.preventDefault()
                 self.fire()
@@ -52,11 +55,11 @@ export default class IKeyboardShortcut extends IContext {
         this.keyUpHandler = e => {
             if (
                 self.#activationKeys.some(keyEntry =>
-                    keyEntry.bShift && e.key === "Shift"
-                    || keyEntry.bCtrl && e.key === "Control"
-                    || keyEntry.bAlt && e.key === "Alt"
-                    || keyEntry.bCmd && e.key === "Meta" // Unsure about this, what key is that?
-                    || Configuration.Keys[keyEntry.Key] === e.code
+                    keyEntry.bShift && e.key == "Shift"
+                    || keyEntry.bCtrl && e.key == "Control"
+                    || keyEntry.bAlt && e.key == "Alt"
+                    || keyEntry.bCmd && e.key == "Meta" // Unsure about this, what key is that?
+                    || Configuration.Keys[keyEntry.Key] == e.code
 
                 )) {
                 e.preventDefault()
