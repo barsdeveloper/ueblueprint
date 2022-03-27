@@ -1,0 +1,97 @@
+ueb-pin {
+    display: block;
+    margin : 5px 0;
+    padding: 2px 2px;
+
+    &>* {
+        display       : inline-block;
+        vertical-align: middle;
+    }
+}
+
+ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
+    display: none;
+}
+
+ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-pin:hover {
+    background: var(--ueb-pin-background);
+    cursor    : crosshair;
+}
+
+.ueb-node-outputs ueb-pin {
+    text-align: right;
+}
+
+.ueb-pin-icon-exec {
+    display       : inline-block;
+    vertical-align: text-top;
+}
+
+.ueb-pin-icon-value {
+    display       : inline-block;
+    position      : relative;
+    width         : 0.85em;
+    height        : 0.85em;
+    vertical-align: baseline;
+    margin        : 0 0.4em -1px 0.1em;
+}
+
+.ueb-pin-icon-value::before {
+    content      : "";
+    display      : block;
+    position     : absolute;
+    top          : 0;
+    right        : 0;
+    bottom       : 0;
+    left         : 0;
+    border       : 2px solid var(--ueb-pin-color);
+    border-radius: 50%;
+}
+
+ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
+    background: var(--ueb-pin-color);
+}
+
+.ueb-pin-icon-value::after {
+    content      : "";
+    display      : block;
+    position     : absolute;
+    top          : calc(50% - 0.3em);
+    left         : calc(100% + 1px);
+    width        : 0;
+    height       : 0;
+    border-top   : 0.3em solid transparent;
+    border-bottom: 0.3em solid transparent;
+    border-left  : 0.3em solid var(--ueb-pin-color);
+}
+
+.ueb-pin-content>span {
+    display       : inline-block;
+    vertical-align: middle;
+}
+
+.ueb-pin-exec .ueb-pin-name {
+    display: none;
+}
+
+.ueb-pin-input {
+    margin-left  : 3px;
+    border       : 1px solid #a0a0a0;
+    border-radius: 3px;
+    padding      : 1px 4px;
+    min-width    : 10px;
+    max-width    : 400px;
+    max-height   : 14em;
+    background   : none;
+    color        : #a0a0a0;
+    cursor       : text;
+    overflow     : auto;
+    white-space  : normal;
+
+    &:hover,
+    &:active,
+    &:focus {
+        background: #505250;
+        outline   : none;
+    }
+}

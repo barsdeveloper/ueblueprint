@@ -4,7 +4,7 @@
   "description": "Unreal Engine's Blueprint visualisation library",
   "main": "ueblueprint.js",
   "scripts": {
-    "build": "rollup --config && sass scss:dist/css --style=compressed"
+    "build": "rollup --config && sass scss/export.scss:dist/css/ueb-style.css --style=compressed"
   },
   "repository": {
     "type": "git",
