@@ -20,7 +20,6 @@ export default class IMouseWheel extends IPointing {
         let self = this
 
         this.#mouseWheelHandler = e => {
-            e.preventDefault()
             const location = self.locationFromEvent(e)
             self.wheel(Math.sign(e.deltaY), location)
         }

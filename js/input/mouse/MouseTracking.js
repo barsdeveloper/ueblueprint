@@ -27,7 +27,6 @@ export default class MouseTracking extends IPointing {
 
         this.#trackingMouseStolenHandler = e => {
             if (!self.#mouseTracker) {
-                e.preventDefault()
                 this.#mouseTracker = e.detail.tracker
                 self.unlistenMouseMove()
             }
@@ -35,7 +34,6 @@ export default class MouseTracking extends IPointing {
 
         this.#trackingMouseGaveBackHandler = e => {
             if (self.#mouseTracker == e.detail.tracker) {
-                e.preventDefault()
                 self.#mouseTracker = null
                 self.listenMouseMove()
             }

@@ -9,7 +9,6 @@ import sanitizeText from "./sanitizeText"
 export default class LinkMessageTemplate extends ITemplate {
 
     /**
-     * Computes the html content of the target element.
      * @param {LinkMessageElement} linkMessage
      */
     render(linkMessage) {
@@ -24,7 +23,7 @@ export default class LinkMessageTemplate extends ITemplate {
      * @param {LinkMessageElement} linkMessage
      */
     apply(linkMessage) {
-        super.apply(linkMessage)
+        const a = super.apply(linkMessage)
         const linkMessageSetup = _ => linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
             linkMessage.linkElement.getSourcePin(),
             linkMessage.linkElement.getDestinationPin()

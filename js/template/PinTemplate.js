@@ -18,15 +18,36 @@ export default class PinTemplate extends ITemplate {
     render(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-pin-icon"></span>
-                ${sanitizeText(pin.getPinDisplayName())}
+                <span class="ueb-pin-icon">
+                    ${this.renderIcon(pin)}
+                </span>
+                <span class="ueb-pin-content">
+                    <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                    ${this.renderInput(pin)}
+                </span>
             `
         } else {
             return html`
-                ${sanitizeText(pin.getPinDisplayName())}
-                <span class="ueb-pin-icon"></span>
+                <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                <span class="ueb-pin-icon">
+                    ${this.renderIcon(pin)}
+                </span>
             `
         }
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderIcon(pin) {
+        return '<span class="ueb-pin-icon-value"></span>'
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderInput(pin) {
+        return ""
     }
 
     /**

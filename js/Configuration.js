@@ -2,7 +2,7 @@ export default class Configuration {
     static deleteNodesKeyboardKey = "Delete"
     static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
     static expandGridSize = 400
-    static fontSize = "13px"
+    static fontSize = "12px"
     static gridAxisLineColor = "black"
     static gridLineColor = "#353535"
     static gridLineWidth = 1 // pixel

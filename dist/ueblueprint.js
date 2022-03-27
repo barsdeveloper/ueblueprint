@@ -2,7 +2,7 @@ class Configuration {
     static deleteNodesKeyboardKey = "Delete"
     static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
     static expandGridSize = 400
-    static fontSize = "13px"
+    static fontSize = "12px"
     static gridAxisLineColor = "black"
     static gridLineColor = "#353535"
     static gridLineWidth = 1 // pixel
@@ -138,26 +138,24 @@ class Configuration {
  */
 const html = String.raw;
 
+// @ts-check
 /**
  * @typedef {import("../element/IElement").default} IElement
  */
 class ITemplate {
 
     /**
-     * Computes the html content of the target element.
-     * @param {IElement} entity Element of the graph
-     * @returns The result html
+     * @param {IElement} entity
      */
     render(entity) {
         return ""
     }
 
     /**
-     * Applies the style to the element.
-     * @param {IElement} element Element of the graph
+     * @param {IElement} element
      */
     apply(element) {
-        // TODO replace with the safer element.setHTML(...) when it will be available
+        // TODO replace with the safer element.setHTML(...) when it will be availableBreack
         element.innerHTML = this.render(element);
     }
 }
@@ -1785,7 +1783,6 @@ class IKeyboardShortcut extends IContext {
                     && wantsAlt(keyEntry) == e.altKey
                     && Configuration.Keys[keyEntry.Key] == e.code
                 )) {
-                e.preventDefault();
                 self.fire();
                 document.removeEventListener("keydown", self.keyDownHandler);
                 document.addEventListener("keyup", self.keyUpHandler);
@@ -1803,7 +1800,6 @@ class IKeyboardShortcut extends IContext {
                     || Configuration.Keys[keyEntry.Key] == e.code
 
                 )) {
-                e.preventDefault();
                 self.unfire();
                 document.removeEventListener("keyup", this.keyUpHandler);
                 document.addEventListener("keydown", this.keyDownHandler);
@@ -1887,7 +1883,6 @@ class IMouseWheel extends IPointing {
         let self = this;
 
         this.#mouseWheelHandler = e => {
-            e.preventDefault();
             const location = self.locationFromEvent(e);
             self.wheel(Math.sign(e.deltaY), location);
         };
@@ -2174,8 +2169,8 @@ class LinkElement extends IElement {
     destinationLocation = [0, 0]
 
     /**
-     * @param {?PinElement} source
-     * @param {?PinElement} destination
+     * @param {PinElement} source
+     * @param {PinElement} destination
      */
     constructor(source, destination) {
         super({}, new LinkTemplate());
@@ -2397,7 +2392,6 @@ class IMouseClickDrag extends IPointing {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
-                        e.preventDefault();
                         if (this.consumeClickEvent) {
                             e.stopImmediatePropagation(); // Captured, don't call anyone else
                         }
@@ -2417,7 +2411,6 @@ class IMouseClickDrag extends IPointing {
         };
 
         this.#mouseStartedMovingHandler = e => {
-            e.preventDefault();
             if (this.consumeClickEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
@@ -2433,7 +2426,6 @@ class IMouseClickDrag extends IPointing {
         };
 
         this.#mouseMoveHandler = e => {
-            e.preventDefault();
             if (this.consumeClickEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
@@ -2447,7 +2439,6 @@ class IMouseClickDrag extends IPointing {
 
         this.#mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
-                e.preventDefault();
                 if (this.consumeClickEvent) {
                     e.stopImmediatePropagation(); // Captured, don't call anyone else
                 }
@@ -2487,9 +2478,7 @@ class IMouseClickDrag extends IPointing {
     unlistenDOMElement() {
         super.unlistenDOMElement();
         this.target.removeEventListener("mousedown", this.#mouseDownHandler);
-        if (this.clickButton == 2) {
-            this.target.removeEventListener("contextmenu", e => e.preventDefault());
-        }
+        if (this.clickButton == 2) ;
     }
 
     /* Subclasses will override the following methods */
@@ -2550,7 +2539,6 @@ class MouseTracking extends IPointing {
 
         this.#trackingMouseStolenHandler = e => {
             if (!self.#mouseTracker) {
-                e.preventDefault();
                 this.#mouseTracker = e.detail.tracker;
                 self.unlistenMouseMove();
             }
@@ -2558,7 +2546,6 @@ class MouseTracking extends IPointing {
 
         this.#trackingMouseGaveBackHandler = e => {
             if (self.#mouseTracker == e.detail.tracker) {
-                e.preventDefault();
                 self.#mouseTracker = null;
                 self.listenMouseMove();
             }
@@ -2719,7 +2706,6 @@ class ISelectableDraggableElement extends IElement {
 class LinkMessageTemplate extends ITemplate {
 
     /**
-     * Computes the html content of the target element.
      * @param {LinkMessageElement} linkMessage
      */
     render(linkMessage) {
@@ -2841,7 +2827,6 @@ class MouseCreateLink extends IMouseClickDrag {
         let self = this;
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
-                e.preventDefault();
                 self.linkValid = false;
                 self.enteredPin = e.target;
                 const a = self.enteredPin, b = self.target;
@@ -2862,7 +2847,6 @@ class MouseCreateLink extends IMouseClickDrag {
         };
         this.#mouseleaveHandler = e => {
             if (self.enteredPin == e.target) {
-                e.preventDefault();
                 self.enteredPin = null;
                 self.linkValid = false;
                 this.setLinkMessage(LinkMessageElement.placeNode());
@@ -2927,15 +2911,36 @@ class PinTemplate extends ITemplate {
     render(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-pin-icon"></span>
-                ${sanitizeText(pin.getPinDisplayName())}
+                <span class="ueb-pin-icon">
+                    ${this.renderIcon(pin)}
+                </span>
+                <span class="ueb-pin-content">
+                    <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                    ${this.renderInput(pin)}
+                </span>
             `
         } else {
             return html`
-                ${sanitizeText(pin.getPinDisplayName())}
-                <span class="ueb-pin-icon"></span>
+                <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                <span class="ueb-pin-icon">
+                    ${this.renderIcon(pin)}
+                </span>
             `
         }
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderIcon(pin) {
+        return '<span class="ueb-pin-icon-value"></span>'
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderInput(pin) {
+        return ""
     }
 
     /**
@@ -2987,12 +2992,49 @@ class PinTemplate extends ITemplate {
 }
 
 /**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+class ExecPinTemplate extends PinTemplate {
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderIcon(pin) {
+        return html`
+            <svg class="ueb-pin-icon-exec" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7.08a2 2 0 0 0 1.519-.698l4.843-5.651a1 1 0 0 0 0-1.302L10.6 1.7A2 2 0 0 0 9.08 1H2zm7.08 1a1 1 0 0 1 .76.35L14.682 8l-4.844 5.65a1 1 0 0 1-.759.35H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h7.08z"/>
+            </svg>
+        `
+    }
+}
+
+/**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+class StringPinTemplate extends PinTemplate {
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderInput(pin) {
+        return html`
+            <span class="ueb-pin-input" role="textbox" contenteditable="true"></span>
+        `
+    }
+}
+
+/**
  * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
  */
 class PinElement extends IElement {
 
     static tagName = "ueb-pin"
+
+    static #typeTemplateMap = {
+        "exec": ExecPinTemplate,
+        "string": StringPinTemplate,
+    }
 
     /** @type {NodeElement} */
     nodeElement
@@ -3004,9 +3046,14 @@ class PinElement extends IElement {
     #color
 
     constructor(entity) {
-        super(entity, new PinTemplate());
+        super(
+            entity,
+            new (PinElement.#typeTemplateMap[entity.getType()] ?? PinTemplate)()
+        );
+
         /** @type {import("../entity/PinEntity").default} */
         this.entity;
+
         /** @type {PinTemplate} */
         this.template;
     }

@@ -25,8 +25,8 @@ export default class LinkElement extends IElement {
     destinationLocation = [0, 0]
 
     /**
-     * @param {?PinElement} source
-     * @param {?PinElement} destination
+     * @param {PinElement} source
+     * @param {PinElement} destination
      */
     constructor(source, destination) {
         super({}, new LinkTemplate())

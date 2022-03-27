@@ -1,23 +1,21 @@
+// @ts-check
 /**
  * @typedef {import("../element/IElement").default} IElement
  */
 export default class ITemplate {
 
     /**
-     * Computes the html content of the target element.
-     * @param {IElement} entity Element of the graph
-     * @returns The result html
+     * @param {IElement} entity
      */
     render(entity) {
         return ""
     }
 
     /**
-     * Applies the style to the element.
-     * @param {IElement} element Element of the graph
+     * @param {IElement} element
      */
     apply(element) {
-        // TODO replace with the safer element.setHTML(...) when it will be available
+        // TODO replace with the safer element.setHTML(...) when it will be availableBreack
         element.innerHTML = this.render(element)
     }
 }

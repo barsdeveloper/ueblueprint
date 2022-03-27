@@ -40,7 +40,6 @@ export default class IMouseClickDrag extends IPointing {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
-                        e.preventDefault()
                         if (this.consumeClickEvent) {
                             e.stopImmediatePropagation() // Captured, don't call anyone else
                         }
@@ -60,7 +59,6 @@ export default class IMouseClickDrag extends IPointing {
         }
 
         this.#mouseStartedMovingHandler = e => {
-            e.preventDefault()
             if (this.consumeClickEvent) {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
@@ -76,7 +74,6 @@ export default class IMouseClickDrag extends IPointing {
         }
 
         this.#mouseMoveHandler = e => {
-            e.preventDefault()
             if (this.consumeClickEvent) {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
@@ -90,7 +87,6 @@ export default class IMouseClickDrag extends IPointing {
 
         this.#mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
-                e.preventDefault()
                 if (this.consumeClickEvent) {
                     e.stopImmediatePropagation() // Captured, don't call anyone else
                 }
@@ -131,7 +127,7 @@ export default class IMouseClickDrag extends IPointing {
         super.unlistenDOMElement()
         this.target.removeEventListener("mousedown", this.#mouseDownHandler)
         if (this.clickButton == 2) {
-            this.target.removeEventListener("contextmenu", e => e.preventDefault())
+            //this.target.removeEventListener("contextmenu", e => e.preventDefault())
         }
     }
 

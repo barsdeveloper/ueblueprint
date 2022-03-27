@@ -44,7 +44,6 @@ export default class IKeyboardShortcut extends IContext {
                     && wantsAlt(keyEntry) == e.altKey
                     && Configuration.Keys[keyEntry.Key] == e.code
                 )) {
-                e.preventDefault()
                 self.fire()
                 document.removeEventListener("keydown", self.keyDownHandler)
                 document.addEventListener("keyup", self.keyUpHandler)
@@ -62,7 +61,6 @@ export default class IKeyboardShortcut extends IContext {
                     || Configuration.Keys[keyEntry.Key] == e.code
 
                 )) {
-                e.preventDefault()
                 self.unfire()
                 document.removeEventListener("keyup", this.keyUpHandler)
                 document.addEventListener("keydown", this.keyDownHandler)

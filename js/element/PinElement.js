@@ -1,6 +1,8 @@
 import IElement from "./IElement"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import PinTemplate from "../template/PinTemplate"
+import ExecPinTemplate from "../template/ExecPinTemplate"
+import StringPinTemplate from "../template/StringPinTemplate"
 
 /**
  * @typedef {import("./NodeElement").default} NodeElement
@@ -9,6 +11,11 @@ import PinTemplate from "../template/PinTemplate"
 export default class PinElement extends IElement {
 
     static tagName = "ueb-pin"
+
+    static #typeTemplateMap = {
+        "exec": ExecPinTemplate,
+        "string": StringPinTemplate,
+    }
 
     /** @type {NodeElement} */
     nodeElement
@@ -20,9 +27,14 @@ export default class PinElement extends IElement {
     #color
 
     constructor(entity) {
-        super(entity, new PinTemplate())
+        super(
+            entity,
+            new (PinElement.#typeTemplateMap[entity.getType()] ?? PinTemplate)()
+        )
+
         /** @type {import("../entity/PinEntity").default} */
         this.entity
+
         /** @type {PinTemplate} */
         this.template
     }
