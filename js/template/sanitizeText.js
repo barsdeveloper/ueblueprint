@@ -1,3 +1,5 @@
+// @ts-check
+
 const div = document.createElement("div")
 
 const tagReplacement = {

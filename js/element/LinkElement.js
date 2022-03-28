@@ -1,3 +1,5 @@
+// @ts-check
+
 import Configuration from "../Configuration"
 import IElement from "./IElement"
 import LinkTemplate from "../template/LinkTemplate"
@@ -86,7 +88,7 @@ export default class LinkElement extends IElement {
     /**
      * @param {Number[]} location
      */
-    setSourceLocation(location) {
+    setSourceLocation(location = null) {
         if (location == null) {
             location = this.#source.template.getLinkLocation(this.#source)
         }
@@ -115,7 +117,7 @@ export default class LinkElement extends IElement {
     /**
      * @param {Number[]} location
      */
-    setDestinationLocation(location) {
+    setDestinationLocation(location = null) {
         if (location == null) {
             location = this.#destination.template.getLinkLocation(this.#destination)
         }

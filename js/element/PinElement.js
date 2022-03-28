@@ -1,3 +1,5 @@
+// @ts-check
+
 import IElement from "./IElement"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import PinTemplate from "../template/PinTemplate"

@@ -1,3 +1,5 @@
+// @ts-check
+
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 

@@ -1,3 +1,5 @@
+// @ts-check
+
 import IEntity from "./IEntity"
 
 export default class ObjectReferenceEntity extends IEntity {

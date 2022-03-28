@@ -1,3 +1,5 @@
+// @ts-check
+
 import ITemplate from "./ITemplate"
 import sanitizeText from "./sanitizeText"
 

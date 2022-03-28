@@ -1,3 +1,5 @@
+// @ts-check
+
 import html from "./html"
 import PinElement from "../element/PinElement"
 import sanitizeText from "./sanitizeText"

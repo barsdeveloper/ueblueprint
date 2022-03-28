@@ -1,3 +1,5 @@
+// @ts-check
+
 import CustomSerializer from "./CustomSerializer"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GeneralSerializer from "./GeneralSerializer"

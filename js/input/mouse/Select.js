@@ -1,3 +1,5 @@
+// @ts-check
+
 import IMouseClickDrag from "./IMouseClickDrag"
 
 export default class Select extends IMouseClickDrag {

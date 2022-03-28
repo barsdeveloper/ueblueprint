@@ -1,3 +1,5 @@
+// @ts-check
+
 import OrderedIndexArray from "./OrderedIndexArray"
 
 /**

@@ -1,3 +1,5 @@
+// @ts-check
+
 import html from "./html"
 import PinTemplate from "./PinTemplate"
 

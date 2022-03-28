@@ -1,3 +1,5 @@
+// @ts-check
+
 export default class TypeInitialization {
 
     static sanitize(value) {
@@ -11,7 +13,7 @@ export default class TypeInitialization {
     }
 
     /**
-     * @param {typeof Object} type
+     * @param {Object} type
      * @param {boolean} showDefault
      * @param {*} value
      */

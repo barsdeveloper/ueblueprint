@@ -1,10 +1,12 @@
+// @ts-check
+
 import IElement from "./IElement"
 import LinkMessageTemplate from "../template/LinkMessageTemplate"
 
 /**
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("./LinkElement").default} LinkElement
- * @typedef {(sourcePin: PinElement, sourcePin: PinElement) => String} LinkRetrieval
+ * @typedef {(sourcePin: PinElement, destinationPin: PinElement) => String} LinkRetrieval
  */
 export default class LinkMessageElement extends IElement {
 

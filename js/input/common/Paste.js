@@ -1,3 +1,5 @@
+// @ts-check
+
 import IContext from "../IContext"
 import NodeElement from "../../element/NodeElement"
 import ObjectSerializer from "../../serialization/ObjectSerializer"

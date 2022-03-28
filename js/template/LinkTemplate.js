@@ -1,5 +1,6 @@
+// @ts-check
+
 import Configuration from "../Configuration"
-import Utility from "../Utility"
 import html from "./html"
 import ITemplate from "./ITemplate"
 import sanitizeText from "./sanitizeText"

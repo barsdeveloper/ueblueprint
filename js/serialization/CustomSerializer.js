@@ -1,3 +1,5 @@
+// @ts-check
+
 import GeneralSerializer from "./GeneralSerializer"
 
 export default class CustomSerializer extends GeneralSerializer {

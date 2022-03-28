@@ -1,3 +1,5 @@
+// @ts-check
+
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -53,12 +55,12 @@ export default class IElement extends HTMLElement {
     }
 
     /**
-     * @template {} T
-     * @param {new () => T} type
+     * @template {IContext} T
+     * @param {new (...args: any[]) => T} type
      * @returns {T}
      */
     getInputObject(type) {
-        return this.inputObjects.find(object => object.constructor == type)
+        return /** @type {T} */ (this.inputObjects.find(object => object.constructor == type))
     }
 
     // Subclasses will want to override

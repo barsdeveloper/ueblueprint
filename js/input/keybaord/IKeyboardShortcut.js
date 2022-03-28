@@ -1,3 +1,5 @@
+// @ts-check
+
 import Configuration from "../../Configuration"
 import IContext from "../IContext"
 import ISerializer from "../../serialization/ISerializer"

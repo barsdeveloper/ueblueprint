@@ -1,6 +1,6 @@
 ueb-pin {
     display: block;
-    margin : 5px 0;
+    margin : 6px 0;
     padding: 2px 2px;
 
     &>* {
@@ -30,8 +30,8 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-pin:hover
 .ueb-pin-icon-value {
     display       : inline-block;
     position      : relative;
-    width         : 0.85em;
-    height        : 0.85em;
+    width         : 1em;
+    height        : 1em;
     vertical-align: baseline;
     margin        : 0 0.4em -1px 0.1em;
 }
@@ -78,19 +78,39 @@ ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
     margin-left  : 3px;
     border       : 1px solid #a0a0a0;
     border-radius: 3px;
-    padding      : 1px 4px;
-    min-width    : 10px;
-    max-width    : 400px;
-    max-height   : 14em;
-    background   : none;
+    padding      : 1px 0 0 3px;
     color        : #c0c0c0;
-    cursor       : text;
-    overflow     : auto;
 
     &:hover,
     &:active,
-    &:focus {
-        background: #505250;
+    &:focus,
+    &:focus-within {
+        background: #ffffff46;
         outline   : none;
+    }
+}
+
+.ueb-pin-input-content {
+    display   : block;
+    outline   : none;
+    border    : none;
+    margin    : 0 3px 1px 0;
+    padding   : 0;
+    min-width : 10px;
+    max-width : 400px;
+    max-height: 16em;
+    background: none;
+    cursor    : text;
+    overflow  : auto;
+
+    &::-webkit-scrollbar {
+        width : 10px;
+        height: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background   : #575757;
+        border-radius: 10px;
+        margin       : 4px;
     }
 }

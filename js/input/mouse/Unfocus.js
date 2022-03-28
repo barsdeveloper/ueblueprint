@@ -1,3 +1,5 @@
+// @ts-check
+
 import IContext from "../IContext"
 
 export default class Unfocus extends IContext {

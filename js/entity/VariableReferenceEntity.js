@@ -1,3 +1,5 @@
+// @ts-check
+
 import IEntity from "./IEntity"
 import GuidEntity from "./GuidEntity"
 

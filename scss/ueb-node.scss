@@ -34,12 +34,12 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     padding      : 1px;
     box-shadow   : inset 0 0 2px 0 black;
     border-radius: var(--ueb-node-radius);
-    background   : rgba(0, 0, 0, 0.7);
+    background   : rgba(10, 10, 10, 0.8);
     overflow     : hidden;
 }
 
 .ueb-node-header {
-    padding      : 0.2em 0.7em;
+    padding      : 0.3em 0.7em;
     box-shadow   : inset 0 1px 2px 0 #313631, inset 0 2px 0 0 #92c381;
     border-radius: var(--ueb-node-radius) var(--ueb-node-radius) 0 0;
     background   : linear-gradient(170deg, #5f815a 0%, #5f815a 50%, transparent 100%);
@@ -56,7 +56,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
 
 .ueb-node-body {
     display    : flex;
-    padding    : 3px 0;
+    padding    : 1px 0;
     color      : white;
     font-weight: 100;
     white-space: nowrap;

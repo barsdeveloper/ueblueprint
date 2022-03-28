@@ -1,3 +1,5 @@
+// @ts-check
+
 import IPointing from "./IPointing"
 
 export default class IMouseWheel extends IPointing {

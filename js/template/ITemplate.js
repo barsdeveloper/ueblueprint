@@ -1,4 +1,5 @@
 // @ts-check
+
 /**
  * @typedef {import("../element/IElement").default} IElement
  */

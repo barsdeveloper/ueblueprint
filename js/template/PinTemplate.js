@@ -1,3 +1,5 @@
+// @ts-check
+
 import html from "./html"
 import ITemplate from "./ITemplate"
 import LinkElement from "../element/LinkElement"

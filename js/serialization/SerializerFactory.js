@@ -1,3 +1,5 @@
+// @ts-check
+
 import Utility from "../Utility"
 
 export default class SerializerFactory {

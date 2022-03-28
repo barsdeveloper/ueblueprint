@@ -1,3 +1,5 @@
+// @ts-check
+
 import Blueprint from "./Blueprint"
 import Configuration from "./Configuration"
 import LinkElement from "./element/LinkElement"

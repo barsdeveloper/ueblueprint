@@ -4,6 +4,8 @@ class Configuration {
     static expandGridSize = 400
     static fontSize = "12px"
     static gridAxisLineColor = "black"
+    static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
+    static gridShrinkThreshold = 2 // exceding size factor threshold to cause a shrink event 
     static gridLineColor = "#353535"
     static gridLineWidth = 1 // pixel
     static gridSet = 8
@@ -133,12 +135,15 @@ class Configuration {
     }
 }
 
+// @ts-check
+
 /**
  * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
  */
 const html = String.raw;
 
 // @ts-check
+
 /**
  * @typedef {import("../element/IElement").default} IElement
  */
@@ -160,6 +165,8 @@ class ITemplate {
     }
 }
 
+// @ts-check
+
 document.createElement("div");
 
 const tagReplacement = {
@@ -176,6 +183,8 @@ function sanitizeText(value) {
     }
     return value
 }
+
+// @ts-check
 
 class OrderedIndexArray {
 
@@ -316,6 +325,8 @@ class OrderedIndexArray {
         this.array.set(this.array.subarray(leftLimit, -steps), leftLimit + steps);
     }
 }
+
+// @ts-check
 
 /**
  * @typedef {{
@@ -481,6 +492,8 @@ class FastSelectionModel {
 
 }
 
+// @ts-check
+
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -536,12 +549,12 @@ class IElement extends HTMLElement {
     }
 
     /**
-     * @template {} T
-     * @param {new () => T} type
+     * @template {IContext} T
+     * @param {new (...args: any[]) => T} type
      * @returns {T}
      */
     getInputObject(type) {
-        return this.inputObjects.find(object => object.constructor == type)
+        return /** @type {T} */ (this.inputObjects.find(object => object.constructor == type))
     }
 
     // Subclasses will want to override
@@ -549,6 +562,8 @@ class IElement extends HTMLElement {
         return []
     }
 }
+
+// @ts-check
 
 /**
  * @typedef {import("../element/SelectorElement").default} SelectorElement
@@ -596,6 +611,8 @@ class SelectorTemplate extends ITemplate {
     }
 }
 
+// @ts-check
+
 class SelectorElement extends IElement {
 
     static tagName = "ueb-selector"
@@ -632,6 +649,8 @@ class SelectorElement extends IElement {
 }
 
 customElements.define(SelectorElement.tagName, SelectorElement);
+
+// @ts-check
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint
@@ -769,6 +788,8 @@ class BlueprintTemplate extends ITemplate {
     }
 }
 
+// @ts-check
+
 class IContext {
 
     /** @type {HTMLElement} */
@@ -822,6 +843,8 @@ class IContext {
     }
 }
 
+// @ts-check
+
 class TypeInitialization {
 
     static sanitize(value) {
@@ -848,6 +871,8 @@ class TypeInitialization {
         this.type = type;
     }
 }
+
+// @ts-check
 
 class Utility {
 
@@ -964,6 +989,8 @@ class Utility {
     }
 }
 
+// @ts-check
+
 class IEntity {
 
     constructor(options = {}) {
@@ -1017,6 +1044,8 @@ class IEntity {
     }
 }
 
+// @ts-check
+
 class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
@@ -1025,6 +1054,8 @@ class ObjectReferenceEntity extends IEntity {
     }
 }
 
+// @ts-check
+
 class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
@@ -1032,6 +1063,8 @@ class FunctionReferenceEntity extends IEntity {
         MemberName: "",
     }
 }
+
+// @ts-check
 
 class GuidEntity extends IEntity {
 
@@ -1060,6 +1093,8 @@ class GuidEntity extends IEntity {
     }
 }
 
+// @ts-check
+
 class IdentifierEntity extends IEntity {
 
     static attributes = {
@@ -1084,6 +1119,8 @@ class IdentifierEntity extends IEntity {
         return this.value
     }
 }
+
+// @ts-check
 
 class IntegerEntity extends IEntity {
 
@@ -1110,6 +1147,8 @@ class IntegerEntity extends IEntity {
     }
 }
 
+// @ts-check
+
 class KeyBindingEntity extends IEntity {
 
     static attributes = {
@@ -1125,6 +1164,8 @@ class KeyBindingEntity extends IEntity {
     }
 }
 
+// @ts-check
+
 class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
@@ -1134,6 +1175,8 @@ class LocalizedTextEntity extends IEntity {
         value: String,
     }
 }
+
+// @ts-check
 
 class PathSymbolEntity extends IEntity {
 
@@ -1146,6 +1189,8 @@ class PathSymbolEntity extends IEntity {
     }
 }
 
+// @ts-check
+
 class PinReferenceEntity extends IEntity {
 
     static attributes = {
@@ -1153,6 +1198,8 @@ class PinReferenceEntity extends IEntity {
         pinGuid: GuidEntity,
     }
 }
+
+// @ts-check
 
 /**
  * @typedef {{
@@ -1262,6 +1309,8 @@ class PinEntity extends IEntity {
     }
 }
 
+// @ts-check
+
 class VariableReferenceEntity extends IEntity {
 
     static attributes = {
@@ -1270,6 +1319,8 @@ class VariableReferenceEntity extends IEntity {
         bSelfContext: false,
     }
 }
+
+// @ts-check
 
 class ObjectEntity extends IEntity {
 
@@ -1311,6 +1362,8 @@ var parsimmon_umd_min = {exports: {}};
 }(parsimmon_umd_min));
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
+
+// @ts-check
 
 let P = Parsimmon;
 
@@ -1566,6 +1619,8 @@ class Grammar {
     MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
 }
 
+// @ts-check
+
 class SerializerFactory {
 
     static #serializers = new Map()
@@ -1578,6 +1633,8 @@ class SerializerFactory {
         return SerializerFactory.#serializers.get(Utility.getType(entity))
     }
 }
+
+// @ts-check
 
 class ISerializer {
 
@@ -1657,6 +1714,8 @@ class ISerializer {
     }
 }
 
+// @ts-check
+
 class ObjectSerializer extends ISerializer {
 
     constructor() {
@@ -1715,6 +1774,8 @@ End Object\n`;
     }
 }
 
+// @ts-check
+
 class Copy extends IContext {
 
     #copyHandler
@@ -1741,6 +1802,7 @@ class Copy extends IContext {
     }
 }
 
+// @ts-check
 class IKeyboardShortcut extends IContext {
 
     /** @type {KeyBindingEntity} */
@@ -1825,6 +1887,8 @@ class IKeyboardShortcut extends IContext {
     }
 }
 
+// @ts-check
+
 class KeyboardCanc extends IKeyboardShortcut {
 
     /**
@@ -1845,6 +1909,8 @@ class KeyboardCanc extends IKeyboardShortcut {
     }
 }
 
+// @ts-check
+
 class IPointing extends IContext {
 
     constructor(target, blueprint, options) {
@@ -1862,6 +1928,8 @@ class IPointing extends IContext {
                 this.movementSpace))
     }
 }
+
+// @ts-check
 
 class IMouseWheel extends IPointing {
 
@@ -1908,6 +1976,8 @@ class IMouseWheel extends IPointing {
     }
 }
 
+// @ts-check
+
 class Zoom extends IMouseWheel {
 
     #enableZoonIn = false
@@ -1934,6 +2004,8 @@ class Zoom extends IMouseWheel {
         this.blueprint.setZoom(zoomLevel, location);
     }
 }
+
+// @ts-check
 
 class KeyboardEnableZoom extends IKeyboardShortcut {
 
@@ -1963,6 +2035,8 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
     }
 }
 
+// @ts-check
+
 class KeyboardSelectAll extends IKeyboardShortcut {
 
     /**
@@ -1982,6 +2056,8 @@ class KeyboardSelectAll extends IKeyboardShortcut {
         this.blueprint.selectAll();
     }
 }
+
+// @ts-check
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
@@ -2146,6 +2222,8 @@ class LinkTemplate extends ITemplate {
     }
 }
 
+// @ts-check
+
 /**
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("./LinkMessageElement").default} LinkMessageElement
@@ -2230,7 +2308,7 @@ class LinkElement extends IElement {
     /**
      * @param {Number[]} location
      */
-    setSourceLocation(location) {
+    setSourceLocation(location = null) {
         if (location == null) {
             location = this.#source.template.getLinkLocation(this.#source);
         }
@@ -2259,7 +2337,7 @@ class LinkElement extends IElement {
     /**
      * @param {Number[]} location
      */
-    setDestinationLocation(location) {
+    setDestinationLocation(location = null) {
         if (location == null) {
             location = this.#destination.template.getLinkLocation(this.#destination);
         }
@@ -2352,6 +2430,8 @@ class LinkElement extends IElement {
 }
 
 customElements.define(LinkElement.tagName, LinkElement);
+
+// @ts-check
 
 /**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
@@ -2498,6 +2578,8 @@ class IMouseClickDrag extends IPointing {
     }
 }
 
+// @ts-check
+
 class MouseScrollGraph extends IMouseClickDrag {
 
     startDrag() {
@@ -2512,6 +2594,8 @@ class MouseScrollGraph extends IMouseClickDrag {
         this.blueprint.template.applyEndDragScrolling(this.blueprint);
     }
 }
+
+// @ts-check
 
 class MouseTracking extends IPointing {
 
@@ -2573,6 +2657,8 @@ class MouseTracking extends IPointing {
     }
 }
 
+// @ts-check
+
 /**
  * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
@@ -2620,11 +2706,15 @@ class MouseMoveNodes extends IMouseClickDrag {
     }
 }
 
-/** @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate */
+// @ts-check
 
+/**
+ * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ */
 class ISelectableDraggableElement extends IElement {
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args);
         this.dragObject = null;
         this.location = [0, 0];
@@ -2646,6 +2736,9 @@ class ISelectableDraggableElement extends IElement {
         ]
     }
 
+    /**
+     * @param {Number[]} value 
+     */
     setLocation(value = [0, 0]) {
         const d = [value[0] - this.location[0], value[1] - this.location[1]];
         const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
@@ -2700,6 +2793,8 @@ class ISelectableDraggableElement extends IElement {
     }
 }
 
+// @ts-check
+
 /**
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
@@ -2734,6 +2829,8 @@ class LinkMessageTemplate extends ITemplate {
     }
 
 }
+
+// @ts-check
 
 /**
  * @typedef {import("./PinElement").default} PinElement
@@ -2795,6 +2892,8 @@ class LinkMessageElement extends IElement {
 }
 
 customElements.define(LinkMessageElement.tagName, LinkMessageElement);
+
+// @ts-check
 
 /**
  * @typedef {import("../../element/LinkElement").default} LinkElement
@@ -2897,6 +2996,8 @@ class MouseCreateLink extends IMouseClickDrag {
     }
 }
 
+// @ts-check
+
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
@@ -2991,6 +3092,8 @@ class PinTemplate extends ITemplate {
     }
 }
 
+// @ts-check
+
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
@@ -3017,11 +3120,18 @@ class StringPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     renderInput(pin) {
+        const stopEventPropagation = "e => stopPropagation()";
         return html`
-            <span class="ueb-pin-input" role="textbox" contenteditable="true"></span>
+            <span class="ueb-pin-input">
+                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                    onkeydown="${stopEventPropagation}" onkeyup="${stopEventPropagation}"
+                    oncopy="${stopEventPropagation}" onpaste="${stopEventPropagation}"></span>
+            </span>
         `
     }
 }
+
+// @ts-check
 
 /**
  * @typedef {import("./NodeElement").default} NodeElement
@@ -3160,6 +3270,8 @@ class PinElement extends IElement {
 
 customElements.define(PinElement.tagName, PinElement);
 
+// @ts-check
+
 /**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
@@ -3186,6 +3298,8 @@ class SelectableDraggableTemplate extends ITemplate {
         }
     }
 }
+
+// @ts-check
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
@@ -3252,6 +3366,8 @@ class NodeTemplate extends SelectableDraggableTemplate {
     }
 }
 
+// @ts-check
+
 class NodeElement extends ISelectableDraggableElement {
 
     static tagName = "ueb-node"
@@ -3317,6 +3433,8 @@ class NodeElement extends ISelectableDraggableElement {
 
 customElements.define(NodeElement.tagName, NodeElement);
 
+// @ts-check
+
 class Paste extends IContext {
 
     #pasteHandle
@@ -3368,6 +3486,8 @@ class Paste extends IContext {
     }
 }
 
+// @ts-check
+
 class Select extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
@@ -3395,6 +3515,8 @@ class Select extends IMouseClickDrag {
         }
     }
 }
+
+// @ts-check
 
 class Unfocus extends IContext {
 
@@ -3447,9 +3569,9 @@ class Blueprint extends IElement {
     links = []
     expandGridSize = Configuration.expandGridSize
     /** @type {number[]} */
-    additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
+    additional = [2 * this.expandGridSize, 2 * this.expandGridSize]
     /** @type {number[]} */
-    translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
+    translateValue = [this.expandGridSize, this.expandGridSize]
     /** @type {number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
@@ -3492,21 +3614,17 @@ class Blueprint extends IElement {
     }
 
     /**
-     * Expand the grid, considers the absolute value of params
-     * @param {number} x - Horizontal expansion value
-     * @param {number} y - Vertical expansion value
+     * @param {number} x
+     * @param {number} y
      */
     #expand(x, y) {
-        x = Math.round(Math.abs(x));
-        y = Math.round(Math.abs(y));
         this.additional = [this.additional[0] + x, this.additional[1] + y];
         this.template.applyExpand(this);
     }
 
     /**
-     * Moves the content of the grid according to the coordinates
-     * @param {number} x - Horizontal translation value
-     * @param {number} y - Vertical translation value
+     * @param {number} x
+     * @param {number} y
      */
     #translate(x, y) {
         x = Math.round(x);
@@ -3569,38 +3687,46 @@ class Blueprint extends IElement {
     }
 
     scrollDelta(delta, smooth = false) {
-        const scrollMax = this.getScrollMax();
+        const maxScroll = this.getScrollMax();
         let currentScroll = this.getScroll();
         let finalScroll = [
             currentScroll[0] + delta[0],
             currentScroll[1] + delta[1]
         ];
         let expand = [0, 0];
+        let shrink = [0, 0];
+        let direction = [0, 0];
         for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < 0.25 * this.expandGridSize) {
-                // Expand if scrolling is diminishing and the remainig space is less that a quarter of an expansion step
-                expand[i] = finalScroll[i];
-                if (expand[i] > 0) {
-                    // Final scroll is still in rage (more than zero) but we want to expand to negative (left or top)
-                    expand[i] = -this.expandGridSize;
+            if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * this.expandGridSize) {
+                // Expand left/top
+                expand[i] = this.expandGridSize;
+                direction[i] = -1;
+                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * this.expandGridSize) {
+                    shrink[i] = -this.expandGridSize;
                 }
-            } else if (delta[i] > 0 && finalScroll[i] > scrollMax[i] - 0.25 * this.expandGridSize) {
-                // Expand if scrolling is increasing and the remainig space is less that a quarter of an expansion step
-                expand[i] = finalScroll[i] - scrollMax[i];
-                if (expand[i] < 0) {
-                    // Final scroll is still in rage (less than the maximum scroll) but we want to expand to positive (right or bottom)
-                    expand[i] = this.expandGridSize;
+            } else if (delta[i] > 0 && finalScroll[i]
+                > maxScroll[i] - Configuration.gridExpandThreshold * this.expandGridSize) {
+                // Expand right/bottom
+                expand[i] = this.expandGridSize;
+                direction[i] = 1;
+                if (finalScroll[i] > Configuration.gridShrinkThreshold * this.expandGridSize) {
+                    shrink[i] = -this.expandGridSize;
                 }
             }
         }
         if (expand[0] != 0 || expand[1] != 0) {
-            this.seamlessExpand(this.progressiveSnapToGrid(expand[0]), this.progressiveSnapToGrid(expand[1]));
-            currentScroll = this.getScroll();
-            finalScroll = [
-                currentScroll[0] + delta[0],
-                currentScroll[1] + delta[1]
+            this.seamlessExpand(expand, direction);
+            direction = [
+                -direction[0],
+                -direction[1]
             ];
+            this.seamlessExpand(shrink, direction);
         }
+        currentScroll = this.getScroll();
+        finalScroll = [
+            currentScroll[0] + delta[0],
+            currentScroll[1] + delta[1]
+        ];
         this.setScroll(finalScroll, smooth);
     }
 
@@ -3631,7 +3757,7 @@ class Blueprint extends IElement {
 
     /**
      * Get the scroll limits
-     * @return {array} The horizonal and vertical maximum scroll limits
+     * @return {Array} The horizonal and vertical maximum scroll limits
      */
     getScrollMax() {
         return [
@@ -3645,24 +3771,35 @@ class Blueprint extends IElement {
     }
 
     /**
-     * Expand the grind indefinitely, the content will remain into position
-     * @param {number} x - Horizontal expand value (negative means left, positive means right)
-     * @param {number} y - Vertical expand value (negative means top, positive means bottom)
+     * @param {Number} x - Horizontal 
+     * @param {Number} y - Vertical expand value (negative means top, positive means bottom)
+     * @param {Number} factor - Either 1 (expand) or -1 (shrink)
      */
-    seamlessExpand(x, y) {
+
+
+    /**
+     * Expand or shrink the grind indefinitely, the content will remain into position
+     * @param {Number[]} param0 - Expand value (negative means shrink, positive means expand)
+     * @param {Number[]} param1 - Direction of expansion (negative: left/top, position: right/bottom)
+     */
+    seamlessExpand([x, y], [directionX, directionY] = [1, 1]) {
+        const initialScroll = [
+            this.viewportElement.scrollLeft,
+            this.viewportElement.scrollTop
+        ];
         let scale = this.getScale();
         let scaledX = x / scale;
         let scaledY = y / scale;
         // First expand the grid to contain the additional space
         this.#expand(scaledX, scaledY);
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        this.#translate(scaledX < 0 ? -scaledX : 0, scaledY < 0 ? -scaledY : 0);
-        if (x < 0) {
-            this.viewportElement.scrollLeft -= x;
-        }
-        if (y < 0) {
-            this.viewportElement.scrollTop -= y;
-        }
+        const translate = [
+            directionX < 0 ? scaledX : 0,
+            directionY < 0 ? scaledY : 0
+        ];
+        this.#translate(translate[0], translate[1]);
+        this.viewportElement.scrollLeft = initialScroll[0] + translate[0];
+        this.viewportElement.scrollTop = initialScroll[1] + translate[1];
     }
 
     progressiveSnapToGrid(x) {
@@ -3824,6 +3961,8 @@ class Blueprint extends IElement {
 
 customElements.define(Blueprint.tagName, Blueprint);
 
+// @ts-check
+
 class GeneralSerializer extends ISerializer {
 
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
@@ -3848,6 +3987,8 @@ class GeneralSerializer extends ISerializer {
     }
 }
 
+// @ts-check
+
 class CustomSerializer extends GeneralSerializer {
 
     constructor(objectWriter, entityType) {
@@ -3861,6 +4002,8 @@ class CustomSerializer extends GeneralSerializer {
     }
 }
 
+// @ts-check
+
 class ToStringSerializer extends GeneralSerializer {
 
     constructor(entityType) {
@@ -3872,6 +4015,8 @@ class ToStringSerializer extends GeneralSerializer {
         return result
     }
 }
+
+// @ts-check
 
 function initializeSerializerFactory() {
 
@@ -3924,6 +4069,8 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));
 }
+
+// @ts-check
 
 initializeSerializerFactory();
 

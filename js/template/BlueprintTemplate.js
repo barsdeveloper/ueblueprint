@@ -1,3 +1,5 @@
+// @ts-check
+
 import Configuration from "../Configuration"
 import html from "./html"
 import ITemplate from "./ITemplate"

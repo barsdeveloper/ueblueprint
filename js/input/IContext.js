@@ -1,3 +1,5 @@
+// @ts-check
+
 export default class IContext {
 
     /** @type {HTMLElement} */

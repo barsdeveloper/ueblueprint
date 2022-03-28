@@ -1,3 +1,5 @@
+// @ts-check
+
 import IMouseWheel from "./IMouseWheel"
 
 export default class Zoom extends IMouseWheel {

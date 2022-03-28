@@ -1,3 +1,5 @@
+// @ts-check
+
 import FastSelectionModel from "../selection/FastSelectionModel"
 import IElement from "./IElement"
 import SelectorTemplate from "../template/SelectorTemplate"

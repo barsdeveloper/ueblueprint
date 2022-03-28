@@ -1,5 +1,6 @@
-import IEntity from "./IEntity"
+// @ts-check
 
+import IEntity from "./IEntity"
 
 export default class GuidEntity extends IEntity {
 

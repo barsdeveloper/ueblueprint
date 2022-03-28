@@ -1,3 +1,5 @@
+// @ts-check
+
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"

@@ -32,9 +32,9 @@ export default class Blueprint extends IElement {
     links = []
     expandGridSize = Configuration.expandGridSize
     /** @type {number[]} */
-    additional = /*[2 * this.expandGridSize, 2 * this.expandGridSize]*/[0, 0]
+    additional = [2 * this.expandGridSize, 2 * this.expandGridSize]
     /** @type {number[]} */
-    translateValue = /*[this.expandGridSize, this.expandGridSize]*/[0, 0]
+    translateValue = [this.expandGridSize, this.expandGridSize]
     /** @type {number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
@@ -77,21 +77,17 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * Expand the grid, considers the absolute value of params
-     * @param {number} x - Horizontal expansion value
-     * @param {number} y - Vertical expansion value
+     * @param {number} x
+     * @param {number} y
      */
     #expand(x, y) {
-        x = Math.round(Math.abs(x))
-        y = Math.round(Math.abs(y))
         this.additional = [this.additional[0] + x, this.additional[1] + y]
         this.template.applyExpand(this)
     }
 
     /**
-     * Moves the content of the grid according to the coordinates
-     * @param {number} x - Horizontal translation value
-     * @param {number} y - Vertical translation value
+     * @param {number} x
+     * @param {number} y
      */
     #translate(x, y) {
         x = Math.round(x)
@@ -154,38 +150,46 @@ export default class Blueprint extends IElement {
     }
 
     scrollDelta(delta, smooth = false) {
-        const scrollMax = this.getScrollMax()
+        const maxScroll = this.getScrollMax()
         let currentScroll = this.getScroll()
         let finalScroll = [
             currentScroll[0] + delta[0],
             currentScroll[1] + delta[1]
         ]
         let expand = [0, 0]
+        let shrink = [0, 0]
+        let direction = [0, 0]
         for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < 0.25 * this.expandGridSize) {
-                // Expand if scrolling is diminishing and the remainig space is less that a quarter of an expansion step
-                expand[i] = finalScroll[i]
-                if (expand[i] > 0) {
-                    // Final scroll is still in rage (more than zero) but we want to expand to negative (left or top)
-                    expand[i] = -this.expandGridSize
+            if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * this.expandGridSize) {
+                // Expand left/top
+                expand[i] = this.expandGridSize
+                direction[i] = -1
+                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * this.expandGridSize) {
+                    shrink[i] = -this.expandGridSize
                 }
-            } else if (delta[i] > 0 && finalScroll[i] > scrollMax[i] - 0.25 * this.expandGridSize) {
-                // Expand if scrolling is increasing and the remainig space is less that a quarter of an expansion step
-                expand[i] = finalScroll[i] - scrollMax[i]
-                if (expand[i] < 0) {
-                    // Final scroll is still in rage (less than the maximum scroll) but we want to expand to positive (right or bottom)
-                    expand[i] = this.expandGridSize
+            } else if (delta[i] > 0 && finalScroll[i]
+                > maxScroll[i] - Configuration.gridExpandThreshold * this.expandGridSize) {
+                // Expand right/bottom
+                expand[i] = this.expandGridSize
+                direction[i] = 1
+                if (finalScroll[i] > Configuration.gridShrinkThreshold * this.expandGridSize) {
+                    shrink[i] = -this.expandGridSize
                 }
             }
         }
         if (expand[0] != 0 || expand[1] != 0) {
-            this.seamlessExpand(this.progressiveSnapToGrid(expand[0]), this.progressiveSnapToGrid(expand[1]))
-            currentScroll = this.getScroll()
-            finalScroll = [
-                currentScroll[0] + delta[0],
-                currentScroll[1] + delta[1]
+            this.seamlessExpand(expand, direction)
+            direction = [
+                -direction[0],
+                -direction[1]
             ]
+            this.seamlessExpand(shrink, direction)
         }
+        currentScroll = this.getScroll()
+        finalScroll = [
+            currentScroll[0] + delta[0],
+            currentScroll[1] + delta[1]
+        ]
         this.setScroll(finalScroll, smooth)
     }
 
@@ -216,7 +220,7 @@ export default class Blueprint extends IElement {
 
     /**
      * Get the scroll limits
-     * @return {array} The horizonal and vertical maximum scroll limits
+     * @return {Array} The horizonal and vertical maximum scroll limits
      */
     getScrollMax() {
         return [
@@ -230,24 +234,35 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * Expand the grind indefinitely, the content will remain into position
-     * @param {number} x - Horizontal expand value (negative means left, positive means right)
-     * @param {number} y - Vertical expand value (negative means top, positive means bottom)
+     * @param {Number} x - Horizontal 
+     * @param {Number} y - Vertical expand value (negative means top, positive means bottom)
+     * @param {Number} factor - Either 1 (expand) or -1 (shrink)
      */
-    seamlessExpand(x, y) {
+
+
+    /**
+     * Expand or shrink the grind indefinitely, the content will remain into position
+     * @param {Number[]} param0 - Expand value (negative means shrink, positive means expand)
+     * @param {Number[]} param1 - Direction of expansion (negative: left/top, position: right/bottom)
+     */
+    seamlessExpand([x, y], [directionX, directionY] = [1, 1]) {
+        const initialScroll = [
+            this.viewportElement.scrollLeft,
+            this.viewportElement.scrollTop
+        ]
         let scale = this.getScale()
         let scaledX = x / scale
         let scaledY = y / scale
         // First expand the grid to contain the additional space
         this.#expand(scaledX, scaledY)
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        this.#translate(scaledX < 0 ? -scaledX : 0, scaledY < 0 ? -scaledY : 0)
-        if (x < 0) {
-            this.viewportElement.scrollLeft -= x
-        }
-        if (y < 0) {
-            this.viewportElement.scrollTop -= y
-        }
+        const translate = [
+            directionX < 0 ? scaledX : 0,
+            directionY < 0 ? scaledY : 0
+        ]
+        this.#translate(translate[0], translate[1])
+        this.viewportElement.scrollLeft = initialScroll[0] + translate[0]
+        this.viewportElement.scrollTop = initialScroll[1] + translate[1]
     }
 
     progressiveSnapToGrid(x) {

@@ -1,3 +1,5 @@
+// @ts-check
+
 import IMouseClickDrag from "./IMouseClickDrag"
 import Utility from "../../Utility"
 

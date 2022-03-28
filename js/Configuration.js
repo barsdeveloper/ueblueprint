@@ -4,6 +4,8 @@ export default class Configuration {
     static expandGridSize = 400
     static fontSize = "12px"
     static gridAxisLineColor = "black"
+    static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
+    static gridShrinkThreshold = 2 // exceding size factor threshold to cause a shrink event 
     static gridLineColor = "#353535"
     static gridLineWidth = 1 // pixel
     static gridSet = 8

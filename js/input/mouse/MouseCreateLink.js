@@ -1,3 +1,5 @@
+// @ts-check
+
 import IMouseClickDrag from "./IMouseClickDrag"
 import LinkElement from "../../element/LinkElement"
 import LinkMessageElement from "../../element/LinkMessageElement"

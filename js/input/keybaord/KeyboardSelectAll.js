@@ -1,3 +1,5 @@
+// @ts-check
+
 import Configuration from "../../Configuration"
 import IKeyboardShortcut from "./IKeyboardShortcut"
 

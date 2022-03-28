@@ -1,3 +1,5 @@
+// @ts-check
+
 import IContext from "../IContext"
 import Utility from "../../Utility"
 

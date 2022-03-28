@@ -1,3 +1,5 @@
+// @ts-check
+
 import IntegerEntity from "./IntegerEntity"
 import Utility from "../Utility"
 

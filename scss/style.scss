@@ -41,7 +41,7 @@ ueb-blueprint {
 
 .ueb-viewport-body {
     position       : relative;
-    height         : 30rem;
+    height         : var(--ueb-height, 30rem);
     overflow       : hidden;
     scrollbar-width: 0;
 }
