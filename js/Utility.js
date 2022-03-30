@@ -14,7 +14,7 @@ export default class Utility {
     }
 
     static getScale(element) {
-        return getComputedStyle(element).getPropertyValue("--ueb-scale")
+        return Number(getComputedStyle(element).getPropertyValue("--ueb-scale"))
     }
 
     /**

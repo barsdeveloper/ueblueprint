@@ -1,3 +1,5 @@
+// @ts-check
+
 class Configuration {
     static deleteNodesKeyboardKey = "Delete"
     static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
@@ -517,10 +519,6 @@ class IElement extends HTMLElement {
     /** @type {IContext[]} */
     inputObjects = []
 
-    /**
-     * @param {IEntity} entity The entity containing blueprint related data for this graph element
-     * @param {ITemplate} template The template to render this node
-     */
     constructor(entity, template) {
         super();
         this.blueprint = null;
@@ -626,7 +624,7 @@ class SelectorElement extends IElement {
 
     /**
      * Create a selection rectangle starting from the specified position
-     * @param {number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
+     * @param {Number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
      */
     startSelecting(initialPosition) {
         this.template.applyStartSelecting(this, initialPosition);
@@ -635,7 +633,7 @@ class SelectorElement extends IElement {
 
     /**
      * Move selection rectagle to the specified final position. The initial position was specified by startSelecting()
-     * @param {number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
+     * @param {Number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
      */
     doSelecting(finalPosition) {
         this.template.applyDoSelecting(this, finalPosition);
@@ -790,12 +788,15 @@ class BlueprintTemplate extends ITemplate {
 
 // @ts-check
 
+/**
+ * @typedef {import("../Blueprint").default} Blueprint
+ */
 class IContext {
 
     /** @type {HTMLElement} */
     target
 
-    /** @type {import("../Blueprint").default}" */
+    /** @type {Blueprint} */
     blueprint
 
     /** @type {Object} */
@@ -845,6 +846,9 @@ class IContext {
 
 // @ts-check
 
+/**
+ * @template T
+ */
 class TypeInitialization {
 
     static sanitize(value) {
@@ -858,9 +862,9 @@ class TypeInitialization {
     }
 
     /**
-     * @param {typeof Object} type
-     * @param {boolean} showDefault
-     * @param {*} value
+     * @param {new () => T} type
+     * @param {Boolean} showDefault
+     * @param {any} value
      */
     constructor(type, showDefault = true, value = undefined) {
         if (value === undefined) {
@@ -885,7 +889,7 @@ class Utility {
     }
 
     static getScale(element) {
-        return getComputedStyle(element).getPropertyValue("--ueb-scale")
+        return Number(getComputedStyle(element).getPropertyValue("--ueb-scale"))
     }
 
     /**
@@ -993,6 +997,8 @@ class Utility {
 
 class IEntity {
 
+    static attributes = {}
+
     constructor(options = {}) {
         /**
          * @param {String[]} prefix
@@ -1040,7 +1046,12 @@ class IEntity {
                 target[property] = TypeInitialization.sanitize(defaultValue);
             }
         };
+        // @ts-expect-error
         defineAllAttributes([], this, this.constructor.attributes);
+    }
+
+    empty() {
+        return true
     }
 }
 
@@ -1052,6 +1063,16 @@ class ObjectReferenceEntity extends IEntity {
         type: String,
         path: String,
     }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.type;
+        /** @type {String} */ this.path;
+    }
+
+    empty() {
+        return false
+    }
 }
 
 // @ts-check
@@ -1061,6 +1082,12 @@ class FunctionReferenceEntity extends IEntity {
     static attributes = {
         MemberParent: ObjectReferenceEntity,
         MemberName: "",
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {ObjectReferenceEntity} */ this.MemberParent;
+        /** @type {String} */ this.MemberName;
     }
 }
 
@@ -1082,6 +1109,11 @@ class GuidEntity extends IEntity {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
         });
         return new GuidEntity({ value: guid })
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.value;
     }
 
     valueOf() {
@@ -1109,6 +1141,7 @@ class IdentifierEntity extends IEntity {
             };
         }
         super(options);
+        /** @type {String} */ this.value;
     }
 
     valueOf() {
@@ -1128,7 +1161,10 @@ class IntegerEntity extends IEntity {
         value: Number,
     }
 
-    constructor(options = {}) {
+    /**
+     * @param {Object | Number | String} options
+     */
+    constructor(options = 0) {
         if (options.constructor == Number || options.constructor == String) {
             options = {
                 value: options,
@@ -1159,8 +1195,15 @@ class KeyBindingEntity extends IEntity {
         bCmd: false,
         Key: IdentifierEntity,
     }
+
     constructor(options = {}) {
         super(options);
+        /** @type {String} */ this.ActionName;
+        /** @type {Boolean} */ this.bShift;
+        /** @type {Boolean} */ this.bCtrl;
+        /** @type {Boolean} */ this.bAlt;
+        /** @type {Boolean} */ this.bCmd;
+        /** @type {IdentifierEntity} */ this.Key;
     }
 }
 
@@ -1174,6 +1217,13 @@ class LocalizedTextEntity extends IEntity {
         key: String,
         value: String,
     }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.namespace;
+        /** @type {String} */ this.key;
+        /** @type {String} */ this.value;
+    }
 }
 
 // @ts-check
@@ -1182,6 +1232,15 @@ class PathSymbolEntity extends IEntity {
 
     static attributes = {
         value: String,
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.value;
+    }
+
+    valueOf() {
+        return this.value
     }
 
     toString() {
@@ -1197,24 +1256,16 @@ class PinReferenceEntity extends IEntity {
         objectName: PathSymbolEntity,
         pinGuid: GuidEntity,
     }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {PathSymbolEntity} */ this.objectName;
+        /** @type {GuidEntity} */ this.pinGuid;
+    }
 }
 
 // @ts-check
 
-/**
- * @typedef {{
- *     PinCategory: String,
- *     PinSubCategory: String,
- *     PinSubCategoryObject: ObjectReferenceEntity,
- *     PinSubCategoryMemberReference: *,
- *     PinValueType: String,
- *     ContainerType: ObjectReferenceEntity,
- *     bIsReference: Boolean,
- *     bIsConst: Boolean,
- *     bIsWeakPointer: Boolean,
- *     bIsUObjectWrapper: Boolean,
- * }} PinTypeObjectType
- */
 class PinEntity extends IEntity {
 
     static lookbehind = "Pin"
@@ -1249,6 +1300,40 @@ class PinEntity extends IEntity {
         bOrphanedPin: false,
     }
 
+    constructor(options = {}) {
+        super(options);
+        /** @type {GuidEntity} */ this.PinId;
+        /** @type {String} */ this.PinName;
+        /** @type {LocalizedTextEntity} */ this.PinFriendlyName;
+        /** @type {String} */ this.PinToolTip;
+        /** @type {String} */ this.Direction;
+        /**
+         * @type {{
+         *     PinCategory: String,
+         *     PinSubCategory: String,
+         *     PinSubCategoryObject: ObjectReferenceEntity,
+         *     PinSubCategoryMemberReference: any,
+         *     PinValueType: String,
+         *     ContainerType: ObjectReferenceEntity,
+         *     bIsReference: Boolean,
+         *     bIsConst: Boolean,
+         *     bIsWeakPointer: Boolean,
+         *     bIsUObjectWrapper: Boolean,
+         * }}
+         */ this.PinType;
+        /** @type {PinReferenceEntity[]} */ this.LinkedTo;
+        /** @type {String} */ this.DefaultValue;
+        /** @type {String} */ this.AutogeneratedDefaultValue;
+        /** @type {ObjectReferenceEntity} */ this.DefaultObject;
+        /** @type {GuidEntity} */ this.PersistentGuid;
+        /** @type {Boolean} */ this.bHidden;
+        /** @type {Boolean} */ this.bNotConnectable;
+        /** @type {Boolean} */ this.bDefaultValueIsReadOnly;
+        /** @type {Boolean} */ this.bDefaultValueIsIgnored;
+        /** @type {Boolean} */ this.bAdvancedView;
+        /** @type {Boolean} */ this.bOrphanedPin;
+    }
+
     isInput() {
         return !this.bHidden && this.Direction !== "EGPD_Output"
     }
@@ -1269,6 +1354,7 @@ class PinEntity extends IEntity {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
         const linkFound = this.LinkedTo?.find(pinReferenceEntity => {
+            // @ts-ignore
             return pinReferenceEntity.objectName == targetObjectName
                 && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
@@ -1290,6 +1376,7 @@ class PinEntity extends IEntity {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
         const indexElement = this.LinkedTo.findIndex(pinReferenceEntity => {
+            // @ts-expect-error
             return pinReferenceEntity.objectName == targetObjectName
                 && pinReferenceEntity.pinGuid == targetPinEntity.PinId
         });
@@ -1318,6 +1405,13 @@ class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: false,
     }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.MemberName;
+        /** @type {GuidEntity} */ this.MemberGuid;
+        /** @type {Boolean} */ this.bSelfContext;
+    }
 }
 
 // @ts-check
@@ -1339,6 +1433,24 @@ class ObjectEntity extends IEntity {
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
         CustomProperties: [PinEntity],
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {ObjectReferenceEntity} */ this.Class;
+        /** @type {String} */ this.Name;
+        /** @type {Boolean} */ this.bIsPureFunc;
+        /** @type {VariableReferenceEntity} */ this.VariableReference;
+        /** @type {FunctionReferenceEntity} */ this.FunctionReference;
+        /** @type {FunctionReferenceEntity} */ this.EventReference;
+        /** @type {ObjectReferenceEntity} */ this.TargetType;
+        /** @type {IntegerEntity} */ this.NodePosX;
+        /** @type {IntegerEntity} */ this.NodePosY;
+        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay;
+        /** @type {GuidEntity} */ this.NodeGuid;
+        /** @type {IntegerEntity} */ this.ErrorType;
+        /** @type {String} */ this.ErrorMsg;
+        /** @type {PinEntity[]} */ this.CustomProperties;
     }
 
     /**
@@ -1371,7 +1483,6 @@ class Grammar {
 
     /*   ---   Factory   ---   */
 
-    /** @param {Grammar} r */
     static getGrammarForType(r, attributeType, defaultGrammar) {
         switch (Utility.getType(attributeType)) {
             case Boolean:
@@ -1417,7 +1528,6 @@ class Grammar {
         }
     }
 
-    /** @param {Grammar} r */
     static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
@@ -1430,14 +1540,20 @@ class Grammar {
                 )
             })
 
-    /** @param {Grammar} r */
+    /**
+     * @template T
+     * @param {new () => T} entityType 
+     * @returns {Parsimmon.Parser<T>}
+     */
     static createMultiAttributeGrammar = (r, entityType) =>
         /**
          * Basically this creates a parser that looks for a string like 'Key (A=False,B="Something",)'
          * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
          */
         P.seqMap(
+            // @ts-expect-error
             entityType.lookbehind
+                // @ts-expect-error
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
                 : P.string("("),
             Grammar.createAttributeGrammar(r, entityType)
@@ -1453,33 +1569,24 @@ class Grammar {
 
     /*   ---   General   ---   */
 
-    /** @param {Grammar} r */
     InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("inline whitespace")
 
-    /** @param {Grammar} r */
     InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
 
-    /** @param {Grammar} r */
     MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
 
-    /** @param {Grammar} r */
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
 
-    /** @param {Grammar} r */
     Boolean = r => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false)
         .desc("either True or False")
 
-    /** @param {Grammar} r */
     Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
 
-    /** @param {Grammar} r */
     Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
 
-    /** @param {Grammar} r */
     String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"'))
         .desc('string (with possibility to escape the quote using \")')
 
-    /** @param {Grammar} r */
     ReferencePath = r => P.seq(
         P.string("/"),
         r.PathSymbol
@@ -1492,28 +1599,21 @@ class Grammar {
         .tie()
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
 
-    /** @param {Grammar} r */
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
 
     /*   ---   Entity   ---   */
 
-    /** @param {Grammar} r */
     None = r => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
 
-    /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
 
-    /** @param {Grammar} r */
     Guid = r => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v }))
         .desc("32 digit hexadecimal (accepts all the letters for safety) value")
 
-    /** @param {Grammar} */
     Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
 
-    /** @param {Grammar} r */
     PathSymbol = r => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
 
-    /** @param {Grammar} r */
     Reference = r => P.alt(
         r.None,
         ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
@@ -1533,7 +1633,6 @@ class Grammar {
         r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
     )
 
-    /** @param {Grammar} r */
     LocalizedText = r => P.seqMap(
         P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _ (ignored)
         r.String.trim(P.optWhitespace), // Goes into namespace
@@ -1549,7 +1648,6 @@ class Grammar {
         })
     )
 
-    /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(
         r.Null,
         r.None,
@@ -1561,7 +1659,6 @@ class Grammar {
         r.Reference,
         r.LocalizedText)
 
-    /** @param {Grammar} r */
     PinReference = r => P.seqMap(
         r.PathSymbol, // Goes into objectNAme
         P.whitespace, // Goes into _ (ignored)
@@ -1572,10 +1669,8 @@ class Grammar {
         })
     )
 
-    /** @param {Grammar} r */
     FunctionReference = r => Grammar.createMultiAttributeGrammar(r, FunctionReferenceEntity)
 
-    /** @param {Grammar} r */
     KeyBinding = r => P.alt(
         r.Identifier.map(identifier => new KeyBindingEntity({
             Key: identifier
@@ -1583,10 +1678,8 @@ class Grammar {
         Grammar.createMultiAttributeGrammar(r, KeyBindingEntity)
     )
 
-    /** @param {Grammar} r */
     Pin = r => Grammar.createMultiAttributeGrammar(r, PinEntity)
 
-    /** @param {Grammar} r */
     CustomProperties = r =>
         P.string("CustomProperties")
             .then(P.whitespace)
@@ -1598,7 +1691,7 @@ class Grammar {
                 Utility.objectSet(entity, ["CustomProperties"], properties, true);
             })
 
-    /** @param {Grammar} r */
+    /** @returns {Parsimmon.Parser<ObjectEntity>} */
     Object = r => P.seqMap(
         P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
         P
@@ -1615,7 +1708,7 @@ class Grammar {
         }
     )
 
-    /** @param {Grammar} r */
+    /** @returns {Parsimmon.Parser<ObjectEntity[]>} */
     MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
 }
 
@@ -1749,8 +1842,7 @@ class ObjectSerializer extends ISerializer {
     readMultiple(value) {
         const parseResult = ISerializer.grammar.MultipleObject.parse(value);
         if (!parseResult.status) {
-            console.error("Error when trying to parse the object.");
-            return parseResult
+            throw new Error("Error when trying to parse the object.")
         }
         return parseResult.value
     }
@@ -1803,6 +1895,7 @@ class Copy extends IContext {
 }
 
 // @ts-check
+
 class IKeyboardShortcut extends IContext {
 
     /** @type {KeyBindingEntity} */
@@ -1860,7 +1953,6 @@ class IKeyboardShortcut extends IContext {
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta" // Unsure about this, what key is that?
                     || Configuration.Keys[keyEntry.Key] == e.code
-
                 )) {
                 self.unfire();
                 document.removeEventListener("keyup", this.keyUpHandler);
@@ -1951,6 +2043,7 @@ class IMouseWheel extends IPointing {
         let self = this;
 
         this.#mouseWheelHandler = e => {
+            e.preventDefault();
             const location = self.locationFromEvent(e);
             self.wheel(Math.sign(e.deltaY), location);
         };
@@ -2513,7 +2606,7 @@ class IMouseClickDrag extends IPointing {
             const movement = [e.movementX, e.movementY];
             self.dragTo(location, movement);
             if (self.#trackingMouse) {
-                self.blueprint.entity.mousePosition = self.locationFromEvent(e);
+                self.blueprint.mousePosition = self.locationFromEvent(e);
             }
         };
 
@@ -2618,11 +2711,13 @@ class MouseTracking extends IPointing {
         let self = this;
 
         this.#mousemoveHandler = e => {
-            self.blueprint.entity.mousePosition = self.locationFromEvent(e);
+            e.preventDefault();
+            self.blueprint.mousePosition = self.locationFromEvent(e);
         };
 
         this.#trackingMouseStolenHandler = e => {
             if (!self.#mouseTracker) {
+                e.preventDefault();
                 this.#mouseTracker = e.detail.tracker;
                 self.unlistenMouseMove();
             }
@@ -2630,6 +2725,7 @@ class MouseTracking extends IPointing {
 
         this.#trackingMouseGaveBackHandler = e => {
             if (self.#mouseTracker == e.detail.tracker) {
+                e.preventDefault();
                 self.#mouseTracker = null;
                 self.listenMouseMove();
             }
@@ -2646,14 +2742,23 @@ class MouseTracking extends IPointing {
 
     listenEvents() {
         this.listenMouseMove();
-        this.blueprint.addEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler);
-        this.blueprint.addEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler);
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
     }
 
     unlistenEvents() {
         this.unlistenMouseMove();
-        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler);
-        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler);
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
+        );
     }
 }
 
@@ -2710,11 +2815,11 @@ class MouseMoveNodes extends IMouseClickDrag {
 
 /**
  * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ * @typedef {import("../entity/IntegerEntity").default} IntegerEntity
  */
 class ISelectableDraggableElement extends IElement {
 
     constructor(...args) {
-        // @ts-expect-error
         super(...args);
         this.dragObject = null;
         this.location = [0, 0];
@@ -2835,7 +2940,7 @@ class LinkMessageTemplate extends ITemplate {
 /**
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("./LinkElement").default} LinkElement
- * @typedef {(sourcePin: PinElement, sourcePin: PinElement) => String} LinkRetrieval
+ * @typedef {(sourcePin: PinElement, destinationPin: PinElement) => String} LinkRetrieval
  */
 class LinkMessageElement extends IElement {
 
@@ -3111,6 +3216,8 @@ class ExecPinTemplate extends PinTemplate {
     }
 }
 
+// @ts-check
+
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
@@ -3134,8 +3241,9 @@ class StringPinTemplate extends PinTemplate {
 // @ts-check
 
 /**
- * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
+ * @typedef {import("../entity/PinEntity").default} PinEntity
+ * @typedef {import("./NodeElement").default} NodeElement
  */
 class PinElement extends IElement {
 
@@ -3161,7 +3269,7 @@ class PinElement extends IElement {
             new (PinElement.#typeTemplateMap[entity.getType()] ?? PinTemplate)()
         );
 
-        /** @type {import("../entity/PinEntity").default} */
+        /** @type {PinEntity} */
         this.entity;
 
         /** @type {PinTemplate} */
@@ -3382,7 +3490,7 @@ class NodeElement extends ISelectableDraggableElement {
         /** @type {NodeTemplate} */
         this.template;
         this.dragLinkObjects = [];
-        super.setLocation([this.entity.NodePosX, this.entity.NodePosY]);
+        super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
     }
 
     static fromSerializedObject(str) {
@@ -3417,7 +3525,9 @@ class NodeElement extends ISelectableDraggableElement {
 
     setLocation(value = [0, 0]) {
         let nodeType = this.entity.NodePosX.constructor;
+        // @ts-expect-error
         this.entity.NodePosX = new nodeType(value[0]);
+        // @ts-expect-error
         this.entity.NodePosY = new nodeType(value[1]);
         super.setLocation(value);
     }
@@ -3471,7 +3581,7 @@ class Paste extends IContext {
         if (nodes.length > 0) {
             this.blueprint.unselectAll();
         }
-        let mousePosition = this.blueprint.entity.mousePosition;
+        let mousePosition = this.blueprint.mousePosition;
         this.blueprint.addGraphElement(...nodes);
         nodes.forEach(node => {
             const locationOffset = [
@@ -3553,6 +3663,8 @@ class Unfocus extends IContext {
     }
 }
 
+// @ts-check
+
 /**
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
@@ -3589,7 +3701,6 @@ class Blueprint extends IElement {
     /** @type {HTMLElement} */
     headerElement = null
     focused = false
-    /** @type {(node: NodeElement) => BoundariesInfo} */
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect();
         let gridRect = this.nodesContainerElement.getBoundingClientRect();
@@ -3602,7 +3713,7 @@ class Blueprint extends IElement {
             secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
         }
     }
-    /** @type {(node: NodeElement, selected: bool) => void}} */
+    /** @type {(node: NodeElement, selected: Boolean) => void}} */
     nodeSelectToggleFunction = (node, selected) => {
         node.setSelected(selected);
     }
@@ -3638,7 +3749,7 @@ class Blueprint extends IElement {
             new Copy(this.getGridDOMElement(), this),
             new Paste(this.getGridDOMElement(), this),
             new KeyboardCanc(this.getGridDOMElement(), this),
-            new KeyboardSelectAll(this.getGridDOMElement, this),
+            new KeyboardSelectAll(this.getGridDOMElement(), this),
             new Zoom(this.getGridDOMElement(), this, {
                 looseTarget: true,
             }),
@@ -3666,7 +3777,6 @@ class Blueprint extends IElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        setSelected(false);
     }
 
     getScroll() {
@@ -3940,8 +4050,8 @@ class Blueprint extends IElement {
             }
         });
         if (removed) {
-            this.nodes = [...this.querySelectorAll(NodeElement.tagName)];
-            this.links = [...this.querySelectorAll(LinkElement.tagName)];
+            this.nodes = /** @type {NodeElement[]} */ ([...this.querySelectorAll(NodeElement.tagName)]);
+            this.links = /** @type {LinkElement[]} */ ([...this.querySelectorAll(LinkElement.tagName)]);
         }
     }
 
@@ -3951,7 +4061,7 @@ class Blueprint extends IElement {
         }
         let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus");
         this.focused = value;
-        this.dataset.focused = this.focused;
+        this.dataset.focused = this.focused ? "true" : "false";
         if (!this.focused) {
             this.unselectAll();
         }
@@ -3971,6 +4081,11 @@ class GeneralSerializer extends ISerializer {
         this.wrap = wrap;
     }
 
+    /**
+     * @template T
+     * @param {String} value
+     * @returns {T}
+     */
     read(value) {
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType);
         const parseResult = grammar.parse(value);
@@ -3981,6 +4096,11 @@ class GeneralSerializer extends ISerializer {
         return parseResult.value
     }
 
+    /**
+     * @template T
+     * @param {T} object
+     * @returns {String}
+     */
     write(object) {
         let result = this.wrap(this.subWrite([], object));
         return result

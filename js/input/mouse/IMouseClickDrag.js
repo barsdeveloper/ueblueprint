@@ -83,7 +83,7 @@ export default class IMouseClickDrag extends IPointing {
             const movement = [e.movementX, e.movementY]
             self.dragTo(location, movement)
             if (self.#trackingMouse) {
-                self.blueprint.entity.mousePosition = self.locationFromEvent(e)
+                self.blueprint.mousePosition = self.locationFromEvent(e)
             }
         }
 

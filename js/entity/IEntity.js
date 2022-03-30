@@ -5,6 +5,8 @@ import Utility from "../Utility"
 
 export default class IEntity {
 
+    static attributes = {}
+
     constructor(options = {}) {
         /**
          * @param {String[]} prefix
@@ -52,6 +54,11 @@ export default class IEntity {
                 target[property] = TypeInitialization.sanitize(defaultValue)
             }
         }
+        // @ts-expect-error
         defineAllAttributes([], this, this.constructor.attributes)
+    }
+
+    empty() {
+        return true
     }
 }

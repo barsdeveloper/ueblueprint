@@ -16,6 +16,7 @@ export default class IdentifierEntity extends IEntity {
             }
         }
         super(options)
+        /** @type {String} */ this.value
     }
 
     valueOf() {

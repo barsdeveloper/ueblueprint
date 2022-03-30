@@ -1,3 +1,5 @@
+// @ts-check
+
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import Configuration from "./Configuration"
 import Copy from "./input/common/Copy"
@@ -52,7 +54,6 @@ export default class Blueprint extends IElement {
     /** @type {HTMLElement} */
     headerElement = null
     focused = false
-    /** @type {(node: NodeElement) => BoundariesInfo} */
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect()
         let gridRect = this.nodesContainerElement.getBoundingClientRect()
@@ -65,7 +66,7 @@ export default class Blueprint extends IElement {
             secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
         }
     }
-    /** @type {(node: NodeElement, selected: bool) => void}} */
+    /** @type {(node: NodeElement, selected: Boolean) => void}} */
     nodeSelectToggleFunction = (node, selected) => {
         node.setSelected(selected)
     }
@@ -101,7 +102,7 @@ export default class Blueprint extends IElement {
             new Copy(this.getGridDOMElement(), this),
             new Paste(this.getGridDOMElement(), this),
             new KeyboardCanc(this.getGridDOMElement(), this),
-            new KeyboardSelectAll(this.getGridDOMElement, this),
+            new KeyboardSelectAll(this.getGridDOMElement(), this),
             new Zoom(this.getGridDOMElement(), this, {
                 looseTarget: true,
             }),
@@ -129,7 +130,6 @@ export default class Blueprint extends IElement {
 
     disconnectedCallback() {
         super.disconnectedCallback()
-        setSelected(false)
     }
 
     getScroll() {
@@ -403,8 +403,8 @@ export default class Blueprint extends IElement {
             }
         })
         if (removed) {
-            this.nodes = [...this.querySelectorAll(NodeElement.tagName)]
-            this.links = [...this.querySelectorAll(LinkElement.tagName)]
+            this.nodes = /** @type {NodeElement[]} */ ([...this.querySelectorAll(NodeElement.tagName)])
+            this.links = /** @type {LinkElement[]} */ ([...this.querySelectorAll(LinkElement.tagName)])
         }
     }
 
@@ -414,7 +414,7 @@ export default class Blueprint extends IElement {
         }
         let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus")
         this.focused = value
-        this.dataset.focused = this.focused
+        this.dataset.focused = this.focused ? "true" : "false"
         if (!this.focused) {
             this.unselectAll()
         }

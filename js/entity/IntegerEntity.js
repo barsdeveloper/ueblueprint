@@ -8,7 +8,10 @@ export default class IntegerEntity extends IEntity {
         value: Number,
     }
 
-    constructor(options = {}) {
+    /**
+     * @param {Object | Number | String} options
+     */
+    constructor(options = 0) {
         if (options.constructor == Number || options.constructor == String) {
             options = {
                 value: options,

@@ -4,6 +4,7 @@ import Configuration from "../../Configuration"
 import IContext from "../IContext"
 import ISerializer from "../../serialization/ISerializer"
 import KeyBindingEntity from "../../entity/KeyBindingEntity"
+
 export default class IKeyboardShortcut extends IContext {
 
     /** @type {KeyBindingEntity} */
@@ -61,7 +62,6 @@ export default class IKeyboardShortcut extends IContext {
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta" // Unsure about this, what key is that?
                     || Configuration.Keys[keyEntry.Key] == e.code
-
                 )) {
                 self.unfire()
                 document.removeEventListener("keyup", this.keyUpHandler)

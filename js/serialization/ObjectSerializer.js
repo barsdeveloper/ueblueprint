@@ -38,8 +38,7 @@ export default class ObjectSerializer extends ISerializer {
     readMultiple(value) {
         const parseResult = ISerializer.grammar.MultipleObject.parse(value)
         if (!parseResult.status) {
-            console.error("Error when trying to parse the object.")
-            return parseResult
+            throw new Error("Error when trying to parse the object.")
         }
         return parseResult.value
     }

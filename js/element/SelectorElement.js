@@ -17,7 +17,7 @@ export default class SelectorElement extends IElement {
 
     /**
      * Create a selection rectangle starting from the specified position
-     * @param {number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
+     * @param {Number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
      */
     startSelecting(initialPosition) {
         this.template.applyStartSelecting(this, initialPosition)
@@ -26,7 +26,7 @@ export default class SelectorElement extends IElement {
 
     /**
      * Move selection rectagle to the specified final position. The initial position was specified by startSelecting()
-     * @param {number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
+     * @param {Number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
      */
     doSelecting(finalPosition) {
         this.template.applyDoSelecting(this, finalPosition)

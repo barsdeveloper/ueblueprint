@@ -24,11 +24,13 @@ export default class MouseTracking extends IPointing {
         let self = this
 
         this.#mousemoveHandler = e => {
-            self.blueprint.entity.mousePosition = self.locationFromEvent(e)
+            e.preventDefault()
+            self.blueprint.mousePosition = self.locationFromEvent(e)
         }
 
         this.#trackingMouseStolenHandler = e => {
             if (!self.#mouseTracker) {
+                e.preventDefault()
                 this.#mouseTracker = e.detail.tracker
                 self.unlistenMouseMove()
             }
@@ -36,6 +38,7 @@ export default class MouseTracking extends IPointing {
 
         this.#trackingMouseGaveBackHandler = e => {
             if (self.#mouseTracker == e.detail.tracker) {
+                e.preventDefault()
                 self.#mouseTracker = null
                 self.listenMouseMove()
             }
@@ -52,13 +55,22 @@ export default class MouseTracking extends IPointing {
 
     listenEvents() {
         this.listenMouseMove()
-        this.blueprint.addEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler)
-        this.blueprint.addEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler)
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler))
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler))
     }
 
     unlistenEvents() {
         this.unlistenMouseMove()
-        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.begin, this.#trackingMouseStolenHandler)
-        this.blueprint.removeEventListener(Configuration.trackingMouseEventName.end, this.#trackingMouseGaveBackHandler)
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler))
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
+        )
     }
 }

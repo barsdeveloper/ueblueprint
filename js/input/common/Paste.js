@@ -40,7 +40,7 @@ export default class Paste extends IContext {
         if (nodes.length > 0) {
             this.blueprint.unselectAll()
         }
-        let mousePosition = this.blueprint.entity.mousePosition
+        let mousePosition = this.blueprint.mousePosition
         this.blueprint.addGraphElement(...nodes)
         nodes.forEach(node => {
             const locationOffset = [

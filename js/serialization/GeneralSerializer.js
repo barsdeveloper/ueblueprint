@@ -11,6 +11,11 @@ export default class GeneralSerializer extends ISerializer {
         this.wrap = wrap
     }
 
+    /**
+     * @template T
+     * @param {String} value
+     * @returns {T}
+     */
     read(value) {
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType)
         const parseResult = grammar.parse(value)
@@ -21,6 +26,11 @@ export default class GeneralSerializer extends ISerializer {
         return parseResult.value
     }
 
+    /**
+     * @template T
+     * @param {T} object
+     * @returns {String}
+     */
     write(object) {
         let result = this.wrap(this.subWrite([], object))
         return result

@@ -6,11 +6,11 @@ import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
 /**
  * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ * @typedef {import("../entity/IntegerEntity").default} IntegerEntity
  */
 export default class ISelectableDraggableElement extends IElement {
 
     constructor(...args) {
-        // @ts-expect-error
         super(...args)
         this.dragObject = null
         this.location = [0, 0]

@@ -10,4 +10,10 @@ export default class PinReferenceEntity extends IEntity {
         objectName: PathSymbolEntity,
         pinGuid: GuidEntity,
     }
+
+    constructor(options = {}) {
+        super(options)
+        /** @type {PathSymbolEntity} */ this.objectName
+        /** @type {GuidEntity} */ this.pinGuid
+    }
 }

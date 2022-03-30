@@ -1,5 +1,8 @@
 // @ts-check
 
+/**
+ * @template T
+ */
 export default class TypeInitialization {
 
     static sanitize(value) {
@@ -13,9 +16,9 @@ export default class TypeInitialization {
     }
 
     /**
-     * @param {Object} type
-     * @param {boolean} showDefault
-     * @param {*} value
+     * @param {new () => T} type
+     * @param {Boolean} showDefault
+     * @param {any} value
      */
     constructor(type, showDefault = true, value = undefined) {
         if (value === undefined) {

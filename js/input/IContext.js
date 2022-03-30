@@ -1,11 +1,14 @@
 // @ts-check
 
+/**
+ * @typedef {import("../Blueprint").default} Blueprint
+ */
 export default class IContext {
 
     /** @type {HTMLElement} */
     target
 
-    /** @type {import("../Blueprint").default}" */
+    /** @type {Blueprint} */
     blueprint
 
     /** @type {Object} */

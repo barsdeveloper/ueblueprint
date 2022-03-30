@@ -20,7 +20,6 @@ export default class Grammar {
 
     /*   ---   Factory   ---   */
 
-    /** @param {Grammar} r */
     static getGrammarForType(r, attributeType, defaultGrammar) {
         switch (Utility.getType(attributeType)) {
             case Boolean:
@@ -66,7 +65,6 @@ export default class Grammar {
         }
     }
 
-    /** @param {Grammar} r */
     static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
@@ -79,14 +77,20 @@ export default class Grammar {
                 )
             })
 
-    /** @param {Grammar} r */
+    /**
+     * @template T
+     * @param {new () => T} entityType 
+     * @returns {Parsimmon.Parser<T>}
+     */
     static createMultiAttributeGrammar = (r, entityType) =>
         /**
          * Basically this creates a parser that looks for a string like 'Key (A=False,B="Something",)'
          * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
          */
         P.seqMap(
+            // @ts-expect-error
             entityType.lookbehind
+                // @ts-expect-error
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
                 : P.string("("),
             Grammar.createAttributeGrammar(r, entityType)
@@ -102,33 +106,24 @@ export default class Grammar {
 
     /*   ---   General   ---   */
 
-    /** @param {Grammar} r */
     InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("inline whitespace")
 
-    /** @param {Grammar} r */
     InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
 
-    /** @param {Grammar} r */
     MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
 
-    /** @param {Grammar} r */
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
 
-    /** @param {Grammar} r */
     Boolean = r => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false)
         .desc("either True or False")
 
-    /** @param {Grammar} r */
     Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
 
-    /** @param {Grammar} r */
     Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
 
-    /** @param {Grammar} r */
     String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"'))
         .desc('string (with possibility to escape the quote using \")')
 
-    /** @param {Grammar} r */
     ReferencePath = r => P.seq(
         P.string("/"),
         r.PathSymbol
@@ -141,28 +136,21 @@ export default class Grammar {
         .tie()
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
 
-    /** @param {Grammar} r */
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
 
     /*   ---   Entity   ---   */
 
-    /** @param {Grammar} r */
     None = r => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
 
-    /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
 
-    /** @param {Grammar} r */
     Guid = r => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v }))
         .desc("32 digit hexadecimal (accepts all the letters for safety) value")
 
-    /** @param {Grammar} */
     Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
 
-    /** @param {Grammar} r */
     PathSymbol = r => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
 
-    /** @param {Grammar} r */
     Reference = r => P.alt(
         r.None,
         ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
@@ -182,7 +170,6 @@ export default class Grammar {
         r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
     )
 
-    /** @param {Grammar} r */
     LocalizedText = r => P.seqMap(
         P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _ (ignored)
         r.String.trim(P.optWhitespace), // Goes into namespace
@@ -198,7 +185,6 @@ export default class Grammar {
         })
     )
 
-    /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(
         r.Null,
         r.None,
@@ -210,7 +196,6 @@ export default class Grammar {
         r.Reference,
         r.LocalizedText)
 
-    /** @param {Grammar} r */
     PinReference = r => P.seqMap(
         r.PathSymbol, // Goes into objectNAme
         P.whitespace, // Goes into _ (ignored)
@@ -221,10 +206,8 @@ export default class Grammar {
         })
     )
 
-    /** @param {Grammar} r */
     FunctionReference = r => Grammar.createMultiAttributeGrammar(r, FunctionReferenceEntity)
 
-    /** @param {Grammar} r */
     KeyBinding = r => P.alt(
         r.Identifier.map(identifier => new KeyBindingEntity({
             Key: identifier
@@ -232,10 +215,8 @@ export default class Grammar {
         Grammar.createMultiAttributeGrammar(r, KeyBindingEntity)
     )
 
-    /** @param {Grammar} r */
     Pin = r => Grammar.createMultiAttributeGrammar(r, PinEntity)
 
-    /** @param {Grammar} r */
     CustomProperties = r =>
         P.string("CustomProperties")
             .then(P.whitespace)
@@ -247,7 +228,7 @@ export default class Grammar {
                 Utility.objectSet(entity, ["CustomProperties"], properties, true)
             })
 
-    /** @param {Grammar} r */
+    /** @returns {Parsimmon.Parser<ObjectEntity>} */
     Object = r => P.seqMap(
         P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
         P
@@ -264,6 +245,6 @@ export default class Grammar {
         }
     )
 
-    /** @param {Grammar} r */
+    /** @returns {Parsimmon.Parser<ObjectEntity[]>} */
     MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
 }

@@ -1,3 +1,5 @@
+// @ts-check
+
 export default class Configuration {
     static deleteNodesKeyboardKey = "Delete"
     static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom

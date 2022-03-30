@@ -23,10 +23,6 @@ export default class IElement extends HTMLElement {
     /** @type {IContext[]} */
     inputObjects = []
 
-    /**
-     * @param {IEntity} entity The entity containing blueprint related data for this graph element
-     * @param {ITemplate} template The template to render this node
-     */
     constructor(entity, template) {
         super()
         this.blueprint = null

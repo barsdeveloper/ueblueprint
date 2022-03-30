@@ -7,8 +7,9 @@ import ExecPinTemplate from "../template/ExecPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 
 /**
- * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
+ * @typedef {import("../entity/PinEntity").default} PinEntity
+ * @typedef {import("./NodeElement").default} NodeElement
  */
 export default class PinElement extends IElement {
 
@@ -34,7 +35,7 @@ export default class PinElement extends IElement {
             new (PinElement.#typeTemplateMap[entity.getType()] ?? PinTemplate)()
         )
 
-        /** @type {import("../entity/PinEntity").default} */
+        /** @type {PinEntity} */
         this.entity
 
         /** @type {PinTemplate} */

@@ -8,6 +8,15 @@ export default class PathSymbolEntity extends IEntity {
         value: String,
     }
 
+    constructor(options = {}) {
+        super(options)
+        /** @type {String} */ this.value
+    }
+
+    valueOf() {
+        return this.value
+    }
+
     toString() {
         return this.value
     }

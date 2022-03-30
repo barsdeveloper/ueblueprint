@@ -21,7 +21,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         /** @type {NodeTemplate} */
         this.template
         this.dragLinkObjects = []
-        super.setLocation([this.entity.NodePosX, this.entity.NodePosY])
+        super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
     }
 
     static fromSerializedObject(str) {
@@ -56,7 +56,9 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     setLocation(value = [0, 0]) {
         let nodeType = this.entity.NodePosX.constructor
+        // @ts-expect-error
         this.entity.NodePosX = new nodeType(value[0])
+        // @ts-expect-error
         this.entity.NodePosY = new nodeType(value[1])
         super.setLocation(value)
     }
