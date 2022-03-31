@@ -1,6 +1,5 @@
 // @ts-check
 
-import Configuration from "../../Configuration"
 import IKeyboardShortcut from "./IKeyboardShortcut"
 import Zoom from "../mouse/Zoom"
 
@@ -12,12 +11,12 @@ export default class KeyboardEnableZoom extends IKeyboardShortcut {
     /**
      * @param {HTMLElement} target
      * @param {import("../../Blueprint").default} blueprint
-     * @param {OBject} options
+     * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: Configuration.enableZoomIn
+            activationKeys: blueprint.settings.enableZoomIn
         }
         super(target, blueprint, options)
     }

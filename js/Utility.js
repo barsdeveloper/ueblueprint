@@ -107,7 +107,7 @@ export default class Utility {
      * @param {Number[]} location
      * @param {Number} gridSize
      */
-    static snapToGrid(location, gridSize = Configuration.gridSize) {
+    static snapToGrid(location, gridSize) {
         if (gridSize === 1) {
             return location
         }

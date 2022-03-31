@@ -26,17 +26,31 @@ import Zoom from "./input/mouse/Zoom"
 export default class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
+    /** @type {Configuration} */
+    settings
+    /** @type {Number[]} */
+    #additional
+    /** @type {Number[]} */
+    #translateValue
+    get additional() {
+        return this.#additional
+    }
+    set additional(value) {
+        value[0] = Math.abs(value[0])
+        value[1] = Math.abs(value[1])
+    }
+    get translateValue() {
+        return this.#translateValue
+    }
+    set translateValue(value) {
+        this.#translateValue = value
+    }
     /** @type {number} */
-    gridSize = Configuration.gridSize
+    gridSize
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */
     links = []
-    expandGridSize = Configuration.expandGridSize
-    /** @type {number[]} */
-    additional = [2 * this.expandGridSize, 2 * this.expandGridSize]
-    /** @type {number[]} */
-    translateValue = [this.expandGridSize, this.expandGridSize]
     /** @type {number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
@@ -71,10 +85,20 @@ export default class Blueprint extends IElement {
         node.setSelected(selected)
     }
 
-    constructor() {
+    /**
+     * @param {Configuration} settings
+     */
+    constructor(settings = new Configuration()) {
         super({}, new BlueprintTemplate())
         /** @type {BlueprintTemplate} */
         this.template
+        this.settings = settings
+        /** @type {Number} */
+        this.gridSize = this.settings.gridSize
+        /** @type {Number[]} */
+        this.#additional = [2 * this.settings.expandGridSize, 2 * this.settings.expandGridSize]
+        /** @type {Number[]} */
+        this.#translateValue = [this.settings.expandGridSize, this.settings.expandGridSize]
     }
 
     /**
@@ -82,7 +106,11 @@ export default class Blueprint extends IElement {
      * @param {number} y
      */
     #expand(x, y) {
-        this.additional = [this.additional[0] + x, this.additional[1] + y]
+        // TODO remove
+        x = Math.round(x)
+        y = Math.round(y)
+        this.additional[0] += x
+        this.additional[1] += y
         this.template.applyExpand(this)
     }
 
@@ -93,7 +121,8 @@ export default class Blueprint extends IElement {
     #translate(x, y) {
         x = Math.round(x)
         y = Math.round(y)
-        this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y]
+        this.translateValue[0] += x
+        this.translateValue[1] += y
         this.template.applyTranlate(this)
     }
 
@@ -160,20 +189,20 @@ export default class Blueprint extends IElement {
         let shrink = [0, 0]
         let direction = [0, 0]
         for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * this.expandGridSize) {
+            if (delta[i] < 0 && finalScroll[i] < this.settings.gridExpandThreshold * this.settings.expandGridSize) {
                 // Expand left/top
-                expand[i] = this.expandGridSize
+                expand[i] = this.settings.expandGridSize
                 direction[i] = -1
-                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * this.expandGridSize) {
-                    shrink[i] = -this.expandGridSize
+                if (maxScroll[i] - finalScroll[i] > this.settings.gridShrinkThreshold * this.settings.expandGridSize) {
+                    shrink[i] = -this.settings.expandGridSize
                 }
             } else if (delta[i] > 0 && finalScroll[i]
-                > maxScroll[i] - Configuration.gridExpandThreshold * this.expandGridSize) {
+                > maxScroll[i] - this.settings.gridExpandThreshold * this.settings.expandGridSize) {
                 // Expand right/bottom
-                expand[i] = this.expandGridSize
+                expand[i] = this.settings.expandGridSize
                 direction[i] = 1
-                if (finalScroll[i] > Configuration.gridShrinkThreshold * this.expandGridSize) {
-                    shrink[i] = -this.expandGridSize
+                if (finalScroll[i] > this.settings.gridShrinkThreshold * this.settings.expandGridSize) {
+                    shrink[i] = -this.settings.expandGridSize
                 }
             }
         }
@@ -208,7 +237,7 @@ export default class Blueprint extends IElement {
     }
 
     getExpandGridSize() {
-        return this.expandGridSize
+        return this.settings.expandGridSize
     }
 
     getViewportSize() {
@@ -256,17 +285,20 @@ export default class Blueprint extends IElement {
         // First expand the grid to contain the additional space
         this.#expand(scaledX, scaledY)
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        const translate = [
-            directionX < 0 ? scaledX : 0,
-            directionY < 0 ? scaledY : 0
-        ]
+        const translate = [0, 0]
+        if (directionX < 0) {
+            this.viewportElement.scrollLeft += x
+            translate[0] = scaledX
+        }
+        if (directionY < 0) {
+            this.viewportElement.scrollTop += y
+            translate[1] = scaledY
+        }
         this.#translate(translate[0], translate[1])
-        this.viewportElement.scrollLeft = initialScroll[0] + translate[0]
-        this.viewportElement.scrollTop = initialScroll[1] + translate[1]
     }
 
     progressiveSnapToGrid(x) {
-        return this.expandGridSize * Math.round(x / this.expandGridSize + 0.5 * Math.sign(x))
+        return this.settings.expandGridSize * Math.round(x / this.settings.expandGridSize + 0.5 * Math.sign(x))
     }
 
     getZoom() {
@@ -274,7 +306,7 @@ export default class Blueprint extends IElement {
     }
 
     setZoom(zoom, center) {
-        zoom = Utility.clamp(zoom, Configuration.minZoom, Configuration.maxZoom)
+        zoom = Utility.clamp(zoom, this.settings.minZoom, this.settings.maxZoom)
         if (zoom == this.zoom) {
             return
         }

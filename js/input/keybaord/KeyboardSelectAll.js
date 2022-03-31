@@ -1,6 +1,5 @@
 // @ts-check
 
-import Configuration from "../../Configuration"
 import IKeyboardShortcut from "./IKeyboardShortcut"
 
 export default class KeyboardSelectAll extends IKeyboardShortcut {
@@ -13,7 +12,7 @@ export default class KeyboardSelectAll extends IKeyboardShortcut {
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: Configuration.selectAllKeyboardKey
+            activationKeys: blueprint.settings.selectAllKeyboardKey
         }
         super(target, blueprint, options)
     }

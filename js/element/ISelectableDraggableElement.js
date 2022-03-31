@@ -37,16 +37,18 @@ export default class ISelectableDraggableElement extends IElement {
      */
     setLocation(value = [0, 0]) {
         const d = [value[0] - this.location[0], value[1] - this.location[1]]
-        const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
-            detail: {
-                value: d
-            },
-            bubbles: false,
-            cancelable: true
-        })
         this.location = value
         this.template.applyLocation(this)
-        this.dispatchEvent(dragLocalEvent)
+        if (this.blueprint) {
+            const dragLocalEvent = new CustomEvent(this.blueprint.settings.nodeDragLocalEventName, {
+                detail: {
+                    value: d
+                },
+                bubbles: false,
+                cancelable: true
+            })
+            this.dispatchEvent(dragLocalEvent)
+        }
     }
 
     addLocation(value) {
@@ -59,9 +61,9 @@ export default class ISelectableDraggableElement extends IElement {
         }
         this.selected = value
         if (this.selected) {
-            this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler)
+            this.blueprint.addEventListener(this.blueprint.settings.nodeDragEventName, this.dragHandler)
         } else {
-            this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
+            this.blueprint.removeEventListener(this.blueprint.settings.nodeDragEventName, this.dragHandler)
         }
         this.template.applySelected(this)
     }
@@ -71,7 +73,7 @@ export default class ISelectableDraggableElement extends IElement {
             this.blueprint.unselectAll()
             this.setSelected(true)
         }
-        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
+        const dragEvent = new CustomEvent(this.blueprint.settings.nodeDragEventName, {
             detail: {
                 value: value
             },

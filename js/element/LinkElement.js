@@ -138,8 +138,8 @@ export default class LinkElement extends IElement {
     setSourcePin(pin) {
         if (this.#source) {
             const nodeElement = this.#source.getNodeElement()
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+            nodeElement.removeEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragSourceHandler)
             if (this.#destination) {
                 this.#unlinkPins()
             }
@@ -148,8 +148,8 @@ export default class LinkElement extends IElement {
         if (this.#source) {
             const nodeElement = this.#source.getNodeElement()
             this.originatesFromInput = pin.isInput()
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+            nodeElement.addEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragSourceHandler)
             this.setSourceLocation()
             if (this.#destination) {
                 this.#linkPins()
@@ -170,8 +170,8 @@ export default class LinkElement extends IElement {
     setDestinationPin(pin) {
         if (this.#destination) {
             const nodeElement = this.#destination.getNodeElement()
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
+            nodeElement.removeEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
             if (this.#source) {
                 this.#unlinkPins()
             }
@@ -179,8 +179,8 @@ export default class LinkElement extends IElement {
         this.#destination = pin
         if (this.#destination) {
             const nodeElement = this.#destination.getNodeElement()
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
+            nodeElement.addEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
             this.setDestinationLocation()
             if (this.#source) {
                 this.#linkPins()

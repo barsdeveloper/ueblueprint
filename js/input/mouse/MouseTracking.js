@@ -1,6 +1,5 @@
 // @ts-check
 
-import Configuration from "../../Configuration"
 import IPointing from "./IPointing"
 
 export default class MouseTracking extends IPointing {
@@ -56,20 +55,20 @@ export default class MouseTracking extends IPointing {
     listenEvents() {
         this.listenMouseMove()
         this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.begin,
+            this.blueprint.settings.trackingMouseEventName.begin,
             /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler))
         this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.end,
+            this.blueprint.settings.trackingMouseEventName.end,
             /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler))
     }
 
     unlistenEvents() {
         this.unlistenMouseMove()
         this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.begin,
+            this.blueprint.settings.trackingMouseEventName.begin,
             /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler))
         this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.end,
+            this.blueprint.settings.trackingMouseEventName.end,
             /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
         )
     }

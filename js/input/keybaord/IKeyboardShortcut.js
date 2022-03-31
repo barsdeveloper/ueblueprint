@@ -1,13 +1,12 @@
 // @ts-check
 
-import Configuration from "../../Configuration"
 import IContext from "../IContext"
 import ISerializer from "../../serialization/ISerializer"
 import KeyBindingEntity from "../../entity/KeyBindingEntity"
 
 export default class IKeyboardShortcut extends IContext {
 
-    /** @type {KeyBindingEntity} */
+    /** @type {KeyBindingEntity[]} */
     #activationKeys
 
     constructor(target, blueprint, options = {}) {
@@ -21,6 +20,7 @@ export default class IKeyboardShortcut extends IContext {
                 return v
             }
             if (v.constructor === String) {
+                // @ts-expect-error
                 const parsed = ISerializer.grammar.KeyBinding.parse(v)
                 if (parsed.status) {
                     return parsed.value
@@ -45,7 +45,7 @@ export default class IKeyboardShortcut extends IContext {
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
-                    && Configuration.Keys[keyEntry.Key] == e.code
+                    && this.blueprint.settings.Keys[keyEntry.Key] == e.code
                 )) {
                 self.fire()
                 document.removeEventListener("keydown", self.keyDownHandler)
@@ -61,7 +61,7 @@ export default class IKeyboardShortcut extends IContext {
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta" // Unsure about this, what key is that?
-                    || Configuration.Keys[keyEntry.Key] == e.code
+                    || this.blueprint.settings.Keys[keyEntry.Key] == e.code
                 )) {
                 self.unfire()
                 document.removeEventListener("keyup", this.keyUpHandler)

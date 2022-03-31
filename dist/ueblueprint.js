@@ -1,50 +1,49 @@
 // @ts-check
 
 class Configuration {
-    static deleteNodesKeyboardKey = "Delete"
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
-    static expandGridSize = 400
-    static fontSize = "12px"
-    static gridAxisLineColor = "black"
-    static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    static gridShrinkThreshold = 2 // exceding size factor threshold to cause a shrink event 
-    static gridLineColor = "#353535"
-    static gridLineWidth = 1 // pixel
-    static gridSet = 8
-    static gridSetLineColor = "#161616"
-    static gridSize = 16 // pixel
-    static keysSeparator = "+"
-    static linkCurveHeight = 15 // pixel
-    static linkCurveWidth = 80 // pixel
-    static linkMinWidth = 100 // pixel
+    deleteNodesKeyboardKey = "Delete"
+    enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    expandGridSize = 400
+    fontSize = "12px"
+    gridAxisLineColor = "black"
+    gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
+    gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
+    gridLineColor = "#353535"
+    gridLineWidth = 1 // pixel
+    gridSet = 8
+    gridSetLineColor = "#161616"
+    gridSize = 16 // pixel
+    keysSeparator = "+"
+    linkCurveHeight = 15 // pixel
+    linkCurveWidth = 80 // pixel
+    linkMinWidth = 100 // pixel
     /**
      * @param {Number} start
      * @param {Number} c1
      * @param {Number} c2
-     * @returns {String}
      */
-    static linkRightSVGPath = (start, c1, c2) => {
+    linkRightSVGPath = (start, c1, c2) => {
         let end = 100 - start;
         return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
     }
-    static maxZoom = 7
-    static minZoom = -12
-    static nodeDeleteEventName = "ueb-node-delete"
-    static nodeDragEventName = "ueb-node-drag"
-    static nodeDragLocalEventName = "ueb-node-drag-local"
-    static nodeRadius = 8 // in pixel
-    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
-    static trackingMouseEventName = {
+    maxZoom = 7
+    minZoom = -12
+    nodeDeleteEventName = "ueb-node-delete"
+    nodeDragEventName = "ueb-node-drag"
+    nodeDragLocalEventName = "ueb-node-drag-local"
+    nodeRadius = 8 // in pixel
+    selectAllKeyboardKey = "(bCtrl=True,Key=A)"
+    trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end"
     }
-    static ModifierKeys = [
+    ModifierKeys = [
         "Ctrl",
         "Shift",
         "Alt",
         "Meta"
     ]
-    static Keys = {
+    Keys = {
         /* UE name: JS name */
         "Backspace": "Backspace",
         "Tab": "Tab",
@@ -655,6 +654,10 @@ customElements.define(SelectorElement.tagName, SelectorElement);
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
 class BlueprintTemplate extends ITemplate {
+
+    /**
+     * @param {Blueprint} element
+     */
     header(element) {
         return html`
             <div class="ueb-viewport-header">
@@ -663,7 +666,10 @@ class BlueprintTemplate extends ITemplate {
         `
     }
 
-    overlay() {
+    /**
+     * @param {Blueprint} element
+     */
+    overlay(element) {
         return html`
             <div class="ueb-viewport-overlay"></div>
         `
@@ -671,7 +677,6 @@ class BlueprintTemplate extends ITemplate {
 
     /**
      * @param {Blueprint} element
-     * @returns
      */
     viewport(element) {
         return html`
@@ -691,7 +696,7 @@ class BlueprintTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {HTMLElement} element Target element
+     * @param {Blueprint} element Target element
      * @returns The computed html
      */
     render(element) {
@@ -710,15 +715,15 @@ class BlueprintTemplate extends ITemplate {
         super.apply(blueprint);
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`);
         Object.entries({
-            "--ueb-font-size": sanitizeText(Configuration.fontSize),
-            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
-            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
-            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
-            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
-            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
-            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
-            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
+            "--ueb-font-size": sanitizeText(blueprint.settings.fontSize),
+            "--ueb-grid-size": `${sanitizeText(blueprint.settings.gridSize)}px`,
+            "--ueb-grid-line-width": `${sanitizeText(blueprint.settings.gridLineWidth)}px`,
+            "--ueb-grid-line-color": sanitizeText(blueprint.settings.gridLineColor),
+            "--ueb-grid-set": sanitizeText(blueprint.settings.gridSet),
+            "--ueb-grid-set-line-color": sanitizeText(blueprint.settings.gridSetLineColor),
+            "--ueb-grid-axis-line-color": sanitizeText(blueprint.settings.gridAxisLineColor),
+            "--ueb-node-radius": `${sanitizeText(blueprint.settings.nodeRadius)}px`,
+            "--ueb-link-min-width": sanitizeText(blueprint.settings.linkMinWidth)
         }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]));
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header');
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay');
@@ -762,7 +767,7 @@ class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyStartDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = true;
+        blueprint.dataset.dragScrolling = "true";
     }
 
     /**
@@ -770,7 +775,7 @@ class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyEndDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = false;
+        blueprint.dataset.dragScrolling = "false";
     }
 
     /**
@@ -982,7 +987,7 @@ class Utility {
      * @param {Number[]} location
      * @param {Number} gridSize
      */
-    static snapToGrid(location, gridSize = Configuration.gridSize) {
+    static snapToGrid(location, gridSize) {
         if (gridSize === 1) {
             return location
         }
@@ -1898,7 +1903,7 @@ class Copy extends IContext {
 
 class IKeyboardShortcut extends IContext {
 
-    /** @type {KeyBindingEntity} */
+    /** @type {KeyBindingEntity[]} */
     #activationKeys
 
     constructor(target, blueprint, options = {}) {
@@ -1912,6 +1917,7 @@ class IKeyboardShortcut extends IContext {
                 return v
             }
             if (v.constructor === String) {
+                // @ts-expect-error
                 const parsed = ISerializer.grammar.KeyBinding.parse(v);
                 if (parsed.status) {
                     return parsed.value
@@ -1936,7 +1942,7 @@ class IKeyboardShortcut extends IContext {
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
-                    && Configuration.Keys[keyEntry.Key] == e.code
+                    && this.blueprint.settings.Keys[keyEntry.Key] == e.code
                 )) {
                 self.fire();
                 document.removeEventListener("keydown", self.keyDownHandler);
@@ -1952,7 +1958,7 @@ class IKeyboardShortcut extends IContext {
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta" // Unsure about this, what key is that?
-                    || Configuration.Keys[keyEntry.Key] == e.code
+                    || this.blueprint.settings.Keys[keyEntry.Key] == e.code
                 )) {
                 self.unfire();
                 document.removeEventListener("keyup", this.keyUpHandler);
@@ -1986,12 +1992,12 @@ class KeyboardCanc extends IKeyboardShortcut {
     /**
      * @param {HTMLElement} target
      * @param {import("../../Blueprint").default} blueprint
-     * @param {OBject} options
+     * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: Configuration.deleteNodesKeyboardKey
+            activationKeys: blueprint.settings.deleteNodesKeyboardKey
         };
         super(target, blueprint, options);
     }
@@ -2108,12 +2114,12 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
     /**
      * @param {HTMLElement} target
      * @param {import("../../Blueprint").default} blueprint
-     * @param {OBject} options
+     * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: Configuration.enableZoomIn
+            activationKeys: blueprint.settings.enableZoomIn
         };
         super(target, blueprint, options);
     }
@@ -2140,7 +2146,7 @@ class KeyboardSelectAll extends IKeyboardShortcut {
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: Configuration.selectAllKeyboardKey
+            activationKeys: blueprint.settings.selectAllKeyboardKey
         };
         super(target, blueprint, options);
     }
@@ -2239,7 +2245,7 @@ class LinkTemplate extends ITemplate {
      * @param {LinkElement} link element
      */
     applyStartDragging(link) {
-        link.blueprint.dataset.creatingLink = true;
+        link.blueprint.dataset.creatingLink = "true";
         const referencePin = link.getSourcePin() ?? link.getDestinationPin();
         if (referencePin) {
             link.style.setProperty("--ueb-pin-color", referencePin.getColor());
@@ -2251,7 +2257,7 @@ class LinkTemplate extends ITemplate {
      * @param {LinkElement} link element
      */
     applyFinishDragging(link) {
-        link.blueprint.dataset.creatingLink = false;
+        link.blueprint.dataset.creatingLink = "false";
         link.classList.remove("ueb-link-dragging");
     }
 
@@ -2271,7 +2277,7 @@ class LinkTemplate extends ITemplate {
      */
     applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1);
-        const width = Math.max(dx, Configuration.linkMinWidth);
+        const width = Math.max(dx, link.blueprint.settings.linkMinWidth);
         Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1);
         const fillRatio = dx / width;
         const xInverted = link.originatesFromInput
@@ -2299,7 +2305,7 @@ class LinkTemplate extends ITemplate {
             * fillRatio;
         let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start;
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width));
-        const d = Configuration.linkRightSVGPath(start, c1, c2);
+        const d = link.blueprint.settings.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d and css will have enough functions
         link.pathElement?.setAttribute("d", d);
     }
@@ -2309,6 +2315,7 @@ class LinkTemplate extends ITemplate {
      * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {
+        // @ts-expect-error
         link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove());
         link.appendChild(linkMessage);
         link.linkMessageElement = linkMessage;
@@ -2451,8 +2458,8 @@ class LinkElement extends IElement {
     setSourcePin(pin) {
         if (this.#source) {
             const nodeElement = this.#source.getNodeElement();
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
+            nodeElement.removeEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragSourceHandler);
             if (this.#destination) {
                 this.#unlinkPins();
             }
@@ -2461,8 +2468,8 @@ class LinkElement extends IElement {
         if (this.#source) {
             const nodeElement = this.#source.getNodeElement();
             this.originatesFromInput = pin.isInput();
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
+            nodeElement.addEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragSourceHandler);
             this.setSourceLocation();
             if (this.#destination) {
                 this.#linkPins();
@@ -2483,8 +2490,8 @@ class LinkElement extends IElement {
     setDestinationPin(pin) {
         if (this.#destination) {
             const nodeElement = this.#destination.getNodeElement();
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
+            nodeElement.removeEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
             if (this.#source) {
                 this.#unlinkPins();
             }
@@ -2492,8 +2499,8 @@ class LinkElement extends IElement {
         this.#destination = pin;
         if (this.#destination) {
             const nodeElement = this.#destination.getNodeElement();
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
+            nodeElement.addEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
             this.setDestinationLocation();
             if (this.#source) {
                 this.#linkPins();
@@ -2591,7 +2598,7 @@ class IMouseClickDrag extends IPointing {
             movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
+            const dragEvent = self.getEvent(this.blueprint.settings.trackingMouseEventName.begin);
             self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
             // Do actual actions
             self.startDrag();
@@ -2624,7 +2631,7 @@ class IMouseClickDrag extends IPointing {
                 }
                 self.unclicked();
                 if (self.#trackingMouse) {
-                    const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end);
+                    const dragEvent = self.getEvent(this.blueprint.settings.trackingMouseEventName.end);
                     this.target.dispatchEvent(dragEvent);
                     self.#trackingMouse = false;
                 }
@@ -2743,20 +2750,20 @@ class MouseTracking extends IPointing {
     listenEvents() {
         this.listenMouseMove();
         this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.begin,
+            this.blueprint.settings.trackingMouseEventName.begin,
             /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
         this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.end,
+            this.blueprint.settings.trackingMouseEventName.end,
             /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
     }
 
     unlistenEvents() {
         this.unlistenMouseMove();
         this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.begin,
+            this.blueprint.settings.trackingMouseEventName.begin,
             /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
         this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.end,
+            this.blueprint.settings.trackingMouseEventName.end,
             /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
         );
     }
@@ -2846,16 +2853,18 @@ class ISelectableDraggableElement extends IElement {
      */
     setLocation(value = [0, 0]) {
         const d = [value[0] - this.location[0], value[1] - this.location[1]];
-        const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
-            detail: {
-                value: d
-            },
-            bubbles: false,
-            cancelable: true
-        });
         this.location = value;
         this.template.applyLocation(this);
-        this.dispatchEvent(dragLocalEvent);
+        if (this.blueprint) {
+            const dragLocalEvent = new CustomEvent(this.blueprint.settings.nodeDragLocalEventName, {
+                detail: {
+                    value: d
+                },
+                bubbles: false,
+                cancelable: true
+            });
+            this.dispatchEvent(dragLocalEvent);
+        }
     }
 
     addLocation(value) {
@@ -2868,9 +2877,9 @@ class ISelectableDraggableElement extends IElement {
         }
         this.selected = value;
         if (this.selected) {
-            this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
+            this.blueprint.addEventListener(this.blueprint.settings.nodeDragEventName, this.dragHandler);
         } else {
-            this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
+            this.blueprint.removeEventListener(this.blueprint.settings.nodeDragEventName, this.dragHandler);
         }
         this.template.applySelected(this);
     }
@@ -2880,7 +2889,7 @@ class ISelectableDraggableElement extends IElement {
             this.blueprint.unselectAll();
             this.setSelected(true);
         }
-        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
+        const dragEvent = new CustomEvent(this.blueprint.settings.nodeDragEventName, {
             detail: {
                 value: value
             },
@@ -3533,7 +3542,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     dispatchDeleteEvent(value) {
-        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName, {
+        let deleteEvent = new CustomEvent(this.blueprint.settings.nodeDeleteEventName, {
             bubbles: true,
             cancelable: true,
         });
@@ -3673,17 +3682,31 @@ class Unfocus extends IContext {
 class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
+    /** @type {Configuration} */
+    settings
+    /** @type {Number[]} */
+    #additional
+    /** @type {Number[]} */
+    #translateValue
+    get additional() {
+        return this.#additional
+    }
+    set additional(value) {
+        value[0] = Math.abs(value[0]);
+        value[1] = Math.abs(value[1]);
+    }
+    get translateValue() {
+        return this.#translateValue
+    }
+    set translateValue(value) {
+        this.#translateValue = value;
+    }
     /** @type {number} */
-    gridSize = Configuration.gridSize
+    gridSize
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */
     links = []
-    expandGridSize = Configuration.expandGridSize
-    /** @type {number[]} */
-    additional = [2 * this.expandGridSize, 2 * this.expandGridSize]
-    /** @type {number[]} */
-    translateValue = [this.expandGridSize, this.expandGridSize]
     /** @type {number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
@@ -3718,10 +3741,20 @@ class Blueprint extends IElement {
         node.setSelected(selected);
     }
 
-    constructor() {
+    /**
+     * @param {Configuration} settings
+     */
+    constructor(settings = new Configuration()) {
         super({}, new BlueprintTemplate());
         /** @type {BlueprintTemplate} */
         this.template;
+        this.settings = settings;
+        /** @type {Number} */
+        this.gridSize = this.settings.gridSize;
+        /** @type {Number[]} */
+        this.#additional = [2 * this.settings.expandGridSize, 2 * this.settings.expandGridSize];
+        /** @type {Number[]} */
+        this.#translateValue = [this.settings.expandGridSize, this.settings.expandGridSize];
     }
 
     /**
@@ -3729,7 +3762,11 @@ class Blueprint extends IElement {
      * @param {number} y
      */
     #expand(x, y) {
-        this.additional = [this.additional[0] + x, this.additional[1] + y];
+        // TODO remove
+        x = Math.round(x);
+        y = Math.round(y);
+        this.additional[0] += x;
+        this.additional[1] += y;
         this.template.applyExpand(this);
     }
 
@@ -3740,7 +3777,8 @@ class Blueprint extends IElement {
     #translate(x, y) {
         x = Math.round(x);
         y = Math.round(y);
-        this.translateValue = [this.translateValue[0] + x, this.translateValue[1] + y];
+        this.translateValue[0] += x;
+        this.translateValue[1] += y;
         this.template.applyTranlate(this);
     }
 
@@ -3807,20 +3845,20 @@ class Blueprint extends IElement {
         let shrink = [0, 0];
         let direction = [0, 0];
         for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * this.expandGridSize) {
+            if (delta[i] < 0 && finalScroll[i] < this.settings.gridExpandThreshold * this.settings.expandGridSize) {
                 // Expand left/top
-                expand[i] = this.expandGridSize;
+                expand[i] = this.settings.expandGridSize;
                 direction[i] = -1;
-                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * this.expandGridSize) {
-                    shrink[i] = -this.expandGridSize;
+                if (maxScroll[i] - finalScroll[i] > this.settings.gridShrinkThreshold * this.settings.expandGridSize) {
+                    shrink[i] = -this.settings.expandGridSize;
                 }
             } else if (delta[i] > 0 && finalScroll[i]
-                > maxScroll[i] - Configuration.gridExpandThreshold * this.expandGridSize) {
+                > maxScroll[i] - this.settings.gridExpandThreshold * this.settings.expandGridSize) {
                 // Expand right/bottom
-                expand[i] = this.expandGridSize;
+                expand[i] = this.settings.expandGridSize;
                 direction[i] = 1;
-                if (finalScroll[i] > Configuration.gridShrinkThreshold * this.expandGridSize) {
-                    shrink[i] = -this.expandGridSize;
+                if (finalScroll[i] > this.settings.gridShrinkThreshold * this.settings.expandGridSize) {
+                    shrink[i] = -this.settings.expandGridSize;
                 }
             }
         }
@@ -3855,7 +3893,7 @@ class Blueprint extends IElement {
     }
 
     getExpandGridSize() {
-        return this.expandGridSize
+        return this.settings.expandGridSize
     }
 
     getViewportSize() {
@@ -3893,7 +3931,7 @@ class Blueprint extends IElement {
      * @param {Number[]} param1 - Direction of expansion (negative: left/top, position: right/bottom)
      */
     seamlessExpand([x, y], [directionX, directionY] = [1, 1]) {
-        const initialScroll = [
+        [
             this.viewportElement.scrollLeft,
             this.viewportElement.scrollTop
         ];
@@ -3903,17 +3941,20 @@ class Blueprint extends IElement {
         // First expand the grid to contain the additional space
         this.#expand(scaledX, scaledY);
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        const translate = [
-            directionX < 0 ? scaledX : 0,
-            directionY < 0 ? scaledY : 0
-        ];
+        const translate = [0, 0];
+        if (directionX < 0) {
+            this.viewportElement.scrollLeft += x;
+            translate[0] = scaledX;
+        }
+        if (directionY < 0) {
+            this.viewportElement.scrollTop += y;
+            translate[1] = scaledY;
+        }
         this.#translate(translate[0], translate[1]);
-        this.viewportElement.scrollLeft = initialScroll[0] + translate[0];
-        this.viewportElement.scrollTop = initialScroll[1] + translate[1];
     }
 
     progressiveSnapToGrid(x) {
-        return this.expandGridSize * Math.round(x / this.expandGridSize + 0.5 * Math.sign(x))
+        return this.settings.expandGridSize * Math.round(x / this.settings.expandGridSize + 0.5 * Math.sign(x))
     }
 
     getZoom() {
@@ -3921,7 +3962,7 @@ class Blueprint extends IElement {
     }
 
     setZoom(zoom, center) {
-        zoom = Utility.clamp(zoom, Configuration.minZoom, Configuration.maxZoom);
+        zoom = Utility.clamp(zoom, this.settings.minZoom, this.settings.maxZoom);
         if (zoom == this.zoom) {
             return
         }

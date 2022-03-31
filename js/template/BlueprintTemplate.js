@@ -11,6 +11,10 @@ import SelectorElement from "../element/SelectorElement"
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
 export default class BlueprintTemplate extends ITemplate {
+
+    /**
+     * @param {Blueprint} element
+     */
     header(element) {
         return html`
             <div class="ueb-viewport-header">
@@ -19,7 +23,10 @@ export default class BlueprintTemplate extends ITemplate {
         `
     }
 
-    overlay() {
+    /**
+     * @param {Blueprint} element
+     */
+    overlay(element) {
         return html`
             <div class="ueb-viewport-overlay"></div>
         `
@@ -27,7 +34,6 @@ export default class BlueprintTemplate extends ITemplate {
 
     /**
      * @param {Blueprint} element
-     * @returns
      */
     viewport(element) {
         return html`
@@ -47,7 +53,7 @@ export default class BlueprintTemplate extends ITemplate {
 
     /**
      * Computes the html content of the target element.
-     * @param {HTMLElement} element Target element
+     * @param {Blueprint} element Target element
      * @returns The computed html
      */
     render(element) {
@@ -66,15 +72,15 @@ export default class BlueprintTemplate extends ITemplate {
         super.apply(blueprint)
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`)
         Object.entries({
-            "--ueb-font-size": sanitizeText(Configuration.fontSize),
-            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
-            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
-            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
-            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
-            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
-            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
-            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
+            "--ueb-font-size": sanitizeText(blueprint.settings.fontSize),
+            "--ueb-grid-size": `${sanitizeText(blueprint.settings.gridSize)}px`,
+            "--ueb-grid-line-width": `${sanitizeText(blueprint.settings.gridLineWidth)}px`,
+            "--ueb-grid-line-color": sanitizeText(blueprint.settings.gridLineColor),
+            "--ueb-grid-set": sanitizeText(blueprint.settings.gridSet),
+            "--ueb-grid-set-line-color": sanitizeText(blueprint.settings.gridSetLineColor),
+            "--ueb-grid-axis-line-color": sanitizeText(blueprint.settings.gridAxisLineColor),
+            "--ueb-node-radius": `${sanitizeText(blueprint.settings.nodeRadius)}px`,
+            "--ueb-link-min-width": sanitizeText(blueprint.settings.linkMinWidth)
         }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]))
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header')
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay')
@@ -118,7 +124,7 @@ export default class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyStartDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = true
+        blueprint.dataset.dragScrolling = "true"
     }
 
     /**
@@ -126,7 +132,7 @@ export default class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyEndDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = false
+        blueprint.dataset.dragScrolling = "false"
     }
 
     /**

@@ -1,6 +1,5 @@
 // @ts-check
 
-import Configuration from "../../Configuration"
 import IPointing from "./IPointing"
 
 /**
@@ -68,7 +67,7 @@ export default class IMouseClickDrag extends IPointing {
             movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler)
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin)
+            const dragEvent = self.getEvent(this.blueprint.settings.trackingMouseEventName.begin)
             self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
             // Do actual actions
             self.startDrag()
@@ -101,7 +100,7 @@ export default class IMouseClickDrag extends IPointing {
                 }
                 self.unclicked()
                 if (self.#trackingMouse) {
-                    const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end)
+                    const dragEvent = self.getEvent(this.blueprint.settings.trackingMouseEventName.end)
                     this.target.dispatchEvent(dragEvent)
                     self.#trackingMouse = false
                 }

@@ -92,7 +92,7 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkElement} link element
      */
     applyStartDragging(link) {
-        link.blueprint.dataset.creatingLink = true
+        link.blueprint.dataset.creatingLink = "true"
         const referencePin = link.getSourcePin() ?? link.getDestinationPin()
         if (referencePin) {
             link.style.setProperty("--ueb-pin-color", referencePin.getColor())
@@ -104,7 +104,7 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkElement} link element
      */
     applyFinishDragging(link) {
-        link.blueprint.dataset.creatingLink = false
+        link.blueprint.dataset.creatingLink = "false"
         link.classList.remove("ueb-link-dragging")
     }
 
@@ -124,7 +124,7 @@ export default class LinkTemplate extends ITemplate {
      */
     applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1)
-        const width = Math.max(dx, Configuration.linkMinWidth)
+        const width = Math.max(dx, link.blueprint.settings.linkMinWidth)
         const height = Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1)
         const fillRatio = dx / width
         const aspectRatio = width / height
@@ -153,7 +153,7 @@ export default class LinkTemplate extends ITemplate {
             * fillRatio
         let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width))
-        const d = Configuration.linkRightSVGPath(start, c1, c2)
+        const d = link.blueprint.settings.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d and css will have enough functions
         link.pathElement?.setAttribute("d", d)
     }
@@ -163,6 +163,7 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {
+        // @ts-expect-error
         link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove())
         link.appendChild(linkMessage)
         link.linkMessageElement = linkMessage

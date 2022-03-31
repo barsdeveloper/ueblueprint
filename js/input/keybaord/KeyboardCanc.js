@@ -1,6 +1,5 @@
 // @ts-check
 
-import Configuration from "../../Configuration"
 import IKeyboardShortcut from "./IKeyboardShortcut"
 
 export default class KeyboardCanc extends IKeyboardShortcut {
@@ -8,12 +7,12 @@ export default class KeyboardCanc extends IKeyboardShortcut {
     /**
      * @param {HTMLElement} target
      * @param {import("../../Blueprint").default} blueprint
-     * @param {OBject} options
+     * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: Configuration.deleteNodesKeyboardKey
+            activationKeys: blueprint.settings.deleteNodesKeyboardKey
         }
         super(target, blueprint, options)
     }

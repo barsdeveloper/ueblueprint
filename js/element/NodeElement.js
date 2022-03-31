@@ -64,7 +64,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     dispatchDeleteEvent(value) {
-        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName, {
+        let deleteEvent = new CustomEvent(this.blueprint.settings.nodeDeleteEventName, {
             bubbles: true,
             cancelable: true,
         })
