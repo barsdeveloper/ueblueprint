@@ -2457,9 +2457,10 @@ class LinkElement extends IElement {
      */
     setSourcePin(pin) {
         if (this.#source) {
+            const settings = this.#source.blueprint.settings;
             const nodeElement = this.#source.getNodeElement();
-            nodeElement.removeEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragSourceHandler);
+            nodeElement.removeEventListener(settings.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(settings.nodeDragLocalEventName, this.#nodeDragSourceHandler);
             if (this.#destination) {
                 this.#unlinkPins();
             }
@@ -2467,9 +2468,10 @@ class LinkElement extends IElement {
         this.#source = pin;
         if (this.#source) {
             const nodeElement = this.#source.getNodeElement();
+            const settings = this.#source.blueprint.settings;
             this.originatesFromInput = pin.isInput();
-            nodeElement.addEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragSourceHandler);
+            nodeElement.addEventListener(settings.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(settings.nodeDragLocalEventName, this.#nodeDragSourceHandler);
             this.setSourceLocation();
             if (this.#destination) {
                 this.#linkPins();
