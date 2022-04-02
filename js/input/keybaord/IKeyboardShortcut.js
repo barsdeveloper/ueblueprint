@@ -10,7 +10,7 @@ export default class IKeyboardShortcut extends IContext {
     #activationKeys
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true
+        options.listenOnFocus = true
         options.activationKeys ??= []
         if (!(options.activationKeys instanceof Array)) {
             options.activationKeys = [options.activationKeys]
@@ -47,6 +47,9 @@ export default class IKeyboardShortcut extends IContext {
                     && wantsAlt(keyEntry) == e.altKey
                     && this.blueprint.settings.Keys[keyEntry.Key] == e.code
                 )) {
+                if (options.consumeEvent) {
+                    e.stopImmediatePropagation()
+                }
                 self.fire()
                 document.removeEventListener("keydown", self.keyDownHandler)
                 document.addEventListener("keyup", self.keyUpHandler)
@@ -60,9 +63,12 @@ export default class IKeyboardShortcut extends IContext {
                     keyEntry.bShift && e.key == "Shift"
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
-                    || keyEntry.bCmd && e.key == "Meta" // Unsure about this, what key is that?
+                    || keyEntry.bCmd && e.key == "Meta"
                     || this.blueprint.settings.Keys[keyEntry.Key] == e.code
                 )) {
+                if (options.consumeEvent) {
+                    e.stopImmediatePropagation()
+                }
                 self.unfire()
                 document.removeEventListener("keyup", this.keyUpHandler)
                 document.addEventListener("keydown", this.keyDownHandler)

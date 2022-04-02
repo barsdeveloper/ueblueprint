@@ -4,27 +4,27 @@ import OrderedIndexArray from "./OrderedIndexArray"
 
 /**
  * @typedef {{
- *      primaryInf: number,
- *      primarySup: number,
- *      secondaryInf: number,
- *      secondarySup: number
+ *     primaryInf: Number,
+ *     primarySup: Number,
+ *     secondaryInf: Number,
+ *     secondarySup: Number
  * }} BoundariesInfo
  * @typedef {{
- *      primaryBoundary: number,
- *      secondaryBoundary: number,
- *      insertionPosition: number,
- *      rectangle: number
- *      onSecondaryAxis: Boolean
+ *     primaryBoundary: Number,
+ *     secondaryBoundary: Number,
+ *     insertionPosition?: Number,
+ *     rectangle: Number
+ *     onSecondaryAxis: Boolean
  * }} Metadata
- * @typedef {numeric} Rectangle
+ * @typedef {any} Rectangle
  */
 export default class FastSelectionModel {
 
     /**
-     * @param {number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
+     * @param {Number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
      * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
      * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
-     * @param {(rect: Rectangle, selected: bool) => void} selectFunc A function that selects or deselects individual rectangles.
+     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc A function that selects or deselects individual rectangles.
      */
     constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
         this.initialPosition = initialPosition
@@ -75,7 +75,7 @@ export default class FastSelectionModel {
         })
         this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0])
         this.secondaryOrder.currentPosition = this.secondaryOrder.getPosition(this.initialPosition[1])
-        this.computeBoundaries(this.initialPosition)
+        this.computeBoundaries()
     }
 
     computeBoundaries() {
@@ -128,7 +128,7 @@ export default class FastSelectionModel {
                     this.secondaryOrder.remove(index)
                 }
             }
-            this.computeBoundaries(finalPosition)
+            this.computeBoundaries()
             this.selectTo(finalPosition)
         }
 
@@ -146,7 +146,7 @@ export default class FastSelectionModel {
 
         const secondaryBoundaryCrossed = (index, added) => {
             this.selectFunc(this.rectangles[index], added)
-            this.computeBoundaries(finalPosition)
+            this.computeBoundaries()
             this.selectTo(finalPosition)
         }
 
@@ -163,5 +163,4 @@ export default class FastSelectionModel {
         }
         this.finalPosition = finalPosition
     }
-
 }

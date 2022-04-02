@@ -5,7 +5,7 @@ import Zoom from "../mouse/Zoom"
 
 export default class KeyboardEnableZoom extends IKeyboardShortcut {
 
-    /** @type {} */
+    /** @type {Zoom} */
     #zoomInputObject
 
     /**

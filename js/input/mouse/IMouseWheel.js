@@ -16,7 +16,7 @@ export default class IMouseWheel extends IPointing {
      * @param {Object} options
      */
     constructor(target, blueprint, options) {
-        options.wantsFocusCallback = true
+        options.listenOnFocus = true
         super(target, blueprint, options)
         this.looseTarget = options?.looseTarget ?? true
         let self = this

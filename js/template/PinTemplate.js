@@ -12,6 +12,10 @@ import Utility from "../Utility"
  */
 export default class PinTemplate extends ITemplate {
 
+    hasInput() {
+        return false
+    }
+
     /**
      * Computes the html content of the pin.
      * @param {PinElement} pin html element
@@ -72,7 +76,9 @@ export default class PinTemplate extends ITemplate {
             const targetPin = pin.blueprint.getPin(pinReference)
             if (targetPin) {
                 const [sourcePin, destinationPin] = pin.isOutput() ? [pin, targetPin] : [targetPin, pin]
-                pin.blueprint.addGraphElement(new LinkElement(sourcePin, destinationPin))
+                pin.blueprint.addGraphElement(
+                    new LinkElement(/** @type {PinElement} */(sourcePin), /** @type {PinElement} */(destinationPin))
+                )
             }
         })
     }
@@ -82,7 +88,7 @@ export default class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     applyConnected(pin) {
-        if (pin.isConnected()) {
+        if (pin.isLinked()) {
             pin.classList.add("ueb-pin-fill")
         } else {
             pin.classList.remove("ueb-pin-fill")

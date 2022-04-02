@@ -17,7 +17,7 @@ export default class MouseTracking extends IPointing {
     #trackingMouseGaveBackHandler
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true
+        options.listenOnFocus = true
         super(target, blueprint, options)
 
         let self = this

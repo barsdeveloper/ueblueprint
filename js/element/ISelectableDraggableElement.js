@@ -1,6 +1,5 @@
 // @ts-check
 
-import Configuration from "../Configuration"
 import IElement from "./IElement"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 

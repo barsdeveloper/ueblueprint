@@ -1,6 +1,5 @@
 // @ts-check
 
-import Configuration from "../Configuration"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"
 import NodeTemplate from "../template/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"

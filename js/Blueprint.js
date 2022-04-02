@@ -45,13 +45,13 @@ export default class Blueprint extends IElement {
     set translateValue(value) {
         this.#translateValue = value
     }
-    /** @type {number} */
+    /** @type {Number} */
     gridSize
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */
     links = []
-    /** @type {number[]} */
+    /** @type {Number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
     gridElement = null
@@ -63,7 +63,7 @@ export default class Blueprint extends IElement {
     selectorElement = null
     /** @type {HTMLElement} */
     nodesContainerElement = null
-    /** @type {number} */
+    /** @type {Number} */
     zoom = 0
     /** @type {HTMLElement} */
     headerElement = null
@@ -102,8 +102,8 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * @param {number} x
-     * @param {number} y
+     * @param {Number} x
+     * @param {Number} y
      */
     #expand(x, y) {
         // TODO remove
@@ -115,8 +115,8 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * @param {number} x
-     * @param {number} y
+     * @param {Number} x
+     * @param {Number} y
      */
     #translate(x, y) {
         x = Math.round(x)
@@ -450,6 +450,15 @@ export default class Blueprint extends IElement {
         if (!this.focused) {
             this.unselectAll()
         }
+        this.dispatchEvent(event)
+    }
+
+    dispatchEditTextEvent(value) {
+        const event = new CustomEvent(
+            value
+                ? this.settings.editTextEventName.begin
+                : this.settings.editTextEventName.end
+        )
         this.dispatchEvent(event)
     }
 }

@@ -4,22 +4,22 @@ import IContext from "../IContext"
 
 export default class Unfocus extends IContext {
 
-    /** @type {(e: WheelEvent) => void} */
+    /** @type {(e: MouseEvent) => void} */
     #clickHandler
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true
+        options.listenOnFocus = true
         super(target, blueprint, options)
 
         let self = this
-        this.#clickHandler = e => self.clickedSomewhere(e.target)
-        if (this.blueprint.focuse) {
+        this.#clickHandler = e => self.clickedSomewhere(/** @type {HTMLElement} */(e.target))
+        if (this.blueprint.focus) {
             document.addEventListener("click", this.#clickHandler)
         }
     }
 
     /**
-     * @param {HTMLElement} e
+     * @param {HTMLElement} target
      */
     clickedSomewhere(target) {
         // If target is outside the blueprint grid

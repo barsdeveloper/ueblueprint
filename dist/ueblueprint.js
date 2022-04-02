@@ -1,143 +1,5 @@
 // @ts-check
 
-class Configuration {
-    deleteNodesKeyboardKey = "Delete"
-    enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
-    expandGridSize = 400
-    fontSize = "12px"
-    gridAxisLineColor = "black"
-    gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
-    gridLineColor = "#353535"
-    gridLineWidth = 1 // pixel
-    gridSet = 8
-    gridSetLineColor = "#161616"
-    gridSize = 16 // pixel
-    keysSeparator = "+"
-    linkCurveHeight = 15 // pixel
-    linkCurveWidth = 80 // pixel
-    linkMinWidth = 100 // pixel
-    /**
-     * @param {Number} start
-     * @param {Number} c1
-     * @param {Number} c2
-     */
-    linkRightSVGPath = (start, c1, c2) => {
-        let end = 100 - start;
-        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
-    }
-    maxZoom = 7
-    minZoom = -12
-    nodeDeleteEventName = "ueb-node-delete"
-    nodeDragEventName = "ueb-node-drag"
-    nodeDragLocalEventName = "ueb-node-drag-local"
-    nodeRadius = 8 // in pixel
-    selectAllKeyboardKey = "(bCtrl=True,Key=A)"
-    trackingMouseEventName = {
-        begin: "ueb-tracking-mouse-begin",
-        end: "ueb-tracking-mouse-end"
-    }
-    ModifierKeys = [
-        "Ctrl",
-        "Shift",
-        "Alt",
-        "Meta"
-    ]
-    Keys = {
-        /* UE name: JS name */
-        "Backspace": "Backspace",
-        "Tab": "Tab",
-        "LeftControl": "ControlLeft",
-        "RightControl": "ControlRight",
-        "LeftShift": "ShiftLeft",
-        "RightShift": "ShiftRight",
-        "LeftAlt": "AltLeft",
-        "RightAlt": "AltRight",
-        "Enter": "Enter",
-        "Pause": "Pause",
-        "CapsLock": "CapsLock",
-        "Escape": "Escape",
-        "Space": "Space",
-        "PageUp": "PageUp",
-        "PageDown": "PageDown",
-        "End": "End",
-        "Home": "Home",
-        "ArrowLeft": "Left",
-        "ArrowUp": "Up",
-        "ArrowRight": "Right",
-        "ArrowDown": "Down",
-        "PrintScreen": "PrintScreen",
-        "Insert": "Insert",
-        "Delete": "Delete",
-        "Zero": "Digit0",
-        "One": "Digit1",
-        "Two": "Digit2",
-        "Three": "Digit3",
-        "Four": "Digit4",
-        "Five": "Digit5",
-        "Six": "Digit6",
-        "Seven": "Digit7",
-        "Eight": "Digit8",
-        "Nine": "Digit9",
-        "A": "KeyA",
-        "B": "KeyB",
-        "C": "KeyC",
-        "D": "KeyD",
-        "E": "KeyE",
-        "F": "KeyF",
-        "G": "KeyG",
-        "H": "KeyH",
-        "I": "KeyI",
-        "K": "KeyK",
-        "L": "KeyL",
-        "M": "KeyM",
-        "N": "KeyN",
-        "O": "KeyO",
-        "P": "KeyP",
-        "Q": "KeyQ",
-        "R": "KeyR",
-        "S": "KeyS",
-        "T": "KeyT",
-        "U": "KeyU",
-        "V": "KeyV",
-        "W": "KeyW",
-        "X": "KeyX",
-        "Y": "KeyY",
-        "Z": "KeyZ",
-        "NumPadZero": "Numpad0",
-        "NumPadOne": "Numpad1",
-        "NumPadTwo": "Numpad2",
-        "NumPadThree": "Numpad3",
-        "NumPadFour": "Numpad4",
-        "NumPadFive": "Numpad5",
-        "NumPadSix": "Numpad6",
-        "NumPadSeven": "Numpad7",
-        "NumPadEight": "Numpad8",
-        "NumPadNine": "Numpad9",
-        "Multiply": "NumpadMultiply",
-        "Add": "NumpadAdd",
-        "Subtract": "NumpadSubtract",
-        "Decimal": "NumpadDecimal",
-        "Divide": "NumpadDivide",
-        "F1": "F1",
-        "F2": "F2",
-        "F3": "F3",
-        "F4": "F4",
-        "F5": "F5",
-        "F6": "F6",
-        "F7": "F7",
-        "F8": "F8",
-        "F9": "F9",
-        "F10": "F10",
-        "F11": "F11",
-        "F12": "F12",
-        "NumLock": "NumLock",
-        "ScrollLock": "ScrollLock",
-    }
-}
-
-// @ts-check
-
 /**
  * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
  */
@@ -331,27 +193,27 @@ class OrderedIndexArray {
 
 /**
  * @typedef {{
- *      primaryInf: number,
- *      primarySup: number,
- *      secondaryInf: number,
- *      secondarySup: number
+ *     primaryInf: Number,
+ *     primarySup: Number,
+ *     secondaryInf: Number,
+ *     secondarySup: Number
  * }} BoundariesInfo
  * @typedef {{
- *      primaryBoundary: number,
- *      secondaryBoundary: number,
- *      insertionPosition: number,
- *      rectangle: number
- *      onSecondaryAxis: Boolean
+ *     primaryBoundary: Number,
+ *     secondaryBoundary: Number,
+ *     insertionPosition?: Number,
+ *     rectangle: Number
+ *     onSecondaryAxis: Boolean
  * }} Metadata
- * @typedef {numeric} Rectangle
+ * @typedef {any} Rectangle
  */
 class FastSelectionModel {
 
     /**
-     * @param {number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
+     * @param {Number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
      * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
      * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
-     * @param {(rect: Rectangle, selected: bool) => void} selectFunc A function that selects or deselects individual rectangles.
+     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc A function that selects or deselects individual rectangles.
      */
     constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
         this.initialPosition = initialPosition;
@@ -402,7 +264,7 @@ class FastSelectionModel {
         });
         this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0]);
         this.secondaryOrder.currentPosition = this.secondaryOrder.getPosition(this.initialPosition[1]);
-        this.computeBoundaries(this.initialPosition);
+        this.computeBoundaries();
     }
 
     computeBoundaries() {
@@ -455,7 +317,7 @@ class FastSelectionModel {
                     this.secondaryOrder.remove(index);
                 }
             }
-            this.computeBoundaries(finalPosition);
+            this.computeBoundaries();
             this.selectTo(finalPosition);
         };
 
@@ -473,7 +335,7 @@ class FastSelectionModel {
 
         const secondaryBoundaryCrossed = (index, added) => {
             this.selectFunc(this.rectangles[index], added);
-            this.computeBoundaries(finalPosition);
+            this.computeBoundaries();
             this.selectTo(finalPosition);
         };
 
@@ -490,7 +352,6 @@ class FastSelectionModel {
         }
         this.finalPosition = finalPosition;
     }
-
 }
 
 // @ts-check
@@ -793,6 +654,148 @@ class BlueprintTemplate extends ITemplate {
 
 // @ts-check
 
+class Configuration {
+    deleteNodesKeyboardKey = "Delete"
+    editTextEventName = {
+        begin: "ueb-edit-text-begin",
+        end: "ueb-edit-text-end"
+    }
+    enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    expandGridSize = 400
+    fontSize = "12px"
+    gridAxisLineColor = "black"
+    gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
+    gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
+    gridLineColor = "#353535"
+    gridLineWidth = 1 // pixel
+    gridSet = 8
+    gridSetLineColor = "#161616"
+    gridSize = 16 // pixel
+    keysSeparator = "+"
+    linkCurveHeight = 15 // pixel
+    linkCurveWidth = 80 // pixel
+    linkMinWidth = 100 // pixel
+    /**
+     * @param {Number} start
+     * @param {Number} c1
+     * @param {Number} c2
+     */
+    linkRightSVGPath = (start, c1, c2) => {
+        let end = 100 - start;
+        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
+    }
+    maxZoom = 7
+    minZoom = -12
+    nodeDeleteEventName = "ueb-node-delete"
+    nodeDragEventName = "ueb-node-drag"
+    nodeDragLocalEventName = "ueb-node-drag-local"
+    nodeRadius = 8 // in pixel
+    selectAllKeyboardKey = "(bCtrl=True,Key=A)"
+    trackingMouseEventName = {
+        begin: "ueb-tracking-mouse-begin",
+        end: "ueb-tracking-mouse-end"
+    }
+    ModifierKeys = [
+        "Ctrl",
+        "Shift",
+        "Alt",
+        "Meta"
+    ]
+    Keys = {
+        /* UE name: JS name */
+        "Backspace": "Backspace",
+        "Tab": "Tab",
+        "LeftControl": "ControlLeft",
+        "RightControl": "ControlRight",
+        "LeftShift": "ShiftLeft",
+        "RightShift": "ShiftRight",
+        "LeftAlt": "AltLeft",
+        "RightAlt": "AltRight",
+        "Enter": "Enter",
+        "Pause": "Pause",
+        "CapsLock": "CapsLock",
+        "Escape": "Escape",
+        "Space": "Space",
+        "PageUp": "PageUp",
+        "PageDown": "PageDown",
+        "End": "End",
+        "Home": "Home",
+        "ArrowLeft": "Left",
+        "ArrowUp": "Up",
+        "ArrowRight": "Right",
+        "ArrowDown": "Down",
+        "PrintScreen": "PrintScreen",
+        "Insert": "Insert",
+        "Delete": "Delete",
+        "Zero": "Digit0",
+        "One": "Digit1",
+        "Two": "Digit2",
+        "Three": "Digit3",
+        "Four": "Digit4",
+        "Five": "Digit5",
+        "Six": "Digit6",
+        "Seven": "Digit7",
+        "Eight": "Digit8",
+        "Nine": "Digit9",
+        "A": "KeyA",
+        "B": "KeyB",
+        "C": "KeyC",
+        "D": "KeyD",
+        "E": "KeyE",
+        "F": "KeyF",
+        "G": "KeyG",
+        "H": "KeyH",
+        "I": "KeyI",
+        "K": "KeyK",
+        "L": "KeyL",
+        "M": "KeyM",
+        "N": "KeyN",
+        "O": "KeyO",
+        "P": "KeyP",
+        "Q": "KeyQ",
+        "R": "KeyR",
+        "S": "KeyS",
+        "T": "KeyT",
+        "U": "KeyU",
+        "V": "KeyV",
+        "W": "KeyW",
+        "X": "KeyX",
+        "Y": "KeyY",
+        "Z": "KeyZ",
+        "NumPadZero": "Numpad0",
+        "NumPadOne": "Numpad1",
+        "NumPadTwo": "Numpad2",
+        "NumPadThree": "Numpad3",
+        "NumPadFour": "Numpad4",
+        "NumPadFive": "Numpad5",
+        "NumPadSix": "Numpad6",
+        "NumPadSeven": "Numpad7",
+        "NumPadEight": "Numpad8",
+        "NumPadNine": "Numpad9",
+        "Multiply": "NumpadMultiply",
+        "Add": "NumpadAdd",
+        "Subtract": "NumpadSubtract",
+        "Decimal": "NumpadDecimal",
+        "Divide": "NumpadDivide",
+        "F1": "F1",
+        "F2": "F2",
+        "F3": "F3",
+        "F4": "F4",
+        "F5": "F5",
+        "F6": "F6",
+        "F7": "F7",
+        "F8": "F8",
+        "F9": "F9",
+        "F10": "F10",
+        "F11": "F11",
+        "F12": "F12",
+        "NumLock": "NumLock",
+        "ScrollLock": "ScrollLock",
+    }
+}
+
+// @ts-check
+
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  */
@@ -807,38 +810,33 @@ class IContext {
     /** @type {Object} */
     options
 
-    #hasFocus = false
-
-    get hasFocus() {
-        return this.#hasFocus
-    }
-
-    set hasFocus(_) {
-    }
-
     constructor(target, blueprint, options) {
         this.target = target;
         this.blueprint = blueprint;
         this.options = options;
         let self = this;
-        this.blueprintFocusHandler = _ => {
-            this.#hasFocus = true;
+        this.listenHandler = _ => {
             self.listenEvents();
         };
-        this.blueprintUnfocusHandler = _ => {
+        this.unlistenHandler = _ => {
             self.unlistenEvents();
-            this.#hasFocus = false;
         };
-        if (options?.wantsFocusCallback ?? false) {
-            this.blueprint.addEventListener("blueprint-focus", this.blueprintFocusHandler);
-            this.blueprint.addEventListener("blueprint-unfocus", this.blueprintUnfocusHandler);
+        if (options?.listenOnFocus ?? false) {
+            this.blueprint.addEventListener("blueprint-focus", this.listenHandler);
+            this.blueprint.addEventListener("blueprint-unfocus", this.unlistenHandler);
+        }
+        if (options?.unlistenOnEditText ?? false) {
+            this.blueprint.addEventListener(this.blueprint.settings.editTextEventName.begin, this.unlistenHandler);
+            this.blueprint.addEventListener(this.blueprint.settings.editTextEventName.end, this.listenHandler);
         }
     }
 
     unlistenDOMElement() {
         this.unlistenEvents();
-        this.blueprint.removeEventListener("blueprint-focus", this.blueprintFocusHandler);
-        this.blueprint.removeEventListener("blueprint-unfocus", this.blueprintUnfocusHandler);
+        this.blueprint.removeEventListener("blueprint-focus", this.listenHandler);
+        this.blueprint.removeEventListener("blueprint-unfocus", this.unlistenHandler);
+        this.blueprint.removeEventListener(this.blueprint.settings.editTextEventName.begin, this.unlistenHandler);
+        this.blueprint.removeEventListener(this.blueprint.settings.editTextEventName.end, this.listenHandler);
     }
 
     /* Subclasses will probabily override the following methods */
@@ -1347,7 +1345,11 @@ class PinEntity extends IEntity {
         return !this.bHidden && this.Direction === "EGPD_Output"
     }
 
-    isConnected() {
+    /**
+     * 
+     * @returns {Boolean}
+     */
+    isLinked() {
         return this.LinkedTo?.length > 0 ?? false
     }
 
@@ -1878,7 +1880,7 @@ class Copy extends IContext {
     #copyHandler
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
+        options.listenOnFocus = true;
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
@@ -1907,7 +1909,7 @@ class IKeyboardShortcut extends IContext {
     #activationKeys
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
+        options.listenOnFocus = true;
         options.activationKeys ??= [];
         if (!(options.activationKeys instanceof Array)) {
             options.activationKeys = [options.activationKeys];
@@ -1944,6 +1946,9 @@ class IKeyboardShortcut extends IContext {
                     && wantsAlt(keyEntry) == e.altKey
                     && this.blueprint.settings.Keys[keyEntry.Key] == e.code
                 )) {
+                if (options.consumeEvent) {
+                    e.stopImmediatePropagation();
+                }
                 self.fire();
                 document.removeEventListener("keydown", self.keyDownHandler);
                 document.addEventListener("keyup", self.keyUpHandler);
@@ -1957,9 +1962,12 @@ class IKeyboardShortcut extends IContext {
                     keyEntry.bShift && e.key == "Shift"
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
-                    || keyEntry.bCmd && e.key == "Meta" // Unsure about this, what key is that?
+                    || keyEntry.bCmd && e.key == "Meta"
                     || this.blueprint.settings.Keys[keyEntry.Key] == e.code
                 )) {
+                if (options.consumeEvent) {
+                    e.stopImmediatePropagation();
+                }
                 self.unfire();
                 document.removeEventListener("keyup", this.keyUpHandler);
                 document.addEventListener("keydown", this.keyDownHandler);
@@ -2043,7 +2051,7 @@ class IMouseWheel extends IPointing {
      * @param {Object} options
      */
     constructor(target, blueprint, options) {
-        options.wantsFocusCallback = true;
+        options.listenOnFocus = true;
         super(target, blueprint, options);
         this.looseTarget = options?.looseTarget ?? true;
         let self = this;
@@ -2108,7 +2116,7 @@ class Zoom extends IMouseWheel {
 
 class KeyboardEnableZoom extends IKeyboardShortcut {
 
-    /** @type {} */
+    /** @type {Zoom} */
     #zoomInputObject
 
     /**
@@ -2136,11 +2144,14 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
 
 // @ts-check
 
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ */
 class KeyboardSelectAll extends IKeyboardShortcut {
 
     /**
      * @param {HTMLElement} target
-     * @param {import("../../Blueprint").default} blueprint
+     * @param {Blueprint} blueprint
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
@@ -2562,7 +2573,7 @@ class IMouseClickDrag extends IPointing {
         this.exitAnyButton = options?.exitAnyButton ?? true;
         this.moveEverywhere = options?.moveEverywhere ?? false;
         this.looseTarget = options?.looseTarget ?? false;
-        this.consumeClickEvent = options?.consumeClickEvent ?? true;
+        this.consumeEvent = options?.consumeEvent ?? true;
         this.clickedPosition = [0, 0];
 
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
@@ -2574,7 +2585,7 @@ class IMouseClickDrag extends IPointing {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
-                        if (this.consumeClickEvent) {
+                        if (this.consumeEvent) {
                             e.stopImmediatePropagation(); // Captured, don't call anyone else
                         }
                         // Attach the listeners
@@ -2593,7 +2604,7 @@ class IMouseClickDrag extends IPointing {
         };
 
         this.#mouseStartedMovingHandler = e => {
-            if (this.consumeClickEvent) {
+            if (this.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             // Delegate from now on to self.#mouseMoveHandler
@@ -2608,7 +2619,7 @@ class IMouseClickDrag extends IPointing {
         };
 
         this.#mouseMoveHandler = e => {
-            if (this.consumeClickEvent) {
+            if (this.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             const location = self.locationFromEvent(e);
@@ -2621,7 +2632,7 @@ class IMouseClickDrag extends IPointing {
 
         this.#mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
-                if (this.consumeClickEvent) {
+                if (this.consumeEvent) {
                     e.stopImmediatePropagation(); // Captured, don't call anyone else
                 }
                 // Remove the handlers of "mousemove" and "mouseup"
@@ -2714,7 +2725,7 @@ class MouseTracking extends IPointing {
     #trackingMouseGaveBackHandler
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
+        options.listenOnFocus = true;
         super(target, blueprint, options);
 
         let self = this;
@@ -3120,6 +3131,10 @@ class MouseCreateLink extends IMouseClickDrag {
  */
 class PinTemplate extends ITemplate {
 
+    hasInput() {
+        return false
+    }
+
     /**
      * Computes the html content of the pin.
      * @param {PinElement} pin html element
@@ -3180,7 +3195,9 @@ class PinTemplate extends ITemplate {
             const targetPin = pin.blueprint.getPin(pinReference);
             if (targetPin) {
                 const [sourcePin, destinationPin] = pin.isOutput() ? [pin, targetPin] : [targetPin, pin];
-                pin.blueprint.addGraphElement(new LinkElement(sourcePin, destinationPin));
+                pin.blueprint.addGraphElement(
+                    new LinkElement(/** @type {PinElement} */(sourcePin), /** @type {PinElement} */(destinationPin))
+                );
             }
         });
     }
@@ -3190,7 +3207,7 @@ class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     applyConnected(pin) {
-        if (pin.isConnected()) {
+        if (pin.isLinked()) {
             pin.classList.add("ueb-pin-fill");
         } else {
             pin.classList.remove("ueb-pin-fill");
@@ -3234,18 +3251,47 @@ class ExecPinTemplate extends PinTemplate {
  */
 class StringPinTemplate extends PinTemplate {
 
+    hasInput() {
+        return true
+    }
+
     /**
      * @param {PinElement} pin
      */
     renderInput(pin) {
-        const stopEventPropagation = "e => stopPropagation()";
         return html`
             <span class="ueb-pin-input">
                 <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                    onkeydown="${stopEventPropagation}" onkeyup="${stopEventPropagation}"
-                    oncopy="${stopEventPropagation}" onpaste="${stopEventPropagation}"></span>
+                    onfocus="_ => this.closest('ueb-blueprint').editText = true"
+                    onfocusout="_ => this.closest('ueb-blueprint').editText = false"
+                ></span>
             </span>
         `
+    }
+}
+
+// @ts-check
+
+class KeyboardIgnoreSelectAll extends KeyboardSelectAll {
+
+    /**
+     * @param {HTMLElement} target
+     * @param {any} blueprint
+     * @param {Object} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options = {
+            ...options,
+            activationKeys: blueprint.settings.selectAllKeyboardKey
+        };
+        super(target, blueprint, options);
+    }
+
+    fire() {
+    }
+
+    unfire() {
+
     }
 }
 
@@ -3298,6 +3344,9 @@ class PinElement extends IElement {
                 moveEverywhere: true,
                 looseTarget: true
             }),
+            new KeyboardIgnoreSelectAll(this, this.blueprint, {
+                consumeEvent: true
+            })
         ]
     }
 
@@ -3333,8 +3382,8 @@ class PinElement extends IElement {
         return this.entity.isOutput()
     }
 
-    isConnected() {
-        return this.entity.isConnected()
+    isLinked() {
+        return this.entity.isLinked()
     }
 
     getType() {
@@ -3463,7 +3512,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
         }
         node.dataset.name = node.getNodeName();
         if (node.entity.AdvancedPinDisplay) {
-            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay;
+            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
         }
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
@@ -3561,7 +3610,7 @@ class Paste extends IContext {
     #pasteHandle
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
+        options.listenOnFocus = true;
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
@@ -3641,22 +3690,22 @@ class Select extends IMouseClickDrag {
 
 class Unfocus extends IContext {
 
-    /** @type {(e: WheelEvent) => void} */
+    /** @type {(e: MouseEvent) => void} */
     #clickHandler
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true;
+        options.listenOnFocus = true;
         super(target, blueprint, options);
 
         let self = this;
-        this.#clickHandler = e => self.clickedSomewhere(e.target);
-        if (this.blueprint.focuse) {
+        this.#clickHandler = e => self.clickedSomewhere(/** @type {HTMLElement} */(e.target));
+        if (this.blueprint.focus) {
             document.addEventListener("click", this.#clickHandler);
         }
     }
 
     /**
-     * @param {HTMLElement} e
+     * @param {HTMLElement} target
      */
     clickedSomewhere(target) {
         // If target is outside the blueprint grid
@@ -3703,13 +3752,13 @@ class Blueprint extends IElement {
     set translateValue(value) {
         this.#translateValue = value;
     }
-    /** @type {number} */
+    /** @type {Number} */
     gridSize
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */
     links = []
-    /** @type {number[]} */
+    /** @type {Number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
     gridElement = null
@@ -3721,7 +3770,7 @@ class Blueprint extends IElement {
     selectorElement = null
     /** @type {HTMLElement} */
     nodesContainerElement = null
-    /** @type {number} */
+    /** @type {Number} */
     zoom = 0
     /** @type {HTMLElement} */
     headerElement = null
@@ -3760,8 +3809,8 @@ class Blueprint extends IElement {
     }
 
     /**
-     * @param {number} x
-     * @param {number} y
+     * @param {Number} x
+     * @param {Number} y
      */
     #expand(x, y) {
         // TODO remove
@@ -3773,8 +3822,8 @@ class Blueprint extends IElement {
     }
 
     /**
-     * @param {number} x
-     * @param {number} y
+     * @param {Number} x
+     * @param {Number} y
      */
     #translate(x, y) {
         x = Math.round(x);
@@ -4108,6 +4157,15 @@ class Blueprint extends IElement {
         if (!this.focused) {
             this.unselectAll();
         }
+        this.dispatchEvent(event);
+    }
+
+    dispatchEditTextEvent(value) {
+        const event = new CustomEvent(
+            value
+                ? this.settings.editTextEventName.begin
+                : this.settings.editTextEventName.end
+        );
         this.dispatchEvent(event);
     }
 }

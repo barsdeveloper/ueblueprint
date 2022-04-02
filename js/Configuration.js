@@ -2,6 +2,10 @@
 
 export default class Configuration {
     deleteNodesKeyboardKey = "Delete"
+    editTextEventName = {
+        begin: "ueb-edit-text-begin",
+        end: "ueb-edit-text-end"
+    }
     enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
     expandGridSize = 400
     fontSize = "12px"

@@ -29,7 +29,7 @@ export default class IMouseClickDrag extends IPointing {
         this.exitAnyButton = options?.exitAnyButton ?? true
         this.moveEverywhere = options?.moveEverywhere ?? false
         this.looseTarget = options?.looseTarget ?? false
-        this.consumeClickEvent = options?.consumeClickEvent ?? true
+        this.consumeEvent = options?.consumeEvent ?? true
         this.clickedPosition = [0, 0]
 
         const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace
@@ -41,7 +41,7 @@ export default class IMouseClickDrag extends IPointing {
                 case self.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.looseTarget || e.target == e.currentTarget) {
-                        if (this.consumeClickEvent) {
+                        if (this.consumeEvent) {
                             e.stopImmediatePropagation() // Captured, don't call anyone else
                         }
                         // Attach the listeners
@@ -60,7 +60,7 @@ export default class IMouseClickDrag extends IPointing {
         }
 
         this.#mouseStartedMovingHandler = e => {
-            if (this.consumeClickEvent) {
+            if (this.consumeEvent) {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
             // Delegate from now on to self.#mouseMoveHandler
@@ -75,7 +75,7 @@ export default class IMouseClickDrag extends IPointing {
         }
 
         this.#mouseMoveHandler = e => {
-            if (this.consumeClickEvent) {
+            if (this.consumeEvent) {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
             const location = self.locationFromEvent(e)
@@ -88,7 +88,7 @@ export default class IMouseClickDrag extends IPointing {
 
         this.#mouseUpHandler = e => {
             if (!self.exitAnyButton || e.button == self.clickButton) {
-                if (this.consumeClickEvent) {
+                if (this.consumeEvent) {
                     e.stopImmediatePropagation() // Captured, don't call anyone else
                 }
                 // Remove the handlers of "mousemove" and "mouseup"

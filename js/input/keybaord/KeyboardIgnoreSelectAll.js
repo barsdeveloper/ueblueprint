@@ -1,15 +1,12 @@
 // @ts-check
 
-import IKeyboardShortcut from "./IKeyboardShortcut"
+import KeyboardSelectAll from "./KeyboardSelectAll"
 
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- */
-export default class KeyboardSelectAll extends IKeyboardShortcut {
+export default class KeyboardIgnoreSelectAll extends KeyboardSelectAll {
 
     /**
      * @param {HTMLElement} target
-     * @param {Blueprint} blueprint
+     * @param {any} blueprint
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
@@ -21,6 +18,9 @@ export default class KeyboardSelectAll extends IKeyboardShortcut {
     }
 
     fire() {
-        this.blueprint.selectAll()
+    }
+
+    unfire() {
+
     }
 }

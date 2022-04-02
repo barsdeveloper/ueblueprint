@@ -8,7 +8,7 @@ export default class Copy extends IContext {
     #copyHandler
 
     constructor(target, blueprint, options = {}) {
-        options.wantsFocusCallback = true
+        options.listenOnFocus = true
         super(target, blueprint, options)
         this.serializer = new ObjectSerializer()
         let self = this

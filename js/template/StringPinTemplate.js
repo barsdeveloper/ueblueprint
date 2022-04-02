@@ -8,6 +8,10 @@ import PinTemplate from "./PinTemplate"
  */
 export default class StringPinTemplate extends PinTemplate {
 
+    hasInput() {
+        return true
+    }
+
     /**
      * @param {PinElement} pin
      */
@@ -16,8 +20,9 @@ export default class StringPinTemplate extends PinTemplate {
         return html`
             <span class="ueb-pin-input">
                 <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                    onkeydown="${stopEventPropagation}" onkeyup="${stopEventPropagation}"
-                    oncopy="${stopEventPropagation}" onpaste="${stopEventPropagation}"></span>
+                    onfocus="_ => this.closest('ueb-blueprint').editText = true"
+                    onfocusout="_ => this.closest('ueb-blueprint').editText = false"
+                ></span>
             </span>
         `
     }

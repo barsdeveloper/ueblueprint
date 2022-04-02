@@ -1,6 +1,5 @@
 // @ts-check
 
-import Configuration from "./Configuration"
 import TypeInitialization from "./entity/TypeInitialization"
 
 export default class Utility {
