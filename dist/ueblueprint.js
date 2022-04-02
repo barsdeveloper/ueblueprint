@@ -2045,11 +2045,6 @@ class KeyboardCanc extends IKeyboardShortcut {
  */
 class IPointing extends IContext {
 
-    /**
-     * @param {T} target
-     * @param {Blueprint} blueprint
-     * @param {Object} options
-     */
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
@@ -2606,12 +2601,8 @@ class IMouseClickDrag extends IPointing {
 
     started = false
 
-    /**
-     * @param {T} target
-     * @param {Blueprint} blueprint
-     * @param {Object} options
-     */
     constructor(target, blueprint, options) {
+        options.unlistenOnTextEdit;
         super(target, blueprint, options);
         this.clickButton = options?.clickButton ?? 0;
         this.exitAnyButton = options?.exitAnyButton ?? true;
@@ -2696,10 +2687,18 @@ class IMouseClickDrag extends IPointing {
             }
         };
 
+        this.listenEvents();
+    }
+
+    listenEvents() {
         this.target.addEventListener("mousedown", this.#mouseDownHandler);
         if (this.clickButton == 2) {
             this.target.addEventListener("contextmenu", e => e.preventDefault());
         }
+    }
+
+    unlistenEvents() {
+        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
     }
 
     getEvent(eventName) {
@@ -2710,12 +2709,6 @@ class IMouseClickDrag extends IPointing {
             bubbles: true,
             cancelable: true
         })
-    }
-
-    unlistenDOMElement() {
-        super.unlistenDOMElement();
-        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
-        if (this.clickButton == 2) ;
     }
 
     /* Subclasses will override the following methods */
@@ -2831,15 +2824,13 @@ class MouseTracking extends IPointing {
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
  * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ */
+
+/**
  * @extends {IMouseClickDrag<ISelectableDraggableElement>}
  */
 class MouseMoveNodes extends IMouseClickDrag {
 
-    /**
-     * @param {ISelectableDraggableElement} target
-     * @param {Blueprint} blueprint
-     * @param {Object} options
-     */
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
         this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize);
@@ -2849,6 +2840,11 @@ class MouseMoveNodes extends IMouseClickDrag {
     startDrag() {
         // Get the current mouse position
         this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
+
+        if (!this.target.selected) {
+            this.blueprint.unselectAll();
+            this.target.setSelected(true);
+        }
     }
 
     dragTo(location, movement) {
@@ -2872,6 +2868,13 @@ class MouseMoveNodes extends IMouseClickDrag {
 
         // Reassign the position of mouse
         this.mouseLocation = mouseLocation;
+    }
+
+    unclicked() {
+        if (!this.started) {
+            this.blueprint.unselectAll();
+            this.target.setSelected(true);
+        }
     }
 }
 
@@ -2942,10 +2945,6 @@ class ISelectableDraggableElement extends IElement {
     }
 
     dispatchDragEvent(value) {
-        if (!this.selected) {
-            this.blueprint.unselectAll();
-            this.setSelected(true);
-        }
         const dragEvent = new CustomEvent(this.blueprint.settings.nodeDragEventName, {
             detail: {
                 value: value

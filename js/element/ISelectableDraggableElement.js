@@ -68,10 +68,6 @@ export default class ISelectableDraggableElement extends IElement {
     }
 
     dispatchDragEvent(value) {
-        if (!this.selected) {
-            this.blueprint.unselectAll()
-            this.setSelected(true)
-        }
         const dragEvent = new CustomEvent(this.blueprint.settings.nodeDragEventName, {
             detail: {
                 value: value

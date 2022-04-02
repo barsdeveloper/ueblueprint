@@ -22,6 +22,11 @@ export default class MouseMoveNodes extends IMouseClickDrag {
     startDrag() {
         // Get the current mouse position
         this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize)
+
+        if (!this.target.selected) {
+            this.blueprint.unselectAll()
+            this.target.setSelected(true)
+        }
     }
 
     dragTo(location, movement) {
@@ -45,5 +50,12 @@ export default class MouseMoveNodes extends IMouseClickDrag {
 
         // Reassign the position of mouse
         this.mouseLocation = mouseLocation
+    }
+
+    unclicked() {
+        if (!this.started) {
+            this.blueprint.unselectAll()
+            this.target.setSelected(true)
+        }
     }
 }

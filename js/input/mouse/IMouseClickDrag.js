@@ -30,6 +30,7 @@ export default class IMouseClickDrag extends IPointing {
     started = false
 
     constructor(target, blueprint, options) {
+        options.unlistenOnTextEdit
         super(target, blueprint, options)
         this.clickButton = options?.clickButton ?? 0
         this.exitAnyButton = options?.exitAnyButton ?? true
@@ -114,10 +115,18 @@ export default class IMouseClickDrag extends IPointing {
             }
         }
 
+        this.listenEvents()
+    }
+
+    listenEvents() {
         this.target.addEventListener("mousedown", this.#mouseDownHandler)
         if (this.clickButton == 2) {
             this.target.addEventListener("contextmenu", e => e.preventDefault())
         }
+    }
+
+    unlistenEvents() {
+        this.target.removeEventListener("mousedown", this.#mouseDownHandler)
     }
 
     getEvent(eventName) {
@@ -128,14 +137,6 @@ export default class IMouseClickDrag extends IPointing {
             bubbles: true,
             cancelable: true
         })
-    }
-
-    unlistenDOMElement() {
-        super.unlistenDOMElement()
-        this.target.removeEventListener("mousedown", this.#mouseDownHandler)
-        if (this.clickButton == 2) {
-            //this.target.removeEventListener("contextmenu", e => e.preventDefault())
-        }
     }
 
     /* Subclasses will override the following methods */
