@@ -658,10 +658,14 @@ class Configuration {
     deleteNodesKeyboardKey = "Delete"
     editTextEventName = {
         begin: "ueb-edit-text-begin",
-        end: "ueb-edit-text-end"
+        end: "ueb-edit-text-end",
     }
     enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
     expandGridSize = 400
+    focusEventName = {
+        begin: "blueprint-focus",
+        end: "blueprint-unfocus",
+    }
     fontSize = "12px"
     gridAxisLineColor = "black"
     gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
@@ -693,13 +697,13 @@ class Configuration {
     selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
-        end: "ueb-tracking-mouse-end"
+        end: "ueb-tracking-mouse-end",
     }
     ModifierKeys = [
         "Ctrl",
         "Shift",
         "Alt",
-        "Meta"
+        "Meta",
     ]
     Keys = {
         /* UE name: JS name */
@@ -802,30 +806,39 @@ class Configuration {
 class IContext {
 
     /** @type {HTMLElement} */
-    target
+    #target
+    get target() {
+        return this.#target
+    }
 
     /** @type {Blueprint} */
-    blueprint
+    #blueprint
+    get blueprint() {
+        return this.#blueprint
+    }
 
     /** @type {Object} */
     options
 
+    /**
+     * @param {HTMLElement} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
     constructor(target, blueprint, options) {
-        this.target = target;
-        this.blueprint = blueprint;
+        this.#target = target;
+        this.#blueprint = blueprint;
         this.options = options;
+        this.options.listenOnFocus = this.options?.listenOnFocus ?? false;
+        this.options.unlistenOnTextEdit = this.options?.unlistenOnTextEdit ?? false;
         let self = this;
-        this.listenHandler = _ => {
-            self.listenEvents();
-        };
-        this.unlistenHandler = _ => {
-            self.unlistenEvents();
-        };
-        if (options?.listenOnFocus ?? false) {
-            this.blueprint.addEventListener("blueprint-focus", this.listenHandler);
-            this.blueprint.addEventListener("blueprint-unfocus", this.unlistenHandler);
+        this.listenHandler = _ => self.listenEvents();
+        this.unlistenHandler = _ => self.unlistenEvents();
+        if (this.options.listenOnFocus) {
+            this.blueprint.addEventListener(this.blueprint.settings.focusEventName.begin, this.listenHandler);
+            this.blueprint.addEventListener(this.blueprint.settings.focusEventName.end, this.unlistenHandler);
         }
-        if (options?.unlistenOnEditText ?? false) {
+        if (options?.unlistenOnTextEdit ?? false) {
             this.blueprint.addEventListener(this.blueprint.settings.editTextEventName.begin, this.unlistenHandler);
             this.blueprint.addEventListener(this.blueprint.settings.editTextEventName.end, this.listenHandler);
         }
@@ -833,8 +846,8 @@ class IContext {
 
     unlistenDOMElement() {
         this.unlistenEvents();
-        this.blueprint.removeEventListener("blueprint-focus", this.listenHandler);
-        this.blueprint.removeEventListener("blueprint-unfocus", this.unlistenHandler);
+        this.blueprint.removeEventListener(this.blueprint.settings.focusEventName.begin, this.listenHandler);
+        this.blueprint.removeEventListener(this.blueprint.settings.focusEventName.end, this.unlistenHandler);
         this.blueprint.removeEventListener(this.blueprint.settings.editTextEventName.begin, this.unlistenHandler);
         this.blueprint.removeEventListener(this.blueprint.settings.editTextEventName.end, this.listenHandler);
     }
@@ -1877,10 +1890,12 @@ End Object\n`;
 
 class Copy extends IContext {
 
+    /** @type {(e: ClipboardEvent) => void} */
     #copyHandler
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
+        options.unlistenOnTextEdit = true;
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
@@ -3262,36 +3277,11 @@ class StringPinTemplate extends PinTemplate {
         return html`
             <span class="ueb-pin-input">
                 <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                    onfocus="_ => this.closest('ueb-blueprint').editText = true"
-                    onfocusout="_ => this.closest('ueb-blueprint').editText = false"
+                    onfocus="this.closest('ueb-blueprint')?.dispatchEditTextEvent(true)"
+                    onfocusout="this.closest('ueb-blueprint')?.dispatchEditTextEvent(false)"
                 ></span>
             </span>
         `
-    }
-}
-
-// @ts-check
-
-class KeyboardIgnoreSelectAll extends KeyboardSelectAll {
-
-    /**
-     * @param {HTMLElement} target
-     * @param {any} blueprint
-     * @param {Object} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options = {
-            ...options,
-            activationKeys: blueprint.settings.selectAllKeyboardKey
-        };
-        super(target, blueprint, options);
-    }
-
-    fire() {
-    }
-
-    unfire() {
-
     }
 }
 
@@ -3343,9 +3333,6 @@ class PinElement extends IElement {
             new MouseCreateLink(this.clickableElement, this.blueprint, {
                 moveEverywhere: true,
                 looseTarget: true
-            }),
-            new KeyboardIgnoreSelectAll(this, this.blueprint, {
-                consumeEvent: true
             })
         ]
     }
@@ -3607,10 +3594,12 @@ customElements.define(NodeElement.tagName, NodeElement);
 
 class Paste extends IContext {
 
+    /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
+        options.unlistenOnTextEdit = true;
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;

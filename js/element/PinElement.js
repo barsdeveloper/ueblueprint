@@ -5,7 +5,6 @@ import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import PinTemplate from "../template/PinTemplate"
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
-import KeyboardIgnoreSelectAll from "../input/keybaord/KeyboardIgnoreSelectAll"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -53,9 +52,6 @@ export default class PinElement extends IElement {
             new MouseCreateLink(this.clickableElement, this.blueprint, {
                 moveEverywhere: true,
                 looseTarget: true
-            }),
-            new KeyboardIgnoreSelectAll(this, this.blueprint, {
-                consumeEvent: true
             })
         ]
     }

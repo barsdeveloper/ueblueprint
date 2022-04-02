@@ -20,8 +20,8 @@ export default class StringPinTemplate extends PinTemplate {
         return html`
             <span class="ueb-pin-input">
                 <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                    onfocus="_ => this.closest('ueb-blueprint').editText = true"
-                    onfocusout="_ => this.closest('ueb-blueprint').editText = false"
+                    onfocus="this.closest('ueb-blueprint')?.dispatchEditTextEvent(true)"
+                    onfocusout="this.closest('ueb-blueprint')?.dispatchEditTextEvent(false)"
                 ></span>
             </span>
         `

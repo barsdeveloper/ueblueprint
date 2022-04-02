@@ -6,10 +6,12 @@ import ObjectSerializer from "../../serialization/ObjectSerializer"
 
 export default class Paste extends IContext {
 
+    /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true
+        options.unlistenOnTextEdit = true
         super(target, blueprint, options)
         this.serializer = new ObjectSerializer()
         let self = this

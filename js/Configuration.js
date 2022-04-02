@@ -4,10 +4,14 @@ export default class Configuration {
     deleteNodesKeyboardKey = "Delete"
     editTextEventName = {
         begin: "ueb-edit-text-begin",
-        end: "ueb-edit-text-end"
+        end: "ueb-edit-text-end",
     }
     enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
     expandGridSize = 400
+    focusEventName = {
+        begin: "blueprint-focus",
+        end: "blueprint-unfocus",
+    }
     fontSize = "12px"
     gridAxisLineColor = "black"
     gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
@@ -39,13 +43,13 @@ export default class Configuration {
     selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
-        end: "ueb-tracking-mouse-end"
+        end: "ueb-tracking-mouse-end",
     }
     ModifierKeys = [
         "Ctrl",
         "Shift",
         "Alt",
-        "Meta"
+        "Meta",
     ]
     Keys = {
         /* UE name: JS name */
