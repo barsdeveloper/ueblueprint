@@ -3,6 +3,14 @@
 import IContext from "../IContext"
 import Utility from "../../Utility"
 
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ */
+
+/**
+ * @template {HTMLElement} T
+ * @extends {IContext<T>}
+ */
 export default class IPointing extends IContext {
 
     constructor(target, blueprint, options) {
@@ -17,6 +25,8 @@ export default class IPointing extends IContext {
         return this.blueprint.compensateTranslation(
             Utility.convertLocation(
                 [mouseEvent.clientX, mouseEvent.clientY],
-                this.movementSpace))
+                this.movementSpace
+            )
+        )
     }
 }

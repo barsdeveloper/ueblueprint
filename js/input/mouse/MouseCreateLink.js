@@ -5,8 +5,11 @@ import LinkElement from "../../element/LinkElement"
 import LinkMessageElement from "../../element/LinkMessageElement"
 
 /**
- * @typedef {import("../../element/LinkElement").default} LinkElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ */
+
+/**
+ * @extends IMouseClickDrag<PinElement>
  */
 export default class MouseCreateLink extends IMouseClickDrag {
 
@@ -29,14 +32,12 @@ export default class MouseCreateLink extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
-        /** @type {PinElement} */
-        this.target
 
         let self = this
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
                 self.linkValid = false
-                self.enteredPin = e.target
+                self.enteredPin = /** @type {PinElement} */ (e.target)
                 const a = self.enteredPin, b = self.target
                 if (a.getNodeElement() == b.getNodeElement()) {
                     this.setLinkMessage(LinkMessageElement.sameNode())
@@ -66,7 +67,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         this.link = new LinkElement(this.target, null)
         this.blueprint.nodesContainerElement.prepend(this.link)
         this.setLinkMessage(LinkMessageElement.placeNode())
-        this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName)
+        this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin")
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
                 pin.getClickableElement().addEventListener("mouseenter", this.#mouseenterHandler)

@@ -10,7 +10,6 @@ export default class Copy extends IContext {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true
-        options.unlistenOnTextEdit = true
         super(target, blueprint, options)
         this.serializer = new ObjectSerializer()
         let self = this

@@ -4,21 +4,19 @@ import IMouseClickDrag from "./IMouseClickDrag"
 import Utility from "../../Utility"
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
  * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ */
+
+/**
+ * @extends {IMouseClickDrag<ISelectableDraggableElement>}
  */
 export default class MouseMoveNodes extends IMouseClickDrag {
 
-    /**
-     * @param {ISelectableDraggableElement} target
-     * @param {*} blueprint
-     * @param {*} options
-     */
     constructor(target, blueprint, options) {
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize)
         this.mouseLocation = [0, 0]
-        /** @type {ISelectableDraggableElement} */
-        this.target
     }
 
     startDrag() {

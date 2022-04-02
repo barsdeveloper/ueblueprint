@@ -3,7 +3,13 @@
 import IPointing from "./IPointing"
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ */
+
+/**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
+ * @template {HTMLElement} T
+ * @extends {IPointing<T>}
  */
 export default class IMouseClickDrag extends IPointing {
 

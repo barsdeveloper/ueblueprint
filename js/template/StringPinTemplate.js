@@ -16,14 +16,16 @@ export default class StringPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     renderInput(pin) {
-        const stopEventPropagation = "e => stopPropagation()"
         return html`
-            <span class="ueb-pin-input">
-                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+            <div class="ueb-pin-input">
+                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"
                     onfocus="this.closest('ueb-blueprint')?.dispatchEditTextEvent(true)"
-                    onfocusout="this.closest('ueb-blueprint')?.dispatchEditTextEvent(false)"
-                ></span>
-            </span>
+                    onfocusout="
+                        this.closest('ueb-blueprint')?.dispatchEditTextEvent(false)
+                        document.getSelection().removeAllRanges()
+                    "
+                ></div>
+            </div>
         `
     }
 }

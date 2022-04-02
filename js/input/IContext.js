@@ -3,9 +3,13 @@
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  */
+
+/**
+ * @template {HTMLElement} T
+ */
 export default class IContext {
 
-    /** @type {HTMLElement} */
+    /** @type {T} */
     #target
     get target() {
         return this.#target
@@ -21,7 +25,7 @@ export default class IContext {
     options
 
     /**
-     * @param {HTMLElement} target
+     * @param {T} target
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
@@ -30,7 +34,7 @@ export default class IContext {
         this.#blueprint = blueprint
         this.options = options
         this.options.listenOnFocus = this.options?.listenOnFocus ?? false
-        this.options.unlistenOnTextEdit = this.options?.unlistenOnTextEdit ?? false
+        this.options.unlistenOnTextEdit = this.options?.unlistenOnTextEdit ?? true
         let self = this
         this.listenHandler = _ => self.listenEvents()
         this.unlistenHandler = _ => self.unlistenEvents()

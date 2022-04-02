@@ -24,20 +24,20 @@ export default class PinTemplate extends ITemplate {
     render(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-pin-icon">
+                <div class="ueb-pin-icon">
                     ${this.renderIcon(pin)}
-                </span>
-                <span class="ueb-pin-content">
+                </div>
+                <div class="ueb-pin-content">
                     <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
                     ${this.renderInput(pin)}
-                </span>
+                </div>
             `
         } else {
             return html`
-                <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
-                <span class="ueb-pin-icon">
+                <div class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</div>
+                <div class="ueb-pin-icon">
                     ${this.renderIcon(pin)}
-                </span>
+                </div>
             `
         }
     }
@@ -71,7 +71,7 @@ export default class PinTemplate extends ITemplate {
             pin.dataset.advancedView = "true"
         }
         pin.clickableElement = pin
-        window.customElements.whenDefined("ueb-node").then(pin.nodeElement = pin.closest("ueb-node"))
+        window.customElements.whenDefined("ueb-node").then(_ => pin.nodeElement = pin.closest("ueb-node"))
         pin.getLinks().forEach(pinReference => {
             const targetPin = pin.blueprint.getPin(pinReference)
             if (targetPin) {

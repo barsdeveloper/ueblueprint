@@ -803,9 +803,13 @@ class Configuration {
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  */
+
+/**
+ * @template {HTMLElement} T
+ */
 class IContext {
 
-    /** @type {HTMLElement} */
+    /** @type {T} */
     #target
     get target() {
         return this.#target
@@ -821,7 +825,7 @@ class IContext {
     options
 
     /**
-     * @param {HTMLElement} target
+     * @param {T} target
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
@@ -830,7 +834,7 @@ class IContext {
         this.#blueprint = blueprint;
         this.options = options;
         this.options.listenOnFocus = this.options?.listenOnFocus ?? false;
-        this.options.unlistenOnTextEdit = this.options?.unlistenOnTextEdit ?? false;
+        this.options.unlistenOnTextEdit = this.options?.unlistenOnTextEdit ?? true;
         let self = this;
         this.listenHandler = _ => self.listenEvents();
         this.unlistenHandler = _ => self.unlistenEvents();
@@ -1895,7 +1899,6 @@ class Copy extends IContext {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
-        options.unlistenOnTextEdit = true;
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
@@ -2032,8 +2035,21 @@ class KeyboardCanc extends IKeyboardShortcut {
 
 // @ts-check
 
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ */
+
+/**
+ * @template {HTMLElement} T
+ * @extends {IContext<T>}
+ */
 class IPointing extends IContext {
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
@@ -2046,7 +2062,9 @@ class IPointing extends IContext {
         return this.blueprint.compensateTranslation(
             Utility.convertLocation(
                 [mouseEvent.clientX, mouseEvent.clientY],
-                this.movementSpace))
+                this.movementSpace
+            )
+        )
     }
 }
 
@@ -2562,7 +2580,13 @@ customElements.define(LinkElement.tagName, LinkElement);
 // @ts-check
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ */
+
+/**
  * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
+ * @template {HTMLElement} T
+ * @extends {IPointing<T>}
  */
 class IMouseClickDrag extends IPointing {
 
@@ -2582,6 +2606,11 @@ class IMouseClickDrag extends IPointing {
 
     started = false
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
         this.clickButton = options?.clickButton ?? 0;
@@ -2800,21 +2829,21 @@ class MouseTracking extends IPointing {
 // @ts-check
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
  * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @extends {IMouseClickDrag<ISelectableDraggableElement>}
  */
 class MouseMoveNodes extends IMouseClickDrag {
 
     /**
      * @param {ISelectableDraggableElement} target
-     * @param {*} blueprint
-     * @param {*} options
+     * @param {Blueprint} blueprint
+     * @param {Object} options
      */
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
         this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize);
         this.mouseLocation = [0, 0];
-        /** @type {ISelectableDraggableElement} */
-        this.target;
     }
 
     startDrag() {
@@ -3038,8 +3067,11 @@ customElements.define(LinkMessageElement.tagName, LinkMessageElement);
 // @ts-check
 
 /**
- * @typedef {import("../../element/LinkElement").default} LinkElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ */
+
+/**
+ * @extends IMouseClickDrag<PinElement>
  */
 class MouseCreateLink extends IMouseClickDrag {
 
@@ -3062,14 +3094,12 @@ class MouseCreateLink extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-        /** @type {PinElement} */
-        this.target;
 
         let self = this;
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
                 self.linkValid = false;
-                self.enteredPin = e.target;
+                self.enteredPin = /** @type {PinElement} */ (e.target);
                 const a = self.enteredPin, b = self.target;
                 if (a.getNodeElement() == b.getNodeElement()) {
                     this.setLinkMessage(LinkMessageElement.sameNode());
@@ -3099,7 +3129,7 @@ class MouseCreateLink extends IMouseClickDrag {
         this.link = new LinkElement(this.target, null);
         this.blueprint.nodesContainerElement.prepend(this.link);
         this.setLinkMessage(LinkMessageElement.placeNode());
-        this.#listenedPins = this.blueprint.querySelectorAll(this.target.constructor.tagName);
+        this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin");
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
                 pin.getClickableElement().addEventListener("mouseenter", this.#mouseenterHandler);
@@ -3158,20 +3188,20 @@ class PinTemplate extends ITemplate {
     render(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-pin-icon">
+                <div class="ueb-pin-icon">
                     ${this.renderIcon(pin)}
-                </span>
-                <span class="ueb-pin-content">
+                </div>
+                <div class="ueb-pin-content">
                     <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
                     ${this.renderInput(pin)}
-                </span>
+                </div>
             `
         } else {
             return html`
-                <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
-                <span class="ueb-pin-icon">
+                <div class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</div>
+                <div class="ueb-pin-icon">
                     ${this.renderIcon(pin)}
-                </span>
+                </div>
             `
         }
     }
@@ -3205,7 +3235,7 @@ class PinTemplate extends ITemplate {
             pin.dataset.advancedView = "true";
         }
         pin.clickableElement = pin;
-        window.customElements.whenDefined("ueb-node").then(pin.nodeElement = pin.closest("ueb-node"));
+        window.customElements.whenDefined("ueb-node").then(_ => pin.nodeElement = pin.closest("ueb-node"));
         pin.getLinks().forEach(pinReference => {
             const targetPin = pin.blueprint.getPin(pinReference);
             if (targetPin) {
@@ -3275,12 +3305,15 @@ class StringPinTemplate extends PinTemplate {
      */
     renderInput(pin) {
         return html`
-            <span class="ueb-pin-input">
-                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+            <div class="ueb-pin-input">
+                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"
                     onfocus="this.closest('ueb-blueprint')?.dispatchEditTextEvent(true)"
-                    onfocusout="this.closest('ueb-blueprint')?.dispatchEditTextEvent(false)"
-                ></span>
-            </span>
+                    onfocusout="
+                        this.closest('ueb-blueprint')?.dispatchEditTextEvent(false)
+                        document.getSelection().removeAllRanges()
+                    "
+                ></div>
+            </div>
         `
     }
 }
@@ -3599,7 +3632,6 @@ class Paste extends IContext {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
-        options.unlistenOnTextEdit = true;
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
