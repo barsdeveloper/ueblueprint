@@ -71,7 +71,7 @@ export default class PinTemplate extends ITemplate {
             pin.dataset.advancedView = "true"
         }
         pin.clickableElement = pin
-        window.customElements.whenDefined("ueb-node").then(_ => pin.nodeElement = pin.closest("ueb-node"))
+        pin.nodeElement = pin.closest("ueb-node")
         pin.getLinks().forEach(pinReference => {
             const targetPin = pin.blueprint.getPin(pinReference)
             if (targetPin) {

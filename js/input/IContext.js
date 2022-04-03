@@ -1,5 +1,7 @@
 // @ts-check
 
+import Configuration from "../Configuration"
+
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  */
@@ -39,21 +41,21 @@ export default class IContext {
         this.listenHandler = _ => self.listenEvents()
         this.unlistenHandler = _ => self.unlistenEvents()
         if (this.options.listenOnFocus) {
-            this.blueprint.addEventListener(this.blueprint.settings.focusEventName.begin, this.listenHandler)
-            this.blueprint.addEventListener(this.blueprint.settings.focusEventName.end, this.unlistenHandler)
+            this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler)
+            this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler)
         }
         if (options?.unlistenOnTextEdit ?? false) {
-            this.blueprint.addEventListener(this.blueprint.settings.editTextEventName.begin, this.unlistenHandler)
-            this.blueprint.addEventListener(this.blueprint.settings.editTextEventName.end, this.listenHandler)
+            this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler)
+            this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler)
         }
     }
 
     unlistenDOMElement() {
         this.unlistenEvents()
-        this.blueprint.removeEventListener(this.blueprint.settings.focusEventName.begin, this.listenHandler)
-        this.blueprint.removeEventListener(this.blueprint.settings.focusEventName.end, this.unlistenHandler)
-        this.blueprint.removeEventListener(this.blueprint.settings.editTextEventName.begin, this.unlistenHandler)
-        this.blueprint.removeEventListener(this.blueprint.settings.editTextEventName.end, this.listenHandler)
+        this.blueprint.removeEventListener(Configuration.focusEventName.begin, this.listenHandler)
+        this.blueprint.removeEventListener(Configuration.focusEventName.end, this.unlistenHandler)
+        this.blueprint.removeEventListener(Configuration.editTextEventName.begin, this.unlistenHandler)
+        this.blueprint.removeEventListener(Configuration.editTextEventName.end, this.listenHandler)
     }
 
     /* Subclasses will probabily override the following methods */

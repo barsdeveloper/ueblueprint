@@ -27,8 +27,8 @@ export default class LinkMessageTemplate extends ITemplate {
     apply(linkMessage) {
         const a = super.apply(linkMessage)
         const linkMessageSetup = _ => linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
-            linkMessage.linkElement.getSourcePin(),
-            linkMessage.linkElement.getDestinationPin()
+            linkMessage.linkElement.sourcePin,
+            linkMessage.linkElement.destinationPin
         )
         linkMessage.linkElement = linkMessage.closest(LinkElement.tagName)
         if (linkMessage.linkElement) {

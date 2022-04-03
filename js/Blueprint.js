@@ -26,8 +26,6 @@ import Zoom from "./input/mouse/Zoom"
 export default class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
-    /** @type {Configuration} */
-    settings
     /** @type {Number[]} */
     #additional
     /** @type {Number[]} */
@@ -92,13 +90,12 @@ export default class Blueprint extends IElement {
         super({}, new BlueprintTemplate())
         /** @type {BlueprintTemplate} */
         this.template
-        this.settings = settings
         /** @type {Number} */
-        this.gridSize = this.settings.gridSize
+        this.gridSize = Configuration.gridSize
         /** @type {Number[]} */
-        this.#additional = [2 * this.settings.expandGridSize, 2 * this.settings.expandGridSize]
+        this.#additional = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
         /** @type {Number[]} */
-        this.#translateValue = [this.settings.expandGridSize, this.settings.expandGridSize]
+        this.#translateValue = [Configuration.expandGridSize, Configuration.expandGridSize]
     }
 
     /**
@@ -189,20 +186,20 @@ export default class Blueprint extends IElement {
         let shrink = [0, 0]
         let direction = [0, 0]
         for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < this.settings.gridExpandThreshold * this.settings.expandGridSize) {
+            if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand left/top
-                expand[i] = this.settings.expandGridSize
+                expand[i] = Configuration.expandGridSize
                 direction[i] = -1
-                if (maxScroll[i] - finalScroll[i] > this.settings.gridShrinkThreshold * this.settings.expandGridSize) {
-                    shrink[i] = -this.settings.expandGridSize
+                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
+                    shrink[i] = -Configuration.expandGridSize
                 }
             } else if (delta[i] > 0 && finalScroll[i]
-                > maxScroll[i] - this.settings.gridExpandThreshold * this.settings.expandGridSize) {
+                > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand right/bottom
-                expand[i] = this.settings.expandGridSize
+                expand[i] = Configuration.expandGridSize
                 direction[i] = 1
-                if (finalScroll[i] > this.settings.gridShrinkThreshold * this.settings.expandGridSize) {
-                    shrink[i] = -this.settings.expandGridSize
+                if (finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
+                    shrink[i] = -Configuration.expandGridSize
                 }
             }
         }
@@ -237,7 +234,7 @@ export default class Blueprint extends IElement {
     }
 
     getExpandGridSize() {
-        return this.settings.expandGridSize
+        return Configuration.expandGridSize
     }
 
     getViewportSize() {
@@ -298,7 +295,7 @@ export default class Blueprint extends IElement {
     }
 
     progressiveSnapToGrid(x) {
-        return this.settings.expandGridSize * Math.round(x / this.settings.expandGridSize + 0.5 * Math.sign(x))
+        return Configuration.expandGridSize * Math.round(x / Configuration.expandGridSize + 0.5 * Math.sign(x))
     }
 
     getZoom() {
@@ -306,7 +303,7 @@ export default class Blueprint extends IElement {
     }
 
     setZoom(zoom, center) {
-        zoom = Utility.clamp(zoom, this.settings.minZoom, this.settings.maxZoom)
+        zoom = Utility.clamp(zoom, Configuration.minZoom, Configuration.maxZoom)
         if (zoom == this.zoom) {
             return
         }
@@ -366,12 +363,12 @@ export default class Blueprint extends IElement {
     getLinks([a, b] = []) {
         if (a == null != b == null) {
             const pin = a ?? b
-            return this.links.filter(link => link.getSourcePin() == pin || link.getDestinationPin() == pin)
+            return this.links.filter(link => link.sourcePin == pin || link.destinationPin == pin)
         }
         if (a != null && b != null) {
             return this.links.filter(link =>
-                link.getSourcePin() == a && link.getDestinationPin() == b
-                || link.getSourcePin() == b && link.getDestinationPin() == a)
+                link.sourcePin == a && link.destinationPin == b
+                || link.sourcePin == b && link.destinationPin == a)
         }
         return this.links
     }
@@ -394,33 +391,27 @@ export default class Blueprint extends IElement {
      * @param  {...IElement} graphElements
      */
     addGraphElement(...graphElements) {
-        const intoArray = element => {
-            if (element instanceof NodeElement) {
+        graphElements.forEach(element => {
+            if (element instanceof NodeElement && !this.nodes.includes(element)) {
+                const nameAndCount = element.entity.getNameAndNumber()
+                // Node with the same name and number exists already
+                let maximumCount = 0
+                {
+                    (
+                        this.nodesContainerElement?.querySelectorAll(`ueb-node[data-name="${nameAndCount[0]}"]`)
+                        ?? this.nodes
+                    ).forEach(node => maximumCount = Math.max(
+                        maximumCount,
+                        /** @type {NodeElement} node */(node).entity.getNodeNumber())
+                    )
+                }
+                element.entity.Name = `${nameAndCount[0]}_${maximumCount + 1}`
                 this.nodes.push(element)
-            } else if (element instanceof LinkElement) {
+            } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
             }
-        }
-        if (this.nodesContainerElement) {
-            graphElements.forEach(element => {
-                if (element.closest(Blueprint.tagName) != this) {
-                    // If not already the in target DOM position
-                    this.nodesContainerElement.appendChild(element)
-                    intoArray(element)
-                }
-            })
-        } else {
-            graphElements
-                .filter(element => {
-                    if (element instanceof NodeElement) {
-                        return !this.nodes.includes(element)
-                    } else if (element instanceof LinkElement) {
-                        return !this.links.includes(element)
-                    }
-                    return false
-                })
-                .forEach(intoArray)
-        }
+            this.nodesContainerElement?.appendChild(element)
+        })
     }
 
     /**
@@ -456,8 +447,8 @@ export default class Blueprint extends IElement {
     dispatchEditTextEvent(value) {
         const event = new CustomEvent(
             value
-                ? this.settings.editTextEventName.begin
-                : this.settings.editTextEventName.end
+                ? Configuration.editTextEventName.begin
+                : Configuration.editTextEventName.end
         )
         this.dispatchEvent(event)
     }

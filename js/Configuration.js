@@ -1,57 +1,57 @@
 // @ts-check
 
 export default class Configuration {
-    deleteNodesKeyboardKey = "Delete"
-    editTextEventName = {
+    static deleteNodesKeyboardKey = "Delete"
+    static editTextEventName = {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
     }
-    enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
-    expandGridSize = 400
-    focusEventName = {
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    static expandGridSize = 400
+    static focusEventName = {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    fontSize = "12px"
-    gridAxisLineColor = "black"
-    gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
-    gridLineColor = "#353535"
-    gridLineWidth = 1 // pixel
-    gridSet = 8
-    gridSetLineColor = "#161616"
-    gridSize = 16 // pixel
-    keysSeparator = "+"
-    linkCurveHeight = 15 // pixel
-    linkCurveWidth = 80 // pixel
-    linkMinWidth = 100 // pixel
+    static fontSize = "12px"
+    static gridAxisLineColor = "black"
+    static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
+    static gridLineColor = "#353535"
+    static gridLineWidth = 1 // pixel
+    static gridSet = 8
+    static gridSetLineColor = "#161616"
+    static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
+    static gridSize = 16 // pixel
+    static keysSeparator = "+"
+    static linkCurveHeight = 15 // pixel
+    static linkCurveWidth = 80 // pixel
+    static linkMinWidth = 100 // pixel
     /**
      * @param {Number} start
      * @param {Number} c1
      * @param {Number} c2
      */
-    linkRightSVGPath = (start, c1, c2) => {
+    static linkRightSVGPath = (start, c1, c2) => {
         let end = 100 - start
         return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
     }
-    maxZoom = 7
-    minZoom = -12
-    nodeDeleteEventName = "ueb-node-delete"
-    nodeDragEventName = "ueb-node-drag"
-    nodeDragLocalEventName = "ueb-node-drag-local"
-    nodeRadius = 8 // in pixel
-    selectAllKeyboardKey = "(bCtrl=True,Key=A)"
-    trackingMouseEventName = {
+    static maxZoom = 7
+    static minZoom = -12
+    static nodeDeleteEventName = "ueb-node-delete"
+    static nodeDragEventName = "ueb-node-drag"
+    static nodeDragLocalEventName = "ueb-node-drag-local"
+    static nodeRadius = 8 // in pixel
+    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
+    static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
     }
-    ModifierKeys = [
+    static ModifierKeys = [
         "Ctrl",
         "Shift",
         "Alt",
         "Meta",
     ]
-    Keys = {
+    static Keys = {
         /* UE name: JS name */
         "Backspace": "Backspace",
         "Tab": "Tab",

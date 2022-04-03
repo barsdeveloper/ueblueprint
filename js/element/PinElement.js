@@ -20,14 +20,15 @@ export default class PinElement extends IElement {
         "string": StringPinTemplate,
     }
 
+    #color = ""
+
     /** @type {NodeElement} */
     nodeElement
 
     /** @type {HTMLElement} */
     clickableElement
 
-    /** @type {String} */
-    #color
+    connections = 0
 
     constructor(entity) {
         super(

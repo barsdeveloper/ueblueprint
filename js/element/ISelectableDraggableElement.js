@@ -1,5 +1,6 @@
 // @ts-check
 
+import Configuration from "../Configuration"
 import IElement from "./IElement"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
@@ -39,7 +40,7 @@ export default class ISelectableDraggableElement extends IElement {
         this.location = value
         this.template.applyLocation(this)
         if (this.blueprint) {
-            const dragLocalEvent = new CustomEvent(this.blueprint.settings.nodeDragLocalEventName, {
+            const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
                 detail: {
                     value: d
                 },
@@ -60,15 +61,15 @@ export default class ISelectableDraggableElement extends IElement {
         }
         this.selected = value
         if (this.selected) {
-            this.blueprint.addEventListener(this.blueprint.settings.nodeDragEventName, this.dragHandler)
+            this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler)
         } else {
-            this.blueprint.removeEventListener(this.blueprint.settings.nodeDragEventName, this.dragHandler)
+            this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
         }
         this.template.applySelected(this)
     }
 
     dispatchDragEvent(value) {
-        const dragEvent = new CustomEvent(this.blueprint.settings.nodeDragEventName, {
+        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             detail: {
                 value: value
             },

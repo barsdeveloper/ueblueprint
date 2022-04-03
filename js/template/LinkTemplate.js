@@ -1,5 +1,6 @@
 // @ts-check
 
+import Configuration from "../Configuration"
 import html from "./html"
 import ITemplate from "./ITemplate"
 import sanitizeText from "./sanitizeText"
@@ -85,6 +86,10 @@ export default class LinkTemplate extends ITemplate {
         }
         link.classList.add("ueb-positioned")
         link.pathElement = link.querySelector("path")
+        const referencePin = link.sourcePin ?? link.destinationPin
+        if (referencePin) {
+            link.style.setProperty("--ueb-pin-color", referencePin.getColor())
+        }
     }
 
     /**
@@ -92,10 +97,6 @@ export default class LinkTemplate extends ITemplate {
      */
     applyStartDragging(link) {
         link.blueprint.dataset.creatingLink = "true"
-        const referencePin = link.getSourcePin() ?? link.getDestinationPin()
-        if (referencePin) {
-            link.style.setProperty("--ueb-pin-color", referencePin.getColor())
-        }
         link.classList.add("ueb-link-dragging")
     }
 
@@ -123,7 +124,7 @@ export default class LinkTemplate extends ITemplate {
      */
     applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1)
-        const width = Math.max(dx, link.blueprint.settings.linkMinWidth)
+        const width = Math.max(dx, Configuration.linkMinWidth)
         const height = Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1)
         const fillRatio = dx / width
         const aspectRatio = width / height
@@ -152,7 +153,7 @@ export default class LinkTemplate extends ITemplate {
             * fillRatio
         let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width))
-        const d = link.blueprint.settings.linkRightSVGPath(start, c1, c2)
+        const d = Configuration.linkRightSVGPath(start, c1, c2)
         // TODO move to CSS when Firefox will support property d and css will have enough functions
         link.pathElement?.setAttribute("d", d)
     }

@@ -89,7 +89,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         })
         if (this.enteredPin) {
             this.blueprint.addGraphElement(this.link)
-            this.link.setDestinationPin(this.enteredPin)
+            this.link.destinationPin = this.enteredPin
             this.link.setLinkMessage(null)
             this.link.finishDragging()
         } else {

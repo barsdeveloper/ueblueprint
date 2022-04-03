@@ -22,7 +22,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                     <div class="ueb-node-header">
                         <span class="ueb-node-name">
                             <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${sanitizeText(node.entity.getName())}</span>
+                            <span class="ueb-node-text">${sanitizeText(node.getNodeName())}</span>
                         </span>
                     </div>
                     <div class="ueb-node-body">
@@ -46,7 +46,9 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected")
         }
-        node.dataset.name = node.getNodeName()
+        const name = node.entity.getNameAndNumber()
+        node.dataset.name = sanitizeText(name[0])
+        node.dataset.count = sanitizeText(name[1])
         if (node.entity.AdvancedPinDisplay) {
             node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString()
         }

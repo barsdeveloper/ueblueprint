@@ -1,5 +1,6 @@
 // @ts-check
 
+import Configuration from "../Configuration"
 import html from "./html"
 import ITemplate from "./ITemplate"
 import sanitizeText from "./sanitizeText"
@@ -71,15 +72,15 @@ export default class BlueprintTemplate extends ITemplate {
         super.apply(blueprint)
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`)
         Object.entries({
-            "--ueb-font-size": sanitizeText(blueprint.settings.fontSize),
-            "--ueb-grid-size": `${sanitizeText(blueprint.settings.gridSize)}px`,
-            "--ueb-grid-line-width": `${sanitizeText(blueprint.settings.gridLineWidth)}px`,
-            "--ueb-grid-line-color": sanitizeText(blueprint.settings.gridLineColor),
-            "--ueb-grid-set": sanitizeText(blueprint.settings.gridSet),
-            "--ueb-grid-set-line-color": sanitizeText(blueprint.settings.gridSetLineColor),
-            "--ueb-grid-axis-line-color": sanitizeText(blueprint.settings.gridAxisLineColor),
-            "--ueb-node-radius": `${sanitizeText(blueprint.settings.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(blueprint.settings.linkMinWidth)
+            "--ueb-font-size": sanitizeText(Configuration.fontSize),
+            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
+            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
+            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
+            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
+            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
+            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
+            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
+            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
         }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]))
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header')
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay')

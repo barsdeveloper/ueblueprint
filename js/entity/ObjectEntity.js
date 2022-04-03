@@ -29,6 +29,8 @@ export default class ObjectEntity extends IEntity {
         CustomProperties: [PinEntity],
     }
 
+    static nameRegex = /(\w+)_(\d+)/
+
     constructor(options = {}) {
         super(options)
         /** @type {ObjectReferenceEntity} */ this.Class
@@ -47,10 +49,22 @@ export default class ObjectEntity extends IEntity {
         /** @type {PinEntity[]} */ this.CustomProperties
     }
 
-    /**
-     * @returns {String}
-     */
-    getName() {
+    getFullName() {
         return this.Name
+    }
+
+    getNameAndNumber() {
+        const result = this.getFullName().match(ObjectEntity.nameRegex)
+        if (result && result.length == 3) {
+            return [result[1], parseInt(result[2])]
+        }
+    }
+
+    getDisplayName() {
+        return this.getNameAndNumber()[0]
+    }
+
+    getNodeNumber() {
+        return /** @type {Number} */ (this.getNameAndNumber()[1])
     }
 }

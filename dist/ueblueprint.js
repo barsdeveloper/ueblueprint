@@ -1,5 +1,151 @@
 // @ts-check
 
+class Configuration {
+    static deleteNodesKeyboardKey = "Delete"
+    static editTextEventName = {
+        begin: "ueb-edit-text-begin",
+        end: "ueb-edit-text-end",
+    }
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    static expandGridSize = 400
+    static focusEventName = {
+        begin: "blueprint-focus",
+        end: "blueprint-unfocus",
+    }
+    static fontSize = "12px"
+    static gridAxisLineColor = "black"
+    static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
+    static gridLineColor = "#353535"
+    static gridLineWidth = 1 // pixel
+    static gridSet = 8
+    static gridSetLineColor = "#161616"
+    static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
+    static gridSize = 16 // pixel
+    static keysSeparator = "+"
+    static linkCurveHeight = 15 // pixel
+    static linkCurveWidth = 80 // pixel
+    static linkMinWidth = 100 // pixel
+    /**
+     * @param {Number} start
+     * @param {Number} c1
+     * @param {Number} c2
+     */
+    static linkRightSVGPath = (start, c1, c2) => {
+        let end = 100 - start;
+        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
+    }
+    static maxZoom = 7
+    static minZoom = -12
+    static nodeDeleteEventName = "ueb-node-delete"
+    static nodeDragEventName = "ueb-node-drag"
+    static nodeDragLocalEventName = "ueb-node-drag-local"
+    static nodeRadius = 8 // in pixel
+    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
+    static trackingMouseEventName = {
+        begin: "ueb-tracking-mouse-begin",
+        end: "ueb-tracking-mouse-end",
+    }
+    static ModifierKeys = [
+        "Ctrl",
+        "Shift",
+        "Alt",
+        "Meta",
+    ]
+    static Keys = {
+        /* UE name: JS name */
+        "Backspace": "Backspace",
+        "Tab": "Tab",
+        "LeftControl": "ControlLeft",
+        "RightControl": "ControlRight",
+        "LeftShift": "ShiftLeft",
+        "RightShift": "ShiftRight",
+        "LeftAlt": "AltLeft",
+        "RightAlt": "AltRight",
+        "Enter": "Enter",
+        "Pause": "Pause",
+        "CapsLock": "CapsLock",
+        "Escape": "Escape",
+        "Space": "Space",
+        "PageUp": "PageUp",
+        "PageDown": "PageDown",
+        "End": "End",
+        "Home": "Home",
+        "ArrowLeft": "Left",
+        "ArrowUp": "Up",
+        "ArrowRight": "Right",
+        "ArrowDown": "Down",
+        "PrintScreen": "PrintScreen",
+        "Insert": "Insert",
+        "Delete": "Delete",
+        "Zero": "Digit0",
+        "One": "Digit1",
+        "Two": "Digit2",
+        "Three": "Digit3",
+        "Four": "Digit4",
+        "Five": "Digit5",
+        "Six": "Digit6",
+        "Seven": "Digit7",
+        "Eight": "Digit8",
+        "Nine": "Digit9",
+        "A": "KeyA",
+        "B": "KeyB",
+        "C": "KeyC",
+        "D": "KeyD",
+        "E": "KeyE",
+        "F": "KeyF",
+        "G": "KeyG",
+        "H": "KeyH",
+        "I": "KeyI",
+        "K": "KeyK",
+        "L": "KeyL",
+        "M": "KeyM",
+        "N": "KeyN",
+        "O": "KeyO",
+        "P": "KeyP",
+        "Q": "KeyQ",
+        "R": "KeyR",
+        "S": "KeyS",
+        "T": "KeyT",
+        "U": "KeyU",
+        "V": "KeyV",
+        "W": "KeyW",
+        "X": "KeyX",
+        "Y": "KeyY",
+        "Z": "KeyZ",
+        "NumPadZero": "Numpad0",
+        "NumPadOne": "Numpad1",
+        "NumPadTwo": "Numpad2",
+        "NumPadThree": "Numpad3",
+        "NumPadFour": "Numpad4",
+        "NumPadFive": "Numpad5",
+        "NumPadSix": "Numpad6",
+        "NumPadSeven": "Numpad7",
+        "NumPadEight": "Numpad8",
+        "NumPadNine": "Numpad9",
+        "Multiply": "NumpadMultiply",
+        "Add": "NumpadAdd",
+        "Subtract": "NumpadSubtract",
+        "Decimal": "NumpadDecimal",
+        "Divide": "NumpadDivide",
+        "F1": "F1",
+        "F2": "F2",
+        "F3": "F3",
+        "F4": "F4",
+        "F5": "F5",
+        "F6": "F6",
+        "F7": "F7",
+        "F8": "F8",
+        "F9": "F9",
+        "F10": "F10",
+        "F11": "F11",
+        "F12": "F12",
+        "NumLock": "NumLock",
+        "ScrollLock": "ScrollLock",
+    }
+}
+
+// @ts-check
+
 /**
  * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
  */
@@ -41,10 +187,7 @@ const tagReplacement = {
 };
 
 function sanitizeText(value) {
-    if (value.constructor === String) {
-        return value.replace(/[&<>'"]/g, tag => tagReplacement[tag])
-    }
-    return value
+    return value.toString().replace(/[&<>'"]/g, tag => tagReplacement[tag])
 }
 
 // @ts-check
@@ -576,15 +719,15 @@ class BlueprintTemplate extends ITemplate {
         super.apply(blueprint);
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`);
         Object.entries({
-            "--ueb-font-size": sanitizeText(blueprint.settings.fontSize),
-            "--ueb-grid-size": `${sanitizeText(blueprint.settings.gridSize)}px`,
-            "--ueb-grid-line-width": `${sanitizeText(blueprint.settings.gridLineWidth)}px`,
-            "--ueb-grid-line-color": sanitizeText(blueprint.settings.gridLineColor),
-            "--ueb-grid-set": sanitizeText(blueprint.settings.gridSet),
-            "--ueb-grid-set-line-color": sanitizeText(blueprint.settings.gridSetLineColor),
-            "--ueb-grid-axis-line-color": sanitizeText(blueprint.settings.gridAxisLineColor),
-            "--ueb-node-radius": `${sanitizeText(blueprint.settings.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(blueprint.settings.linkMinWidth)
+            "--ueb-font-size": sanitizeText(Configuration.fontSize),
+            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
+            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
+            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
+            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
+            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
+            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
+            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
+            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
         }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]));
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header');
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay');
@@ -654,152 +797,6 @@ class BlueprintTemplate extends ITemplate {
 
 // @ts-check
 
-class Configuration {
-    deleteNodesKeyboardKey = "Delete"
-    editTextEventName = {
-        begin: "ueb-edit-text-begin",
-        end: "ueb-edit-text-end",
-    }
-    enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
-    expandGridSize = 400
-    focusEventName = {
-        begin: "blueprint-focus",
-        end: "blueprint-unfocus",
-    }
-    fontSize = "12px"
-    gridAxisLineColor = "black"
-    gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
-    gridLineColor = "#353535"
-    gridLineWidth = 1 // pixel
-    gridSet = 8
-    gridSetLineColor = "#161616"
-    gridSize = 16 // pixel
-    keysSeparator = "+"
-    linkCurveHeight = 15 // pixel
-    linkCurveWidth = 80 // pixel
-    linkMinWidth = 100 // pixel
-    /**
-     * @param {Number} start
-     * @param {Number} c1
-     * @param {Number} c2
-     */
-    linkRightSVGPath = (start, c1, c2) => {
-        let end = 100 - start;
-        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
-    }
-    maxZoom = 7
-    minZoom = -12
-    nodeDeleteEventName = "ueb-node-delete"
-    nodeDragEventName = "ueb-node-drag"
-    nodeDragLocalEventName = "ueb-node-drag-local"
-    nodeRadius = 8 // in pixel
-    selectAllKeyboardKey = "(bCtrl=True,Key=A)"
-    trackingMouseEventName = {
-        begin: "ueb-tracking-mouse-begin",
-        end: "ueb-tracking-mouse-end",
-    }
-    ModifierKeys = [
-        "Ctrl",
-        "Shift",
-        "Alt",
-        "Meta",
-    ]
-    Keys = {
-        /* UE name: JS name */
-        "Backspace": "Backspace",
-        "Tab": "Tab",
-        "LeftControl": "ControlLeft",
-        "RightControl": "ControlRight",
-        "LeftShift": "ShiftLeft",
-        "RightShift": "ShiftRight",
-        "LeftAlt": "AltLeft",
-        "RightAlt": "AltRight",
-        "Enter": "Enter",
-        "Pause": "Pause",
-        "CapsLock": "CapsLock",
-        "Escape": "Escape",
-        "Space": "Space",
-        "PageUp": "PageUp",
-        "PageDown": "PageDown",
-        "End": "End",
-        "Home": "Home",
-        "ArrowLeft": "Left",
-        "ArrowUp": "Up",
-        "ArrowRight": "Right",
-        "ArrowDown": "Down",
-        "PrintScreen": "PrintScreen",
-        "Insert": "Insert",
-        "Delete": "Delete",
-        "Zero": "Digit0",
-        "One": "Digit1",
-        "Two": "Digit2",
-        "Three": "Digit3",
-        "Four": "Digit4",
-        "Five": "Digit5",
-        "Six": "Digit6",
-        "Seven": "Digit7",
-        "Eight": "Digit8",
-        "Nine": "Digit9",
-        "A": "KeyA",
-        "B": "KeyB",
-        "C": "KeyC",
-        "D": "KeyD",
-        "E": "KeyE",
-        "F": "KeyF",
-        "G": "KeyG",
-        "H": "KeyH",
-        "I": "KeyI",
-        "K": "KeyK",
-        "L": "KeyL",
-        "M": "KeyM",
-        "N": "KeyN",
-        "O": "KeyO",
-        "P": "KeyP",
-        "Q": "KeyQ",
-        "R": "KeyR",
-        "S": "KeyS",
-        "T": "KeyT",
-        "U": "KeyU",
-        "V": "KeyV",
-        "W": "KeyW",
-        "X": "KeyX",
-        "Y": "KeyY",
-        "Z": "KeyZ",
-        "NumPadZero": "Numpad0",
-        "NumPadOne": "Numpad1",
-        "NumPadTwo": "Numpad2",
-        "NumPadThree": "Numpad3",
-        "NumPadFour": "Numpad4",
-        "NumPadFive": "Numpad5",
-        "NumPadSix": "Numpad6",
-        "NumPadSeven": "Numpad7",
-        "NumPadEight": "Numpad8",
-        "NumPadNine": "Numpad9",
-        "Multiply": "NumpadMultiply",
-        "Add": "NumpadAdd",
-        "Subtract": "NumpadSubtract",
-        "Decimal": "NumpadDecimal",
-        "Divide": "NumpadDivide",
-        "F1": "F1",
-        "F2": "F2",
-        "F3": "F3",
-        "F4": "F4",
-        "F5": "F5",
-        "F6": "F6",
-        "F7": "F7",
-        "F8": "F8",
-        "F9": "F9",
-        "F10": "F10",
-        "F11": "F11",
-        "F12": "F12",
-        "NumLock": "NumLock",
-        "ScrollLock": "ScrollLock",
-    }
-}
-
-// @ts-check
-
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  */
@@ -839,21 +836,21 @@ class IContext {
         this.listenHandler = _ => self.listenEvents();
         this.unlistenHandler = _ => self.unlistenEvents();
         if (this.options.listenOnFocus) {
-            this.blueprint.addEventListener(this.blueprint.settings.focusEventName.begin, this.listenHandler);
-            this.blueprint.addEventListener(this.blueprint.settings.focusEventName.end, this.unlistenHandler);
+            this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler);
+            this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler);
         }
         if (options?.unlistenOnTextEdit ?? false) {
-            this.blueprint.addEventListener(this.blueprint.settings.editTextEventName.begin, this.unlistenHandler);
-            this.blueprint.addEventListener(this.blueprint.settings.editTextEventName.end, this.listenHandler);
+            this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
+            this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler);
         }
     }
 
     unlistenDOMElement() {
         this.unlistenEvents();
-        this.blueprint.removeEventListener(this.blueprint.settings.focusEventName.begin, this.listenHandler);
-        this.blueprint.removeEventListener(this.blueprint.settings.focusEventName.end, this.unlistenHandler);
-        this.blueprint.removeEventListener(this.blueprint.settings.editTextEventName.begin, this.unlistenHandler);
-        this.blueprint.removeEventListener(this.blueprint.settings.editTextEventName.end, this.listenHandler);
+        this.blueprint.removeEventListener(Configuration.focusEventName.begin, this.listenHandler);
+        this.blueprint.removeEventListener(Configuration.focusEventName.end, this.unlistenHandler);
+        this.blueprint.removeEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
+        this.blueprint.removeEventListener(Configuration.editTextEventName.end, this.listenHandler);
     }
 
     /* Subclasses will probabily override the following methods */
@@ -1459,6 +1456,8 @@ class ObjectEntity extends IEntity {
         CustomProperties: [PinEntity],
     }
 
+    static nameRegex = /(\w+)_(\d+)/
+
     constructor(options = {}) {
         super(options);
         /** @type {ObjectReferenceEntity} */ this.Class;
@@ -1477,11 +1476,23 @@ class ObjectEntity extends IEntity {
         /** @type {PinEntity[]} */ this.CustomProperties;
     }
 
-    /**
-     * @returns {String}
-     */
-    getName() {
+    getFullName() {
         return this.Name
+    }
+
+    getNameAndNumber() {
+        const result = this.getFullName().match(ObjectEntity.nameRegex);
+        if (result && result.length == 3) {
+            return [result[1], parseInt(result[2])]
+        }
+    }
+
+    getDisplayName() {
+        return this.getNameAndNumber()[0]
+    }
+
+    getNodeNumber() {
+        return /** @type {Number} */ (this.getNameAndNumber()[1])
     }
 }
 
@@ -1962,7 +1973,7 @@ class IKeyboardShortcut extends IContext {
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
-                    && this.blueprint.settings.Keys[keyEntry.Key] == e.code
+                    && Configuration.Keys[keyEntry.Key] == e.code
                 )) {
                 if (options.consumeEvent) {
                     e.stopImmediatePropagation();
@@ -1981,7 +1992,7 @@ class IKeyboardShortcut extends IContext {
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta"
-                    || this.blueprint.settings.Keys[keyEntry.Key] == e.code
+                    || Configuration.Keys[keyEntry.Key] == e.code
                 )) {
                 if (options.consumeEvent) {
                     e.stopImmediatePropagation();
@@ -2023,7 +2034,7 @@ class KeyboardCanc extends IKeyboardShortcut {
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: blueprint.settings.deleteNodesKeyboardKey
+            activationKeys: Configuration.deleteNodesKeyboardKey
         };
         super(target, blueprint, options);
     }
@@ -2155,7 +2166,7 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: blueprint.settings.enableZoomIn
+            activationKeys: Configuration.enableZoomIn
         };
         super(target, blueprint, options);
     }
@@ -2185,7 +2196,7 @@ class KeyboardSelectAll extends IKeyboardShortcut {
     constructor(target, blueprint, options = {}) {
         options = {
             ...options,
-            activationKeys: blueprint.settings.selectAllKeyboardKey
+            activationKeys: Configuration.selectAllKeyboardKey
         };
         super(target, blueprint, options);
     }
@@ -2278,6 +2289,10 @@ class LinkTemplate extends ITemplate {
         }
         link.classList.add("ueb-positioned");
         link.pathElement = link.querySelector("path");
+        const referencePin = link.sourcePin ?? link.destinationPin;
+        if (referencePin) {
+            link.style.setProperty("--ueb-pin-color", referencePin.getColor());
+        }
     }
 
     /**
@@ -2285,10 +2300,6 @@ class LinkTemplate extends ITemplate {
      */
     applyStartDragging(link) {
         link.blueprint.dataset.creatingLink = "true";
-        const referencePin = link.getSourcePin() ?? link.getDestinationPin();
-        if (referencePin) {
-            link.style.setProperty("--ueb-pin-color", referencePin.getColor());
-        }
         link.classList.add("ueb-link-dragging");
     }
 
@@ -2316,7 +2327,7 @@ class LinkTemplate extends ITemplate {
      */
     applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1);
-        const width = Math.max(dx, link.blueprint.settings.linkMinWidth);
+        const width = Math.max(dx, Configuration.linkMinWidth);
         Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1);
         const fillRatio = dx / width;
         const xInverted = link.originatesFromInput
@@ -2344,7 +2355,7 @@ class LinkTemplate extends ITemplate {
             * fillRatio;
         let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start;
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width));
-        const d = link.blueprint.settings.linkRightSVGPath(start, c1, c2);
+        const d = Configuration.linkRightSVGPath(start, c1, c2);
         // TODO move to CSS when Firefox will support property d and css will have enough functions
         link.pathElement?.setAttribute("d", d);
     }
@@ -2370,10 +2381,60 @@ class LinkTemplate extends ITemplate {
 class LinkElement extends IElement {
 
     static tagName = "ueb-link"
+
     /** @type {PinElement} */
     #source
+    get sourcePin() {
+        return this.#source
+    }
+    set sourcePin(pin) {
+        if (this.#source) {
+            const nodeElement = this.#source.getNodeElement();
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
+            if (this.#destination) {
+                this.#unlinkPins();
+            }
+        }
+        this.#source = pin;
+        if (this.#source) {
+            const nodeElement = this.#source.getNodeElement();
+            this.originatesFromInput = pin.isInput();
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
+            this.setSourceLocation();
+            if (this.#destination) {
+                this.#linkPins();
+            }
+        }
+    }
+
     /** @type {PinElement} */
     #destination
+    get destinationPin() {
+        return this.#destination
+    }
+    set destinationPin(pin) {
+        if (this.#destination) {
+            const nodeElement = this.#destination.getNodeElement();
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
+            if (this.#source) {
+                this.#unlinkPins();
+            }
+        }
+        this.#destination = pin;
+        if (this.#destination) {
+            const nodeElement = this.#destination.getNodeElement();
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
+            this.setDestinationLocation();
+            if (this.#source) {
+                this.#linkPins();
+            }
+        }
+    }
+
     #nodeDeleteHandler
     #nodeDragSourceHandler
     #nodeDragDestinatonHandler
@@ -2398,10 +2459,10 @@ class LinkElement extends IElement {
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value);
         this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value);
         if (source) {
-            this.setSourcePin(source);
+            this.sourcePin = source;
         }
         if (destination) {
-            this.setDestinationPin(destination);
+            this.destinationPin = destination;
         }
         if (source && destination) {
             this.#linkPins();
@@ -2482,71 +2543,6 @@ class LinkElement extends IElement {
         }
         this.destinationLocation = location;
         this.template.applyFullLocation(this);
-    }
-
-    /**
-     * @returns {PinElement}
-     */
-    getSourcePin() {
-        return this.#source
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    setSourcePin(pin) {
-        if (this.#source) {
-            const settings = this.#source.blueprint.settings;
-            const nodeElement = this.#source.getNodeElement();
-            nodeElement.removeEventListener(settings.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(settings.nodeDragLocalEventName, this.#nodeDragSourceHandler);
-            if (this.#destination) {
-                this.#unlinkPins();
-            }
-        }
-        this.#source = pin;
-        if (this.#source) {
-            const nodeElement = this.#source.getNodeElement();
-            const settings = this.#source.blueprint.settings;
-            this.originatesFromInput = pin.isInput();
-            nodeElement.addEventListener(settings.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(settings.nodeDragLocalEventName, this.#nodeDragSourceHandler);
-            this.setSourceLocation();
-            if (this.#destination) {
-                this.#linkPins();
-            }
-        }
-    }
-
-    /**
-     * @returns {PinElement}
-     */
-    getDestinationPin() {
-        return this.#destination
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    setDestinationPin(pin) {
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement();
-            nodeElement.removeEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
-            if (this.#source) {
-                this.#unlinkPins();
-            }
-        }
-        this.#destination = pin;
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement();
-            nodeElement.addEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
-            this.setDestinationLocation();
-            if (this.#source) {
-                this.#linkPins();
-            }
-        }
     }
 
     /**
@@ -2646,7 +2642,7 @@ class IMouseClickDrag extends IPointing {
             movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-            const dragEvent = self.getEvent(this.blueprint.settings.trackingMouseEventName.begin);
+            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
             self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
             // Do actual actions
             self.startDrag();
@@ -2679,7 +2675,7 @@ class IMouseClickDrag extends IPointing {
                 }
                 self.unclicked();
                 if (self.#trackingMouse) {
-                    const dragEvent = self.getEvent(this.blueprint.settings.trackingMouseEventName.end);
+                    const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end);
                     this.target.dispatchEvent(dragEvent);
                     self.#trackingMouse = false;
                 }
@@ -2800,20 +2796,20 @@ class MouseTracking extends IPointing {
     listenEvents() {
         this.listenMouseMove();
         this.blueprint.addEventListener(
-            this.blueprint.settings.trackingMouseEventName.begin,
+            Configuration.trackingMouseEventName.begin,
             /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
         this.blueprint.addEventListener(
-            this.blueprint.settings.trackingMouseEventName.end,
+            Configuration.trackingMouseEventName.end,
             /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
     }
 
     unlistenEvents() {
         this.unlistenMouseMove();
         this.blueprint.removeEventListener(
-            this.blueprint.settings.trackingMouseEventName.begin,
+            Configuration.trackingMouseEventName.begin,
             /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
         this.blueprint.removeEventListener(
-            this.blueprint.settings.trackingMouseEventName.end,
+            Configuration.trackingMouseEventName.end,
             /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
         );
     }
@@ -2916,7 +2912,7 @@ class ISelectableDraggableElement extends IElement {
         this.location = value;
         this.template.applyLocation(this);
         if (this.blueprint) {
-            const dragLocalEvent = new CustomEvent(this.blueprint.settings.nodeDragLocalEventName, {
+            const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
                 detail: {
                     value: d
                 },
@@ -2937,15 +2933,15 @@ class ISelectableDraggableElement extends IElement {
         }
         this.selected = value;
         if (this.selected) {
-            this.blueprint.addEventListener(this.blueprint.settings.nodeDragEventName, this.dragHandler);
+            this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
         } else {
-            this.blueprint.removeEventListener(this.blueprint.settings.nodeDragEventName, this.dragHandler);
+            this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
         }
         this.template.applySelected(this);
     }
 
     dispatchDragEvent(value) {
-        const dragEvent = new CustomEvent(this.blueprint.settings.nodeDragEventName, {
+        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             detail: {
                 value: value
             },
@@ -2987,8 +2983,8 @@ class LinkMessageTemplate extends ITemplate {
     apply(linkMessage) {
         super.apply(linkMessage);
         const linkMessageSetup = _ => linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
-            linkMessage.linkElement.getSourcePin(),
-            linkMessage.linkElement.getDestinationPin()
+            linkMessage.linkElement.sourcePin,
+            linkMessage.linkElement.destinationPin
         );
         linkMessage.linkElement = linkMessage.closest(LinkElement.tagName);
         if (linkMessage.linkElement) {
@@ -3150,7 +3146,7 @@ class MouseCreateLink extends IMouseClickDrag {
         });
         if (this.enteredPin) {
             this.blueprint.addGraphElement(this.link);
-            this.link.setDestinationPin(this.enteredPin);
+            this.link.destinationPin = this.enteredPin;
             this.link.setLinkMessage(null);
             this.link.finishDragging();
         } else {
@@ -3234,7 +3230,7 @@ class PinTemplate extends ITemplate {
             pin.dataset.advancedView = "true";
         }
         pin.clickableElement = pin;
-        window.customElements.whenDefined("ueb-node").then(_ => pin.nodeElement = pin.closest("ueb-node"));
+        pin.nodeElement = pin.closest("ueb-node");
         pin.getLinks().forEach(pinReference => {
             const targetPin = pin.blueprint.getPin(pinReference);
             if (targetPin) {
@@ -3333,14 +3329,15 @@ class PinElement extends IElement {
         "string": StringPinTemplate,
     }
 
+    #color = ""
+
     /** @type {NodeElement} */
     nodeElement
 
     /** @type {HTMLElement} */
     clickableElement
 
-    /** @type {String} */
-    #color
+    connections = 0
 
     constructor(entity) {
         super(
@@ -3505,7 +3502,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                     <div class="ueb-node-header">
                         <span class="ueb-node-name">
                             <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${sanitizeText(node.entity.getName())}</span>
+                            <span class="ueb-node-text">${sanitizeText(node.getNodeName())}</span>
                         </span>
                     </div>
                     <div class="ueb-node-body">
@@ -3529,7 +3526,9 @@ class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected");
         }
-        node.dataset.name = node.getNodeName();
+        const name = node.entity.getNameAndNumber();
+        node.dataset.name = sanitizeText(name[0]);
+        node.dataset.count = sanitizeText(name[1]);
         if (node.entity.AdvancedPinDisplay) {
             node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
         }
@@ -3583,7 +3582,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     getNodeName() {
-        return this.entity.getName()
+        return this.entity.getFullName()
     }
 
     getPinElements() {
@@ -3612,7 +3611,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     dispatchDeleteEvent(value) {
-        let deleteEvent = new CustomEvent(this.blueprint.settings.nodeDeleteEventName, {
+        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName, {
             bubbles: true,
             cancelable: true,
         });
@@ -3753,8 +3752,6 @@ class Unfocus extends IContext {
 class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
-    /** @type {Configuration} */
-    settings
     /** @type {Number[]} */
     #additional
     /** @type {Number[]} */
@@ -3819,13 +3816,12 @@ class Blueprint extends IElement {
         super({}, new BlueprintTemplate());
         /** @type {BlueprintTemplate} */
         this.template;
-        this.settings = settings;
         /** @type {Number} */
-        this.gridSize = this.settings.gridSize;
+        this.gridSize = Configuration.gridSize;
         /** @type {Number[]} */
-        this.#additional = [2 * this.settings.expandGridSize, 2 * this.settings.expandGridSize];
+        this.#additional = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
         /** @type {Number[]} */
-        this.#translateValue = [this.settings.expandGridSize, this.settings.expandGridSize];
+        this.#translateValue = [Configuration.expandGridSize, Configuration.expandGridSize];
     }
 
     /**
@@ -3916,20 +3912,20 @@ class Blueprint extends IElement {
         let shrink = [0, 0];
         let direction = [0, 0];
         for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < this.settings.gridExpandThreshold * this.settings.expandGridSize) {
+            if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand left/top
-                expand[i] = this.settings.expandGridSize;
+                expand[i] = Configuration.expandGridSize;
                 direction[i] = -1;
-                if (maxScroll[i] - finalScroll[i] > this.settings.gridShrinkThreshold * this.settings.expandGridSize) {
-                    shrink[i] = -this.settings.expandGridSize;
+                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
+                    shrink[i] = -Configuration.expandGridSize;
                 }
             } else if (delta[i] > 0 && finalScroll[i]
-                > maxScroll[i] - this.settings.gridExpandThreshold * this.settings.expandGridSize) {
+                > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand right/bottom
-                expand[i] = this.settings.expandGridSize;
+                expand[i] = Configuration.expandGridSize;
                 direction[i] = 1;
-                if (finalScroll[i] > this.settings.gridShrinkThreshold * this.settings.expandGridSize) {
-                    shrink[i] = -this.settings.expandGridSize;
+                if (finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
+                    shrink[i] = -Configuration.expandGridSize;
                 }
             }
         }
@@ -3964,7 +3960,7 @@ class Blueprint extends IElement {
     }
 
     getExpandGridSize() {
-        return this.settings.expandGridSize
+        return Configuration.expandGridSize
     }
 
     getViewportSize() {
@@ -4025,7 +4021,7 @@ class Blueprint extends IElement {
     }
 
     progressiveSnapToGrid(x) {
-        return this.settings.expandGridSize * Math.round(x / this.settings.expandGridSize + 0.5 * Math.sign(x))
+        return Configuration.expandGridSize * Math.round(x / Configuration.expandGridSize + 0.5 * Math.sign(x))
     }
 
     getZoom() {
@@ -4033,7 +4029,7 @@ class Blueprint extends IElement {
     }
 
     setZoom(zoom, center) {
-        zoom = Utility.clamp(zoom, this.settings.minZoom, this.settings.maxZoom);
+        zoom = Utility.clamp(zoom, Configuration.minZoom, Configuration.maxZoom);
         if (zoom == this.zoom) {
             return
         }
@@ -4093,12 +4089,12 @@ class Blueprint extends IElement {
     getLinks([a, b] = []) {
         if (a == null != b == null) {
             const pin = a ?? b;
-            return this.links.filter(link => link.getSourcePin() == pin || link.getDestinationPin() == pin)
+            return this.links.filter(link => link.sourcePin == pin || link.destinationPin == pin)
         }
         if (a != null && b != null) {
             return this.links.filter(link =>
-                link.getSourcePin() == a && link.getDestinationPin() == b
-                || link.getSourcePin() == b && link.getDestinationPin() == a)
+                link.sourcePin == a && link.destinationPin == b
+                || link.sourcePin == b && link.destinationPin == a)
         }
         return this.links
     }
@@ -4121,33 +4117,27 @@ class Blueprint extends IElement {
      * @param  {...IElement} graphElements
      */
     addGraphElement(...graphElements) {
-        const intoArray = element => {
-            if (element instanceof NodeElement) {
+        graphElements.forEach(element => {
+            if (element instanceof NodeElement && !this.nodes.includes(element)) {
+                const nameAndCount = element.entity.getNameAndNumber();
+                // Node with the same name and number exists already
+                let maximumCount = 0;
+                {
+                    (
+                        this.nodesContainerElement?.querySelectorAll(`ueb-node[data-name="${nameAndCount[0]}"]`)
+                        ?? this.nodes
+                    ).forEach(node => maximumCount = Math.max(
+                        maximumCount,
+                        /** @type {NodeElement} node */(node).entity.getNodeNumber())
+                    );
+                }
+                element.entity.Name = `${nameAndCount[0]}_${maximumCount + 1}`;
                 this.nodes.push(element);
-            } else if (element instanceof LinkElement) {
+            } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
             }
-        };
-        if (this.nodesContainerElement) {
-            graphElements.forEach(element => {
-                if (element.closest(Blueprint.tagName) != this) {
-                    // If not already the in target DOM position
-                    this.nodesContainerElement.appendChild(element);
-                    intoArray(element);
-                }
-            });
-        } else {
-            graphElements
-                .filter(element => {
-                    if (element instanceof NodeElement) {
-                        return !this.nodes.includes(element)
-                    } else if (element instanceof LinkElement) {
-                        return !this.links.includes(element)
-                    }
-                    return false
-                })
-                .forEach(intoArray);
-        }
+            this.nodesContainerElement?.appendChild(element);
+        });
     }
 
     /**
@@ -4183,8 +4173,8 @@ class Blueprint extends IElement {
     dispatchEditTextEvent(value) {
         const event = new CustomEvent(
             value
-                ? this.settings.editTextEventName.begin
-                : this.settings.editTextEventName.end
+                ? Configuration.editTextEventName.begin
+                : Configuration.editTextEventName.end
         );
         this.dispatchEvent(event);
     }

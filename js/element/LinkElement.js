@@ -1,5 +1,6 @@
 // @ts-check
 
+import Configuration from "../Configuration"
 import IElement from "./IElement"
 import LinkTemplate from "../template/LinkTemplate"
 
@@ -10,10 +11,60 @@ import LinkTemplate from "../template/LinkTemplate"
 export default class LinkElement extends IElement {
 
     static tagName = "ueb-link"
+
     /** @type {PinElement} */
     #source
+    get sourcePin() {
+        return this.#source
+    }
+    set sourcePin(pin) {
+        if (this.#source) {
+            const nodeElement = this.#source.getNodeElement()
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+            if (this.#destination) {
+                this.#unlinkPins()
+            }
+        }
+        this.#source = pin
+        if (this.#source) {
+            const nodeElement = this.#source.getNodeElement()
+            this.originatesFromInput = pin.isInput()
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+            this.setSourceLocation()
+            if (this.#destination) {
+                this.#linkPins()
+            }
+        }
+    }
+
     /** @type {PinElement} */
     #destination
+    get destinationPin() {
+        return this.#destination
+    }
+    set destinationPin(pin) {
+        if (this.#destination) {
+            const nodeElement = this.#destination.getNodeElement()
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
+            if (this.#source) {
+                this.#unlinkPins()
+            }
+        }
+        this.#destination = pin
+        if (this.#destination) {
+            const nodeElement = this.#destination.getNodeElement()
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
+            this.setDestinationLocation()
+            if (this.#source) {
+                this.#linkPins()
+            }
+        }
+    }
+
     #nodeDeleteHandler
     #nodeDragSourceHandler
     #nodeDragDestinatonHandler
@@ -38,10 +89,10 @@ export default class LinkElement extends IElement {
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value)
         this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value)
         if (source) {
-            this.setSourcePin(source)
+            this.sourcePin = source
         }
         if (destination) {
-            this.setDestinationPin(destination)
+            this.destinationPin = destination
         }
         if (source && destination) {
             this.#linkPins()
@@ -122,71 +173,6 @@ export default class LinkElement extends IElement {
         }
         this.destinationLocation = location
         this.template.applyFullLocation(this)
-    }
-
-    /**
-     * @returns {PinElement}
-     */
-    getSourcePin() {
-        return this.#source
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    setSourcePin(pin) {
-        if (this.#source) {
-            const settings = this.#source.blueprint.settings
-            const nodeElement = this.#source.getNodeElement()
-            nodeElement.removeEventListener(settings.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(settings.nodeDragLocalEventName, this.#nodeDragSourceHandler)
-            if (this.#destination) {
-                this.#unlinkPins()
-            }
-        }
-        this.#source = pin
-        if (this.#source) {
-            const nodeElement = this.#source.getNodeElement()
-            const settings = this.#source.blueprint.settings
-            this.originatesFromInput = pin.isInput()
-            nodeElement.addEventListener(settings.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(settings.nodeDragLocalEventName, this.#nodeDragSourceHandler)
-            this.setSourceLocation()
-            if (this.#destination) {
-                this.#linkPins()
-            }
-        }
-    }
-
-    /**
-     * @returns {PinElement}
-     */
-    getDestinationPin() {
-        return this.#destination
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    setDestinationPin(pin) {
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement()
-            nodeElement.removeEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
-            if (this.#source) {
-                this.#unlinkPins()
-            }
-        }
-        this.#destination = pin
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement()
-            nodeElement.addEventListener(this.blueprint.settings.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(this.blueprint.settings.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
-            this.setDestinationLocation()
-            if (this.#source) {
-                this.#linkPins()
-            }
-        }
     }
 
     /**

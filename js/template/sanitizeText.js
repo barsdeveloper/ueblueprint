@@ -11,10 +11,7 @@ const tagReplacement = {
 }
 
 function sanitizeText(value) {
-    if (value.constructor === String) {
-        return value.replace(/[&<>'"]/g, tag => tagReplacement[tag])
-    }
-    return value
+    return value.toString().replace(/[&<>'"]/g, tag => tagReplacement[tag])
 }
 
 export default sanitizeText

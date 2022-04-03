@@ -1,5 +1,6 @@
 // @ts-check
 
+import Configuration from "../../Configuration"
 import IContext from "../IContext"
 import ISerializer from "../../serialization/ISerializer"
 import KeyBindingEntity from "../../entity/KeyBindingEntity"
@@ -45,7 +46,7 @@ export default class IKeyboardShortcut extends IContext {
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
-                    && this.blueprint.settings.Keys[keyEntry.Key] == e.code
+                    && Configuration.Keys[keyEntry.Key] == e.code
                 )) {
                 if (options.consumeEvent) {
                     e.stopImmediatePropagation()
@@ -64,7 +65,7 @@ export default class IKeyboardShortcut extends IContext {
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta"
-                    || this.blueprint.settings.Keys[keyEntry.Key] == e.code
+                    || Configuration.Keys[keyEntry.Key] == e.code
                 )) {
                 if (options.consumeEvent) {
                     e.stopImmediatePropagation()

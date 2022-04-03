@@ -1,10 +1,11 @@
 // @ts-check
 
+import Configuration from "../Configuration"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"
 import NodeTemplate from "../template/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"
-import SerializerFactory from "../serialization/SerializerFactory"
 import PinEntity from "../entity/PinEntity"
+import SerializerFactory from "../serialization/SerializerFactory"
 
 export default class NodeElement extends ISelectableDraggableElement {
 
@@ -34,7 +35,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     getNodeName() {
-        return this.entity.getName()
+        return this.entity.getFullName()
     }
 
     getPinElements() {
@@ -63,7 +64,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     dispatchDeleteEvent(value) {
-        let deleteEvent = new CustomEvent(this.blueprint.settings.nodeDeleteEventName, {
+        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName, {
             bubbles: true,
             cancelable: true,
         })
