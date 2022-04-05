@@ -39,6 +39,7 @@ class Configuration {
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragLocalEventName = "ueb-node-drag-local"
+    static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // in pixel
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {
@@ -506,27 +507,52 @@ class FastSelectionModel {
  * @typedef {import("../template/ITemplate").default} ITemplate
  */
 
+/**
+ * @template {IEntity} T
+ * @template {ITemplate} U
+ */
 class IElement extends HTMLElement {
 
     static tagName = ""
 
     /** @type {Blueprint} */
-    blueprint
+    #blueprint
+    get blueprint() {
+        return this.#blueprint
+    }
+    set blueprint(blueprint) {
+        this.#blueprint = blueprint;
+    }
 
-    /** @type {IEntity} */
-    entity
+    /** @type {T} */
+    #entity
+    get entity() {
+        return this.#entity
+    }
+    set entity(entity) {
+        this.#entity = entity;
+    }
 
-    /** @type {ITemplate} */
-    template
+    /** @type {U} */
+    #template
+    get template() {
+        return this.#template
+    }
+    set template(template) {
+        this.#template = template;
+    }
 
     /** @type {IContext[]} */
     inputObjects = []
 
+    /**
+     * @param {T} entity
+     * @param {U} template
+     */
     constructor(entity, template) {
         super();
-        this.blueprint = null;
-        this.entity = entity;
-        this.template = template;
+        this.#entity = entity;
+        this.#template = template;
         this.inputObjects = [];
     }
 
@@ -535,7 +561,7 @@ class IElement extends HTMLElement {
     }
 
     connectedCallback() {
-        this.blueprint = this.closest("ueb-blueprint");
+        this.#blueprint = this.closest("ueb-blueprint");
         this.template.apply(this);
         this.inputObjects = this.createInputObjects();
     }
@@ -546,16 +572,16 @@ class IElement extends HTMLElement {
 
     /** @param {IElement} element */
     isSameGraph(element) {
-        return this.blueprint && this.blueprint == element?.blueprint
+        return this.#blueprint && this.#blueprint == element?.blueprint
     }
 
     /**
-     * @template {IContext} T
-     * @param {new (...args: any[]) => T} type
-     * @returns {T}
+     * @template {IContext} V
+     * @param {new (...args: any[]) => V} type
+     * @returns {V}
      */
     getInputObject(type) {
-        return /** @type {T} */ (this.inputObjects.find(object => object.constructor == type))
+        return /** @type {V} */ (this.inputObjects.find(object => object.constructor == type))
     }
 
     // Subclasses will want to override
@@ -614,6 +640,9 @@ class SelectorTemplate extends ITemplate {
 
 // @ts-check
 
+/**
+ * @extends {IElement<Object, SelectorTemplate>}
+ */
 class SelectorElement extends IElement {
 
     static tagName = "ueb-selector"
@@ -621,8 +650,6 @@ class SelectorElement extends IElement {
     constructor() {
         super({}, new SelectorTemplate());
         this.selectionModel = null;
-        /** @type {SelectorTemplate} */
-        this.template;
     }
 
     /**
@@ -649,12 +676,13 @@ class SelectorElement extends IElement {
     }
 }
 
-customElements.define(SelectorElement.tagName, SelectorElement);
+customElements.define("ueb-selector", SelectorElement);
 
 // @ts-check
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint
+ * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
 class BlueprintTemplate extends ITemplate {
@@ -784,9 +812,9 @@ class BlueprintTemplate extends ITemplate {
 
     /**
      * 
-     * @param {Blueprint} blueprint 
-     * @param {PinReferenceEntity} pinReference 
-     * @returns 
+     * @param {Blueprint} blueprint
+     * @param {PinReferenceEntity} pinReference
+     * @returns {PinElement}
      */
     getPin(blueprint, pinReference) {
         return blueprint.querySelector(
@@ -1480,7 +1508,7 @@ class ObjectEntity extends IEntity {
         return this.Name
     }
 
-    getNameAndNumber() {
+    getNameAndCounter() {
         const result = this.getFullName().match(ObjectEntity.nameRegex);
         if (result && result.length == 3) {
             return [result[1], parseInt(result[2])]
@@ -1488,11 +1516,11 @@ class ObjectEntity extends IEntity {
     }
 
     getDisplayName() {
-        return this.getNameAndNumber()[0]
+        return /** @type {String} */ (this.getNameAndCounter()[0])
     }
 
-    getNodeNumber() {
-        return /** @type {Number} */ (this.getNameAndNumber()[1])
+    getCounter() {
+        return /** @type {Number} */ (this.getNameAndCounter()[1])
     }
 }
 
@@ -2365,8 +2393,7 @@ class LinkTemplate extends ITemplate {
      * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {
-        // @ts-expect-error
-        link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove());
+        link.querySelectorAll("ueb-link-message").forEach(element => element.remove());
         link.appendChild(linkMessage);
         link.linkMessageElement = linkMessage;
     }
@@ -2377,6 +2404,11 @@ class LinkTemplate extends ITemplate {
 /**
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("./LinkMessageElement").default} LinkMessageElement
+ * @typedef {import("../entity/IEntity").default} IEntity
+ */
+
+/**
+ * @extends {IElement<Object, LinkTemplate>}
  */
 class LinkElement extends IElement {
 
@@ -2452,8 +2484,6 @@ class LinkElement extends IElement {
      */
     constructor(source, destination) {
         super({}, new LinkTemplate());
-        /** @type {import("../template/LinkTemplate").default} */
-        this.template;
         const self = this;
         this.#nodeDeleteHandler = _ => self.remove();
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value);
@@ -2566,7 +2596,7 @@ class LinkElement extends IElement {
     }
 }
 
-customElements.define(LinkElement.tagName, LinkElement);
+customElements.define("ueb-link", LinkElement);
 
 // @ts-check
 
@@ -2878,17 +2908,22 @@ class MouseMoveNodes extends IMouseClickDrag {
 
 /**
  * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
- * @typedef {import("../entity/IntegerEntity").default} IntegerEntity
+ * @typedef {import("../entity/IEntity").default} IEntity  
+ */
+
+/**
+ * @template {IEntity} T
+ * @template {SelectableDraggableTemplate} U
+ * @extends {IElement<T, U>}
  */
 class ISelectableDraggableElement extends IElement {
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args);
         this.dragObject = null;
         this.location = [0, 0];
         this.selected = false;
-        /** @type {SelectableDraggableTemplate} */
-        this.template;
 
         let self = this;
         this.dragHandler = (e) => {
@@ -2982,15 +3017,16 @@ class LinkMessageTemplate extends ITemplate {
      */
     apply(linkMessage) {
         super.apply(linkMessage);
-        const linkMessageSetup = _ => linkMessage.querySelector(".ueb-link-message").innerText = linkMessage.message(
+        const linkMessageSetup = _ =>
+            /** @type {HTMLElement} */(linkMessage.querySelector(".ueb-link-message")).innerText = linkMessage.message(
             linkMessage.linkElement.sourcePin,
             linkMessage.linkElement.destinationPin
         );
-        linkMessage.linkElement = linkMessage.closest(LinkElement.tagName);
+        linkMessage.linkElement = linkMessage.closest("ueb-link");
         if (linkMessage.linkElement) {
             linkMessageSetup();
         } else {
-            window.customElements.whenDefined(linkMessage.constructor.tagName).then(linkMessage);
+            window.customElements.whenDefined("ueb-link-message").then(linkMessage);
         }
     }
 
@@ -3002,6 +3038,10 @@ class LinkMessageTemplate extends ITemplate {
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("./LinkElement").default} LinkElement
  * @typedef {(sourcePin: PinElement, destinationPin: PinElement) => String} LinkRetrieval
+ */
+
+/**
+ * @extends {IElement<Object, LinkMessageTemplate>}
  */
 class LinkMessageElement extends IElement {
 
@@ -3044,7 +3084,7 @@ class LinkMessageElement extends IElement {
 
     /** @type {String} */
     icon
-    /** @type {String} */
+    /** @type {LinkRetrieval} */
     message
     /** @type {LinkElement} */
     linkElement
@@ -3057,7 +3097,7 @@ class LinkMessageElement extends IElement {
 
 }
 
-customElements.define(LinkMessageElement.tagName, LinkMessageElement);
+customElements.define("ueb-link-message", LinkMessageElement);
 
 // @ts-check
 
@@ -3318,7 +3358,12 @@ class StringPinTemplate extends PinTemplate {
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
  * @typedef {import("../entity/PinEntity").default} PinEntity
+ * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./NodeElement").default} NodeElement
+ */
+
+/**
+ * @extends {IElement<PinEntity, PinTemplate>}
  */
 class PinElement extends IElement {
 
@@ -3344,12 +3389,6 @@ class PinElement extends IElement {
             entity,
             new (PinElement.#typeTemplateMap[entity.getType()] ?? PinTemplate)()
         );
-
-        /** @type {PinEntity} */
-        this.entity;
-
-        /** @type {PinTemplate} */
-        this.template;
     }
 
     connectedCallback() {
@@ -3414,10 +3453,6 @@ class PinElement extends IElement {
         return this.#color
     }
 
-    /**
-     * Returns The exact location where the link originates from or arrives at.
-     * @returns {Number[]} The location array
-     */
     getLinkLocation() {
         return this.template.getLinkLocation(this)
     }
@@ -3430,9 +3465,7 @@ class PinElement extends IElement {
     }
 
     getLinks() {
-        return this.entity.LinkedTo?.map(pinReference =>
-            pinReference
-        ) ?? []
+        return this.entity.LinkedTo ?? []
     }
 
     /**
@@ -3450,9 +3483,26 @@ class PinElement extends IElement {
         this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity);
         this.template.applyConnected(this);
     }
+
+    /**
+     * 
+     * @param {PinElement} originalPinElement
+     * @param {PinReferenceEntity} newReference
+     */
+    redirectLink(originalPinElement, newReference) {
+        const index = this.entity.LinkedTo.findIndex(pinReference =>
+            pinReference.objectName.toString() == originalPinElement.getPinName()
+            && pinReference.pinGuid == originalPinElement.entity.PinId
+        );
+        if (index >= 0) {
+            this.entity.LinkedTo[index] = newReference;
+            return true
+        }
+        return false
+    }
 }
 
-customElements.define(PinElement.tagName, PinElement);
+customElements.define("ueb-pin", PinElement);
 
 // @ts-check
 
@@ -3526,9 +3576,8 @@ class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected");
         }
-        const name = node.entity.getNameAndNumber();
-        node.dataset.name = sanitizeText(name[0]);
-        node.dataset.count = sanitizeText(name[1]);
+        const nodeName = node.entity.getFullName();
+        node.dataset.name = sanitizeText(nodeName);
         if (node.entity.AdvancedPinDisplay) {
             node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
         }
@@ -3548,12 +3597,15 @@ class NodeTemplate extends SelectableDraggableTemplate {
      * @returns {NodeListOf<PinElement>}
      */
     getPinElements(node) {
-        return node.querySelectorAll(PinElement.tagName)
+        return node.querySelectorAll("ueb-pin")
     }
 }
 
 // @ts-check
 
+/**
+ * @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>}
+ */
 class NodeElement extends ISelectableDraggableElement {
 
     static tagName = "ueb-node"
@@ -3563,10 +3615,6 @@ class NodeElement extends ISelectableDraggableElement {
      */
     constructor(entity) {
         super(entity, new NodeTemplate());
-        /** @type {ObjectEntity} */
-        this.entity;
-        /** @type {NodeTemplate} */
-        this.template;
         this.dragLinkObjects = [];
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
     }
@@ -3583,6 +3631,23 @@ class NodeElement extends ISelectableDraggableElement {
 
     getNodeName() {
         return this.entity.getFullName()
+    }
+
+    /**
+     * @param {String} name
+     */
+    rename(name) {
+        if (this.entity.Name == name) {
+            return false
+        }
+        this.getPinElements().forEach(sourcePinElement =>
+            sourcePinElement.getLinks().forEach(targetPinReference =>
+                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
+                    objectName: name,
+                    pinGuid: sourcePinElement.entity.PinId,
+                }))
+            ));
+        this.entity.Name = name;
     }
 
     getPinElements() {
@@ -3619,7 +3684,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 }
 
-customElements.define(NodeElement.tagName, NodeElement);
+customElements.define("ueb-node", NodeElement);
 
 // @ts-check
 
@@ -3749,13 +3814,15 @@ class Unfocus extends IContext {
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
  */
+
+/**
+ * @extends {IElement<Object, BlueprintTemplate>}
+ */
 class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
     /** @type {Number[]} */
     #additional
-    /** @type {Number[]} */
-    #translateValue
     get additional() {
         return this.#additional
     }
@@ -3763,12 +3830,16 @@ class Blueprint extends IElement {
         value[0] = Math.abs(value[0]);
         value[1] = Math.abs(value[1]);
     }
+    /** @type {Number[]} */
+    #translateValue
     get translateValue() {
         return this.#translateValue
     }
     set translateValue(value) {
         this.#translateValue = value;
     }
+    /** @type {Map<String, Number>} */
+    #nodeNameCounter = new Map()
     /** @type {Number} */
     gridSize
     /** @type {NodeElement[]}" */
@@ -3814,8 +3885,6 @@ class Blueprint extends IElement {
      */
     constructor(settings = new Configuration()) {
         super({}, new BlueprintTemplate());
-        /** @type {BlueprintTemplate} */
-        this.template;
         /** @type {Number} */
         this.gridSize = Configuration.gridSize;
         /** @type {Number[]} */
@@ -4056,6 +4125,9 @@ class Blueprint extends IElement {
         return parseFloat(getComputedStyle(this.gridElement).getPropertyValue("--ueb-scale"))
     }
 
+    /**
+     * @param {Number[]} position
+     */
     compensateTranslation(position) {
         position[0] -= this.translateValue[0];
         position[1] -= this.translateValue[1];
@@ -4119,19 +4191,16 @@ class Blueprint extends IElement {
     addGraphElement(...graphElements) {
         graphElements.forEach(element => {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
-                const nameAndCount = element.entity.getNameAndNumber();
+                const [nodeName, nodeCount] = element.entity.getNameAndCounter();
                 // Node with the same name and number exists already
-                let maximumCount = 0;
-                {
-                    (
-                        this.nodesContainerElement?.querySelectorAll(`ueb-node[data-name="${nameAndCount[0]}"]`)
-                        ?? this.nodes
-                    ).forEach(node => maximumCount = Math.max(
-                        maximumCount,
-                        /** @type {NodeElement} node */(node).entity.getNodeNumber())
-                    );
+                const homonymNode = this.nodes.find(node => {
+                    const [currentName, currentCount] = node.entity.getNameAndCounter();
+                    return currentName == nodeName && currentCount == nodeName
+                });
+                if (homonymNode) {
+                    this.#nodeNameCounter[nodeName] = (this.#nodeNameCounter[nodeName] ?? -1) + 1;
+                    homonymNode.dataset.name = Configuration.nodeName(nodeName, this.#nodeNameCounter[nodeName]);
                 }
-                element.entity.Name = `${nameAndCount[0]}_${maximumCount + 1}`;
                 this.nodes.push(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
@@ -4146,14 +4215,14 @@ class Blueprint extends IElement {
     removeGraphElement(...graphElements) {
         let removed = false;
         graphElements.forEach(element => {
-            if (element.closest(Blueprint.tagName) == this) {
+            if (element.closest("ueb-blueprint") == this) {
                 element.remove();
                 removed = false;
             }
         });
         if (removed) {
-            this.nodes = /** @type {NodeElement[]} */ ([...this.querySelectorAll(NodeElement.tagName)]);
-            this.links = /** @type {LinkElement[]} */ ([...this.querySelectorAll(LinkElement.tagName)]);
+            this.nodes = /** @type {NodeElement[]} */ ([...this.querySelectorAll("ueb-node")]);
+            this.links = /** @type {LinkElement[]} */ ([...this.querySelectorAll("ueb-link")]);
         }
     }
 
@@ -4180,7 +4249,7 @@ class Blueprint extends IElement {
     }
 }
 
-customElements.define(Blueprint.tagName, Blueprint);
+customElements.define("ueb-blueprint", Blueprint);
 
 // @ts-check
 

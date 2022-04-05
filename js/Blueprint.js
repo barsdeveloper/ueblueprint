@@ -23,13 +23,15 @@ import Zoom from "./input/mouse/Zoom"
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
  */
+
+/**
+ * @extends {IElement<Object, BlueprintTemplate>}
+ */
 export default class Blueprint extends IElement {
 
     static tagName = "ueb-blueprint"
     /** @type {Number[]} */
     #additional
-    /** @type {Number[]} */
-    #translateValue
     get additional() {
         return this.#additional
     }
@@ -37,12 +39,16 @@ export default class Blueprint extends IElement {
         value[0] = Math.abs(value[0])
         value[1] = Math.abs(value[1])
     }
+    /** @type {Number[]} */
+    #translateValue
     get translateValue() {
         return this.#translateValue
     }
     set translateValue(value) {
         this.#translateValue = value
     }
+    /** @type {Map<String, Number>} */
+    #nodeNameCounter = new Map()
     /** @type {Number} */
     gridSize
     /** @type {NodeElement[]}" */
@@ -88,8 +94,6 @@ export default class Blueprint extends IElement {
      */
     constructor(settings = new Configuration()) {
         super({}, new BlueprintTemplate())
-        /** @type {BlueprintTemplate} */
-        this.template
         /** @type {Number} */
         this.gridSize = Configuration.gridSize
         /** @type {Number[]} */
@@ -330,6 +334,9 @@ export default class Blueprint extends IElement {
         return parseFloat(getComputedStyle(this.gridElement).getPropertyValue("--ueb-scale"))
     }
 
+    /**
+     * @param {Number[]} position
+     */
     compensateTranslation(position) {
         position[0] -= this.translateValue[0]
         position[1] -= this.translateValue[1]
@@ -393,19 +400,16 @@ export default class Blueprint extends IElement {
     addGraphElement(...graphElements) {
         graphElements.forEach(element => {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
-                const nameAndCount = element.entity.getNameAndNumber()
+                const [nodeName, nodeCount] = element.entity.getNameAndCounter()
                 // Node with the same name and number exists already
-                let maximumCount = 0
-                {
-                    (
-                        this.nodesContainerElement?.querySelectorAll(`ueb-node[data-name="${nameAndCount[0]}"]`)
-                        ?? this.nodes
-                    ).forEach(node => maximumCount = Math.max(
-                        maximumCount,
-                        /** @type {NodeElement} node */(node).entity.getNodeNumber())
-                    )
+                const homonymNode = this.nodes.find(node => {
+                    const [currentName, currentCount] = node.entity.getNameAndCounter()
+                    return currentName == nodeName && currentCount == nodeName
+                })
+                if (homonymNode) {
+                    this.#nodeNameCounter[nodeName] = (this.#nodeNameCounter[nodeName] ?? -1) + 1
+                    homonymNode.dataset.name = Configuration.nodeName(nodeName, this.#nodeNameCounter[nodeName])
                 }
-                element.entity.Name = `${nameAndCount[0]}_${maximumCount + 1}`
                 this.nodes.push(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
@@ -420,14 +424,14 @@ export default class Blueprint extends IElement {
     removeGraphElement(...graphElements) {
         let removed = false
         graphElements.forEach(element => {
-            if (element.closest(Blueprint.tagName) == this) {
+            if (element.closest("ueb-blueprint") == this) {
                 element.remove()
                 removed = false
             }
         })
         if (removed) {
-            this.nodes = /** @type {NodeElement[]} */ ([...this.querySelectorAll(NodeElement.tagName)])
-            this.links = /** @type {LinkElement[]} */ ([...this.querySelectorAll(LinkElement.tagName)])
+            this.nodes = /** @type {NodeElement[]} */ ([...this.querySelectorAll("ueb-node")])
+            this.links = /** @type {LinkElement[]} */ ([...this.querySelectorAll("ueb-link")])
         }
     }
 
@@ -454,4 +458,4 @@ export default class Blueprint extends IElement {
     }
 }
 
-customElements.define(Blueprint.tagName, Blueprint)
+customElements.define("ueb-blueprint", Blueprint)

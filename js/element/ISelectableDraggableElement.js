@@ -6,17 +6,22 @@ import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
 /**
  * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
- * @typedef {import("../entity/IntegerEntity").default} IntegerEntity
+ * @typedef {import("../entity/IEntity").default} IEntity  
+ */
+
+/**
+ * @template {IEntity} T
+ * @template {SelectableDraggableTemplate} U
+ * @extends {IElement<T, U>}
  */
 export default class ISelectableDraggableElement extends IElement {
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args)
         this.dragObject = null
         this.location = [0, 0]
         this.selected = false
-        /** @type {SelectableDraggableTemplate} */
-        this.template
 
         let self = this
         this.dragHandler = (e) => {

@@ -39,6 +39,7 @@ export default class Configuration {
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragLocalEventName = "ueb-node-drag-local"
+    static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // in pixel
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {

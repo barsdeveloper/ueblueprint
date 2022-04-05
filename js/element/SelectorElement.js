@@ -4,6 +4,9 @@ import FastSelectionModel from "../selection/FastSelectionModel"
 import IElement from "./IElement"
 import SelectorTemplate from "../template/SelectorTemplate"
 
+/**
+ * @extends {IElement<Object, SelectorTemplate>}
+ */
 export default class SelectorElement extends IElement {
 
     static tagName = "ueb-selector"
@@ -11,8 +14,6 @@ export default class SelectorElement extends IElement {
     constructor() {
         super({}, new SelectorTemplate())
         this.selectionModel = null
-        /** @type {SelectorTemplate} */
-        this.template
     }
 
     /**
@@ -39,4 +40,4 @@ export default class SelectorElement extends IElement {
     }
 }
 
-customElements.define(SelectorElement.tagName, SelectorElement)
+customElements.define("ueb-selector", SelectorElement)

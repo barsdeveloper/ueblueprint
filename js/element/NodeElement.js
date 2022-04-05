@@ -6,7 +6,11 @@ import NodeTemplate from "../template/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"
 import PinEntity from "../entity/PinEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
+import PinReferenceEntity from "../entity/PinReferenceEntity"
 
+/**
+ * @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>}
+ */
 export default class NodeElement extends ISelectableDraggableElement {
 
     static tagName = "ueb-node"
@@ -16,10 +20,6 @@ export default class NodeElement extends ISelectableDraggableElement {
      */
     constructor(entity) {
         super(entity, new NodeTemplate())
-        /** @type {ObjectEntity} */
-        this.entity
-        /** @type {NodeTemplate} */
-        this.template
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
     }
@@ -36,6 +36,23 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     getNodeName() {
         return this.entity.getFullName()
+    }
+
+    /**
+     * @param {String} name
+     */
+    rename(name) {
+        if (this.entity.Name == name) {
+            return false
+        }
+        this.getPinElements().forEach(sourcePinElement =>
+            sourcePinElement.getLinks().forEach(targetPinReference =>
+                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
+                    objectName: name,
+                    pinGuid: sourcePinElement.entity.PinId,
+                }))
+            ))
+        this.entity.Name = name
     }
 
     getPinElements() {
@@ -72,4 +89,4 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 }
 
-customElements.define(NodeElement.tagName, NodeElement)
+customElements.define("ueb-node", NodeElement)

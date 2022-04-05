@@ -46,9 +46,8 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected")
         }
-        const name = node.entity.getNameAndNumber()
-        node.dataset.name = sanitizeText(name[0])
-        node.dataset.count = sanitizeText(name[1])
+        const nodeName = node.entity.getFullName()
+        node.dataset.name = sanitizeText(nodeName)
         if (node.entity.AdvancedPinDisplay) {
             node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString()
         }
@@ -68,6 +67,6 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      * @returns {NodeListOf<PinElement>}
      */
     getPinElements(node) {
-        return node.querySelectorAll(PinElement.tagName)
+        return node.querySelectorAll("ueb-pin")
     }
 }

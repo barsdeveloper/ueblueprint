@@ -8,6 +8,7 @@ import SelectorElement from "../element/SelectorElement"
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint
+ * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
 export default class BlueprintTemplate extends ITemplate {
@@ -137,9 +138,9 @@ export default class BlueprintTemplate extends ITemplate {
 
     /**
      * 
-     * @param {Blueprint} blueprint 
-     * @param {PinReferenceEntity} pinReference 
-     * @returns 
+     * @param {Blueprint} blueprint
+     * @param {PinReferenceEntity} pinReference
+     * @returns {PinElement}
      */
     getPin(blueprint, pinReference) {
         return blueprint.querySelector(

@@ -17,9 +17,7 @@ export default class PinTemplate extends ITemplate {
     }
 
     /**
-     * Computes the html content of the pin.
-     * @param {PinElement} pin html element
-     * @returns The result html
+     * @param {PinElement} pin
      */
     render(pin) {
         if (pin.isInput()) {
@@ -57,8 +55,7 @@ export default class PinTemplate extends ITemplate {
     }
 
     /**
-     * Applies the style to the element.
-     * @param {PinElement} pin element of the graph
+     * @param {PinElement} pin
      */
     apply(pin) {
         super.apply(pin)
@@ -84,7 +81,6 @@ export default class PinTemplate extends ITemplate {
     }
 
     /**
-     * Applies the connection style to the element.
      * @param {PinElement} pin
      */
     applyConnected(pin) {

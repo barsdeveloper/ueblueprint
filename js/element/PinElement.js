@@ -9,7 +9,12 @@ import StringPinTemplate from "../template/StringPinTemplate"
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
  * @typedef {import("../entity/PinEntity").default} PinEntity
+ * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./NodeElement").default} NodeElement
+ */
+
+/**
+ * @extends {IElement<PinEntity, PinTemplate>}
  */
 export default class PinElement extends IElement {
 
@@ -35,12 +40,6 @@ export default class PinElement extends IElement {
             entity,
             new (PinElement.#typeTemplateMap[entity.getType()] ?? PinTemplate)()
         )
-
-        /** @type {PinEntity} */
-        this.entity
-
-        /** @type {PinTemplate} */
-        this.template
     }
 
     connectedCallback() {
@@ -105,10 +104,6 @@ export default class PinElement extends IElement {
         return this.#color
     }
 
-    /**
-     * Returns The exact location where the link originates from or arrives at.
-     * @returns {Number[]} The location array
-     */
     getLinkLocation() {
         return this.template.getLinkLocation(this)
     }
@@ -121,9 +116,7 @@ export default class PinElement extends IElement {
     }
 
     getLinks() {
-        return this.entity.LinkedTo?.map(pinReference =>
-            pinReference
-        ) ?? []
+        return this.entity.LinkedTo ?? []
     }
 
     /**
@@ -141,6 +134,23 @@ export default class PinElement extends IElement {
         this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
         this.template.applyConnected(this)
     }
+
+    /**
+     * 
+     * @param {PinElement} originalPinElement
+     * @param {PinReferenceEntity} newReference
+     */
+    redirectLink(originalPinElement, newReference) {
+        const index = this.entity.LinkedTo.findIndex(pinReference =>
+            pinReference.objectName.toString() == originalPinElement.getPinName()
+            && pinReference.pinGuid == originalPinElement.entity.PinId
+        )
+        if (index >= 0) {
+            this.entity.LinkedTo[index] = newReference
+            return true
+        }
+        return false
+    }
 }
 
-customElements.define(PinElement.tagName, PinElement)
+customElements.define("ueb-pin", PinElement)

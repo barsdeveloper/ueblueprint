@@ -7,6 +7,11 @@ import LinkTemplate from "../template/LinkTemplate"
 /**
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("./LinkMessageElement").default} LinkMessageElement
+ * @typedef {import("../entity/IEntity").default} IEntity
+ */
+
+/**
+ * @extends {IElement<Object, LinkTemplate>}
  */
 export default class LinkElement extends IElement {
 
@@ -82,8 +87,6 @@ export default class LinkElement extends IElement {
      */
     constructor(source, destination) {
         super({}, new LinkTemplate())
-        /** @type {import("../template/LinkTemplate").default} */
-        this.template
         const self = this
         this.#nodeDeleteHandler = _ => self.remove()
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value)
@@ -196,4 +199,4 @@ export default class LinkElement extends IElement {
     }
 }
 
-customElements.define(LinkElement.tagName, LinkElement)
+customElements.define("ueb-link", LinkElement)

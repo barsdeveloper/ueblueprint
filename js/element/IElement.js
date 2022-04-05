@@ -7,27 +7,52 @@
  * @typedef {import("../template/ITemplate").default} ITemplate
  */
 
+/**
+ * @template {IEntity} T
+ * @template {ITemplate} U
+ */
 export default class IElement extends HTMLElement {
 
     static tagName = ""
 
     /** @type {Blueprint} */
-    blueprint
+    #blueprint
+    get blueprint() {
+        return this.#blueprint
+    }
+    set blueprint(blueprint) {
+        this.#blueprint = blueprint
+    }
 
-    /** @type {IEntity} */
-    entity
+    /** @type {T} */
+    #entity
+    get entity() {
+        return this.#entity
+    }
+    set entity(entity) {
+        this.#entity = entity
+    }
 
-    /** @type {ITemplate} */
-    template
+    /** @type {U} */
+    #template
+    get template() {
+        return this.#template
+    }
+    set template(template) {
+        this.#template = template
+    }
 
     /** @type {IContext[]} */
     inputObjects = []
 
+    /**
+     * @param {T} entity
+     * @param {U} template
+     */
     constructor(entity, template) {
         super()
-        this.blueprint = null
-        this.entity = entity
-        this.template = template
+        this.#entity = entity
+        this.#template = template
         this.inputObjects = []
     }
 
@@ -36,7 +61,7 @@ export default class IElement extends HTMLElement {
     }
 
     connectedCallback() {
-        this.blueprint = this.closest("ueb-blueprint")
+        this.#blueprint = this.closest("ueb-blueprint")
         this.template.apply(this)
         this.inputObjects = this.createInputObjects()
     }
@@ -47,16 +72,16 @@ export default class IElement extends HTMLElement {
 
     /** @param {IElement} element */
     isSameGraph(element) {
-        return this.blueprint && this.blueprint == element?.blueprint
+        return this.#blueprint && this.#blueprint == element?.blueprint
     }
 
     /**
-     * @template {IContext} T
-     * @param {new (...args: any[]) => T} type
-     * @returns {T}
+     * @template {IContext} V
+     * @param {new (...args: any[]) => V} type
+     * @returns {V}
      */
     getInputObject(type) {
-        return /** @type {T} */ (this.inputObjects.find(object => object.constructor == type))
+        return /** @type {V} */ (this.inputObjects.find(object => object.constructor == type))
     }
 
     // Subclasses will want to override

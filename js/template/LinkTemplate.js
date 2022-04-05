@@ -163,8 +163,7 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {
-        // @ts-expect-error
-        link.querySelectorAll(linkMessage.constructor.tagName).forEach(element => element.remove())
+        link.querySelectorAll("ueb-link-message").forEach(element => element.remove())
         link.appendChild(linkMessage)
         link.linkMessageElement = linkMessage
     }

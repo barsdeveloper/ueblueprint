@@ -8,6 +8,10 @@ import LinkMessageTemplate from "../template/LinkMessageTemplate"
  * @typedef {import("./LinkElement").default} LinkElement
  * @typedef {(sourcePin: PinElement, destinationPin: PinElement) => String} LinkRetrieval
  */
+
+/**
+ * @extends {IElement<Object, LinkMessageTemplate>}
+ */
 export default class LinkMessageElement extends IElement {
 
     static tagName = "ueb-link-message"
@@ -49,7 +53,7 @@ export default class LinkMessageElement extends IElement {
 
     /** @type {String} */
     icon
-    /** @type {String} */
+    /** @type {LinkRetrieval} */
     message
     /** @type {LinkElement} */
     linkElement
@@ -62,4 +66,4 @@ export default class LinkMessageElement extends IElement {
 
 }
 
-customElements.define(LinkMessageElement.tagName, LinkMessageElement)
+customElements.define("ueb-link-message", LinkMessageElement)
