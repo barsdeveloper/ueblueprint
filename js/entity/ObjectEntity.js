@@ -53,6 +53,9 @@ export default class ObjectEntity extends IEntity {
         return this.Name
     }
 
+    /**
+     * @returns {[String, Number]}
+     */
     getNameAndCounter() {
         const result = this.getFullName().match(ObjectEntity.nameRegex)
         if (result && result.length == 3) {
@@ -61,10 +64,10 @@ export default class ObjectEntity extends IEntity {
     }
 
     getDisplayName() {
-        return /** @type {String} */ (this.getNameAndCounter()[0])
+        return this.getNameAndCounter()[0]
     }
 
     getCounter() {
-        return /** @type {Number} */ (this.getNameAndCounter()[1])
+        return this.getNameAndCounter()[1]
     }
 }

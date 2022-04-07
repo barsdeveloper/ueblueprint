@@ -29,6 +29,11 @@ export default class NodeElement extends ISelectableDraggableElement {
         return new NodeElement(entity)
     }
 
+    connectedCallback() {
+        const type = this.getAttribute("type")?.trim()
+        super.connectedCallback()
+    }
+
     disconnectedCallback() {
         super.disconnectedCallback()
         this.dispatchDeleteEvent()
@@ -38,6 +43,10 @@ export default class NodeElement extends ISelectableDraggableElement {
         return this.entity.getFullName()
     }
 
+    cleanLinks() {
+        this.getPinElements().forEach(pin => pin.cleanLinks())
+    }
+
     /**
      * @param {String} name
      */
@@ -45,13 +54,14 @@ export default class NodeElement extends ISelectableDraggableElement {
         if (this.entity.Name == name) {
             return false
         }
-        this.getPinElements().forEach(sourcePinElement =>
-            sourcePinElement.getLinks().forEach(targetPinReference =>
+        for (let sourcePinElement of this.getPinElements()) {
+            for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
                     objectName: name,
                     pinGuid: sourcePinElement.entity.PinId,
                 }))
-            ))
+            }
+        }
         this.entity.Name = name
     }
 
@@ -64,11 +74,6 @@ export default class NodeElement extends ISelectableDraggableElement {
      */
     getPinEntities() {
         return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
-    }
-
-    connectedCallback() {
-        const type = this.getAttribute("type")?.trim()
-        super.connectedCallback()
     }
 
     setLocation(value = [0, 0]) {

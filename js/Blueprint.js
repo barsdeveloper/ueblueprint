@@ -398,24 +398,33 @@ export default class Blueprint extends IElement {
      * @param  {...IElement} graphElements
      */
     addGraphElement(...graphElements) {
-        graphElements.forEach(element => {
+        let nodeElements = []
+        for (let element of graphElements) {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
-                const [nodeName, nodeCount] = element.entity.getNameAndCounter()
-                // Node with the same name and number exists already
-                const homonymNode = this.nodes.find(node => {
-                    const [currentName, currentCount] = node.entity.getNameAndCounter()
-                    return currentName == nodeName && currentCount == nodeName
-                })
+                const nodeName = element.entity.getFullName()
+                const homonymNode = this.nodes.find(node => node.entity.getFullName() == nodeName)
                 if (homonymNode) {
-                    this.#nodeNameCounter[nodeName] = (this.#nodeNameCounter[nodeName] ?? -1) + 1
-                    homonymNode.dataset.name = Configuration.nodeName(nodeName, this.#nodeNameCounter[nodeName])
+                    // Inserting node keeps tha name and the homonym nodes is renamed
+                    let [name, counter] = homonymNode.entity.getNameAndCounter()
+                    this.#nodeNameCounter[name] = this.#nodeNameCounter[name] ?? -1
+                    do {
+                        ++this.#nodeNameCounter[name]
+                    } while (this.nodes.find(node =>
+                        node.entity.getFullName() == Configuration.nodeName(name, this.#nodeNameCounter[name])
+                    ))
+                    homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]))
                 }
                 this.nodes.push(element)
+                nodeElements.push(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
             }
-            this.nodesContainerElement?.appendChild(element)
-        })
+        }
+        // Keep separated for linking purpose
+        if (this.nodesContainerElement) {
+            graphElements.forEach(element => this.nodesContainerElement.appendChild(element))
+            nodeElements.forEach(node => node.cleanLinks())
+        }
     }
 
     /**

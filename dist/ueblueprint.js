@@ -1508,6 +1508,9 @@ class ObjectEntity extends IEntity {
         return this.Name
     }
 
+    /**
+     * @returns {[String, Number]}
+     */
     getNameAndCounter() {
         const result = this.getFullName().match(ObjectEntity.nameRegex);
         if (result && result.length == 3) {
@@ -1516,11 +1519,11 @@ class ObjectEntity extends IEntity {
     }
 
     getDisplayName() {
-        return /** @type {String} */ (this.getNameAndCounter()[0])
+        return this.getNameAndCounter()[0]
     }
 
     getCounter() {
-        return /** @type {Number} */ (this.getNameAndCounter()[1])
+        return this.getNameAndCounter()[1]
     }
 }
 
@@ -3026,7 +3029,7 @@ class LinkMessageTemplate extends ITemplate {
         if (linkMessage.linkElement) {
             linkMessageSetup();
         } else {
-            window.customElements.whenDefined("ueb-link-message").then(linkMessage);
+            window.customElements.whenDefined("ueb-link-message").then(linkMessageSetup);
         }
     }
 
@@ -3216,9 +3219,7 @@ class PinTemplate extends ITemplate {
     }
 
     /**
-     * Computes the html content of the pin.
-     * @param {PinElement} pin html element
-     * @returns The result html
+     * @param {PinElement} pin
      */
     render(pin) {
         if (pin.isInput()) {
@@ -3256,8 +3257,7 @@ class PinTemplate extends ITemplate {
     }
 
     /**
-     * Applies the style to the element.
-     * @param {PinElement} pin element of the graph
+     * @param {PinElement} pin
      */
     apply(pin) {
         super.apply(pin);
@@ -3283,7 +3283,6 @@ class PinTemplate extends ITemplate {
     }
 
     /**
-     * Applies the connection style to the element.
      * @param {PinElement} pin
      */
     applyConnected(pin) {
@@ -3468,6 +3467,12 @@ class PinElement extends IElement {
         return this.entity.LinkedTo ?? []
     }
 
+    cleanLinks() {
+        this.entity.LinkedTo = this.getLinks().filter(
+            pinReference => this.blueprint.getPin(pinReference)
+        );
+    }
+
     /**
      * @param {PinElement} targetPinElement
      */
@@ -3624,6 +3629,11 @@ class NodeElement extends ISelectableDraggableElement {
         return new NodeElement(entity)
     }
 
+    connectedCallback() {
+        this.getAttribute("type")?.trim();
+        super.connectedCallback();
+    }
+
     disconnectedCallback() {
         super.disconnectedCallback();
         this.dispatchDeleteEvent();
@@ -3633,6 +3643,10 @@ class NodeElement extends ISelectableDraggableElement {
         return this.entity.getFullName()
     }
 
+    cleanLinks() {
+        this.getPinElements().forEach(pin => pin.cleanLinks());
+    }
+
     /**
      * @param {String} name
      */
@@ -3640,13 +3654,14 @@ class NodeElement extends ISelectableDraggableElement {
         if (this.entity.Name == name) {
             return false
         }
-        this.getPinElements().forEach(sourcePinElement =>
-            sourcePinElement.getLinks().forEach(targetPinReference =>
+        for (let sourcePinElement of this.getPinElements()) {
+            for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
                     objectName: name,
                     pinGuid: sourcePinElement.entity.PinId,
-                }))
-            ));
+                }));
+            }
+        }
         this.entity.Name = name;
     }
 
@@ -3659,11 +3674,6 @@ class NodeElement extends ISelectableDraggableElement {
      */
     getPinEntities() {
         return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
-    }
-
-    connectedCallback() {
-        this.getAttribute("type")?.trim();
-        super.connectedCallback();
     }
 
     setLocation(value = [0, 0]) {
@@ -4189,24 +4199,33 @@ class Blueprint extends IElement {
      * @param  {...IElement} graphElements
      */
     addGraphElement(...graphElements) {
-        graphElements.forEach(element => {
+        let nodeElements = [];
+        for (let element of graphElements) {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
-                const [nodeName, nodeCount] = element.entity.getNameAndCounter();
-                // Node with the same name and number exists already
-                const homonymNode = this.nodes.find(node => {
-                    const [currentName, currentCount] = node.entity.getNameAndCounter();
-                    return currentName == nodeName && currentCount == nodeName
-                });
+                const nodeName = element.entity.getFullName();
+                const homonymNode = this.nodes.find(node => node.entity.getFullName() == nodeName);
                 if (homonymNode) {
-                    this.#nodeNameCounter[nodeName] = (this.#nodeNameCounter[nodeName] ?? -1) + 1;
-                    homonymNode.dataset.name = Configuration.nodeName(nodeName, this.#nodeNameCounter[nodeName]);
+                    // Inserting node keeps tha name and the homonym nodes is renamed
+                    let [name, counter] = homonymNode.entity.getNameAndCounter();
+                    this.#nodeNameCounter[name] = this.#nodeNameCounter[name] ?? -1;
+                    do {
+                        ++this.#nodeNameCounter[name];
+                    } while (this.nodes.find(node =>
+                        node.entity.getFullName() == Configuration.nodeName(name, this.#nodeNameCounter[name])
+                    ))
+                    homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]));
                 }
                 this.nodes.push(element);
+                nodeElements.push(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
             }
-            this.nodesContainerElement?.appendChild(element);
-        });
+        }
+        // Keep separated for linking purpose
+        if (this.nodesContainerElement) {
+            graphElements.forEach(element => this.nodesContainerElement.appendChild(element));
+            nodeElements.forEach(node => node.cleanLinks());
+        }
     }
 
     /**

@@ -119,6 +119,12 @@ export default class PinElement extends IElement {
         return this.entity.LinkedTo ?? []
     }
 
+    cleanLinks() {
+        this.entity.LinkedTo = this.getLinks().filter(
+            pinReference => this.blueprint.getPin(pinReference)
+        )
+    }
+
     /**
      * @param {PinElement} targetPinElement
      */

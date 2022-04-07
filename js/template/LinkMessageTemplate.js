@@ -35,7 +35,7 @@ export default class LinkMessageTemplate extends ITemplate {
         if (linkMessage.linkElement) {
             linkMessageSetup()
         } else {
-            window.customElements.whenDefined("ueb-link-message").then(linkMessage)
+            window.customElements.whenDefined("ueb-link-message").then(linkMessageSetup)
         }
     }
 
