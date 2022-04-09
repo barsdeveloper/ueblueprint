@@ -21,8 +21,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                 <div class="ueb-node-content">
                     <div class="ueb-node-header">
                         <span class="ueb-node-name">
-                            <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${sanitizeText(node.getNodeName())}</span>
+                            <span class="ueb-node-name-symbol"></span>
+                            <span class="ueb-node-name-text">
+                                ${sanitizeText(node.getNodeName())}
+                            </span>
                         </span>
                     </div>
                     <div class="ueb-node-body">
@@ -43,11 +45,11 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     apply(node) {
         super.apply(node)
+        const nodeName = node.entity.getFullName()
+        node.dataset.name = sanitizeText(nodeName)
         if (node.selected) {
             node.classList.add("ueb-selected")
         }
-        const nodeName = node.entity.getFullName()
-        node.dataset.name = sanitizeText(nodeName)
         if (node.entity.AdvancedPinDisplay) {
             node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString()
         }
@@ -60,6 +62,17 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         let pins = node.getPinEntities()
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)))
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)))
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {NodeElement} node Element of the graph
+     */
+    applyRename(node) {
+        const nodeName = node.entity.getFullName()
+        node.dataset.name = sanitizeText(nodeName)
+        // @ts-expect-error
+        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.entity.getFullName())
     }
 
     /**

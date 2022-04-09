@@ -404,8 +404,8 @@ export default class Blueprint extends IElement {
                 const nodeName = element.entity.getFullName()
                 const homonymNode = this.nodes.find(node => node.entity.getFullName() == nodeName)
                 if (homonymNode) {
-                    // Inserting node keeps tha name and the homonym nodes is renamed
-                    let [name, counter] = homonymNode.entity.getNameAndCounter()
+                    // Inserted node keeps tha name and the homonym nodes is renamed
+                    let name = homonymNode.entity.getDisplayName()
                     this.#nodeNameCounter[name] = this.#nodeNameCounter[name] ?? -1
                     do {
                         ++this.#nodeNameCounter[name]
@@ -416,13 +416,13 @@ export default class Blueprint extends IElement {
                 }
                 this.nodes.push(element)
                 nodeElements.push(element)
+                this.nodesContainerElement?.appendChild(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
             }
         }
         // Keep separated for linking purpose
         if (this.nodesContainerElement) {
-            graphElements.forEach(element => this.nodesContainerElement.appendChild(element))
             nodeElements.forEach(node => node.cleanLinks())
         }
     }
@@ -431,16 +431,19 @@ export default class Blueprint extends IElement {
      * @param  {...IElement} graphElements
      */
     removeGraphElement(...graphElements) {
-        let removed = false
-        graphElements.forEach(element => {
+        for (let element of graphElements) {
             if (element.closest("ueb-blueprint") == this) {
                 element.remove()
-                removed = false
+                let elementsArray = element instanceof NodeElement
+                    ? this.nodes
+                    : element instanceof LinkElement
+                        ? this.links
+                        : null
+                elementsArray?.splice(
+                    elementsArray.findIndex(v => v === element),
+                    1
+                )
             }
-        })
-        if (removed) {
-            this.nodes = /** @type {NodeElement[]} */ ([...this.querySelectorAll("ueb-node")])
-            this.links = /** @type {LinkElement[]} */ ([...this.querySelectorAll("ueb-link")])
         }
     }
 

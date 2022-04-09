@@ -63,6 +63,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             }
         }
         this.entity.Name = name
+        this.template.applyRename(this)
     }
 
     getPinElements() {

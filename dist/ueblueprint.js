@@ -3556,8 +3556,10 @@ class NodeTemplate extends SelectableDraggableTemplate {
                 <div class="ueb-node-content">
                     <div class="ueb-node-header">
                         <span class="ueb-node-name">
-                            <span class="ueb-node-symbol"></span>
-                            <span class="ueb-node-text">${sanitizeText(node.getNodeName())}</span>
+                            <span class="ueb-node-name-symbol"></span>
+                            <span class="ueb-node-name-text">
+                                ${sanitizeText(node.getNodeName())}
+                            </span>
                         </span>
                     </div>
                     <div class="ueb-node-body">
@@ -3578,11 +3580,11 @@ class NodeTemplate extends SelectableDraggableTemplate {
      */
     apply(node) {
         super.apply(node);
+        const nodeName = node.entity.getFullName();
+        node.dataset.name = sanitizeText(nodeName);
         if (node.selected) {
             node.classList.add("ueb-selected");
         }
-        const nodeName = node.entity.getFullName();
-        node.dataset.name = sanitizeText(nodeName);
         if (node.entity.AdvancedPinDisplay) {
             node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
         }
@@ -3595,6 +3597,17 @@ class NodeTemplate extends SelectableDraggableTemplate {
         let pins = node.getPinEntities();
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)));
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)));
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {NodeElement} node Element of the graph
+     */
+    applyRename(node) {
+        const nodeName = node.entity.getFullName();
+        node.dataset.name = sanitizeText(nodeName);
+        // @ts-expect-error
+        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.entity.getFullName());
     }
 
     /**
@@ -3663,6 +3676,7 @@ class NodeElement extends ISelectableDraggableElement {
             }
         }
         this.entity.Name = name;
+        this.template.applyRename(this);
     }
 
     getPinElements() {
@@ -4205,8 +4219,8 @@ class Blueprint extends IElement {
                 const nodeName = element.entity.getFullName();
                 const homonymNode = this.nodes.find(node => node.entity.getFullName() == nodeName);
                 if (homonymNode) {
-                    // Inserting node keeps tha name and the homonym nodes is renamed
-                    let [name, counter] = homonymNode.entity.getNameAndCounter();
+                    // Inserted node keeps tha name and the homonym nodes is renamed
+                    let name = homonymNode.entity.getDisplayName();
                     this.#nodeNameCounter[name] = this.#nodeNameCounter[name] ?? -1;
                     do {
                         ++this.#nodeNameCounter[name];
@@ -4217,13 +4231,13 @@ class Blueprint extends IElement {
                 }
                 this.nodes.push(element);
                 nodeElements.push(element);
+                this.nodesContainerElement?.appendChild(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
             }
         }
         // Keep separated for linking purpose
         if (this.nodesContainerElement) {
-            graphElements.forEach(element => this.nodesContainerElement.appendChild(element));
             nodeElements.forEach(node => node.cleanLinks());
         }
     }
@@ -4232,16 +4246,19 @@ class Blueprint extends IElement {
      * @param  {...IElement} graphElements
      */
     removeGraphElement(...graphElements) {
-        let removed = false;
-        graphElements.forEach(element => {
+        for (let element of graphElements) {
             if (element.closest("ueb-blueprint") == this) {
                 element.remove();
-                removed = false;
+                let elementsArray = element instanceof NodeElement
+                    ? this.nodes
+                    : element instanceof LinkElement
+                        ? this.links
+                        : null;
+                elementsArray?.splice(
+                    elementsArray.findIndex(v => v == element),
+                    1
+                );
             }
-        });
-        if (removed) {
-            this.nodes = /** @type {NodeElement[]} */ ([...this.querySelectorAll("ueb-node")]);
-            this.links = /** @type {LinkElement[]} */ ([...this.querySelectorAll("ueb-link")]);
         }
     }
 
