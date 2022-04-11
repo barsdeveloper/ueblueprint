@@ -25,8 +25,7 @@ export default class ObjectSerializer extends ISerializer {
     read(value) {
         const parseResult = ISerializer.grammar.Object.parse(value)
         if (!parseResult.status) {
-            console.error("Error when trying to parse the object.")
-            return parseResult
+            throw new Error("Error when trying to parse the object.")
         }
         return parseResult.value
     }

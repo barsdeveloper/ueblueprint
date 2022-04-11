@@ -39,8 +39,11 @@ export default class Utility {
      * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
      */
     static objectGet(target, keys, defaultValue = undefined) {
+        if (target === undefined) {
+            return undefined
+        }
         if (!(keys instanceof Array)) {
-            console.error("Expected keys to be an array.")
+            throw new TypeError("Expected keys to be an array.")
         }
         if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
             return defaultValue
@@ -61,7 +64,7 @@ export default class Utility {
      */
     static objectSet(target, keys, value, create = false, defaultDictType = Object) {
         if (!(keys instanceof Array)) {
-            console.error("Expected keys to be an array.")
+            throw new TypeError("Expected keys to be an array.")
         }
         if (keys.length == 1) {
             if (create || keys[0] in target || target[keys[0]] === undefined) {

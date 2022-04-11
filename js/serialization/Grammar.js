@@ -102,7 +102,8 @@ export default class Grammar {
                 let result = new entityType()
                 attributes.forEach(attributeSetter => attributeSetter(result))
                 return result
-            })
+            }
+        )
 
     /*   ---   General   ---   */
 
@@ -194,7 +195,8 @@ export default class Grammar {
         r.String,
         r.Guid,
         r.Reference,
-        r.LocalizedText)
+        r.LocalizedText
+    )
 
     PinReference = r => P.seqMap(
         r.PathSymbol, // Goes into objectNAme
@@ -239,9 +241,9 @@ export default class Grammar {
             .sepBy1(P.whitespace),
         P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
         (_, attributes, __) => {
-            let result = new ObjectEntity()
-            attributes.forEach(attributeSetter => attributeSetter(result))
-            return result
+            let values = {}
+            attributes.forEach(attributeSetter => attributeSetter(values))
+            return new ObjectEntity(values)
         }
     )
 

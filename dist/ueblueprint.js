@@ -967,8 +967,11 @@ class Utility {
      * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
      */
     static objectGet(target, keys, defaultValue = undefined) {
+        if (target === undefined) {
+            return undefined
+        }
         if (!(keys instanceof Array)) {
-            console.error("Expected keys to be an array.");
+            throw new TypeError("Expected keys to be an array.")
         }
         if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
             return defaultValue
@@ -989,7 +992,7 @@ class Utility {
      */
     static objectSet(target, keys, value, create = false, defaultDictType = Object) {
         if (!(keys instanceof Array)) {
-            console.error("Expected keys to be an array.");
+            throw new TypeError("Expected keys to be an array.")
         }
         if (keys.length == 1) {
             if (create || keys[0] in target || target[keys[0]] === undefined) {
@@ -1051,13 +1054,13 @@ class IEntity {
 
     static attributes = {}
 
-    constructor(options) {
+    constructor(values) {
         // @ts-expect-error
         const attributes = this.constructor.attributes;
-        if (options.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
+        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
             // Where there is just one attribute, option can be the value of that attribute
-            options = {
-                [Object.getOwnPropertyNames(attributes)[0]]: options
+            values = {
+                [Object.getOwnPropertyNames(attributes)[0]]: values
             };
         }
         /**
@@ -1065,17 +1068,21 @@ class IEntity {
          * @param {Object} target
          * @param {Object} properties
          */
-        const defineAllAttributes = (prefix, target, properties) => {
+        const defineAllAttributes = (prefix, target, properties, values) => {
             let fullKey = prefix.concat("");
             const last = fullKey.length - 1;
             for (let property of Object.getOwnPropertyNames(properties)) {
                 fullKey[last] = property;
                 let defaultValue = properties[property];
-                const defaultType = (defaultValue instanceof Function) ? defaultValue : defaultValue?.constructor;
+                const defaultType = (defaultValue instanceof TypeInitialization)
+                    ? defaultValue.type
+                    : (defaultValue instanceof Function)
+                        ? defaultValue
+                        : defaultValue?.constructor;
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (defaultType === Object) {
                     target[property] = {};
-                    defineAllAttributes(fullKey, target[property], properties[property]);
+                    defineAllAttributes(fullKey, target[property], properties[property], values[property]);
                     continue
                 }
                 /*
@@ -1085,7 +1092,7 @@ class IEntity {
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.
                  */
-                const value = Utility.objectGet(options, fullKey);
+                const value = Utility.objectGet(values, fullKey);
                 if (value !== undefined) {
                     target[property] = TypeInitialization.sanitize(value, defaultType);
                     continue
@@ -1107,11 +1114,7 @@ class IEntity {
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType);
             }
         };
-        defineAllAttributes([], this, attributes);
-    }
-
-    empty() {
-        return true
+        defineAllAttributes([], this, attributes, values);
     }
 }
 
@@ -1128,10 +1131,6 @@ class ObjectReferenceEntity extends IEntity {
         super(options);
         /** @type {String} */ this.type;
         /** @type {String} */ this.path;
-    }
-
-    empty() {
-        return false
     }
 }
 
@@ -1646,7 +1645,8 @@ class Grammar {
                 let result = new entityType();
                 attributes.forEach(attributeSetter => attributeSetter(result));
                 return result
-            })
+            }
+        )
 
     /*   ---   General   ---   */
 
@@ -1738,7 +1738,8 @@ class Grammar {
         r.String,
         r.Guid,
         r.Reference,
-        r.LocalizedText)
+        r.LocalizedText
+    )
 
     PinReference = r => P.seqMap(
         r.PathSymbol, // Goes into objectNAme
@@ -1783,9 +1784,9 @@ class Grammar {
             .sepBy1(P.whitespace),
         P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
         (_, attributes, __) => {
-            let result = new ObjectEntity();
-            attributes.forEach(attributeSetter => attributeSetter(result));
-            return result
+            let values = {};
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            return new ObjectEntity(values)
         }
     )
 
@@ -1910,8 +1911,7 @@ class ObjectSerializer extends ISerializer {
     read(value) {
         const parseResult = ISerializer.grammar.Object.parse(value);
         if (!parseResult.status) {
-            console.error("Error when trying to parse the object.");
-            return parseResult
+            throw new Error("Error when trying to parse the object.")
         }
         return parseResult.value
     }
@@ -4354,8 +4354,7 @@ class GeneralSerializer extends ISerializer {
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType);
         const parseResult = grammar.parse(value);
         if (!parseResult.status) {
-            console.error("Error when trying to parse the entity " + this.entityType.prototype.constructor.name);
-            return parseResult
+            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
         }
         return parseResult.value
     }

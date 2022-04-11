@@ -20,8 +20,7 @@ export default class GeneralSerializer extends ISerializer {
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType)
         const parseResult = grammar.parse(value)
         if (!parseResult.status) {
-            console.error("Error when trying to parse the entity " + this.entityType.prototype.constructor.name)
-            return parseResult
+            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
         }
         return parseResult.value
     }
