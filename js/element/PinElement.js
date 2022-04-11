@@ -1,9 +1,10 @@
 // @ts-check
 
+import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
+import LinkElement from "./LinkElement"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import PinTemplate from "../template/PinTemplate"
-import ExecPinTemplate from "../template/ExecPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 
 /**
@@ -119,10 +120,17 @@ export default class PinElement extends IElement {
         return this.entity.LinkedTo ?? []
     }
 
-    cleanLinks() {
-        this.entity.LinkedTo = this.getLinks().filter(
-            pinReference => this.blueprint.getPin(pinReference)
-        )
+    sanitizeLinks() {
+        this.entity.LinkedTo = this.getLinks().filter(pinReference => {
+            let pin = this.blueprint.getPin(pinReference)
+            if (pin) {
+                let link = this.blueprint.getLink(this, pin, true)
+                if (!link) {
+                    this.blueprint.addGraphElement(new LinkElement(this, pin))
+                }
+            }
+            return pin
+        })
     }
 
     /**

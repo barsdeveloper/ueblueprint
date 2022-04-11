@@ -59,9 +59,7 @@ export default class LinkTemplate extends ITemplate {
     static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
     /**
-     * Computes the html content of the target element.
-     * @param {LinkElement} link connecting two graph nodes
-     * @returns The result html
+     * @param {LinkElement} link
      */
     render(link) {
         const uniqueId = crypto.randomUUID()
@@ -76,8 +74,7 @@ export default class LinkTemplate extends ITemplate {
     }
 
     /**
-     * Applies the style to the element.
-     * @param {LinkElement} link Element of the graph
+     * @param {LinkElement} link
      */
     apply(link) {
         super.apply(link)
@@ -90,10 +87,26 @@ export default class LinkTemplate extends ITemplate {
         if (referencePin) {
             link.style.setProperty("--ueb-pin-color", referencePin.getColor())
         }
+        this.applyPins(link)
+        if (link.sourcePin && link.destinationPin) {
+            this.applyFullLocation(link)
+        }
     }
 
     /**
-     * @param {LinkElement} link element
+     * @param {LinkElement} link
+     */
+    applyPins(link) {
+        if (link.sourcePin) {
+            link.dataset.source = link.sourcePin.GetPinId().toString()
+        }
+        if (link.destinationPin) {
+            link.dataset.destination = link.destinationPin.GetPinId().toString()
+        }
+    }
+
+    /**
+     * @param {LinkElement} link
      */
     applyStartDragging(link) {
         link.blueprint.dataset.creatingLink = "true"
@@ -101,7 +114,7 @@ export default class LinkTemplate extends ITemplate {
     }
 
     /**
-     * @param {LinkElement} link element
+     * @param {LinkElement} link
      */
     applyFinishDragging(link) {
         link.blueprint.dataset.creatingLink = "false"
@@ -109,8 +122,7 @@ export default class LinkTemplate extends ITemplate {
     }
 
     /**
-     * Applies the style relative to the source pin location.
-     * @param {LinkElement} link element
+     * @param {LinkElement} link
      */
     applySourceLocation(link) {
         link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0")
@@ -119,8 +131,7 @@ export default class LinkTemplate extends ITemplate {
     }
 
     /**
-     * Applies the style relative to the destination pin location.
-     * @param {LinkElement} link Link element
+     * @param {LinkElement} link
      */
     applyFullLocation(link) {
         const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1)
@@ -159,7 +170,7 @@ export default class LinkTemplate extends ITemplate {
     }
 
     /**
-     * @param {LinkElement} link element
+     * @param {LinkElement} link
      * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {

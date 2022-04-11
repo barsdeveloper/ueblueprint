@@ -107,7 +107,6 @@ export default class Blueprint extends IElement {
      * @param {Number} y
      */
     #expand(x, y) {
-        // TODO remove
         x = Math.round(x)
         y = Math.round(y)
         this.additional[0] += x
@@ -381,6 +380,18 @@ export default class Blueprint extends IElement {
     }
 
     /**
+     * @param {PinElement} sourcePin 
+     * @param {PinElement} destinationPin 
+     * @returns 
+     */
+    getLink(sourcePin, destinationPin, ignoreDirection = false) {
+        return this.links.find(link =>
+            link.sourcePin == sourcePin && link.destinationPin == destinationPin
+            || ignoreDirection && link.sourcePin == destinationPin && link.destinationPin == sourcePin
+        )
+    }
+
+    /**
      * Select all nodes
      */
     selectAll() {
@@ -419,12 +430,12 @@ export default class Blueprint extends IElement {
                 this.nodesContainerElement?.appendChild(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
+                this.nodesContainerElement?.appendChild(element)
             }
         }
-        // Keep separated for linking purpose
-        if (this.nodesContainerElement) {
-            nodeElements.forEach(node => node.cleanLinks())
-        }
+        graphElements.filter(element => element instanceof NodeElement).forEach(
+            node => /** @type {NodeElement} */(node).sanitizeLinks()
+        )
     }
 
     /**

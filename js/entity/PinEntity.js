@@ -76,11 +76,11 @@ export default class PinEntity extends IEntity {
     }
 
     isInput() {
-        return !this.bHidden && this.Direction !== "EGPD_Output"
+        return !this.bHidden && this.Direction != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.bHidden && this.Direction === "EGPD_Output"
+        return !this.bHidden && this.Direction == "EGPD_Output"
     }
 
     /**

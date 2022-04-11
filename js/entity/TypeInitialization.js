@@ -5,12 +5,19 @@
  */
 export default class TypeInitialization {
 
-    static sanitize(value) {
-        if (!(value instanceof Object)) {
-            return value // Is already primitive
+    static sanitize(value, targetType) {
+        if (targetType === undefined) {
+            targetType = value?.constructor
+        }
+        let wrongType = false
+        if (targetType && value?.constructor !== targetType && !(value instanceof targetType)) {
+            wrongType = true
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            return value.valueOf()
+            value = value.valueOf() // Get the relative primitive value
+        }
+        if (wrongType) {
+            return new targetType(value)
         }
         return value
     }

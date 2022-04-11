@@ -23,6 +23,9 @@ export default class LinkElement extends IElement {
         return this.#source
     }
     set sourcePin(pin) {
+        if (this.#source == pin) {
+            return
+        }
         if (this.#source) {
             const nodeElement = this.#source.getNodeElement()
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
@@ -42,6 +45,7 @@ export default class LinkElement extends IElement {
                 this.#linkPins()
             }
         }
+        this.template.applyPins(this)
     }
 
     /** @type {PinElement} */
@@ -50,6 +54,9 @@ export default class LinkElement extends IElement {
         return this.#destination
     }
     set destinationPin(pin) {
+        if (this.#destination == pin) {
+            return
+        }
         if (this.#destination) {
             const nodeElement = this.#destination.getNodeElement()
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
@@ -68,6 +75,7 @@ export default class LinkElement extends IElement {
                 this.#linkPins()
             }
         }
+        this.template.applyPins(this)
     }
 
     #nodeDeleteHandler
@@ -149,9 +157,6 @@ export default class LinkElement extends IElement {
         this.template.applySourceLocation(this)
     }
 
-    /**
-     * @returns {Number[]}
-     */
     getDestinationLocation() {
         return this.destinationLocation
     }

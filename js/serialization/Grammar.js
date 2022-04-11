@@ -149,7 +149,7 @@ export default class Grammar {
 
     Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
 
-    PathSymbol = r => P.regex(/[0-9a-zA-Z_]+/).map(v => new PathSymbolEntity({ value: v }))
+    PathSymbol = r => P.regex(/[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     Reference = r => P.alt(
         r.None,

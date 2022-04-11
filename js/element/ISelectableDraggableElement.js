@@ -3,6 +3,7 @@
 import Configuration from "../Configuration"
 import IElement from "./IElement"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
+import Utility from "../Utility"
 
 /**
  * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
@@ -27,6 +28,23 @@ export default class ISelectableDraggableElement extends IElement {
         this.dragHandler = (e) => {
             self.addLocation(e.detail.value)
         }
+    }
+
+    #setSelected(value = true) {
+        this.selected = value
+        if (this.blueprint) {
+            if (this.selected) {
+                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler)
+            } else {
+                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
+            }
+        }
+        this.template.applySelected(this)
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.#setSelected(this.selected)
     }
 
     createInputObjects() {
@@ -61,16 +79,9 @@ export default class ISelectableDraggableElement extends IElement {
     }
 
     setSelected(value = true) {
-        if (this.selected == value) {
-            return
+        if (this.selected != value) {
+            this.#setSelected(value)
         }
-        this.selected = value
-        if (this.selected) {
-            this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler)
-        } else {
-            this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
-        }
-        this.template.applySelected(this)
     }
 
     dispatchDragEvent(value) {
@@ -85,7 +96,7 @@ export default class ISelectableDraggableElement extends IElement {
     }
 
     snapToGrid() {
-        let snappedLocation = this.blueprint.snapToGrid(this.location)
+        let snappedLocation = Utility.snapToGrid(this.location, Configuration.gridSize)
         if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
             this.setLocation(snappedLocation)
         }
