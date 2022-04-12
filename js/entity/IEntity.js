@@ -24,7 +24,10 @@ export default class IEntity {
         const defineAllAttributes = (prefix, target, properties, values) => {
             let fullKey = prefix.concat("")
             const last = fullKey.length - 1
-            for (let property of Object.getOwnPropertyNames(properties)) {
+            for (let property of Utility.mergeArrays(
+                Object.getOwnPropertyNames(properties),
+                Object.getOwnPropertyNames(values ?? {})
+            )) {
                 fullKey[last] = property
                 let defaultValue = properties[property]
                 const defaultType = (defaultValue instanceof TypeInitialization)

@@ -118,4 +118,27 @@ export default class Utility {
             gridSize * Math.round(location[1] / gridSize)
         ]
     }
+
+    /**
+     * @template T
+     * @param {Array<T>} a
+     * @param {Array<T>} b
+     */
+    static mergeArrays(a = [], b = []) {
+        let result = []
+        for (let j = 0; j < b.length; ++j) {
+            for (let i = 0; i < a.length; ++i) {
+                if (a[i] == b[j]) {
+                    result.push(...a.splice(0, i), ...b.splice(0, j), ...a.splice(0, 1))
+                    j = 0
+                    i = 0
+                    b.shift()
+                    break
+                }
+            }
+        }
+        return [...(new Set(result.concat(...a, ...b)))]
+    }
+
+
 }

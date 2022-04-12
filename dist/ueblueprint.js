@@ -1046,6 +1046,29 @@ class Utility {
             gridSize * Math.round(location[1] / gridSize)
         ]
     }
+
+    /**
+     * @template T
+     * @param {Array<T>} a
+     * @param {Array<T>} b
+     */
+    static mergeArrays(a = [], b = []) {
+        let result = [];
+        for (let j = 0; j < b.length; ++j) {
+            for (let i = 0; i < a.length; ++i) {
+                if (a[i] == b[j]) {
+                    result.push(...a.splice(0, i), ...b.splice(0, j), ...a.splice(0, 1));
+                    j = 0;
+                    i = 0;
+                    b.shift();
+                    break
+                }
+            }
+        }
+        return [...(new Set(result.concat(...a, ...b)))]
+    }
+
+
 }
 
 // @ts-check
@@ -1071,7 +1094,10 @@ class IEntity {
         const defineAllAttributes = (prefix, target, properties, values) => {
             let fullKey = prefix.concat("");
             const last = fullKey.length - 1;
-            for (let property of Object.getOwnPropertyNames(properties)) {
+            for (let property of Utility.mergeArrays(
+                Object.getOwnPropertyNames(properties),
+                Object.getOwnPropertyNames(values ?? {})
+            )) {
                 fullKey[last] = property;
                 let defaultValue = properties[property];
                 const defaultType = (defaultValue instanceof TypeInitialization)
@@ -1099,7 +1125,7 @@ class IEntity {
                 }
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
-                        target[property] = undefined; // to preserve the order
+                        target[property] = undefined; // Declare undefined to preserve the order or attributes
                         continue
                     }
                     defaultValue = defaultValue.value;
@@ -1492,6 +1518,7 @@ class ObjectEntity extends IEntity {
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
         AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
+        EnabledState: new TypeInitialization(IdentifierEntity, false, null),
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
@@ -1512,6 +1539,7 @@ class ObjectEntity extends IEntity {
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
         /** @type {IdentifierEntity} */ this.AdvancedPinDisplay;
+        /** @type {IdentifierEntity} */ this.EnabledState;
         /** @type {GuidEntity} */ this.NodeGuid;
         /** @type {IntegerEntity} */ this.ErrorType;
         /** @type {String} */ this.ErrorMsg;

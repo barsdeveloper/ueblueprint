@@ -23,6 +23,7 @@ export default class ObjectEntity extends IEntity {
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
         AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
+        EnabledState: new TypeInitialization(IdentifierEntity, false, null),
         NodeGuid: GuidEntity,
         ErrorType: new TypeInitialization(IntegerEntity, false),
         ErrorMsg: new TypeInitialization(String, false, ""),
@@ -43,6 +44,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IdentifierEntity} */ this.AdvancedPinDisplay
+        /** @type {IdentifierEntity} */ this.EnabledState
         /** @type {GuidEntity} */ this.NodeGuid
         /** @type {IntegerEntity} */ this.ErrorType
         /** @type {String} */ this.ErrorMsg
