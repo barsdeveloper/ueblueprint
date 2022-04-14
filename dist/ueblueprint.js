@@ -1067,8 +1067,6 @@ class Utility {
         }
         return [...(new Set(result.concat(...a, ...b)))]
     }
-
-
 }
 
 // @ts-check
@@ -1219,12 +1217,6 @@ class IdentifierEntity extends IEntity {
     }
 
     constructor(options = {}) {
-        // Not instanceof to pick also primitive string
-        if (options.constructor === String) {
-            options = {
-                value: options
-            };
-        }
         super(options);
         /** @type {String} */ this.value;
     }
@@ -1250,11 +1242,6 @@ class IntegerEntity extends IEntity {
      * @param {Object | Number | String} options
      */
     constructor(options = 0) {
-        if (options.constructor == Number || options.constructor == String) {
-            options = {
-                value: options,
-            };
-        }
         super(options);
         this.value = Math.round(this.value);
     }
@@ -4149,7 +4136,6 @@ class Blueprint extends IElement {
      * @param {Number} y - Vertical expand value (negative means top, positive means bottom)
      * @param {Number} factor - Either 1 (expand) or -1 (shrink)
      */
-
 
     /**
      * Expand or shrink the grind indefinitely, the content will remain into position

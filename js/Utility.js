@@ -139,6 +139,4 @@ export default class Utility {
         }
         return [...(new Set(result.concat(...a, ...b)))]
     }
-
-
 }

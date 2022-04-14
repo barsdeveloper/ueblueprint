@@ -268,7 +268,6 @@ export default class Blueprint extends IElement {
      * @param {Number} factor - Either 1 (expand) or -1 (shrink)
      */
 
-
     /**
      * Expand or shrink the grind indefinitely, the content will remain into position
      * @param {Number[]} param0 - Expand value (negative means shrink, positive means expand)

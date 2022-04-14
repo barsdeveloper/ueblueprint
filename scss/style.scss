@@ -1,48 +1,48 @@
 @font-face {
     font-family: "Roboto";
-    font-style : light;
-    src        :
+    font-style: light;
+    src:
         url("../font/roboto-light.woff2") format("woff2"),
         url("../font/roboto-light.woff") format("woff");
 }
 
 @font-face {
     font-family: "Roboto";
-    font-style : regular;
-    src        :
+    font-style: regular;
+    src:
         url("../font/roboto-regular.woff2") format("woff2"),
         url("../font/roboto-regular.woff") format("woff");
 }
 
 ueb-blueprint {
-    display    : block;
-    position   : relative;
+    display: block;
+    position: relative;
     font-family: Roboto, Noto, Oxygen, Ubuntu, "Open Sans", "Helvetica Neue", sans-serif;
-    font-size  : var(--ueb-font-size);
+    font-size: var(--ueb-font-size);
     user-select: none;
 }
 
 .ueb-viewport-header {
-    display   : flex;
-    position  : absolute;
-    top       : 0;
-    right     : 0;
-    left      : 0;
-    height    : 1.5em;
+    display: flex;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 1.5em;
     background: rgba(0, 0, 0, 0.5);
-    z-index   : 1;
+    z-index: 1;
 }
 
 .ueb-viewport-zoom {
     margin-left: auto;
-    color      : #4d4d4db7;
-    font-size  : 20px;
+    color: #4d4d4db7;
+    font-size: 20px;
 }
 
 .ueb-viewport-body {
-    position       : relative;
-    height         : var(--ueb-height, 30rem);
-    overflow       : hidden;
+    position: relative;
+    height: var(--ueb-height, 30rem);
+    overflow: hidden;
     scrollbar-width: 0;
 }
 
@@ -52,13 +52,13 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
 
 .ueb-grid {
     --ueb-grid-line-actual-width: calc(var(--ueb-grid-line-width) / var(--ueb-scale));
-    position                    : absolute;
-    min-width                   : 100%;
-    min-height                  : 100%;
-    width                       : calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-scale));
-    height                      : calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-scale));
-    background-color            : #262626;
-    background-image            :
+    position: absolute;
+    min-width: 100%;
+    min-height: 100%;
+    width: calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-scale));
+    height: calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-scale));
+    background-color: #262626;
+    background-image:
         /* Axis lines */
         linear-gradient(var(--ueb-grid-axis-line-color),
             var(--ueb-grid-axis-line-color)),
@@ -97,10 +97,10 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
         var(--ueb-grid-actual-size) var(--ueb-grid-actual-size),
         var(--ueb-grid-actual-size) var(--ueb-grid-actual-size);
     background-position: calc(var(--ueb-translate-x) * 1px) calc(var(--ueb-translate-y) * 1px);
-    background-repeat  : repeat-x, repeat-y, repeat, repeat, repeat, repeat;
-    transform          : scale(var(--ueb-scale), var(--ueb-scale));
-    transform-origin   : 0 0;
-    overflow           : hidden;
+    background-repeat: repeat-x, repeat-y, repeat, repeat, repeat, repeat;
+    transform: scale(var(--ueb-scale), var(--ueb-scale));
+    transform-origin: 0 0;
+    overflow: hidden;
 }
 
 ueb-blueprint[data-drag-scrolling="true"] .ueb-grid {
@@ -113,7 +113,7 @@ ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
 
 .ueb-zoom--.ueb,
 .ueb {
-    --ueb-scale           : 1;
+    --ueb-scale: 1;
     --ueb-grid-actual-size: var(--ueb-grid-size);
 }
 
@@ -158,79 +158,79 @@ ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
 }
 
 .ueb-zoom--4.ueb {
-    --ueb-scale           : 0.5;
+    --ueb-scale: 0.5;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
 .ueb-zoom--5.ueb {
-    --ueb-scale           : 0.375;
+    --ueb-scale: 0.375;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
 .ueb-zoom--6.ueb {
-    --ueb-scale           : 0.333333;
+    --ueb-scale: 0.333333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--7.ueb {
-    --ueb-scale           : 0.3;
+    --ueb-scale: 0.3;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--8.ueb {
-    --ueb-scale           : 0.266666;
+    --ueb-scale: 0.266666;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--9.ueb {
-    --ueb-scale           : 0.233333;
+    --ueb-scale: 0.233333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--10.ueb {
-    --ueb-scale           : 0.2;
+    --ueb-scale: 0.2;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
 .ueb-zoom--11.ueb {
-    --ueb-scale           : 0.166666;
+    --ueb-scale: 0.166666;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
 
 .ueb-zoom--12.ueb {
-    --ueb-scale           : 0.133333;
+    --ueb-scale: 0.133333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
 
 .ueb-grid-content {
-    position : relative;
-    width    : 0;
-    height   : 0;
+    position: relative;
+    width: 0;
+    height: 0;
     transform: translateX(calc(var(--ueb-translate-x) * 1px)) translateY(calc(var(--ueb-translate-y) * 1px));
 }
 
 .ueb-positioned {
-    --ueb-computed-min-x : min(var(--ueb-from-x), var(--ueb-to-x));
-    --ueb-computed-max-x : max(var(--ueb-from-x), var(--ueb-to-x));
-    --ueb-computed-min-y : min(var(--ueb-from-y), var(--ueb-to-y));
-    --ueb-computed-max-y : max(var(--ueb-from-y), var(--ueb-to-y));
-    --ueb-computed-width : max(var(--ueb-from-x) - var(--ueb-to-x), var(--ueb-to-x) - var(--ueb-from-x));
+    --ueb-computed-min-x: min(var(--ueb-from-x), var(--ueb-to-x));
+    --ueb-computed-max-x: max(var(--ueb-from-x), var(--ueb-to-x));
+    --ueb-computed-min-y: min(var(--ueb-from-y), var(--ueb-to-y));
+    --ueb-computed-max-y: max(var(--ueb-from-y), var(--ueb-to-y));
+    --ueb-computed-width: max(var(--ueb-from-x) - var(--ueb-to-x), var(--ueb-to-x) - var(--ueb-from-x));
     --ueb-computed-height: max(var(--ueb-from-y) - var(--ueb-to-y), var(--ueb-to-y) - var(--ueb-from-y));
-    position             : absolute;
-    top                  : calc(var(--ueb-computed-min-y) * 1px);
-    left                 : calc(var(--ueb-computed-min-x) * 1px);
-    width                : calc(var(--ueb-computed-width) * 1px);
-    height               : calc(var(--ueb-computed-height) * 1px);
+    position: absolute;
+    top: calc(var(--ueb-computed-min-y) * 1px);
+    left: calc(var(--ueb-computed-min-x) * 1px);
+    width: calc(var(--ueb-computed-width) * 1px);
+    height: calc(var(--ueb-computed-height) * 1px);
 }
 
 ueb-selector {
-    display   : block;
-    position  : absolute;
+    display: block;
+    position: absolute;
     visibility: hidden;
-    top       : 0;
-    left      : 0;
-    width     : 0;
-    height    : 0;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
     background-image:
         /* Top */
         repeating-linear-gradient(90deg,

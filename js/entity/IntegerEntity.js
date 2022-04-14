@@ -12,11 +12,6 @@ export default class IntegerEntity extends IEntity {
      * @param {Object | Number | String} options
      */
     constructor(options = 0) {
-        if (options.constructor == Number || options.constructor == String) {
-            options = {
-                value: options,
-            }
-        }
         super(options)
         this.value = Math.round(this.value)
     }

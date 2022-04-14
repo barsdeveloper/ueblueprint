@@ -9,12 +9,6 @@ export default class IdentifierEntity extends IEntity {
     }
 
     constructor(options = {}) {
-        // Not instanceof to pick also primitive string
-        if (options.constructor === String) {
-            options = {
-                value: options
-            }
-        }
         super(options)
         /** @type {String} */ this.value
     }

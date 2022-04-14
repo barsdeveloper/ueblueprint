@@ -1,9 +1,9 @@
 ueb-node {
-    display      : block;
-    position     : absolute;
-    transform    : translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
+    display: block;
+    position: absolute;
+    transform: translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
     border-radius: var(--ueb-node-radius);
-    box-shadow   : 0 0 1px 0 black, 1px 4px 6px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 1px 0 black, 1px 4px 6px 0 rgba(0, 0, 0, 0.3);
 }
 
 ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
@@ -11,8 +11,8 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
 }
 
 .ueb-node-border {
-    margin       : -3px;
-    padding      : 3px;
+    margin: -3px;
+    padding: 3px;
     border-radius: calc(var(--ueb-node-radius) * 1.4);
 }
 
@@ -22,42 +22,42 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
         linear-gradient(to bottom, #f1b000 0%, #cc6700 100%),
         linear-gradient(to right, #cc6700 0%, #cc6700 100%),
         linear-gradient(to bottom, #f1b000 0%, #cc6700 100%);
-    background-size    : 100% 7px, 7px 100%, 100% 7px, 7px 100%;
+    background-size: 100% 7px, 7px 100%, 100% 7px, 7px 100%;
     background-position: top, right, bottom, left;
-    background-repeat  : repeat-x, repeat-y, repeat-x, repeat-y;
-    outline            : 3px solid #cc6700;
-    outline-offset     : -6px;
+    background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+    outline: 3px solid #cc6700;
+    outline-offset: -6px;
 }
 
 .ueb-node-content {
-    position     : relative;
-    padding      : 1px;
-    box-shadow   : inset 0 0 2px 0 black;
+    position: relative;
+    padding: 1px;
+    box-shadow: inset 0 0 2px 0 black;
     border-radius: var(--ueb-node-radius);
-    background   : rgba(10, 10, 10, 0.8);
-    overflow     : hidden;
+    background: rgba(10, 10, 10, 0.8);
+    overflow: hidden;
 }
 
 .ueb-node-header {
-    padding      : 0.3em 0.7em;
-    box-shadow   : inset 0 1px 2px 0 #313631, inset 0 2px 0 0 #92c381;
+    padding: 0.3em 0.7em;
+    box-shadow: inset 0 1px 2px 0 #313631, inset 0 2px 0 0 #92c381;
     border-radius: var(--ueb-node-radius) var(--ueb-node-radius) 0 0;
-    background   : linear-gradient(170deg, #5f815a 0%, #5f815a 50%, transparent 100%);
-    color        : #c0c0c0;
-    font-weight  : 600;
-    white-space  : nowrap;
+    background: linear-gradient(170deg, #5f815a 0%, #5f815a 50%, transparent 100%);
+    color: #c0c0c0;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .ueb-node-name {
     background: radial-gradient(closest-side, rgba(0, 0, 0, 0.5) 0%, transparent 90%);
-    margin    : -0.1em -1.6em;
-    padding   : 0.1em 1.6em;
+    margin: -0.1em -1.6em;
+    padding: 0.1em 1.6em;
 }
 
 .ueb-node-body {
-    display    : flex;
-    padding    : 1px 0;
-    color      : white;
+    display: flex;
+    padding: 1px 0;
+    color: white;
     font-weight: 100;
     white-space: nowrap;
 }

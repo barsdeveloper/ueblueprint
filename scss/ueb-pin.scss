@@ -1,10 +1,10 @@
 ueb-pin {
     display: block;
-    margin : 6px 0;
+    margin: 6px 0;
     padding: 2px 2px;
 
     &>* {
-        display       : inline-block;
+        display: inline-block;
         vertical-align: middle;
     }
 }
@@ -15,7 +15,7 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
 
 ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-pin:hover {
     background: var(--ueb-pin-background);
-    cursor    : crosshair;
+    cursor: crosshair;
 }
 
 .ueb-node-outputs ueb-pin {
@@ -23,28 +23,28 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-pin:hover
 }
 
 .ueb-pin-icon-exec {
-    display       : inline-block;
+    display: inline-block;
     vertical-align: text-top;
 }
 
 .ueb-pin-icon-value {
-    display       : inline-block;
-    position      : relative;
-    width         : 1em;
-    height        : 1em;
+    display: inline-block;
+    position: relative;
+    width: 1em;
+    height: 1em;
     vertical-align: baseline;
-    margin        : 0 0.4em -1px 0.1em;
+    margin: 0 0.4em -1px 0.1em;
 }
 
 .ueb-pin-icon-value::before {
-    content      : "";
-    display      : block;
-    position     : absolute;
-    top          : 0;
-    right        : 0;
-    bottom       : 0;
-    left         : 0;
-    border       : 2px solid var(--ueb-pin-color);
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border: 2px solid var(--ueb-pin-color);
     border-radius: 50%;
 }
 
@@ -53,20 +53,20 @@ ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
 }
 
 .ueb-pin-icon-value::after {
-    content      : "";
-    display      : block;
-    position     : absolute;
-    top          : calc(50% - 0.3em);
-    left         : calc(100% + 1px);
-    width        : 0;
-    height       : 0;
-    border-top   : 0.3em solid transparent;
+    content: "";
+    display: block;
+    position: absolute;
+    top: calc(50% - 0.3em);
+    left: calc(100% + 1px);
+    width: 0;
+    height: 0;
+    border-top: 0.3em solid transparent;
     border-bottom: 0.3em solid transparent;
-    border-left  : 0.3em solid var(--ueb-pin-color);
+    border-left: 0.3em solid var(--ueb-pin-color);
 }
 
 .ueb-pin-content>span {
-    display       : inline-block;
+    display: inline-block;
     vertical-align: middle;
 }
 
@@ -77,43 +77,42 @@ ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
 .ueb-pin-input {
     display: inline-block;
     vertical-align: middle;
-    margin-left  : 3px;
-    border       : 1px solid #a0a0a0;
+    margin-left: 3px;
+    border: 1px solid #a0a0a0;
     border-radius: 3px;
-    padding      : 1px 0 0 3px;
-    color        : #c0c0c0;
+    padding: 1px 3px 1px 3px;
+    color: #c0c0c0;
 
     &:hover,
     &:active,
     &:focus,
     &:focus-within {
         background: #ffffff46;
-        outline   : none;
+        outline: none;
     }
 }
 
 .ueb-pin-input-content {
-    display   : block;
-    outline   : none;
-    border    : none;
-    margin    : 0 3px 1px 0;
-    padding   : 0;
-    min-width : 10px;
-    max-width : 400px;
+    display: block;
+    outline: none;
+    border: none;
+    padding: 0;
+    min-width: 10px;
+    max-width: 400px;
     max-height: 16em;
     background: none;
-    color     : inherit;
-    cursor    : text;
-    overflow  : auto;
+    color: inherit;
+    cursor: text;
+    overflow: auto;
 
     &::-webkit-scrollbar {
-        width : 10px;
+        width: 10px;
         height: 10px;
     }
 
     &::-webkit-scrollbar-thumb {
-        background   : #575757;
+        background: #575757;
         border-radius: 10px;
-        margin       : 4px;
+        margin: 4px;
     }
 }
