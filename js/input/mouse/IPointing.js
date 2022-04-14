@@ -1,6 +1,6 @@
 // @ts-check
 
-import IContext from "../IContext"
+import IInput from "../IInput"
 import Utility from "../../Utility"
 
 /**
@@ -9,9 +9,9 @@ import Utility from "../../Utility"
 
 /**
  * @template {HTMLElement} T
- * @extends {IContext<T>}
+ * @extends {IInput<T>}
  */
-export default class IPointing extends IContext {
+export default class IPointing extends IInput {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options)

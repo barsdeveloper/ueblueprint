@@ -1,8 +1,8 @@
 // @ts-check
 
-import IContext from "../IContext"
+import IInput from "../IInput"
 
-export default class Unfocus extends IContext {
+export default class Unfocus extends IInput {
 
     /** @type {(e: MouseEvent) => void} */
     #clickHandler

@@ -3,7 +3,7 @@
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../input/IContext").default} IContext
+ * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../template/ITemplate").default} ITemplate
  */
 
@@ -40,7 +40,7 @@ export default class IElement extends HTMLElement {
         this.#template = template
     }
 
-    /** @type {IContext[]} */
+    /** @type {IInput[]} */
     inputObjects = []
 
     /**
@@ -61,11 +61,9 @@ export default class IElement extends HTMLElement {
     connectedCallback() {
         this.#blueprint = this.closest("ueb-blueprint")
         this.template.setup(this)
-        this.inputObjects = this.createInputObjects()
     }
 
     disconnectedCallback() {
-        this.inputObjects.forEach(v => v.unlistenDOMElement())
         this.template.cleanup(this)
     }
 
@@ -77,7 +75,7 @@ export default class IElement extends HTMLElement {
     }
 
     /**
-     * @template {IContext} V
+     * @template {IInput} V
      * @param {new (...args: any[]) => V} type
      * @returns {V}
      */

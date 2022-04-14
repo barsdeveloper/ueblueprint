@@ -1,10 +1,10 @@
 // @ts-check
 
-import IContext from "../IContext"
+import IInput from "../IInput"
 import NodeElement from "../../element/NodeElement"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
 
-export default class Paste extends IContext {
+export default class Paste extends IInput {
 
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle

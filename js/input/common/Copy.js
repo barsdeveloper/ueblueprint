@@ -1,9 +1,9 @@
 // @ts-check
 
-import IContext from "../IContext"
+import IInput from "../IInput"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
 
-export default class Copy extends IContext {
+export default class Copy extends IInput {
 
     /** @type {(e: ClipboardEvent) => void} */
     #copyHandler

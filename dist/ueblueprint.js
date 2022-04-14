@@ -163,6 +163,9 @@ const html = String.raw;
  */
 class ITemplate {
 
+    /** @type {Object[]} */
+    inputObjects = []
+
     /**
      * @param {T} entity
      */
@@ -176,12 +179,18 @@ class ITemplate {
     setup(element) {
         // TODO replace with the safer element.setHTML(...) when it will be availableBreack
         element.innerHTML = this.render(element);
+        this.inputObjects = this.createInputObjects();
     }
 
     /**
      * @param {T} element
      */
     cleanup(element) {
+        this.inputObjects.forEach(v => v.unlistenDOMElement());
+    }
+
+    createInputObjects() {
+        return []
     }
 }
 
@@ -513,7 +522,7 @@ class FastSelectionModel {
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../input/IContext").default} IContext
+ * @typedef {import("../input/IInput").IInput} IInput
  * @typedef {import("../template/ITemplate").default} ITemplate
  */
 
@@ -550,7 +559,7 @@ class IElement extends HTMLElement {
         this.#template = template;
     }
 
-    /** @type {IContext[]} */
+    /** @type {IInput[]} */
     inputObjects = []
 
     /**
@@ -571,11 +580,9 @@ class IElement extends HTMLElement {
     connectedCallback() {
         this.#blueprint = this.closest("ueb-blueprint");
         this.template.setup(this);
-        this.inputObjects = this.createInputObjects();
     }
 
     disconnectedCallback() {
-        this.inputObjects.forEach(v => v.unlistenDOMElement());
         this.template.cleanup(this);
     }
 
@@ -587,7 +594,7 @@ class IElement extends HTMLElement {
     }
 
     /**
-     * @template {IContext} V
+     * @template {IInput} V
      * @param {new (...args: any[]) => V} type
      * @returns {V}
      */
@@ -841,7 +848,7 @@ class BlueprintTemplate extends ITemplate {
 /**
  * @template {HTMLElement} T
  */
-class IContext {
+class IInput {
 
     /** @type {T} */
     #target
@@ -1973,7 +1980,7 @@ End Object\n`;
 
 // @ts-check
 
-class Copy extends IContext {
+class Copy extends IInput {
 
     /** @type {(e: ClipboardEvent) => void} */
     #copyHandler
@@ -2002,7 +2009,7 @@ class Copy extends IContext {
 
 // @ts-check
 
-class IKeyboardShortcut extends IContext {
+class IKeyboardShortcut extends IInput {
 
     /** @type {KeyBindingEntity[]} */
     #activationKeys
@@ -2122,9 +2129,9 @@ class KeyboardCanc extends IKeyboardShortcut {
 
 /**
  * @template {HTMLElement} T
- * @extends {IContext<T>}
+ * @extends {IInput<T>}
  */
-class IPointing extends IContext {
+class IPointing extends IInput {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
@@ -3801,7 +3808,7 @@ customElements.define("ueb-node", NodeElement);
 
 // @ts-check
 
-class Paste extends IContext {
+class Paste extends IInput {
 
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
@@ -3885,7 +3892,7 @@ class Select extends IMouseClickDrag {
 
 // @ts-check
 
-class Unfocus extends IContext {
+class Unfocus extends IInput {
 
     /** @type {(e: MouseEvent) => void} */
     #clickHandler

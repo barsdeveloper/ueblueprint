@@ -1,11 +1,11 @@
 // @ts-check
 
 import Configuration from "../../Configuration"
-import IContext from "../IContext"
+import IInput from "../IInput"
 import ISerializer from "../../serialization/ISerializer"
 import KeyBindingEntity from "../../entity/KeyBindingEntity"
 
-export default class IKeyboardShortcut extends IContext {
+export default class IKeyboardShortcut extends IInput {
 
     /** @type {KeyBindingEntity[]} */
     #activationKeys

@@ -9,7 +9,7 @@ import Configuration from "../Configuration"
 /**
  * @template {HTMLElement} T
  */
-export default class IContext {
+export default class IInput {
 
     /** @type {T} */
     #target
