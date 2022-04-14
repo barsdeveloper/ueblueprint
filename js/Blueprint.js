@@ -2,21 +2,11 @@
 
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import Configuration from "./Configuration"
-import Copy from "./input/common/Copy"
 import IElement from "./element/IElement"
-import KeyboardCanc from "./input/keybaord/KeyboardCanc"
-import KeyboardEnableZoom from "./input/keybaord/KeyboardEnableZoom"
-import KeyboardSelectAll from "./input/keybaord/KeyboardSelectAll"
 import LinkElement from "./element/LinkElement"
-import MouseScrollGraph from "./input/mouse/MouseScrollGraph"
-import MouseTracking from "./input/mouse/MouseTracking"
 import NodeElement from "./element/NodeElement"
-import Paste from "./input/common/Paste"
-import Select from "./input/mouse/Select"
 import SelectorElement from "./element/SelectorElement"
-import Unfocus from "./input/mouse/Unfocus"
 import Utility from "./Utility"
-import Zoom from "./input/mouse/Zoom"
 
 /**
  * @typedef {import("./element/PinElement").default} PinElement
@@ -123,33 +113,6 @@ export default class Blueprint extends IElement {
         this.translateValue[0] += x
         this.translateValue[1] += y
         this.template.applyTranlate(this)
-    }
-
-    createInputObjects() {
-        return [
-            new Copy(this.getGridDOMElement(), this),
-            new Paste(this.getGridDOMElement(), this),
-            new KeyboardCanc(this.getGridDOMElement(), this),
-            new KeyboardSelectAll(this.getGridDOMElement(), this),
-            new Zoom(this.getGridDOMElement(), this, {
-                looseTarget: true,
-            }),
-            new Select(this.getGridDOMElement(), this, {
-                clickButton: 0,
-                exitAnyButton: true,
-                looseTarget: true,
-                moveEverywhere: true,
-            }),
-            new MouseScrollGraph(this.getGridDOMElement(), this, {
-                clickButton: 2,
-                exitAnyButton: false,
-                looseTarget: true,
-                moveEverywhere: true,
-            }),
-            new Unfocus(this.getGridDOMElement(), this),
-            new MouseTracking(this.getGridDOMElement(), this),
-            new KeyboardEnableZoom(this.getGridDOMElement(), this),
-        ]
     }
 
     getGridDOMElement() {

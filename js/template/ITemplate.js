@@ -2,6 +2,7 @@
 
 /**
  * @typedef {import("../element/IElement").default} IElement
+ * @typedef {import("../input/IInput").default} IInput")}
  */
 
 /**
@@ -9,7 +10,7 @@
  */
 export default class ITemplate {
 
-    /** @type {Object[]} */
+    /** @type {IInput[]} */
     inputObjects = []
 
     /**
@@ -25,7 +26,13 @@ export default class ITemplate {
     setup(element) {
         // TODO replace with the safer element.setHTML(...) when it will be availableBreack
         element.innerHTML = this.render(element)
-        this.inputObjects = this.createInputObjects()
+    }
+
+    /**
+     * @param {T} element
+     */
+    inputSetup(element) {
+        this.inputObjects = this.createInputObjects(element)
     }
 
     /**
@@ -35,7 +42,10 @@ export default class ITemplate {
         this.inputObjects.forEach(v => v.unlistenDOMElement())
     }
 
-    createInputObjects() {
-        return []
+    /**
+     * @param {T} element
+     */
+    createInputObjects(element) {
+        return /** @type {IInput[]} */([])
     }
 }

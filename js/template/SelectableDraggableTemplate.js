@@ -1,5 +1,6 @@
 // @ts-check
 
+import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 import ITemplate from "./ITemplate"
 import sanitizeText from "./sanitizeText"
 
@@ -7,11 +8,27 @@ import sanitizeText from "./sanitizeText"
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 
+/**
+ * @extends {ITemplate<ISelectableDraggableElement>}
+ */
 export default class SelectableDraggableTemplate extends ITemplate {
 
     /**
-     * Returns the html elements rendered from this template.
-     * @param {ISelectableDraggableElement} element Element of the graph
+     * @param {ISelectableDraggableElement} element
+     */
+    createInputObjects(element) {
+        return [
+            ...super.createInputObjects(element),
+            ...[
+                new MouseMoveNodes(this, element.blueprint, {
+                    looseTarget: true
+                }),
+            ]
+        ]
+    }
+
+    /**
+     * @param {ISelectableDraggableElement} element
      */
     applyLocation(element) {
         element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]))
@@ -19,8 +36,7 @@ export default class SelectableDraggableTemplate extends ITemplate {
     }
 
     /**
-     * Returns the html elements rendered from this template.
-     * @param {ISelectableDraggableElement} element Element of the graph
+     * @param {ISelectableDraggableElement} element
      */
     applySelected(element) {
         if (element.selected) {

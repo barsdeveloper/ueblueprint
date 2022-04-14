@@ -1,10 +1,20 @@
 // @ts-check
 
 import Configuration from "../Configuration"
+import Copy from "../input/common/Copy"
 import html from "./html"
 import ITemplate from "./ITemplate"
+import KeyboardCanc from "../input/keybaord/KeyboardCanc"
+import KeyboardEnableZoom from "../input/keybaord/KeyboardEnableZoom"
+import KeyboardSelectAll from "../input/keybaord/KeyboardSelectAll"
+import MouseScrollGraph from "../input/mouse/MouseScrollGraph"
+import MouseTracking from "../input/mouse/MouseTracking"
+import Paste from "../input/common/Paste"
 import sanitizeText from "./sanitizeText"
+import Select from "../input/mouse/Select"
 import SelectorElement from "../element/SelectorElement"
+import Unfocus from "../input/mouse/Unfocus"
+import Zoom from "../input/mouse/Zoom"
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint
@@ -13,6 +23,36 @@ import SelectorElement from "../element/SelectorElement"
  */
 
 export default class BlueprintTemplate extends ITemplate {
+
+    /**
+     * @param {Blueprint} blueprint
+     */
+    createInputObjects(blueprint) {
+        return [
+            new Copy(blueprint.getGridDOMElement(), blueprint),
+            new Paste(blueprint.getGridDOMElement(), blueprint),
+            new KeyboardCanc(blueprint.getGridDOMElement(), blueprint),
+            new KeyboardSelectAll(blueprint.getGridDOMElement(), blueprint),
+            new Zoom(blueprint.getGridDOMElement(), blueprint, {
+                looseTarget: true,
+            }),
+            new Select(blueprint.getGridDOMElement(), blueprint, {
+                clickButton: 0,
+                exitAnyButton: true,
+                looseTarget: true,
+                moveEverywhere: true,
+            }),
+            new MouseScrollGraph(blueprint.getGridDOMElement(), blueprint, {
+                clickButton: 2,
+                exitAnyButton: false,
+                looseTarget: true,
+                moveEverywhere: true,
+            }),
+            new Unfocus(blueprint.getGridDOMElement(), blueprint),
+            new MouseTracking(blueprint.getGridDOMElement(), blueprint),
+            new KeyboardEnableZoom(blueprint.getGridDOMElement(), blueprint),
+        ]
+    }
 
     /**
      * @param {Blueprint} element

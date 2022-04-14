@@ -2,6 +2,7 @@
 
 import html from "./html"
 import ITemplate from "./ITemplate"
+import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import sanitizeText from "./sanitizeText"
 import Utility from "../Utility"
 
@@ -11,6 +12,19 @@ import Utility from "../Utility"
  */
 
 export default class PinTemplate extends ITemplate {
+
+    /**
+     * @param {PinElement} pin
+     *
+     */
+    createInputObjects(pin) {
+        return [
+            new MouseCreateLink(pin.clickableElement, pin.blueprint, {
+                moveEverywhere: true,
+                looseTarget: true
+            })
+        ]
+    }
 
     hasInput() {
         return false

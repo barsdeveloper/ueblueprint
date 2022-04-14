@@ -61,6 +61,7 @@ export default class IElement extends HTMLElement {
     connectedCallback() {
         this.#blueprint = this.closest("ueb-blueprint")
         this.template.setup(this)
+        this.template.inputSetup(this)
     }
 
     disconnectedCallback() {

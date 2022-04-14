@@ -3,7 +3,6 @@
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
 import LinkElement from "./LinkElement"
-import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import PinTemplate from "../template/PinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 
@@ -44,15 +43,6 @@ export default class PinElement extends IElement {
     connectedCallback() {
         super.connectedCallback()
         this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-pin-color")
-    }
-
-    createInputObjects() {
-        return [
-            new MouseCreateLink(this.clickableElement, this.blueprint, {
-                moveEverywhere: true,
-                looseTarget: true
-            })
-        ]
     }
 
     /** @return {GuidEntity} */

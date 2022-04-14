@@ -2,7 +2,6 @@
 
 import Configuration from "../Configuration"
 import IElement from "./IElement"
-import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 import Utility from "../Utility"
 
 /**
@@ -45,14 +44,6 @@ export default class ISelectableDraggableElement extends IElement {
     connectedCallback() {
         super.connectedCallback()
         this.#setSelected(this.selected)
-    }
-
-    createInputObjects() {
-        return [
-            new MouseMoveNodes(this, this.blueprint, {
-                looseTarget: true
-            }),
-        ]
     }
 
     /**

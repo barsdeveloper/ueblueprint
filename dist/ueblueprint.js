@@ -148,700 +148,6 @@ class Configuration {
 // @ts-check
 
 /**
- * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
- */
-const html = String.raw;
-
-// @ts-check
-
-/**
- * @typedef {import("../element/IElement").default} IElement
- */
-
-/**
- * @template {IElement} T
- */
-class ITemplate {
-
-    /** @type {Object[]} */
-    inputObjects = []
-
-    /**
-     * @param {T} entity
-     */
-    render(entity) {
-        return ""
-    }
-
-    /**
-     * @param {T} element
-     */
-    setup(element) {
-        // TODO replace with the safer element.setHTML(...) when it will be availableBreack
-        element.innerHTML = this.render(element);
-        this.inputObjects = this.createInputObjects();
-    }
-
-    /**
-     * @param {T} element
-     */
-    cleanup(element) {
-        this.inputObjects.forEach(v => v.unlistenDOMElement());
-    }
-
-    createInputObjects() {
-        return []
-    }
-}
-
-// @ts-check
-
-document.createElement("div");
-
-const tagReplacement = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;'
-};
-
-function sanitizeText(value) {
-    return value.toString().replace(/[&<>'"]/g, tag => tagReplacement[tag])
-}
-
-// @ts-check
-
-class OrderedIndexArray {
-
-    /**
-     * @param {(arrayElement: number) => number} compareFunction A function that, given acouple of elements of the array telles what order are they on.
-     * @param {(number|array)} value Initial length or array to copy from
-     */
-    constructor(comparisonValueSupplier = (a) => a, value = null) {
-        this.array = new Uint32Array(value);
-        this.comparisonValueSupplier = comparisonValueSupplier;
-        this.length = 0;
-        this.currentPosition = 0;
-    }
-
-    /**
-     * @param {number} index The index of the value to return
-     * @returns The element of the array
-     */
-    get(index) {
-        if (index >= 0 && index < this.length) {
-            return this.array[index]
-        }
-        return null
-    }
-
-    /**
-     * Returns the array used by this object.
-     * @returns The array.
-     */
-    getArray() {
-        return this.array
-    }
-
-    /**
-     * Get the position that the value supplied should (or does) occupy in the aray.
-     * @param {number} value The value to look for (it doesn't have to be part of the array).
-     * @returns The position index.
-     */
-    getPosition(value) {
-        let l = 0;
-        let r = this.length;
-        while (l < r) {
-            let m = Math.floor((l + r) / 2);
-            if (this.comparisonValueSupplier(this.array[m]) < value) {
-                l = m + 1;
-            } else {
-                r = m;
-            }
-        }
-        return l
-    }
-
-    reserve(length) {
-        if (this.array.length < length) {
-            let newArray = new Uint32Array(length);
-            newArray.set(this.array);
-            this.array = newArray;
-        }
-    }
-
-    /**
-     * Inserts the element in the array.
-     * @param element {number} The value to insert into the array.
-     * @returns {number} The position into occupied by value into the array.
-     */
-    insert(element, comparisonValue = null) {
-        let position = this.getPosition(this.comparisonValueSupplier(element));
-        if (
-            position < this.currentPosition
-            || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
-            ++this.currentPosition;
-        }
-        this.shiftRight(position);
-        this.array[position] = element;
-        ++this.length;
-        return position
-    }
-
-    /**
-     * Removes the element from the array.
-     * @param {number} value The value of the element to be remove.
-     */
-    remove(element) {
-        let position = this.getPosition(this.comparisonValueSupplier(element));
-        if (this.array[position] == element) {
-            this.removeAt(position);
-        }
-    }
-
-    /**
-     * Removes the element into the specified position from the array.
-     * @param {number} position The index of the element to be remove.
-     */
-    removeAt(position) {
-        if (position < this.currentPosition) {
-            --this.currentPosition;
-        }
-        this.shiftLeft(position);
-        --this.length;
-        return position
-    }
-
-    getNext() {
-        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
-            return this.get(this.currentPosition)
-        }
-        return null
-    }
-
-    getNextValue() {
-        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
-            return this.comparisonValueSupplier(this.get(this.currentPosition))
-        } else {
-            return Number.MAX_SAFE_INTEGER
-        }
-    }
-
-    getPrev() {
-        if (this.currentPosition > 0) {
-            return this.get(this.currentPosition - 1)
-        }
-        return null
-    }
-
-    getPrevValue() {
-        if (this.currentPosition > 0) {
-            return this.comparisonValueSupplier(this.get(this.currentPosition - 1))
-        } else {
-            return Number.MIN_SAFE_INTEGER
-        }
-    }
-
-    shiftLeft(leftLimit, steps = 1) {
-        this.array.set(this.array.subarray(leftLimit + steps), leftLimit);
-    }
-
-    shiftRight(leftLimit, steps = 1) {
-        this.array.set(this.array.subarray(leftLimit, -steps), leftLimit + steps);
-    }
-}
-
-// @ts-check
-
-/**
- * @typedef {{
- *     primaryInf: Number,
- *     primarySup: Number,
- *     secondaryInf: Number,
- *     secondarySup: Number
- * }} BoundariesInfo
- * @typedef {{
- *     primaryBoundary: Number,
- *     secondaryBoundary: Number,
- *     insertionPosition?: Number,
- *     rectangle: Number
- *     onSecondaryAxis: Boolean
- * }} Metadata
- * @typedef {any} Rectangle
- */
-class FastSelectionModel {
-
-    /**
-     * @param {Number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
-     * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
-     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
-     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc A function that selects or deselects individual rectangles.
-     */
-    constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
-        this.initialPosition = initialPosition;
-        this.finalPosition = initialPosition;
-        /** @type Metadata[] */
-        this.metadata = new Array(rectangles.length);
-        this.primaryOrder = new OrderedIndexArray((element) => this.metadata[element].primaryBoundary);
-        this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary);
-        this.selectFunc = selectFunc;
-        this.rectangles = rectangles;
-        this.primaryOrder.reserve(this.rectangles.length);
-        this.secondaryOrder.reserve(this.rectangles.length);
-        rectangles.forEach((rect, index) => {
-            /** @type Metadata */
-            let rectangleMetadata = {
-                primaryBoundary: this.initialPosition[0],
-                secondaryBoundary: this.initialPosition[1],
-                rectangle: index, // used to move both expandings inside the this.metadata array
-                onSecondaryAxis: false
-            };
-            this.metadata[index] = rectangleMetadata;
-            selectFunc(rect, false); // Initially deselected (Eventually)
-            const rectangleBoundaries = boundariesFunc(rect);
-
-            // Secondary axis first because it may be inserted in this.secondaryOrder during the primary axis check
-            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf;
-            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup;
-            } else {
-                rectangleMetadata.onSecondaryAxis = true;
-            }
-
-            if (this.initialPosition[0] < rectangleBoundaries.primaryInf) { // Initial position is before the rectangle
-                rectangleMetadata.primaryBoundary = rectangleBoundaries.primaryInf;
-                this.primaryOrder.insert(index);
-            } else if (rectangleBoundaries.primarySup < this.initialPosition[0]) { // Initial position is after the rectangle
-                rectangleMetadata.primaryBoundary = rectangleBoundaries.primarySup;
-                this.primaryOrder.insert(index);
-            } else { // Initial lays inside the rectangle (considering just this axis)
-                // Secondary order depends on primary order, if primary boundaries are not satisfied, the element is not watched for secondary ones
-                if (rectangleBoundaries.secondarySup < this.initialPosition[1] || this.initialPosition[1] < rectangleBoundaries.secondaryInf) {
-                    this.secondaryOrder.insert(index);
-                } else {
-                    selectFunc(rect, true);
-                }
-            }
-        });
-        this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0]);
-        this.secondaryOrder.currentPosition = this.secondaryOrder.getPosition(this.initialPosition[1]);
-        this.computeBoundaries();
-    }
-
-    computeBoundaries() {
-        this.boundaries = {
-            // Primary axis negative expanding
-            primaryN: {
-                v: this.primaryOrder.getPrevValue(),
-                i: this.primaryOrder.getPrev()
-            },
-            primaryP: {
-                v: this.primaryOrder.getNextValue(),
-                i: this.primaryOrder.getNext()
-            },
-            // Secondary axis negative expanding
-            secondaryN: {
-                v: this.secondaryOrder.getPrevValue(),
-                i: this.secondaryOrder.getPrev()
-            },
-            // Secondary axis positive expanding
-            secondaryP: {
-                v: this.secondaryOrder.getNextValue(),
-                i: this.secondaryOrder.getNext()
-            }
-        };
-    }
-
-    selectTo(finalPosition) {
-        const direction = [
-            Math.sign(finalPosition[0] - this.initialPosition[0]),
-            Math.sign(finalPosition[1] - this.initialPosition[1])
-        ];
-        const primaryBoundaryCrossed = (index, added) => {
-            if (this.metadata[index].onSecondaryAxis) {
-                this.selectFunc(this.rectangles[index], added);
-            } else {
-                if (added) {
-                    this.secondaryOrder.insert(index, finalPosition[1]);
-                    const secondaryBoundary = this.metadata[index].secondaryBoundary;
-                    if (
-                        // If inserted before the current position
-                        Math.sign(finalPosition[1] - secondaryBoundary) == direction[1]
-                        // And after initial position
-                        && Math.sign(secondaryBoundary - this.initialPosition[1]) == direction[1]
-                    ) {
-                        // Secondary axis is already satisfied then
-                        this.selectFunc(this.rectangles[index], true);
-                    }
-                } else {
-                    this.selectFunc(this.rectangles[index], false);
-                    this.secondaryOrder.remove(index);
-                }
-            }
-            this.computeBoundaries();
-            this.selectTo(finalPosition);
-        };
-
-        if (finalPosition[0] < this.boundaries.primaryN.v) {
-            --this.primaryOrder.currentPosition;
-            primaryBoundaryCrossed(
-                this.boundaries.primaryN.i,
-                this.initialPosition[0] > this.boundaries.primaryN.v && finalPosition[0] < this.initialPosition[0]);
-        } else if (finalPosition[0] > this.boundaries.primaryP.v) {
-            ++this.primaryOrder.currentPosition;
-            primaryBoundaryCrossed(
-                this.boundaries.primaryP.i,
-                this.initialPosition[0] < this.boundaries.primaryP.v && this.initialPosition[0] < finalPosition[0]);
-        }
-
-        const secondaryBoundaryCrossed = (index, added) => {
-            this.selectFunc(this.rectangles[index], added);
-            this.computeBoundaries();
-            this.selectTo(finalPosition);
-        };
-
-        if (finalPosition[1] < this.boundaries.secondaryN.v) {
-            --this.secondaryOrder.currentPosition;
-            secondaryBoundaryCrossed(
-                this.boundaries.secondaryN.i,
-                this.initialPosition[1] > this.boundaries.secondaryN.v && finalPosition[1] < this.initialPosition[1]);
-        } else if (finalPosition[1] > this.boundaries.secondaryP.v) {
-            ++this.secondaryOrder.currentPosition;
-            secondaryBoundaryCrossed(
-                this.boundaries.secondaryP.i,
-                this.initialPosition[1] < this.boundaries.secondaryP.v && this.initialPosition[1] < finalPosition[1]);
-        }
-        this.finalPosition = finalPosition;
-    }
-}
-
-// @ts-check
-
-/**
- * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../input/IInput").IInput} IInput
- * @typedef {import("../template/ITemplate").default} ITemplate
- */
-
-/**
- * @template {IEntity} T
- * @template {ITemplate} U
- */
-class IElement extends HTMLElement {
-
-    /** @type {Blueprint} */
-    #blueprint
-    get blueprint() {
-        return this.#blueprint
-    }
-    set blueprint(blueprint) {
-        this.#blueprint = blueprint;
-    }
-
-    /** @type {T} */
-    #entity
-    get entity() {
-        return this.#entity
-    }
-    set entity(entity) {
-        this.#entity = entity;
-    }
-
-    /** @type {U} */
-    #template
-    get template() {
-        return this.#template
-    }
-    set template(template) {
-        this.#template = template;
-    }
-
-    /** @type {IInput[]} */
-    inputObjects = []
-
-    /**
-     * @param {T} entity
-     * @param {U} template
-     */
-    constructor(entity, template) {
-        super();
-        this.#entity = entity;
-        this.#template = template;
-        this.inputObjects = [];
-    }
-
-    getTemplate() {
-        return this.template
-    }
-
-    connectedCallback() {
-        this.#blueprint = this.closest("ueb-blueprint");
-        this.template.setup(this);
-    }
-
-    disconnectedCallback() {
-        this.template.cleanup(this);
-    }
-
-    /**
-     * @param {IElement} element
-     */
-    isSameGraph(element) {
-        return this.#blueprint && this.#blueprint == element?.blueprint
-    }
-
-    /**
-     * @template {IInput} V
-     * @param {new (...args: any[]) => V} type
-     * @returns {V}
-     */
-    getInputObject(type) {
-        return /** @type {V} */ (this.inputObjects.find(object => object.constructor == type))
-    }
-
-    // Subclasses will want to override
-    createInputObjects() {
-        return []
-    }
-}
-
-// @ts-check
-
-/**
- * @typedef {import("../element/SelectorElement").default} SelectorElement
- */
-
-class SelectorTemplate extends ITemplate {
-
-    /**
-     * Applies the style to the element.
-     * @param {SelectorElement} selector Selector element
-     */
-    setup(selector) {
-        super.setup(selector);
-        this.applyFinishSelecting(selector);
-    }
-
-    /**
-     * Applies the style relative to selection beginning.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyStartSelecting(selector, initialPosition) {
-        // Set initial position
-        selector.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]));
-        selector.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]));
-        // Final position coincide with the initial position, at the beginning of selection
-        selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]));
-        selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]));
-        selector.blueprint.dataset.selecting = "true";
-    }
-
-    /**
-     * Applies the style relative to selection.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyDoSelecting(selector, finalPosition) {
-        selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]));
-        selector.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]));
-    }
-
-    /**
-     * Applies the style relative to selection finishing.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyFinishSelecting(selector) {
-        selector.blueprint.dataset.selecting = "false";
-    }
-}
-
-// @ts-check
-
-/**
- * @extends {IElement<Object, SelectorTemplate>}
- */
-class SelectorElement extends IElement {
-
-    constructor() {
-        super({}, new SelectorTemplate());
-        this.selectionModel = null;
-    }
-
-    /**
-     * @param {Number[]} initialPosition
-     */
-    startSelecting(initialPosition) {
-        this.template.applyStartSelecting(this, initialPosition);
-        this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.getNodes(), this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction);
-    }
-
-    /**
-     * @param {Number[]} finalPosition
-     */
-    doSelecting(finalPosition) {
-        this.template.applyDoSelecting(this, finalPosition);
-        this.selectionModel.selectTo(finalPosition);
-    }
-
-    finishSelecting() {
-        this.template.applyFinishSelecting(this);
-        this.selectionModel = null;
-    }
-}
-
-customElements.define("ueb-selector", SelectorElement);
-
-// @ts-check
-
-/**
- * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
- */
-
-class BlueprintTemplate extends ITemplate {
-
-    /**
-     * @param {Blueprint} element
-     */
-    header(element) {
-        return html`
-            <div class="ueb-viewport-header">
-                <div class="ueb-viewport-zoom">1:1</div>
-            </div>
-        `
-    }
-
-    /**
-     * @param {Blueprint} element
-     */
-    overlay(element) {
-        return html`
-            <div class="ueb-viewport-overlay"></div>
-        `
-    }
-
-    /**
-     * @param {Blueprint} element
-     */
-    viewport(element) {
-        return html`
-            <div class="ueb-viewport-body">
-                <div class="ueb-grid"
-                    style="
-                        --ueb-additional-x:${sanitizeText(element.additional[0])};
-                        --ueb-additional-y:${sanitizeText(element.additional[1])};
-                        --ueb-translate-x:${sanitizeText(element.translateValue[0])};
-                        --ueb-translate-y:${sanitizeText(element.translateValue[1])};
-                    ">
-                    <div class="ueb-grid-content" data-nodes></div>
-                </div>
-            </div>
-        `
-    }
-
-    /**
-     * Computes the html content of the target element.
-     * @param {Blueprint} element Target element
-     * @returns The computed html
-     */
-    render(element) {
-        return html`
-            ${this.header(element)}
-            ${this.overlay(element)}
-            ${this.viewport(element)}
-        `
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    setup(blueprint) {
-        super.setup(blueprint);
-        blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`);
-        Object.entries({
-            "--ueb-font-size": sanitizeText(Configuration.fontSize),
-            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
-            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
-            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
-            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
-            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
-            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
-            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
-        }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]));
-        blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header');
-        blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay');
-        blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body');
-        blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid");
-        blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
-        blueprint.selectorElement = new SelectorElement();
-        blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.getNodes());
-        this.applyEndDragScrolling(blueprint);
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyZoom(blueprint, newZoom) {
-        blueprint.classList.remove("ueb-zoom-" + sanitizeText(blueprint.zoom));
-        blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom));
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyExpand(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText(blueprint.additional[0]));
-        blueprint.gridElement.style.setProperty("--ueb-additional-y", sanitizeText(blueprint.additional[1]));
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyTranlate(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(blueprint.translateValue[0]));
-        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(blueprint.translateValue[1]));
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyStartDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = "true";
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyEndDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = "false";
-    }
-
-    /**
-     * 
-     * @param {Blueprint} blueprint
-     * @param {PinReferenceEntity} pinReference
-     * @returns {PinElement}
-     */
-    getPin(blueprint, pinReference) {
-        return blueprint.querySelector(
-            `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
-        )
-    }
-}
-
-// @ts-check
-
-/**
  * @typedef {import("../Blueprint").default} Blueprint
  */
 
@@ -2009,6 +1315,65 @@ class Copy extends IInput {
 
 // @ts-check
 
+/**
+ * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
+ */
+const html = String.raw;
+
+// @ts-check
+
+/**
+ * @typedef {import("../element/IElement").default} IElement
+ * @typedef {import("../input/IInput").default} IInput")}
+ */
+
+/**
+ * @template {IElement} T
+ */
+class ITemplate {
+
+    /** @type {IInput[]} */
+    inputObjects = []
+
+    /**
+     * @param {T} entity
+     */
+    render(entity) {
+        return ""
+    }
+
+    /**
+     * @param {T} element
+     */
+    setup(element) {
+        // TODO replace with the safer element.setHTML(...) when it will be availableBreack
+        element.innerHTML = this.render(element);
+    }
+
+    /**
+     * @param {T} element
+     */
+    inputSetup(element) {
+        this.inputObjects = this.createInputObjects(element);
+    }
+
+    /**
+     * @param {T} element
+     */
+    cleanup(element) {
+        this.inputObjects.forEach(v => v.unlistenDOMElement());
+    }
+
+    /**
+     * @param {T} element
+     */
+    createInputObjects(element) {
+        return /** @type {IInput[]} */([])
+    }
+}
+
+// @ts-check
+
 class IKeyboardShortcut extends IInput {
 
     /** @type {KeyBindingEntity[]} */
@@ -2281,6 +1646,453 @@ class KeyboardSelectAll extends IKeyboardShortcut {
     fire() {
         this.blueprint.selectAll();
     }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ */
+
+/**
+ * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
+ * @template {HTMLElement} T
+ * @extends {IPointing<T>}
+ */
+class IMouseClickDrag extends IPointing {
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseDownHandler
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseStartedMovingHandler
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseMoveHandler
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseUpHandler
+
+    #trackingMouse = false
+
+    started = false
+
+    constructor(target, blueprint, options) {
+        options.unlistenOnTextEdit;
+        super(target, blueprint, options);
+        this.clickButton = options?.clickButton ?? 0;
+        this.exitAnyButton = options?.exitAnyButton ?? true;
+        this.moveEverywhere = options?.moveEverywhere ?? false;
+        this.looseTarget = options?.looseTarget ?? false;
+        this.consumeEvent = options?.consumeEvent ?? true;
+        this.clickedPosition = [0, 0];
+
+        const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
+        let self = this;
+
+        this.#mouseDownHandler = e => {
+            this.blueprint.setFocused(true);
+            switch (e.button) {
+                case self.clickButton:
+                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+                    if (self.looseTarget || e.target == e.currentTarget) {
+                        if (this.consumeEvent) {
+                            e.stopImmediatePropagation(); // Captured, don't call anyone else
+                        }
+                        // Attach the listeners
+                        movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler);
+                        document.addEventListener("mouseup", self.#mouseUpHandler);
+                        self.clickedPosition = self.locationFromEvent(e);
+                        self.clicked(self.clickedPosition);
+                    }
+                    break
+                default:
+                    if (!self.exitAnyButton) {
+                        self.#mouseUpHandler(e);
+                    }
+                    break
+            }
+        };
+
+        this.#mouseStartedMovingHandler = e => {
+            if (this.consumeEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            }
+            // Delegate from now on to self.#mouseMoveHandler
+            movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
+            movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
+            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
+            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
+            self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
+            // Do actual actions
+            self.startDrag();
+            self.started = true;
+        };
+
+        this.#mouseMoveHandler = e => {
+            if (this.consumeEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            }
+            const location = self.locationFromEvent(e);
+            const movement = [e.movementX, e.movementY];
+            self.dragTo(location, movement);
+            if (self.#trackingMouse) {
+                self.blueprint.mousePosition = self.locationFromEvent(e);
+            }
+        };
+
+        this.#mouseUpHandler = e => {
+            if (!self.exitAnyButton || e.button == self.clickButton) {
+                if (this.consumeEvent) {
+                    e.stopImmediatePropagation(); // Captured, don't call anyone else
+                }
+                // Remove the handlers of "mousemove" and "mouseup"
+                movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
+                movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler);
+                document.removeEventListener("mouseup", self.#mouseUpHandler);
+                if (self.started) {
+                    self.endDrag();
+                }
+                self.unclicked();
+                if (self.#trackingMouse) {
+                    const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end);
+                    this.target.dispatchEvent(dragEvent);
+                    self.#trackingMouse = false;
+                }
+                self.started = false;
+            }
+        };
+
+        this.listenEvents();
+    }
+
+    listenEvents() {
+        this.target.addEventListener("mousedown", this.#mouseDownHandler);
+        if (this.clickButton == 2) {
+            this.target.addEventListener("contextmenu", e => e.preventDefault());
+        }
+    }
+
+    unlistenEvents() {
+        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
+    }
+
+    getEvent(eventName) {
+        return new CustomEvent(eventName, {
+            detail: {
+                tracker: this
+            },
+            bubbles: true,
+            cancelable: true
+        })
+    }
+
+    /* Subclasses will override the following methods */
+    clicked(location) {
+    }
+
+    startDrag(location) {
+    }
+
+    dragTo(location, movement) {
+    }
+
+    endDrag() {
+    }
+
+    unclicked(location) {
+    }
+}
+
+// @ts-check
+
+class MouseScrollGraph extends IMouseClickDrag {
+
+    startDrag() {
+        this.blueprint.template.applyStartDragScrolling(this.blueprint);
+    }
+
+    dragTo(location, movement) {
+        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
+    }
+
+    endDrag() {
+        this.blueprint.template.applyEndDragScrolling(this.blueprint);
+    }
+}
+
+// @ts-check
+
+class MouseTracking extends IPointing {
+
+    /** @type {IPointing} */
+    #mouseTracker = null
+
+    /** @type {(e: MouseEvent) => void} */
+    #mousemoveHandler
+
+    /** @type {(e: CustomEvent) => void} */
+    #trackingMouseStolenHandler
+
+    /** @type {(e: CustomEvent) => void} */
+    #trackingMouseGaveBackHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus = true;
+        super(target, blueprint, options);
+
+        let self = this;
+
+        this.#mousemoveHandler = e => {
+            e.preventDefault();
+            self.blueprint.mousePosition = self.locationFromEvent(e);
+        };
+
+        this.#trackingMouseStolenHandler = e => {
+            if (!self.#mouseTracker) {
+                e.preventDefault();
+                this.#mouseTracker = e.detail.tracker;
+                self.unlistenMouseMove();
+            }
+        };
+
+        this.#trackingMouseGaveBackHandler = e => {
+            if (self.#mouseTracker == e.detail.tracker) {
+                e.preventDefault();
+                self.#mouseTracker = null;
+                self.listenMouseMove();
+            }
+        };
+    }
+
+    listenMouseMove() {
+        this.target.addEventListener("mousemove", this.#mousemoveHandler);
+    }
+
+    unlistenMouseMove() {
+        this.target.removeEventListener("mousemove", this.#mousemoveHandler);
+    }
+
+    listenEvents() {
+        this.listenMouseMove();
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
+    }
+
+    unlistenEvents() {
+        this.unlistenMouseMove();
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
+        );
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../Blueprint").default} Blueprint
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../input/IInput").default} IInput
+ * @typedef {import("../template/ITemplate").default} ITemplate
+ */
+
+/**
+ * @template {IEntity} T
+ * @template {ITemplate} U
+ */
+class IElement extends HTMLElement {
+
+    /** @type {Blueprint} */
+    #blueprint
+    get blueprint() {
+        return this.#blueprint
+    }
+    set blueprint(blueprint) {
+        this.#blueprint = blueprint;
+    }
+
+    /** @type {T} */
+    #entity
+    get entity() {
+        return this.#entity
+    }
+    set entity(entity) {
+        this.#entity = entity;
+    }
+
+    /** @type {U} */
+    #template
+    get template() {
+        return this.#template
+    }
+    set template(template) {
+        this.#template = template;
+    }
+
+    /** @type {IInput[]} */
+    inputObjects = []
+
+    /**
+     * @param {T} entity
+     * @param {U} template
+     */
+    constructor(entity, template) {
+        super();
+        this.#entity = entity;
+        this.#template = template;
+        this.inputObjects = [];
+    }
+
+    getTemplate() {
+        return this.template
+    }
+
+    connectedCallback() {
+        this.#blueprint = this.closest("ueb-blueprint");
+        this.template.setup(this);
+        this.template.inputSetup(this);
+    }
+
+    disconnectedCallback() {
+        this.template.cleanup(this);
+    }
+
+    /**
+     * @param {IElement} element
+     */
+    isSameGraph(element) {
+        return this.#blueprint && this.#blueprint == element?.blueprint
+    }
+
+    /**
+     * @template {IInput} V
+     * @param {new (...args: any[]) => V} type
+     * @returns {V}
+     */
+    getInputObject(type) {
+        return /** @type {V} */ (this.inputObjects.find(object => object.constructor == type))
+    }
+
+    // Subclasses will want to override
+    createInputObjects() {
+        return []
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ * @typedef {import("../entity/IEntity").default} IEntity  
+ */
+
+/**
+ * @template {IEntity} T
+ * @template {SelectableDraggableTemplate} U
+ * @extends {IElement<T, U>}
+ */
+class ISelectableDraggableElement extends IElement {
+
+    constructor(...args) {
+        // @ts-expect-error
+        super(...args);
+        this.dragObject = null;
+        this.location = [0, 0];
+        this.selected = false;
+
+        let self = this;
+        this.dragHandler = (e) => {
+            self.addLocation(e.detail.value);
+        };
+    }
+
+    #setSelected(value = true) {
+        this.selected = value;
+        if (this.blueprint) {
+            if (this.selected) {
+                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
+            } else {
+                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
+            }
+        }
+        this.template.applySelected(this);
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.#setSelected(this.selected);
+    }
+
+    /**
+     * @param {Number[]} value 
+     */
+    setLocation(value = [0, 0]) {
+        const d = [value[0] - this.location[0], value[1] - this.location[1]];
+        this.location = value;
+        this.template.applyLocation(this);
+        if (this.blueprint) {
+            const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
+                detail: {
+                    value: d
+                },
+                bubbles: false,
+                cancelable: true
+            });
+            this.dispatchEvent(dragLocalEvent);
+        }
+    }
+
+    addLocation(value) {
+        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
+    }
+
+    setSelected(value = true) {
+        if (this.selected != value) {
+            this.#setSelected(value);
+        }
+    }
+
+    dispatchDragEvent(value) {
+        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
+            detail: {
+                value: value
+            },
+            bubbles: true,
+            cancelable: true
+        });
+        this.dispatchEvent(dragEvent);
+    }
+
+    snapToGrid() {
+        let snappedLocation = Utility.snapToGrid(this.location, Configuration.gridSize);
+        if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
+            this.setLocation(snappedLocation);
+        }
+    }
+}
+
+// @ts-check
+
+document.createElement("div");
+
+const tagReplacement = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+};
+
+function sanitizeText(value) {
+    return value.toString().replace(/[&<>'"]/g, tag => tagReplacement[tag])
 }
 
 // @ts-check
@@ -2665,522 +2477,6 @@ customElements.define("ueb-link", LinkElement);
 // @ts-check
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- */
-
-/**
- * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
- * @template {HTMLElement} T
- * @extends {IPointing<T>}
- */
-class IMouseClickDrag extends IPointing {
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseDownHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseStartedMovingHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseMoveHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseUpHandler
-
-    #trackingMouse = false
-
-    started = false
-
-    constructor(target, blueprint, options) {
-        options.unlistenOnTextEdit;
-        super(target, blueprint, options);
-        this.clickButton = options?.clickButton ?? 0;
-        this.exitAnyButton = options?.exitAnyButton ?? true;
-        this.moveEverywhere = options?.moveEverywhere ?? false;
-        this.looseTarget = options?.looseTarget ?? false;
-        this.consumeEvent = options?.consumeEvent ?? true;
-        this.clickedPosition = [0, 0];
-
-        const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
-        let self = this;
-
-        this.#mouseDownHandler = e => {
-            this.blueprint.setFocused(true);
-            switch (e.button) {
-                case self.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                    if (self.looseTarget || e.target == e.currentTarget) {
-                        if (this.consumeEvent) {
-                            e.stopImmediatePropagation(); // Captured, don't call anyone else
-                        }
-                        // Attach the listeners
-                        movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler);
-                        document.addEventListener("mouseup", self.#mouseUpHandler);
-                        self.clickedPosition = self.locationFromEvent(e);
-                        self.clicked(self.clickedPosition);
-                    }
-                    break
-                default:
-                    if (!self.exitAnyButton) {
-                        self.#mouseUpHandler(e);
-                    }
-                    break
-            }
-        };
-
-        this.#mouseStartedMovingHandler = e => {
-            if (this.consumeEvent) {
-                e.stopImmediatePropagation(); // Captured, don't call anyone else
-            }
-            // Delegate from now on to self.#mouseMoveHandler
-            movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
-            movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
-            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
-            self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
-            // Do actual actions
-            self.startDrag();
-            self.started = true;
-        };
-
-        this.#mouseMoveHandler = e => {
-            if (this.consumeEvent) {
-                e.stopImmediatePropagation(); // Captured, don't call anyone else
-            }
-            const location = self.locationFromEvent(e);
-            const movement = [e.movementX, e.movementY];
-            self.dragTo(location, movement);
-            if (self.#trackingMouse) {
-                self.blueprint.mousePosition = self.locationFromEvent(e);
-            }
-        };
-
-        this.#mouseUpHandler = e => {
-            if (!self.exitAnyButton || e.button == self.clickButton) {
-                if (this.consumeEvent) {
-                    e.stopImmediatePropagation(); // Captured, don't call anyone else
-                }
-                // Remove the handlers of "mousemove" and "mouseup"
-                movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
-                movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler);
-                document.removeEventListener("mouseup", self.#mouseUpHandler);
-                if (self.started) {
-                    self.endDrag();
-                }
-                self.unclicked();
-                if (self.#trackingMouse) {
-                    const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end);
-                    this.target.dispatchEvent(dragEvent);
-                    self.#trackingMouse = false;
-                }
-                self.started = false;
-            }
-        };
-
-        this.listenEvents();
-    }
-
-    listenEvents() {
-        this.target.addEventListener("mousedown", this.#mouseDownHandler);
-        if (this.clickButton == 2) {
-            this.target.addEventListener("contextmenu", e => e.preventDefault());
-        }
-    }
-
-    unlistenEvents() {
-        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
-    }
-
-    getEvent(eventName) {
-        return new CustomEvent(eventName, {
-            detail: {
-                tracker: this
-            },
-            bubbles: true,
-            cancelable: true
-        })
-    }
-
-    /* Subclasses will override the following methods */
-    clicked(location) {
-    }
-
-    startDrag(location) {
-    }
-
-    dragTo(location, movement) {
-    }
-
-    endDrag() {
-    }
-
-    unclicked(location) {
-    }
-}
-
-// @ts-check
-
-class MouseScrollGraph extends IMouseClickDrag {
-
-    startDrag() {
-        this.blueprint.template.applyStartDragScrolling(this.blueprint);
-    }
-
-    dragTo(location, movement) {
-        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
-    }
-
-    endDrag() {
-        this.blueprint.template.applyEndDragScrolling(this.blueprint);
-    }
-}
-
-// @ts-check
-
-class MouseTracking extends IPointing {
-
-    /** @type {IPointing} */
-    #mouseTracker = null
-
-    /** @type {(e: MouseEvent) => void} */
-    #mousemoveHandler
-
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseStolenHandler
-
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseGaveBackHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true;
-        super(target, blueprint, options);
-
-        let self = this;
-
-        this.#mousemoveHandler = e => {
-            e.preventDefault();
-            self.blueprint.mousePosition = self.locationFromEvent(e);
-        };
-
-        this.#trackingMouseStolenHandler = e => {
-            if (!self.#mouseTracker) {
-                e.preventDefault();
-                this.#mouseTracker = e.detail.tracker;
-                self.unlistenMouseMove();
-            }
-        };
-
-        this.#trackingMouseGaveBackHandler = e => {
-            if (self.#mouseTracker == e.detail.tracker) {
-                e.preventDefault();
-                self.#mouseTracker = null;
-                self.listenMouseMove();
-            }
-        };
-    }
-
-    listenMouseMove() {
-        this.target.addEventListener("mousemove", this.#mousemoveHandler);
-    }
-
-    unlistenMouseMove() {
-        this.target.removeEventListener("mousemove", this.#mousemoveHandler);
-    }
-
-    listenEvents() {
-        this.listenMouseMove();
-        this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.begin,
-            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
-        this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.end,
-            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
-    }
-
-    unlistenEvents() {
-        this.unlistenMouseMove();
-        this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.begin,
-            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
-        this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.end,
-            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
-        );
-    }
-}
-
-// @ts-check
-
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
- */
-
-/**
- * @extends {IMouseClickDrag<ISelectableDraggableElement>}
- */
-class MouseMoveNodes extends IMouseClickDrag {
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize);
-        this.mouseLocation = [0, 0];
-    }
-
-    startDrag() {
-        // Get the current mouse position
-        this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
-
-        if (!this.target.selected) {
-            this.blueprint.unselectAll();
-            this.target.setSelected(true);
-        }
-    }
-
-    dragTo(location, movement) {
-        const [mouseLocation, targetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(this.target.location, this.stepSize)]
-            : [location, this.target.location];
-        const d = [
-            mouseLocation[0] - this.mouseLocation[0],
-            mouseLocation[1] - this.mouseLocation[1]
-        ];
-
-        if (d[0] == 0 && d[1] == 0) {
-            return
-        }
-
-        // Make sure it snaps on the grid
-        d[0] += targetLocation[0] - this.target.location[0];
-        d[1] += targetLocation[1] - this.target.location[1];
-
-        this.target.dispatchDragEvent(d);
-
-        // Reassign the position of mouse
-        this.mouseLocation = mouseLocation;
-    }
-
-    unclicked() {
-        if (!this.started) {
-            this.blueprint.unselectAll();
-            this.target.setSelected(true);
-        }
-    }
-}
-
-// @ts-check
-
-/**
- * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
- * @typedef {import("../entity/IEntity").default} IEntity  
- */
-
-/**
- * @template {IEntity} T
- * @template {SelectableDraggableTemplate} U
- * @extends {IElement<T, U>}
- */
-class ISelectableDraggableElement extends IElement {
-
-    constructor(...args) {
-        // @ts-expect-error
-        super(...args);
-        this.dragObject = null;
-        this.location = [0, 0];
-        this.selected = false;
-
-        let self = this;
-        this.dragHandler = (e) => {
-            self.addLocation(e.detail.value);
-        };
-    }
-
-    #setSelected(value = true) {
-        this.selected = value;
-        if (this.blueprint) {
-            if (this.selected) {
-                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
-            } else {
-                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
-            }
-        }
-        this.template.applySelected(this);
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        this.#setSelected(this.selected);
-    }
-
-    createInputObjects() {
-        return [
-            new MouseMoveNodes(this, this.blueprint, {
-                looseTarget: true
-            }),
-        ]
-    }
-
-    /**
-     * @param {Number[]} value 
-     */
-    setLocation(value = [0, 0]) {
-        const d = [value[0] - this.location[0], value[1] - this.location[1]];
-        this.location = value;
-        this.template.applyLocation(this);
-        if (this.blueprint) {
-            const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
-                detail: {
-                    value: d
-                },
-                bubbles: false,
-                cancelable: true
-            });
-            this.dispatchEvent(dragLocalEvent);
-        }
-    }
-
-    addLocation(value) {
-        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
-    }
-
-    setSelected(value = true) {
-        if (this.selected != value) {
-            this.#setSelected(value);
-        }
-    }
-
-    dispatchDragEvent(value) {
-        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
-            detail: {
-                value: value
-            },
-            bubbles: true,
-            cancelable: true
-        });
-        this.dispatchEvent(dragEvent);
-    }
-
-    snapToGrid() {
-        let snappedLocation = Utility.snapToGrid(this.location, Configuration.gridSize);
-        if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
-            this.setLocation(snappedLocation);
-        }
-    }
-}
-
-// @ts-check
-
-/**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
- */
-
-class PinTemplate extends ITemplate {
-
-    hasInput() {
-        return false
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    render(pin) {
-        if (pin.isInput()) {
-            return html`
-                <div class="ueb-pin-icon">
-                    ${this.renderIcon(pin)}
-                </div>
-                <div class="ueb-pin-content">
-                    <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
-                    ${this.renderInput(pin)}
-                </div>
-            `
-        } else {
-            return html`
-                <div class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</div>
-                <div class="ueb-pin-icon">
-                    ${this.renderIcon(pin)}
-                </div>
-            `
-        }
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    renderIcon(pin) {
-        return '<span class="ueb-pin-icon-value"></span>'
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    renderInput(pin) {
-        return ""
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    setup(pin) {
-        super.setup(pin);
-        pin.classList.add(
-            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
-            "ueb-pin-" + sanitizeText(pin.getType())
-        );
-        pin.dataset.id = pin.GetPinIdValue();
-        if (pin.entity.bAdvancedView) {
-            pin.dataset.advancedView = "true";
-        }
-        pin.clickableElement = pin;
-        pin.nodeElement = pin.closest("ueb-node");
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    applyConnected(pin) {
-        if (pin.isLinked()) {
-            pin.classList.add("ueb-pin-fill");
-        } else {
-            pin.classList.remove("ueb-pin-fill");
-        }
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    getLinkLocation(pin) {
-        const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect();
-        return pin.blueprint.compensateTranslation(Utility.convertLocation(
-            [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            pin.blueprint.gridElement))
-    }
-}
-
-// @ts-check
-
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- */
-
-class ExecPinTemplate extends PinTemplate {
-
-    /**
-     * @param {PinElement} pin
-     */
-    renderIcon(pin) {
-        return html`
-            <svg class="ueb-pin-icon-exec" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7.08a2 2 0 0 0 1.519-.698l4.843-5.651a1 1 0 0 0 0-1.302L10.6 1.7A2 2 0 0 0 9.08 1H2zm7.08 1a1 1 0 0 1 .76.35L14.682 8l-4.844 5.65a1 1 0 0 1-.759.35H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h7.08z"/>
-            </svg>
-        `
-    }
-}
-
-// @ts-check
-
-/**
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
 
@@ -3390,6 +2686,129 @@ class MouseCreateLink extends IMouseClickDrag {
 // @ts-check
 
 /**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class PinTemplate extends ITemplate {
+
+    /**
+     * @param {PinElement} pin
+     *
+     */
+    createInputObjects(pin) {
+        return [
+            new MouseCreateLink(pin.clickableElement, pin.blueprint, {
+                moveEverywhere: true,
+                looseTarget: true
+            })
+        ]
+    }
+
+    hasInput() {
+        return false
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    render(pin) {
+        if (pin.isInput()) {
+            return html`
+                <div class="ueb-pin-icon">
+                    ${this.renderIcon(pin)}
+                </div>
+                <div class="ueb-pin-content">
+                    <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                    ${this.renderInput(pin)}
+                </div>
+            `
+        } else {
+            return html`
+                <div class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</div>
+                <div class="ueb-pin-icon">
+                    ${this.renderIcon(pin)}
+                </div>
+            `
+        }
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderIcon(pin) {
+        return '<span class="ueb-pin-icon-value"></span>'
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderInput(pin) {
+        return ""
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    setup(pin) {
+        super.setup(pin);
+        pin.classList.add(
+            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
+            "ueb-pin-" + sanitizeText(pin.getType())
+        );
+        pin.dataset.id = pin.GetPinIdValue();
+        if (pin.entity.bAdvancedView) {
+            pin.dataset.advancedView = "true";
+        }
+        pin.clickableElement = pin;
+        pin.nodeElement = pin.closest("ueb-node");
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    applyConnected(pin) {
+        if (pin.isLinked()) {
+            pin.classList.add("ueb-pin-fill");
+        } else {
+            pin.classList.remove("ueb-pin-fill");
+        }
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    getLinkLocation(pin) {
+        const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect();
+        return pin.blueprint.compensateTranslation(Utility.convertLocation(
+            [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
+            pin.blueprint.gridElement))
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class ExecPinTemplate extends PinTemplate {
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderIcon(pin) {
+        return html`
+            <svg class="ueb-pin-icon-exec" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7.08a2 2 0 0 0 1.519-.698l4.843-5.651a1 1 0 0 0 0-1.302L10.6 1.7A2 2 0 0 0 9.08 1H2zm7.08 1a1 1 0 0 1 .76.35L14.682 8l-4.844 5.65a1 1 0 0 1-.759.35H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h7.08z"/>
+            </svg>
+        `
+    }
+}
+
+// @ts-check
+
+/**
  * @typedef {import("../element/PinElement").default} PinElement
  */
 
@@ -3482,15 +2901,6 @@ class PinElement extends IElement {
     connectedCallback() {
         super.connectedCallback();
         this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-pin-color");
-    }
-
-    createInputObjects() {
-        return [
-            new MouseCreateLink(this.clickableElement, this.blueprint, {
-                moveEverywhere: true,
-                looseTarget: true
-            })
-        ]
     }
 
     /** @return {GuidEntity} */
@@ -3608,14 +3018,89 @@ customElements.define("ueb-pin", PinElement);
 // @ts-check
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ */
+
+/**
+ * @extends {IMouseClickDrag<ISelectableDraggableElement>}
+ */
+class MouseMoveNodes extends IMouseClickDrag {
+
+    constructor(target, blueprint, options) {
+        super(target, blueprint, options);
+        this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize);
+        this.mouseLocation = [0, 0];
+    }
+
+    startDrag() {
+        // Get the current mouse position
+        this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
+
+        if (!this.target.selected) {
+            this.blueprint.unselectAll();
+            this.target.setSelected(true);
+        }
+    }
+
+    dragTo(location, movement) {
+        const [mouseLocation, targetLocation] = this.stepSize > 1
+            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(this.target.location, this.stepSize)]
+            : [location, this.target.location];
+        const d = [
+            mouseLocation[0] - this.mouseLocation[0],
+            mouseLocation[1] - this.mouseLocation[1]
+        ];
+
+        if (d[0] == 0 && d[1] == 0) {
+            return
+        }
+
+        // Make sure it snaps on the grid
+        d[0] += targetLocation[0] - this.target.location[0];
+        d[1] += targetLocation[1] - this.target.location[1];
+
+        this.target.dispatchDragEvent(d);
+
+        // Reassign the position of mouse
+        this.mouseLocation = mouseLocation;
+    }
+
+    unclicked() {
+        if (!this.started) {
+            this.blueprint.unselectAll();
+            this.target.setSelected(true);
+        }
+    }
+}
+
+// @ts-check
+
+/**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 
+/**
+ * @extends {ITemplate<ISelectableDraggableElement>}
+ */
 class SelectableDraggableTemplate extends ITemplate {
 
     /**
-     * Returns the html elements rendered from this template.
-     * @param {ISelectableDraggableElement} element Element of the graph
+     * @param {ISelectableDraggableElement} element
+     */
+    createInputObjects(element) {
+        return [
+            ...super.createInputObjects(element),
+            ...[
+                new MouseMoveNodes(this, element.blueprint, {
+                    looseTarget: true
+                }),
+            ]
+        ]
+    }
+
+    /**
+     * @param {ISelectableDraggableElement} element
      */
     applyLocation(element) {
         element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]));
@@ -3623,8 +3108,7 @@ class SelectableDraggableTemplate extends ITemplate {
     }
 
     /**
-     * Returns the html elements rendered from this template.
-     * @param {ISelectableDraggableElement} element Element of the graph
+     * @param {ISelectableDraggableElement} element
      */
     applySelected(element) {
         if (element.selected) {
@@ -3892,6 +3376,398 @@ class Select extends IMouseClickDrag {
 
 // @ts-check
 
+class OrderedIndexArray {
+
+    /**
+     * @param {(arrayElement: number) => number} compareFunction A function that, given acouple of elements of the array telles what order are they on.
+     * @param {(number|array)} value Initial length or array to copy from
+     */
+    constructor(comparisonValueSupplier = (a) => a, value = null) {
+        this.array = new Uint32Array(value);
+        this.comparisonValueSupplier = comparisonValueSupplier;
+        this.length = 0;
+        this.currentPosition = 0;
+    }
+
+    /**
+     * @param {number} index The index of the value to return
+     * @returns The element of the array
+     */
+    get(index) {
+        if (index >= 0 && index < this.length) {
+            return this.array[index]
+        }
+        return null
+    }
+
+    /**
+     * Returns the array used by this object.
+     * @returns The array.
+     */
+    getArray() {
+        return this.array
+    }
+
+    /**
+     * Get the position that the value supplied should (or does) occupy in the aray.
+     * @param {number} value The value to look for (it doesn't have to be part of the array).
+     * @returns The position index.
+     */
+    getPosition(value) {
+        let l = 0;
+        let r = this.length;
+        while (l < r) {
+            let m = Math.floor((l + r) / 2);
+            if (this.comparisonValueSupplier(this.array[m]) < value) {
+                l = m + 1;
+            } else {
+                r = m;
+            }
+        }
+        return l
+    }
+
+    reserve(length) {
+        if (this.array.length < length) {
+            let newArray = new Uint32Array(length);
+            newArray.set(this.array);
+            this.array = newArray;
+        }
+    }
+
+    /**
+     * Inserts the element in the array.
+     * @param element {number} The value to insert into the array.
+     * @returns {number} The position into occupied by value into the array.
+     */
+    insert(element, comparisonValue = null) {
+        let position = this.getPosition(this.comparisonValueSupplier(element));
+        if (
+            position < this.currentPosition
+            || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
+            ++this.currentPosition;
+        }
+        this.shiftRight(position);
+        this.array[position] = element;
+        ++this.length;
+        return position
+    }
+
+    /**
+     * Removes the element from the array.
+     * @param {number} value The value of the element to be remove.
+     */
+    remove(element) {
+        let position = this.getPosition(this.comparisonValueSupplier(element));
+        if (this.array[position] == element) {
+            this.removeAt(position);
+        }
+    }
+
+    /**
+     * Removes the element into the specified position from the array.
+     * @param {number} position The index of the element to be remove.
+     */
+    removeAt(position) {
+        if (position < this.currentPosition) {
+            --this.currentPosition;
+        }
+        this.shiftLeft(position);
+        --this.length;
+        return position
+    }
+
+    getNext() {
+        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
+            return this.get(this.currentPosition)
+        }
+        return null
+    }
+
+    getNextValue() {
+        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
+            return this.comparisonValueSupplier(this.get(this.currentPosition))
+        } else {
+            return Number.MAX_SAFE_INTEGER
+        }
+    }
+
+    getPrev() {
+        if (this.currentPosition > 0) {
+            return this.get(this.currentPosition - 1)
+        }
+        return null
+    }
+
+    getPrevValue() {
+        if (this.currentPosition > 0) {
+            return this.comparisonValueSupplier(this.get(this.currentPosition - 1))
+        } else {
+            return Number.MIN_SAFE_INTEGER
+        }
+    }
+
+    shiftLeft(leftLimit, steps = 1) {
+        this.array.set(this.array.subarray(leftLimit + steps), leftLimit);
+    }
+
+    shiftRight(leftLimit, steps = 1) {
+        this.array.set(this.array.subarray(leftLimit, -steps), leftLimit + steps);
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {{
+ *     primaryInf: Number,
+ *     primarySup: Number,
+ *     secondaryInf: Number,
+ *     secondarySup: Number
+ * }} BoundariesInfo
+ * @typedef {{
+ *     primaryBoundary: Number,
+ *     secondaryBoundary: Number,
+ *     insertionPosition?: Number,
+ *     rectangle: Number
+ *     onSecondaryAxis: Boolean
+ * }} Metadata
+ * @typedef {any} Rectangle
+ */
+class FastSelectionModel {
+
+    /**
+     * @param {Number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
+     * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
+     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
+     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc A function that selects or deselects individual rectangles.
+     */
+    constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
+        this.initialPosition = initialPosition;
+        this.finalPosition = initialPosition;
+        /** @type Metadata[] */
+        this.metadata = new Array(rectangles.length);
+        this.primaryOrder = new OrderedIndexArray((element) => this.metadata[element].primaryBoundary);
+        this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary);
+        this.selectFunc = selectFunc;
+        this.rectangles = rectangles;
+        this.primaryOrder.reserve(this.rectangles.length);
+        this.secondaryOrder.reserve(this.rectangles.length);
+        rectangles.forEach((rect, index) => {
+            /** @type Metadata */
+            let rectangleMetadata = {
+                primaryBoundary: this.initialPosition[0],
+                secondaryBoundary: this.initialPosition[1],
+                rectangle: index, // used to move both expandings inside the this.metadata array
+                onSecondaryAxis: false
+            };
+            this.metadata[index] = rectangleMetadata;
+            selectFunc(rect, false); // Initially deselected (Eventually)
+            const rectangleBoundaries = boundariesFunc(rect);
+
+            // Secondary axis first because it may be inserted in this.secondaryOrder during the primary axis check
+            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf;
+            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup;
+            } else {
+                rectangleMetadata.onSecondaryAxis = true;
+            }
+
+            if (this.initialPosition[0] < rectangleBoundaries.primaryInf) { // Initial position is before the rectangle
+                rectangleMetadata.primaryBoundary = rectangleBoundaries.primaryInf;
+                this.primaryOrder.insert(index);
+            } else if (rectangleBoundaries.primarySup < this.initialPosition[0]) { // Initial position is after the rectangle
+                rectangleMetadata.primaryBoundary = rectangleBoundaries.primarySup;
+                this.primaryOrder.insert(index);
+            } else { // Initial lays inside the rectangle (considering just this axis)
+                // Secondary order depends on primary order, if primary boundaries are not satisfied, the element is not watched for secondary ones
+                if (rectangleBoundaries.secondarySup < this.initialPosition[1] || this.initialPosition[1] < rectangleBoundaries.secondaryInf) {
+                    this.secondaryOrder.insert(index);
+                } else {
+                    selectFunc(rect, true);
+                }
+            }
+        });
+        this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0]);
+        this.secondaryOrder.currentPosition = this.secondaryOrder.getPosition(this.initialPosition[1]);
+        this.computeBoundaries();
+    }
+
+    computeBoundaries() {
+        this.boundaries = {
+            // Primary axis negative expanding
+            primaryN: {
+                v: this.primaryOrder.getPrevValue(),
+                i: this.primaryOrder.getPrev()
+            },
+            primaryP: {
+                v: this.primaryOrder.getNextValue(),
+                i: this.primaryOrder.getNext()
+            },
+            // Secondary axis negative expanding
+            secondaryN: {
+                v: this.secondaryOrder.getPrevValue(),
+                i: this.secondaryOrder.getPrev()
+            },
+            // Secondary axis positive expanding
+            secondaryP: {
+                v: this.secondaryOrder.getNextValue(),
+                i: this.secondaryOrder.getNext()
+            }
+        };
+    }
+
+    selectTo(finalPosition) {
+        const direction = [
+            Math.sign(finalPosition[0] - this.initialPosition[0]),
+            Math.sign(finalPosition[1] - this.initialPosition[1])
+        ];
+        const primaryBoundaryCrossed = (index, added) => {
+            if (this.metadata[index].onSecondaryAxis) {
+                this.selectFunc(this.rectangles[index], added);
+            } else {
+                if (added) {
+                    this.secondaryOrder.insert(index, finalPosition[1]);
+                    const secondaryBoundary = this.metadata[index].secondaryBoundary;
+                    if (
+                        // If inserted before the current position
+                        Math.sign(finalPosition[1] - secondaryBoundary) == direction[1]
+                        // And after initial position
+                        && Math.sign(secondaryBoundary - this.initialPosition[1]) == direction[1]
+                    ) {
+                        // Secondary axis is already satisfied then
+                        this.selectFunc(this.rectangles[index], true);
+                    }
+                } else {
+                    this.selectFunc(this.rectangles[index], false);
+                    this.secondaryOrder.remove(index);
+                }
+            }
+            this.computeBoundaries();
+            this.selectTo(finalPosition);
+        };
+
+        if (finalPosition[0] < this.boundaries.primaryN.v) {
+            --this.primaryOrder.currentPosition;
+            primaryBoundaryCrossed(
+                this.boundaries.primaryN.i,
+                this.initialPosition[0] > this.boundaries.primaryN.v && finalPosition[0] < this.initialPosition[0]);
+        } else if (finalPosition[0] > this.boundaries.primaryP.v) {
+            ++this.primaryOrder.currentPosition;
+            primaryBoundaryCrossed(
+                this.boundaries.primaryP.i,
+                this.initialPosition[0] < this.boundaries.primaryP.v && this.initialPosition[0] < finalPosition[0]);
+        }
+
+        const secondaryBoundaryCrossed = (index, added) => {
+            this.selectFunc(this.rectangles[index], added);
+            this.computeBoundaries();
+            this.selectTo(finalPosition);
+        };
+
+        if (finalPosition[1] < this.boundaries.secondaryN.v) {
+            --this.secondaryOrder.currentPosition;
+            secondaryBoundaryCrossed(
+                this.boundaries.secondaryN.i,
+                this.initialPosition[1] > this.boundaries.secondaryN.v && finalPosition[1] < this.initialPosition[1]);
+        } else if (finalPosition[1] > this.boundaries.secondaryP.v) {
+            ++this.secondaryOrder.currentPosition;
+            secondaryBoundaryCrossed(
+                this.boundaries.secondaryP.i,
+                this.initialPosition[1] < this.boundaries.secondaryP.v && this.initialPosition[1] < finalPosition[1]);
+        }
+        this.finalPosition = finalPosition;
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../element/SelectorElement").default} SelectorElement
+ */
+
+class SelectorTemplate extends ITemplate {
+
+    /**
+     * Applies the style to the element.
+     * @param {SelectorElement} selector Selector element
+     */
+    setup(selector) {
+        super.setup(selector);
+        this.applyFinishSelecting(selector);
+    }
+
+    /**
+     * Applies the style relative to selection beginning.
+     * @param {SelectorElement} selector Selector element
+     */
+    applyStartSelecting(selector, initialPosition) {
+        // Set initial position
+        selector.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]));
+        selector.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]));
+        // Final position coincide with the initial position, at the beginning of selection
+        selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]));
+        selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]));
+        selector.blueprint.dataset.selecting = "true";
+    }
+
+    /**
+     * Applies the style relative to selection.
+     * @param {SelectorElement} selector Selector element
+     */
+    applyDoSelecting(selector, finalPosition) {
+        selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]));
+        selector.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]));
+    }
+
+    /**
+     * Applies the style relative to selection finishing.
+     * @param {SelectorElement} selector Selector element
+     */
+    applyFinishSelecting(selector) {
+        selector.blueprint.dataset.selecting = "false";
+    }
+}
+
+// @ts-check
+
+/**
+ * @extends {IElement<Object, SelectorTemplate>}
+ */
+class SelectorElement extends IElement {
+
+    constructor() {
+        super({}, new SelectorTemplate());
+        this.selectionModel = null;
+    }
+
+    /**
+     * @param {Number[]} initialPosition
+     */
+    startSelecting(initialPosition) {
+        this.template.applyStartSelecting(this, initialPosition);
+        this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.getNodes(), this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction);
+    }
+
+    /**
+     * @param {Number[]} finalPosition
+     */
+    doSelecting(finalPosition) {
+        this.template.applyDoSelecting(this, finalPosition);
+        this.selectionModel.selectTo(finalPosition);
+    }
+
+    finishSelecting() {
+        this.template.applyFinishSelecting(this);
+        this.selectionModel = null;
+    }
+}
+
+customElements.define("ueb-selector", SelectorElement);
+
+// @ts-check
+
 class Unfocus extends IInput {
 
     /** @type {(e: MouseEvent) => void} */
@@ -3924,6 +3800,182 @@ class Unfocus extends IInput {
 
     unlistenEvents() {
         document.removeEventListener("click", this.#clickHandler);
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../Blueprint").default} Blueprint
+ * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ */
+
+class BlueprintTemplate extends ITemplate {
+
+    /**
+     * @param {Blueprint} blueprint
+     */
+    createInputObjects(blueprint) {
+        return [
+            new Copy(blueprint.getGridDOMElement(), blueprint),
+            new Paste(blueprint.getGridDOMElement(), blueprint),
+            new KeyboardCanc(blueprint.getGridDOMElement(), blueprint),
+            new KeyboardSelectAll(blueprint.getGridDOMElement(), blueprint),
+            new Zoom(blueprint.getGridDOMElement(), blueprint, {
+                looseTarget: true,
+            }),
+            new Select(blueprint.getGridDOMElement(), blueprint, {
+                clickButton: 0,
+                exitAnyButton: true,
+                looseTarget: true,
+                moveEverywhere: true,
+            }),
+            new MouseScrollGraph(blueprint.getGridDOMElement(), blueprint, {
+                clickButton: 2,
+                exitAnyButton: false,
+                looseTarget: true,
+                moveEverywhere: true,
+            }),
+            new Unfocus(blueprint.getGridDOMElement(), blueprint),
+            new MouseTracking(blueprint.getGridDOMElement(), blueprint),
+            new KeyboardEnableZoom(blueprint.getGridDOMElement(), blueprint),
+        ]
+    }
+
+    /**
+     * @param {Blueprint} element
+     */
+    header(element) {
+        return html`
+            <div class="ueb-viewport-header">
+                <div class="ueb-viewport-zoom">1:1</div>
+            </div>
+        `
+    }
+
+    /**
+     * @param {Blueprint} element
+     */
+    overlay(element) {
+        return html`
+            <div class="ueb-viewport-overlay"></div>
+        `
+    }
+
+    /**
+     * @param {Blueprint} element
+     */
+    viewport(element) {
+        return html`
+            <div class="ueb-viewport-body">
+                <div class="ueb-grid"
+                    style="
+                        --ueb-additional-x:${sanitizeText(element.additional[0])};
+                        --ueb-additional-y:${sanitizeText(element.additional[1])};
+                        --ueb-translate-x:${sanitizeText(element.translateValue[0])};
+                        --ueb-translate-y:${sanitizeText(element.translateValue[1])};
+                    ">
+                    <div class="ueb-grid-content" data-nodes></div>
+                </div>
+            </div>
+        `
+    }
+
+    /**
+     * Computes the html content of the target element.
+     * @param {Blueprint} element Target element
+     * @returns The computed html
+     */
+    render(element) {
+        return html`
+            ${this.header(element)}
+            ${this.overlay(element)}
+            ${this.viewport(element)}
+        `
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    setup(blueprint) {
+        super.setup(blueprint);
+        blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`);
+        Object.entries({
+            "--ueb-font-size": sanitizeText(Configuration.fontSize),
+            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
+            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
+            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
+            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
+            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
+            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
+            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
+            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
+        }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]));
+        blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header');
+        blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay');
+        blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body');
+        blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid");
+        blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
+        blueprint.selectorElement = new SelectorElement();
+        blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.getNodes());
+        this.applyEndDragScrolling(blueprint);
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyZoom(blueprint, newZoom) {
+        blueprint.classList.remove("ueb-zoom-" + sanitizeText(blueprint.zoom));
+        blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom));
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyExpand(blueprint) {
+        blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText(blueprint.additional[0]));
+        blueprint.gridElement.style.setProperty("--ueb-additional-y", sanitizeText(blueprint.additional[1]));
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyTranlate(blueprint) {
+        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(blueprint.translateValue[0]));
+        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(blueprint.translateValue[1]));
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyStartDragScrolling(blueprint) {
+        blueprint.dataset.dragScrolling = "true";
+    }
+
+    /**
+     * Applies the style to the element.
+     * @param {Blueprint} blueprint The blueprint element
+     */
+    applyEndDragScrolling(blueprint) {
+        blueprint.dataset.dragScrolling = "false";
+    }
+
+    /**
+     * 
+     * @param {Blueprint} blueprint
+     * @param {PinReferenceEntity} pinReference
+     * @returns {PinElement}
+     */
+    getPin(blueprint, pinReference) {
+        return blueprint.querySelector(
+            `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
+        )
     }
 }
 
@@ -4034,33 +4086,6 @@ class Blueprint extends IElement {
         this.translateValue[0] += x;
         this.translateValue[1] += y;
         this.template.applyTranlate(this);
-    }
-
-    createInputObjects() {
-        return [
-            new Copy(this.getGridDOMElement(), this),
-            new Paste(this.getGridDOMElement(), this),
-            new KeyboardCanc(this.getGridDOMElement(), this),
-            new KeyboardSelectAll(this.getGridDOMElement(), this),
-            new Zoom(this.getGridDOMElement(), this, {
-                looseTarget: true,
-            }),
-            new Select(this.getGridDOMElement(), this, {
-                clickButton: 0,
-                exitAnyButton: true,
-                looseTarget: true,
-                moveEverywhere: true,
-            }),
-            new MouseScrollGraph(this.getGridDOMElement(), this, {
-                clickButton: 2,
-                exitAnyButton: false,
-                looseTarget: true,
-                moveEverywhere: true,
-            }),
-            new Unfocus(this.getGridDOMElement(), this),
-            new MouseTracking(this.getGridDOMElement(), this),
-            new KeyboardEnableZoom(this.getGridDOMElement(), this),
-        ]
     }
 
     getGridDOMElement() {
