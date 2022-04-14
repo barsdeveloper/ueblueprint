@@ -6,6 +6,7 @@ import PinTemplate from "./PinTemplate"
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
+
 export default class StringPinTemplate extends PinTemplate {
 
     hasInput() {
@@ -27,5 +28,31 @@ export default class StringPinTemplate extends PinTemplate {
                 ></div>
             </div>
         `
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    setup(pin) {
+        super.setup(pin)
+        const input = pin.querySelector(".ueb-pin-input-content")
+        this.onFocusHandler = () => {
+            pin.blueprint.dispatchEditTextEvent(true)
+        }
+        this.onFocusOutHandler = () => {
+            pin.blueprint.dispatchEditTextEvent(false)
+            document.getSelection().removeAllRanges() // Deselect text inside the input
+        }
+        input.addEventListener("onfocus", this.onFocusHandler)
+        input.addEventListener("onfocusout", this.onFocusOutHandler)
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    cleanup(pin) {
+        super.cleanup(pin)
+        pin.blueprint.removeEventListener("onfocus", this.onFocusHandler)
+        pin.blueprint.removeEventListener("onfocusout", this.onFocusOutHandler)
     }
 }

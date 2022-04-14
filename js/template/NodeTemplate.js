@@ -8,6 +8,7 @@ import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
  */
+
 export default class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
@@ -43,8 +44,8 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      * Applies the style to the element.
      * @param {NodeElement} node Element of the graph
      */
-    apply(node) {
-        super.apply(node)
+    setup(node) {
+        super.setup(node)
         const nodeName = node.entity.getFullName()
         node.dataset.name = sanitizeText(nodeName)
         if (node.selected) {

@@ -6,6 +6,7 @@ import PinTemplate from "./PinTemplate"
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
+
 export default class ExecPinTemplate extends PinTemplate {
 
     /**

@@ -9,11 +9,11 @@ export default class SimpleSelectionModel {
      *      secondaryInf: number,
      *      secondarySup: number
      * }} BoundariesInfo
-     * @typedef {numeric} Rectangle
+     * @typedef {Number} Rectangle
      * @param {number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
      * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
      * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
-     * @param {(rect: Rectangle, selected: bool) => void} selectToggleFunction A function that selects or deselects individual rectangles.
+     * @param {(rect: Rectangle, selected: Boolean) => void} selectToggleFunction A function that selects or deselects individual rectangles.
      */
     constructor(initialPosition, rectangles, boundariesFunc, selectToggleFunction) {
         this.initialPosition = initialPosition

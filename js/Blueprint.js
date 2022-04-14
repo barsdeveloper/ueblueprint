@@ -29,7 +29,6 @@ import Zoom from "./input/mouse/Zoom"
  */
 export default class Blueprint extends IElement {
 
-    static tagName = "ueb-blueprint"
     /** @type {Number[]} */
     #additional
     get additional() {

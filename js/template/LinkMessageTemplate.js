@@ -2,12 +2,12 @@
 
 import html from "./html"
 import ITemplate from "./ITemplate"
-import LinkElement from "../element/LinkElement"
 import sanitizeText from "./sanitizeText"
 
 /**
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
+
 export default class LinkMessageTemplate extends ITemplate {
 
     /**
@@ -24,8 +24,8 @@ export default class LinkMessageTemplate extends ITemplate {
      * Applies the style to the element.
      * @param {LinkMessageElement} linkMessage
      */
-    apply(linkMessage) {
-        const a = super.apply(linkMessage)
+    setup(linkMessage) {
+        const a = super.setup(linkMessage)
         const linkMessageSetup = _ =>
             /** @type {HTMLElement} */(linkMessage.querySelector(".ueb-link-message")).innerText = linkMessage.message(
             linkMessage.linkElement.sourcePin,

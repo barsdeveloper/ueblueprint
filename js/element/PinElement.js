@@ -19,8 +19,6 @@ import StringPinTemplate from "../template/StringPinTemplate"
  */
 export default class PinElement extends IElement {
 
-    static tagName = "ueb-pin"
-
     static #typeTemplateMap = {
         "exec": ExecPinTemplate,
         "string": StringPinTemplate,

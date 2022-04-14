@@ -13,8 +13,6 @@ import PinReferenceEntity from "../entity/PinReferenceEntity"
  */
 export default class NodeElement extends ISelectableDraggableElement {
 
-    static tagName = "ueb-node"
-
     /**
      * @param {ObjectEntity} entity
      */

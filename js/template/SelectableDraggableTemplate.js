@@ -6,6 +6,7 @@ import sanitizeText from "./sanitizeText"
 /**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
+
 export default class SelectableDraggableTemplate extends ITemplate {
 
     /**

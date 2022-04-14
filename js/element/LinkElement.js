@@ -15,8 +15,6 @@ import LinkTemplate from "../template/LinkTemplate"
  */
 export default class LinkElement extends IElement {
 
-    static tagName = "ueb-link"
-
     /** @type {PinElement} */
     #source
     get sourcePin() {

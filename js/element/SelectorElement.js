@@ -9,16 +9,13 @@ import SelectorTemplate from "../template/SelectorTemplate"
  */
 export default class SelectorElement extends IElement {
 
-    static tagName = "ueb-selector"
-
     constructor() {
         super({}, new SelectorTemplate())
         this.selectionModel = null
     }
 
     /**
-     * Create a selection rectangle starting from the specified position
-     * @param {Number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
+     * @param {Number[]} initialPosition
      */
     startSelecting(initialPosition) {
         this.template.applyStartSelecting(this, initialPosition)
@@ -26,8 +23,7 @@ export default class SelectorElement extends IElement {
     }
 
     /**
-     * Move selection rectagle to the specified final position. The initial position was specified by startSelecting()
-     * @param {Number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
+     * @param {Number[]} finalPosition
      */
     doSelecting(finalPosition) {
         this.template.applyDoSelecting(this, finalPosition)

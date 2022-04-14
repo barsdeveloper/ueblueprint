@@ -11,6 +11,7 @@ import SelectorElement from "../element/SelectorElement"
  * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
+
 export default class BlueprintTemplate extends ITemplate {
 
     /**
@@ -69,8 +70,8 @@ export default class BlueprintTemplate extends ITemplate {
      * Applies the style to the element.
      * @param {Blueprint} blueprint The blueprint element
      */
-    apply(blueprint) {
-        super.apply(blueprint)
+    setup(blueprint) {
+        super.setup(blueprint)
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`)
         Object.entries({
             "--ueb-font-size": sanitizeText(Configuration.fontSize),

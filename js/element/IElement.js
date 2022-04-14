@@ -13,8 +13,6 @@
  */
 export default class IElement extends HTMLElement {
 
-    static tagName = ""
-
     /** @type {Blueprint} */
     #blueprint
     get blueprint() {
@@ -62,15 +60,18 @@ export default class IElement extends HTMLElement {
 
     connectedCallback() {
         this.#blueprint = this.closest("ueb-blueprint")
-        this.template.apply(this)
+        this.template.setup(this)
         this.inputObjects = this.createInputObjects()
     }
 
     disconnectedCallback() {
         this.inputObjects.forEach(v => v.unlistenDOMElement())
+        this.template.cleanup(this)
     }
 
-    /** @param {IElement} element */
+    /**
+     * @param {IElement} element
+     */
     isSameGraph(element) {
         return this.#blueprint && this.#blueprint == element?.blueprint
     }

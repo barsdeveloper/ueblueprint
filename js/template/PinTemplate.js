@@ -9,6 +9,7 @@ import Utility from "../Utility"
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
+
 export default class PinTemplate extends ITemplate {
 
     hasInput() {
@@ -56,8 +57,8 @@ export default class PinTemplate extends ITemplate {
     /**
      * @param {PinElement} pin
      */
-    apply(pin) {
-        super.apply(pin)
+    setup(pin) {
+        super.setup(pin)
         pin.classList.add(
             "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
             "ueb-pin-" + sanitizeText(pin.getType())

@@ -6,14 +6,15 @@ import sanitizeText from "./sanitizeText"
 /**
  * @typedef {import("../element/SelectorElement").default} SelectorElement
  */
+
 export default class SelectorTemplate extends ITemplate {
 
     /**
      * Applies the style to the element.
      * @param {SelectorElement} selector Selector element
      */
-    apply(selector) {
-        super.apply(selector)
+    setup(selector) {
+        super.setup(selector)
         this.applyFinishSelecting(selector)
     }
 

@@ -157,21 +157,31 @@ const html = String.raw;
 /**
  * @typedef {import("../element/IElement").default} IElement
  */
+
+/**
+ * @template {IElement} T
+ */
 class ITemplate {
 
     /**
-     * @param {IElement} entity
+     * @param {T} entity
      */
     render(entity) {
         return ""
     }
 
     /**
-     * @param {IElement} element
+     * @param {T} element
      */
-    apply(element) {
+    setup(element) {
         // TODO replace with the safer element.setHTML(...) when it will be availableBreack
         element.innerHTML = this.render(element);
+    }
+
+    /**
+     * @param {T} element
+     */
+    cleanup(element) {
     }
 }
 
@@ -513,8 +523,6 @@ class FastSelectionModel {
  */
 class IElement extends HTMLElement {
 
-    static tagName = ""
-
     /** @type {Blueprint} */
     #blueprint
     get blueprint() {
@@ -562,15 +570,18 @@ class IElement extends HTMLElement {
 
     connectedCallback() {
         this.#blueprint = this.closest("ueb-blueprint");
-        this.template.apply(this);
+        this.template.setup(this);
         this.inputObjects = this.createInputObjects();
     }
 
     disconnectedCallback() {
         this.inputObjects.forEach(v => v.unlistenDOMElement());
+        this.template.cleanup(this);
     }
 
-    /** @param {IElement} element */
+    /**
+     * @param {IElement} element
+     */
     isSameGraph(element) {
         return this.#blueprint && this.#blueprint == element?.blueprint
     }
@@ -595,14 +606,15 @@ class IElement extends HTMLElement {
 /**
  * @typedef {import("../element/SelectorElement").default} SelectorElement
  */
+
 class SelectorTemplate extends ITemplate {
 
     /**
      * Applies the style to the element.
      * @param {SelectorElement} selector Selector element
      */
-    apply(selector) {
-        super.apply(selector);
+    setup(selector) {
+        super.setup(selector);
         this.applyFinishSelecting(selector);
     }
 
@@ -645,16 +657,13 @@ class SelectorTemplate extends ITemplate {
  */
 class SelectorElement extends IElement {
 
-    static tagName = "ueb-selector"
-
     constructor() {
         super({}, new SelectorTemplate());
         this.selectionModel = null;
     }
 
     /**
-     * Create a selection rectangle starting from the specified position
-     * @param {Number[]} initialPosition - Selection rectangle initial position (relative to the .ueb-grid element)
+     * @param {Number[]} initialPosition
      */
     startSelecting(initialPosition) {
         this.template.applyStartSelecting(this, initialPosition);
@@ -662,8 +671,7 @@ class SelectorElement extends IElement {
     }
 
     /**
-     * Move selection rectagle to the specified final position. The initial position was specified by startSelecting()
-     * @param {Number[]} finalPosition - Selection rectangle final position (relative to the .ueb-grid element)
+     * @param {Number[]} finalPosition
      */
     doSelecting(finalPosition) {
         this.template.applyDoSelecting(this, finalPosition);
@@ -685,6 +693,7 @@ customElements.define("ueb-selector", SelectorElement);
  * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
+
 class BlueprintTemplate extends ITemplate {
 
     /**
@@ -743,8 +752,8 @@ class BlueprintTemplate extends ITemplate {
      * Applies the style to the element.
      * @param {Blueprint} blueprint The blueprint element
      */
-    apply(blueprint) {
-        super.apply(blueprint);
+    setup(blueprint) {
+        super.setup(blueprint);
         blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`);
         Object.entries({
             "--ueb-font-size": sanitizeText(Configuration.fontSize),
@@ -2273,6 +2282,7 @@ class KeyboardSelectAll extends IKeyboardShortcut {
  * @typedef {import("../element/LinkElement").default} LinkElement
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
+
 class LinkTemplate extends ITemplate {
 
     /**
@@ -2340,8 +2350,8 @@ class LinkTemplate extends ITemplate {
     /**
      * @param {LinkElement} link
      */
-    apply(link) {
-        super.apply(link);
+    setup(link) {
+        super.setup(link);
         if (link.linkMessageElement) {
             link.appendChild(link.linkMessageElement);
         }
@@ -2455,8 +2465,6 @@ class LinkTemplate extends ITemplate {
  * @extends {IElement<Object, LinkTemplate>}
  */
 class LinkElement extends IElement {
-
-    static tagName = "ueb-link"
 
     /** @type {PinElement} */
     #source
@@ -3059,6 +3067,7 @@ class ISelectableDraggableElement extends IElement {
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
+
 class PinTemplate extends ITemplate {
 
     hasInput() {
@@ -3106,8 +3115,8 @@ class PinTemplate extends ITemplate {
     /**
      * @param {PinElement} pin
      */
-    apply(pin) {
-        super.apply(pin);
+    setup(pin) {
+        super.setup(pin);
         pin.classList.add(
             "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
             "ueb-pin-" + sanitizeText(pin.getType())
@@ -3147,6 +3156,7 @@ class PinTemplate extends ITemplate {
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
+
 class ExecPinTemplate extends PinTemplate {
 
     /**
@@ -3166,6 +3176,7 @@ class ExecPinTemplate extends PinTemplate {
 /**
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
+
 class LinkMessageTemplate extends ITemplate {
 
     /**
@@ -3182,8 +3193,8 @@ class LinkMessageTemplate extends ITemplate {
      * Applies the style to the element.
      * @param {LinkMessageElement} linkMessage
      */
-    apply(linkMessage) {
-        super.apply(linkMessage);
+    setup(linkMessage) {
+        super.setup(linkMessage);
         const linkMessageSetup = _ =>
             /** @type {HTMLElement} */(linkMessage.querySelector(".ueb-link-message")).innerText = linkMessage.message(
             linkMessage.linkElement.sourcePin,
@@ -3212,7 +3223,6 @@ class LinkMessageTemplate extends ITemplate {
  */
 class LinkMessageElement extends IElement {
 
-    static tagName = "ueb-link-message"
     static convertType = _ => new LinkMessageElement(
         "ueb-icon-conver-type",
         /** @type {LinkRetrieval} */
@@ -3375,6 +3385,7 @@ class MouseCreateLink extends IMouseClickDrag {
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
+
 class StringPinTemplate extends PinTemplate {
 
     hasInput() {
@@ -3397,6 +3408,32 @@ class StringPinTemplate extends PinTemplate {
             </div>
         `
     }
+
+    /**
+     * @param {PinElement} pin
+     */
+    setup(pin) {
+        super.setup(pin);
+        const input = pin.querySelector(".ueb-pin-input-content");
+        this.onFocusHandler = () => {
+            pin.blueprint.dispatchEditTextEvent(true);
+        };
+        this.onFocusOutHandler = () => {
+            pin.blueprint.dispatchEditTextEvent(false);
+            document.getSelection().removeAllRanges(); // Deselect text inside the input
+        };
+        input.addEventListener("onfocus", this.onFocusHandler);
+        input.addEventListener("onfocusout", this.onFocusOutHandler);
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    cleanup(pin) {
+        super.cleanup(pin);
+        pin.blueprint.removeEventListener("onfocus", this.onFocusHandler);
+        pin.blueprint.removeEventListener("onfocusout", this.onFocusOutHandler);
+    }
 }
 
 // @ts-check
@@ -3412,8 +3449,6 @@ class StringPinTemplate extends PinTemplate {
  * @extends {IElement<PinEntity, PinTemplate>}
  */
 class PinElement extends IElement {
-
-    static tagName = "ueb-pin"
 
     static #typeTemplateMap = {
         "exec": ExecPinTemplate,
@@ -3568,6 +3603,7 @@ customElements.define("ueb-pin", PinElement);
 /**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
+
 class SelectableDraggableTemplate extends ITemplate {
 
     /**
@@ -3597,6 +3633,7 @@ class SelectableDraggableTemplate extends ITemplate {
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
  */
+
 class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
@@ -3632,8 +3669,8 @@ class NodeTemplate extends SelectableDraggableTemplate {
      * Applies the style to the element.
      * @param {NodeElement} node Element of the graph
      */
-    apply(node) {
-        super.apply(node);
+    setup(node) {
+        super.setup(node);
         const nodeName = node.entity.getFullName();
         node.dataset.name = sanitizeText(nodeName);
         if (node.selected) {
@@ -3679,8 +3716,6 @@ class NodeTemplate extends SelectableDraggableTemplate {
  * @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>}
  */
 class NodeElement extends ISelectableDraggableElement {
-
-    static tagName = "ueb-node"
 
     /**
      * @param {ObjectEntity} entity
@@ -3898,7 +3933,6 @@ class Unfocus extends IContext {
  */
 class Blueprint extends IElement {
 
-    static tagName = "ueb-blueprint"
     /** @type {Number[]} */
     #additional
     get additional() {

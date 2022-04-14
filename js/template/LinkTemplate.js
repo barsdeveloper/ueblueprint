@@ -9,6 +9,7 @@ import sanitizeText from "./sanitizeText"
  * @typedef {import("../element/LinkElement").default} LinkElement
  * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
+
 export default class LinkTemplate extends ITemplate {
 
     /**
@@ -76,8 +77,8 @@ export default class LinkTemplate extends ITemplate {
     /**
      * @param {LinkElement} link
      */
-    apply(link) {
-        super.apply(link)
+    setup(link) {
+        super.setup(link)
         if (link.linkMessageElement) {
             link.appendChild(link.linkMessageElement)
         }

@@ -14,7 +14,6 @@ import LinkMessageTemplate from "../template/LinkMessageTemplate"
  */
 export default class LinkMessageElement extends IElement {
 
-    static tagName = "ueb-link-message"
     static convertType = _ => new LinkMessageElement(
         "ueb-icon-conver-type",
         /** @type {LinkRetrieval} */
