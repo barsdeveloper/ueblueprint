@@ -19,13 +19,7 @@ export default class StringPinTemplate extends PinTemplate {
     renderInput(pin) {
         return html`
             <div class="ueb-pin-input">
-                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                    onfocus="this.closest('ueb-blueprint')?.dispatchEditTextEvent(true)"
-                    onfocusout="
-                        this.closest('ueb-blueprint')?.dispatchEditTextEvent(false)
-                        document.getSelection().removeAllRanges()
-                    "
-                ></div>
+                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
             </div>
         `
     }
@@ -36,15 +30,17 @@ export default class StringPinTemplate extends PinTemplate {
     setup(pin) {
         super.setup(pin)
         const input = pin.querySelector(".ueb-pin-input-content")
-        this.onFocusHandler = () => {
-            pin.blueprint.dispatchEditTextEvent(true)
+        if (input) {
+            this.onFocusHandler = () => {
+                pin.blueprint.dispatchEditTextEvent(true)
+            }
+            this.onFocusOutHandler = () => {
+                pin.blueprint.dispatchEditTextEvent(false)
+                document.getSelection().removeAllRanges() // Deselect text inside the input
+            }
+            input.addEventListener("onfocus", this.onFocusHandler)
+            input.addEventListener("onfocusout", this.onFocusOutHandler)
         }
-        this.onFocusOutHandler = () => {
-            pin.blueprint.dispatchEditTextEvent(false)
-            document.getSelection().removeAllRanges() // Deselect text inside the input
-        }
-        input.addEventListener("onfocus", this.onFocusHandler)
-        input.addEventListener("onfocusout", this.onFocusOutHandler)
     }
 
     /**

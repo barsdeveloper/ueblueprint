@@ -1978,7 +1978,7 @@ class IElement extends HTMLElement {
      * @returns {V}
      */
     getInputObject(type) {
-        return /** @type {V} */ (this.inputObjects.find(object => object.constructor == type))
+        return /** @type {V} */ (this.template.inputObjects.find(object => object.constructor == type))
     }
 
     // Subclasses will want to override
@@ -2824,13 +2824,7 @@ class StringPinTemplate extends PinTemplate {
     renderInput(pin) {
         return html`
             <div class="ueb-pin-input">
-                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                    onfocus="this.closest('ueb-blueprint')?.dispatchEditTextEvent(true)"
-                    onfocusout="
-                        this.closest('ueb-blueprint')?.dispatchEditTextEvent(false)
-                        document.getSelection().removeAllRanges()
-                    "
-                ></div>
+                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
             </div>
         `
     }
@@ -2841,15 +2835,17 @@ class StringPinTemplate extends PinTemplate {
     setup(pin) {
         super.setup(pin);
         const input = pin.querySelector(".ueb-pin-input-content");
-        this.onFocusHandler = () => {
-            pin.blueprint.dispatchEditTextEvent(true);
-        };
-        this.onFocusOutHandler = () => {
-            pin.blueprint.dispatchEditTextEvent(false);
-            document.getSelection().removeAllRanges(); // Deselect text inside the input
-        };
-        input.addEventListener("onfocus", this.onFocusHandler);
-        input.addEventListener("onfocusout", this.onFocusOutHandler);
+        if (input) {
+            this.onFocusHandler = () => {
+                pin.blueprint.dispatchEditTextEvent(true);
+            };
+            this.onFocusOutHandler = () => {
+                pin.blueprint.dispatchEditTextEvent(false);
+                document.getSelection().removeAllRanges(); // Deselect text inside the input
+            };
+            input.addEventListener("onfocus", this.onFocusHandler);
+            input.addEventListener("onfocusout", this.onFocusOutHandler);
+        }
     }
 
     /**
@@ -3092,7 +3088,7 @@ class SelectableDraggableTemplate extends ITemplate {
         return [
             ...super.createInputObjects(element),
             ...[
-                new MouseMoveNodes(this, element.blueprint, {
+                new MouseMoveNodes(element, element.blueprint, {
                     looseTarget: true
                 }),
             ]

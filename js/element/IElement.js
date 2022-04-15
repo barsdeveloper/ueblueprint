@@ -81,7 +81,7 @@ export default class IElement extends HTMLElement {
      * @returns {V}
      */
     getInputObject(type) {
-        return /** @type {V} */ (this.inputObjects.find(object => object.constructor == type))
+        return /** @type {V} */ (this.template.inputObjects.find(object => object.constructor == type))
     }
 
     // Subclasses will want to override

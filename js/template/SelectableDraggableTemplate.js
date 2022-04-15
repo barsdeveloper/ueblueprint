@@ -20,7 +20,7 @@ export default class SelectableDraggableTemplate extends ITemplate {
         return [
             ...super.createInputObjects(element),
             ...[
-                new MouseMoveNodes(this, element.blueprint, {
+                new MouseMoveNodes(element, element.blueprint, {
                     looseTarget: true
                 }),
             ]
