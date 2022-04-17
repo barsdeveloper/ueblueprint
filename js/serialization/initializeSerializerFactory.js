@@ -16,6 +16,7 @@ import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "./SerializerFactory"
 import ToStringSerializer from "./ToStringSerializer"
+import InvariantTextEntity from "../entity/InvariantTextEntity"
 
 export default function initializeSerializerFactory() {
 
@@ -42,6 +43,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
         new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
+    )
+
+    SerializerFactory.registerSerializer(
+        InvariantTextEntity,
+        new GeneralSerializer(v => `${InvariantTextEntity.lookbehind}(${v})`, InvariantTextEntity, "", ", ", false, "", _ => "")
     )
 
     SerializerFactory.registerSerializer(

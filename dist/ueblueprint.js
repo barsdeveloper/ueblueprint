@@ -398,27 +398,20 @@ class IEntity {
     static attributes = {}
 
     constructor(values) {
-        // @ts-expect-error
-        const attributes = this.constructor.attributes;
-        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
-            // Where there is just one attribute, option can be the value of that attribute
-            values = {
-                [Object.getOwnPropertyNames(attributes)[0]]: values
-            };
-        }
         /**
-         * @param {String[]} prefix
          * @param {Object} target
          * @param {Object} properties
+         * @param {Object} values
+         * @param {String} prefix
          */
-        const defineAllAttributes = (prefix, target, properties, values) => {
-            let fullKey = prefix.concat("");
-            const last = fullKey.length - 1;
+        const defineAllAttributes = (target, properties, values, prefix = "") => {
             for (let property of Utility.mergeArrays(
                 Object.getOwnPropertyNames(properties),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
-                fullKey[last] = property;
+                if (!(property in properties)) {
+                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}`);
+                }
                 let defaultValue = properties[property];
                 const defaultType = (defaultValue instanceof TypeInitialization)
                     ? defaultValue.type
@@ -428,7 +421,7 @@ class IEntity {
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (defaultType === Object) {
                     target[property] = {};
-                    defineAllAttributes(fullKey, target[property], properties[property], values[property]);
+                    defineAllAttributes(target[property], properties[property], values[property], property + ".");
                     continue
                 }
                 /*
@@ -438,7 +431,7 @@ class IEntity {
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.
                  */
-                const value = Utility.objectGet(values, fullKey);
+                const value = Utility.objectGet(values, [property]);
                 if (value !== undefined) {
                     target[property] = TypeInitialization.sanitize(value, defaultType);
                     continue
@@ -460,7 +453,15 @@ class IEntity {
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType);
             }
         };
-        defineAllAttributes([], this, attributes, values);
+        // @ts-expect-error
+        const attributes = this.constructor.attributes;
+        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
+            // Where there is just one attribute, option can be the value of that attribute
+            values = {
+                [Object.getOwnPropertyNames(attributes)[0]]: values
+            };
+        }
+        defineAllAttributes(this, attributes, values);
     }
 }
 
@@ -574,6 +575,21 @@ class IntegerEntity extends IEntity {
 
     toString() {
         return this.value.toString()
+    }
+}
+
+// @ts-check
+
+class InvariantTextEntity extends IEntity {
+
+    static lookbehind = "INVTEXT"
+    static attributes = {
+        value: String,
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.value;
     }
 }
 
@@ -918,6 +934,8 @@ class Grammar {
                 return r.Reference
             case LocalizedTextEntity:
                 return r.LocalizedText
+            case InvariantTextEntity:
+                return r.InvariantText
             case PinReferenceEntity:
                 return r.PinReference
             case FunctionReferenceEntity:
@@ -959,7 +977,7 @@ class Grammar {
 
     /**
      * @template T
-     * @param {new () => T} entityType 
+     * @param {new (values: Object) => T} entityType 
      * @returns {Parsimmon.Parser<T>}
      */
     static createMultiAttributeGrammar = (r, entityType) =>
@@ -979,9 +997,9 @@ class Grammar {
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma
             P.string(')'),
             (_, attributes, __) => {
-                let result = new entityType();
-                attributes.forEach(attributeSetter => attributeSetter(result));
-                return result
+                let values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new entityType(values)
             }
         )
 
@@ -1066,6 +1084,12 @@ class Grammar {
         })
     )
 
+    InvariantText = r => r.String.trim(P.optWhitespace).wrap(
+        P.string(InvariantTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")),
+        P.string(")")
+    )
+        .map(value => new InvariantTextEntity({ value: value }))
+
     AttributeAnyValue = r => P.alt(
         r.Null,
         r.None,
@@ -1074,8 +1098,9 @@ class Grammar {
         r.Integer,
         r.String,
         r.Guid,
-        r.Reference,
-        r.LocalizedText
+        r.LocalizedText,
+        r.InvariantText,
+        r.Reference
     )
 
     PinReference = r => P.seqMap(
@@ -3087,11 +3112,9 @@ class SelectableDraggableTemplate extends ITemplate {
     createInputObjects(element) {
         return [
             ...super.createInputObjects(element),
-            ...[
-                new MouseMoveNodes(element, element.blueprint, {
-                    looseTarget: true
-                }),
-            ]
+            new MouseMoveNodes(element, element.blueprint, {
+                looseTarget: true
+            }),
         ]
     }
 
@@ -4502,6 +4525,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
         new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
+    );
+
+    SerializerFactory.registerSerializer(
+        InvariantTextEntity,
+        new GeneralSerializer(v => `${InvariantTextEntity.lookbehind}(${v})`, InvariantTextEntity, "", ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(

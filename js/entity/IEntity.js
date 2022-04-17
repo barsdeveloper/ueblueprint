@@ -8,27 +8,20 @@ export default class IEntity {
     static attributes = {}
 
     constructor(values) {
-        // @ts-expect-error
-        const attributes = this.constructor.attributes
-        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
-            // Where there is just one attribute, option can be the value of that attribute
-            values = {
-                [Object.getOwnPropertyNames(attributes)[0]]: values
-            }
-        }
         /**
-         * @param {String[]} prefix
          * @param {Object} target
          * @param {Object} properties
+         * @param {Object} values
+         * @param {String} prefix
          */
-        const defineAllAttributes = (prefix, target, properties, values) => {
-            let fullKey = prefix.concat("")
-            const last = fullKey.length - 1
+        const defineAllAttributes = (target, properties, values, prefix = "") => {
             for (let property of Utility.mergeArrays(
                 Object.getOwnPropertyNames(properties),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
-                fullKey[last] = property
+                if (!(property in properties)) {
+                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}`)
+                }
                 let defaultValue = properties[property]
                 const defaultType = (defaultValue instanceof TypeInitialization)
                     ? defaultValue.type
@@ -38,7 +31,7 @@ export default class IEntity {
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (defaultType === Object) {
                     target[property] = {}
-                    defineAllAttributes(fullKey, target[property], properties[property], values[property])
+                    defineAllAttributes(target[property], properties[property], values[property], property + ".")
                     continue
                 }
                 /*
@@ -48,7 +41,7 @@ export default class IEntity {
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.
                  */
-                const value = Utility.objectGet(values, fullKey)
+                const value = Utility.objectGet(values, [property])
                 if (value !== undefined) {
                     target[property] = TypeInitialization.sanitize(value, defaultType)
                     continue
@@ -70,6 +63,14 @@ export default class IEntity {
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType)
             }
         }
-        defineAllAttributes([], this, attributes, values)
+        // @ts-expect-error
+        const attributes = this.constructor.attributes
+        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
+            // Where there is just one attribute, option can be the value of that attribute
+            values = {
+                [Object.getOwnPropertyNames(attributes)[0]]: values
+            }
+        }
+        defineAllAttributes(this, attributes, values)
     }
 }

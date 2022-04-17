@@ -4,6 +4,7 @@ import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
 import IntegerEntity from "../entity/IntegerEntity"
+import InvariantTextEntity from "../entity/InvariantTextEntity"
 import KeyBindingEntity from "../entity/KeyBindingEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
@@ -38,6 +39,8 @@ export default class Grammar {
                 return r.Reference
             case LocalizedTextEntity:
                 return r.LocalizedText
+            case InvariantTextEntity:
+                return r.InvariantText
             case PinReferenceEntity:
                 return r.PinReference
             case FunctionReferenceEntity:
@@ -79,7 +82,7 @@ export default class Grammar {
 
     /**
      * @template T
-     * @param {new () => T} entityType 
+     * @param {new (values: Object) => T} entityType 
      * @returns {Parsimmon.Parser<T>}
      */
     static createMultiAttributeGrammar = (r, entityType) =>
@@ -99,9 +102,9 @@ export default class Grammar {
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma
             P.string(')'),
             (_, attributes, __) => {
-                let result = new entityType()
-                attributes.forEach(attributeSetter => attributeSetter(result))
-                return result
+                let values = {}
+                attributes.forEach(attributeSetter => attributeSetter(values))
+                return new entityType(values)
             }
         )
 
@@ -186,6 +189,12 @@ export default class Grammar {
         })
     )
 
+    InvariantText = r => r.String.trim(P.optWhitespace).wrap(
+        P.string(InvariantTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")),
+        P.string(")")
+    )
+        .map(value => new InvariantTextEntity({ value: value }))
+
     AttributeAnyValue = r => P.alt(
         r.Null,
         r.None,
@@ -194,8 +203,9 @@ export default class Grammar {
         r.Integer,
         r.String,
         r.Guid,
-        r.Reference,
-        r.LocalizedText
+        r.LocalizedText,
+        r.InvariantText,
+        r.Reference
     )
 
     PinReference = r => P.seqMap(
