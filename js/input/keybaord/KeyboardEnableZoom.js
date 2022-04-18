@@ -15,10 +15,7 @@ export default class KeyboardEnableZoom extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options = {
-            ...options,
-            activationKeys: Configuration.enableZoomIn
-        }
+        options.activationKeys = Configuration.enableZoomIn
         super(target, blueprint, options)
     }
 

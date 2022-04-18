@@ -11,8 +11,10 @@ export default class IKeyboardShortcut extends IInput {
     #activationKeys
 
     constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true
+        options.activateAnyKey ??= false
         options.activationKeys ??= []
+        options.listenOnFocus ??= true
+        options.unlistenOnTextEdit ??= true
         if (!(options.activationKeys instanceof Array)) {
             options.activationKeys = [options.activationKeys]
         }
@@ -42,12 +44,14 @@ export default class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyDownHandler = e => {
             if (
-                self.#activationKeys.some(keyEntry =>
+                this.options.activateAnyKey
+                || self.#activationKeys.some(keyEntry =>
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
                     && Configuration.Keys[keyEntry.Key] == e.code
-                )) {
+                )
+            ) {
                 if (options.consumeEvent) {
                     e.stopImmediatePropagation()
                 }
@@ -60,13 +64,15 @@ export default class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyUpHandler = e => {
             if (
-                self.#activationKeys.some(keyEntry =>
+                this.options.activateAnyKey
+                || self.#activationKeys.some(keyEntry =>
                     keyEntry.bShift && e.key == "Shift"
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta"
                     || Configuration.Keys[keyEntry.Key] == e.code
-                )) {
+                )
+            ) {
                 if (options.consumeEvent) {
                     e.stopImmediatePropagation()
                 }

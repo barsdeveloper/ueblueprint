@@ -44,8 +44,9 @@ export default class ITemplate {
 
     /**
      * @param {T} element
+     * @returns {IInput[]}
      */
     createInputObjects(element) {
-        return /** @type {IInput[]} */([])
+        return []
     }
 }

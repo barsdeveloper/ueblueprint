@@ -30,8 +30,7 @@ export default class IMouseClickDrag extends IPointing {
 
     started = false
 
-    constructor(target, blueprint, options) {
-        options.unlistenOnTextEdit
+    constructor(target, blueprint, options = {}) {
         super(target, blueprint, options)
         this.clickButton = options?.clickButton ?? 0
         this.exitAnyButton = options?.exitAnyButton ?? true

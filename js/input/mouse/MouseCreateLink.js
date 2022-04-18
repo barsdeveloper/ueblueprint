@@ -87,7 +87,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
             pin.removeEventListener("mouseenter", this.#mouseenterHandler)
             pin.removeEventListener("mouseleave", this.#mouseleaveHandler)
         })
-        if (this.enteredPin) {
+        if (this.enteredPin && this.linkValid) {
             this.blueprint.addGraphElement(this.link)
             this.link.destinationPin = this.enteredPin
             this.link.setLinkMessage(null)

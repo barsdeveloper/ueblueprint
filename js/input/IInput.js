@@ -34,9 +34,10 @@ export default class IInput {
     constructor(target, blueprint, options) {
         this.#target = target
         this.#blueprint = blueprint
+        options.consumeEvent ??= false
+        options.listenOnFocus ??= false
+        options.unlistenOnTextEdit ??= false
         this.options = options
-        this.options.listenOnFocus = this.options?.listenOnFocus ?? false
-        this.options.unlistenOnTextEdit = this.options?.unlistenOnTextEdit ?? true
         let self = this
         this.listenHandler = _ => self.listenEvents()
         this.unlistenHandler = _ => self.unlistenEvents()
@@ -44,7 +45,7 @@ export default class IInput {
             this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler)
             this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler)
         }
-        if (options?.unlistenOnTextEdit ?? false) {
+        if (this.options.unlistenOnTextEdit) {
             this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler)
             this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler)
         }

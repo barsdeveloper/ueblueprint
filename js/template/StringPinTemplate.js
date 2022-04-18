@@ -1,6 +1,7 @@
 // @ts-check
 
 import html from "./html"
+import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 
 /**
@@ -8,6 +9,9 @@ import PinTemplate from "./PinTemplate"
  */
 
 export default class StringPinTemplate extends PinTemplate {
+
+    /** @type {HTMLElement} */
+    input = null
 
     hasInput() {
         return true
@@ -19,7 +23,7 @@ export default class StringPinTemplate extends PinTemplate {
     renderInput(pin) {
         return html`
             <div class="ueb-pin-input">
-                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
+                <div class="ueb-pin-input-content" role="textbox" contenteditable="true" onfocusout="e => document.getSelection().removeAllRanges()"></div>
             </div>
         `
     }
@@ -29,17 +33,17 @@ export default class StringPinTemplate extends PinTemplate {
      */
     setup(pin) {
         super.setup(pin)
-        const input = pin.querySelector(".ueb-pin-input-content")
-        if (input) {
-            this.onFocusHandler = () => {
+        if (this.input = pin.querySelector(".ueb-pin-input-content")) {
+            this.onFocusHandler = (e) => {
                 pin.blueprint.dispatchEditTextEvent(true)
             }
-            this.onFocusOutHandler = () => {
-                pin.blueprint.dispatchEditTextEvent(false)
+            this.onFocusOutHandler = (e) => {
+                e.preventDefault()
                 document.getSelection().removeAllRanges() // Deselect text inside the input
+                pin.blueprint.dispatchEditTextEvent(false)
             }
-            input.addEventListener("onfocus", this.onFocusHandler)
-            input.addEventListener("onfocusout", this.onFocusOutHandler)
+            this.input.addEventListener("focus", this.onFocusHandler)
+            this.input.addEventListener("focusout", this.onFocusOutHandler)
         }
     }
 
@@ -48,7 +52,22 @@ export default class StringPinTemplate extends PinTemplate {
      */
     cleanup(pin) {
         super.cleanup(pin)
-        pin.blueprint.removeEventListener("onfocus", this.onFocusHandler)
-        pin.blueprint.removeEventListener("onfocusout", this.onFocusOutHandler)
+        if (this.input) {
+            this.input.removeEventListener("focus", this.onFocusHandler)
+            this.input.removeEventListener("focusout", this.onFocusOutHandler)
+        }
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    createInputObjects(pin) {
+        if (pin.isInput()) {
+            return [
+                ...super.createInputObjects(pin),
+                new MouseIgnore(pin.querySelector(".ueb-pin-input-content"), pin.blueprint),
+            ]
+        }
+        return super.createInputObjects(pin)
     }
 }

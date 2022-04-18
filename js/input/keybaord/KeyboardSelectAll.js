@@ -14,10 +14,7 @@ export default class KeyboardSelectAll extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options = {
-            ...options,
-            activationKeys: Configuration.selectAllKeyboardKey
-        }
+        options.activationKeys = Configuration.selectAllKeyboardKey
         super(target, blueprint, options)
     }
 

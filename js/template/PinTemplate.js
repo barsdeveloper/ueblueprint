@@ -7,6 +7,7 @@ import sanitizeText from "./sanitizeText"
 import Utility from "../Utility"
 
 /**
+ * @typedef {import ("../input/IInput").default} IInput
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
@@ -15,7 +16,7 @@ export default class PinTemplate extends ITemplate {
 
     /**
      * @param {PinElement} pin
-     *
+     * @returns {IInput[]}
      */
     createInputObjects(pin) {
         return [

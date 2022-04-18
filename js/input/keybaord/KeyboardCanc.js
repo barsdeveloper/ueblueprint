@@ -11,10 +11,7 @@ export default class KeyboardCanc extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options = {
-            ...options,
-            activationKeys: Configuration.deleteNodesKeyboardKey
-        }
+        options.activationKeys = Configuration.deleteNodesKeyboardKey
         super(target, blueprint, options)
     }
 

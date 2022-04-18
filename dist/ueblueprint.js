@@ -179,9 +179,10 @@ class IInput {
     constructor(target, blueprint, options) {
         this.#target = target;
         this.#blueprint = blueprint;
+        options.consumeEvent ??= false;
+        options.listenOnFocus ??= false;
+        options.unlistenOnTextEdit ??= false;
         this.options = options;
-        this.options.listenOnFocus = this.options?.listenOnFocus ?? false;
-        this.options.unlistenOnTextEdit = this.options?.unlistenOnTextEdit ?? true;
         let self = this;
         this.listenHandler = _ => self.listenEvents();
         this.unlistenHandler = _ => self.unlistenEvents();
@@ -189,7 +190,7 @@ class IInput {
             this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler);
             this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler);
         }
-        if (options?.unlistenOnTextEdit ?? false) {
+        if (this.options.unlistenOnTextEdit) {
             this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
             this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler);
         }
@@ -1318,6 +1319,7 @@ class Copy extends IInput {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
+        options.unlistenOnTextEdit = true;
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
@@ -1391,9 +1393,10 @@ class ITemplate {
 
     /**
      * @param {T} element
+     * @returns {IInput[]}
      */
     createInputObjects(element) {
-        return /** @type {IInput[]} */([])
+        return []
     }
 }
 
@@ -1405,8 +1408,10 @@ class IKeyboardShortcut extends IInput {
     #activationKeys
 
     constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true;
+        options.activateAnyKey ??= false;
         options.activationKeys ??= [];
+        options.listenOnFocus ??= true;
+        options.unlistenOnTextEdit ??= true;
         if (!(options.activationKeys instanceof Array)) {
             options.activationKeys = [options.activationKeys];
         }
@@ -1436,12 +1441,14 @@ class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyDownHandler = e => {
             if (
-                self.#activationKeys.some(keyEntry =>
+                this.options.activateAnyKey
+                || self.#activationKeys.some(keyEntry =>
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
                     && Configuration.Keys[keyEntry.Key] == e.code
-                )) {
+                )
+            ) {
                 if (options.consumeEvent) {
                     e.stopImmediatePropagation();
                 }
@@ -1454,13 +1461,15 @@ class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyUpHandler = e => {
             if (
-                self.#activationKeys.some(keyEntry =>
+                this.options.activateAnyKey
+                || self.#activationKeys.some(keyEntry =>
                     keyEntry.bShift && e.key == "Shift"
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta"
                     || Configuration.Keys[keyEntry.Key] == e.code
-                )) {
+                )
+            ) {
                 if (options.consumeEvent) {
                     e.stopImmediatePropagation();
                 }
@@ -1499,10 +1508,7 @@ class KeyboardCanc extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options = {
-            ...options,
-            activationKeys: Configuration.deleteNodesKeyboardKey
-        };
+        options.activationKeys = Configuration.deleteNodesKeyboardKey;
         super(target, blueprint, options);
     }
 
@@ -1631,10 +1637,7 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options = {
-            ...options,
-            activationKeys: Configuration.enableZoomIn
-        };
+        options.activationKeys = Configuration.enableZoomIn;
         super(target, blueprint, options);
     }
 
@@ -1661,10 +1664,7 @@ class KeyboardSelectAll extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options = {
-            ...options,
-            activationKeys: Configuration.selectAllKeyboardKey
-        };
+        options.activationKeys = Configuration.selectAllKeyboardKey;
         super(target, blueprint, options);
     }
 
@@ -1702,8 +1702,7 @@ class IMouseClickDrag extends IPointing {
 
     started = false
 
-    constructor(target, blueprint, options) {
-        options.unlistenOnTextEdit;
+    constructor(target, blueprint, options = {}) {
         super(target, blueprint, options);
         this.clickButton = options?.clickButton ?? 0;
         this.exitAnyButton = options?.exitAnyButton ?? true;
@@ -2689,7 +2688,7 @@ class MouseCreateLink extends IMouseClickDrag {
             pin.removeEventListener("mouseenter", this.#mouseenterHandler);
             pin.removeEventListener("mouseleave", this.#mouseleaveHandler);
         });
-        if (this.enteredPin) {
+        if (this.enteredPin && this.linkValid) {
             this.blueprint.addGraphElement(this.link);
             this.link.destinationPin = this.enteredPin;
             this.link.setLinkMessage(null);
@@ -2711,6 +2710,7 @@ class MouseCreateLink extends IMouseClickDrag {
 // @ts-check
 
 /**
+ * @typedef {import ("../input/IInput").default} IInput
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
@@ -2719,7 +2719,7 @@ class PinTemplate extends ITemplate {
 
     /**
      * @param {PinElement} pin
-     *
+     * @returns {IInput[]}
      */
     createInputObjects(pin) {
         return [
@@ -2831,6 +2831,21 @@ class ExecPinTemplate extends PinTemplate {
     }
 }
 
+/**
+ * @typedef {import("../../element/PinElement").default} PinElement
+ */
+
+/**
+ * @extends IMouseClickDrag<PinElement>
+ */
+class MouseIgnore extends IMouseClickDrag {
+
+    constructor(target, blueprint, options = {}) {
+        options.consumeEvent = true;
+        super(target, blueprint, options);
+    }
+}
+
 // @ts-check
 
 /**
@@ -2838,6 +2853,9 @@ class ExecPinTemplate extends PinTemplate {
  */
 
 class StringPinTemplate extends PinTemplate {
+
+    /** @type {HTMLElement} */
+    input = null
 
     hasInput() {
         return true
@@ -2849,7 +2867,7 @@ class StringPinTemplate extends PinTemplate {
     renderInput(pin) {
         return html`
             <div class="ueb-pin-input">
-                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
+                <div class="ueb-pin-input-content" role="textbox" contenteditable="true" onfocusout="e => document.getSelection().removeAllRanges()"></div>
             </div>
         `
     }
@@ -2859,17 +2877,17 @@ class StringPinTemplate extends PinTemplate {
      */
     setup(pin) {
         super.setup(pin);
-        const input = pin.querySelector(".ueb-pin-input-content");
-        if (input) {
-            this.onFocusHandler = () => {
+        if (this.input = pin.querySelector(".ueb-pin-input-content")) {
+            this.onFocusHandler = (e) => {
                 pin.blueprint.dispatchEditTextEvent(true);
             };
-            this.onFocusOutHandler = () => {
-                pin.blueprint.dispatchEditTextEvent(false);
+            this.onFocusOutHandler = (e) => {
+                e.preventDefault();
                 document.getSelection().removeAllRanges(); // Deselect text inside the input
+                pin.blueprint.dispatchEditTextEvent(false);
             };
-            input.addEventListener("onfocus", this.onFocusHandler);
-            input.addEventListener("onfocusout", this.onFocusOutHandler);
+            this.input.addEventListener("focus", this.onFocusHandler);
+            this.input.addEventListener("focusout", this.onFocusOutHandler);
         }
     }
 
@@ -2878,8 +2896,23 @@ class StringPinTemplate extends PinTemplate {
      */
     cleanup(pin) {
         super.cleanup(pin);
-        pin.blueprint.removeEventListener("onfocus", this.onFocusHandler);
-        pin.blueprint.removeEventListener("onfocusout", this.onFocusOutHandler);
+        if (this.input) {
+            this.input.removeEventListener("focus", this.onFocusHandler);
+            this.input.removeEventListener("focusout", this.onFocusOutHandler);
+        }
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    createInputObjects(pin) {
+        if (pin.isInput()) {
+            return [
+                ...super.createInputObjects(pin),
+                new MouseIgnore(pin.querySelector(".ueb-pin-input-content"), pin.blueprint),
+            ]
+        }
+        return super.createInputObjects(pin)
     }
 }
 
@@ -3318,6 +3351,7 @@ class Paste extends IInput {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
+        options.unlistenOnTextEdit = true;
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
