@@ -1319,7 +1319,7 @@ class Copy extends IInput {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
-        options.unlistenOnTextEdit = true;
+        options.unlistenOnTextEdit = true; // No nodes copy if inside a text field, just text (default behavior)
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;
@@ -1411,7 +1411,7 @@ class IKeyboardShortcut extends IInput {
         options.activateAnyKey ??= false;
         options.activationKeys ??= [];
         options.listenOnFocus ??= true;
-        options.unlistenOnTextEdit ??= true;
+        options.unlistenOnTextEdit ??= true; // No shortcuts when inside of a text field
         if (!(options.activationKeys instanceof Array)) {
             options.activationKeys = [options.activationKeys];
         }
@@ -2867,7 +2867,7 @@ class StringPinTemplate extends PinTemplate {
     renderInput(pin) {
         return html`
             <div class="ueb-pin-input">
-                <div class="ueb-pin-input-content" role="textbox" contenteditable="true" onfocusout="e => document.getSelection().removeAllRanges()"></div>
+                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
             </div>
         `
     }
@@ -3351,7 +3351,7 @@ class Paste extends IInput {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
-        options.unlistenOnTextEdit = true;
+        options.unlistenOnTextEdit = true; // No nodes paste if inside a text field, just text (default behavior)
         super(target, blueprint, options);
         this.serializer = new ObjectSerializer();
         let self = this;

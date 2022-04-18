@@ -23,7 +23,7 @@ export default class StringPinTemplate extends PinTemplate {
     renderInput(pin) {
         return html`
             <div class="ueb-pin-input">
-                <div class="ueb-pin-input-content" role="textbox" contenteditable="true" onfocusout="e => document.getSelection().removeAllRanges()"></div>
+                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
             </div>
         `
     }

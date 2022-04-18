@@ -11,7 +11,7 @@ export default class Paste extends IInput {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true
-        options.unlistenOnTextEdit = true
+        options.unlistenOnTextEdit = true // No nodes paste if inside a text field, just text (default behavior)
         super(target, blueprint, options)
         this.serializer = new ObjectSerializer()
         let self = this

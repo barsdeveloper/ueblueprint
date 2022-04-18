@@ -14,7 +14,7 @@ export default class IKeyboardShortcut extends IInput {
         options.activateAnyKey ??= false
         options.activationKeys ??= []
         options.listenOnFocus ??= true
-        options.unlistenOnTextEdit ??= true
+        options.unlistenOnTextEdit ??= true // No shortcuts when inside of a text field
         if (!(options.activationKeys instanceof Array)) {
             options.activationKeys = [options.activationKeys]
         }

@@ -10,7 +10,7 @@ export default class Copy extends IInput {
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true
-        options.unlistenOnTextEdit = true
+        options.unlistenOnTextEdit = true // No nodes copy if inside a text field, just text (default behavior)
         super(target, blueprint, options)
         this.serializer = new ObjectSerializer()
         let self = this
