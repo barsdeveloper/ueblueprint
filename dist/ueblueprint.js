@@ -1703,24 +1703,24 @@ class IMouseClickDrag extends IPointing {
     started = false
 
     constructor(target, blueprint, options = {}) {
+        options.clickButton ??= 0;
+        options.consumeEvent ??= true;
+        options.exitAnyButton ??= true;
+        options.looseTarget ??= false;
+        options.moveEverywhere ??= false;
         super(target, blueprint, options);
-        this.clickButton = options?.clickButton ?? 0;
-        this.exitAnyButton = options?.exitAnyButton ?? true;
-        this.moveEverywhere = options?.moveEverywhere ?? false;
-        this.looseTarget = options?.looseTarget ?? false;
-        this.consumeEvent = options?.consumeEvent ?? true;
         this.clickedPosition = [0, 0];
 
-        const movementListenedElement = this.moveEverywhere ? document.documentElement : this.movementSpace;
+        const movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
         let self = this;
 
         this.#mouseDownHandler = e => {
             this.blueprint.setFocused(true);
             switch (e.button) {
-                case self.clickButton:
+                case self.options.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                    if (self.looseTarget || e.target == e.currentTarget) {
-                        if (this.consumeEvent) {
+                    if (self.options.looseTarget || e.target == e.currentTarget) {
+                        if (this.options.consumeEvent) {
                             e.stopImmediatePropagation(); // Captured, don't call anyone else
                         }
                         // Attach the listeners
@@ -1731,7 +1731,7 @@ class IMouseClickDrag extends IPointing {
                     }
                     break
                 default:
-                    if (!self.exitAnyButton) {
+                    if (!self.options.exitAnyButton) {
                         self.#mouseUpHandler(e);
                     }
                     break
@@ -1739,7 +1739,7 @@ class IMouseClickDrag extends IPointing {
         };
 
         this.#mouseStartedMovingHandler = e => {
-            if (this.consumeEvent) {
+            if (this.options.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             // Delegate from now on to self.#mouseMoveHandler
@@ -1754,7 +1754,7 @@ class IMouseClickDrag extends IPointing {
         };
 
         this.#mouseMoveHandler = e => {
-            if (this.consumeEvent) {
+            if (this.options.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             const location = self.locationFromEvent(e);
@@ -1766,8 +1766,8 @@ class IMouseClickDrag extends IPointing {
         };
 
         this.#mouseUpHandler = e => {
-            if (!self.exitAnyButton || e.button == self.clickButton) {
-                if (this.consumeEvent) {
+            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
+                if (this.options.consumeEvent) {
                     e.stopImmediatePropagation(); // Captured, don't call anyone else
                 }
                 // Remove the handlers of "mousemove" and "mouseup"
@@ -1792,7 +1792,7 @@ class IMouseClickDrag extends IPointing {
 
     listenEvents() {
         this.target.addEventListener("mousedown", this.#mouseDownHandler);
-        if (this.clickButton == 2) {
+        if (this.options.clickButton == 2) {
             this.target.addEventListener("contextmenu", e => e.preventDefault());
         }
     }
