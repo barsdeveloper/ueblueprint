@@ -2738,23 +2738,21 @@ class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     render(pin) {
+        const icon = html`
+            <div class="ueb-pin-icon">
+                ${this.renderIcon(pin)}
+            </div>
+        `;
+        const content = html`
+            <div class="ueb-pin-content">
+                <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                ${this.renderInput(pin)}
+            </div>
+        `;
         if (pin.isInput()) {
-            return html`
-                <div class="ueb-pin-icon">
-                    ${this.renderIcon(pin)}
-                </div>
-                <div class="ueb-pin-content">
-                    <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
-                    ${this.renderInput(pin)}
-                </div>
-            `
+            return icon + content
         } else {
-            return html`
-                <div class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</div>
-                <div class="ueb-pin-icon">
-                    ${this.renderIcon(pin)}
-                </div>
-            `
+            return content + icon
         }
     }
 
@@ -2865,11 +2863,14 @@ class StringPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     renderInput(pin) {
-        return html`
-            <div class="ueb-pin-input">
-                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
-            </div>
-        `
+        if (pin.isInput()) {
+            return html`
+                <div class="ueb-pin-input">
+                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
+                </div>
+            `
+        }
+        return ""
     }
 
     /**
@@ -3922,14 +3923,16 @@ class BlueprintTemplate extends ITemplate {
     viewport(element) {
         return html`
             <div class="ueb-viewport-body">
-                <div class="ueb-grid"
-                    style="
-                        --ueb-additional-x:${sanitizeText(element.additional[0])};
-                        --ueb-additional-y:${sanitizeText(element.additional[1])};
-                        --ueb-translate-x:${sanitizeText(element.translateValue[0])};
-                        --ueb-translate-y:${sanitizeText(element.translateValue[1])};
-                    ">
-                    <div class="ueb-grid-content" data-nodes></div>
+                <div class="ueb-grid" style="
+                    --ueb-additional-x:${sanitizeText(element.additional[0])};
+                    --ueb-additional-y:${sanitizeText(element.additional[1])};
+                    --ueb-translate-x:${sanitizeText(element.translateValue[0])};
+                    --ueb-translate-y:${sanitizeText(element.translateValue[1])};
+                ">
+                    <div class="ueb-grid-content">
+                        <div data-links></div>
+                        <div data-nodes></div>
+                    </div>
                 </div>
             </div>
         `
@@ -3969,10 +3972,13 @@ class BlueprintTemplate extends ITemplate {
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header');
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay');
         blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body');
-        blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid");
-        blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
         blueprint.selectorElement = new SelectorElement();
-        blueprint.nodesContainerElement.append(blueprint.selectorElement, ...blueprint.getNodes());
+        blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid");
+        blueprint.querySelector(".ueb-grid-content").append(blueprint.selectorElement);
+        blueprint.linksContainerElement = blueprint.querySelector("[data-links]");
+        blueprint.linksContainerElement.append(...blueprint.getLinks());
+        blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
+        blueprint.nodesContainerElement.append(...blueprint.getNodes());
         this.applyEndDragScrolling(blueprint);
     }
 
@@ -4080,6 +4086,8 @@ class Blueprint extends IElement {
     overlayElement = null
     /** @type {SelectorElement} */
     selectorElement = null
+    /** @type {HTMLElement} */
+    linksContainerElement = null
     /** @type {HTMLElement} */
     nodesContainerElement = null
     /** @type {Number} */
@@ -4415,7 +4423,7 @@ class Blueprint extends IElement {
                 this.nodesContainerElement?.appendChild(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
-                this.nodesContainerElement?.appendChild(element);
+                this.linksContainerElement?.appendChild(element);
             }
         }
         graphElements.filter(element => element instanceof NodeElement).forEach(

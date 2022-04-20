@@ -21,11 +21,14 @@ export default class StringPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     renderInput(pin) {
-        return html`
-            <div class="ueb-pin-input">
-                <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
-            </div>
-        `
+        if (pin.isInput()) {
+            return html`
+                <div class="ueb-pin-input">
+                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
+                </div>
+            `
+        }
+        return ""
     }
 
     /**

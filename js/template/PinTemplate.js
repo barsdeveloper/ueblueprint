@@ -35,23 +35,21 @@ export default class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     render(pin) {
+        const icon = html`
+            <div class="ueb-pin-icon">
+                ${this.renderIcon(pin)}
+            </div>
+        `
+        const content = html`
+            <div class="ueb-pin-content">
+                <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                ${this.renderInput(pin)}
+            </div>
+        `
         if (pin.isInput()) {
-            return html`
-                <div class="ueb-pin-icon">
-                    ${this.renderIcon(pin)}
-                </div>
-                <div class="ueb-pin-content">
-                    <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
-                    ${this.renderInput(pin)}
-                </div>
-            `
+            return icon + content
         } else {
-            return html`
-                <div class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</div>
-                <div class="ueb-pin-icon">
-                    ${this.renderIcon(pin)}
-                </div>
-            `
+            return content + icon
         }
     }
 

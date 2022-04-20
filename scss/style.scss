@@ -209,6 +209,11 @@ ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
     transform: translateX(calc(var(--ueb-translate-x) * 1px)) translateY(calc(var(--ueb-translate-y) * 1px));
 }
 
+.ueb-grid-content>div {
+    width: 0;
+    height: 0;
+}
+
 .ueb-positioned {
     --ueb-computed-min-x: min(var(--ueb-from-x), var(--ueb-to-x));
     --ueb-computed-max-x: max(var(--ueb-from-x), var(--ueb-to-x));

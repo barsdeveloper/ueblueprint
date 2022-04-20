@@ -55,6 +55,8 @@ export default class Blueprint extends IElement {
     /** @type {SelectorElement} */
     selectorElement = null
     /** @type {HTMLElement} */
+    linksContainerElement = null
+    /** @type {HTMLElement} */
     nodesContainerElement = null
     /** @type {Number} */
     zoom = 0
@@ -391,7 +393,7 @@ export default class Blueprint extends IElement {
                 this.nodesContainerElement?.appendChild(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
-                this.nodesContainerElement?.appendChild(element)
+                this.linksContainerElement?.appendChild(element)
             }
         }
         graphElements.filter(element => element instanceof NodeElement).forEach(
