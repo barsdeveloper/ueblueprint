@@ -3,6 +3,7 @@
 import html from "./html"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
+import Utility from "../Utility"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -15,6 +16,15 @@ export default class StringPinTemplate extends PinTemplate {
 
     hasInput() {
         return true
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    getInput(pin) {
+        return Utility.sanitizeInputString(
+            /** @type {HTMLElement} */(pin.querySelector(".ueb-pin-input-content")).innerText
+        )
     }
 
     /**
@@ -43,6 +53,7 @@ export default class StringPinTemplate extends PinTemplate {
             this.onFocusOutHandler = (e) => {
                 e.preventDefault()
                 document.getSelection().removeAllRanges() // Deselect text inside the input
+                pin.entity.DefaultValue = this.getInput(pin)
                 pin.blueprint.dispatchEditTextEvent(false)
             }
             this.input.addEventListener("focus", this.onFocusHandler)

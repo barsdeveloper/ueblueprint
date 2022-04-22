@@ -390,6 +390,16 @@ class Utility {
         }
         return [...(new Set(result.concat(...a, ...b)))]
     }
+
+    /**
+     * @param {String} value
+     */
+    static sanitizeInputString(value) {
+        return value
+            .replace(/\n$/, "") // Remove trailing newline
+            .replaceAll("\u00A0", " ") // Replace special space symbol
+            .replaceAll("\n", "\\r\\n") // Replace newline with \r\n
+    }
 }
 
 // @ts-check
@@ -2862,6 +2872,15 @@ class StringPinTemplate extends PinTemplate {
     /**
      * @param {PinElement} pin
      */
+    getInput(pin) {
+        return Utility.sanitizeInputString(
+            /** @type {HTMLElement} */(pin.querySelector(".ueb-pin-input-content")).innerText
+        )
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
     renderInput(pin) {
         if (pin.isInput()) {
             return html`
@@ -2885,6 +2904,7 @@ class StringPinTemplate extends PinTemplate {
             this.onFocusOutHandler = (e) => {
                 e.preventDefault();
                 document.getSelection().removeAllRanges(); // Deselect text inside the input
+                pin.entity.DefaultValue = this.getInput(pin);
                 pin.blueprint.dispatchEditTextEvent(false);
             };
             this.input.addEventListener("focus", this.onFocusHandler);

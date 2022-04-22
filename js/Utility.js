@@ -139,4 +139,14 @@ export default class Utility {
         }
         return [...(new Set(result.concat(...a, ...b)))]
     }
+
+    /**
+     * @param {String} value
+     */
+    static sanitizeInputString(value) {
+        return value
+            .replace(/\n$/, "") // Remove trailing newline
+            .replaceAll("\u00A0", " ") // Replace special space symbol
+            .replaceAll("\n", "\\r\\n") // Replace newline with \r\n
+    }
 }
