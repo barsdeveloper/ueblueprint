@@ -21,12 +21,12 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
             <div class="ueb-node-border">
                 <div class="ueb-node-content">
                     <div class="ueb-node-header">
-                        <span class="ueb-node-name">
+                        <div class="ueb-node-name">
                             <span class="ueb-node-name-symbol"></span>
                             <span class="ueb-node-name-text">
                                 ${sanitizeText(node.getNodeName())}
                             </span>
-                        </span>
+                        </div>
                     </div>
                     <div class="ueb-node-body">
                         <div class="ueb-node-inputs"></div>

@@ -41,18 +41,18 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
 
 .ueb-node-header {
     padding: 0.3em 0.7em;
-    box-shadow: inset 5px 1px 5px -3px #92c381, inset 0 1px 2px 0 #313631, inset 0 2px 0 0 #92c381;
+    box-shadow: inset 5px 1px 5px -3px #83b37b,
+    inset 0 1px 0 0 #111311,
+    inset 0 2px 0 0 #83b37b;
     border-radius: var(--ueb-node-radius) var(--ueb-node-radius) 0 0;
     background: linear-gradient(170deg, #5f815a 0%, #5f815a 50%, transparent 100%);
     color: #c0c0c0;
-    font-weight: 600;
+    font-weight: 900;
     white-space: nowrap;
 }
 
 .ueb-node-name {
-    display: inline-block;
-    min-width: 80%;
-    background: radial-gradient(ellipse 95% 60% at 20% 50%, rgba(0, 0, 0, 0.5) 0%, transparent 90%);
+    background: radial-gradient(ellipse 100% 100% at 30% 50%, rgba(0, 0, 0, 0.45) 20%, transparent 50%);
     margin: -0.1em -1.6em;
     padding: 0.1em 1.6em;
 }
@@ -66,11 +66,12 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
 }
 
 .ueb-node-inputs {
-    margin-right: auto;
+    margin-right: 20px;
     padding-left: 8px;
 }
 
 .ueb-node-outputs {
+    margin-left: auto;
     padding-right: 8px;
 }
 

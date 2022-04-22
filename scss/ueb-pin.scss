@@ -30,10 +30,10 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-pin:hover
 .ueb-pin-icon-value {
     display: inline-block;
     position: relative;
-    width: 1em;
-    height: 1em;
+    width: calc(1em - 1px);
+    height: calc(1em - 1px);
     vertical-align: baseline;
-    margin: 0 0.4em -1px 0.1em;
+    margin: 0 0.5em -1px 0.1em;
 }
 
 .ueb-pin-icon-value::before {
@@ -80,7 +80,7 @@ ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
     margin-left: 3px;
     border: 1px solid #a0a0a0;
     border-radius: 3px;
-    padding: 1px 3px 1px 3px;
+    padding: 0 3px 0 3px;
     color: #c0c0c0;
 
     &:hover,
