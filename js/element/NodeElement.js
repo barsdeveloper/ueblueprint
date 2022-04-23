@@ -41,6 +41,10 @@ export default class NodeElement extends ISelectableDraggableElement {
         return this.entity.getFullName()
     }
 
+    getNodeDisplayName() {
+        return this.entity.getDisplayName()
+    }
+
     sanitizeLinks() {
         this.getPinElements().forEach(pin => pin.sanitizeLinks())
     }

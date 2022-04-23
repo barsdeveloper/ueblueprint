@@ -13,6 +13,7 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 
 let P = Parsimmon
@@ -22,6 +23,9 @@ export default class Grammar {
     /*   ---   Factory   ---   */
 
     static getGrammarForType(r, attributeType, defaultGrammar) {
+        if (attributeType instanceof TypeInitialization) {
+            attributeType = attributeType.type
+        }
         switch (Utility.getType(attributeType)) {
             case Boolean:
                 return r.Boolean

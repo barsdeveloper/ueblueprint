@@ -83,7 +83,12 @@ export default class Utility {
     static equals(a, b) {
         a = TypeInitialization.sanitize(a)
         b = TypeInitialization.sanitize(b)
-        return a === b
+        if (a === b) {
+            return true
+        }
+        if (a instanceof Array && b instanceof Array) {
+            return a.length == b.length && !a.find((value, i) => !Utility.equals(value, b[i]))
+        }
     }
 
     /**
@@ -97,8 +102,9 @@ export default class Utility {
         let constructor = value?.constructor
         switch (constructor) {
             case TypeInitialization:
-                return value.type
+                return Utility.getType(value.type)
             case Function:
+                // value is already a constructor
                 return value
             default:
                 return constructor
@@ -147,6 +153,13 @@ export default class Utility {
         return value
             .replace(/\n$/, "") // Remove trailing newline
             .replaceAll("\u00A0", " ") // Replace special space symbol
-            .replaceAll("\n", "\\r\\n") // Replace newline with \r\n
+            .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
+    }
+
+    /**
+     * @param {String} value
+     */
+    static formatStringName(value) {
+        return value.replaceAll(/\s+/g, " ").replaceAll(/(?<=[a-z])(?=[A-Z])|_/g, " ").trim()
     }
 }

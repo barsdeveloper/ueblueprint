@@ -23,11 +23,7 @@ export default class IEntity {
                     console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}`)
                 }
                 let defaultValue = properties[property]
-                const defaultType = (defaultValue instanceof TypeInitialization)
-                    ? defaultValue.type
-                    : (defaultValue instanceof Function)
-                        ? defaultValue
-                        : defaultValue?.constructor
+                const defaultType = Utility.getType(defaultValue)
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (defaultType === Object) {
                     target[property] = {}

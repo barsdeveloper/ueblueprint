@@ -5,6 +5,32 @@
  */
 export default class TypeInitialization {
 
+    /** @type {T} */
+    #value
+    get value() {
+        return this.#value
+    }
+    set value(v) {
+        this.#value = v
+    }
+
+    #showDefault = true
+    get showDefault() {
+        return this.#showDefault
+    }
+    set showDefault(v) {
+        this.#showDefault = v
+    }
+
+    /** @type {Constructor|Array<Constructor>} */
+    #type
+    get type() {
+        return this.#type
+    }
+    set type(v) {
+        this.#type = v
+    }
+
     static sanitize(value, targetType) {
         if (targetType === undefined) {
             targetType = value?.constructor
@@ -23,16 +49,21 @@ export default class TypeInitialization {
     }
 
     /**
-     * @param {new () => T} type
+     * @typedef {new () => T} Constructor
+     * @param {Constructor|Array<Constructor>} type
      * @param {Boolean} showDefault
      * @param {any} value
      */
     constructor(type, showDefault = true, value = undefined) {
         if (value === undefined) {
-            value = TypeInitialization.sanitize(new type())
+            if (type instanceof Array) {
+                value = []
+            } else {
+                value = TypeInitialization.sanitize(new type())
+            }
         }
-        this.value = value
-        this.showDefault = showDefault
-        this.type = type
+        this.#value = value
+        this.#showDefault = showDefault
+        this.#type = type
     }
 }

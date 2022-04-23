@@ -1,5 +1,6 @@
 // @ts-check
 
+import Utility from "../Utility"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
 import IdentifierEntity from "./IdentifierEntity"
@@ -66,7 +67,13 @@ export default class ObjectEntity extends IEntity {
     }
 
     getDisplayName() {
-        return this.getNameAndCounter()[0]
+        let name = this.FunctionReference?.MemberName
+        if (name) {
+            name = Utility.formatStringName(name)
+            return name
+        }
+        name = Utility.formatStringName(this.getNameAndCounter()[0])
+        return name
     }
 
     getCounter() {
