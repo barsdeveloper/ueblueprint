@@ -169,6 +169,10 @@ export default class Utility {
      * @param {String} value
      */
     static formatStringName(value) {
-        return value.replaceAll(/\s+/g, " ").replaceAll(/(?<=[a-z])(?=[A-Z])|_/g, " ").trim()
+        return value
+            .trim()
+            .replaceAll(/\s+/g, " ") // Multiple spaces is just a single normal space
+            .replace(/^b/, "") // Remove leading b (for boolean values)
+            .replaceAll(/(?<=[a-z])(?=[A-Z])|_/g, " ") // Insert a space between
     }
 }

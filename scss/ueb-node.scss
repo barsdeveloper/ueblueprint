@@ -79,11 +79,18 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     text-align: center;
 }
 
-.ueb-node-expansion:hover {
+.ueb-node-expansion-icon {
+    vertical-align: middle;
+}
+
+ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] .ueb-node-expansion:hover {
     background-color: #656765;
     cursor: pointer;
 }
 
 ueb-node[data-advanced-display] .ueb-node-expansion {
     display: block;
+}
+ueb-node[data-advanced-display="Shown"] .ueb-node-expansion-icon {
+    transform: scaleY(-1)
 }

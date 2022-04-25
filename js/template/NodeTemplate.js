@@ -42,7 +42,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                                 height="16"
                                 fill="currentColor"
                                 class="ueb-node-expansion-icon"
-                                viewBox="4 2 24 24"
+                                viewBox="4 4 24 24"
                             >
                                 <path
                                     fill-rule="evenodd"
