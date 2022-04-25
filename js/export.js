@@ -2,10 +2,9 @@
 
 import Blueprint from "./Blueprint"
 import Configuration from "./Configuration"
+import initializeSerializerFactory from "./serialization/initializeSerializerFactory"
 import LinkElement from "./element/LinkElement"
 import NodeElement from "./element/NodeElement"
-
-import initializeSerializerFactory from "./serialization/initializeSerializerFactory"
 
 initializeSerializerFactory()
 

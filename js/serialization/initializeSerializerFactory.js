@@ -6,6 +6,7 @@ import GeneralSerializer from "./GeneralSerializer"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
 import IntegerEntity from "../entity/IntegerEntity"
+import InvariantTextEntity from "../entity/InvariantTextEntity"
 import KeyBindingEntity from "../entity/KeyBindingEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
@@ -14,9 +15,9 @@ import ObjectSerializer from "./ObjectSerializer"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import PinSerializer from "./PinSerializer"
 import SerializerFactory from "./SerializerFactory"
 import ToStringSerializer from "./ToStringSerializer"
-import InvariantTextEntity from "../entity/InvariantTextEntity"
 
 export default function initializeSerializerFactory() {
 
@@ -26,8 +27,8 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
-        PinEntity,
-        new GeneralSerializer(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
+        PinEntity, 
+        new PinSerializer()
     )
 
     SerializerFactory.registerSerializer(

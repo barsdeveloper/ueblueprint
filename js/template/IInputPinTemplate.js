@@ -65,7 +65,7 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInput(pin) {
-        return Utility.sanitizeString(
+        return Utility.encodeInputString(
             /** @type {HTMLElement} */(pin.querySelector(".ueb-pin-input-content")).innerText
         )
     }
@@ -85,7 +85,7 @@ export default class IInputPinTemplate extends PinTemplate {
             return html`
                 <div class="ueb-pin-input">
                     <div class="ueb-pin-input-content" role="textbox" contenteditable="true">
-                        ${Utility.renderInputString(sanitizeText(pin.entity.getDefaultValue()))}
+                        ${Utility.decodeInputString(sanitizeText(pin.entity.getDefaultValue()))}
                     </div>
                 </div>
             `

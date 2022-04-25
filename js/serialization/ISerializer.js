@@ -20,7 +20,7 @@ export default class ISerializer {
         this.attributeKeyPrinter = attributeKeyPrinter ?? (k => k.join("."))
     }
 
-    writeValue(value) {
+    writeValue(value, fullKey = undefined) {
         if (value === null) {
             return "()"
         }
@@ -28,13 +28,13 @@ export default class ISerializer {
         // This is an exact match (and not instanceof) to hit also primitive types (by accessing value.constructor they are converted to objects automatically)
         switch (value?.constructor) {
             case Function:
-                return this.writeValue(value())
+                return this.writeValue(value(), fullKey)
             case Boolean:
                 return Utility.FirstCapital(value.toString())
             case Number:
                 return value.toString()
             case String:
-                return `"${value}"`
+                return `"${Utility.encodeString(value)}"`
         }
         if (value instanceof Array) {
             return `(${value.map(v => serialize(v) + ",").join("")})`
@@ -65,7 +65,7 @@ export default class ISerializer {
                     + this.prefix
                     + this.attributeKeyPrinter(fullKey)
                     + this.attributeValueConjunctionSign
-                    + this.writeValue(value)
+                    + this.writeValue(value, fullKey)
             }
         }
         if (this.trailingSeparator && result.length && fullKey.length === 1) {

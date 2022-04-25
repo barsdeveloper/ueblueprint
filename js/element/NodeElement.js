@@ -23,7 +23,11 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
     }
 
+    /**
+     * @param {String} str
+     */
     static fromSerializedObject(str) {
+        str = str.trim()
         let entity = SerializerFactory.getSerializer(ObjectEntity).read(str)
         return new NodeElement(entity)
     }

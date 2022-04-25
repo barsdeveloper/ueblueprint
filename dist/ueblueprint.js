@@ -431,20 +431,39 @@ class Utility {
     /**
      * @param {String} value
      */
-    static sanitizeString(value, input = false) {
+    static encodeInputString(value) {
         return value
             .replace(/\n$/, "") // Remove trailing newline
             .replaceAll("\u00A0", " ") // Replace special space symbol
+            .replaceAll("\r\n", String.raw`\r\n`) // Replace newline with \r\n
             .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
     }
 
     /**
      * @param {String} value
      */
-    static renderInputString(value) {
+    static decodeInputString(value) {
         return value
             .replaceAll(" ", "\u00A0") // Replace special space symbol
             .replaceAll(String.raw`\r\n`, "<br />\n") // Replace newline with \r\n
+    }
+
+    /**
+     * @param {String} value
+     */
+    static encodeString(value, input = false) {
+        return value
+            .replaceAll("\u00A0", " ") // Replace special space symbol
+            .replaceAll("\n", String.raw`\n`) // Replace newline with \n
+    }
+
+    /**
+     * @param {String} value
+     */
+    static decodeString(value, input = false) {
+        return value
+            .replaceAll(" ", "\u00A0") // Replace special space symbol
+            .replaceAll(String.raw`\n`, "\n") // Replace newline with \n
     }
 
     /**
@@ -1263,7 +1282,7 @@ class ISerializer {
         this.attributeKeyPrinter = attributeKeyPrinter ?? (k => k.join("."));
     }
 
-    writeValue(value) {
+    writeValue(value, fullKey = undefined) {
         if (value === null) {
             return "()"
         }
@@ -1271,13 +1290,13 @@ class ISerializer {
         // This is an exact match (and not instanceof) to hit also primitive types (by accessing value.constructor they are converted to objects automatically)
         switch (value?.constructor) {
             case Function:
-                return this.writeValue(value())
+                return this.writeValue(value(), fullKey)
             case Boolean:
                 return Utility.FirstCapital(value.toString())
             case Number:
                 return value.toString()
             case String:
-                return `"${value}"`
+                return `"${Utility.encodeString(value)}"`
         }
         if (value instanceof Array) {
             return `(${value.map(v => serialize(v) + ",").join("")})`
@@ -1308,7 +1327,7 @@ class ISerializer {
                     + this.prefix
                     + this.attributeKeyPrinter(fullKey)
                     + this.attributeValueConjunctionSign
-                    + this.writeValue(value);
+                    + this.writeValue(value, fullKey);
             }
         }
         if (this.trailingSeparator && result.length && fullKey.length === 1) {
@@ -1371,7 +1390,7 @@ class ObjectSerializer extends ISerializer {
      * @param {ObjectEntity} object
      */
     write(object) {
-        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(object.Name)}
+        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(object.Name, "Name")}
 ${this.subWrite([], object)
             + object
                 .CustomProperties.map(pin =>
@@ -3007,7 +3026,7 @@ class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInput(pin) {
-        return Utility.sanitizeString(
+        return Utility.encodeInputString(
             /** @type {HTMLElement} */(pin.querySelector(".ueb-pin-input-content")).innerText
         )
     }
@@ -3027,7 +3046,7 @@ class IInputPinTemplate extends PinTemplate {
             return html`
                 <div class="ueb-pin-input">
                     <div class="ueb-pin-input-content" role="textbox" contenteditable="true">
-                        ${Utility.renderInputString(sanitizeText(pin.entity.getDefaultValue()))}
+                        ${Utility.decodeInputString(sanitizeText(pin.entity.getDefaultValue()))}
                     </div>
                 </div>
             `
@@ -3464,7 +3483,11 @@ class NodeElement extends ISelectableDraggableElement {
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
     }
 
+    /**
+     * @param {String} str
+     */
     static fromSerializedObject(str) {
+        str = str.trim();
         let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
         return new NodeElement(entity)
     }
@@ -4735,6 +4758,23 @@ class CustomSerializer extends GeneralSerializer {
 
 // @ts-check
 
+class PinSerializer extends GeneralSerializer {
+
+    constructor() {
+        super(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true);
+    }
+
+    writeValue(value, fullKey) {
+        if (value?.constructor === String && fullKey == "DefaultValue") {
+            // @ts-expect-error
+            return `"${Utility.encodeInputString(value)}"`
+        }
+        return super.writeValue(value, fullKey)
+    }
+}
+
+// @ts-check
+
 class ToStringSerializer extends GeneralSerializer {
 
     constructor(entityType) {
@@ -4757,8 +4797,8 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
-        PinEntity,
-        new GeneralSerializer(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
+        PinEntity, 
+        new PinSerializer()
     );
 
     SerializerFactory.registerSerializer(

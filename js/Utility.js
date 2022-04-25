@@ -149,20 +149,39 @@ export default class Utility {
     /**
      * @param {String} value
      */
-    static sanitizeString(value, input = false) {
+    static encodeInputString(value) {
         return value
             .replace(/\n$/, "") // Remove trailing newline
             .replaceAll("\u00A0", " ") // Replace special space symbol
+            .replaceAll("\r\n", String.raw`\r\n`) // Replace newline with \r\n
             .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
     }
 
     /**
      * @param {String} value
      */
-    static renderInputString(value) {
+    static decodeInputString(value) {
         return value
             .replaceAll(" ", "\u00A0") // Replace special space symbol
             .replaceAll(String.raw`\r\n`, "<br />\n") // Replace newline with \r\n
+    }
+
+    /**
+     * @param {String} value
+     */
+    static encodeString(value, input = false) {
+        return value
+            .replaceAll("\u00A0", " ") // Replace special space symbol
+            .replaceAll("\n", String.raw`\n`) // Replace newline with \n
+    }
+
+    /**
+     * @param {String} value
+     */
+    static decodeString(value, input = false) {
+        return value
+            .replaceAll(" ", "\u00A0") // Replace special space symbol
+            .replaceAll(String.raw`\n`, "\n") // Replace newline with \n
     }
 
     /**
