@@ -1,12 +1,13 @@
 // @ts-check
 
 import Configuration from "../Configuration"
+import IdentifierEntity from "../entity/IdentifierEntity"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"
 import NodeTemplate from "../template/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"
 import PinEntity from "../entity/PinEntity"
-import SerializerFactory from "../serialization/SerializerFactory"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import SerializerFactory from "../serialization/SerializerFactory"
 
 /**
  * @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>}
@@ -94,6 +95,15 @@ export default class NodeElement extends ISelectableDraggableElement {
             cancelable: true,
         })
         this.dispatchEvent(deleteEvent)
+    }
+
+    setShowAdvancedPinDisplay(value) {
+        this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden")
+        this.template.applyAdvancedPinDisplay(this)
+    }
+
+    toggleShowAdvancedPinDisplay() {
+        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay.value != "Shown")
     }
 }
 

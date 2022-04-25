@@ -14,6 +14,8 @@ import Utility from "../Utility"
 
 export default class PinTemplate extends ITemplate {
 
+    hasInput = false
+
     /**
      * @param {PinElement} pin
      * @returns {IInput[]}
@@ -25,10 +27,6 @@ export default class PinTemplate extends ITemplate {
                 looseTarget: true
             })
         ]
-    }
-
-    hasInput() {
-        return false
     }
 
     /**

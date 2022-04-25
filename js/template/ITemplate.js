@@ -11,7 +11,11 @@
 export default class ITemplate {
 
     /** @type {IInput[]} */
-    inputObjects = []
+    #inputObjects = []
+
+    get inputObjects() {
+        return this.#inputObjects
+    }
 
     /**
      * @param {T} entity
@@ -32,14 +36,14 @@ export default class ITemplate {
      * @param {T} element
      */
     inputSetup(element) {
-        this.inputObjects = this.createInputObjects(element)
+        this.#inputObjects = this.createInputObjects(element)
     }
 
     /**
      * @param {T} element
      */
     cleanup(element) {
-        this.inputObjects.forEach(v => v.unlistenDOMElement())
+        this.#inputObjects.forEach(v => v.unlistenDOMElement())
     }
 
     /**

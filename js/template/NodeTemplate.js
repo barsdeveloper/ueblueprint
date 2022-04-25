@@ -11,6 +11,8 @@ import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
 
 export default class NodeTemplate extends SelectableDraggableTemplate {
 
+    toggleAdvancedDisplayHandler
+
     /**
      * Computes the html content of the target element.
      * @param {NodeElement} node Graph node element
@@ -32,17 +34,36 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                </div>
-                <div class="ueb-node-expand">
-                    <span class="ueb-node-expand-icon"></span>
+                    ${node.entity.AdvancedPinDisplay ? html`
+                        <div class="ueb-node-expansion">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                class="ueb-node-expansion-icon"
+                                viewBox="4 2 24 24"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="
+                                        M 16.003 18.626
+                                        l 7.081 -7.081
+                                        L 25 13.46
+                                        l -8.997 8.998 -9.003 -9 1.917 -1.916
+                                        z
+                                    "
+                                />
+                            </svg>
+                        </div>
+                    ` : ""}
                 </div>
             </div>
         `
     }
 
     /**
-     * Applies the style to the element.
-     * @param {NodeElement} node Element of the graph
+     * @param {NodeElement} node
      */
     setup(node) {
         super.setup(node)
@@ -51,9 +72,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected")
         }
-        if (node.entity.AdvancedPinDisplay) {
-            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString()
-        }
+        this.applyAdvancedPinDisplay(node)
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]))
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]))
         /** @type {HTMLElement} */
@@ -63,11 +82,24 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         let pins = node.getPinEntities()
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)))
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)))
+        let self = this
+        this.toggleAdvancedDisplayHandler = _ => {
+            node.toggleShowAdvancedPinDisplay()
+        }
+        node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler)
     }
 
     /**
-     * Applies the style to the element.
-     * @param {NodeElement} node Element of the graph
+     * @param {NodeElement} node
+     */
+    applyAdvancedPinDisplay(node) {
+        if (node.entity.AdvancedPinDisplay) {
+            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString()
+        }
+    }
+
+    /**
+     * @param {NodeElement} node
      */
     applyRename(node) {
         const nodeName = node.entity.getFullName()

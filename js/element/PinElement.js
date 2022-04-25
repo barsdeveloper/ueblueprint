@@ -4,7 +4,9 @@ import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
 import LinkElement from "./LinkElement"
 import PinTemplate from "../template/PinTemplate"
+import RealPinTemplate from "../template/RealPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
+import Utility from "../Utility"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -20,6 +22,7 @@ export default class PinElement extends IElement {
 
     static #typeTemplateMap = {
         "exec": ExecPinTemplate,
+        "real": RealPinTemplate,
         "string": StringPinTemplate,
     }
 
@@ -33,6 +36,9 @@ export default class PinElement extends IElement {
 
     connections = 0
 
+    /**
+     * @param {PinEntity} entity
+     */
     constructor(entity) {
         super(
             entity,
@@ -66,7 +72,7 @@ export default class PinElement extends IElement {
      * @returns {String}
      */
     getPinDisplayName() {
-        return this.entity.PinName
+        return Utility.formatStringName(this.entity.PinName)
     }
 
     isInput() {

@@ -75,6 +75,10 @@ export default class PinEntity extends IEntity {
         /** @type {Boolean} */ this.bOrphanedPin
     }
 
+    getDefaultValue() {
+        return this.DefaultValue ?? ""
+    }
+
     isInput() {
         return !this.bHidden && this.Direction != "EGPD_Output"
     }

@@ -60,7 +60,6 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
 .ueb-node-body {
     display: flex;
     padding: 1px 0;
-    color: white;
     font-weight: 100;
     white-space: nowrap;
 }
@@ -75,10 +74,16 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     padding-right: 8px;
 }
 
-.ueb-node-expand {
+.ueb-node-expansion {
     display: none;
+    text-align: center;
 }
 
-ueb-node[data-advanced-display] .ueb-node-expand {
+.ueb-node-expansion:hover {
+    background-color: #656765;
+    cursor: pointer;
+}
+
+ueb-node[data-advanced-display] .ueb-node-expansion {
     display: block;
 }

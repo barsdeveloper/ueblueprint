@@ -149,11 +149,20 @@ export default class Utility {
     /**
      * @param {String} value
      */
-    static sanitizeInputString(value) {
+    static sanitizeString(value, input = false) {
         return value
             .replace(/\n$/, "") // Remove trailing newline
             .replaceAll("\u00A0", " ") // Replace special space symbol
             .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
+    }
+
+    /**
+     * @param {String} value
+     */
+    static renderInputString(value) {
+        return value
+            .replaceAll(" ", "\u00A0") // Replace special space symbol
+            .replaceAll(String.raw`\r\n`, "<br />\n") // Replace newline with \r\n
     }
 
     /**

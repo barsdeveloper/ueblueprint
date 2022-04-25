@@ -431,11 +431,20 @@ class Utility {
     /**
      * @param {String} value
      */
-    static sanitizeInputString(value) {
+    static sanitizeString(value, input = false) {
         return value
             .replace(/\n$/, "") // Remove trailing newline
             .replaceAll("\u00A0", " ") // Replace special space symbol
             .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
+    }
+
+    /**
+     * @param {String} value
+     */
+    static renderInputString(value) {
+        return value
+            .replaceAll(" ", "\u00A0") // Replace special space symbol
+            .replaceAll(String.raw`\r\n`, "<br />\n") // Replace newline with \r\n
     }
 
     /**
@@ -793,6 +802,10 @@ class PinEntity extends IEntity {
         /** @type {Boolean} */ this.bDefaultValueIsIgnored;
         /** @type {Boolean} */ this.bAdvancedView;
         /** @type {Boolean} */ this.bOrphanedPin;
+    }
+
+    getDefaultValue() {
+        return this.DefaultValue ?? ""
     }
 
     isInput() {
@@ -1419,7 +1432,11 @@ const html = String.raw;
 class ITemplate {
 
     /** @type {IInput[]} */
-    inputObjects = []
+    #inputObjects = []
+
+    get inputObjects() {
+        return this.#inputObjects
+    }
 
     /**
      * @param {T} entity
@@ -1440,14 +1457,14 @@ class ITemplate {
      * @param {T} element
      */
     inputSetup(element) {
-        this.inputObjects = this.createInputObjects(element);
+        this.#inputObjects = this.createInputObjects(element);
     }
 
     /**
      * @param {T} element
      */
     cleanup(element) {
-        this.inputObjects.forEach(v => v.unlistenDOMElement());
+        this.#inputObjects.forEach(v => v.unlistenDOMElement());
     }
 
     /**
@@ -2776,6 +2793,8 @@ class MouseCreateLink extends IMouseClickDrag {
 
 class PinTemplate extends ITemplate {
 
+    hasInput = false
+
     /**
      * @param {PinElement} pin
      * @returns {IInput[]}
@@ -2787,10 +2806,6 @@ class PinTemplate extends ITemplate {
                 looseTarget: true
             })
         ]
-    }
-
-    hasInput() {
-        return false
     }
 
     /**
@@ -2882,7 +2897,31 @@ class ExecPinTemplate extends PinTemplate {
     renderIcon(pin) {
         return html`
             <svg class="ueb-pin-icon-exec" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7.08a2 2 0 0 0 1.519-.698l4.843-5.651a1 1 0 0 0 0-1.302L10.6 1.7A2 2 0 0 0 9.08 1H2zm7.08 1a1 1 0 0 1 .76.35L14.682 8l-4.844 5.65a1 1 0 0 1-.759.35H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h7.08z"/>
+                <path d="
+                    M 2 1
+                    a 2 2 0 0 0 -2 2
+                    v 10
+                    a 2 2 0 0 0 2 2
+                    h 7.08
+                    a 2 2 0 0 0 1.519 -.698
+                    l 4.843 -5.651
+                    a 1 1 0 0 0 0 -1.302
+                    L 10.6 1.7
+                    A 2 2 0 0 0 9.08 1
+                    H 2
+                    z
+                    m 7.08 1
+                    a 1 1 0 0 1 .76 .35
+                    L 14.682 8
+                    l -4.844 5.65
+                    a 1 1 0 0 1 -.759 .35
+                    H 2
+                    a 1 1 0 0 1 -1 -1
+                    V 3
+                    a 1 1 0 0 1 1 -1
+                    h 7.08
+                    z
+                " />
             </svg>
         `
     }
@@ -2909,37 +2948,11 @@ class MouseIgnore extends IMouseClickDrag {
  * @typedef {import("../element/PinElement").default} PinElement
  */
 
-class StringPinTemplate extends PinTemplate {
+class IInputPinTemplate extends PinTemplate {
 
     /** @type {HTMLElement} */
     input = null
-
-    hasInput() {
-        return true
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    getInput(pin) {
-        return Utility.sanitizeInputString(
-            /** @type {HTMLElement} */(pin.querySelector(".ueb-pin-input-content")).innerText
-        )
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    renderInput(pin) {
-        if (pin.isInput()) {
-            return html`
-                <div class="ueb-pin-input">
-                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
-                </div>
-            `
-        }
-        return ""
-    }
+    hasInput = true
 
     /**
      * @param {PinElement} pin
@@ -2947,13 +2960,14 @@ class StringPinTemplate extends PinTemplate {
     setup(pin) {
         super.setup(pin);
         if (this.input = pin.querySelector(".ueb-pin-input-content")) {
+            let self = this;
             this.onFocusHandler = (e) => {
                 pin.blueprint.dispatchEditTextEvent(true);
             };
             this.onFocusOutHandler = (e) => {
                 e.preventDefault();
                 document.getSelection().removeAllRanges(); // Deselect text inside the input
-                pin.entity.DefaultValue = this.getInput(pin);
+                self.acceptInput(pin);
                 pin.blueprint.dispatchEditTextEvent(false);
             };
             this.input.addEventListener("focus", this.onFocusHandler);
@@ -2984,6 +2998,64 @@ class StringPinTemplate extends PinTemplate {
         }
         return super.createInputObjects(pin)
     }
+
+    /**
+     * @param {PinElement} pin
+     */
+    getInput(pin) {
+        return Utility.sanitizeString(
+            /** @type {HTMLElement} */(pin.querySelector(".ueb-pin-input-content")).innerText
+        )
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    acceptInput(pin) {
+        pin.entity.DefaultValue = this.getInput(pin);
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderInput(pin) {
+        if (pin.isInput()) {
+            return html`
+                <div class="ueb-pin-input">
+                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true">
+                        ${Utility.renderInputString(sanitizeText(pin.entity.getDefaultValue()))}
+                    </div>
+                </div>
+            `
+        }
+        return ""
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class StringPinTemplate extends IInputPinTemplate {
+
+    /**
+     * @param {PinElement} pin
+     */
+    setup(pin) {
+        super.setup(pin);
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class RealPinTemplate extends PinTemplate {
+
 }
 
 // @ts-check
@@ -3002,6 +3074,7 @@ class PinElement extends IElement {
 
     static #typeTemplateMap = {
         "exec": ExecPinTemplate,
+        "real": RealPinTemplate,
         "string": StringPinTemplate,
     }
 
@@ -3015,6 +3088,9 @@ class PinElement extends IElement {
 
     connections = 0
 
+    /**
+     * @param {PinEntity} entity
+     */
     constructor(entity) {
         super(
             entity,
@@ -3048,7 +3124,7 @@ class PinElement extends IElement {
      * @returns {String}
      */
     getPinDisplayName() {
-        return this.entity.PinName
+        return Utility.formatStringName(this.entity.PinName)
     }
 
     isInput() {
@@ -3249,6 +3325,8 @@ class SelectableDraggableTemplate extends ITemplate {
 
 class NodeTemplate extends SelectableDraggableTemplate {
 
+    toggleAdvancedDisplayHandler
+
     /**
      * Computes the html content of the target element.
      * @param {NodeElement} node Graph node element
@@ -3270,17 +3348,36 @@ class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                </div>
-                <div class="ueb-node-expand">
-                    <span class="ueb-node-expand-icon"></span>
+                    ${node.entity.AdvancedPinDisplay ? html`
+                        <div class="ueb-node-expansion">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                class="ueb-node-expansion-icon"
+                                viewBox="4 2 24 24"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="
+                                        M 16.003 18.626
+                                        l 7.081 -7.081
+                                        L 25 13.46
+                                        l -8.997 8.998 -9.003 -9 1.917 -1.916
+                                        z
+                                    "
+                                />
+                            </svg>
+                        </div>
+                    ` : ""}
                 </div>
             </div>
         `
     }
 
     /**
-     * Applies the style to the element.
-     * @param {NodeElement} node Element of the graph
+     * @param {NodeElement} node
      */
     setup(node) {
         super.setup(node);
@@ -3289,9 +3386,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
         if (node.selected) {
             node.classList.add("ueb-selected");
         }
-        if (node.entity.AdvancedPinDisplay) {
-            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
-        }
+        this.applyAdvancedPinDisplay(node);
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
         /** @type {HTMLElement} */
@@ -3301,11 +3396,23 @@ class NodeTemplate extends SelectableDraggableTemplate {
         let pins = node.getPinEntities();
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)));
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)));
+        this.toggleAdvancedDisplayHandler = _ => {
+            node.toggleShowAdvancedPinDisplay();
+        };
+        node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler);
     }
 
     /**
-     * Applies the style to the element.
-     * @param {NodeElement} node Element of the graph
+     * @param {NodeElement} node
+     */
+    applyAdvancedPinDisplay(node) {
+        if (node.entity.AdvancedPinDisplay) {
+            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
+        }
+    }
+
+    /**
+     * @param {NodeElement} node
      */
     applyRename(node) {
         const nodeName = node.entity.getFullName();
@@ -3411,6 +3518,15 @@ class NodeElement extends ISelectableDraggableElement {
             cancelable: true,
         });
         this.dispatchEvent(deleteEvent);
+    }
+
+    setShowAdvancedPinDisplay(value) {
+        this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden");
+        this.template.applyAdvancedPinDisplay(this);
+    }
+
+    toggleShowAdvancedPinDisplay() {
+        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay.value != "Shown");
     }
 }
 

@@ -1,7 +1,7 @@
 // @ts-check
 
-import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 import ITemplate from "./ITemplate"
+import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 import sanitizeText from "./sanitizeText"
 
 /**
