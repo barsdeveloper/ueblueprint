@@ -23,6 +23,10 @@ ueb-blueprint {
     user-select: none;
 }
 
+ueb-blueprint svg {
+    overflow: visible;
+}
+
 .ueb-viewport-header {
     display: flex;
     position: absolute;

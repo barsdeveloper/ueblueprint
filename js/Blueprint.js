@@ -375,16 +375,16 @@ export default class Blueprint extends IElement {
         let nodeElements = []
         for (let element of graphElements) {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
-                const nodeName = element.entity.getFullName()
-                const homonymNode = this.nodes.find(node => node.entity.getFullName() == nodeName)
+                const nodeName = element.entity.getObjectName()
+                const homonymNode = this.nodes.find(node => node.entity.getObjectName() == nodeName)
                 if (homonymNode) {
                     // Inserted node keeps tha name and the homonym nodes is renamed
-                    let name = homonymNode.entity.getDisplayName()
+                    let name = homonymNode.entity.getObjectName(true)
                     this.#nodeNameCounter[name] = this.#nodeNameCounter[name] ?? -1
                     do {
                         ++this.#nodeNameCounter[name]
                     } while (this.nodes.find(node =>
-                        node.entity.getFullName() == Configuration.nodeName(name, this.#nodeNameCounter[name])
+                        node.entity.getObjectName() == Configuration.nodeName(name, this.#nodeNameCounter[name])
                     ))
                     homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]))
                 }

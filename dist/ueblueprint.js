@@ -958,7 +958,10 @@ class ObjectEntity extends IEntity {
         /** @type {PinEntity[]} */ this.CustomProperties;
     }
 
-    getFullName() {
+    getObjectName(dropCounter = false) {
+        if (dropCounter) {
+            return this.getNameAndCounter()[0]
+        }
         return this.Name
     }
 
@@ -966,7 +969,7 @@ class ObjectEntity extends IEntity {
      * @returns {[String, Number]}
      */
     getNameAndCounter() {
-        const result = this.getFullName().match(ObjectEntity.nameRegex);
+        const result = this.getObjectName(false).match(ObjectEntity.nameRegex);
         if (result && result.length == 3) {
             return [result[1], parseInt(result[2])]
         }
@@ -2919,30 +2922,18 @@ class ExecPinTemplate extends PinTemplate {
      */
     renderIcon(pin) {
         return html`
-            <svg class="ueb-pin-icon-exec" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="
+            <svg class="ueb-pin-icon-exec" width="16" height="16" viewBox="-2 0 16 16" fill="none">
+                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="currentColor" d="
                     M 2 1
                     a 2 2 0 0 0 -2 2
                     v 10
                     a 2 2 0 0 0 2 2
-                    h 7.08
-                    a 2 2 0 0 0 1.519 -.698
+                    h 4
+                    a 2 2 0 0 0 1.519 -0.698
                     l 4.843 -5.651
                     a 1 1 0 0 0 0 -1.302
-                    L 10.6 1.7
-                    A 2 2 0 0 0 9.08 1
-                    H 2
-                    z
-                    m 7.08 1
-                    a 1 1 0 0 1 .76 .35
-                    L 14.682 8
-                    l -4.844 5.65
-                    a 1 1 0 0 1 -.759 .35
-                    H 2
-                    a 1 1 0 0 1 -1 -1
-                    V 3
-                    a 1 1 0 0 1 1 -1
-                    h 7.08
+                    L 7.52 1.7
+                    a 2 2 0 0 0 -1.519 -0.698
                     z
                 " />
             </svg>
@@ -3418,7 +3409,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
      */
     setup(node) {
         super.setup(node);
-        const nodeName = node.entity.getFullName();
+        const nodeName = node.entity.getObjectName();
         node.dataset.name = sanitizeText(nodeName);
         if (node.selected) {
             node.classList.add("ueb-selected");
@@ -3436,7 +3427,9 @@ class NodeTemplate extends SelectableDraggableTemplate {
         this.toggleAdvancedDisplayHandler = _ => {
             node.toggleShowAdvancedPinDisplay();
         };
-        node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler);
+        if (node.entity.AdvancedPinDisplay) {
+            node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler);
+        }
     }
 
     /**
@@ -3452,10 +3445,10 @@ class NodeTemplate extends SelectableDraggableTemplate {
      * @param {NodeElement} node
      */
     applyRename(node) {
-        const nodeName = node.entity.getFullName();
+        const nodeName = node.entity.getObjectName();
         node.dataset.name = sanitizeText(nodeName);
         // @ts-expect-error
-        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.entity.getFullName());
+        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.getNodeDisplayName());
     }
 
     /**
@@ -3503,7 +3496,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     getNodeName() {
-        return this.entity.getFullName()
+        return this.entity.getObjectName()
     }
 
     getNodeDisplayName() {
@@ -4636,16 +4629,16 @@ class Blueprint extends IElement {
     addGraphElement(...graphElements) {
         for (let element of graphElements) {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
-                const nodeName = element.entity.getFullName();
-                const homonymNode = this.nodes.find(node => node.entity.getFullName() == nodeName);
+                const nodeName = element.entity.getObjectName();
+                const homonymNode = this.nodes.find(node => node.entity.getObjectName() == nodeName);
                 if (homonymNode) {
                     // Inserted node keeps tha name and the homonym nodes is renamed
-                    let name = homonymNode.entity.getDisplayName();
+                    let name = homonymNode.entity.getObjectName(true);
                     this.#nodeNameCounter[name] = this.#nodeNameCounter[name] ?? -1;
                     do {
                         ++this.#nodeNameCounter[name];
                     } while (this.nodes.find(node =>
-                        node.entity.getFullName() == Configuration.nodeName(name, this.#nodeNameCounter[name])
+                        node.entity.getObjectName() == Configuration.nodeName(name, this.#nodeNameCounter[name])
                     ))
                     homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]));
                 }

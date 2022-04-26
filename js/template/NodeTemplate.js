@@ -67,7 +67,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     setup(node) {
         super.setup(node)
-        const nodeName = node.entity.getFullName()
+        const nodeName = node.entity.getObjectName()
         node.dataset.name = sanitizeText(nodeName)
         if (node.selected) {
             node.classList.add("ueb-selected")
@@ -86,7 +86,9 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         this.toggleAdvancedDisplayHandler = _ => {
             node.toggleShowAdvancedPinDisplay()
         }
-        node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler)
+        if (node.entity.AdvancedPinDisplay) {
+            node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler)
+        }
     }
 
     /**
@@ -102,10 +104,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      * @param {NodeElement} node
      */
     applyRename(node) {
-        const nodeName = node.entity.getFullName()
+        const nodeName = node.entity.getObjectName()
         node.dataset.name = sanitizeText(nodeName)
         // @ts-expect-error
-        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.entity.getFullName())
+        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.getNodeDisplayName())
     }
 
     /**

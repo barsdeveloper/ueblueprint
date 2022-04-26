@@ -52,6 +52,10 @@ ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
     background: var(--ueb-pin-color);
 }
 
+ueb-pin.ueb-pin-fill .ueb-pin-tofill {
+    fill: currentColor;
+}
+
 .ueb-pin-icon-value::after {
     content: "";
     display: block;

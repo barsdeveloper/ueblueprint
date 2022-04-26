@@ -52,7 +52,10 @@ export default class ObjectEntity extends IEntity {
         /** @type {PinEntity[]} */ this.CustomProperties
     }
 
-    getFullName() {
+    getObjectName(dropCounter = false) {
+        if (dropCounter) {
+            return this.getNameAndCounter()[0]
+        }
         return this.Name
     }
 
@@ -60,7 +63,7 @@ export default class ObjectEntity extends IEntity {
      * @returns {[String, Number]}
      */
     getNameAndCounter() {
-        const result = this.getFullName().match(ObjectEntity.nameRegex)
+        const result = this.getObjectName(false).match(ObjectEntity.nameRegex)
         if (result && result.length == 3) {
             return [result[1], parseInt(result[2])]
         }

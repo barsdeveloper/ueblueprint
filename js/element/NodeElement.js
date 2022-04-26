@@ -43,7 +43,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     getNodeName() {
-        return this.entity.getFullName()
+        return this.entity.getObjectName()
     }
 
     getNodeDisplayName() {
