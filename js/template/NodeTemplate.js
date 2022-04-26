@@ -34,6 +34,9 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
+                    ${node.entity.EnabledState.toString() == "DevelopmentOnly" ? html`
+                        <div class="ueb-node-developmentonly">Development Only</div>
+                    ` : ""}
                     ${node.entity.AdvancedPinDisplay ? html`
                         <div class="ueb-node-expansion">
                             <svg
@@ -67,8 +70,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     setup(node) {
         super.setup(node)
-        const nodeName = node.entity.getObjectName()
-        node.dataset.name = sanitizeText(nodeName)
+        node.dataset.name = sanitizeText(node.entity.getObjectName())
+        if (node.entity.EnabledState) {
+            node.dataset.enabledState = node.entity.EnabledState.toString()
+        }
         if (node.selected) {
             node.classList.add("ueb-selected")
         }
