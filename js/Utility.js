@@ -5,7 +5,7 @@ import TypeInitialization from "./entity/TypeInitialization"
 export default class Utility {
 
     static sigmoid(x, curvature = 1.7) {
-        return 1 / (1 + (x / Math.pow(1 - x, -curvature)))
+        return 1 / (1 + (x / (1 - x) ** -curvature))
     }
 
     static clamp(val, min, max) {
@@ -14,6 +14,19 @@ export default class Utility {
 
     static getScale(element) {
         return Number(getComputedStyle(element).getPropertyValue("--ueb-scale"))
+    }
+
+    /**
+     * @param {Number} num
+     * @param {Number} decimals
+     */
+    static minDecimals(num, decimals = 1) {
+        const powered = num * 10 ** decimals
+        if (Math.abs(powered % 1) > Number.EPSILON) {
+            // More decimal digits than required
+            return num.toString()
+        }
+        return num.toFixed(decimals)
     }
 
     /**

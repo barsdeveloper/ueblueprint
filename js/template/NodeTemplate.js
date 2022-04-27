@@ -36,7 +36,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                     </div>
                     ${node.entity.EnabledState.toString() == "DevelopmentOnly" ? html`
                         <div class="ueb-node-developmentonly">Development Only</div>
-                    ` : ""}
+                    ` : ""} 
                     ${node.entity.AdvancedPinDisplay ? html`
                         <div class="ueb-node-expansion">
                             <svg
@@ -48,7 +48,6 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                                 viewBox="4 4 24 24"
                             >
                                 <path
-                                    fill-rule="evenodd"
                                     d="
                                         M 16.003 18.626
                                         l 7.081 -7.081

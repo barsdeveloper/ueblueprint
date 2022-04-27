@@ -22,6 +22,7 @@ export default class IInputPinTemplate extends PinTemplate {
     setup(pin) {
         super.setup(pin)
         if (this.input = pin.querySelector(".ueb-pin-input-content")) {
+            this.setInput(pin, pin.entity.DefaultValue)
             let self = this
             this.onFocusHandler = (e) => {
                 pin.blueprint.dispatchEditTextEvent(true)
@@ -29,7 +30,7 @@ export default class IInputPinTemplate extends PinTemplate {
             this.onFocusOutHandler = (e) => {
                 e.preventDefault()
                 document.getSelection().removeAllRanges() // Deselect text inside the input
-                self.acceptInput(pin)
+                self.setInput(pin, this.getInput(pin))
                 pin.blueprint.dispatchEditTextEvent(false)
             }
             this.input.addEventListener("focus", this.onFocusHandler)
@@ -72,9 +73,13 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {String} value
      */
-    acceptInput(pin) {
+    setInput(pin, value) {
         pin.entity.DefaultValue = this.getInput(pin)
+        pin.querySelector(".ueb-pin-input-content")
+            // @ts-expect-error
+            .innerText = Utility.decodeInputString(value)
     }
 
     /**
@@ -84,9 +89,7 @@ export default class IInputPinTemplate extends PinTemplate {
         if (pin.isInput()) {
             return html`
                 <div class="ueb-pin-input">
-                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true">
-                        ${Utility.decodeInputString(sanitizeText(pin.entity.getDefaultValue()))}
-                    </div>
+                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
                 </div>
             `
         }
