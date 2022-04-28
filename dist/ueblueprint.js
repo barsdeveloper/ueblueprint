@@ -2862,11 +2862,11 @@ class PinTemplate extends ITemplate {
                 ${this.renderInput(pin)}
             </div>
         `;
-        if (pin.isInput()) {
-            return icon + content
-        } else {
-            return content + icon
-        }
+        return html`
+            <div class="ueb-pin-wrapper">
+                ${pin.isInput() ? icon + content : content + icon}
+            </div>
+        `
     }
 
     /**
@@ -2890,7 +2890,7 @@ class PinTemplate extends ITemplate {
         super.setup(pin);
         pin.classList.add(
             "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
-            "ueb-pin-" + sanitizeText(pin.getType())
+            "ueb-pin-type-" + sanitizeText(pin.getType())
         );
         pin.dataset.id = pin.GetPinIdValue();
         if (pin.entity.bAdvancedView) {
@@ -3381,8 +3381,8 @@ class NodeTemplate extends SelectableDraggableTemplate {
     render(node) {
         return html`
             <div class="ueb-node-border">
-                <div class="ueb-node-content">
-                    <div class="ueb-node-header">
+                <div class="ueb-node-wrapper">
+                    <div class="ueb-node-top">
                         <div class="ueb-node-name">
                             <span class="ueb-node-name-symbol"></span>
                             <span class="ueb-node-name-text">
@@ -3390,13 +3390,13 @@ class NodeTemplate extends SelectableDraggableTemplate {
                             </span>
                         </div>
                     </div>
-                    <div class="ueb-node-body">
+                    <div class="ueb-node-content">
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
                     ${node.entity.EnabledState.toString() == "DevelopmentOnly" ? html`
                         <div class="ueb-node-developmentonly">Development Only</div>
-                    ` : ""} 
+                    ` : ""}
                     ${node.entity.AdvancedPinDisplay ? html`
                         <div class="ueb-node-expansion">
                             <svg

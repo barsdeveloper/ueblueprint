@@ -44,11 +44,11 @@ export default class PinTemplate extends ITemplate {
                 ${this.renderInput(pin)}
             </div>
         `
-        if (pin.isInput()) {
-            return icon + content
-        } else {
-            return content + icon
-        }
+        return html`
+            <div class="ueb-pin-wrapper">
+                ${pin.isInput() ? icon + content : content + icon}
+            </div>
+        `
     }
 
     /**
@@ -72,7 +72,7 @@ export default class PinTemplate extends ITemplate {
         super.setup(pin)
         pin.classList.add(
             "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
-            "ueb-pin-" + sanitizeText(pin.getType())
+            "ueb-pin-type-" + sanitizeText(pin.getType())
         )
         pin.dataset.id = pin.GetPinIdValue()
         if (pin.entity.bAdvancedView) {

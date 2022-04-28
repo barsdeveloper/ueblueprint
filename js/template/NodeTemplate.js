@@ -21,8 +21,8 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
     render(node) {
         return html`
             <div class="ueb-node-border">
-                <div class="ueb-node-content">
-                    <div class="ueb-node-header">
+                <div class="ueb-node-wrapper">
+                    <div class="ueb-node-top">
                         <div class="ueb-node-name">
                             <span class="ueb-node-name-symbol"></span>
                             <span class="ueb-node-name-text">
@@ -30,13 +30,13 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                             </span>
                         </div>
                     </div>
-                    <div class="ueb-node-body">
+                    <div class="ueb-node-content">
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
                     ${node.entity.EnabledState.toString() == "DevelopmentOnly" ? html`
                         <div class="ueb-node-developmentonly">Development Only</div>
-                    ` : ""} 
+                    ` : ""}
                     ${node.entity.AdvancedPinDisplay ? html`
                         <div class="ueb-node-expansion">
                             <svg

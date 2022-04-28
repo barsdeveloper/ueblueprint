@@ -1,3 +1,13 @@
+@mixin pin-style($color) {
+    --ueb-pin-color : #{$color};
+    --ueb-pin-background: linear-gradient(90deg,
+        #{transparentize($color, 0.85)},
+        #{transparentize($color, 0.2)} 15%,
+        #{transparentize($color, 0.5)} 60%,
+        #{transparentize($color, 0.65)} 95%,
+        transparent);
+}
+
 .ueb {
     $ueb-pin-color: white;
     $ueb-pin-dim-color: #afafaf;
@@ -5,49 +15,46 @@
     --ueb-pin-dim-color: #{$ueb-pin-dim-color};
 }
 
-.ueb-pin-boolean {
-    $ueb-pin-color: rgb(30%, 0, 0);
-    --ueb-pin-color: #{$ueb-pin-color};
+.ueb-pin-type-bool {
+    @include pin-style(#750000);
 }
 
-.ueb-pin-class {
-    $ueb-pin-color: #5800bb;
-    --ueb-pin-color: #{$ueb-pin-color};
+.ueb-pin-type-class {
+    @include pin-style(#5800bb);
 }
 
-.ueb-pin-float {
-    $ueb-pin-color: #9ffb44;
-    --ueb-pin-color: #{$ueb-pin-color};
+.ueb-pin-type-exec {
+    @include pin-style(#a7a7a7);
 }
 
-.ueb-pin-int {
-    $ueb-pin-color: #1fe0ad;
-    --ueb-pin-color: #{$ueb-pin-color};
+.ueb-pin-type-int {
+    @include pin-style(#1fe0ad);
 }
 
-.ueb-pin-name {
-    $ueb-pin-color: #cb81fc;
-    --ueb-pin-color: #{$ueb-pin-color};
+.ueb-pin-type-name {
+    @include pin-style(#cb81fc);
 }
 
-.ueb-pin-object {
-    $ueb-pin-color: #00a8f2;
-    $ueb-pin-color: rgba(0%, 40%, 01%);
-    --ueb-pin-color: #{$ueb-pin-color};
+.ueb-pin-type-object {
+    @include pin-style(#00a8f2);
 }
 
-.ueb-pin-rotator {
-    $ueb-pin-color: #9eb1fc;
-    --ueb-pin-color: #{$ueb-pin-color};
+.ueb-pin-type-real {
+    @include pin-style(#32bb00);
 }
 
-.ueb-pin-string {
-    $ueb-pin-color: #fc00d2;
-    --ueb-pin-color : #{$ueb-pin-color};
-    --ueb-pin-background: linear-gradient(90deg, #fc00d220, #fc00d280 15%, #fc00d250 85%, transparent);
+.ueb-pin-type-rotator {
+    @include pin-style(#9eb1fc);
 }
 
-.ueb-pin-vector {
-    $ueb-pin-color: #fcc823;
-    --ueb-pin-color: #{$ueb-pin-color};
+.ueb-pin-type-string {
+    @include pin-style(#d500b1);
+}
+
+.ueb-pin-type-struct {
+    @include pin-style(#034ca8);
+}
+
+.ueb-pin-type-vector {
+    @include pin-style(#fcc823);
 }

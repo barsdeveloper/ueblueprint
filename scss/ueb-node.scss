@@ -30,7 +30,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     outline-offset: -6px;
 }
 
-.ueb-node-content {
+.ueb-node-wrapper {
     position: relative;
     padding: 1px;
     box-shadow: inset 0 0 2px 0 black;
@@ -39,7 +39,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     overflow: hidden;
 }
 
-.ueb-node-header {
+.ueb-node-top {
     padding: 0.3em 0.7em;
     box-shadow: inset 5px 1px 5px -3px #83b37b,
         inset 0 1px 0 0 #111311,
@@ -57,7 +57,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     padding: 0.1em 1.6em;
 }
 
-.ueb-node-body {
+.ueb-node-content {
     display: flex;
     padding: 1px 0;
     font-weight: 100;
@@ -76,6 +76,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
 
 .ueb-node-developmentonly {
     display: none;
+    margin-top: 8px;
     background: repeating-linear-gradient(-45deg,
             transparent 0,
             #57590a 1px,

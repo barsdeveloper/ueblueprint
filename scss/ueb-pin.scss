@@ -1,6 +1,14 @@
 ueb-pin {
     display: block;
-    margin: 6px 0;
+}
+
+ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
+    display: none;
+}
+
+.ueb-pin-wrapper {
+    display: inline-block;
+    margin: 6px 0 0 0;
     padding: 2px 2px;
 
     &>* {
@@ -9,11 +17,7 @@ ueb-pin {
     }
 }
 
-ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
-    display: none;
-}
-
-ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-pin:hover {
+ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:hover {
     background: var(--ueb-pin-background);
     cursor: crosshair;
 }
