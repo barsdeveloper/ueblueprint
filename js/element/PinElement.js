@@ -1,5 +1,6 @@
 // @ts-check
 
+import BoolPinTemplate from "../template/BoolPinTemplate"
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
 import LinkElement from "./LinkElement"
@@ -21,6 +22,7 @@ import Utility from "../Utility"
 export default class PinElement extends IElement {
 
     static #typeTemplateMap = {
+        "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,

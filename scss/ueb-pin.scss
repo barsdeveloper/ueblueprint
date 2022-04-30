@@ -100,6 +100,19 @@ ueb-pin.ueb-pin-fill .ueb-pin-tofill {
     }
 }
 
+.ueb-pin-type-bool .ueb-pin-input {
+    appearance: none;
+    padding: 0;
+    height: 18px;
+    width: 18px;
+    background: #0f0f0f;
+    color: var(--ueb-pin-color);
+}
+
+.ueb-pin-type-bool .ueb-pin-input:checked {
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="none" stroke="%230070e0" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M 5 10 l 3 3 l 6 -6" /></svg>');
+}
+
 .ueb-pin-input-content {
     display: block;
     outline: none;

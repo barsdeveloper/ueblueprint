@@ -2148,9 +2148,7 @@ class ISelectableDraggableElement extends IElement {
         this.selected = false;
 
         let self = this;
-        this.dragHandler = (e) => {
-            self.addLocation(e.detail.value);
-        };
+        this.dragHandler = e => self.addLocation(e.detail.value);
     }
 
     #setSelected(value = true) {
@@ -2215,6 +2213,21 @@ class ISelectableDraggableElement extends IElement {
         if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
             this.setLocation(snappedLocation);
         }
+    }
+}
+
+/**
+ * @typedef {import("../../element/PinElement").default} PinElement
+ */
+
+/**
+ * @extends IMouseClickDrag<PinElement>
+ */
+class MouseIgnore extends IMouseClickDrag {
+
+    constructor(target, blueprint, options = {}) {
+        options.consumeEvent = true;
+        super(target, blueprint, options);
     }
 }
 
@@ -2928,6 +2941,161 @@ class PinTemplate extends ITemplate {
  * @typedef {import("../element/PinElement").default} PinElement
  */
 
+class IInputPinTemplate extends PinTemplate {
+
+    /** @type {HTMLElement[]} */
+    #inputContentElements
+    hasInput = true
+
+    /**
+     * @param {PinElement} pin
+     */
+    setup(pin) {
+        super.setup(pin);
+        this.#inputContentElements = /** @type {HTMLElement[]} */(
+            [...pin.querySelectorAll(".ueb-pin-input-content")]
+        );
+        if (this.#inputContentElements.length) {
+            this.setInputs(pin, [pin.entity.DefaultValue]);
+            let self = this;
+            this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true);
+            this.onFocusOutHandler = e => {
+                e.preventDefault();
+                document.getSelection().removeAllRanges(); // Deselect text inside the input
+                self.setInputs(pin, this.getInputs(pin));
+                pin.blueprint.dispatchEditTextEvent(false);
+            };
+            this.#inputContentElements.forEach(element => {
+                element.addEventListener("focus", this.onFocusHandler);
+                element.addEventListener("focusout", this.onFocusOutHandler);
+            });
+        }
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    cleanup(pin) {
+        super.cleanup(pin);
+        this.#inputContentElements.forEach(element => {
+            element.removeEventListener("focus", this.onFocusHandler);
+            element.removeEventListener("focusout", this.onFocusOutHandler);
+        });
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    createInputObjects(pin) {
+        return [
+            ...super.createInputObjects(pin),
+            ...this.#inputContentElements.map(element => new MouseIgnore(element, pin.blueprint))
+        ]
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    getInput(pin) {
+        return this.getInputs(pin).reduce((acc, cur) => acc + cur, "")
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    getInputs(pin) {
+        return this.#inputContentElements.map(element => Utility.encodeInputString(element.innerText))
+    }
+
+    /**
+     * @param {PinElement} pin
+     * @param {String[]?} values
+     */
+    setInputs(pin, values = []) {
+        pin.entity.DefaultValue = this.getInput(pin);
+        this.#inputContentElements.forEach((element, i) => element.innerText = Utility.decodeInputString(values[i]));
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderInput(pin) {
+        if (pin.isInput()) {
+            return html`
+                <div class="ueb-pin-input">
+                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
+                </div>
+            `
+        }
+        return ""
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class BoolPinTemplate extends IInputPinTemplate {
+
+    /** @type {HTMLInputElement} */
+    #input
+
+    /**
+     * @param {PinElement} pin
+     */
+    setup(pin) {
+        super.setup(pin);
+        this.#input = pin.querySelector(".ueb-pin-input");
+        let self = this;
+        this.onChangeHandler = _ => pin.entity.DefaultValue = self.#input.checked ? "true" : "false";
+        this.#input.addEventListener("change", this.onChangeHandler);
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    cleanup(pin) {
+        super.cleanup(pin);
+        this.#input.removeEventListener("change", this.onChangeHandler);
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    getInputs(pin) {
+        return [this.#input.checked ? "true" : "false"]
+    }
+
+    /**
+     * @param {PinElement} pin
+     * @param {String[]?} value
+     */
+    setInputs(pin, value = []) {
+        pin.entity.DefaultValue = value.length ? value[0] : this.getInput(pin);
+        this.#input.checked = pin.entity.DefaultValue == "true";
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderInput(pin) {
+        if (pin.isInput()) {
+            return html`
+                <input type="checkbox" class="ueb-pin-input" ${pin.entity.DefaultValue == "true" ? "checked" : ""} />
+            `
+        }
+        return super.renderInput(pin)
+    }
+}
+
+// @ts-check
+
+/**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
 class ExecPinTemplate extends PinTemplate {
 
     /**
@@ -2954,114 +3122,6 @@ class ExecPinTemplate extends PinTemplate {
     }
 }
 
-/**
- * @typedef {import("../../element/PinElement").default} PinElement
- */
-
-/**
- * @extends IMouseClickDrag<PinElement>
- */
-class MouseIgnore extends IMouseClickDrag {
-
-    constructor(target, blueprint, options = {}) {
-        options.consumeEvent = true;
-        super(target, blueprint, options);
-    }
-}
-
-// @ts-check
-
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- */
-
-class IInputPinTemplate extends PinTemplate {
-
-    /** @type {HTMLElement} */
-    input = null
-    hasInput = true
-
-    /**
-     * @param {PinElement} pin
-     */
-    setup(pin) {
-        super.setup(pin);
-        if (this.input = pin.querySelector(".ueb-pin-input-content")) {
-            this.setInput(pin, pin.entity.DefaultValue);
-            let self = this;
-            this.onFocusHandler = (e) => {
-                pin.blueprint.dispatchEditTextEvent(true);
-            };
-            this.onFocusOutHandler = (e) => {
-                e.preventDefault();
-                document.getSelection().removeAllRanges(); // Deselect text inside the input
-                self.setInput(pin, this.getInput(pin));
-                pin.blueprint.dispatchEditTextEvent(false);
-            };
-            this.input.addEventListener("focus", this.onFocusHandler);
-            this.input.addEventListener("focusout", this.onFocusOutHandler);
-        }
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    cleanup(pin) {
-        super.cleanup(pin);
-        if (this.input) {
-            this.input.removeEventListener("focus", this.onFocusHandler);
-            this.input.removeEventListener("focusout", this.onFocusOutHandler);
-        }
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    createInputObjects(pin) {
-        if (pin.isInput()) {
-            return [
-                ...super.createInputObjects(pin),
-                new MouseIgnore(pin.querySelector(".ueb-pin-input-content"), pin.blueprint),
-            ]
-        }
-        return super.createInputObjects(pin)
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    getInput(pin) {
-        return Utility.encodeInputString(
-            /** @type {HTMLElement} */(pin.querySelector(".ueb-pin-input-content")).innerText
-        )
-    }
-
-    /**
-     * @param {PinElement} pin
-     * @param {String} value
-     */
-    setInput(pin, value) {
-        pin.entity.DefaultValue = this.getInput(pin);
-        pin.querySelector(".ueb-pin-input-content")
-            // @ts-expect-error
-            .innerText = Utility.decodeInputString(value);
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    renderInput(pin) {
-        if (pin.isInput()) {
-            return html`
-                <div class="ueb-pin-input">
-                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
-                </div>
-            `
-        }
-        return ""
-    }
-}
-
 // @ts-check
 
 /**
@@ -3072,15 +3132,15 @@ class RealPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
-     * @param {String} value
+     * @param {String[]?} values
      */
-    setInput(pin, value) {
-        let num = parseFloat(this.getInput(pin));
+    setInputs(pin, values = []) {
+        let num = parseFloat(values.length ? values[0] : this.getInput(pin));
         if (isNaN(num)) {
             num = parseFloat(pin.entity.AutogeneratedDefaultValue);
         }
-        value = Utility.minDecimals(num);
-        super.setInput(pin, value);
+        values[0] = Utility.minDecimals(num);
+        super.setInputs(pin, values);
     }
 }
 
@@ -3115,6 +3175,7 @@ class StringPinTemplate extends IInputPinTemplate {
 class PinElement extends IElement {
 
     static #typeTemplateMap = {
+        "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,

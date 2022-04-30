@@ -24,9 +24,7 @@ export default class ISelectableDraggableElement extends IElement {
         this.selected = false
 
         let self = this
-        this.dragHandler = (e) => {
-            self.addLocation(e.detail.value)
-        }
+        this.dragHandler = e => self.addLocation(e.detail.value)
     }
 
     #setSelected(value = true) {

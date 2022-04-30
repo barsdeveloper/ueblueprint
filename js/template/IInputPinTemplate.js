@@ -3,7 +3,6 @@
 import html from "./html"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
-import sanitizeText from "./sanitizeText"
 import Utility from "../Utility"
 
 /**
@@ -12,8 +11,8 @@ import Utility from "../Utility"
 
 export default class IInputPinTemplate extends PinTemplate {
 
-    /** @type {HTMLElement} */
-    input = null
+    /** @type {HTMLElement[]} */
+    #inputContentElements
     hasInput = true
 
     /**
@@ -21,20 +20,23 @@ export default class IInputPinTemplate extends PinTemplate {
      */
     setup(pin) {
         super.setup(pin)
-        if (this.input = pin.querySelector(".ueb-pin-input-content")) {
-            this.setInput(pin, pin.entity.DefaultValue)
+        this.#inputContentElements = /** @type {HTMLElement[]} */(
+            [...pin.querySelectorAll(".ueb-pin-input-content")]
+        )
+        if (this.#inputContentElements.length) {
+            this.setInputs(pin, [pin.entity.DefaultValue])
             let self = this
-            this.onFocusHandler = (e) => {
-                pin.blueprint.dispatchEditTextEvent(true)
-            }
-            this.onFocusOutHandler = (e) => {
+            this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true)
+            this.onFocusOutHandler = e => {
                 e.preventDefault()
                 document.getSelection().removeAllRanges() // Deselect text inside the input
-                self.setInput(pin, this.getInput(pin))
+                self.setInputs(pin, this.getInputs(pin))
                 pin.blueprint.dispatchEditTextEvent(false)
             }
-            this.input.addEventListener("focus", this.onFocusHandler)
-            this.input.addEventListener("focusout", this.onFocusOutHandler)
+            this.#inputContentElements.forEach(element => {
+                element.addEventListener("focus", this.onFocusHandler)
+                element.addEventListener("focusout", this.onFocusOutHandler)
+            })
         }
     }
 
@@ -43,43 +45,43 @@ export default class IInputPinTemplate extends PinTemplate {
      */
     cleanup(pin) {
         super.cleanup(pin)
-        if (this.input) {
-            this.input.removeEventListener("focus", this.onFocusHandler)
-            this.input.removeEventListener("focusout", this.onFocusOutHandler)
-        }
+        this.#inputContentElements.forEach(element => {
+            element.removeEventListener("focus", this.onFocusHandler)
+            element.removeEventListener("focusout", this.onFocusOutHandler)
+        })
     }
 
     /**
      * @param {PinElement} pin
      */
     createInputObjects(pin) {
-        if (pin.isInput()) {
-            return [
-                ...super.createInputObjects(pin),
-                new MouseIgnore(pin.querySelector(".ueb-pin-input-content"), pin.blueprint),
-            ]
-        }
-        return super.createInputObjects(pin)
+        return [
+            ...super.createInputObjects(pin),
+            ...this.#inputContentElements.map(element => new MouseIgnore(element, pin.blueprint))
+        ]
     }
 
     /**
      * @param {PinElement} pin
      */
     getInput(pin) {
-        return Utility.encodeInputString(
-            /** @type {HTMLElement} */(pin.querySelector(".ueb-pin-input-content")).innerText
-        )
+        return this.getInputs(pin).reduce((acc, cur) => acc + cur, "")
     }
 
     /**
      * @param {PinElement} pin
-     * @param {String} value
      */
-    setInput(pin, value) {
+    getInputs(pin) {
+        return this.#inputContentElements.map(element => Utility.encodeInputString(element.innerText))
+    }
+
+    /**
+     * @param {PinElement} pin
+     * @param {String[]?} values
+     */
+    setInputs(pin, values = []) {
         pin.entity.DefaultValue = this.getInput(pin)
-        pin.querySelector(".ueb-pin-input-content")
-            // @ts-expect-error
-            .innerText = Utility.decodeInputString(value)
+        this.#inputContentElements.forEach((element, i) => element.innerText = Utility.decodeInputString(values[i]))
     }
 
     /**
