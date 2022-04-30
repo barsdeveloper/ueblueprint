@@ -19,7 +19,7 @@ export default class Configuration {
     static gridLineWidth = 1 // pixel
     static gridSet = 8
     static gridSetLineColor = "#161616"
-    static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
+    static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // pixel
     static keysSeparator = "+"
     static linkCurveHeight = 15 // pixel

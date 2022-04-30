@@ -150,7 +150,6 @@ export default class PinElement extends IElement {
     }
 
     /**
-     * 
      * @param {PinElement} originalPinElement
      * @param {PinReferenceEntity} newReference
      */

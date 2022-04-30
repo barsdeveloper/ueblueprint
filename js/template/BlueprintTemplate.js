@@ -183,7 +183,6 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * 
      * @param {Blueprint} blueprint
      * @param {PinReferenceEntity} pinReference
      * @returns {PinElement}

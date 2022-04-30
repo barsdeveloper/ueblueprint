@@ -27,7 +27,7 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
-        PinEntity, 
+        PinEntity,
         new PinSerializer()
     )
 

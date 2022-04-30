@@ -227,7 +227,7 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * @param {Number} x - Horizontal 
+     * @param {Number} x - Horizontal
      * @param {Number} y - Vertical expand value (negative means top, positive means bottom)
      * @param {Number} factor - Either 1 (expand) or -1 (shrink)
      */
@@ -343,9 +343,8 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * @param {PinElement} sourcePin 
-     * @param {PinElement} destinationPin 
-     * @returns 
+     * @param {PinElement} sourcePin
+     * @param {PinElement} destinationPin
      */
     getLink(sourcePin, destinationPin, ignoreDirection = false) {
         return this.links.find(link =>

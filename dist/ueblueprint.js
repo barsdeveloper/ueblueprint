@@ -19,7 +19,7 @@ class Configuration {
     static gridLineWidth = 1 // pixel
     static gridSet = 8
     static gridSetLineColor = "#161616"
-    static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event 
+    static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // pixel
     static keysSeparator = "+"
     static linkCurveHeight = 15 // pixel
@@ -852,10 +852,6 @@ class PinEntity extends IEntity {
         return !this.bHidden && this.Direction == "EGPD_Output"
     }
 
-    /**
-     * 
-     * @returns {Boolean}
-     */
     isLinked() {
         return this.LinkedTo?.length > 0 ?? false
     }
@@ -956,18 +952,18 @@ class ObjectEntity extends IEntity {
         super(options);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
-        /** @type {Boolean} */ this.bIsPureFunc;
-        /** @type {VariableReferenceEntity} */ this.VariableReference;
-        /** @type {FunctionReferenceEntity} */ this.FunctionReference;
-        /** @type {FunctionReferenceEntity} */ this.EventReference;
-        /** @type {ObjectReferenceEntity} */ this.TargetType;
+        /** @type {Boolean?} */ this.bIsPureFunc;
+        /** @type {VariableReferenceEntity?} */ this.VariableReference;
+        /** @type {FunctionReferenceEntity?} */ this.FunctionReference;
+        /** @type {FunctionReferenceEntity?} */ this.EventReference;
+        /** @type {ObjectReferenceEntity?} */ this.TargetType;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
-        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay;
-        /** @type {IdentifierEntity} */ this.EnabledState;
+        /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
+        /** @type {IdentifierEntity?} */ this.EnabledState;
         /** @type {GuidEntity} */ this.NodeGuid;
-        /** @type {IntegerEntity} */ this.ErrorType;
-        /** @type {String} */ this.ErrorMsg;
+        /** @type {IntegerEntity?} */ this.ErrorType;
+        /** @type {String?} */ this.ErrorMsg;
         /** @type {PinEntity[]} */ this.CustomProperties;
     }
 
@@ -1089,7 +1085,7 @@ class Grammar {
 
     /**
      * @template T
-     * @param {new (values: Object) => T} entityType 
+     * @param {new (values: Object) => T} entityType
      * @returns {Parsimmon.Parser<T>}
      */
     static createMultiAttributeGrammar = (r, entityType) =>
@@ -2130,7 +2126,7 @@ class IElement extends HTMLElement {
 
 /**
  * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
- * @typedef {import("../entity/IEntity").default} IEntity  
+ * @typedef {import("../entity/IEntity").default} IEntity
  */
 
 /**
@@ -2169,7 +2165,7 @@ class ISelectableDraggableElement extends IElement {
     }
 
     /**
-     * @param {Number[]} value 
+     * @param {Number[]} value
      */
     setLocation(value = [0, 0]) {
         const d = [value[0] - this.location[0], value[1] - this.location[1]];
@@ -3303,7 +3299,6 @@ class PinElement extends IElement {
     }
 
     /**
-     * 
      * @param {PinElement} originalPinElement
      * @param {PinReferenceEntity} newReference
      */
@@ -3455,7 +3450,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${node.entity.EnabledState.toString() == "DevelopmentOnly" ? html`
+                    ${node.entity.EnabledState?.toString() == "DevelopmentOnly" ? html`
                         <div class="ueb-node-developmentonly">Development Only</div>
                     ` : ""}
                     ${node.entity.AdvancedPinDisplay ? html`
@@ -4332,7 +4327,6 @@ class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * 
      * @param {Blueprint} blueprint
      * @param {PinReferenceEntity} pinReference
      * @returns {PinElement}
@@ -4565,7 +4559,7 @@ class Blueprint extends IElement {
     }
 
     /**
-     * @param {Number} x - Horizontal 
+     * @param {Number} x - Horizontal
      * @param {Number} y - Vertical expand value (negative means top, positive means bottom)
      * @param {Number} factor - Either 1 (expand) or -1 (shrink)
      */
@@ -4681,9 +4675,8 @@ class Blueprint extends IElement {
     }
 
     /**
-     * @param {PinElement} sourcePin 
-     * @param {PinElement} destinationPin 
-     * @returns 
+     * @param {PinElement} sourcePin
+     * @param {PinElement} destinationPin
      */
     getLink(sourcePin, destinationPin, ignoreDirection = false) {
         return this.links.find(link =>
@@ -4873,7 +4866,7 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
-        PinEntity, 
+        PinEntity,
         new PinSerializer()
     );
 

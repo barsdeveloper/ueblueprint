@@ -87,10 +87,6 @@ export default class PinEntity extends IEntity {
         return !this.bHidden && this.Direction == "EGPD_Output"
     }
 
-    /**
-     * 
-     * @returns {Boolean}
-     */
     isLinked() {
         return this.LinkedTo?.length > 0 ?? false
     }

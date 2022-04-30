@@ -6,7 +6,7 @@ import Utility from "../Utility"
 
 /**
  * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
- * @typedef {import("../entity/IEntity").default} IEntity  
+ * @typedef {import("../entity/IEntity").default} IEntity
  */
 
 /**
@@ -45,7 +45,7 @@ export default class ISelectableDraggableElement extends IElement {
     }
 
     /**
-     * @param {Number[]} value 
+     * @param {Number[]} value
      */
     setLocation(value = [0, 0]) {
         const d = [value[0] - this.location[0], value[1] - this.location[1]]

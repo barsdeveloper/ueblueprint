@@ -86,7 +86,7 @@ export default class Grammar {
 
     /**
      * @template T
-     * @param {new (values: Object) => T} entityType 
+     * @param {new (values: Object) => T} entityType
      * @returns {Parsimmon.Parser<T>}
      */
     static createMultiAttributeGrammar = (r, entityType) =>
