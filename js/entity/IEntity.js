@@ -19,11 +19,17 @@ export default class IEntity {
                 Object.getOwnPropertyNames(properties),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
-                if (!(property in properties)) {
-                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}`)
-                }
                 let defaultValue = properties[property]
                 const defaultType = Utility.getType(defaultValue)
+                if (!(property in properties)) {
+                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}`)
+                } else if (
+                    defaultValue != null
+                    && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
+                    && !(property in values)
+                ) {
+                    console.warn(`${this.constructor.name} adds property ${prefix}${property} not defined in the serialized data`)
+                }
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (defaultType === Object) {
                     target[property] = {}
