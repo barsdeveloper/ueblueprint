@@ -485,9 +485,8 @@ class Utility {
     static formatStringName(value) {
         return value
             .trim()
-            .replaceAll(/\s+/g, " ") // Multiple spaces is just a single normal space
-            .replace(/^b/, "") // Remove leading b (for boolean values)
-            .replaceAll(/(?<=[a-z])(?=[A-Z])|_/g, " ") // Insert a space between
+            .replace(/(?<!\n)^(b|\n+|(?:\\r\\n)+|(?:\\n)+)/, "") // Remove leading b (for boolean values) or newlines
+            .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
     }
 }
 
@@ -3012,7 +3011,7 @@ class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
-        return this.#inputContentElements.map(element => Utility.encodeInputString(element.innerText))
+        return this.#inputContentElements.map(element => Utility.encodeInputString(element.textContent))
     }
 
     /**
@@ -3020,8 +3019,8 @@ class IInputPinTemplate extends PinTemplate {
      * @param {String[]?} values
      */
     setInputs(pin, values = []) {
-        pin.entity.DefaultValue = this.getInput(pin);
         this.#inputContentElements.forEach((element, i) => element.innerText = Utility.decodeInputString(values[i]));
+        pin.entity.DefaultValue = this.getInput(pin);
     }
 
     /**
@@ -3237,7 +3236,7 @@ class PinElement extends IElement {
     getPinDisplayName() {
         if (this.entity.PinToolTip) {
             const matchResult = this.entity.PinToolTip.match(/\s*(.+?(?=\\n)|.+\S)\s*/); // Match up until the first \n
-            return matchResult[1]
+            return Utility.formatStringName(matchResult[1])
         }
         return Utility.formatStringName(this.entity.PinName)
     }

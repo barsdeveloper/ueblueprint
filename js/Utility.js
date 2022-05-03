@@ -203,8 +203,7 @@ export default class Utility {
     static formatStringName(value) {
         return value
             .trim()
-            .replaceAll(/\s+/g, " ") // Multiple spaces is just a single normal space
-            .replace(/^b/, "") // Remove leading b (for boolean values)
-            .replaceAll(/(?<=[a-z])(?=[A-Z])|_/g, " ") // Insert a space between
+            .replace(/(?<!\n)^(b|\n+|(?:\\r\\n)+|(?:\\n)+)/, "") // Remove leading b (for boolean values) or newlines
+            .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
     }
 }

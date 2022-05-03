@@ -76,7 +76,7 @@ export default class PinElement extends IElement {
     getPinDisplayName() {
         if (this.entity.PinToolTip) {
             const matchResult = this.entity.PinToolTip.match(/\s*(.+?(?=\\n)|.+\S)\s*/) // Match up until the first \n
-            return matchResult[1]
+            return Utility.formatStringName(matchResult[1])
         }
         return Utility.formatStringName(this.entity.PinName)
     }

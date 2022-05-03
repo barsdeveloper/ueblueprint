@@ -72,7 +72,7 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
-        return this.#inputContentElements.map(element => Utility.encodeInputString(element.innerText))
+        return this.#inputContentElements.map(element => Utility.encodeInputString(element.textContent))
     }
 
     /**
@@ -80,8 +80,8 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {String[]?} values
      */
     setInputs(pin, values = []) {
-        pin.entity.DefaultValue = this.getInput(pin)
         this.#inputContentElements.forEach((element, i) => element.innerText = Utility.decodeInputString(values[i]))
+        pin.entity.DefaultValue = this.getInput(pin)
     }
 
     /**
