@@ -1,17 +1,19 @@
 // @ts-check
 
+import Utility from "../Utility"
+
 /**
  * @template T
  */
 export default class TypeInitialization {
 
-    /** @type {T} */
-    #value
-    get value() {
-        return this.#value
+    /** @type {Constructor|Array<Constructor>} */
+    #type
+    get type() {
+        return this.#type
     }
-    set value(v) {
-        this.#value = v
+    set type(v) {
+        this.#type = v
     }
 
     #showDefault = true
@@ -22,13 +24,21 @@ export default class TypeInitialization {
         this.#showDefault = v
     }
 
-    /** @type {Constructor|Array<Constructor>} */
-    #type
-    get type() {
-        return this.#type
+    /** @type {T} */
+    #value
+    get value() {
+        return this.#value
     }
-    set type(v) {
-        this.#type = v
+    set value(v) {
+        this.#value = v
+    }
+
+    #decodeString
+    get decodeString() {
+        return this.#decodeString
+    }
+    set decodeString(v) {
+        this.#decodeString = v
     }
 
     static sanitize(value, targetType) {
@@ -49,7 +59,7 @@ export default class TypeInitialization {
     }
 
     /**
-     * @typedef {new () => T} Constructor
+     * @typedef {(new () => T) | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
      * @param {Constructor|Array<Constructor>} type
      * @param {Boolean} showDefault
      * @param {any} value
@@ -62,7 +72,7 @@ export default class TypeInitialization {
                 value = TypeInitialization.sanitize(new type())
             }
         }
-        this.#value = value
+        this.#value = type === String ? Utility.decodeString(value) : value
         this.#showDefault = showDefault
         this.#type = type
     }

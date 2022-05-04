@@ -203,7 +203,7 @@ export default class Utility {
     static formatStringName(value) {
         return value
             .trim()
-            .replace(/(?<!\n)^(b|\n+|(?:\\r\\n)+|(?:\\n)+)/, "") // Remove leading b (for boolean values) or newlines
+            .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
     }
 }
