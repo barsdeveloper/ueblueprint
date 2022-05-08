@@ -13,6 +13,9 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /** @type {HTMLElement[]} */
     #inputContentElements
+    get inputContentElements() {
+        return this.#inputContentElements
+    }
     hasInput = true
 
     /**
@@ -24,7 +27,7 @@ export default class IInputPinTemplate extends PinTemplate {
             [...pin.querySelectorAll(".ueb-pin-input-content")]
         )
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, [pin.entity.DefaultValue])
+            this.setInputs(pin, [Utility.decodeInputString(pin.entity.DefaultValue)])
             let self = this
             this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true)
             this.onFocusOutHandler = e => {
@@ -72,16 +75,18 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
-        return this.#inputContentElements.map(element => Utility.encodeInputString(element.textContent))
+        return this.#inputContentElements.map(element => element.innerText)
     }
 
     /**
      * @param {PinElement} pin
      * @param {String[]?} values
      */
-    setInputs(pin, values = []) {
-        this.#inputContentElements.forEach((element, i) => element.innerText = Utility.decodeInputString(values[i]))
-        pin.entity.DefaultValue = this.getInput(pin)
+    setInputs(pin, values = [], updateDefaultValue = true) {
+        this.#inputContentElements.forEach((element, i) => element.innerText = values[i])
+        if (updateDefaultValue) {
+            pin.entity.DefaultValue = this.getInput(pin)
+        }
     }
 
     /**

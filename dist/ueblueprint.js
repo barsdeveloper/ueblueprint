@@ -214,6 +214,75 @@ class IInput {
 
 // @ts-check
 
+/**
+ * @template T
+ */
+class TypeInitialization {
+
+    /** @type {Constructor|Array<Constructor>} */
+    #type
+    get type() {
+        return this.#type
+    }
+    set type(v) {
+        this.#type = v;
+    }
+
+    #showDefault = true
+    get showDefault() {
+        return this.#showDefault
+    }
+    set showDefault(v) {
+        this.#showDefault = v;
+    }
+
+    /** @type {T} */
+    #value
+    get value() {
+        return this.#value
+    }
+    set value(v) {
+        this.#value = v;
+    }
+
+    static sanitize(value, targetType) {
+        if (targetType === undefined) {
+            targetType = value?.constructor;
+        }
+        let wrongType = false;
+        if (targetType && value?.constructor !== targetType && !(value instanceof targetType)) {
+            wrongType = true;
+        }
+        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
+            value = value.valueOf(); // Get the relative primitive value
+        }
+        if (wrongType) {
+            return new targetType(value)
+        }
+        return value
+    }
+
+    /**
+     * @typedef {(new () => T) | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
+     * @param {Constructor|Array<Constructor>} type
+     * @param {Boolean} showDefault
+     * @param {any} value
+     */
+    constructor(type, showDefault = true, value = undefined) {
+        if (value === undefined) {
+            if (type instanceof Array) {
+                value = [];
+            } else {
+                value = TypeInitialization.sanitize(new type());
+            }
+        }
+        this.#showDefault = showDefault;
+        this.#type = type;
+    }
+}
+
+// @ts-check
+
 class Utility {
 
     static sigmoid(x, curvature = 1.7) {
@@ -378,7 +447,6 @@ class Utility {
         return value
             .replace(/\n$/, "") // Remove trailing newline
             .replaceAll("\u00A0", " ") // Replace special space symbol
-            .replaceAll("\r\n", String.raw`\r\n`) // Replace newline with \r\n
             .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
     }
 
@@ -387,8 +455,7 @@ class Utility {
      */
     static decodeInputString(value) {
         return value
-            .replaceAll(" ", "\u00A0") // Replace special space symbol
-            .replaceAll(String.raw`\r\n`, "<br />\n") // Replace newline with \r\n
+            .replaceAll("\\r\n", "\n") // Replace newline with \r\n
     }
 
     /**
@@ -417,84 +484,6 @@ class Utility {
             .trim()
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
-    }
-}
-
-// @ts-check
-
-/**
- * @template T
- */
-class TypeInitialization {
-
-    /** @type {Constructor|Array<Constructor>} */
-    #type
-    get type() {
-        return this.#type
-    }
-    set type(v) {
-        this.#type = v;
-    }
-
-    #showDefault = true
-    get showDefault() {
-        return this.#showDefault
-    }
-    set showDefault(v) {
-        this.#showDefault = v;
-    }
-
-    /** @type {T} */
-    #value
-    get value() {
-        return this.#value
-    }
-    set value(v) {
-        this.#value = v;
-    }
-
-    #decodeString
-    get decodeString() {
-        return this.#decodeString
-    }
-    set decodeString(v) {
-        this.#decodeString = v;
-    }
-
-    static sanitize(value, targetType) {
-        if (targetType === undefined) {
-            targetType = value?.constructor;
-        }
-        let wrongType = false;
-        if (targetType && value?.constructor !== targetType && !(value instanceof targetType)) {
-            wrongType = true;
-        }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = value.valueOf(); // Get the relative primitive value
-        }
-        if (wrongType) {
-            return new targetType(value)
-        }
-        return value
-    }
-
-    /**
-     * @typedef {(new () => T) | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
-     * @param {Constructor|Array<Constructor>} type
-     * @param {Boolean} showDefault
-     * @param {any} value
-     */
-    constructor(type, showDefault = true, value = undefined) {
-        if (value === undefined) {
-            if (type instanceof Array) {
-                value = [];
-            } else {
-                value = TypeInitialization.sanitize(new type());
-            }
-        }
-        this.#value = type === String ? Utility.decodeString(value) : value;
-        this.#showDefault = showDefault;
-        this.#type = type;
     }
 }
 
@@ -2960,6 +2949,9 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @type {HTMLElement[]} */
     #inputContentElements
+    get inputContentElements() {
+        return this.#inputContentElements
+    }
     hasInput = true
 
     /**
@@ -2971,7 +2963,7 @@ class IInputPinTemplate extends PinTemplate {
             [...pin.querySelectorAll(".ueb-pin-input-content")]
         );
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, [pin.entity.DefaultValue]);
+            this.setInputs(pin, [Utility.decodeInputString(pin.entity.DefaultValue)]);
             let self = this;
             this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true);
             this.onFocusOutHandler = e => {
@@ -3019,16 +3011,18 @@ class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
-        return this.#inputContentElements.map(element => Utility.encodeInputString(element.textContent))
+        return this.#inputContentElements.map(element => element.innerText)
     }
 
     /**
      * @param {PinElement} pin
      * @param {String[]?} values
      */
-    setInputs(pin, values = []) {
-        this.#inputContentElements.forEach((element, i) => element.innerText = Utility.decodeInputString(values[i]));
-        pin.entity.DefaultValue = this.getInput(pin);
+    setInputs(pin, values = [], updateDefaultValue = true) {
+        this.#inputContentElements.forEach((element, i) => element.innerText = values[i]);
+        if (updateDefaultValue) {
+            pin.entity.DefaultValue = this.getInput(pin);
+        }
     }
 
     /**
@@ -3151,11 +3145,18 @@ class RealPinTemplate extends IInputPinTemplate {
      */
     setInputs(pin, values = []) {
         let num = parseFloat(values.length ? values[0] : this.getInput(pin));
+        let updateDefaultValue = true;
         if (isNaN(num)) {
-            num = parseFloat(pin.entity.DefaultValue != "" ? pin.entity.DefaultValue : pin.entity.AutogeneratedDefaultValue);
+            num = parseFloat(pin.entity.DefaultValue != ""
+                ? pin.entity.DefaultValue
+                : pin.entity.AutogeneratedDefaultValue);
+        }
+        if (isNaN(num)) {
+            num = 0;
+            updateDefaultValue = false;
         }
         values[0] = Utility.minDecimals(num);
-        super.setInputs(pin, values);
+        super.setInputs(pin, values, updateDefaultValue);
     }
 }
 
@@ -3178,6 +3179,58 @@ class StringPinTemplate extends IInputPinTemplate {
 // @ts-check
 
 /**
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class NamePinTemplate extends IInputPinTemplate {
+
+    /** @type {(e : InputEvent) => void} */
+    onInputHandler
+
+    /**
+     * @param {PinElement} pin
+     */
+    setup(pin) {
+        super.setup(pin);
+        this.onInputHandler = e => {
+            e.stopPropagation();
+            if (
+                e.inputType == "insertParagraph"
+                || e.inputType == "insertLineBreak"
+                || (e.inputType == "insertFromPaste" && /** @type {HTMLElement} */(e.target).innerText.includes("\n"))
+            ) {
+                /** @type {HTMLElement} */(e.target).blur(); // Loose focus in case it tries to insert newline
+                this.inputContentElements.forEach(element => element.innerText = element.innerText.replaceAll("\n", ""));
+            }
+        };
+        this.inputContentElements.forEach(element => {
+            element.addEventListener("input", /** @type {(e : Event) => void} */(this.onInputHandler));
+        });
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    cleanup(pin) {
+        super.cleanup(pin);
+        this.inputContentElements.forEach(element => {
+            element.removeEventListener("input", /** @type {(e : Event) => void} */(this.onInputHandler));
+        });
+    }
+
+    /**
+     * @param {PinElement} pin
+     * @param {String[]?} values
+     */
+    setInputs(pin, values = [], updateDefaultValue = true) {
+        values = values.map(value => value.replaceAll("\n", ""));
+        super.setInputs(pin, values, updateDefaultValue);
+    }
+}
+
+// @ts-check
+
+/**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
  * @typedef {import("../entity/PinEntity").default} PinEntity
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
@@ -3192,6 +3245,7 @@ class PinElement extends IElement {
     static #typeTemplateMap = {
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
+        "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
     }

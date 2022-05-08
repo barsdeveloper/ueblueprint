@@ -166,7 +166,6 @@ export default class Utility {
         return value
             .replace(/\n$/, "") // Remove trailing newline
             .replaceAll("\u00A0", " ") // Replace special space symbol
-            .replaceAll("\r\n", String.raw`\r\n`) // Replace newline with \r\n
             .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
     }
 
@@ -175,8 +174,7 @@ export default class Utility {
      */
     static decodeInputString(value) {
         return value
-            .replaceAll(" ", "\u00A0") // Replace special space symbol
-            .replaceAll(String.raw`\r\n`, "<br />\n") // Replace newline with \r\n
+            .replaceAll("\\r\n", "\n") // Replace newline with \r\n
     }
 
     /**

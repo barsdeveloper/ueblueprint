@@ -8,6 +8,7 @@ import PinTemplate from "../template/PinTemplate"
 import RealPinTemplate from "../template/RealPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 import Utility from "../Utility"
+import NamePinTemplate from "../template/NamePinTemplate"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -24,6 +25,7 @@ export default class PinElement extends IElement {
     static #typeTemplateMap = {
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
+        "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
     }

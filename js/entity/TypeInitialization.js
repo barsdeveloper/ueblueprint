@@ -1,7 +1,5 @@
 // @ts-check
 
-import Utility from "../Utility"
-
 /**
  * @template T
  */
@@ -31,14 +29,6 @@ export default class TypeInitialization {
     }
     set value(v) {
         this.#value = v
-    }
-
-    #decodeString
-    get decodeString() {
-        return this.#decodeString
-    }
-    set decodeString(v) {
-        this.#decodeString = v
     }
 
     static sanitize(value, targetType) {
@@ -72,7 +62,6 @@ export default class TypeInitialization {
                 value = TypeInitialization.sanitize(new type())
             }
         }
-        this.#value = type === String ? Utility.decodeString(value) : value
         this.#showDefault = showDefault
         this.#type = type
     }
