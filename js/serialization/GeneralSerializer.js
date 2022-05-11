@@ -3,8 +3,18 @@
 import Grammar from "./Grammar"
 import ISerializer from "./ISerializer"
 
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ */
+
+/**
+ * @template {IEntity} T
+ */
 export default class GeneralSerializer extends ISerializer {
 
+    /**
+     * @param {new () => T} entityType
+     */
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`)
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter)
@@ -12,7 +22,6 @@ export default class GeneralSerializer extends ISerializer {
     }
 
     /**
-     * @template T
      * @param {String} value
      * @returns {T}
      */
@@ -26,12 +35,12 @@ export default class GeneralSerializer extends ISerializer {
     }
 
     /**
-     * @template T
      * @param {T} object
+     * @param {Boolean} insideString
      * @returns {String}
      */
-    write(object) {
-        let result = this.wrap(this.subWrite([], object))
+    write(object, insideString = false) {
+        let result = this.wrap(this.subWrite([], object, insideString))
         return result
     }
 }

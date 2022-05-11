@@ -22,6 +22,9 @@ export default class ObjectSerializer extends ISerializer {
         return super.showProperty(object, attributeKey, attributeValue)
     }
 
+    /**
+     * @param {String} value
+     */
     read(value) {
         const parseResult = ISerializer.grammar.Object.parse(value)
         if (!parseResult.status) {
@@ -32,7 +35,6 @@ export default class ObjectSerializer extends ISerializer {
 
     /**
      * @param {String} value
-     * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
         const parseResult = ISerializer.grammar.MultipleObject.parse(value)
@@ -44,16 +46,17 @@ export default class ObjectSerializer extends ISerializer {
 
     /**
      * @param {ObjectEntity} object
+     * @param {Boolean} insideString
      */
-    write(object) {
-        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(object.Name, "Name")}
-${this.subWrite([], object)
+    write(object, insideString) {
+        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(object.Name, ["Name"], insideString)}
+${this.subWrite([], object, insideString)
             + object
                 .CustomProperties.map(pin =>
                     this.separator
                     + this.prefix
                     + "CustomProperties "
-                    + SerializerFactory.getSerializer(PinEntity).write(pin)
+                    + SerializerFactory.getSerializer(PinEntity).serialize(pin)
                 )
                 .join("")}
 End Object\n`

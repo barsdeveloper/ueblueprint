@@ -1,13 +1,15 @@
 // @ts-check
 
+import ISerializable from "./ISerializable"
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 
-export default class IEntity {
+export default class IEntity extends ISerializable {
 
     static attributes = {}
 
     constructor(values) {
+        super()
         /**
          * @param {Object} target
          * @param {Object} properties
@@ -46,6 +48,7 @@ export default class IEntity {
                 const value = Utility.objectGet(values, [property])
                 if (value !== undefined) {
                     target[property] = TypeInitialization.sanitize(value, defaultType)
+                    // We have a value, need nothing more
                     continue
                 }
                 if (defaultValue instanceof TypeInitialization) {

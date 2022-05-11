@@ -1,5 +1,7 @@
 // @ts-check
 
+import SerializedType from "./SerializedType"
+
 /**
  * @template T
  */
@@ -36,20 +38,21 @@ export default class TypeInitialization {
             targetType = value?.constructor
         }
         let wrongType = false
-        if (targetType && value?.constructor !== targetType && !(value instanceof targetType)) {
-            wrongType = true
+        if (
+            targetType
+            && targetType !== SerializedType
+            && !(value?.constructor === targetType || value instanceof targetType)
+        ) {
+            value = new targetType(value)
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {
             value = value.valueOf() // Get the relative primitive value
-        }
-        if (wrongType) {
-            return new targetType(value)
         }
         return value
     }
 
     /**
-     * @typedef {(new () => T) | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
+     * @typedef {(new () => T) | SerializedType | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
      * @param {Constructor|Array<Constructor>} type
      * @param {Boolean} showDefault
      * @param {any} value
@@ -58,6 +61,8 @@ export default class TypeInitialization {
         if (value === undefined) {
             if (type instanceof Array) {
                 value = []
+            } else if (type instanceof SerializedType) {
+                value = ""
             } else {
                 value = TypeInitialization.sanitize(new type())
             }

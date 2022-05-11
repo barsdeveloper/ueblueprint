@@ -6,6 +6,7 @@ import IdentifierEntity from "../entity/IdentifierEntity"
 import IntegerEntity from "../entity/IntegerEntity"
 import InvariantTextEntity from "../entity/InvariantTextEntity"
 import KeyBindingEntity from "../entity/KeyBindingEntity"
+import LinearColorEntity from "../entity/LinearColorEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
@@ -13,8 +14,13 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import SerializedType from "../entity/SerializedType"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
+
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ */
 
 let P = Parsimmon
 
@@ -25,6 +31,27 @@ export default class Grammar {
     static getGrammarForType(r, attributeType, defaultGrammar) {
         if (attributeType instanceof TypeInitialization) {
             attributeType = attributeType.type
+            return Grammar.getGrammarForType(r, attributeType, defaultGrammar)
+        }
+        if (attributeType instanceof SerializedType) {
+            const noStringTypes = attributeType.types.filter(t => t !== String)
+            let result = P.alt(
+                ...noStringTypes.map(t =>
+                    Grammar.getGrammarForType(r, t).wrap(P.string('"'), P.string('"')).map(
+                        /**
+                         * @param {IEntity} entity
+                         */
+                        entity => {
+                            entity.setShowAsString(true) // Showing as string because it is inside a SerializedType
+                            return entity
+                        }
+                    )
+                )
+            )
+            if (noStringTypes.length < attributeType.types.length) {
+                result = result.or(r.String) // Separated because it cannot be wrapped into " and "
+            }
+            return result
         }
         switch (Utility.getType(attributeType)) {
             case Boolean:
@@ -47,6 +74,8 @@ export default class Grammar {
                 return r.InvariantText
             case PinReferenceEntity:
                 return r.PinReference
+            case LinearColorEntity:
+                return r.LinearColor
             case FunctionReferenceEntity:
                 return r.FunctionReference
             case PinEntity:
@@ -163,7 +192,7 @@ export default class Grammar {
         r.None,
         ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
             .flatMap(referencePath => [
-                referencePath, // version having just path
+                referencePath, // Version having just path
                 referencePath.trim(P.string('"')) // Version having path surround with double quotes
             ]),
         P.seqMap(
@@ -221,6 +250,8 @@ export default class Grammar {
             pinGuid: pinGuid
         })
     )
+
+    LinearColor = r => Grammar.createMultiAttributeGrammar(r, LinearColorEntity)
 
     FunctionReference = r => Grammar.createMultiAttributeGrammar(r, FunctionReferenceEntity)
 

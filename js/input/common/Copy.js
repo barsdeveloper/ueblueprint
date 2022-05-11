@@ -26,7 +26,7 @@ export default class Copy extends IInput {
     }
 
     copied() {
-        const value = this.blueprint.getNodes(true).map(node => this.serializer.write(node.entity)).join("\n")
+        const value = this.blueprint.getNodes(true).map(node => this.serializer.serialize(node.entity, false)).join("\n")
         navigator.clipboard.writeText(value)
     }
 }

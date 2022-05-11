@@ -32,6 +32,7 @@
     "terser": "^5.9.0"
   },
   "dependencies": {
+    "@easylogic/colorpicker": "^1.10.11",
     "parsimmon": "^1.18.0"
   }
 }

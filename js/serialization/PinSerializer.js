@@ -10,11 +10,15 @@ export default class PinSerializer extends GeneralSerializer {
         super(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
     }
 
-    writeValue(value, fullKey) {
-        if (value?.constructor === String && fullKey == "DefaultValue") {
+    /**
+     * @param {String[]} fullKey
+     * @param {Boolean} insideString
+     */
+    writeValue(value, fullKey, insideString) {
+        if (value?.constructor === String && fullKey.length == 1 && fullKey[0] == "DefaultValue") {
             // @ts-expect-error
             return `"${Utility.encodeInputString(value)}"`
         }
-        return super.writeValue(value, fullKey)
+        return super.writeValue(value, fullKey, insideString)
     }
 }

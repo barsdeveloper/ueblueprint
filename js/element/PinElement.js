@@ -1,14 +1,15 @@
 // @ts-check
 
 import BoolPinTemplate from "../template/BoolPinTemplate"
+import ColorPinTemplate from "../template/ColorPinTemplate"
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
 import LinkElement from "./LinkElement"
+import NamePinTemplate from "../template/NamePinTemplate"
 import PinTemplate from "../template/PinTemplate"
 import RealPinTemplate from "../template/RealPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 import Utility from "../Utility"
-import NamePinTemplate from "../template/NamePinTemplate"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -28,6 +29,21 @@ export default class PinElement extends IElement {
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
+        "struct": {
+            "/Script/CoreUObject.LinearColor": ColorPinTemplate,
+        }
+    }
+
+    /**
+     * @param {PinEntity} pinEntity
+     * @return {PinTemplate}
+     */
+    static getTypeTemplate(pinEntity) {
+        let result = PinElement.#typeTemplateMap[pinEntity.getType()]
+        if (result.constructor === Object) {
+            result = result[pinEntity.getSubCategory()]
+        }
+        return result ?? PinTemplate
     }
 
     #color = ""
@@ -46,7 +62,8 @@ export default class PinElement extends IElement {
     constructor(entity) {
         super(
             entity,
-            new (PinElement.#typeTemplateMap[entity.getType()] ?? PinTemplate)()
+            // @ts-expect-error
+            new (PinElement.getTypeTemplate(entity))()
         )
     }
 

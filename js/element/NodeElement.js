@@ -28,7 +28,7 @@ export default class NodeElement extends ISelectableDraggableElement {
      */
     static fromSerializedObject(str) {
         str = str.trim()
-        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str)
+        let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str)
         return new NodeElement(entity)
     }
 

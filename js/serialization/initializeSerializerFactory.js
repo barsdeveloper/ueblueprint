@@ -8,6 +8,7 @@ import IdentifierEntity from "../entity/IdentifierEntity"
 import IntegerEntity from "../entity/IntegerEntity"
 import InvariantTextEntity from "../entity/InvariantTextEntity"
 import KeyBindingEntity from "../entity/KeyBindingEntity"
+import LinearColorEntity from "../entity/LinearColorEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
 import ObjectEntity from "../entity/ObjectEntity"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
@@ -21,6 +22,13 @@ import ToStringSerializer from "./ToStringSerializer"
 
 export default function initializeSerializerFactory() {
 
+    const bracketsWrapped = v => `(${v})`
+
+    SerializerFactory.registerSerializer(
+        LinearColorEntity,
+        new GeneralSerializer(bracketsWrapped, LinearColorEntity)
+    )
+
     SerializerFactory.registerSerializer(
         ObjectEntity,
         new ObjectSerializer()
@@ -33,12 +41,12 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
-        new GeneralSerializer(v => `(${v})`, FunctionReferenceEntity, "", ",", false)
+        new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
     )
 
     SerializerFactory.registerSerializer(
         KeyBindingEntity,
-        new GeneralSerializer(v => `(${v})`, KeyBindingEntity, "", ",", false)
+        new GeneralSerializer(bracketsWrapped, KeyBindingEntity)
     )
 
     SerializerFactory.registerSerializer(
@@ -64,7 +72,9 @@ export default function initializeSerializerFactory() {
                 objectReference.path
                     ? objectReference.type ? `'"${objectReference.path}"'` : `"${objectReference.path}"`
                     : ""
-            ))
+            ),
+            ObjectReferenceEntity
+        )
     )
 
     SerializerFactory.registerSerializer(IdentifierEntity, new ToStringSerializer(IdentifierEntity))
