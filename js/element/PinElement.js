@@ -1,9 +1,9 @@
 // @ts-check
 
 import BoolPinTemplate from "../template/BoolPinTemplate"
-import ColorPinTemplate from "../template/ColorPinTemplate"
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
+import LinearColorPinTemplate from "../template/LinearColorPinTemplate"
 import LinkElement from "./LinkElement"
 import NamePinTemplate from "../template/NamePinTemplate"
 import PinTemplate from "../template/PinTemplate"
@@ -30,7 +30,7 @@ export default class PinElement extends IElement {
         "real": RealPinTemplate,
         "string": StringPinTemplate,
         "struct": {
-            "/Script/CoreUObject.LinearColor": ColorPinTemplate,
+            "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
         }
     }
 
