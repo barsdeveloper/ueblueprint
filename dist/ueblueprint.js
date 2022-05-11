@@ -212,6 +212,22 @@ class IInput {
     }
 }
 
+class ISerializable {
+
+    #showAsString = false
+
+    isShownAsString() {
+        return this.#showAsString
+    }
+
+    /**
+     * @param {Boolean} v
+     */
+    setShowAsString(v) {
+        this.#showAsString = v;
+    }
+}
+
 // @ts-check
 
 /**
@@ -513,22 +529,6 @@ class Utility {
             .trim()
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
-    }
-}
-
-class ISerializable {
-
-    #showAsString = false
-
-    isShownAsString() {
-        return this.#showAsString
-    }
-
-    /**
-     * @param {Boolean} v
-     */
-    setShowAsString(v) {
-        this.#showAsString = v;
     }
 }
 
@@ -1606,7 +1606,7 @@ class Copy extends IInput {
     }
 
     copied() {
-        const value = this.blueprint.getNodes(true).map(node => this.serializer.serialize(node.entity)).join("\n");
+        const value = this.blueprint.getNodes(true).map(node => this.serializer.serialize(node.entity, false)).join("\n");
         navigator.clipboard.writeText(value);
     }
 }
