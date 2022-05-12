@@ -44,10 +44,17 @@ export default class NamePinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     */
+    getInputs(pin) {
+        return this.inputContentElements.map(element => element.textContent) // textContent for performance reason
+    }
+
+    /**
+     * @param {PinElement} pin
      * @param {String[]?} values
      */
     setInputs(pin, values = [], updateDefaultValue = true) {
-        values = values.map(value => value.replaceAll("\n", ""))
+        values = values.map(value => value.replaceAll("\n", "")) // get rid of the new lines
         super.setInputs(pin, values, updateDefaultValue)
     }
 }

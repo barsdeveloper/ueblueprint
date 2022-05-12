@@ -5,6 +5,7 @@ import IInputPinTemplate from "./IInputPinTemplate"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity)}
  */
 
 export default class LinearColorPinTemplate extends IInputPinTemplate {
@@ -18,24 +19,15 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     setup(pin) {
         super.setup(pin)
         this.#input = pin.querySelector(".ueb-pin-input")
+        this.#input.dataset.linearColor = /** @type {LinearColorEntity} */(pin.entity.DefaultValue).toString()
         let self = this
-        this.onChangeHandler = _ => pin.entity.DefaultValue = self.#input.checked ? "true" : "false"
-        this.#input.addEventListener("change", this.onChangeHandler)
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    cleanup(pin) {
-        super.cleanup(pin)
-        this.#input.removeEventListener("change", this.onChangeHandler)
     }
 
     /**
      * @param {PinElement} pin
      */
     getInputs(pin) {
-        return [this.#input.checked ? "true" : "false"]
+        return [this.#input.dataset.linearColor]
     }
 
     /**
@@ -43,8 +35,6 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
      * @param {String[]?} value
      */
     setInputs(pin, value = []) {
-        pin.entity.DefaultValue = value.length ? value[0] : this.getInput(pin)
-        this.#input.checked = pin.entity.DefaultValue == "true"
     }
 
     /**
@@ -53,7 +43,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-pin-input" ${pin.entity.DefaultValue == "true" ? "checked" : ""}></span>
+                <span class="ueb-pin-input"></span>
             `
         }
         return super.renderInput(pin)

@@ -16,7 +16,6 @@ export default class IInputPinTemplate extends PinTemplate {
     get inputContentElements() {
         return this.#inputContentElements
     }
-    hasInput = true
 
     /**
      * @param {PinElement} pin
@@ -27,7 +26,9 @@ export default class IInputPinTemplate extends PinTemplate {
             [...pin.querySelectorAll(".ueb-pin-input-content")]
         )
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, [Utility.decodeInputString(pin.entity.DefaultValue)])
+            this.setInputs(pin, [
+                Utility.decodeInputString(/** @type {String} */(pin.entity.DefaultValue))
+            ])
             let self = this
             this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true)
             this.onFocusOutHandler = e => {
@@ -75,7 +76,9 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
-        return this.#inputContentElements.map(element => element.innerText)
+        return this.#inputContentElements.map(element =>
+            // Faster than innerText which causes reflow
+            element.innerHTML.replaceAll("<br>", "\n"))
     }
 
     /**
@@ -96,7 +99,7 @@ export default class IInputPinTemplate extends PinTemplate {
         if (pin.isInput()) {
             return html`
                 <div class="ueb-pin-input">
-                    <div class="ueb-pin-input-content" role="textbox" contenteditable="true"></div>
+                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"></span>
                 </div>
             `
         }
