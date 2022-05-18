@@ -98,37 +98,45 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkElement} link
      */
     applyPins(link) {
-        if (link.sourcePin) {
-            link.dataset.source = link.sourcePin.GetPinId().toString()
-        }
-        if (link.destinationPin) {
-            link.dataset.destination = link.destinationPin.GetPinId().toString()
-        }
+        requestAnimationFrame(_ => {
+            if (link.sourcePin) {
+                link.dataset.source = link.sourcePin.GetPinId().toString()
+            }
+            if (link.destinationPin) {
+                link.dataset.destination = link.destinationPin.GetPinId().toString()
+            }
+        })
     }
 
     /**
      * @param {LinkElement} link
      */
     applyStartDragging(link) {
-        link.blueprint.dataset.creatingLink = "true"
-        link.classList.add("ueb-link-dragging")
+        requestAnimationFrame(_ => {
+            link.blueprint.dataset.creatingLink = "true"
+            link.classList.add("ueb-link-dragging")
+        })
     }
 
     /**
      * @param {LinkElement} link
      */
     applyFinishDragging(link) {
-        link.blueprint.dataset.creatingLink = "false"
-        link.classList.remove("ueb-link-dragging")
+        requestAnimationFrame(_ => {
+            link.blueprint.dataset.creatingLink = "false"
+            link.classList.remove("ueb-link-dragging")
+        })
     }
 
     /**
      * @param {LinkElement} link
      */
     applySourceLocation(link) {
-        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0")
-        link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
-        link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
+        requestAnimationFrame(_ => {
+            link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0")
+            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
+            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
+        })
     }
 
     /**
@@ -143,31 +151,31 @@ export default class LinkTemplate extends ITemplate {
         const xInverted = link.originatesFromInput
             ? link.sourceLocation[0] < link.destinationLocation[0]
             : link.destinationLocation[0] < link.sourceLocation[0]
-        let start = dx < width // If under minimum width
+        const start = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0 // Otherwise start from the beginning
-
-        link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
-        link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
-        link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]))
-        link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]))
-        link.style.setProperty("margin-left", `-${start}px`)
-        if (xInverted) {
-            start += fillRatio * 100
-        }
-        link.style.setProperty("--ueb-start-percentage", `${start}%`)
+        const startPercentage = xInverted ? start + fillRatio * 100 : start
         const c1
-            = start
+            = startPercentage
             + (xInverted
                 ? LinkTemplate.c1DecreasingValue(width)
                 : 10
             )
             * fillRatio
-        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start
+        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + startPercentage
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width))
-        const d = Configuration.linkRightSVGPath(start, c1, c2)
-        // TODO move to CSS when Firefox will support property d and css will have enough functions
-        link.pathElement?.setAttribute("d", d)
+        const d = Configuration.linkRightSVGPath(startPercentage, c1, c2)
+
+        requestAnimationFrame(_ => {
+            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
+            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
+            link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]))
+            link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]))
+            link.style.setProperty("--ueb-start-percentage", `${startPercentage}%`)
+            link.style.setProperty("margin-left", `-${start}px`)
+            // TODO move to CSS when Firefox will support property d and css will have enough functions
+            link.pathElement?.setAttribute("d", d)
+        })
     }
 
     /**
@@ -175,8 +183,10 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {
-        link.querySelectorAll("ueb-link-message").forEach(element => element.remove())
-        link.appendChild(linkMessage)
+        requestAnimationFrame(_ => {
+            link.querySelectorAll("ueb-link-message").forEach(element => element.remove())
+            link.appendChild(linkMessage)
+        })
         link.linkMessageElement = linkMessage
     }
 }

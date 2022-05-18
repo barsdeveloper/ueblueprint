@@ -81,8 +81,6 @@ export default class BlueprintTemplate extends ITemplate {
         return html`
             <div class="ueb-viewport-body">
                 <div class="ueb-grid" style="
-                    --ueb-additional-x:${sanitizeText(element.additional[0])};
-                    --ueb-additional-y:${sanitizeText(element.additional[1])};
                     --ueb-translate-x:${sanitizeText(element.translateValue[0])};
                     --ueb-translate-y:${sanitizeText(element.translateValue[1])};
                 ">
@@ -118,13 +116,14 @@ export default class BlueprintTemplate extends ITemplate {
         Object.entries({
             "--ueb-font-size": sanitizeText(Configuration.fontSize),
             "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
+            "--ueb-grid-expand": `${sanitizeText(Configuration.expandGridSize)}px`,
             "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
             "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
             "--ueb-grid-set": sanitizeText(Configuration.gridSet),
             "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
             "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
             "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
+            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth),
         }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]))
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header')
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay')
@@ -136,6 +135,7 @@ export default class BlueprintTemplate extends ITemplate {
         blueprint.linksContainerElement.append(...blueprint.getLinks())
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]")
         blueprint.nodesContainerElement.append(...blueprint.getNodes())
+        blueprint.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
         this.applyEndDragScrolling(blueprint)
     }
 
@@ -144,17 +144,11 @@ export default class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyZoom(blueprint, newZoom) {
-        blueprint.classList.remove("ueb-zoom-" + sanitizeText(blueprint.zoom))
-        blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom))
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyExpand(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText(blueprint.additional[0]))
-        blueprint.gridElement.style.setProperty("--ueb-additional-y", sanitizeText(blueprint.additional[1]))
+        const oldZoom = blueprint.zoom
+        requestAnimationFrame(_ => {
+            blueprint.classList.remove("ueb-zoom-" + sanitizeText(oldZoom))
+            blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom))
+        })
     }
 
     /**
@@ -162,8 +156,11 @@ export default class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyTranlate(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(blueprint.translateValue[0]))
-        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(blueprint.translateValue[1]))
+        const translate = [...blueprint.translateValue]
+        //requestAnimationFrame(_ => {
+        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(translate[0]))
+        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(translate[1]))
+        //})
     }
 
     /**
@@ -171,7 +168,9 @@ export default class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyStartDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = "true"
+        requestAnimationFrame(_ => {
+            blueprint.dataset.dragScrolling = "true"
+        })
     }
 
     /**
@@ -179,7 +178,26 @@ export default class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyEndDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = "false"
+        requestAnimationFrame(_ => {
+            blueprint.dataset.dragScrolling = "false"
+        })
+    }
+
+    /**
+     * @param {Blueprint} blueprint
+     * @param {Boolean} smooth
+     */
+    applyScroll(blueprint, smooth = false) {
+        let scrollValue = [...blueprint.getScroll()]
+        if (!smooth) {
+            blueprint.viewportElement.scroll(scrollValue[0], scrollValue[1])
+        } else {
+            blueprint.viewportElement.scroll({
+                left: scrollValue[0],
+                top: scrollValue[1],
+                behavior: "smooth"
+            })
+        }
     }
 
     /**

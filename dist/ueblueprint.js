@@ -212,19 +212,73 @@ class IInput {
     }
 }
 
-class ISerializable {
+// @ts-check
 
-    #showAsString = false
+class Observable {
 
-    isShownAsString() {
-        return this.#showAsString
+    /** @type {Map<String, Object[]>} */
+    #observers = new Map()
+
+    /**
+     * @param {String} property
+     * @param {Object} observer
+     */
+    subscribe(property, observer) {
+        const observers = this.#observers;
+        if (observers.has(property)) {
+            if (!observers.get(property).includes(observer)) {
+                observers.get(property).push(observer);
+            }
+        } else {
+            observers.set(property, [observer]);
+        }
+        if ("value" in (Object.getOwnPropertyDescriptor(this, property) ?? {})) {
+            // It is a regular value
+            let holderKey = Symbol.for(property + "Holder");
+            Object.defineProperties(this, {
+                [holderKey]: {
+                    value: this[property],
+                    configurable: true,
+                    enumerable: false,
+                    writable: true,
+                },
+                [property]: {
+                    configurable: true,
+                    enumerable: true,
+                    get() {
+                        return this[holderKey]
+                    },
+                    set(v) {
+                        this[holderKey] = v;
+                        observers.get(property).forEach(observer => {
+                            observer(v);
+                        });
+                    },
+                }
+            });
+        }
     }
 
     /**
-     * @param {Boolean} v
+     * @param {String} property
+     * @param {Object} observer
      */
-    setShowAsString(v) {
-        this.#showAsString = v;
+    unsubscribe(property, observer) {
+        let observers = this.#observers.get(property);
+        if (!observers?.includes(observer)) {
+            return false
+        }
+        observers.splice(observers.indexOf(observer), 1);
+        if (observers.length == 0) {
+            Object.defineProperty(this, property, {
+                value: this[property],
+                configurable: true,
+                enumerable: true,
+                writable: true,
+            });
+            delete this[Symbol.for(property + "Holder")];
+        }
+        return true
     }
 }
 
@@ -534,9 +588,10 @@ class Utility {
 
 // @ts-check
 
-class IEntity extends ISerializable {
+class IEntity extends Observable {
 
     static attributes = {}
+    #showAsString = false
 
     constructor(values) {
         super();
@@ -607,6 +662,17 @@ class IEntity extends ISerializable {
             };
         }
         defineAllAttributes(this, attributes, values);
+    }
+
+    isShownAsString() {
+        return this.#showAsString
+    }
+
+    /**
+     * @param {Boolean} v
+     */
+    setShowAsString(v) {
+        this.#showAsString = v;
     }
 }
 
@@ -2525,37 +2591,45 @@ class LinkTemplate extends ITemplate {
      * @param {LinkElement} link
      */
     applyPins(link) {
-        if (link.sourcePin) {
-            link.dataset.source = link.sourcePin.GetPinId().toString();
-        }
-        if (link.destinationPin) {
-            link.dataset.destination = link.destinationPin.GetPinId().toString();
-        }
+        requestAnimationFrame(_ => {
+            if (link.sourcePin) {
+                link.dataset.source = link.sourcePin.GetPinId().toString();
+            }
+            if (link.destinationPin) {
+                link.dataset.destination = link.destinationPin.GetPinId().toString();
+            }
+        });
     }
 
     /**
      * @param {LinkElement} link
      */
     applyStartDragging(link) {
-        link.blueprint.dataset.creatingLink = "true";
-        link.classList.add("ueb-link-dragging");
+        requestAnimationFrame(_ => {
+            link.blueprint.dataset.creatingLink = "true";
+            link.classList.add("ueb-link-dragging");
+        });
     }
 
     /**
      * @param {LinkElement} link
      */
     applyFinishDragging(link) {
-        link.blueprint.dataset.creatingLink = "false";
-        link.classList.remove("ueb-link-dragging");
+        requestAnimationFrame(_ => {
+            link.blueprint.dataset.creatingLink = "false";
+            link.classList.remove("ueb-link-dragging");
+        });
     }
 
     /**
      * @param {LinkElement} link
      */
     applySourceLocation(link) {
-        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0");
-        link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
-        link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
+        requestAnimationFrame(_ => {
+            link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0");
+            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
+            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
+        });
     }
 
     /**
@@ -2569,31 +2643,31 @@ class LinkTemplate extends ITemplate {
         const xInverted = link.originatesFromInput
             ? link.sourceLocation[0] < link.destinationLocation[0]
             : link.destinationLocation[0] < link.sourceLocation[0];
-        let start = dx < width // If under minimum width
+        const start = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0; // Otherwise start from the beginning
-
-        link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
-        link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
-        link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]));
-        link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]));
-        link.style.setProperty("margin-left", `-${start}px`);
-        if (xInverted) {
-            start += fillRatio * 100;
-        }
-        link.style.setProperty("--ueb-start-percentage", `${start}%`);
+        const startPercentage = xInverted ? start + fillRatio * 100 : start;
         const c1
-            = start
+            = startPercentage
             + (xInverted
                 ? LinkTemplate.c1DecreasingValue(width)
                 : 10
             )
             * fillRatio;
-        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start;
+        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + startPercentage;
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width));
-        const d = Configuration.linkRightSVGPath(start, c1, c2);
-        // TODO move to CSS when Firefox will support property d and css will have enough functions
-        link.pathElement?.setAttribute("d", d);
+        const d = Configuration.linkRightSVGPath(startPercentage, c1, c2);
+
+        requestAnimationFrame(_ => {
+            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
+            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
+            link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]));
+            link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]));
+            link.style.setProperty("--ueb-start-percentage", `${startPercentage}%`);
+            link.style.setProperty("margin-left", `-${start}px`);
+            // TODO move to CSS when Firefox will support property d and css will have enough functions
+            link.pathElement?.setAttribute("d", d);
+        });
     }
 
     /**
@@ -2601,8 +2675,10 @@ class LinkTemplate extends ITemplate {
      * @param {LinkMessageElement} linkMessage
      */
     applyLinkMessage(link, linkMessage) {
-        link.querySelectorAll("ueb-link-message").forEach(element => element.remove());
-        link.appendChild(linkMessage);
+        requestAnimationFrame(_ => {
+            link.querySelectorAll("ueb-link-message").forEach(element => element.remove());
+            link.appendChild(linkMessage);
+        });
         link.linkMessageElement = linkMessage;
     }
 }
@@ -3098,11 +3174,13 @@ class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     applyConnected(pin) {
-        if (pin.isLinked()) {
-            pin.classList.add("ueb-pin-fill");
-        } else {
-            pin.classList.remove("ueb-pin-fill");
-        }
+        requestAnimationFrame(_ => {
+            if (pin.isLinked()) {
+                pin.classList.add("ueb-pin-fill");
+            } else {
+                pin.classList.remove("ueb-pin-fill");
+            }
+        });
     }
 
     /**
@@ -3199,9 +3277,11 @@ class IInputPinTemplate extends PinTemplate {
      * @param {String[]?} values
      */
     setInputs(pin, values = [], updateDefaultValue = true) {
-        this.#inputContentElements.forEach((element, i) => element.innerText = values[i]);
+        requestAnimationFrame(_ => {
+            this.#inputContentElements.forEach((element, i) => element.innerText = values[i]);
+        });
         if (updateDefaultValue) {
-            pin.entity.DefaultValue = this.getInput(pin);
+            pin.entity.DefaultValue = values.reduce((acc, cur) => acc + cur, "");
         }
     }
 
@@ -3435,7 +3515,7 @@ class RealPinTemplate extends IInputPinTemplate {
         let updateDefaultValue = true;
         if (isNaN(num)) {
             num = parseFloat(pin.entity.DefaultValue != ""
-                ? pin.entity.DefaultValue
+                ? /** @type {String} */(pin.entity.DefaultValue)
                 : pin.entity.AutogeneratedDefaultValue);
         }
         if (isNaN(num)) {
@@ -3731,19 +3811,23 @@ class SelectableDraggableTemplate extends ITemplate {
      * @param {ISelectableDraggableElement} element
      */
     applyLocation(element) {
-        element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]));
-        element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]));
+        requestAnimationFrame(_ => {
+            element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]));
+            element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]));
+        });
     }
 
     /**
      * @param {ISelectableDraggableElement} element
      */
     applySelected(element) {
-        if (element.selected) {
-            element.classList.add("ueb-selected");
-        } else {
-            element.classList.remove("ueb-selected");
-        }
+        requestAnimationFrame(_ => {
+            if (element.selected) {
+                element.classList.add("ueb-selected");
+            } else {
+                element.classList.remove("ueb-selected");
+            }
+        });
     }
 }
 
@@ -3824,10 +3908,10 @@ class NodeTemplate extends SelectableDraggableTemplate {
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
         /** @type {HTMLElement} */
-        let inputContainer = node.querySelector(".ueb-node-inputs");
+        const inputContainer = node.querySelector(".ueb-node-inputs");
         /** @type {HTMLElement} */
-        let outputContainer = node.querySelector(".ueb-node-outputs");
-        let pins = node.getPinEntities();
+        const outputContainer = node.querySelector(".ueb-node-outputs");
+        const pins = node.getPinEntities();
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)));
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)));
         this.toggleAdvancedDisplayHandler = _ => {
@@ -3836,6 +3920,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
         if (node.entity.AdvancedPinDisplay) {
             node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler);
         }
+        node.nodeNameElement = node.querySelector(".ueb-node-name-text");
     }
 
     /**
@@ -3843,7 +3928,9 @@ class NodeTemplate extends SelectableDraggableTemplate {
      */
     applyAdvancedPinDisplay(node) {
         if (node.entity.AdvancedPinDisplay) {
-            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
+            requestAnimationFrame(_ => {
+                node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
+            });
         }
     }
 
@@ -3852,9 +3939,10 @@ class NodeTemplate extends SelectableDraggableTemplate {
      */
     applyRename(node) {
         const nodeName = node.entity.getObjectName();
-        node.dataset.name = sanitizeText(nodeName);
-        // @ts-expect-error
-        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.getNodeDisplayName());
+        requestAnimationFrame(_ => {
+            node.dataset.name = sanitizeText(nodeName);
+            node.nodeNameElement.textContent = sanitizeText(node.getNodeDisplayName());
+        });
     }
 
     /**
@@ -3872,6 +3960,17 @@ class NodeTemplate extends SelectableDraggableTemplate {
  * @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>}
  */
 class NodeElement extends ISelectableDraggableElement {
+
+    /** @type{HTMLElement} */
+    #nodeNameElement
+
+    get nodeNameElement() {
+        return this.#nodeNameElement
+    }
+
+    set nodeNameElement(value) {
+        this.#nodeNameElement = value;
+    }
 
     /**
      * @param {ObjectEntity} entity
@@ -4378,7 +4477,7 @@ class SelectorTemplate extends ITemplate {
      */
     setup(selector) {
         super.setup(selector);
-        this.applyFinishSelecting(selector);
+        selector.blueprint.dataset.selecting = "false";
     }
 
     /**
@@ -4386,13 +4485,15 @@ class SelectorTemplate extends ITemplate {
      * @param {SelectorElement} selector Selector element
      */
     applyStartSelecting(selector, initialPosition) {
-        // Set initial position
-        selector.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]));
-        selector.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]));
-        // Final position coincide with the initial position, at the beginning of selection
-        selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]));
-        selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]));
-        selector.blueprint.dataset.selecting = "true";
+        requestAnimationFrame(_ => {
+            // Set initial position
+            selector.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]));
+            selector.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]));
+            // Final position coincide with the initial position, at the beginning of selection
+            selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]));
+            selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]));
+            selector.blueprint.dataset.selecting = "true";
+        });
     }
 
     /**
@@ -4400,8 +4501,10 @@ class SelectorTemplate extends ITemplate {
      * @param {SelectorElement} selector Selector element
      */
     applyDoSelecting(selector, finalPosition) {
-        selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]));
-        selector.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]));
+        requestAnimationFrame(_ => {
+            selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]));
+            selector.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]));
+        });
     }
 
     /**
@@ -4409,7 +4512,9 @@ class SelectorTemplate extends ITemplate {
      * @param {SelectorElement} selector Selector element
      */
     applyFinishSelecting(selector) {
-        selector.blueprint.dataset.selecting = "false";
+        requestAnimationFrame(_ => {
+            selector.blueprint.dataset.selecting = "false";
+        });
     }
 }
 
@@ -4553,8 +4658,6 @@ class BlueprintTemplate extends ITemplate {
         return html`
             <div class="ueb-viewport-body">
                 <div class="ueb-grid" style="
-                    --ueb-additional-x:${sanitizeText(element.additional[0])};
-                    --ueb-additional-y:${sanitizeText(element.additional[1])};
                     --ueb-translate-x:${sanitizeText(element.translateValue[0])};
                     --ueb-translate-y:${sanitizeText(element.translateValue[1])};
                 ">
@@ -4590,13 +4693,14 @@ class BlueprintTemplate extends ITemplate {
         Object.entries({
             "--ueb-font-size": sanitizeText(Configuration.fontSize),
             "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
+            "--ueb-grid-expand": `${sanitizeText(Configuration.expandGridSize)}px`,
             "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
             "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
             "--ueb-grid-set": sanitizeText(Configuration.gridSet),
             "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
             "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
             "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
+            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth),
         }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]));
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header');
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay');
@@ -4608,6 +4712,7 @@ class BlueprintTemplate extends ITemplate {
         blueprint.linksContainerElement.append(...blueprint.getLinks());
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
         blueprint.nodesContainerElement.append(...blueprint.getNodes());
+        blueprint.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
         this.applyEndDragScrolling(blueprint);
     }
 
@@ -4616,17 +4721,11 @@ class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyZoom(blueprint, newZoom) {
-        blueprint.classList.remove("ueb-zoom-" + sanitizeText(blueprint.zoom));
-        blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom));
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyExpand(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText(blueprint.additional[0]));
-        blueprint.gridElement.style.setProperty("--ueb-additional-y", sanitizeText(blueprint.additional[1]));
+        const oldZoom = blueprint.zoom;
+        requestAnimationFrame(_ => {
+            blueprint.classList.remove("ueb-zoom-" + sanitizeText(oldZoom));
+            blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom));
+        });
     }
 
     /**
@@ -4634,8 +4733,11 @@ class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyTranlate(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(blueprint.translateValue[0]));
-        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(blueprint.translateValue[1]));
+        const translate = [...blueprint.translateValue];
+        //requestAnimationFrame(_ => {
+        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(translate[0]));
+        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(translate[1]));
+        //})
     }
 
     /**
@@ -4643,7 +4745,9 @@ class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyStartDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = "true";
+        requestAnimationFrame(_ => {
+            blueprint.dataset.dragScrolling = "true";
+        });
     }
 
     /**
@@ -4651,7 +4755,26 @@ class BlueprintTemplate extends ITemplate {
      * @param {Blueprint} blueprint The blueprint element
      */
     applyEndDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = "false";
+        requestAnimationFrame(_ => {
+            blueprint.dataset.dragScrolling = "false";
+        });
+    }
+
+    /**
+     * @param {Blueprint} blueprint
+     * @param {Boolean} smooth
+     */
+    applyScroll(blueprint, smooth = false) {
+        let scrollValue = [...blueprint.getScroll()];
+        if (!smooth) {
+            blueprint.viewportElement.scroll(scrollValue[0], scrollValue[1]);
+        } else {
+            blueprint.viewportElement.scroll({
+                left: scrollValue[0],
+                top: scrollValue[1],
+                behavior: "smooth"
+            });
+        }
     }
 
     /**
@@ -4680,15 +4803,6 @@ class BlueprintTemplate extends ITemplate {
 class Blueprint extends IElement {
 
     /** @type {Number[]} */
-    #additional
-    get additional() {
-        return this.#additional
-    }
-    set additional(value) {
-        value[0] = Math.abs(value[0]);
-        value[1] = Math.abs(value[1]);
-    }
-    /** @type {Number[]} */
     #translateValue
     get translateValue() {
         return this.#translateValue
@@ -4706,6 +4820,8 @@ class Blueprint extends IElement {
     links = []
     /** @type {Number[]} */
     mousePosition = [0, 0]
+    /** @type {Number[]} */
+    #scrollValue = [Configuration.expandGridSize, Configuration.expandGridSize]
     /** @type {HTMLElement} */
     gridElement = null
     /** @type {HTMLElement} */
@@ -4748,28 +4864,13 @@ class Blueprint extends IElement {
         /** @type {Number} */
         this.gridSize = Configuration.gridSize;
         /** @type {Number[]} */
-        this.#additional = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
-        /** @type {Number[]} */
         this.#translateValue = [Configuration.expandGridSize, Configuration.expandGridSize];
     }
 
     /**
-     * @param {Number} x
-     * @param {Number} y
+     * @param {Number[]} param0
      */
-    #expand(x, y) {
-        x = Math.round(x);
-        y = Math.round(y);
-        this.additional[0] += x;
-        this.additional[1] += y;
-        this.template.applyExpand(this);
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    #translate(x, y) {
+    #translate([x, y]) {
         x = Math.round(x);
         y = Math.round(y);
         this.translateValue[0] += x;
@@ -4786,57 +4887,34 @@ class Blueprint extends IElement {
     }
 
     getScroll() {
-        return [this.viewportElement.scrollLeft, this.viewportElement.scrollTop]
+        return this.#scrollValue
     }
 
     setScroll(value, smooth = false) {
-        this.scroll = value;
-        if (!smooth) {
-            this.viewportElement.scroll(value[0], value[1]);
-        } else {
-            this.viewportElement.scroll({
-                left: value[0],
-                top: value[1],
-                behavior: "smooth"
-            });
-        }
+        this.#scrollValue = value;
+        this.template.applyScroll(this, smooth);
     }
 
     scrollDelta(delta, smooth = false) {
-        const maxScroll = this.getScrollMax();
+        const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
         let currentScroll = this.getScroll();
         let finalScroll = [
             currentScroll[0] + delta[0],
             currentScroll[1] + delta[1]
         ];
         let expand = [0, 0];
-        let shrink = [0, 0];
-        let direction = [0, 0];
         for (let i = 0; i < 2; ++i) {
             if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand left/top
-                expand[i] = Configuration.expandGridSize;
-                direction[i] = -1;
-                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
-                    shrink[i] = -Configuration.expandGridSize;
-                }
+                expand[i] = -1;
             } else if (delta[i] > 0 && finalScroll[i]
                 > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand right/bottom
-                expand[i] = Configuration.expandGridSize;
-                direction[i] = 1;
-                if (finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
-                    shrink[i] = -Configuration.expandGridSize;
-                }
+                expand[i] = 1;
             }
         }
         if (expand[0] != 0 || expand[1] != 0) {
-            this.seamlessExpand(expand, direction);
-            direction = [
-                -direction[0],
-                -direction[1]
-            ];
-            this.seamlessExpand(shrink, direction);
+            this.seamlessExpand(expand);
         }
         currentScroll = this.getScroll();
         finalScroll = [
@@ -4895,29 +4973,20 @@ class Blueprint extends IElement {
     /**
      * Expand or shrink the grind indefinitely, the content will remain into position
      * @param {Number[]} param0 - Expand value (negative means shrink, positive means expand)
-     * @param {Number[]} param1 - Direction of expansion (negative: left/top, position: right/bottom)
      */
-    seamlessExpand([x, y], [directionX, directionY] = [1, 1]) {
-        [
-            this.viewportElement.scrollLeft,
-            this.viewportElement.scrollTop
-        ];
+    seamlessExpand([x, y]) {
         let scale = this.getScale();
-        let scaledX = x / scale;
-        let scaledY = y / scale;
-        // First expand the grid to contain the additional space
-        this.#expand(scaledX, scaledY);
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        const translate = [0, 0];
-        if (directionX < 0) {
-            this.viewportElement.scrollLeft += x;
-            translate[0] = scaledX;
+        let translate = [-x * Configuration.expandGridSize, -y * Configuration.expandGridSize];
+        if (translate[0] != 0) {
+            this.#scrollValue[0] += translate[0];
+            translate[0] /= scale;
         }
-        if (directionY < 0) {
-            this.viewportElement.scrollTop += y;
-            translate[1] = scaledY;
+        if (translate[1] != 0) {
+            this.#scrollValue[1] += translate[1];
+            translate[1] /= scale;
         }
-        this.#translate(translate[0], translate[1]);
+        this.#translate(translate);
     }
 
     progressiveSnapToGrid(x) {
@@ -4938,17 +5007,19 @@ class Blueprint extends IElement {
         this.zoom = zoom;
 
         if (center) {
-            center[0] += this.translateValue[0];
-            center[1] += this.translateValue[1];
-            let relativeScale = this.getScale() / initialScale;
-            let newCenter = [
-                relativeScale * center[0],
-                relativeScale * center[1]
-            ];
-            this.scrollDelta([
-                (newCenter[0] - center[0]) * initialScale,
-                (newCenter[1] - center[1]) * initialScale
-            ]);
+            requestAnimationFrame(_ => {
+                center[0] += this.translateValue[0];
+                center[1] += this.translateValue[1];
+                let relativeScale = this.getScale() / initialScale;
+                let newCenter = [
+                    relativeScale * center[0],
+                    relativeScale * center[1]
+                ];
+                this.scrollDelta([
+                    (newCenter[0] - center[0]) * initialScale,
+                    (newCenter[1] - center[1]) * initialScale
+                ]);
+            });
         }
     }
 
@@ -4997,7 +5068,8 @@ class Blueprint extends IElement {
         if (a != null && b != null) {
             return this.links.filter(link =>
                 link.sourcePin == a && link.destinationPin == b
-                || link.sourcePin == b && link.destinationPin == a)
+                || link.sourcePin == b && link.destinationPin == a
+            )
         }
         return this.links
     }

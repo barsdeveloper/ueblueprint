@@ -86,9 +86,11 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {String[]?} values
      */
     setInputs(pin, values = [], updateDefaultValue = true) {
-        this.#inputContentElements.forEach((element, i) => element.innerText = values[i])
+        requestAnimationFrame(_ => {
+            this.#inputContentElements.forEach((element, i) => element.innerText = values[i])
+        })
         if (updateDefaultValue) {
-            pin.entity.DefaultValue = this.getInput(pin)
+            pin.entity.DefaultValue = values.reduce((acc, cur) => acc + cur, "")
         }
     }
 

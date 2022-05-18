@@ -60,8 +60,8 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     position: absolute;
     min-width: 100%;
     min-height: 100%;
-    width: calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-scale));
-    height: calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-scale));
+    width: calc((100% + 2 * var(--ueb-grid-expand)) / var(--ueb-scale));
+    height: calc((100% + 2 * var(--ueb-grid-expand)) / var(--ueb-scale));
     background-color: #262626;
     background-image:
         /* Axis lines */

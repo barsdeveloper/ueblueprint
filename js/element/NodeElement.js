@@ -14,6 +14,17 @@ import SerializerFactory from "../serialization/SerializerFactory"
  */
 export default class NodeElement extends ISelectableDraggableElement {
 
+    /** @type{HTMLElement} */
+    #nodeNameElement
+
+    get nodeNameElement() {
+        return this.#nodeNameElement
+    }
+
+    set nodeNameElement(value) {
+        this.#nodeNameElement = value
+    }
+
     /**
      * @param {ObjectEntity} entity
      */

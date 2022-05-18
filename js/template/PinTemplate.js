@@ -84,11 +84,13 @@ export default class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     applyConnected(pin) {
-        if (pin.isLinked()) {
-            pin.classList.add("ueb-pin-fill")
-        } else {
-            pin.classList.remove("ueb-pin-fill")
-        }
+        requestAnimationFrame(_ => {
+            if (pin.isLinked()) {
+                pin.classList.add("ueb-pin-fill")
+            } else {
+                pin.classList.remove("ueb-pin-fill")
+            }
+        })
     }
 
     /**

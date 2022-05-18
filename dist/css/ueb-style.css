@@ -54,8 +54,8 @@ ueb-blueprint[data-focused=true] .ueb-viewport-body {
   position: absolute;
   min-width: 100%;
   min-height: 100%;
-  width: calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-scale));
-  height: calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-scale));
+  width: calc((100% + 2 * var(--ueb-grid-expand)) / var(--ueb-scale));
+  height: calc((100% + 2 * var(--ueb-grid-expand)) / var(--ueb-scale));
   background-color: #262626;
   background-image: linear-gradient(var(--ueb-grid-axis-line-color), var(--ueb-grid-axis-line-color)), linear-gradient(var(--ueb-grid-axis-line-color), var(--ueb-grid-axis-line-color)), linear-gradient(to right, var(--ueb-grid-set-line-color), var(--ueb-grid-set-line-color) var(--ueb-grid-line-actual-width), transparent var(--ueb-grid-line-actual-width), transparent), linear-gradient(to bottom, var(--ueb-grid-set-line-color), var(--ueb-grid-set-line-color) var(--ueb-grid-line-actual-width), transparent var(--ueb-grid-line-actual-width), transparent), linear-gradient(to right, var(--ueb-grid-line-color), var(--ueb-grid-line-color) var(--ueb-grid-line-actual-width), transparent var(--ueb-grid-line-actual-width), transparent), linear-gradient(to bottom, var(--ueb-grid-line-color), var(--ueb-grid-line-color) var(--ueb-grid-line-actual-width), transparent var(--ueb-grid-line-actual-width), transparent);
   background-size: 100% var(--ueb-grid-line-actual-width), var(--ueb-grid-line-actual-width) 100%, calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)) calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)), calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)) calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)), var(--ueb-grid-actual-size) var(--ueb-grid-actual-size), var(--ueb-grid-actual-size) var(--ueb-grid-actual-size);

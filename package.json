@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@easylogic/colorpicker": "^1.10.11",
-    "parsimmon": "^1.18.0"
+    "parsimmon": "^1.18.0",
+    "solid-js": "^1.4.1"
   }
 }

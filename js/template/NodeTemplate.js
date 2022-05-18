@@ -80,19 +80,20 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]))
         node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]))
         /** @type {HTMLElement} */
-        let inputContainer = node.querySelector(".ueb-node-inputs")
+        const inputContainer = node.querySelector(".ueb-node-inputs")
         /** @type {HTMLElement} */
-        let outputContainer = node.querySelector(".ueb-node-outputs")
-        let pins = node.getPinEntities()
+        const outputContainer = node.querySelector(".ueb-node-outputs")
+        const pins = node.getPinEntities()
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)))
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)))
-        let self = this
+        const self = this
         this.toggleAdvancedDisplayHandler = _ => {
             node.toggleShowAdvancedPinDisplay()
         }
         if (node.entity.AdvancedPinDisplay) {
             node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler)
         }
+        node.nodeNameElement = node.querySelector(".ueb-node-name-text")
     }
 
     /**
@@ -100,7 +101,9 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     applyAdvancedPinDisplay(node) {
         if (node.entity.AdvancedPinDisplay) {
-            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString()
+            requestAnimationFrame(_ => {
+                node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString()
+            })
         }
     }
 
@@ -109,9 +112,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     applyRename(node) {
         const nodeName = node.entity.getObjectName()
-        node.dataset.name = sanitizeText(nodeName)
-        // @ts-expect-error
-        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.getNodeDisplayName())
+        requestAnimationFrame(_ => {
+            node.dataset.name = sanitizeText(nodeName)
+            node.nodeNameElement.textContent = sanitizeText(node.getNodeDisplayName())
+        })
     }
 
     /**

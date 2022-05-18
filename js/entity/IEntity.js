@@ -1,12 +1,13 @@
 // @ts-check
 
-import ISerializable from "./ISerializable"
+import Observable from "../Observable"
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 
-export default class IEntity extends ISerializable {
+export default class IEntity extends Observable {
 
     static attributes = {}
+    #showAsString = false
 
     constructor(values) {
         super()
@@ -77,5 +78,16 @@ export default class IEntity extends ISerializable {
             }
         }
         defineAllAttributes(this, attributes, values)
+    }
+
+    isShownAsString() {
+        return this.#showAsString
+    }
+
+    /**
+     * @param {Boolean} v
+     */
+    setShowAsString(v) {
+        this.#showAsString = v
     }
 }

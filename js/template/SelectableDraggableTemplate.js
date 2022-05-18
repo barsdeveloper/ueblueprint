@@ -29,18 +29,22 @@ export default class SelectableDraggableTemplate extends ITemplate {
      * @param {ISelectableDraggableElement} element
      */
     applyLocation(element) {
-        element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]))
-        element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]))
+        requestAnimationFrame(_ => {
+            element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]))
+            element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]))
+        })
     }
 
     /**
      * @param {ISelectableDraggableElement} element
      */
     applySelected(element) {
-        if (element.selected) {
-            element.classList.add("ueb-selected")
-        } else {
-            element.classList.remove("ueb-selected")
-        }
+        requestAnimationFrame(_ => {
+            if (element.selected) {
+                element.classList.add("ueb-selected")
+            } else {
+                element.classList.remove("ueb-selected")
+            }
+        })
     }
 }

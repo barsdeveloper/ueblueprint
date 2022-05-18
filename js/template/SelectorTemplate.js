@@ -15,7 +15,7 @@ export default class SelectorTemplate extends ITemplate {
      */
     setup(selector) {
         super.setup(selector)
-        this.applyFinishSelecting(selector)
+        selector.blueprint.dataset.selecting = "false"
     }
 
     /**
@@ -23,13 +23,15 @@ export default class SelectorTemplate extends ITemplate {
      * @param {SelectorElement} selector Selector element
      */
     applyStartSelecting(selector, initialPosition) {
-        // Set initial position
-        selector.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]))
-        selector.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]))
-        // Final position coincide with the initial position, at the beginning of selection
-        selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]))
-        selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]))
-        selector.blueprint.dataset.selecting = "true"
+        requestAnimationFrame(_ => {
+            // Set initial position
+            selector.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]))
+            selector.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]))
+            // Final position coincide with the initial position, at the beginning of selection
+            selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]))
+            selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]))
+            selector.blueprint.dataset.selecting = "true"
+        })
     }
 
     /**
@@ -37,8 +39,10 @@ export default class SelectorTemplate extends ITemplate {
      * @param {SelectorElement} selector Selector element
      */
     applyDoSelecting(selector, finalPosition) {
-        selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]))
-        selector.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]))
+        requestAnimationFrame(_ => {
+            selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]))
+            selector.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]))
+        })
     }
 
     /**
@@ -46,6 +50,8 @@ export default class SelectorTemplate extends ITemplate {
      * @param {SelectorElement} selector Selector element
      */
     applyFinishSelecting(selector) {
-        selector.blueprint.dataset.selecting = "false"
+        requestAnimationFrame(_ => {
+            selector.blueprint.dataset.selecting = "false"
+        })
     }
 }

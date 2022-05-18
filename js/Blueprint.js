@@ -20,15 +20,6 @@ import Utility from "./Utility"
 export default class Blueprint extends IElement {
 
     /** @type {Number[]} */
-    #additional
-    get additional() {
-        return this.#additional
-    }
-    set additional(value) {
-        value[0] = Math.abs(value[0])
-        value[1] = Math.abs(value[1])
-    }
-    /** @type {Number[]} */
     #translateValue
     get translateValue() {
         return this.#translateValue
@@ -46,6 +37,8 @@ export default class Blueprint extends IElement {
     links = []
     /** @type {Number[]} */
     mousePosition = [0, 0]
+    /** @type {Number[]} */
+    #scrollValue = [Configuration.expandGridSize, Configuration.expandGridSize]
     /** @type {HTMLElement} */
     gridElement = null
     /** @type {HTMLElement} */
@@ -88,28 +81,13 @@ export default class Blueprint extends IElement {
         /** @type {Number} */
         this.gridSize = Configuration.gridSize
         /** @type {Number[]} */
-        this.#additional = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
-        /** @type {Number[]} */
         this.#translateValue = [Configuration.expandGridSize, Configuration.expandGridSize]
     }
 
     /**
-     * @param {Number} x
-     * @param {Number} y
+     * @param {Number[]} param0
      */
-    #expand(x, y) {
-        x = Math.round(x)
-        y = Math.round(y)
-        this.additional[0] += x
-        this.additional[1] += y
-        this.template.applyExpand(this)
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    #translate(x, y) {
+    #translate([x, y]) {
         x = Math.round(x)
         y = Math.round(y)
         this.translateValue[0] += x
@@ -126,57 +104,34 @@ export default class Blueprint extends IElement {
     }
 
     getScroll() {
-        return [this.viewportElement.scrollLeft, this.viewportElement.scrollTop]
+        return this.#scrollValue
     }
 
     setScroll(value, smooth = false) {
-        this.scroll = value
-        if (!smooth) {
-            this.viewportElement.scroll(value[0], value[1])
-        } else {
-            this.viewportElement.scroll({
-                left: value[0],
-                top: value[1],
-                behavior: "smooth"
-            })
-        }
+        this.#scrollValue = value
+        this.template.applyScroll(this, smooth)
     }
 
     scrollDelta(delta, smooth = false) {
-        const maxScroll = this.getScrollMax()
+        const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
         let currentScroll = this.getScroll()
         let finalScroll = [
             currentScroll[0] + delta[0],
             currentScroll[1] + delta[1]
         ]
         let expand = [0, 0]
-        let shrink = [0, 0]
-        let direction = [0, 0]
         for (let i = 0; i < 2; ++i) {
             if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand left/top
-                expand[i] = Configuration.expandGridSize
-                direction[i] = -1
-                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
-                    shrink[i] = -Configuration.expandGridSize
-                }
+                expand[i] = -1
             } else if (delta[i] > 0 && finalScroll[i]
                 > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand right/bottom
-                expand[i] = Configuration.expandGridSize
-                direction[i] = 1
-                if (finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
-                    shrink[i] = -Configuration.expandGridSize
-                }
+                expand[i] = 1
             }
         }
         if (expand[0] != 0 || expand[1] != 0) {
-            this.seamlessExpand(expand, direction)
-            direction = [
-                -direction[0],
-                -direction[1]
-            ]
-            this.seamlessExpand(shrink, direction)
+            this.seamlessExpand(expand)
         }
         currentScroll = this.getScroll()
         finalScroll = [
@@ -235,29 +190,20 @@ export default class Blueprint extends IElement {
     /**
      * Expand or shrink the grind indefinitely, the content will remain into position
      * @param {Number[]} param0 - Expand value (negative means shrink, positive means expand)
-     * @param {Number[]} param1 - Direction of expansion (negative: left/top, position: right/bottom)
      */
-    seamlessExpand([x, y], [directionX, directionY] = [1, 1]) {
-        const initialScroll = [
-            this.viewportElement.scrollLeft,
-            this.viewportElement.scrollTop
-        ]
+    seamlessExpand([x, y]) {
         let scale = this.getScale()
-        let scaledX = x / scale
-        let scaledY = y / scale
-        // First expand the grid to contain the additional space
-        this.#expand(scaledX, scaledY)
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        const translate = [0, 0]
-        if (directionX < 0) {
-            this.viewportElement.scrollLeft += x
-            translate[0] = scaledX
+        let translate = [-x * Configuration.expandGridSize, -y * Configuration.expandGridSize]
+        if (translate[0] != 0) {
+            this.#scrollValue[0] += translate[0]
+            translate[0] /= scale
         }
-        if (directionY < 0) {
-            this.viewportElement.scrollTop += y
-            translate[1] = scaledY
+        if (translate[1] != 0) {
+            this.#scrollValue[1] += translate[1]
+            translate[1] /= scale
         }
-        this.#translate(translate[0], translate[1])
+        this.#translate(translate)
     }
 
     progressiveSnapToGrid(x) {
@@ -278,17 +224,19 @@ export default class Blueprint extends IElement {
         this.zoom = zoom
 
         if (center) {
-            center[0] += this.translateValue[0]
-            center[1] += this.translateValue[1]
-            let relativeScale = this.getScale() / initialScale
-            let newCenter = [
-                relativeScale * center[0],
-                relativeScale * center[1]
-            ]
-            this.scrollDelta([
-                (newCenter[0] - center[0]) * initialScale,
-                (newCenter[1] - center[1]) * initialScale
-            ])
+            requestAnimationFrame(_ => {
+                center[0] += this.translateValue[0]
+                center[1] += this.translateValue[1]
+                let relativeScale = this.getScale() / initialScale
+                let newCenter = [
+                    relativeScale * center[0],
+                    relativeScale * center[1]
+                ]
+                this.scrollDelta([
+                    (newCenter[0] - center[0]) * initialScale,
+                    (newCenter[1] - center[1]) * initialScale
+                ])
+            })
         }
     }
 
@@ -337,7 +285,8 @@ export default class Blueprint extends IElement {
         if (a != null && b != null) {
             return this.links.filter(link =>
                 link.sourcePin == a && link.destinationPin == b
-                || link.sourcePin == b && link.destinationPin == a)
+                || link.sourcePin == b && link.destinationPin == a
+            )
         }
         return this.links
     }
