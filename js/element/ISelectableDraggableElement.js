@@ -16,12 +16,29 @@ import Utility from "../Utility"
  */
 export default class ISelectableDraggableElement extends IElement {
 
+    static properties = {
+        selected: {
+            type: Boolean,
+            reflected: true,
+        },
+        locationX: {
+            type: Number,
+            attribute: false,
+        },
+        locationY: {
+            type: Number,
+            attribute: false,
+        },
+    }
+
     constructor(...args) {
         // @ts-expect-error
         super(...args)
         this.dragObject = null
         this.location = [0, 0]
         this.selected = false
+        this.locationX = 0
+        this.locationY = 0
 
         let self = this
         this.dragHandler = e => self.addLocation(e.detail.value)
@@ -36,7 +53,7 @@ export default class ISelectableDraggableElement extends IElement {
                 this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
             }
         }
-        this.template.applySelected(this)
+        this.selected = value
     }
 
     connectedCallback() {
@@ -44,17 +61,22 @@ export default class ISelectableDraggableElement extends IElement {
         this.#setSelected(this.selected)
     }
 
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
+    }
+
     /**
-     * @param {Number[]} value
+     * @param {Number[]} param0
      */
-    setLocation(value = [0, 0]) {
-        const d = [value[0] - this.location[0], value[1] - this.location[1]]
-        this.location = value
-        this.template.applyLocation(this)
+    setLocation([x, y]) {
+        const d = [x - this.locationX, y - this.locationY]
+        this.locationX = x
+        this.locationY = y
         if (this.blueprint) {
             const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
                 detail: {
-                    value: d
+                    value: d,
                 },
                 bubbles: false,
                 cancelable: true
@@ -63,8 +85,11 @@ export default class ISelectableDraggableElement extends IElement {
         }
     }
 
-    addLocation(value) {
-        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]])
+    /**
+     * @param {Number[]} param0
+     */
+    addLocation([x, y]) {
+        this.setLocation([this.locationX + x, this.locationY + y])
     }
 
     setSelected(value = true) {
@@ -85,7 +110,7 @@ export default class ISelectableDraggableElement extends IElement {
     }
 
     snapToGrid() {
-        let snappedLocation = Utility.snapToGrid(this.location, Configuration.gridSize)
+        const snappedLocation = Utility.snapToGrid(this.location, Configuration.gridSize)
         if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
             this.setLocation(snappedLocation)
         }

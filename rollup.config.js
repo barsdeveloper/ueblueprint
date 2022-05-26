@@ -15,12 +15,10 @@ export default [
             nodeResolve({ browser: true }),
             commonjs(),
             copy({
-                targets: [
-                    {
-                        src: ["assets/fonts/*"],
-                        dest: "dist/font"
-                    }
-                ]
+                targets: [{
+                    src: ["assets/fonts/*"],
+                    dest: "dist/font"
+                }]
             })
         ]
     },
@@ -36,12 +34,10 @@ export default [
             minifyHTML(),
             terser(),
             copy({
-                targets: [
-                    {
-                        src: ["assets/fonts/*"],
-                        dest: "dist/font"
-                    }
-                ]
+                targets: [{
+                    src: ["assets/fonts/*"],
+                    dest: "dist/font"
+                }]
             })
         ]
     }

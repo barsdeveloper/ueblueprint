@@ -1,7 +1,7 @@
 // @ts-check
 
-import Utility from "../Utility"
 import IInputPinTemplate from "./IInputPinTemplate"
+import Utility from "../Utility"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement

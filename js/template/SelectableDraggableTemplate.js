@@ -2,19 +2,19 @@
 
 import ITemplate from "./ITemplate"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
-import sanitizeText from "./sanitizeText"
 
 /**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 
 /**
- * @extends {ITemplate<ISelectableDraggableElement>}
+ * @template {ISelectableDraggableElement} T
+ * @extends {ITemplate<T>}
  */
 export default class SelectableDraggableTemplate extends ITemplate {
 
     /**
-     * @param {ISelectableDraggableElement} element
+     * @param {T} element
      */
     createInputObjects(element) {
         return [
@@ -23,28 +23,5 @@ export default class SelectableDraggableTemplate extends ITemplate {
                 looseTarget: true
             }),
         ]
-    }
-
-    /**
-     * @param {ISelectableDraggableElement} element
-     */
-    applyLocation(element) {
-        requestAnimationFrame(_ => {
-            element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]))
-            element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]))
-        })
-    }
-
-    /**
-     * @param {ISelectableDraggableElement} element
-     */
-    applySelected(element) {
-        requestAnimationFrame(_ => {
-            if (element.selected) {
-                element.classList.add("ueb-selected")
-            } else {
-                element.classList.remove("ueb-selected")
-            }
-        })
     }
 }

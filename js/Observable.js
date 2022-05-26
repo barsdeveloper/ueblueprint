@@ -1,5 +1,3 @@
-// @ts-check
-
 export default class Observable {
 
     /** @type {Map<String, Object[]>} */
@@ -7,42 +5,76 @@ export default class Observable {
 
     /**
      * @param {String} property
-     * @param {Object} observer
+     * @param {(value: any) => {}} observer
      */
     subscribe(property, observer) {
-        const observers = this.#observers
+        let observers = this.#observers
         if (observers.has(property)) {
-            if (!observers.get(property).includes(observer)) {
-                observers.get(property).push(observer)
+            let propertyObservers = observers.get(property)
+            if (propertyObservers.includes(observer)) {
+                return false
+            } else {
+                propertyObservers.push(observer)
             }
         } else {
-            observers.set(property, [observer])
-        }
-        if ("value" in (Object.getOwnPropertyDescriptor(this, property) ?? {})) {
-            // It is a regular value
-            let holderKey = Symbol.for(property + "Holder")
-            Object.defineProperties(this, {
-                [holderKey]: {
-                    value: this[property],
-                    configurable: true,
-                    enumerable: false,
-                    writable: true,
-                },
-                [property]: {
-                    configurable: true,
-                    enumerable: true,
-                    get() {
-                        return this[holderKey]
-                    },
-                    set(v) {
-                        this[holderKey] = v
-                        observers.get(property).forEach(observer => {
-                            observer(v)
-                        })
-                    },
+            let fromPrototype = false
+            let propertyDescriptor = Object.getOwnPropertyDescriptor(this, property)
+            if (!propertyDescriptor) {
+                fromPrototype = true
+                propertyDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), property) ?? {}
+                if (!propertyDescriptor) {
+                    return false
                 }
-            })
+            }
+            observers.set(property, [observer])
+            const isValue = "value" in propertyDescriptor
+            const hasSetter = "set" in propertyDescriptor
+            if (!(isValue || hasSetter)) {
+                throw new Error(`Property ${property} is not a value or a setter`)
+            }
+            // A Symbol so it does not show up in Object.getOwnPropertyNames()
+            const storageKey = Symbol.for(property + "Storage")
+            const valInfoKey = Symbol.for(property + "ValInfo")
+            Object.defineProperties(
+                fromPrototype ? Object.getPrototypeOf(this) : this,
+                {
+                    [storageKey]: {
+                        configurable: true,
+                        enumerable: false, // Non enumerable so it does not show up in for...in or Object.keys()
+                        ...(isValue
+                            ? {
+                                value: this[property],
+                                writable: true,
+                            }
+                            : {
+                                get: propertyDescriptor.get,
+                                set: propertyDescriptor.set,
+                            }
+                        )
+                    },
+                    [valInfoKey]: {
+                        configurable: true,
+                        enumerable: false,
+                        value: [fromPrototype, isValue]
+                    },
+                    [property]: {
+                        configurable: true,
+                        ...(isValue && {
+                            get() {
+                                return this[storageKey]
+                            }
+                        }),
+                        set(v) {
+                            this[storageKey] = v
+                            observers.get(property).forEach(observer => {
+                                observer(this[property])
+                            })
+                        },
+                    }
+                }
+            )
         }
+        return true
     }
 
     /**
@@ -56,13 +88,17 @@ export default class Observable {
         }
         observers.splice(observers.indexOf(observer), 1)
         if (observers.length == 0) {
-            Object.defineProperty(this, property, {
-                value: this[property],
-                configurable: true,
-                enumerable: true,
-                writable: true,
-            })
-            delete this[Symbol.for(property + "Holder")]
+            const storageKey = Symbol.for(property + "Storage")
+            const valInfoKey = Symbol.for(property + "ValInfo")
+            const fromPrototype = this[valInfoKey][0]
+            const isValue = this[valInfoKey][1]
+            Object.defineProperty(
+                fromPrototype ? Object.getPrototypeOf(this) : this,
+                property,
+                Object.getOwnPropertyDescriptor(fromPrototype ? Object.getPrototypeOf(this) : this, storageKey),
+            )
+            delete this[valInfoKey]
+            delete this[storageKey]
         }
         return true
     }

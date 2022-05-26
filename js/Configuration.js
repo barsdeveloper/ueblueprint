@@ -1,5 +1,7 @@
 // @ts-check
 
+import { css } from "lit"
+
 export default class Configuration {
     static deleteNodesKeyboardKey = "Delete"
     static editTextEventName = {
@@ -12,13 +14,13 @@ export default class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = "12.5px"
-    static gridAxisLineColor = "black"
+    static fontSize = css`12.5px`
+    static gridAxisLineColor = css`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    static gridLineColor = "#353535"
+    static gridLineColor = css`#353535`
     static gridLineWidth = 1 // pixel
     static gridSet = 8
-    static gridSetLineColor = "#161616"
+    static gridSetLineColor = css`#161616`
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // pixel
     static keysSeparator = "+"

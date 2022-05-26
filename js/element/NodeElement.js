@@ -14,13 +14,27 @@ import SerializerFactory from "../serialization/SerializerFactory"
  */
 export default class NodeElement extends ISelectableDraggableElement {
 
+    static properties = {
+        ...ISelectableDraggableElement.properties,
+        advancedPinDisplay: {
+            type: Boolean,
+            attribute: false,
+        },
+        enabledState: {
+            type: String,
+            attribute: false,
+        },
+        nodeDisplayName: {
+            type: String,
+            attribute: false,
+        },
+    }
+
     /** @type{HTMLElement} */
     #nodeNameElement
-
     get nodeNameElement() {
         return this.#nodeNameElement
     }
-
     set nodeNameElement(value) {
         this.#nodeNameElement = value
     }
@@ -30,6 +44,9 @@ export default class NodeElement extends ISelectableDraggableElement {
      */
     constructor(entity) {
         super(entity, new NodeTemplate())
+        this.advancedPinDisplay = false
+        this.enabledState = ""
+        this.nodeDisplayName = ""
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
     }
@@ -81,7 +98,6 @@ export default class NodeElement extends ISelectableDraggableElement {
             }
         }
         this.entity.Name = name
-        this.template.applyRename(this)
     }
 
     getPinElements() {
@@ -114,11 +130,10 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     setShowAdvancedPinDisplay(value) {
         this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden")
-        this.template.applyAdvancedPinDisplay(this)
     }
 
     toggleShowAdvancedPinDisplay() {
-        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay.value != "Shown")
+        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay.toString() != "Shown")
     }
 }
 

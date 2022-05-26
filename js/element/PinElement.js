@@ -10,6 +10,7 @@ import PinTemplate from "../template/PinTemplate"
 import RealPinTemplate from "../template/RealPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 import Utility from "../Utility"
+import { css } from "lit"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -33,6 +34,28 @@ export default class PinElement extends IElement {
             "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
         }
     }
+
+    static properties = {
+        advancedView: {
+            type: Boolean,
+            attribute: false,
+            reflect: true,
+        },
+        defaultValue: {
+            type: String,
+            attribute: false,
+        },
+        isLinked: {
+            type: Boolean,
+            attribute: false,
+        },
+        pinDisplayName: {
+            type: String,
+            attribute: false,
+        },
+    }
+
+    static styles = PinTemplate.styles
 
     /**
      * @param {PinEntity} pinEntity
@@ -65,6 +88,19 @@ export default class PinElement extends IElement {
             // @ts-expect-error
             new (PinElement.getTypeTemplate(entity))()
         )
+        this.advancedView = false
+        this.defaultValue = ""
+        this.isLinked = false
+        this.pinDisplayName = ""
+
+        this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
+        this.entity.subscribe("PinToolTip", value => {
+            let matchResult = value.match(/\s*(.+?(?=\n)|.+\S)\s*/)
+            if (matchResult) {
+                return Utility.formatStringName(matchResult[1])
+            }
+            return Utility.formatStringName(this.entity.PinName)
+        })
     }
 
     connectedCallback() {
@@ -89,31 +125,12 @@ export default class PinElement extends IElement {
         return this.entity.PinName
     }
 
-    /**
-     * @returns {String}
-     */
-    getPinDisplayName() {
-        let matchResult = null
-        if (
-            this.entity.PinToolTip
-            // Match up until the first \n excluded or last character
-            && (matchResult = this.entity.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
-        ) {
-            return Utility.formatStringName(matchResult[1])
-        }
-        return Utility.formatStringName(this.entity.PinName)
-    }
-
     isInput() {
         return this.entity.isInput()
     }
 
     isOutput() {
         return this.entity.isOutput()
-    }
-
-    isLinked() {
-        return this.entity.isLinked()
     }
 
     getType() {
@@ -161,7 +178,7 @@ export default class PinElement extends IElement {
      */
     linkTo(targetPinElement) {
         this.entity.linkTo(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
-        this.template.applyConnected(this)
+        this.isLinked = this.entity.isLinked()
     }
 
     /**
@@ -169,7 +186,7 @@ export default class PinElement extends IElement {
      */
     unlinkFrom(targetPinElement) {
         this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
-        this.template.applyConnected(this)
+        this.isLinked = this.entity.isLinked()
     }
 
     /**

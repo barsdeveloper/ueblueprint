@@ -1,8 +1,7 @@
 // @ts-check
 
-import html from "./html"
+import { html } from "lit"
 import PinElement from "../element/PinElement"
-import sanitizeText from "./sanitizeText"
 import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
 
 /**
@@ -14,19 +13,23 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
     toggleAdvancedDisplayHandler
 
     /**
-     * Computes the html content of the target element.
-     * @param {NodeElement} node Graph node element
-     * @returns The result html
+     * @param {NodeElement} node
      */
     render(node) {
         return html`
+            <style>
+                :host {
+                    --ueb-position-x: ${node.locationX};
+                    --ueb-position-y: ${node.locationY};
+                }
+            </style>
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
                         <div class="ueb-node-name">
                             <span class="ueb-node-name-symbol"></span>
                             <span class="ueb-node-name-text">
-                                ${sanitizeText(node.getNodeDisplayName())}
+                                ${node.nodeDisplayName}
                             </span>
                         </div>
                     </div>
@@ -34,10 +37,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${node.entity.EnabledState?.toString() == "DevelopmentOnly" ? html`
+                    ${node.enabledState == "DevelopmentOnly" ? html`
                         <div class="ueb-node-developmentonly">Development Only</div>
-                    ` : ""}
-                    ${node.entity.AdvancedPinDisplay ? html`
+                    ` : html``}
+                    ${node.advancedPinDisplay ? html`
                         <div class="ueb-node-expansion">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -58,7 +61,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                                 />
                             </svg>
                         </div>
-                    ` : ""}
+                    ` : html``}
                 </div>
             </div>
         `
@@ -69,16 +72,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     setup(node) {
         super.setup(node)
-        node.dataset.name = sanitizeText(node.entity.getObjectName())
+        node.dataset.name = node.entity.getObjectName()
         if (node.entity.EnabledState) {
             node.dataset.enabledState = node.entity.EnabledState.toString()
         }
-        if (node.selected) {
-            node.classList.add("ueb-selected")
-        }
-        this.applyAdvancedPinDisplay(node)
-        node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]))
-        node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]))
         /** @type {HTMLElement} */
         const inputContainer = node.querySelector(".ueb-node-inputs")
         /** @type {HTMLElement} */
@@ -94,28 +91,6 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
             node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler)
         }
         node.nodeNameElement = node.querySelector(".ueb-node-name-text")
-    }
-
-    /**
-     * @param {NodeElement} node
-     */
-    applyAdvancedPinDisplay(node) {
-        if (node.entity.AdvancedPinDisplay) {
-            requestAnimationFrame(_ => {
-                node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString()
-            })
-        }
-    }
-
-    /**
-     * @param {NodeElement} node
-     */
-    applyRename(node) {
-        const nodeName = node.entity.getObjectName()
-        requestAnimationFrame(_ => {
-            node.dataset.name = sanitizeText(nodeName)
-            node.nodeNameElement.textContent = sanitizeText(node.getNodeDisplayName())
-        })
     }
 
     /**

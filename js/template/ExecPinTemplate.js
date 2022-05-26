@@ -1,6 +1,6 @@
 // @ts-check
 
-import html from "./html"
+import { html } from "lit"
 import PinTemplate from "./PinTemplate"
 
 /**

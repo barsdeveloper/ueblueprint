@@ -1,7 +1,7 @@
 // @ts-check
 
+import { html } from "lit"
 import ITemplate from "./ITemplate"
-import sanitizeText from "./sanitizeText"
 
 /**
  * @typedef {import("../element/SelectorElement").default} SelectorElement
@@ -10,48 +10,23 @@ import sanitizeText from "./sanitizeText"
 export default class SelectorTemplate extends ITemplate {
 
     /**
-     * Applies the style to the element.
-     * @param {SelectorElement} selector Selector element
+     * @param {SelectorElement} element
      */
-    setup(selector) {
-        super.setup(selector)
-        selector.blueprint.dataset.selecting = "false"
+    render(element) {
+        return html`
+            <style>
+                :host {
+                    --ueb-from-x: ${element.initialPositionX};
+                    --ueb-from-y: ${element.initialPositionY};
+                    --ueb-to-x: ${element.finaPositionX};
+                    --ueb-to-y: ${element.finaPositionY};
+                }
+            </style>
+        `
     }
 
-    /**
-     * Applies the style relative to selection beginning.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyStartSelecting(selector, initialPosition) {
-        requestAnimationFrame(_ => {
-            // Set initial position
-            selector.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]))
-            selector.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]))
-            // Final position coincide with the initial position, at the beginning of selection
-            selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]))
-            selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]))
-            selector.blueprint.dataset.selecting = "true"
-        })
-    }
-
-    /**
-     * Applies the style relative to selection.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyDoSelecting(selector, finalPosition) {
-        requestAnimationFrame(_ => {
-            selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]))
-            selector.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]))
-        })
-    }
-
-    /**
-     * Applies the style relative to selection finishing.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyFinishSelecting(selector) {
-        requestAnimationFrame(_ => {
-            selector.blueprint.dataset.selecting = "false"
-        })
+    setup(element) {
+        super.setup(element)
+        element.classList.add("ueb-selector")
     }
 }

@@ -1,8 +1,8 @@
 // @ts-check
 
+import { css, html } from "lit"
 import Configuration from "../Configuration"
 import Copy from "../input/common/Copy"
-import html from "./html"
 import ITemplate from "./ITemplate"
 import KeyboardCanc from "../input/keybaord/KeyboardCanc"
 import KeyboardEnableZoom from "../input/keybaord/KeyboardEnableZoom"
@@ -10,7 +10,6 @@ import KeyboardSelectAll from "../input/keybaord/KeyboardSelectAll"
 import MouseScrollGraph from "../input/mouse/MouseScrollGraph"
 import MouseTracking from "../input/mouse/MouseTracking"
 import Paste from "../input/common/Paste"
-import sanitizeText from "./sanitizeText"
 import Select from "../input/mouse/Select"
 import SelectorElement from "../element/SelectorElement"
 import Unfocus from "../input/mouse/Unfocus"
@@ -23,6 +22,21 @@ import Zoom from "../input/mouse/Zoom"
  */
 
 export default class BlueprintTemplate extends ITemplate {
+
+    static styles = css`
+        :host {
+            --ueb-font-size: ${Configuration.fontSize};
+            --ueb-grid-size: ${Configuration.gridSize}px;
+            --ueb-grid-expand: ${Configuration.expandGridSize}px;
+            --ueb-grid-line-width: ${Configuration.gridLineWidth}px;
+            --ueb-grid-line-color: ${Configuration.gridLineColor};
+            --ueb-grid-set: ${Configuration.gridSet};
+            --ueb-grid-set-line-color: ${Configuration.gridSetLineColor};
+            --ueb-grid-axis-line-color: ${Configuration.gridAxisLineColor};
+            --ueb-node-radius: ${Configuration.nodeRadius}px;
+            --ueb-link-min-width: ${Configuration.linkMinWidth};
+        }
+    `
 
     /**
      * @param {Blueprint} blueprint
@@ -55,34 +69,20 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * @param {Blueprint} element
+     * Computes the html content of the target element.
+     * @param {Blueprint} element Target element
+     * @returns The computed html
      */
-    header(element) {
+    render(element) {
         return html`
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">1:1</div>
             </div>
-        `
-    }
-
-    /**
-     * @param {Blueprint} element
-     */
-    overlay(element) {
-        return html`
             <div class="ueb-viewport-overlay"></div>
-        `
-    }
-
-    /**
-     * @param {Blueprint} element
-     */
-    viewport(element) {
-        return html`
             <div class="ueb-viewport-body">
                 <div class="ueb-grid" style="
-                    --ueb-translate-x:${sanitizeText(element.translateValue[0])};
-                    --ueb-translate-y:${sanitizeText(element.translateValue[1])};
+                    --ueb-translate-x: ${element.translateX};
+                    --ueb-translate-y: ${element.translateY};
                 ">
                     <div class="ueb-grid-content">
                         <div data-links></div>
@@ -94,37 +94,11 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * Computes the html content of the target element.
-     * @param {Blueprint} element Target element
-     * @returns The computed html
-     */
-    render(element) {
-        return html`
-            ${this.header(element)}
-            ${this.overlay(element)}
-            ${this.viewport(element)}
-        `
-    }
-
-    /**
      * Applies the style to the element.
      * @param {Blueprint} blueprint The blueprint element
      */
     setup(blueprint) {
         super.setup(blueprint)
-        blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`)
-        Object.entries({
-            "--ueb-font-size": sanitizeText(Configuration.fontSize),
-            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
-            "--ueb-grid-expand": `${sanitizeText(Configuration.expandGridSize)}px`,
-            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
-            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
-            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
-            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
-            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
-            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth),
-        }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]))
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header')
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay')
         blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body')
@@ -136,67 +110,17 @@ export default class BlueprintTemplate extends ITemplate {
         blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]")
         blueprint.nodesContainerElement.append(...blueprint.getNodes())
         blueprint.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
-        this.applyEndDragScrolling(blueprint)
     }
 
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyZoom(blueprint, newZoom) {
-        const oldZoom = blueprint.zoom
-        requestAnimationFrame(_ => {
-            blueprint.classList.remove("ueb-zoom-" + sanitizeText(oldZoom))
-            blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom))
-        })
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyTranlate(blueprint) {
-        const translate = [...blueprint.translateValue]
-        //requestAnimationFrame(_ => {
-        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(translate[0]))
-        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(translate[1]))
-        //})
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyStartDragScrolling(blueprint) {
-        requestAnimationFrame(_ => {
-            blueprint.dataset.dragScrolling = "true"
-        })
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyEndDragScrolling(blueprint) {
-        requestAnimationFrame(_ => {
-            blueprint.dataset.dragScrolling = "false"
-        })
-    }
 
     /**
      * @param {Blueprint} blueprint
-     * @param {Boolean} smooth
+     * @param {Map} changedProperties
      */
-    applyScroll(blueprint, smooth = false) {
-        let scrollValue = [...blueprint.getScroll()]
-        if (!smooth) {
-            blueprint.viewportElement.scroll(scrollValue[0], scrollValue[1])
-        } else {
-            blueprint.viewportElement.scroll({
-                left: scrollValue[0],
-                top: scrollValue[1],
-                behavior: "smooth"
-            })
+    updated(blueprint, changedProperties) {
+        super.updated(blueprint, changedProperties)
+        if (changedProperties.has(scrollX) || changedProperties.has(scrollY)) {
+            blueprint.viewportElement.scroll(blueprint.scrollX, blueprint.scrollY)
         }
     }
 
@@ -207,7 +131,7 @@ export default class BlueprintTemplate extends ITemplate {
      */
     getPin(blueprint, pinReference) {
         return blueprint.querySelector(
-            `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
+            `.ueb-node[data-name="${pinReference.objectName}"] .ueb-pin[data-id="${pinReference.pinGuid}"]`
         )
     }
 }

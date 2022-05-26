@@ -2,7 +2,6 @@
 
 import IMouseClickDrag from "./IMouseClickDrag"
 import LinkElement from "../../element/LinkElement"
-import LinkMessageElement from "../../element/LinkMessageElement"
 
 /**
  * @typedef {import("../../element/PinElement").default} PinElement
@@ -40,16 +39,16 @@ export default class MouseCreateLink extends IMouseClickDrag {
                 self.enteredPin = /** @type {PinElement} */ (e.target)
                 const a = self.enteredPin, b = self.target
                 if (a.getNodeElement() == b.getNodeElement()) {
-                    this.setLinkMessage(LinkMessageElement.sameNode())
+                    self.link.setMessageSameNode()
                 } else if (a.isOutput() == b.isOutput()) {
-                    this.setLinkMessage(LinkMessageElement.directionsIncompatible())
+                    self.link.setMessageDirectionsIncompatible()
                 } else if (a.isOutput() == b.isOutput()) {
-                    this.setLinkMessage(LinkMessageElement.directionsIncompatible())
+                    self.link.setMessageDirectionsIncompatible()
                 } else if (self.blueprint.getLinks([a, b]).length) {
-                    this.setLinkMessage(LinkMessageElement.replaceLink())
+                    self.link.setMessageReplaceLink()
                     self.linkValid = true
                 } else {
-                    this.setLinkMessage(LinkMessageElement.correct())
+                    self.link.setMessageCorrect()
                     self.linkValid = true
                 }
             }
@@ -58,7 +57,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
             if (self.enteredPin == e.target) {
                 self.enteredPin = null
                 self.linkValid = false
-                this.setLinkMessage(LinkMessageElement.placeNode())
+                self.link.removeMessage()
             }
         }
     }
@@ -66,7 +65,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
     startDrag() {
         this.link = new LinkElement(this.target, null)
         this.blueprint.nodesContainerElement.prepend(this.link)
-        this.setLinkMessage(LinkMessageElement.placeNode())
+        this.link.setMessagePlaceNode
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin")
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
@@ -90,7 +89,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         if (this.enteredPin && this.linkValid) {
             this.blueprint.addGraphElement(this.link)
             this.link.destinationPin = this.enteredPin
-            this.link.setLinkMessage(null)
+            this.link.removeMessage()
             this.link.finishDragging()
         } else {
             this.link.finishDragging()
@@ -99,9 +98,5 @@ export default class MouseCreateLink extends IMouseClickDrag {
         this.enteredPin = null
         this.link = null
         this.#listenedPins = null
-    }
-
-    setLinkMessage(linkMessage) {
-        this.link.setLinkMessage(linkMessage)
     }
 }

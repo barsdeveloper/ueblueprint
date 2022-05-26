@@ -1,16 +1,21 @@
 // @ts-check
 
+import { css, html } from "lit"
 import Configuration from "../Configuration"
-import html from "./html"
 import ITemplate from "./ITemplate"
-import sanitizeText from "./sanitizeText"
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
- * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
 
 export default class LinkTemplate extends ITemplate {
+
+    /**
+     * @param {LinkElement} link
+     */
+    static styles(link) {
+        return css``
+    }
 
     /**
      * Returns a function performing the inverse multiplication y = a / x + q. The value of a and q are calculated using
@@ -65,12 +70,31 @@ export default class LinkTemplate extends ITemplate {
     render(link) {
         const uniqueId = crypto.randomUUID()
         return html`
-            <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <g>
-                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" />
-                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
-                </g>
-            </svg>
+            <style>
+                :host {
+                    --ueb-from-x: ${link.sourceLocationX};
+                    --ueb-from-y: ${link.sourceLocationY};
+                    --ueb-to-x: ${link.destinationLocationX};
+                    --ueb-to-y: ${link.destinationLocationY};
+                    --ueb-start-percentage: ${link.startPercentage};
+                    margin-left: -${link.startPixels}px;
+                }
+            </style>
+            <div class="ueb-link ueb-positioned" data-creating-link="${link.creatingLink}">
+                <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <g>
+                        <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${link.svgPathD}" />
+                        <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
+                    </g>
+                </svg>
+                ${link.linkMessageIcon != "" || link.linkMessageText != "" ? html`
+                    <div class="ueb-link-message">
+                        <span class="${link.linkMessageIcon}"></span>
+                        <span class="ueb-link-message-text">${link.linkMessageText}</span>
+                    </div>
+                ` : html``
+            }
+            </div>
         `
     }
 
@@ -79,10 +103,6 @@ export default class LinkTemplate extends ITemplate {
      */
     setup(link) {
         super.setup(link)
-        if (link.linkMessageElement) {
-            link.appendChild(link.linkMessageElement)
-        }
-        link.classList.add("ueb-positioned")
         link.pathElement = link.querySelector("path")
         const referencePin = link.sourcePin ?? link.destinationPin
         if (referencePin) {
@@ -111,82 +131,28 @@ export default class LinkTemplate extends ITemplate {
     /**
      * @param {LinkElement} link
      */
-    applyStartDragging(link) {
-        requestAnimationFrame(_ => {
-            link.blueprint.dataset.creatingLink = "true"
-            link.classList.add("ueb-link-dragging")
-        })
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
-    applyFinishDragging(link) {
-        requestAnimationFrame(_ => {
-            link.blueprint.dataset.creatingLink = "false"
-            link.classList.remove("ueb-link-dragging")
-        })
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
-    applySourceLocation(link) {
-        requestAnimationFrame(_ => {
-            link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0")
-            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
-            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
-        })
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
     applyFullLocation(link) {
-        const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1)
+        const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocationX), 1)
         const width = Math.max(dx, Configuration.linkMinWidth)
-        const height = Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1)
+        const height = Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocationY), 1)
         const fillRatio = dx / width
         const aspectRatio = width / height
         const xInverted = link.originatesFromInput
             ? link.sourceLocation[0] < link.destinationLocation[0]
             : link.destinationLocation[0] < link.sourceLocation[0]
-        const start = dx < width // If under minimum width
+        link.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0 // Otherwise start from the beginning
-        const startPercentage = xInverted ? start + fillRatio * 100 : start
+        link.startPercentage = xInverted ? link.startPixels + fillRatio * 100 : link.startPixels
         const c1
-            = startPercentage
+            = link.startPercentage
             + (xInverted
                 ? LinkTemplate.c1DecreasingValue(width)
                 : 10
             )
             * fillRatio
-        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + startPercentage
+        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + link.startPercentage
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width))
-        const d = Configuration.linkRightSVGPath(startPercentage, c1, c2)
-
-        requestAnimationFrame(_ => {
-            link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]))
-            link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]))
-            link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]))
-            link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]))
-            link.style.setProperty("--ueb-start-percentage", `${startPercentage}%`)
-            link.style.setProperty("margin-left", `-${start}px`)
-            // TODO move to CSS when Firefox will support property d and css will have enough functions
-            link.pathElement?.setAttribute("d", d)
-        })
-    }
-
-    /**
-     * @param {LinkElement} link
-     * @param {LinkMessageElement} linkMessage
-     */
-    applyLinkMessage(link, linkMessage) {
-        requestAnimationFrame(_ => {
-            link.querySelectorAll("ueb-link-message").forEach(element => element.remove())
-            link.appendChild(linkMessage)
-        })
-        link.linkMessageElement = linkMessage
+        link.svgPathD = Configuration.linkRightSVGPath(link.startPercentage, c1, c2)
     }
 }

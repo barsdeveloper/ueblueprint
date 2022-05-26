@@ -19,14 +19,43 @@ import Utility from "./Utility"
  */
 export default class Blueprint extends IElement {
 
-    /** @type {Number[]} */
-    #translateValue
-    get translateValue() {
-        return this.#translateValue
+    static properties = {
+        selecting: {
+            type: Boolean,
+            reflect: true,
+        },
+        scrolling: {
+            type: Boolean,
+            reflect: true,
+        },
+        focused: {
+            type: Boolean,
+            reflect: true,
+        },
+        zoom: {
+            type: Number,
+            reflect: true,
+        },
+        scrollX: {
+            type: Number,
+            attribute: false,
+        },
+        scrollY: {
+            type: Number,
+            attribute: false,
+        },
+        translateX: {
+            type: Number,
+            attribute: false,
+        },
+        translateY: {
+            type: Number,
+            attribute: false,
+        },
     }
-    set translateValue(value) {
-        this.#translateValue = value
-    }
+
+    static styles = BlueprintTemplate.styles
+
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
     /** @type {Number} */
@@ -37,8 +66,6 @@ export default class Blueprint extends IElement {
     links = []
     /** @type {Number[]} */
     mousePosition = [0, 0]
-    /** @type {Number[]} */
-    #scrollValue = [Configuration.expandGridSize, Configuration.expandGridSize]
     /** @type {HTMLElement} */
     gridElement = null
     /** @type {HTMLElement} */
@@ -51,8 +78,6 @@ export default class Blueprint extends IElement {
     linksContainerElement = null
     /** @type {HTMLElement} */
     nodesContainerElement = null
-    /** @type {Number} */
-    zoom = 0
     /** @type {HTMLElement} */
     headerElement = null
     focused = false
@@ -78,21 +103,14 @@ export default class Blueprint extends IElement {
      */
     constructor(settings = new Configuration()) {
         super({}, new BlueprintTemplate())
-        /** @type {Number} */
-        this.gridSize = Configuration.gridSize
-        /** @type {Number[]} */
-        this.#translateValue = [Configuration.expandGridSize, Configuration.expandGridSize]
-    }
-
-    /**
-     * @param {Number[]} param0
-     */
-    #translate([x, y]) {
-        x = Math.round(x)
-        y = Math.round(y)
-        this.translateValue[0] += x
-        this.translateValue[1] += y
-        this.template.applyTranlate(this)
+        this.selecting = false
+        this.scrolling = false
+        this.focused = false
+        this.zoom = 0
+        this.scrollX = Configuration.expandGridSize
+        this.scrollY = Configuration.expandGridSize
+        this.translateX = Configuration.expandGridSize
+        this.translateY = Configuration.expandGridSize
     }
 
     getGridDOMElement() {
@@ -104,12 +122,12 @@ export default class Blueprint extends IElement {
     }
 
     getScroll() {
-        return this.#scrollValue
+        return [this.scrollX, this.scrollY]
     }
 
     setScroll(value, smooth = false) {
-        this.#scrollValue = value
-        this.template.applyScroll(this, smooth)
+        this.scrollX = value[0]
+        this.scrollY = value[1]
     }
 
     scrollDelta(delta, smooth = false) {
@@ -144,8 +162,8 @@ export default class Blueprint extends IElement {
     scrollCenter() {
         const scroll = this.getScroll()
         const offset = [
-            this.translateValue[0] - scroll[0],
-            this.translateValue[1] - scroll[1]
+            this.translateX - scroll[0],
+            this.translateY - scroll[1]
         ]
         const targetOffset = this.getViewportSize().map(size => size / 2)
         const deltaOffset = [
@@ -153,10 +171,6 @@ export default class Blueprint extends IElement {
             offset[1] - targetOffset[1]
         ]
         this.scrollDelta(deltaOffset, true)
-    }
-
-    getExpandGridSize() {
-        return Configuration.expandGridSize
     }
 
     getViewportSize() {
@@ -178,32 +192,28 @@ export default class Blueprint extends IElement {
     }
 
     snapToGrid(location) {
-        return Utility.snapToGrid(location, this.gridSize)
+        return Utility.snapToGrid(location, Configuration.gridSize)
     }
 
     /**
-     * @param {Number} x - Horizontal
-     * @param {Number} y - Vertical expand value (negative means top, positive means bottom)
-     * @param {Number} factor - Either 1 (expand) or -1 (shrink)
-     */
-
-    /**
-     * Expand or shrink the grind indefinitely, the content will remain into position
-     * @param {Number[]} param0 - Expand value (negative means shrink, positive means expand)
+     * @param {Number[]} param0
      */
     seamlessExpand([x, y]) {
+        x = Math.round(x)
+        y = Math.round(y)
         let scale = this.getScale()
         // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
         let translate = [-x * Configuration.expandGridSize, -y * Configuration.expandGridSize]
         if (translate[0] != 0) {
-            this.#scrollValue[0] += translate[0]
+            this.scrollX += translate[0]
             translate[0] /= scale
         }
         if (translate[1] != 0) {
-            this.#scrollValue[1] += translate[1]
+            this.scrollY += translate[1]
             translate[1] /= scale
         }
-        this.#translate(translate)
+        this.translateX += x
+        this.translateY += y
     }
 
     progressiveSnapToGrid(x) {
@@ -220,13 +230,12 @@ export default class Blueprint extends IElement {
             return
         }
         let initialScale = this.getScale()
-        this.template.applyZoom(this, zoom)
         this.zoom = zoom
 
         if (center) {
             requestAnimationFrame(_ => {
-                center[0] += this.translateValue[0]
-                center[1] += this.translateValue[1]
+                center[0] += this.translateX
+                center[1] += this.translateY
                 let relativeScale = this.getScale() / initialScale
                 let newCenter = [
                     relativeScale * center[0],
@@ -245,12 +254,13 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * @param {Number[]} position
+     * @param {Number[]} param0
+     * @returns 
      */
-    compensateTranslation(position) {
-        position[0] -= this.translateValue[0]
-        position[1] -= this.translateValue[1]
-        return position
+    compensateTranslation([x, y]) {
+        x -= this.translateX
+        y -= this.translateY
+        return [x, y]
     }
 
     /**
@@ -375,7 +385,6 @@ export default class Blueprint extends IElement {
         }
         let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus")
         this.focused = value
-        this.dataset.focused = this.focused ? "true" : "false"
         if (!this.focused) {
             this.unselectAll()
         }

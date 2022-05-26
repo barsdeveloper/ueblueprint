@@ -1,6 +1,6 @@
 // @ts-check
 
-import html from "./html"
+import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 import Utility from "../Utility"
@@ -26,9 +26,7 @@ export default class IInputPinTemplate extends PinTemplate {
             [...pin.querySelectorAll(".ueb-pin-input-content")]
         )
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, [
-                Utility.decodeInputString(/** @type {String} */(pin.entity.DefaultValue))
-            ])
+            this.setInputs(pin, this.getInputs(pin))
             let self = this
             this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true)
             this.onFocusOutHandler = e => {
@@ -76,6 +74,7 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
+        Utility.decodeInputString(/** @type {String} */(pin.entity.DefaultValue))
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
             element.innerHTML.replaceAll("<br>", "\n"))
@@ -105,6 +104,6 @@ export default class IInputPinTemplate extends PinTemplate {
                 </div>
             `
         }
-        return ""
+        return html``
     }
 }

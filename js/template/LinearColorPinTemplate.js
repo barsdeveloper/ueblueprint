@@ -1,11 +1,11 @@
 // @ts-check
 
-import html from "./html"
+import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity)}
+ * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity}
  */
 
 export default class LinearColorPinTemplate extends IInputPinTemplate {
@@ -19,8 +19,6 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     setup(pin) {
         super.setup(pin)
         this.#input = pin.querySelector(".ueb-pin-input")
-        this.#input.dataset.linearColor = /** @type {LinearColorEntity} */(pin.entity.DefaultValue).toString()
-        let self = this
     }
 
     /**
@@ -43,7 +41,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-pin-input"></span>
+                <span class="ueb-pin-input" data-linear-color="${pin.defaultValue.toString()}"></span>
             `
         }
         return super.renderInput(pin)

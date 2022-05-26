@@ -1,8 +1,10 @@
 // @ts-check
 
+import { css, html } from "lit"
+
 /**
  * @typedef {import("../element/IElement").default} IElement
- * @typedef {import("../input/IInput").default} IInput")}
+ * @typedef {import("../input/IInput").default} IInput
  */
 
 /**
@@ -12,24 +14,28 @@ export default class ITemplate {
 
     /** @type {IInput[]} */
     #inputObjects = []
-
     get inputObjects() {
         return this.#inputObjects
     }
 
     /**
-     * @param {T} entity
+     * @param {T} element
      */
-    render(entity) {
-        return ""
+    render(element) {
+        return html``
     }
 
     /**
      * @param {T} element
      */
     setup(element) {
-        // TODO replace with the safer element.setHTML(...) when it will be availableBreack
-        element.innerHTML = this.render(element)
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    updated(element, changedProperties) {
     }
 
     /**

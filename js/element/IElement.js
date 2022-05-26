@@ -1,5 +1,7 @@
 // @ts-check
 
+import { LitElement } from "lit"
+
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -11,15 +13,12 @@
  * @template {IEntity} T
  * @template {ITemplate} U
  */
-export default class IElement extends HTMLElement {
+export default class IElement extends LitElement {
 
     /** @type {Blueprint} */
     #blueprint
     get blueprint() {
         return this.#blueprint
-    }
-    set blueprint(blueprint) {
-        this.#blueprint = blueprint
     }
 
     /** @type {T} */
@@ -36,9 +35,6 @@ export default class IElement extends HTMLElement {
     get template() {
         return this.#template
     }
-    set template(template) {
-        this.#template = template
-    }
 
     /** @type {IInput[]} */
     inputObjects = []
@@ -54,17 +50,19 @@ export default class IElement extends HTMLElement {
         this.inputObjects = []
     }
 
-    getTemplate() {
-        return this.template
-    }
-
     connectedCallback() {
+        super.connectedCallback()
         this.#blueprint = this.closest("ueb-blueprint")
         this.template.setup(this)
         this.template.inputSetup(this)
     }
 
+    updated(changedProperties) {
+        this.#template.updated(this, changedProperties)
+    }
+
     disconnectedCallback() {
+        super.disconnectedCallback()
         this.template.cleanup(this)
     }
 
@@ -78,14 +76,12 @@ export default class IElement extends HTMLElement {
     /**
      * @template {IInput} V
      * @param {new (...args: any[]) => V} type
-     * @returns {V}
      */
     getInputObject(type) {
         return /** @type {V} */ (this.template.inputObjects.find(object => object.constructor == type))
     }
 
-    // Subclasses will want to override
-    createInputObjects() {
-        return []
+    render() {
+        return this.template.render(this)
     }
 }

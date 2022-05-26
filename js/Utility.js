@@ -32,7 +32,6 @@ export default class Utility {
     /**
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
-     * @returns
      */
     static convertLocation(viewportLocation, movementElement) {
         const scaleCorrection = 1 / Utility.getScale(movementElement)

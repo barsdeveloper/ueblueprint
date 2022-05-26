@@ -3,10 +3,9 @@
 import Configuration from "../Configuration"
 import IElement from "./IElement"
 import LinkTemplate from "../template/LinkTemplate"
+import PinElement from "./PinElement"
 
 /**
- * @typedef {import("./PinElement").default} PinElement
- * @typedef {import("./LinkMessageElement").default} LinkMessageElement
  * @typedef {import("../entity/IEntity").default} IEntity
  */
 
@@ -15,34 +14,67 @@ import LinkTemplate from "../template/LinkTemplate"
  */
 export default class LinkElement extends IElement {
 
+    static properties = {
+        source: {
+            type: PinElement,
+            reflect: true,
+        },
+        destination: {
+            type: PinElement,
+            reflect: true,
+        },
+        creatingLink: {
+            type: Boolean,
+            attribute: false,
+        },
+        originatesFromInput: {
+            type: Boolean,
+            attribute: false,
+        },
+        sourceLocationX: {
+            type: Number,
+            attribute: false,
+        },
+        sourceLocationY: {
+            attribute: false,
+            type: Number,
+        },
+        destinationLocationX: {
+            type: Number,
+            attribute: false,
+        },
+        destinationLocationY: {
+            type: Number,
+            attribute: false,
+        },
+        startPercentage: {
+            type: Number,
+            attribute: false,
+        },
+        startPixels: {
+            type: Number,
+            attribute: false,
+        },
+        svgPathD: {
+            type: String,
+            attribute: false,
+        },
+        linkMessageIcon: {
+            type: String,
+            attribute: false,
+        },
+        linkMessageText: {
+            type: String,
+            attribute: false,
+        },
+    }
+
     /** @type {PinElement} */
     #source
     get sourcePin() {
         return this.#source
     }
     set sourcePin(pin) {
-        if (this.#source == pin) {
-            return
-        }
-        if (this.#source) {
-            const nodeElement = this.#source.getNodeElement()
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
-            if (this.#destination) {
-                this.#unlinkPins()
-            }
-        }
-        this.#source = pin
-        if (this.#source) {
-            const nodeElement = this.#source.getNodeElement()
-            this.originatesFromInput = pin.isInput()
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
-            this.setSourceLocation()
-            if (this.#destination) {
-                this.#linkPins()
-            }
-        }
         this.template.applyPins(this)
     }
 
@@ -82,9 +114,6 @@ export default class LinkElement extends IElement {
     sourceLocation = [0, 0]
     /** @type {SVGPathElement} */
     pathElement
-    /** @type {LinkMessageElement} */
-    linkMessageElement
-    originatesFromInput = false
     destinationLocation = [0, 0]
 
     /**
@@ -94,10 +123,24 @@ export default class LinkElement extends IElement {
     constructor(source, destination) {
         super({}, new LinkTemplate())
         const self = this
-        this.#nodeDeleteHandler = _ => self.remove()
+        this.#nodeDeleteHandler = () => self.remove()
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value)
         this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value)
+        this.source = null
+        this.destination = null
+        this.creatingLink = false
+        this.originatesFromInput = false
+        this.sourceLocationX = 0
+        this.sourceLocationY = 0
+        this.destinationLocationX = 0
+        this.destinationLocationY = 0
+        this.startPercentage = 0
+        this.startPixels = 0
+        this.svgPathD = ""
+        this.linkMessageIcon = ""
+        this.linkMessageText = ""
         if (source) {
+            this.svgPathD = ""
             this.sourcePin = source
         }
         if (destination) {
@@ -123,6 +166,35 @@ export default class LinkElement extends IElement {
     disconnectedCallback() {
         super.disconnectedCallback()
         this.#unlinkPins()
+    }
+
+    /**
+     * @param {Map} changedProperties
+     */
+    willUpdate(changedProperties) {
+        if (changedProperties.has("sourcePin")) {
+            /** @type {PinElement} */
+            const oldSourcePin = changedProperties.get("sourcePin")
+            if (oldSourcePin) {
+
+                const nodeElement = oldSourcePin.getNodeElement()
+                nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+                nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+                if (this.#destination) {
+                    this.#unlinkPins()
+                }
+            }
+            if (this.source) {
+                const nodeElement = this.source.getNodeElement()
+                this.originatesFromInput = pin.isInput()
+                nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+                nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+                this.setSourceLocation()
+                if (this.#destination) {
+                    this.#linkPins()
+                }
+            }
+        }
     }
 
     /**
@@ -152,7 +224,6 @@ export default class LinkElement extends IElement {
             location = this.#source.template.getLinkLocation(this.#source)
         }
         this.sourceLocation = location
-        this.template.applySourceLocation(this)
     }
 
     getDestinationLocation() {
@@ -164,8 +235,8 @@ export default class LinkElement extends IElement {
      */
     addDestinationLocation(offset) {
         const location = [
-            this.destinationLocation[0] + offset[0],
-            this.destinationLocation[1] + offset[1]
+            this.destinationLocationX + offset[0],
+            this.destinationLocationY + offset[1]
         ]
         this.setDestinationLocation(location)
     }
@@ -177,28 +248,56 @@ export default class LinkElement extends IElement {
         if (location == null) {
             location = this.#destination.template.getLinkLocation(this.#destination)
         }
-        this.destinationLocation = location
-        this.template.applyFullLocation(this)
-    }
-
-    /**
-     * @param {LinkMessageElement} linkMessage
-     */
-    setLinkMessage(linkMessage) {
-        if (linkMessage) {
-            this.template.applyLinkMessage(this, linkMessage)
-        } else if (this.linkMessageElement) {
-            this.linkMessageElement.remove()
-            this.linkMessageElement = null
-        }
+        this.destinationLocationX = location[0]
+        this.destinationLocationY = location[1]
     }
 
     startDragging() {
-        this.template.applyStartDragging(this)
+        this.creatingLink = true
     }
 
     finishDragging() {
-        this.template.applyFinishDragging(this)
+        this.creatingLink = false
+    }
+
+    removeMessage() {
+        this.linkMessageIcon = ""
+        this.linkMessageText = ""
+    }
+
+    setMessageConvertType() {
+        this.linkMessageIcon = "ueb-icon-conver-type"
+        this.linkMessageText = `Convert ${this.sourcePin.getType()} to ${this.destinationPin.getType()}.`
+    }
+
+    setMessageCorrect() {
+        this.linkMessageIcon = "ueb-icon-correct"
+        this.linkMessageText = ""
+    }
+
+    setMessageDirectionsIncompatible() {
+        this.linkMessageIcon = "ueb-icon-directions-incompatible"
+        this.linkMessageText = "Directions are not compatbile."
+    }
+
+    setMessagePlaceNode() {
+        this.linkMessageIcon = "ueb-icon-place-node"
+        this.linkMessageText = "Place a new node."
+    }
+
+    setMessageReplaceLink() {
+        this.linkMessageIcon = "ueb-icon-replace-link"
+        this.linkMessageText = "Replace existing input connections."
+    }
+
+    setMessageSameNode() {
+        this.linkMessageIcon = "ueb-icon-same-node"
+        this.linkMessageText = "Both are on the same node."
+    }
+
+    setMEssagetypesIncompatible() {
+        this.linkMessageIcon = "ueb-icon-types-incompatible"
+        this.linkMessageText = `${this.sourcePin.getType()} is not compatible with ${this.destinationPin.getType()}.`
     }
 }
 

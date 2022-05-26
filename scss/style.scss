@@ -14,7 +14,9 @@
         url("../font/roboto-regular.woff") format("woff");
 }
 
-ueb-blueprint {
+.ueb-blueprint {
+    --ueb-scale: 1;
+    --ueb-grid-actual-size: var(--ueb-grid-size);
     display: block;
     position: relative;
     font-family: Roboto, Noto, Oxygen, Ubuntu, "Open Sans", "Helvetica Neue", sans-serif;
@@ -23,7 +25,7 @@ ueb-blueprint {
     user-select: none;
 }
 
-ueb-blueprint svg {
+.ueb-blueprint svg {
     overflow: visible;
 }
 
@@ -51,7 +53,7 @@ ueb-blueprint svg {
     scrollbar-width: 0;
 }
 
-ueb-blueprint[data-focused="true"] .ueb-viewport-body {
+.ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     overflow: scroll;
 }
 
@@ -108,18 +110,12 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     overflow: hidden;
 }
 
-ueb-blueprint[data-drag-scrolling="true"] .ueb-grid {
+.ueb-blueprint[data-drag-scrolling="true"] .ueb-grid {
     cursor: grabbing;
 }
 
-ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
+.ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
     cursor: default;
-}
-
-.ueb-zoom--.ueb,
-.ueb {
-    --ueb-scale: 1;
-    --ueb-grid-actual-size: var(--ueb-grid-size);
 }
 
 .ueb-zoom-7.ueb {
@@ -233,7 +229,7 @@ ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
     height: calc(var(--ueb-computed-height) * 1px);
 }
 
-ueb-selector {
+.ueb-selector {
     display: block;
     position: absolute;
     visibility: hidden;
@@ -319,11 +315,11 @@ ueb-selector {
     background-repeat: no-repeat;
 }
 
-ueb-blueprint[data-selecting="true"] ueb-selector {
+ueb-blueprint[selecting="true"] .ueb-selector {
     visibility: visible;
     @extend .ueb-positioned;
 }
 
-ueb-selector>* {
+.ueb-selector>* {
     visibility: visible;
 }

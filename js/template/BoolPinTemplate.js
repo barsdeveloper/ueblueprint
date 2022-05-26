@@ -1,6 +1,6 @@
 // @ts-check
 
-import html from "./html"
+import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
 
 /**
@@ -40,20 +40,11 @@ export default class BoolPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
-     * @param {String[]?} value
-     */
-    setInputs(pin, value = []) {
-        pin.entity.DefaultValue = value.length ? value[0] : this.getInput(pin)
-        this.#input.checked = pin.entity.DefaultValue == "true"
-    }
-
-    /**
-     * @param {PinElement} pin
      */
     renderInput(pin) {
         if (pin.isInput()) {
             return html`
-                <input type="checkbox" class="ueb-pin-input" ${pin.entity.DefaultValue == "true" ? "checked" : ""} />
+                <input type="checkbox" class="ueb-pin-input" ${pin.defaultValue == "true" ? "checked" : ""} />
             `
         }
         return super.renderInput(pin)

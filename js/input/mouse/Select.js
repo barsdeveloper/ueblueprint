@@ -10,16 +10,16 @@ export default class Select extends IMouseClickDrag {
     }
 
     startDrag() {
-        this.selectorElement.startSelecting(this.clickedPosition)
+        this.selectorElement.beginSelect(this.clickedPosition)
     }
 
     dragTo(location, movement) {
-        this.selectorElement.doSelecting(location)
+        this.selectorElement.selectTo(location)
     }
 
     endDrag() {
         if (this.started) {
-            this.selectorElement.finishSelecting()
+            this.selectorElement.endSelect()
         }
     }
 
