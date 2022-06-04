@@ -27,8 +27,9 @@ export default class ITemplate {
 
     /**
      * @param {T} element
+     * @param {Map} changedProperties
      */
-    setup(element) {
+    firstUpdated(element, changedProperties) {
     }
 
     /**

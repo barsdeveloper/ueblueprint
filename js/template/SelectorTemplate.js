@@ -25,8 +25,11 @@ export default class SelectorTemplate extends ITemplate {
         `
     }
 
-    setup(element) {
-        super.setup(element)
-        element.classList.add("ueb-selector")
+    /**
+     * @param {SelectorElement} selector
+     * @param {Map} changedProperties
+     */
+    firstUpdated(selector, changedProperties) {
+        super.firstUpdated(selector, changedProperties)
     }
 }

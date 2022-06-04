@@ -15,9 +15,10 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin)
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties)
         this.#input = pin.querySelector(".ueb-pin-input")
     }
 

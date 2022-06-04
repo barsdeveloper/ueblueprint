@@ -13,9 +13,10 @@ export default class NamePinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin)
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties)
         this.onInputHandler = e => {
             e.stopPropagation()
             if (

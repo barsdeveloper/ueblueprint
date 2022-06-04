@@ -17,12 +17,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     render(node) {
         return html`
-            <style>
-                :host {
-                    --ueb-position-x: ${node.locationX};
-                    --ueb-position-y: ${node.locationY};
-                }
-            </style>
+
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
@@ -69,9 +64,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * @param {NodeElement} node
+     * @param {Map} changedProperties
      */
-    setup(node) {
-        super.setup(node)
+    firstUpdated(node, changedProperties) {
+        super.firstUpdated(node, changedProperties)
         node.dataset.name = node.entity.getObjectName()
         if (node.entity.EnabledState) {
             node.dataset.enabledState = node.entity.EnabledState.toString()
@@ -87,7 +83,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         this.toggleAdvancedDisplayHandler = _ => {
             node.toggleShowAdvancedPinDisplay()
         }
-        if (node.entity.AdvancedPinDisplay) {
+        if (node.advancedPinDisplay) {
             node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler)
         }
         node.nodeNameElement = node.querySelector(".ueb-node-name-text")

@@ -19,9 +19,10 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin)
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties)
         this.#inputContentElements = /** @type {HTMLElement[]} */(
             [...pin.querySelectorAll(".ueb-pin-input-content")]
         )

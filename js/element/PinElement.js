@@ -10,7 +10,6 @@ import PinTemplate from "../template/PinTemplate"
 import RealPinTemplate from "../template/RealPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 import Utility from "../Utility"
-import { css } from "lit"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity

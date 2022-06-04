@@ -26,14 +26,14 @@ export default class BlueprintTemplate extends ITemplate {
     static styles = css`
         :host {
             --ueb-font-size: ${Configuration.fontSize};
-            --ueb-grid-size: ${Configuration.gridSize}px;
-            --ueb-grid-expand: ${Configuration.expandGridSize}px;
-            --ueb-grid-line-width: ${Configuration.gridLineWidth}px;
+            --ueb-grid-size: ${Configuration.gridSize}${css`px`};
+            --ueb-grid-expand: ${Configuration.expandGridSize}${css`px`};
+            --ueb-grid-line-width: ${Configuration.gridLineWidth}${css`px`};
             --ueb-grid-line-color: ${Configuration.gridLineColor};
             --ueb-grid-set: ${Configuration.gridSet};
             --ueb-grid-set-line-color: ${Configuration.gridSetLineColor};
             --ueb-grid-axis-line-color: ${Configuration.gridAxisLineColor};
-            --ueb-node-radius: ${Configuration.nodeRadius}px;
+            --ueb-node-radius: ${Configuration.nodeRadius}${css`px`};
             --ueb-link-min-width: ${Configuration.linkMinWidth};
         }
     `
@@ -94,11 +94,11 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
+     * @param {Blueprint} blueprint
+     * @param {Map} changedProperties
      */
-    setup(blueprint) {
-        super.setup(blueprint)
+    firstUpdated(blueprint, changedProperties) {
+        super.firstUpdated(blueprint, changedProperties)
         blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header')
         blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay')
         blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body')

@@ -70,16 +70,6 @@ export default class LinkTemplate extends ITemplate {
     render(link) {
         const uniqueId = crypto.randomUUID()
         return html`
-            <style>
-                :host {
-                    --ueb-from-x: ${link.sourceLocationX};
-                    --ueb-from-y: ${link.sourceLocationY};
-                    --ueb-to-x: ${link.destinationLocationX};
-                    --ueb-to-y: ${link.destinationLocationY};
-                    --ueb-start-percentage: ${link.startPercentage};
-                    margin-left: -${link.startPixels}px;
-                }
-            </style>
             <div class="ueb-link ueb-positioned" data-creating-link="${link.creatingLink}">
                 <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <g>
@@ -92,17 +82,17 @@ export default class LinkTemplate extends ITemplate {
                         <span class="${link.linkMessageIcon}"></span>
                         <span class="ueb-link-message-text">${link.linkMessageText}</span>
                     </div>
-                ` : html``
-            }
+                ` : html``}
             </div>
         `
     }
 
     /**
      * @param {LinkElement} link
+     * @param {Map} changedProperties
      */
-    setup(link) {
-        super.setup(link)
+    firstUpdated(link, changedProperties) {
+        super.firstUpdated(link, changedProperties)
         link.pathElement = link.querySelector("path")
         const referencePin = link.sourcePin ?? link.destinationPin
         if (referencePin) {

@@ -3,7 +3,6 @@
 import Configuration from "../Configuration"
 import IElement from "./IElement"
 import LinkTemplate from "../template/LinkTemplate"
-import PinElement from "./PinElement"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -16,11 +15,11 @@ export default class LinkElement extends IElement {
 
     static properties = {
         source: {
-            type: PinElement,
+            type: String,
             reflect: true,
         },
         destination: {
-            type: PinElement,
+            type: String,
             reflect: true,
         },
         creatingLink: {
@@ -70,38 +69,37 @@ export default class LinkElement extends IElement {
     }
 
     /** @type {PinElement} */
-    #source
+    #sourcePin
     get sourcePin() {
-        return this.#source
+        return this.#sourcePin
     }
     set sourcePin(pin) {
-        this.template.applyPins(this)
     }
 
     /** @type {PinElement} */
-    #destination
+    #destinationPin
     get destinationPin() {
-        return this.#destination
+        return this.#destinationPin
     }
     set destinationPin(pin) {
-        if (this.#destination == pin) {
+        if (this.#destinationPin == pin) {
             return
         }
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement()
+        if (this.#destinationPin) {
+            const nodeElement = this.#destinationPin.getNodeElement()
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
-            if (this.#source) {
+            if (this.#sourcePin) {
                 this.#unlinkPins()
             }
         }
-        this.#destination = pin
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement()
+        this.#destinationPin = pin
+        if (this.#destinationPin) {
+            const nodeElement = this.#destinationPin.getNodeElement()
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
             this.setDestinationLocation()
-            if (this.#source) {
+            if (this.#sourcePin) {
                 this.#linkPins()
             }
         }
@@ -151,15 +149,47 @@ export default class LinkElement extends IElement {
         }
     }
 
+    /**
+     * @param {PinElement} pin
+     * @param {Boolean} isSourcePin
+     */
+    #setPin(pin, isSourcePin) {
+        const pinA = isSourcePin ? this.#sourcePin : this.#destinationPin
+        const pinB = isSourcePin ? this.#destinationPin : this.#sourcePin
+        if (pinA == pin) {
+            return
+        }
+        if (pinA) {
+            const nodeElement = pinA.getNodeElement()
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+            if (this.#destinationPin) {
+                this.#unlinkPins()
+            }
+        }
+        this.#sourcePin = pin
+        if (this.#sourcePin) {
+            const nodeElement = this.#sourcePin.getNodeElement()
+            this.originatesFromInput = pin.isInput()
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
+            this.setSourceLocation()
+            if (this.#destinationPin) {
+                this.#linkPins()
+            }
+        }
+        this.template.applyPins(this)
+    }
+
     #linkPins() {
-        this.#source.linkTo(this.#destination)
-        this.#destination.linkTo(this.#source)
+        this.#sourcePin.linkTo(this.#destinationPin)
+        this.#destinationPin.linkTo(this.#sourcePin)
     }
 
     #unlinkPins() {
-        if (this.#source && this.#destination) {
-            this.#source.unlinkFrom(this.#destination)
-            this.#destination.unlinkFrom(this.#source)
+        if (this.#sourcePin && this.#destinationPin) {
+            this.#sourcePin.unlinkFrom(this.#destinationPin)
+            this.#destinationPin.unlinkFrom(this.#sourcePin)
         }
     }
 
@@ -180,17 +210,17 @@ export default class LinkElement extends IElement {
                 const nodeElement = oldSourcePin.getNodeElement()
                 nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
                 nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
-                if (this.#destination) {
+                if (this.#destinationPin) {
                     this.#unlinkPins()
                 }
             }
             if (this.source) {
                 const nodeElement = this.source.getNodeElement()
-                this.originatesFromInput = pin.isInput()
+                this.originatesFromInput = this.source.isInput()
                 nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
                 nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
                 this.setSourceLocation()
-                if (this.#destination) {
+                if (this.#destinationPin) {
                     this.#linkPins()
                 }
             }
@@ -221,7 +251,7 @@ export default class LinkElement extends IElement {
      */
     setSourceLocation(location = null) {
         if (location == null) {
-            location = this.#source.template.getLinkLocation(this.#source)
+            location = this.#sourcePin.template.getLinkLocation(this.#sourcePin)
         }
         this.sourceLocation = location
     }
@@ -246,7 +276,7 @@ export default class LinkElement extends IElement {
      */
     setDestinationLocation(location = null) {
         if (location == null) {
-            location = this.#destination.template.getLinkLocation(this.#destination)
+            location = this.#destinationPin.template.getLinkLocation(this.#destinationPin)
         }
         this.destinationLocationX = location[0]
         this.destinationLocationY = location[1]

@@ -50,10 +50,17 @@ export default class IElement extends LitElement {
         this.inputObjects = []
     }
 
+    createRenderRoot() {
+        return this;
+    }
+
     connectedCallback() {
         super.connectedCallback()
         this.#blueprint = this.closest("ueb-blueprint")
-        this.template.setup(this)
+    }
+
+    firstUpdated(changedProperties) {
+        this.template.firstUpdated(this, changedProperties)
         this.template.inputSetup(this)
     }
 

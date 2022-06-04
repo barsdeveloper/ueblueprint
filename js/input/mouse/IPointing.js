@@ -26,6 +26,6 @@ export default class IPointing extends IInput {
             [mouseEvent.clientX, mouseEvent.clientY],
             this.movementSpace
         )
-        return this.blueprint.compensateTranslation(location[0], location[1])
+        return this.blueprint.compensateTranslation(location)
     }
 }

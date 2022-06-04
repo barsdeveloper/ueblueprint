@@ -3,6 +3,7 @@
 import FastSelectionModel from "../selection/FastSelectionModel"
 import IElement from "./IElement"
 import SelectorTemplate from "../template/SelectorTemplate"
+import { of } from "parsimmon"
 
 /**
  * @extends {IElement<Object, SelectorTemplate>}
@@ -30,14 +31,18 @@ export default class SelectorElement extends IElement {
 
     constructor() {
         super({}, new SelectorTemplate())
-        this.endSelect()
+        this.selectionModel = null
+        this.initialPositionX = 0
+        this.initialPositionY = 0
+        this.finaPositionX = 0
+        this.finaPositionY = 0
     }
 
     /**
      * @param {Number[]} initialPosition
      */
     beginSelect(initialPosition) {
-        this.blueprint.selecting = true
+        if (this.blueprint) this.blueprint.selecting = true
         this.selectionModel = new FastSelectionModel(
             initialPosition,
             this.blueprint.getNodes(),

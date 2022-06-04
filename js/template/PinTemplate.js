@@ -73,9 +73,10 @@ export default class PinTemplate extends ITemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin)
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties)
         pin.dataset.id = pin.GetPinIdValue()
         if (pin.entity.bAdvancedView) {
             pin.dataset.advancedView = "true"
@@ -93,6 +94,6 @@ export default class PinTemplate extends ITemplate {
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
             pin.blueprint.gridElement
         )
-        return pin.blueprint.compensateTranslation(location[0], location[1])
+        return pin.blueprint.compensateTranslation(location)
     }
 }
