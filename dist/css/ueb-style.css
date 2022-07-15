@@ -34,7 +34,7 @@ ueb-blueprint svg {
 
 .ueb-viewport-zoom {
   margin-left: auto;
-  color: #4d4d4db7;
+  color: rgba(77, 77, 77, 0.7176470588);
   font-size: 20px;
 }
 
@@ -413,7 +413,7 @@ ueb-pin.ueb-pin-fill .ueb-pin-tofill {
   color: #c0c0c0;
 }
 .ueb-pin-input:hover, .ueb-pin-input:active, .ueb-pin-input:focus, .ueb-pin-input:focus-within {
-  background: #ffffff46;
+  background: rgba(255, 255, 255, 0.2745098039);
   outline: none;
 }
 
