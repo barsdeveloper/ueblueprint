@@ -68,7 +68,7 @@ export default class LinkTemplate extends ITemplate {
      * @param {LinkElement} link
      */
     render(link) {
-        const uniqueId = crypto.randomUUID()
+        const uniqueId = "ueb-id-" + Math.floor(Math.random() * 1E12)
         return html`
             <div class="ueb-link ueb-positioned" data-creating-link="${link.creatingLink}">
                 <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
