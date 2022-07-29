@@ -4606,7 +4606,11 @@ class SelectorElement extends IElement {
      * @param {Number[]} initialPosition
      */
     beginSelect(initialPosition) {
-        if (this.blueprint) this.blueprint.selecting = true;
+        this.blueprint.selecting = true;
+        this.initialPositionX = initialPosition[0];
+        this.initialPositionY = initialPosition[1];
+        this.finaPositionX = initialPosition[0];
+        this.finaPositionY = initialPosition[1];
         this.selectionModel = new FastSelectionModel(
             initialPosition,
             this.blueprint.getNodes(),

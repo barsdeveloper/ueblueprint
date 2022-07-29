@@ -7,7 +7,7 @@ ueb-node {
     font-weight: lighter;
 }
 
-ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node {
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] ueb-node {
     cursor: move;
 }
 
