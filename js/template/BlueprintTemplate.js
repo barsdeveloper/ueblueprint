@@ -1,6 +1,6 @@
 // @ts-check
 
-import { css, html } from "lit"
+import { html, css } from "lit"
 import Configuration from "../Configuration"
 import Copy from "../input/common/Copy"
 import ITemplate from "./ITemplate"
@@ -23,20 +23,25 @@ import Zoom from "../input/mouse/Zoom"
 
 export default class BlueprintTemplate extends ITemplate {
 
-    static styles = css`
-        :host {
-            --ueb-font-size: ${Configuration.fontSize};
-            --ueb-grid-size: ${Configuration.gridSize}${css`px`};
-            --ueb-grid-expand: ${Configuration.expandGridSize}${css`px`};
-            --ueb-grid-line-width: ${Configuration.gridLineWidth}${css`px`};
-            --ueb-grid-line-color: ${Configuration.gridLineColor};
-            --ueb-grid-set: ${Configuration.gridSet};
-            --ueb-grid-set-line-color: ${Configuration.gridSetLineColor};
-            --ueb-grid-axis-line-color: ${Configuration.gridAxisLineColor};
-            --ueb-node-radius: ${Configuration.nodeRadius}${css`px`};
-            --ueb-link-min-width: ${Configuration.linkMinWidth};
-        }
+    static styleVariables = css`
+        --ueb-font-size: ${Configuration.fontSize};
+        --ueb-grid-size: ${Configuration.gridSize}px;
+        --ueb-grid-expand: ${Configuration.expandGridSize}px;
+        --ueb-grid-line-width: ${Configuration.gridLineWidth}px;
+        --ueb-grid-line-color: ${Configuration.gridLineColor};
+        --ueb-grid-set: ${Configuration.gridSet};
+        --ueb-grid-set-line-color: ${Configuration.gridSetLineColor};
+        --ueb-grid-axis-line-color: ${Configuration.gridAxisLineColor};
+        --ueb-node-radius: ${Configuration.nodeRadius}px;
+        --ueb-link-min-width: ${Configuration.linkMinWidth};
     `
+
+    /**
+    * @param {Blueprint} blueprint
+    */
+    constructed(blueprint) {
+        blueprint.style.cssText = BlueprintTemplate.styleVariables.cssText
+    }
 
     /**
      * @param {Blueprint} blueprint
@@ -99,15 +104,16 @@ export default class BlueprintTemplate extends ITemplate {
      */
     firstUpdated(blueprint, changedProperties) {
         super.firstUpdated(blueprint, changedProperties)
-        blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header')
-        blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay')
-        blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body')
+        blueprint.classList.add("ueb-blueprint")
+        blueprint.headerElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-header'))
+        blueprint.overlayElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-overlay'))
+        blueprint.viewportElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-body'))
         blueprint.selectorElement = new SelectorElement()
-        blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid")
-        blueprint.querySelector(".ueb-grid-content").append(blueprint.selectorElement)
-        blueprint.linksContainerElement = blueprint.querySelector("[data-links]")
+        blueprint.querySelector(".ueb-grid-content")?.append(blueprint.selectorElement)
+        blueprint.gridElement = /** @type {HTMLElement} */(blueprint.viewportElement.querySelector(".ueb-grid"))
+        blueprint.linksContainerElement = /** @type {HTMLElement} */(blueprint.querySelector("[data-links]"))
         blueprint.linksContainerElement.append(...blueprint.getLinks())
-        blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]")
+        blueprint.nodesContainerElement = /** @type {HTMLElement} */(blueprint.querySelector("[data-nodes]"))
         blueprint.nodesContainerElement.append(...blueprint.getNodes())
         blueprint.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
     }
@@ -127,11 +133,10 @@ export default class BlueprintTemplate extends ITemplate {
     /**
      * @param {Blueprint} blueprint
      * @param {PinReferenceEntity} pinReference
-     * @returns {PinElement}
      */
     getPin(blueprint, pinReference) {
-        return blueprint.querySelector(
+        return /** @type {PinElement} */(blueprint.querySelector(
             `.ueb-node[data-name="${pinReference.objectName}"] .ueb-pin[data-id="${pinReference.pinGuid}"]`
-        )
+        ))
     }
 }

@@ -24,4 +24,17 @@ export default class SelectableDraggableTemplate extends ITemplate {
             }),
         ]
     }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    update(element, changedProperties) {
+        if (changedProperties.has("locationX")) {
+            element.style.setProperty("--ueb-position-x", `${element.locationX}`)
+        }
+        if (changedProperties.has("locationY")) {
+            element.style.setProperty("--ueb-position-y", `${element.locationY}`)
+        }
+    }
 }

@@ -1,6 +1,7 @@
 // @ts-check
 
 import { html } from "lit"
+import { styleMap } from "lit/directives/style-map.js"
 import PinElement from "../element/PinElement"
 import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
 
@@ -17,7 +18,6 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     render(node) {
         return html`
-
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
@@ -68,14 +68,13 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
      */
     firstUpdated(node, changedProperties) {
         super.firstUpdated(node, changedProperties)
+        node.classList.add("ueb-node")
         node.dataset.name = node.entity.getObjectName()
         if (node.entity.EnabledState) {
             node.dataset.enabledState = node.entity.EnabledState.toString()
         }
-        /** @type {HTMLElement} */
-        const inputContainer = node.querySelector(".ueb-node-inputs")
-        /** @type {HTMLElement} */
-        const outputContainer = node.querySelector(".ueb-node-outputs")
+        const inputContainer = /** @type {HTMLElement} */(node.querySelector(".ueb-node-inputs"))
+        const outputContainer = /** @type {HTMLElement} */(node.querySelector(".ueb-node-outputs"))
         const pins = node.getPinEntities()
         pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)))
         pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)))
@@ -84,9 +83,9 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
             node.toggleShowAdvancedPinDisplay()
         }
         if (node.advancedPinDisplay) {
-            node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler)
+            node.querySelector(".ueb-node-expansion")?.addEventListener("click", this.toggleAdvancedDisplayHandler)
         }
-        node.nodeNameElement = node.querySelector(".ueb-node-name-text")
+        node.nodeNameElement = /** @type {HTMLElement} */(node.querySelector(".ueb-node-name-text"))
     }
 
     /**

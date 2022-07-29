@@ -22,7 +22,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] .ueb-pin-wrap
     cursor: crosshair;
 }
 
-.ueb-node-outputs ueb-pin {
+.ueb-node-outputs .ueb-pin {
     text-align: right;
 }
 
@@ -52,11 +52,11 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] .ueb-pin-wrap
     border-radius: 50%;
 }
 
-ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
+.ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
     background: var(--ueb-pin-color);
 }
 
-ueb-pin.ueb-pin-fill .ueb-pin-tofill {
+.ueb-pin.ueb-pin-fill .ueb-pin-tofill {
     fill: currentColor;
 }
 

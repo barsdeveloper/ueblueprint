@@ -48,6 +48,7 @@ export default class IElement extends LitElement {
         this.#entity = entity
         this.#template = template
         this.inputObjects = []
+        this.#template.constructed(this)
     }
 
     createRenderRoot() {
@@ -56,7 +57,16 @@ export default class IElement extends LitElement {
 
     connectedCallback() {
         super.connectedCallback()
+        // @ts-expect-error
         this.#blueprint = this.closest("ueb-blueprint")
+    }
+
+    /**
+     * @param {Map} changedProperties
+     */
+    update(changedProperties) {
+        super.update(changedProperties)
+        this.template.update(this, changedProperties)
     }
 
     firstUpdated(changedProperties) {

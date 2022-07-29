@@ -35,7 +35,6 @@ export default class ISelectableDraggableElement extends IElement {
         // @ts-expect-error
         super(...args)
         this.dragObject = null
-        this.location = [0, 0]
         this.selected = false
         this.locationX = 0
         this.locationY = 0
@@ -110,8 +109,8 @@ export default class ISelectableDraggableElement extends IElement {
     }
 
     snapToGrid() {
-        const snappedLocation = Utility.snapToGrid(this.location, Configuration.gridSize)
-        if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
+        const snappedLocation = Utility.snapToGrid([this.locationX, this.locationY], Configuration.gridSize)
+        if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
             this.setLocation(snappedLocation)
         }
     }

@@ -48,10 +48,6 @@ export default class PinElement extends IElement {
             type: Boolean,
             attribute: false,
         },
-        pinDisplayName: {
-            type: String,
-            attribute: false,
-        },
     }
 
     static styles = PinTemplate.styles
@@ -90,7 +86,6 @@ export default class PinElement extends IElement {
         this.advancedView = false
         this.defaultValue = ""
         this.isLinked = false
-        this.pinDisplayName = ""
 
         this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
         this.entity.subscribe("PinToolTip", value => {
@@ -122,6 +117,18 @@ export default class PinElement extends IElement {
      */
     getPinName() {
         return this.entity.PinName
+    }
+
+    getPinDisplayName() {
+        let matchResult = null
+        if (
+            this.entity.PinToolTip
+            // Match up until the first \n excluded or last character
+            && (matchResult = this.entity.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+        ) {
+            return Utility.formatStringName(matchResult[1])
+        }
+        return Utility.formatStringName(this.entity.PinName)
     }
 
     isInput() {

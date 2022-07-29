@@ -1,6 +1,5 @@
 // @ts-check
 
-import Utility from "../Utility"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
 import IdentifierEntity from "./IdentifierEntity"
@@ -9,6 +8,7 @@ import IntegerEntity from "./IntegerEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"
 import TypeInitialization from "./TypeInitialization"
+import Utility from "../Utility"
 import VariableReferenceEntity from "./VariableReferenceEntity"
 
 export default class ObjectEntity extends IEntity {
@@ -67,6 +67,7 @@ export default class ObjectEntity extends IEntity {
         if (result && result.length == 3) {
             return [result[1], parseInt(result[2])]
         }
+        return ["", 0]
     }
 
     getDisplayName() {

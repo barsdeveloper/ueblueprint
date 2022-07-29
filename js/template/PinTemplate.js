@@ -39,7 +39,7 @@ export default class PinTemplate extends ITemplate {
         `
         const content = html`
             <div class="ueb-pin-content">
-                <span class="ueb-pin-name">${pin.pinDisplayName}</span>
+                <span class="ueb-pin-name">${pin.getPinDisplayName()}</span>
                 ${this.renderInput(pin)}
             </div>
         `

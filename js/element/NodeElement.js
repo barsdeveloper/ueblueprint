@@ -46,7 +46,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         super(entity, new NodeTemplate())
         this.advancedPinDisplay = false
         this.enabledState = ""
-        this.nodeDisplayName = ""
+        this.nodeDisplayName = entity.getDisplayName()
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
     }
@@ -133,7 +133,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     toggleShowAdvancedPinDisplay() {
-        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay.toString() != "Shown")
+        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.toString() != "Shown")
     }
 }
 

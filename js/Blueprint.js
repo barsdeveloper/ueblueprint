@@ -67,19 +67,19 @@ export default class Blueprint extends IElement {
     /** @type {Number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
-    gridElement = null
+    gridElement
     /** @type {HTMLElement} */
-    viewportElement = null
+    viewportElement
     /** @type {HTMLElement} */
-    overlayElement = null
+    overlayElement
     /** @type {SelectorElement} */
-    selectorElement = null
+    selectorElement
     /** @type {HTMLElement} */
-    linksContainerElement = null
+    linksContainerElement
     /** @type {HTMLElement} */
-    nodesContainerElement = null
+    nodesContainerElement
     /** @type {HTMLElement} */
-    headerElement = null
+    headerElement
     focused = false
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect()
@@ -255,7 +255,6 @@ export default class Blueprint extends IElement {
 
     /**
      * @param {Number[]} param0
-     * @returns 
      */
     compensateTranslation([x, y]) {
         x -= this.translateX

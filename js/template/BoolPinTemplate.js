@@ -18,6 +18,7 @@ export default class BoolPinTemplate extends IInputPinTemplate {
      */
     firstUpdated(pin, changedProperties) {
         super.firstUpdated(pin, changedProperties)
+        // @ts-expect-error
         this.#input = pin.querySelector(".ueb-pin-input")
         let self = this
         this.onChangeHandler = _ => pin.entity.DefaultValue = self.#input.checked ? "true" : "false"

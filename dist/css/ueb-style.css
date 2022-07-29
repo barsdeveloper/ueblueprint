@@ -8,7 +8,7 @@
   font-style: regular;
   src: url("../font/roboto-regular.woff2") format("woff2"), url("../font/roboto-regular.woff") format("woff");
 }
-.ueb-blueprint {
+ueb-blueprint {
   --ueb-scale: 1;
   --ueb-grid-actual-size: var(--ueb-grid-size);
   display: block;
@@ -19,7 +19,7 @@
   user-select: none;
 }
 
-.ueb-blueprint svg {
+ueb-blueprint svg {
   overflow: visible;
 }
 
@@ -47,7 +47,7 @@
   scrollbar-width: 0;
 }
 
-.ueb-blueprint[data-focused=true] .ueb-viewport-body {
+ueb-blueprint[data-focused=true] .ueb-viewport-body {
   overflow: scroll;
 }
 
@@ -68,11 +68,11 @@
   overflow: hidden;
 }
 
-.ueb-blueprint[data-drag-scrolling=true] .ueb-grid {
+ueb-blueprint[data-drag-scrolling=true] .ueb-grid {
   cursor: grabbing;
 }
 
-.ueb-blueprint[data-drag-scrolling=false] .ueb-grid {
+ueb-blueprint[data-drag-scrolling=false] .ueb-grid {
   cursor: default;
 }
 
@@ -218,7 +218,7 @@ ueb-node {
   font-weight: lighter;
 }
 
-ueb-blueprint[data-drag-scrolling=false][data-selecting=false] ueb-node {
+ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-node {
   cursor: move;
 }
 
@@ -339,7 +339,7 @@ ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-pin-wrapper:
   cursor: crosshair;
 }
 
-.ueb-node-outputs ueb-pin {
+.ueb-node-outputs .ueb-pin {
   text-align: right;
 }
 
@@ -369,11 +369,11 @@ ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-pin-wrapper:
   border-radius: 50%;
 }
 
-ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
+.ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
   background: var(--ueb-pin-color);
 }
 
-ueb-pin.ueb-pin-fill .ueb-pin-tofill {
+.ueb-pin.ueb-pin-fill .ueb-pin-tofill {
   fill: currentColor;
 }
 
@@ -485,7 +485,7 @@ ueb-link svg g:hover path {
   transition: stroke-width 0.8s;
 }
 
-ueb-link-message {
+.ueb-link-message {
   display: block;
   visibility: visible;
   position: absolute;

@@ -12,6 +12,8 @@ import { css, html } from "lit"
  */
 export default class ITemplate {
 
+    static styles = {}
+
     /** @type {IInput[]} */
     #inputObjects = []
     get inputObjects() {
@@ -23,6 +25,19 @@ export default class ITemplate {
      */
     render(element) {
         return html``
+    }
+
+    /**
+     * @param {T} element
+     */
+    constructed(element) {
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    update(element, changedProperties) {
     }
 
     /**

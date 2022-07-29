@@ -14,7 +14,7 @@
         url("../font/roboto-regular.woff") format("woff");
 }
 
-.ueb-blueprint {
+ueb-blueprint {
     --ueb-scale: 1;
     --ueb-grid-actual-size: var(--ueb-grid-size);
     display: block;
@@ -25,7 +25,7 @@
     user-select: none;
 }
 
-.ueb-blueprint svg {
+ueb-blueprint svg {
     overflow: visible;
 }
 
@@ -53,7 +53,7 @@
     scrollbar-width: 0;
 }
 
-.ueb-blueprint[data-focused="true"] .ueb-viewport-body {
+ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     overflow: scroll;
 }
 
@@ -110,11 +110,11 @@
     overflow: hidden;
 }
 
-.ueb-blueprint[data-drag-scrolling="true"] .ueb-grid {
+ueb-blueprint[data-drag-scrolling="true"] .ueb-grid {
     cursor: grabbing;
 }
 
-.ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
+ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
     cursor: default;
 }
 
