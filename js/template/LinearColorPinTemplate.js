@@ -19,6 +19,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
      */
     firstUpdated(pin, changedProperties) {
         super.firstUpdated(pin, changedProperties)
+        // @ts-expect-error
         this.#input = pin.querySelector(".ueb-pin-input")
     }
 
@@ -31,7 +32,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
-     * @param {String[]?} value
+     * @param {String[]} value
      */
     setInputs(pin, value = []) {
     }

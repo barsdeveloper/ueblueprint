@@ -446,6 +446,20 @@ class TypeInitialization {
 
 class Utility {
 
+    static booleanConverter = {
+        fromAttribute: (value, type) => {
+        },
+        toAttribute: (value, type) => {
+            if (value === true) {
+                return "true"
+            }
+            if (value === false) {
+                return "false"
+            }
+            return ""
+        }
+    }
+
     static sigmoid(x, curvature = 1.7) {
         return 1 / (1 + (x / (1 - x) ** -curvature))
     }
@@ -3467,6 +3481,7 @@ class LinearColorPinTemplate extends IInputPinTemplate {
      */
     firstUpdated(pin, changedProperties) {
         super.firstUpdated(pin, changedProperties);
+        // @ts-expect-error
         this.#input = pin.querySelector(".ueb-pin-input");
     }
 
@@ -3479,7 +3494,7 @@ class LinearColorPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
-     * @param {String[]?} value
+     * @param {String[]} value
      */
     setInputs(pin, value = []) {
     }
@@ -3714,7 +3729,15 @@ class PinElement extends IElement {
     }
 
     getPinDisplayName() {
-        return this.entity.PinFriendlyName
+        let matchResult = null;
+        if (
+            this.entity.PinToolTip
+            // Match up until the first \n excluded or last character
+            && (matchResult = this.entity.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+        ) {
+            return Utility.formatStringName(matchResult[1])
+        }
+        return Utility.formatStringName(this.entity.PinName)
     }
 
     isInput() {
@@ -3926,7 +3949,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${node.enabledState == "DevelopmentOnly" ? $`
+                    ${node.enabledState?.toString() == "DevelopmentOnly" ? $`
                         <div class="ueb-node-developmentonly">Development Only</div>
                     ` : $``}
                     ${node.advancedPinDisplay ? $`
@@ -4000,8 +4023,9 @@ class NodeElement extends ISelectableDraggableElement {
     static properties = {
         ...ISelectableDraggableElement.properties,
         advancedPinDisplay: {
-            type: Boolean,
-            attribute: false,
+            type: String,
+            attribute: "data-advanced-display",
+            reflect: true,
         },
         enabledState: {
             type: String,
@@ -4027,8 +4051,8 @@ class NodeElement extends ISelectableDraggableElement {
      */
     constructor(entity) {
         super(entity, new NodeTemplate());
-        this.advancedPinDisplay = false;
-        this.enabledState = "";
+        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
+        this.enabledState = entity.EnabledState;
         this.nodeDisplayName = entity.getDisplayName();
         this.dragLinkObjects = [];
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
@@ -4797,15 +4821,21 @@ class Blueprint extends IElement {
     static properties = {
         selecting: {
             type: Boolean,
+            attribute: "data-selecting",
             reflect: true,
+            converter: Utility.booleanConverter,
         },
         scrolling: {
             type: Boolean,
+            attribute: "data-scrolling",
             reflect: true,
+            converter: Utility.booleanConverter,
         },
         focused: {
             type: Boolean,
+            attribute: "data-focused",
             reflect: true,
+            converter: Utility.booleanConverter,
         },
         zoom: {
             type: Number,

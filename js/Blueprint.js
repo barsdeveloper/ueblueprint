@@ -22,15 +22,21 @@ export default class Blueprint extends IElement {
     static properties = {
         selecting: {
             type: Boolean,
+            attribute: "data-selecting",
             reflect: true,
+            converter: Utility.booleanConverter,
         },
         scrolling: {
             type: Boolean,
+            attribute: "data-scrolling",
             reflect: true,
+            converter: Utility.booleanConverter,
         },
         focused: {
             type: Boolean,
+            attribute: "data-focused",
             reflect: true,
+            converter: Utility.booleanConverter,
         },
         zoom: {
             type: Number,

@@ -32,7 +32,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${node.enabledState == "DevelopmentOnly" ? html`
+                    ${node.enabledState?.toString() == "DevelopmentOnly" ? html`
                         <div class="ueb-node-developmentonly">Development Only</div>
                     ` : html``}
                     ${node.advancedPinDisplay ? html`

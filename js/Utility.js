@@ -4,6 +4,21 @@ import TypeInitialization from "./entity/TypeInitialization"
 
 export default class Utility {
 
+    static booleanConverter = {
+        fromAttribute: (value, type) => {
+            value ? "true" : "false"
+        },
+        toAttribute: (value, type) => {
+            if (value === true) {
+                return "true"
+            }
+            if (value === false) {
+                return "false"
+            }
+            return ""
+        }
+    }
+
     static sigmoid(x, curvature = 1.7) {
         return 1 / (1 + (x / (1 - x) ** -curvature))
     }

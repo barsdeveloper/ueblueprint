@@ -17,8 +17,9 @@ export default class NodeElement extends ISelectableDraggableElement {
     static properties = {
         ...ISelectableDraggableElement.properties,
         advancedPinDisplay: {
-            type: Boolean,
-            attribute: false,
+            type: String,
+            attribute: "data-advanced-display",
+            reflect: true,
         },
         enabledState: {
             type: String,
@@ -44,8 +45,8 @@ export default class NodeElement extends ISelectableDraggableElement {
      */
     constructor(entity) {
         super(entity, new NodeTemplate())
-        this.advancedPinDisplay = false
-        this.enabledState = ""
+        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
+        this.enabledState = entity.EnabledState
         this.nodeDisplayName = entity.getDisplayName()
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
