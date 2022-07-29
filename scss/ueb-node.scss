@@ -7,7 +7,7 @@ ueb-node {
     font-weight: lighter;
 }
 
-ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] .ueb-node {
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node {
     cursor: move;
 }
 
@@ -109,7 +109,7 @@ ueb-node[data-enabled-state="DevelopmentOnly"] .ueb-node-developmentonly {
     vertical-align: middle;
 }
 
-ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] .ueb-node-expansion:hover {
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-expansion:hover {
     background-color: #656765;
     cursor: pointer;
 }

@@ -3837,7 +3837,7 @@ class MouseMoveNodes extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize);
+        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
         this.mouseLocation = [0, 0];
     }
 
@@ -3852,9 +3852,10 @@ class MouseMoveNodes extends IMouseClickDrag {
     }
 
     dragTo(location, movement) {
+        const initialTargetLocation = [this.target.locationX, this.target.locationY];
         const [mouseLocation, targetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(this.target.location, this.stepSize)]
-            : [location, this.target.location];
+            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(initialTargetLocation, this.stepSize)]
+            : [location, initialTargetLocation];
         const d = [
             mouseLocation[0] - this.mouseLocation[0],
             mouseLocation[1] - this.mouseLocation[1]
@@ -3865,8 +3866,8 @@ class MouseMoveNodes extends IMouseClickDrag {
         }
 
         // Make sure it snaps on the grid
-        d[0] += targetLocation[0] - this.target.location[0];
-        d[1] += targetLocation[1] - this.target.location[1];
+        d[0] += targetLocation[0] - this.target.locationX;
+        d[1] += targetLocation[1] - this.target.locationY;
 
         this.target.dispatchDragEvent(d);
 
@@ -4839,6 +4840,7 @@ class Blueprint extends IElement {
         },
         zoom: {
             type: Number,
+            attribute: "data-zoom",
             reflect: true,
         },
         scrollX: {
@@ -4863,8 +4865,6 @@ class Blueprint extends IElement {
 
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
-    /** @type {Number} */
-    gridSize
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */

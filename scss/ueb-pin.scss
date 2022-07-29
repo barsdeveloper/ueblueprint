@@ -17,7 +17,7 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
     }
 }
 
-ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:hover {
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:hover {
     background: var(--ueb-pin-background);
     cursor: crosshair;
 }

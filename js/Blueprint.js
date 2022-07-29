@@ -40,6 +40,7 @@ export default class Blueprint extends IElement {
         },
         zoom: {
             type: Number,
+            attribute: "data-zoom",
             reflect: true,
         },
         scrollX: {
@@ -64,8 +65,6 @@ export default class Blueprint extends IElement {
 
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
-    /** @type {Number} */
-    gridSize
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */

@@ -68,11 +68,11 @@ ueb-blueprint[data-focused=true] .ueb-viewport-body {
   overflow: hidden;
 }
 
-ueb-blueprint[data-drag-scrolling=true] .ueb-grid {
+ueb-blueprint[data-scrolling=true] .ueb-grid {
   cursor: grabbing;
 }
 
-ueb-blueprint[data-drag-scrolling=false] .ueb-grid {
+ueb-blueprint[data-scrolling=false] .ueb-grid {
   cursor: default;
 }
 
@@ -218,7 +218,7 @@ ueb-node {
   font-weight: lighter;
 }
 
-ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-node {
+ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node {
   cursor: move;
 }
 
@@ -303,7 +303,7 @@ ueb-node[data-enabled-state=DevelopmentOnly] .ueb-node-developmentonly {
   vertical-align: middle;
 }
 
-ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-node-expansion:hover {
+ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-expansion:hover {
   background-color: #656765;
   cursor: pointer;
 }
@@ -334,7 +334,7 @@ ueb-node[data-advanced-display=Hidden] ueb-pin[data-advanced-view=true] {
   vertical-align: middle;
 }
 
-ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover {
+ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover {
   background: var(--ueb-pin-background);
   cursor: crosshair;
 }

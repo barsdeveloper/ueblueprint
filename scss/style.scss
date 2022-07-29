@@ -110,11 +110,11 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     overflow: hidden;
 }
 
-ueb-blueprint[data-drag-scrolling="true"] .ueb-grid {
+ueb-blueprint[data-scrolling="true"] .ueb-grid {
     cursor: grabbing;
 }
 
-ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
+ueb-blueprint[data-scrolling="false"] .ueb-grid {
     cursor: default;
 }
 
