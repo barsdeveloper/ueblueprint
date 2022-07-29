@@ -37,20 +37,6 @@ export default class SelectorElement extends IElement {
         this.finaPositionX = 0
         this.finaPositionY = 0
     }
-
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    update(element, changedProperties) {
-        if (changedProperties.has("locationX")) {
-            element.style.setProperty("--ueb-position-x", `${element.locationX}`)
-        }
-        if (changedProperties.has("locationY")) {
-            element.style.setProperty("--ueb-position-y", `${element.locationY}`)
-        }
-    }
-
     /**
      * @param {Number[]} initialPosition
      */

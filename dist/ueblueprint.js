@@ -4548,28 +4548,24 @@ class FastSelectionModel {
 class SelectorTemplate extends ITemplate {
 
     /**
-     * @param {SelectorElement} element
-     */
-    render(element) {
-        return $`
-            <style>
-                :host {
-                    --ueb-from-x: ${element.initialPositionX};
-                    --ueb-from-y: ${element.initialPositionY};
-                    --ueb-to-x: ${element.finaPositionX};
-                    --ueb-to-y: ${element.finaPositionY};
-                }
-            </style>
-        `
-    }
-
-    /**
      * @param {SelectorElement} selector
      * @param {Map} changedProperties
      */
-    firstUpdated(selector, changedProperties) {
-        super.firstUpdated(selector, changedProperties);
+    update(selector, changedProperties) {
+        if (changedProperties.has("initialPositionX")) {
+            selector.style.setProperty("--ueb-from-x", `${selector.initialPositionX}`);
+        }
+        if (changedProperties.has("initialPositionY")) {
+            selector.style.setProperty("--ueb-from-y", `${selector.initialPositionY}`);
+        }
+        if (changedProperties.has("finaPositionX")) {
+            selector.style.setProperty("--ueb-to-x", `${selector.finaPositionX}`);
+        }
+        if (changedProperties.has("finaPositionY")) {
+            selector.style.setProperty("--ueb-to-y", `${selector.finaPositionY}`);
+        }
     }
+
 }
 
 // @ts-check
@@ -4606,7 +4602,6 @@ class SelectorElement extends IElement {
         this.finaPositionX = 0;
         this.finaPositionY = 0;
     }
-
     /**
      * @param {Number[]} initialPosition
      */

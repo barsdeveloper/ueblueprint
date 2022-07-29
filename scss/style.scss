@@ -229,7 +229,7 @@ ueb-blueprint[data-scrolling="false"] .ueb-grid {
     height: calc(var(--ueb-computed-height) * 1px);
 }
 
-.ueb-selector {
+ueb-selector {
     display: block;
     position: absolute;
     visibility: hidden;
@@ -315,11 +315,11 @@ ueb-blueprint[data-scrolling="false"] .ueb-grid {
     background-repeat: no-repeat;
 }
 
-ueb-blueprint[selecting="true"] .ueb-selector {
+ueb-blueprint[selecting="true"] ueb-selector {
     visibility: visible;
     @extend .ueb-positioned;
 }
 
-.ueb-selector>* {
+ueb-selector>* {
     visibility: visible;
 }

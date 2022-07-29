@@ -173,7 +173,7 @@ ueb-blueprint[data-scrolling=false] .ueb-grid {
   height: 0;
 }
 
-.ueb-positioned, ueb-blueprint[selecting=true] .ueb-selector {
+.ueb-positioned, ueb-blueprint[selecting=true] ueb-selector {
   --ueb-computed-min-x: min(var(--ueb-from-x), var(--ueb-to-x));
   --ueb-computed-max-x: max(var(--ueb-from-x), var(--ueb-to-x));
   --ueb-computed-min-y: min(var(--ueb-from-y), var(--ueb-to-y));
@@ -187,7 +187,7 @@ ueb-blueprint[data-scrolling=false] .ueb-grid {
   height: calc(var(--ueb-computed-height) * 1px);
 }
 
-.ueb-selector {
+ueb-selector {
   display: block;
   position: absolute;
   visibility: hidden;
@@ -201,11 +201,11 @@ ueb-blueprint[data-scrolling=false] .ueb-grid {
   background-repeat: no-repeat;
 }
 
-ueb-blueprint[selecting=true] .ueb-selector {
+ueb-blueprint[selecting=true] ueb-selector {
   visibility: visible;
 }
 
-.ueb-selector > * {
+ueb-selector > * {
   visibility: visible;
 }
 
