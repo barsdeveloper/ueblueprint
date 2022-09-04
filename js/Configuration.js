@@ -1,4 +1,4 @@
-// @ts-check
+import { css } from "lit"
 
 export default class Configuration {
     static deleteNodesKeyboardKey = "Delete"
@@ -12,15 +12,16 @@ export default class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = "12.5px"
-    static gridAxisLineColor = "black"
+    static fontSize = css`12.5px`
+    static gridAxisLineColor = css`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    static gridLineColor = "#353535"
+    static gridLineColor = css`#353535`
     static gridLineWidth = 1 // pixel
     static gridSet = 8
-    static gridSetLineColor = "#161616"
+    static gridSetLineColor = css`#161616`
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // pixel
+    static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = "+"
     static linkCurveHeight = 15 // pixel
     static linkCurveWidth = 80 // pixel
@@ -36,11 +37,22 @@ export default class Configuration {
     }
     static maxZoom = 7
     static minZoom = -12
+    static mouseWheelFactor = 0.2
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragLocalEventName = "ueb-node-drag-local"
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // in pixel
+    static nodeReflowEventName = "ueb-node-reflow"
+    static pinColor = {
+        bool: css`117, 0, 0`, // #750000
+        default: css`167, 167, 167`, // #a7a7a7
+        exec: css`167, 167, 167`, // #a7a7a7
+        name: css`203, 129, 252`, // #cb81fc
+        real: css`50, 187, 0`, // #32bb00
+        string: css`213, 0, 176`, // #d500b0
+        struct: css`3, 76, 168` // #034ca8
+    }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",

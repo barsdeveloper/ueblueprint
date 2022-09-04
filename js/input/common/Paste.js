@@ -1,5 +1,3 @@
-// @ts-check
-
 import IInput from "../IInput"
 import NodeElement from "../../element/NodeElement"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
@@ -32,8 +30,8 @@ export default class Paste extends IInput {
         let count = 0
         let nodes = this.serializer.readMultiple(value).map(entity => {
             let node = new NodeElement(entity)
-            top += node.location[1]
-            left += node.location[0]
+            top += node.locationY
+            left += node.locationX
             ++count
             return node
         })
@@ -49,8 +47,8 @@ export default class Paste extends IInput {
                 mousePosition[1] - top,
             ]
             node.addLocation(locationOffset)
-            node.setSelected(true)
             node.snapToGrid()
+            node.setSelected(true)
         })
         this.blueprint.addGraphElement(...nodes)
         return true

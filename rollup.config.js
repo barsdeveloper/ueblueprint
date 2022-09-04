@@ -1,8 +1,8 @@
-import { nodeResolve } from "@rollup/plugin-node-resolve"
-import minifyHTML from "rollup-plugin-minify-html-template-literals"
-import commonjs from "@rollup/plugin-commonjs"
 import { terser } from "rollup-plugin-terser"
+import commonjs from "@rollup/plugin-commonjs"
 import copy from "rollup-plugin-copy"
+import minifyHTML from "rollup-plugin-minify-html-literals"
+import resolve from "@rollup/plugin-node-resolve"
 
 export default [
     {
@@ -12,15 +12,13 @@ export default [
             format: 'es'
         },
         plugins: [
-            nodeResolve({ browser: true }),
+            resolve({ browser: true }),
             commonjs(),
             copy({
-                targets: [
-                    {
-                        src: ["assets/fonts/*"],
-                        dest: "dist/font"
-                    }
-                ]
+                targets: [{
+                    src: ["assets/fonts/*"],
+                    dest: "dist/font"
+                }]
             })
         ]
     },
@@ -31,17 +29,17 @@ export default [
             format: 'es'
         },
         plugins: [
-            nodeResolve({ browser: true }),
+            resolve({ browser: true }),
             commonjs(),
-            minifyHTML(),
+            minifyHTML({
+                minifyCSS: true,
+            }),
             terser(),
             copy({
-                targets: [
-                    {
-                        src: ["assets/fonts/*"],
-                        dest: "dist/font"
-                    }
-                ]
+                targets: [{
+                    src: ["assets/fonts/*"],
+                    dest: "dist/font"
+                }]
             })
         ]
     }

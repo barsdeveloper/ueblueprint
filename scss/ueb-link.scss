@@ -1,14 +1,18 @@
+@use "style.scss";
+
 ueb-link {
     --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
     /* when from-y > to-y */
     --ueb-y-opposite: clamp(0, var(--ueb-from-y) - var(--ueb-to-y) - 1, 1);
     display: block;
+    margin-left: calc(var(--ueb-link-start) * -1px);
     min-width: calc(var(--ueb-link-min-width) * 1px);
     /*
      * This makes the element transparent to the hover events so that multiple path elements can stand nearby and have
      * their hover behavior correctly firing.
      */
     visibility: hidden;
+    @extend .ueb-positioned;
 }
 
 ueb-link svg {
@@ -24,17 +28,17 @@ ueb-link svg {
 
 ueb-link svg path {
     visibility: visible;
-    stroke: var(--ueb-pin-color);
+    stroke: var(--ueb-link-color);
     stroke-width: 1;
 }
 
-ueb-link.ueb-link-dragging svg path,
+ueb-link[data-dragging="true"] svg path,
 ueb-link svg g:hover path {
     stroke-width: 5;
     transition: stroke-width 0.8s;
 }
 
-ueb-link-message {
+.ueb-link-message {
     display: block;
     visibility: visible;
     position: absolute;

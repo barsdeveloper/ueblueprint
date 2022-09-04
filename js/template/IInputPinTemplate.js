@@ -1,6 +1,4 @@
-// @ts-check
-
-import html from "./html"
+import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 import Utility from "../Utility"
@@ -19,21 +17,18 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin)
-        this.#inputContentElements = /** @type {HTMLElement[]} */(
-            [...pin.querySelectorAll(".ueb-pin-input-content")]
-        )
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties)
+        this.#inputContentElements = [...pin.querySelectorAll(".ueb-pin-input-content")]
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, [
-                Utility.decodeInputString(/** @type {String} */(pin.entity.DefaultValue))
-            ])
+            this.setInputs(pin, this.getInputs(pin))
             let self = this
             this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true)
             this.onFocusOutHandler = e => {
                 e.preventDefault()
-                document.getSelection().removeAllRanges() // Deselect text inside the input
+                document.getSelection()?.removeAllRanges() // Deselect text inside the input
                 self.setInputs(pin, this.getInputs(pin))
                 pin.blueprint.dispatchEditTextEvent(false)
             }
@@ -76,6 +71,7 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
+        Utility.decodeInputString(pin.entity.DefaultValue)
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
             element.innerHTML.replaceAll("<br>", "\n"))
@@ -88,7 +84,7 @@ export default class IInputPinTemplate extends PinTemplate {
     setInputs(pin, values = [], updateDefaultValue = true) {
         this.#inputContentElements.forEach((element, i) => element.innerText = values[i])
         if (updateDefaultValue) {
-            pin.entity.DefaultValue = this.getInput(pin)
+            pin.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""))
         }
     }
 
@@ -99,10 +95,10 @@ export default class IInputPinTemplate extends PinTemplate {
         if (pin.isInput()) {
             return html`
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"></span>
+                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true" .innerText=${pin.unreactiveDefaultValue}></span>
                 </div>
             `
         }
-        return ""
+        return html``
     }
 }

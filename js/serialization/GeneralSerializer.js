@@ -1,5 +1,3 @@
-// @ts-check
-
 import Grammar from "./Grammar"
 import ISerializer from "./ISerializer"
 

@@ -9,6 +9,8 @@
   src: url("../font/roboto-regular.woff2") format("woff2"), url("../font/roboto-regular.woff") format("woff");
 }
 ueb-blueprint {
+  --ueb-scale: 1;
+  --ueb-grid-actual-size: var(--ueb-grid-size);
   display: block;
   position: relative;
   font-family: Roboto, Noto, Oxygen, Ubuntu, "Open Sans", "Helvetica Neue", sans-serif;
@@ -54,8 +56,8 @@ ueb-blueprint[data-focused=true] .ueb-viewport-body {
   position: absolute;
   min-width: 100%;
   min-height: 100%;
-  width: calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-scale));
-  height: calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-scale));
+  width: calc((100% + 2 * var(--ueb-grid-expand)) / var(--ueb-scale));
+  height: calc((100% + 2 * var(--ueb-grid-expand)) / var(--ueb-scale));
   background-color: #262626;
   background-image: linear-gradient(var(--ueb-grid-axis-line-color), var(--ueb-grid-axis-line-color)), linear-gradient(var(--ueb-grid-axis-line-color), var(--ueb-grid-axis-line-color)), linear-gradient(to right, var(--ueb-grid-set-line-color), var(--ueb-grid-set-line-color) var(--ueb-grid-line-actual-width), transparent var(--ueb-grid-line-actual-width), transparent), linear-gradient(to bottom, var(--ueb-grid-set-line-color), var(--ueb-grid-set-line-color) var(--ueb-grid-line-actual-width), transparent var(--ueb-grid-line-actual-width), transparent), linear-gradient(to right, var(--ueb-grid-line-color), var(--ueb-grid-line-color) var(--ueb-grid-line-actual-width), transparent var(--ueb-grid-line-actual-width), transparent), linear-gradient(to bottom, var(--ueb-grid-line-color), var(--ueb-grid-line-color) var(--ueb-grid-line-actual-width), transparent var(--ueb-grid-line-actual-width), transparent);
   background-size: 100% var(--ueb-grid-line-actual-width), var(--ueb-grid-line-actual-width) 100%, calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)) calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)), calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)) calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)), var(--ueb-grid-actual-size) var(--ueb-grid-actual-size), var(--ueb-grid-actual-size) var(--ueb-grid-actual-size);
@@ -66,101 +68,95 @@ ueb-blueprint[data-focused=true] .ueb-viewport-body {
   overflow: hidden;
 }
 
-ueb-blueprint[data-drag-scrolling=true] .ueb-grid {
+ueb-blueprint[data-scrolling=true] .ueb-grid {
   cursor: grabbing;
 }
 
-ueb-blueprint[data-drag-scrolling=false] .ueb-grid {
+ueb-blueprint[data-scrolling=false] .ueb-grid {
   cursor: default;
 }
 
-.ueb-zoom--.ueb,
-.ueb {
-  --ueb-scale: 1;
-  --ueb-grid-actual-size: var(--ueb-grid-size);
-}
-
-.ueb-zoom-7.ueb {
+ueb-blueprint[data-zoom="7"] {
   --ueb-scale: 2;
 }
 
-.ueb-zoom-6.ueb {
+ueb-blueprint[data-zoom="6"] {
   --ueb-scale: 1.875;
 }
 
-.ueb-zoom-5.ueb {
+ueb-blueprint[data-zoom="5"] {
   --ueb-scale: 1.75;
 }
 
-.ueb-zoom-4.ueb {
+ueb-blueprint[data-zoom="4"] {
   --ueb-scale: 1.675;
 }
 
-.ueb-zoom-3.ueb {
+ueb-blueprint[data-zoom="3"] {
   --ueb-scale: 1.5;
 }
 
-.ueb-zoom-2.ueb {
+ueb-blueprint[data-zoom="2"] {
   --ueb-scale: 1.375;
 }
 
-.ueb-zoom-1.ueb {
+ueb-blueprint[data-zoom="1"] {
   --ueb-scale: 1.25;
 }
 
-.ueb-zoom--1.ueb {
+ueb-blueprint[data-zoom="-1"] {
   --ueb-scale: 0.875;
 }
 
-.ueb-zoom--2.ueb {
+ueb-blueprint[data-zoom="-2"] {
   --ueb-scale: 0.75;
 }
 
-.ueb-zoom--3.ueb {
+ueb-blueprint[data-zoom="-3"] {
   --ueb-scale: 0.675;
 }
 
-.ueb-zoom--4.ueb {
+ueb-blueprint[data-zoom="-4"] {
   --ueb-scale: 0.5;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
-.ueb-zoom--5.ueb {
+ueb-blueprint[data-zoom="-5"] {
   --ueb-scale: 0.375;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
-.ueb-zoom--6.ueb {
+ueb-blueprint[data-zoom="-6"] {
   --ueb-scale: 0.333333;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--7.ueb {
+ueb-blueprint[data-zoom="-7"] {
   --ueb-scale: 0.3;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--8.ueb {
+ueb-blueprint[data-zoom="-8"] {
   --ueb-scale: 0.266666;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--9.ueb {
+ueb-blueprint[data-zoom="-9"] {
   --ueb-scale: 0.233333;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--10.ueb {
+ueb-blueprint[data-zoom="-10"] {
   --ueb-scale: 0.2;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--11.ueb {
+ueb-blueprint[data-zoom="-11"] {
   --ueb-scale: 0.166666;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
 
-.ueb-zoom--12.ueb {
+ueb-blueprint[data-zoom="-12"] {
   --ueb-scale: 0.133333;
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
@@ -177,7 +173,7 @@ ueb-blueprint[data-drag-scrolling=false] .ueb-grid {
   height: 0;
 }
 
-.ueb-positioned, ueb-blueprint[data-selecting=true] ueb-selector {
+.ueb-positioned, ueb-link, ueb-blueprint[data-selecting=true] ueb-selector {
   --ueb-computed-min-x: min(var(--ueb-from-x), var(--ueb-to-x));
   --ueb-computed-max-x: max(var(--ueb-from-x), var(--ueb-to-x));
   --ueb-computed-min-y: min(var(--ueb-from-y), var(--ueb-to-y));
@@ -222,7 +218,7 @@ ueb-node {
   font-weight: lighter;
 }
 
-ueb-blueprint[data-drag-scrolling=false][data-selecting=false] ueb-node {
+ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node {
   cursor: move;
 }
 
@@ -232,7 +228,7 @@ ueb-blueprint[data-drag-scrolling=false][data-selecting=false] ueb-node {
   border-radius: calc(var(--ueb-node-radius) * 1.4);
 }
 
-.ueb-selected > .ueb-node-border {
+ueb-node[data-selected=true] > .ueb-node-border {
   background-image: linear-gradient(to right, #f1b000 0%, #f1b000 100%), linear-gradient(to bottom, #f1b000 0%, #cc6700 100%), linear-gradient(to right, #cc6700 0%, #cc6700 100%), linear-gradient(to bottom, #f1b000 0%, #cc6700 100%);
   background-size: 100% 7px, 7px 100%, 100% 7px, 7px 100%;
   background-position: top, right, bottom, left;
@@ -307,7 +303,7 @@ ueb-node[data-enabled-state=DevelopmentOnly] .ueb-node-developmentonly {
   vertical-align: middle;
 }
 
-ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-node-expansion:hover {
+ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-expansion:hover {
   background-color: #656765;
   cursor: pointer;
 }
@@ -338,7 +334,7 @@ ueb-node[data-advanced-display=Hidden] ueb-pin[data-advanced-view=true] {
   vertical-align: middle;
 }
 
-ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover {
+ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover {
   background: var(--ueb-pin-background);
   cursor: crosshair;
 }
@@ -373,11 +369,11 @@ ueb-blueprint[data-drag-scrolling=false][data-selecting=false] .ueb-pin-wrapper:
   border-radius: 50%;
 }
 
-ueb-pin.ueb-pin-fill .ueb-pin-icon-value::before {
+ueb-pin[data-linked=true] .ueb-pin-icon-value::before {
   background: var(--ueb-pin-color);
 }
 
-ueb-pin.ueb-pin-fill .ueb-pin-tofill {
+ueb-pin[data-linked=true] .ueb-pin-tofill {
   fill: currentColor;
 }
 
@@ -399,7 +395,7 @@ ueb-pin.ueb-pin-fill .ueb-pin-tofill {
   vertical-align: middle;
 }
 
-.ueb-pin-exec .ueb-pin-name {
+ueb-pin[data-type=exec] .ueb-pin-name {
   display: none;
 }
 
@@ -417,7 +413,7 @@ ueb-pin.ueb-pin-fill .ueb-pin-tofill {
   outline: none;
 }
 
-.ueb-pin-type-bool .ueb-pin-input {
+ueb-pin[data-type=bool] .ueb-pin-input {
   appearance: none;
   padding: 0;
   height: 18px;
@@ -426,7 +422,7 @@ ueb-pin.ueb-pin-fill .ueb-pin-tofill {
   color: var(--ueb-pin-color);
 }
 
-.ueb-pin-type-bool .ueb-pin-input:checked {
+ueb-pin[data-type=bool] .ueb-pin-input:checked {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="none" stroke="%230070e0" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M 5 10 l 3 3 l 6 -6" /></svg>');
 }
 
@@ -458,6 +454,7 @@ ueb-link {
   /* when from-y > to-y */
   --ueb-y-opposite: clamp(0, var(--ueb-from-y) - var(--ueb-to-y) - 1, 1);
   display: block;
+  margin-left: calc(var(--ueb-link-start) * -1px);
   min-width: calc(var(--ueb-link-min-width) * 1px);
   /*
    * This makes the element transparent to the hover events so that multiple path elements can stand nearby and have
@@ -479,17 +476,17 @@ ueb-link svg {
 
 ueb-link svg path {
   visibility: visible;
-  stroke: var(--ueb-pin-color);
+  stroke: var(--ueb-link-color);
   stroke-width: 1;
 }
 
-ueb-link.ueb-link-dragging svg path,
+ueb-link[data-dragging=true] svg path,
 ueb-link svg g:hover path {
   stroke-width: 5;
   transition: stroke-width 0.8s;
 }
 
-ueb-link-message {
+.ueb-link-message {
   display: block;
   visibility: visible;
   position: absolute;
@@ -504,119 +501,66 @@ ueb-link-message {
   z-index: 1000000;
 }
 
-.ueb {
-  --ueb-pin-color: white;
+ueb-blueprint {
   --ueb-pin-dim-color: #afafaf;
 }
 
-.ueb-pin-type-bool {
-  --ueb-pin-color: #750000;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(117, 0, 0, 0.15),
-      rgba(117, 0, 0, 0.8) 15%,
-      rgba(117, 0, 0, 0.5) 60%,
-      rgba(117, 0, 0, 0.35) 95%,
-      transparent);
+ueb-link {
+  --ueb-link-color: rgb(var(--ueb-link-color-rgb));
 }
 
-.ueb-pin-type-class {
-  --ueb-pin-color: #5800bb;
+ueb-pin {
   --ueb-pin-background: linear-gradient(90deg,
-      rgba(88, 0, 187, 0.15),
-      rgba(88, 0, 187, 0.8) 15%,
-      rgba(88, 0, 187, 0.5) 60%,
-      rgba(88, 0, 187, 0.35) 95%,
-      transparent);
+          rgba(var(--ueb-pin-color-rgb), 0.15),
+          rgba(var(--ueb-pin-color-rgb), 0.8) 15%,
+          rgba(var(--ueb-pin-color-rgb), 0.5) 60%,
+          rgba(var(--ueb-pin-color-rgb), 0.35) 95%,
+          transparent);
+  --ueb-pin-color: rgb(var(--ueb-pin-color-rgb));
 }
 
-.ueb-pin-type-exec {
-  --ueb-pin-color: #a7a7a7;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(167, 167, 167, 0.15),
-      rgba(167, 167, 167, 0.8) 15%,
-      rgba(167, 167, 167, 0.5) 60%,
-      rgba(167, 167, 167, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=bool] {
+  --ueb-pin-color-rgb: var(--ueb-pin-bool-color);
 }
 
-.ueb-pin-type-int {
-  --ueb-pin-color: #1fe0ad;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(31, 224, 173, 0.15),
-      rgba(31, 224, 173, 0.8) 15%,
-      rgba(31, 224, 173, 0.5) 60%,
-      rgba(31, 224, 173, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=class] {
+  --ueb-pin-color-rgb: var(--ueb-pin-class-color);
 }
 
-.ueb-pin-type-name {
-  --ueb-pin-color: #cb81fc;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(203, 129, 252, 0.15),
-      rgba(203, 129, 252, 0.8) 15%,
-      rgba(203, 129, 252, 0.5) 60%,
-      rgba(203, 129, 252, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=exec] {
+  --ueb-pin-color-rgb: var(--ueb-pin-exec-color);
 }
 
-.ueb-pin-type-object {
-  --ueb-pin-color: #00a8f2;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(0, 168, 242, 0.15),
-      rgba(0, 168, 242, 0.8) 15%,
-      rgba(0, 168, 242, 0.5) 60%,
-      rgba(0, 168, 242, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=int] {
+  --ueb-pin-color-rgb: var(--ueb-pin-int-color);
 }
 
-.ueb-pin-type-real {
-  --ueb-pin-color: #32bb00;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(50, 187, 0, 0.15),
-      rgba(50, 187, 0, 0.8) 15%,
-      rgba(50, 187, 0, 0.5) 60%,
-      rgba(50, 187, 0, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=name] {
+  --ueb-pin-color-rgb: var(--ueb-pin-name-color);
 }
 
-.ueb-pin-type-rotator {
-  --ueb-pin-color: #9eb1fc;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(158, 177, 252, 0.15),
-      rgba(158, 177, 252, 0.8) 15%,
-      rgba(158, 177, 252, 0.5) 60%,
-      rgba(158, 177, 252, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=object] {
+  --ueb-pin-color-rgb: var(--ueb-pin-object-color);
 }
 
-.ueb-pin-type-string {
-  --ueb-pin-color: #d500b1;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(213, 0, 177, 0.15),
-      rgba(213, 0, 177, 0.8) 15%,
-      rgba(213, 0, 177, 0.5) 60%,
-      rgba(213, 0, 177, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=real] {
+  --ueb-pin-color-rgb: var(--ueb-pin-real-color);
 }
 
-.ueb-pin-type-struct {
-  --ueb-pin-color: #034ca8;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(3, 76, 168, 0.15),
-      rgba(3, 76, 168, 0.8) 15%,
-      rgba(3, 76, 168, 0.5) 60%,
-      rgba(3, 76, 168, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=rotator] {
+  --ueb-pin-color-rgb: var(--ueb-pin-rotator-color);
 }
 
-.ueb-pin-type-vector {
-  --ueb-pin-color: #fcc823;
-  --ueb-pin-background: linear-gradient(90deg,
-      rgba(252, 200, 35, 0.15),
-      rgba(252, 200, 35, 0.8) 15%,
-      rgba(252, 200, 35, 0.5) 60%,
-      rgba(252, 200, 35, 0.35) 95%,
-      transparent);
+ueb-pin[data-type=string] {
+  --ueb-pin-color-rgb: var(--ueb-pin-string-color);
+}
+
+ueb-pin[data-type=struct] {
+  --ueb-pin-color-rgb: var(--ueb-pin-struct-color);
+}
+
+ueb-pin[data-type=vector] {
+  --ueb-pin-color-rgb: var(--ueb-pin-vector-color);
 }
 
 /*# sourceMappingURL=ueb-style.css.map */

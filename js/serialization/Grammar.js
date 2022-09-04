@@ -1,5 +1,3 @@
-// @ts-check
-
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
@@ -124,9 +122,7 @@ export default class Grammar {
          * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
          */
         P.seqMap(
-            // @ts-expect-error
             entityType.lookbehind
-                // @ts-expect-error
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
                 : P.string("("),
             Grammar.createAttributeGrammar(r, entityType)
@@ -154,7 +150,13 @@ export default class Grammar {
     Boolean = r => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false)
         .desc("either True or False")
 
+    HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")
+
     Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+
+    NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
+
+    ColorNumber = r => r.NaturalNumber.assert(n => 0 <= n && n < 256, "the color must be between 0 and 256 excluded")
 
     Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
 
@@ -294,4 +296,66 @@ export default class Grammar {
 
     /** @returns {Parsimmon.Parser<ObjectEntity[]>} */
     MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
+
+    /*   ---   Others   ---   */
+
+    LinearColorFromHex = r => P
+        .string("#")
+        .then(r.HexDigit.times(2).tie().times(3, 4))
+        .trim(P.optWhitespace)
+        .map(([R, G, B, A]) => new LinearColorEntity({
+            R: parseInt(R, 16) / 255,
+            G: parseInt(G, 16) / 255,
+            B: parseInt(B, 16) / 255,
+            A: A ? parseInt(A, 16) / 255 : 1,
+        }))
+
+    LinearColorFromRGBList = r => P.seqMap(
+        r.ColorNumber,
+        P.string(",").skip(P.optWhitespace),
+        r.ColorNumber,
+        P.string(",").skip(P.optWhitespace),
+        r.ColorNumber.map(Number),
+        (R, _, G, __, B) => new LinearColorEntity({
+            R: R / 255,
+            G: G / 255,
+            B: B / 255,
+            A: 1,
+        })
+    )
+
+    LinearColorFromRGB = r => P.string("rgb").then(
+        r.LinearColorFromRGBList.wrap(
+            P.regex(/\(\s*/),
+            P.regex(/\s*\)/)
+        )
+    )
+
+    LinearColorFromRGBA = r => P.string("rgba").then(
+        P.seqMap(
+            r.ColorNumber,
+            P.string(",").skip(P.optWhitespace),
+            r.ColorNumber,
+            P.string(",").skip(P.optWhitespace),
+            r.ColorNumber.map(Number),
+            P.string(",").skip(P.optWhitespace),
+            P.regex(/0?\.\d+|[01]/).map(Number),
+            (R, _, G, __, B, ___, A) => new LinearColorEntity({
+                R: R / 255,
+                G: G / 255,
+                B: B / 255,
+                A: A,
+            })
+        ).wrap(
+            P.regex(/\(\s*/),
+            P.regex(/\s*\)/)
+        )
+    )
+
+    LinearColorFromAnyColor = r => P.alt(
+        r.LinearColorFromRGBList,
+        r.LinearColorFromHex,
+        r.LinearColorFromRGB,
+        r.LinearColorFromRGBA
+    )
 }

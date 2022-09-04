@@ -15,6 +15,8 @@
 }
 
 ueb-blueprint {
+    --ueb-scale: 1;
+    --ueb-grid-actual-size: var(--ueb-grid-size);
     display: block;
     position: relative;
     font-family: Roboto, Noto, Oxygen, Ubuntu, "Open Sans", "Helvetica Neue", sans-serif;
@@ -60,8 +62,8 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     position: absolute;
     min-width: 100%;
     min-height: 100%;
-    width: calc((100% + var(--ueb-additional-x) * 1px) / var(--ueb-scale));
-    height: calc((100% + var(--ueb-additional-y) * 1px) / var(--ueb-scale));
+    width: calc((100% + 2 * var(--ueb-grid-expand)) / var(--ueb-scale));
+    height: calc((100% + 2 * var(--ueb-grid-expand)) / var(--ueb-scale));
     background-color: #262626;
     background-image:
         /* Axis lines */
@@ -108,101 +110,95 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
     overflow: hidden;
 }
 
-ueb-blueprint[data-drag-scrolling="true"] .ueb-grid {
+ueb-blueprint[data-scrolling="true"] .ueb-grid {
     cursor: grabbing;
 }
 
-ueb-blueprint[data-drag-scrolling="false"] .ueb-grid {
+ueb-blueprint[data-scrolling="false"] .ueb-grid {
     cursor: default;
 }
 
-.ueb-zoom--.ueb,
-.ueb {
-    --ueb-scale: 1;
-    --ueb-grid-actual-size: var(--ueb-grid-size);
-}
-
-.ueb-zoom-7.ueb {
+ueb-blueprint[data-zoom="7"] {
     --ueb-scale: 2;
 }
 
-.ueb-zoom-6.ueb {
+ueb-blueprint[data-zoom="6"] {
     --ueb-scale: 1.875;
 }
 
-.ueb-zoom-5.ueb {
+ueb-blueprint[data-zoom="5"] {
     --ueb-scale: 1.75;
 }
 
-.ueb-zoom-4.ueb {
+ueb-blueprint[data-zoom="4"] {
     --ueb-scale: 1.675;
 }
 
-.ueb-zoom-3.ueb {
+ueb-blueprint[data-zoom="3"] {
     --ueb-scale: 1.5;
 }
 
-.ueb-zoom-2.ueb {
+ueb-blueprint[data-zoom="2"] {
     --ueb-scale: 1.375;
 }
 
-.ueb-zoom-1.ueb {
+ueb-blueprint[data-zoom="1"] {
     --ueb-scale: 1.25;
 }
 
-.ueb-zoom--1.ueb {
+ueb-blueprint[data-zoom="-1"] {
     --ueb-scale: 0.875;
 }
 
-.ueb-zoom--2.ueb {
+ueb-blueprint[data-zoom="-2"] {
     --ueb-scale: 0.75;
 }
 
-.ueb-zoom--3.ueb {
+ueb-blueprint[data-zoom="-3"] {
     --ueb-scale: 0.675;
 }
 
-.ueb-zoom--4.ueb {
+ueb-blueprint[data-zoom="-4"] {
     --ueb-scale: 0.5;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
-.ueb-zoom--5.ueb {
+ueb-blueprint[data-zoom="-5"] {
     --ueb-scale: 0.375;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
-.ueb-zoom--6.ueb {
+ueb-blueprint[data-zoom="-6"] {
     --ueb-scale: 0.333333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--7.ueb {
+ueb-blueprint[data-zoom="-7"] {
     --ueb-scale: 0.3;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--8.ueb {
+ueb-blueprint[data-zoom="-8"] {
     --ueb-scale: 0.266666;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--9.ueb {
+ueb-blueprint[data-zoom="-9"] {
     --ueb-scale: 0.233333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--10.ueb {
+ueb-blueprint[data-zoom="-10"] {
     --ueb-scale: 0.2;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-.ueb-zoom--11.ueb {
+ueb-blueprint[data-zoom="-11"] {
     --ueb-scale: 0.166666;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
 
-.ueb-zoom--12.ueb {
+ueb-blueprint[data-zoom="-12"] {
     --ueb-scale: 0.133333;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }

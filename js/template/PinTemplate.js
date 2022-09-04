@@ -1,18 +1,25 @@
-// @ts-check
-
-import html from "./html"
+import { css, html } from "lit"
 import ITemplate from "./ITemplate"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
-import sanitizeText from "./sanitizeText"
 import Utility from "../Utility"
 
 /**
- * @typedef {import ("../input/IInput").default} IInput
+ * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
 
 export default class PinTemplate extends ITemplate {
+
+    static styles = css``
+
+    /**
+     * @param {PinElement} pin
+     */
+    connectedCallback(pin) {
+        super.connectedCallback(pin)
+        pin.nodeElement = pin.closest("ueb-node")
+    }
 
     /**
      * @param {PinElement} pin
@@ -38,13 +45,13 @@ export default class PinTemplate extends ITemplate {
         `
         const content = html`
             <div class="ueb-pin-content">
-                <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                <span class="ueb-pin-name">${pin.getPinDisplayName()}</span>
                 ${this.renderInput(pin)}
             </div>
         `
         return html`
             <div class="ueb-pin-wrapper">
-                ${pin.isInput() ? icon + content : content + icon}
+                ${pin.isInput() ? html`${icon}${content}` : html`${content}${icon}`}
             </div>
         `
     }
@@ -53,42 +60,24 @@ export default class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     renderIcon(pin) {
-        return '<span class="ueb-pin-icon-value"></span>'
+        return html`<span class="ueb-pin-icon-value"></span>`
     }
 
     /**
      * @param {PinElement} pin
      */
     renderInput(pin) {
-        return ""
+        return html``
     }
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin)
-        pin.classList.add(
-            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
-            "ueb-pin-type-" + sanitizeText(pin.getType())
-        )
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties)
         pin.dataset.id = pin.GetPinIdValue()
-        if (pin.entity.bAdvancedView) {
-            pin.dataset.advancedView = "true"
-        }
         pin.clickableElement = pin
-        pin.nodeElement = pin.closest("ueb-node")
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    applyConnected(pin) {
-        if (pin.isLinked()) {
-            pin.classList.add("ueb-pin-fill")
-        } else {
-            pin.classList.remove("ueb-pin-fill")
-        }
     }
 
     /**
@@ -96,8 +85,10 @@ export default class PinTemplate extends ITemplate {
      */
     getLinkLocation(pin) {
         const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect()
-        return pin.blueprint.compensateTranslation(Utility.convertLocation(
+        const location = Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            pin.blueprint.gridElement))
+            pin.blueprint.gridElement
+        )
+        return pin.blueprint.compensateTranslation(location)
     }
 }

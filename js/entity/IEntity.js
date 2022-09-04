@@ -1,12 +1,11 @@
-// @ts-check
-
-import ISerializable from "./ISerializable"
+import Observable from "../Observable"
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 
-export default class IEntity extends ISerializable {
+export default class IEntity extends Observable {
 
     static attributes = {}
+    #showAsString = false
 
     constructor(values) {
         super()
@@ -53,7 +52,7 @@ export default class IEntity extends ISerializable {
                 }
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
-                        target[property] = undefined // Declare undefined to preserve the order or attributes
+                        target[property] = undefined // Declare undefined to preserve the order of attributes
                         continue
                     }
                     defaultValue = defaultValue.value
@@ -68,7 +67,6 @@ export default class IEntity extends ISerializable {
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType)
             }
         }
-        // @ts-expect-error
         const attributes = this.constructor.attributes
         if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
             // Where there is just one attribute, option can be the value of that attribute
@@ -77,5 +75,16 @@ export default class IEntity extends ISerializable {
             }
         }
         defineAllAttributes(this, attributes, values)
+    }
+
+    isShownAsString() {
+        return this.#showAsString
+    }
+
+    /**
+     * @param {Boolean} v
+     */
+    setShowAsString(v) {
+        this.#showAsString = v
     }
 }

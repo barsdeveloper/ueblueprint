@@ -1,20 +1,18 @@
-// @ts-check
-
 import ITemplate from "./ITemplate"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
-import sanitizeText from "./sanitizeText"
 
 /**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 
 /**
- * @extends {ITemplate<ISelectableDraggableElement>}
+ * @template {ISelectableDraggableElement} T
+ * @extends {ITemplate<T>}
  */
 export default class SelectableDraggableTemplate extends ITemplate {
 
     /**
-     * @param {ISelectableDraggableElement} element
+     * @param {T} element
      */
     createInputObjects(element) {
         return [
@@ -26,21 +24,27 @@ export default class SelectableDraggableTemplate extends ITemplate {
     }
 
     /**
-     * @param {ISelectableDraggableElement} element
+     * @param {T} element
+     * @param {Map} changedProperties
      */
-    applyLocation(element) {
-        element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]))
-        element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]))
+    update(element, changedProperties) {
+        super.update(element, changedProperties)
+        if (changedProperties.has("locationX")) {
+            element.style.setProperty("--ueb-position-x", `${element.locationX}`)
+        }
+        if (changedProperties.has("locationY")) {
+            element.style.setProperty("--ueb-position-y", `${element.locationY}`)
+        }
     }
 
     /**
-     * @param {ISelectableDraggableElement} element
+     * @param {T} element
+     * @param {Map} changedProperties
      */
-    applySelected(element) {
-        if (element.selected) {
-            element.classList.add("ueb-selected")
-        } else {
-            element.classList.remove("ueb-selected")
+    firstUpdated(element, changedProperties) {
+        super.firstUpdated(element, changedProperties)
+        if (element.selected && !element.listeningDrag) {
+            element.setSelected(true)
         }
     }
 }

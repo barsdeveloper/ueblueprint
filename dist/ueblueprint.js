@@ -1,4 +1,28 @@
-// @ts-check
+/**
+ * @license
+ * Copyright 2019 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t$1=window.ShadowRoot&&(void 0===window.ShadyCSS||window.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,e$2=Symbol(),n$3=new WeakMap;class s$3{constructor(t,n,s){if(this._$cssResult$=!0,s!==e$2)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=n;}get styleSheet(){let e=this.o;const s=this.t;if(t$1&&void 0===e){const t=void 0!==s&&1===s.length;t&&(e=n$3.get(s)),void 0===e&&((this.o=e=new CSSStyleSheet).replaceSync(this.cssText),t&&n$3.set(s,e));}return e}toString(){return this.cssText}}const o$3=t=>new s$3("string"==typeof t?t:t+"",void 0,e$2),r$2=(t,...n)=>{const o=1===t.length?t[0]:n.reduce(((e,n,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(n)+t[s+1]),t[0]);return new s$3(o,t,e$2)},i$1=(e,n)=>{t$1?e.adoptedStyleSheets=n.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet)):n.forEach((t=>{const n=document.createElement("style"),s=window.litNonce;void 0!==s&&n.setAttribute("nonce",s),n.textContent=t.cssText,e.appendChild(n);}));},S$1=t$1?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const n of t.cssRules)e+=n.cssText;return o$3(e)})(t):t;
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */var s$2;const e$1=window.trustedTypes,r$1=e$1?e$1.emptyScript:"",h$1=window.reactiveElementPolyfillSupport,o$2={toAttribute(t,i){switch(i){case Boolean:t=t?r$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},n$2=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:o$2,reflect:!1,hasChanged:n$2};class a$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;null!==(i=this.h)&&void 0!==i||(this.h=[]),this.h.push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(S$1(i));}else void 0!==i&&s.push(S$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return i$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e,r;const h=this.constructor._$Ep(t,s);if(void 0!==h&&!0===s.reflect){const n=(null!==(r=null===(e=s.converter)||void 0===e?void 0:e.toAttribute)&&void 0!==r?r:o$2.toAttribute)(i,s.type);this._$El=t,null==n?this.removeAttribute(h):this.setAttribute(h,n),this._$El=null;}}_$AK(t,i){var s,e;const r=this.constructor,h=r._$Ev.get(t);if(void 0!==h&&this._$El!==h){const t=r.getPropertyOptions(h),n=t.converter,l=null!==(e=null!==(s=null==n?void 0:n.fromAttribute)&&void 0!==s?s:"function"==typeof n?n:null)&&void 0!==e?e:o$2.fromAttribute;this._$El=h,this[h]=l(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||n$2)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}a$1.finalized=!0,a$1.elementProperties=new Map,a$1.elementStyles=[],a$1.shadowRootOptions={mode:"open"},null==h$1||h$1({ReactiveElement:a$1}),(null!==(s$2=globalThis.reactiveElementVersions)&&void 0!==s$2?s$2:globalThis.reactiveElementVersions=[]).push("1.3.4");
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+var t;const i=globalThis.trustedTypes,s$1=i?i.createPolicy("lit-html",{createHTML:t=>t}):void 0,e=`lit$${(Math.random()+"").slice(9)}$`,o$1="?"+e,n$1=`<${o$1}>`,l$1=document,h=(t="")=>l$1.createComment(t),r=t=>null===t||"object"!=typeof t&&"function"!=typeof t,d=Array.isArray,u=t=>d(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),c=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v=/-->/g,a=/>/g,f=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),_=/'/g,g=/"/g,m=/^(?:script|style|textarea|title)$/i,p=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),$=p(1),b=Symbol.for("lit-noChange"),w=Symbol.for("lit-nothing"),x=new WeakMap,T=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(h(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l},A=l$1.createTreeWalker(l$1,129,null,!1),E=(t,i)=>{const o=t.length-1,l=[];let h,r=2===i?"<svg>":"",d=c;for(let i=0;i<o;i++){const s=t[i];let o,u,p=-1,$=0;for(;$<s.length&&(d.lastIndex=$,u=d.exec(s),null!==u);)$=d.lastIndex,d===c?"!--"===u[1]?d=v:void 0!==u[1]?d=a:void 0!==u[2]?(m.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=f):void 0!==u[3]&&(d=f):d===f?">"===u[0]?(d=null!=h?h:c,p=-1):void 0===u[1]?p=-2:(p=d.lastIndex-u[2].length,o=u[1],d=void 0===u[3]?f:'"'===u[3]?g:_):d===g||d===_?d=f:d===v||d===a?d=c:(d=f,h=void 0);const y=d===f&&t[i+1].startsWith("/>")?" ":"";r+=d===c?s+n$1:p>=0?(l.push(o),s.slice(0,p)+"$lit$"+s.slice(p)+e+y):s+e+(-2===p?(l.push(void 0),i):y);}const u=r+(t[o]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==s$1?s$1.createHTML(u):u,l]};class C{constructor({strings:t,_$litType$:s},n){let l;this.parts=[];let r=0,d=0;const u=t.length-1,c=this.parts,[v,a]=E(t,s);if(this.el=C.createElement(v,n),A.currentNode=this.el.content,2===s){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(e)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(e),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:r});}for(const i of t)l.removeAttribute(i);}if(m.test(l.tagName)){const t=l.textContent.split(e),s=t.length-1;if(s>0){l.textContent=i?i.emptyScript:"";for(let i=0;i<s;i++)l.append(t[i],h()),A.nextNode(),c.push({type:2,index:++r});l.append(t[s],h());}}}else if(8===l.nodeType)if(l.data===o$1)c.push({type:2,index:r});else {let t=-1;for(;-1!==(t=l.data.indexOf(e,t+1));)c.push({type:7,index:r}),t+=e.length-1;}r++;}}static createElement(t,i){const s=l$1.createElement("template");return s.innerHTML=t,s}}function P$1(t,i,s=t,e){var o,n,l,h;if(i===b)return i;let d=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=r(i)?void 0:i._$litDirective$;return (null==d?void 0:d.constructor)!==u&&(null===(n=null==d?void 0:d._$AO)||void 0===n||n.call(d,!1),void 0===u?d=void 0:(d=new u(t),d._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=d:s._$Cu=d),void 0!==d&&(i=P$1(t,d._$AS(t,i.values),d,e)),i}class V{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:l$1).importNode(s,!0);A.currentNode=o;let n=A.nextNode(),h=0,r=0,d=e[0];for(;void 0!==d;){if(h===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I(n,this,t)),this.v.push(i),d=e[++r];}h!==(null==d?void 0:d.index)&&(n=A.nextNode(),h++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=w,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$C_=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$C_}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=P$1(this,t,i),r(t)?t===w||null==t||""===t?(this._$AH!==w&&this._$AR(),this._$AH=w):t!==this._$AH&&t!==b&&this.T(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.k(t):u(t)?this.S(t):this.T(t);}j(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}k(t){this._$AH!==t&&(this._$AR(),this._$AH=this.j(t));}T(t){this._$AH!==w&&r(this._$AH)?this._$AA.nextSibling.data=t:this.k(l$1.createTextNode(t)),this._$AH=t;}$(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=C.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new V(o,this),i=t.p(this.options);t.m(s),this.k(i),this._$AH=t;}}_$AC(t){let i=x.get(t.strings);return void 0===i&&x.set(t.strings,i=new C(t)),i}S(t){d(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.j(h()),this.j(h()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$C_=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=w,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=w;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=P$1(this,t,i,0),n=!r(t)||t!==this._$AH&&t!==b,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=P$1(this,e[s+l],i,l),h===b&&(h=this._$AH[l]),n||(n=!r(h)||h!==this._$AH[l]),h===w?t=w:t!==w&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.P(t);}P(t){t===w?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}P(t){this.element[this.name]=t===w?void 0:t;}}const R=i?i.emptyScript:"";class k extends S{constructor(){super(...arguments),this.type=4;}P(t){t&&t!==w?this.element.setAttribute(this.name,R):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=P$1(this,t,i,0))&&void 0!==s?s:w)===b)return;const e=this._$AH,o=t===w&&e!==w||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==w&&(e===w||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){P$1(this,t);}}const z=window.litHtmlPolyfillSupport;null==z||z(C,N),(null!==(t=globalThis.litHtmlVersions)&&void 0!==t?t:globalThis.litHtmlVersions=[]).push("2.2.7");
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */var l,o;class s extends a$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=T(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return b}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
 class Configuration {
     static deleteNodesKeyboardKey = "Delete"
@@ -12,15 +36,16 @@ class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = "12.5px"
-    static gridAxisLineColor = "black"
+    static fontSize = r$2`12.5px`
+    static gridAxisLineColor = r$2`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    static gridLineColor = "#353535"
+    static gridLineColor = r$2`#353535`
     static gridLineWidth = 1 // pixel
     static gridSet = 8
-    static gridSetLineColor = "#161616"
+    static gridSetLineColor = r$2`#161616`
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // pixel
+    static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = "+"
     static linkCurveHeight = 15 // pixel
     static linkCurveWidth = 80 // pixel
@@ -36,11 +61,22 @@ class Configuration {
     }
     static maxZoom = 7
     static minZoom = -12
+    static mouseWheelFactor = 0.2
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragLocalEventName = "ueb-node-drag-local"
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // in pixel
+    static nodeReflowEventName = "ueb-node-reflow"
+    static pinColor = {
+        bool: r$2`117, 0, 0`, // #750000
+        default: r$2`167, 167, 167`, // #a7a7a7
+        exec: r$2`167, 167, 167`, // #a7a7a7
+        name: r$2`203, 129, 252`, // #cb81fc
+        real: r$2`50, 187, 0`, // #32bb00
+        string: r$2`213, 0, 176`, // #d500b0
+        struct: r$2`3, 76, 168` // #034ca8
+    }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
@@ -145,8 +181,6 @@ class Configuration {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  */
@@ -212,33 +246,114 @@ class IInput {
     }
 }
 
-class ISerializable {
+class Observable {
 
-    #showAsString = false
+    /** @type {Map<String, Object[]>} */
+    #observers = new Map()
 
-    isShownAsString() {
-        return this.#showAsString
+    /**
+     * @param {String} property
+     * @param {(value: any) => {}} observer
+     */
+    subscribe(property, observer) {
+        let observers = this.#observers;
+        if (observers.has(property)) {
+            let propertyObservers = observers.get(property);
+            if (propertyObservers.includes(observer)) {
+                return false
+            } else {
+                propertyObservers.push(observer);
+            }
+        } else {
+            let fromPrototype = false;
+            let propertyDescriptor = Object.getOwnPropertyDescriptor(this, property);
+            if (!propertyDescriptor) {
+                fromPrototype = true;
+                propertyDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), property) ?? {};
+                if (!propertyDescriptor) {
+                    return false
+                }
+            }
+            observers.set(property, [observer]);
+            const isValue = "value" in propertyDescriptor;
+            const hasSetter = "set" in propertyDescriptor;
+            if (!(isValue || hasSetter)) {
+                throw new Error(`Property ${property} is not a value or a setter`)
+            }
+            // A Symbol so it does not show up in Object.getOwnPropertyNames()
+            const storageKey = Symbol.for(property + "Storage");
+            const valInfoKey = Symbol.for(property + "ValInfo");
+            Object.defineProperties(
+                fromPrototype ? Object.getPrototypeOf(this) : this,
+                {
+                    [storageKey]: {
+                        configurable: true,
+                        enumerable: false, // Non enumerable so it does not show up in for...in or Object.keys()
+                        ...(isValue
+                            ? {
+                                value: this[property],
+                                writable: true,
+                            }
+                            : {
+                                get: propertyDescriptor.get,
+                                set: propertyDescriptor.set,
+                            }
+                        )
+                    },
+                    [valInfoKey]: {
+                        configurable: true,
+                        enumerable: false,
+                        value: [fromPrototype, isValue]
+                    },
+                    [property]: {
+                        configurable: true,
+                        ...(isValue && {
+                            get() {
+                                return this[storageKey]
+                            }
+                        }),
+                        set(v) {
+                            this[storageKey] = v;
+                            observers.get(property).forEach(observer => {
+                                observer(this[property]);
+                            });
+                        },
+                    }
+                }
+            );
+        }
+        return true
     }
 
     /**
-     * @param {Boolean} v
+     * @param {String} property
+     * @param {Object} observer
      */
-    setShowAsString(v) {
-        this.#showAsString = v;
+    unsubscribe(property, observer) {
+        let observers = this.#observers.get(property);
+        if (!observers?.includes(observer)) {
+            return false
+        }
+        observers.splice(observers.indexOf(observer), 1);
+        if (observers.length == 0) {
+            const storageKey = Symbol.for(property + "Storage");
+            const valInfoKey = Symbol.for(property + "ValInfo");
+            const fromPrototype = this[valInfoKey][0];
+            this[valInfoKey][1];
+            Object.defineProperty(
+                fromPrototype ? Object.getPrototypeOf(this) : this,
+                property,
+                Object.getOwnPropertyDescriptor(fromPrototype ? Object.getPrototypeOf(this) : this, storageKey),
+            );
+            delete this[valInfoKey];
+            delete this[storageKey];
+        }
+        return true
     }
 }
 
-// @ts-check
-
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {(new (object?: Object) => IEntity) | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
- * @typedef {Constructor|Constructor[]} AcceptedType
- */
-
 class SerializedType {
 
-    /** @type {(Constructor|Array<Constructor>)[]} */
     #types
     get types() {
         return this.#types
@@ -247,15 +362,10 @@ class SerializedType {
         this.#types = v;
     }
 
-    /**
-     * @param {...AcceptedType} acceptedTypes
-     */
     constructor(...acceptedTypes) {
         this.#types = acceptedTypes;
     }
 }
-
-// @ts-check
 
 /**
  * @template T
@@ -326,9 +436,25 @@ class TypeInitialization {
     }
 }
 
-// @ts-check
+/**
+ * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ */
 
 class Utility {
+
+    static booleanConverter = {
+        fromAttribute: (value, type) => {
+        },
+        toAttribute: (value, type) => {
+            if (value === true) {
+                return "true"
+            }
+            if (value === false) {
+                return "false"
+            }
+            return ""
+        }
+    }
 
     static sigmoid(x, curvature = 1.7) {
         return 1 / (1 + (x / (1 - x) ** -curvature))
@@ -358,7 +484,6 @@ class Utility {
     /**
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
-     * @returns
      */
     static convertLocation(viewportLocation, movementElement) {
         const scaleCorrection = 1 / Utility.getScale(movementElement);
@@ -530,13 +655,19 @@ class Utility {
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
     }
+
+    /**
+     * @param {LinearColorEntity} value
+     */
+    static printLinearColor(value) {
+        return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
+    }
 }
 
-// @ts-check
-
-class IEntity extends ISerializable {
+class IEntity extends Observable {
 
     static attributes = {}
+    #showAsString = false
 
     constructor(values) {
         super();
@@ -583,7 +714,7 @@ class IEntity extends ISerializable {
                 }
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
-                        target[property] = undefined; // Declare undefined to preserve the order or attributes
+                        target[property] = undefined; // Declare undefined to preserve the order of attributes
                         continue
                     }
                     defaultValue = defaultValue.value;
@@ -598,7 +729,6 @@ class IEntity extends ISerializable {
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType);
             }
         };
-        // @ts-expect-error
         const attributes = this.constructor.attributes;
         if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
             // Where there is just one attribute, option can be the value of that attribute
@@ -608,9 +738,18 @@ class IEntity extends ISerializable {
         }
         defineAllAttributes(this, attributes, values);
     }
-}
 
-// @ts-check
+    isShownAsString() {
+        return this.#showAsString
+    }
+
+    /**
+     * @param {Boolean} v
+     */
+    setShowAsString(v) {
+        this.#showAsString = v;
+    }
+}
 
 class ObjectReferenceEntity extends IEntity {
 
@@ -618,15 +757,7 @@ class ObjectReferenceEntity extends IEntity {
         type: String,
         path: String,
     }
-
-    constructor(options = {}) {
-        super(options);
-        /** @type {String} */ this.type;
-        /** @type {String} */ this.path;
-    }
 }
-
-// @ts-check
 
 class FunctionReferenceEntity extends IEntity {
 
@@ -634,15 +765,7 @@ class FunctionReferenceEntity extends IEntity {
         MemberParent: ObjectReferenceEntity,
         MemberName: "",
     }
-
-    constructor(options = {}) {
-        super(options);
-        /** @type {ObjectReferenceEntity} */ this.MemberParent;
-        /** @type {String} */ this.MemberName;
-    }
 }
-
-// @ts-check
 
 class GuidEntity extends IEntity {
 
@@ -662,11 +785,6 @@ class GuidEntity extends IEntity {
         return new GuidEntity({ value: guid })
     }
 
-    constructor(options = {}) {
-        super(options);
-        /** @type {String} */ this.value;
-    }
-
     valueOf() {
         return this.value
     }
@@ -675,8 +793,6 @@ class GuidEntity extends IEntity {
         return this.value
     }
 }
-
-// @ts-check
 
 class IdentifierEntity extends IEntity {
 
@@ -684,9 +800,9 @@ class IdentifierEntity extends IEntity {
         value: String,
     }
 
-    constructor(options = {}) {
-        super(options);
-        /** @type {String} */ this.value;
+    static attributeConverter = {
+        fromAttribute: (value, type) => new IdentifierEntity(value),
+        toAttribute: (value, type) => value.toString()
     }
 
     valueOf() {
@@ -697,8 +813,6 @@ class IdentifierEntity extends IEntity {
         return this.value
     }
 }
-
-// @ts-check
 
 class IntegerEntity extends IEntity {
 
@@ -723,22 +837,13 @@ class IntegerEntity extends IEntity {
     }
 }
 
-// @ts-check
-
 class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
     static attributes = {
         value: String,
     }
-
-    constructor(options = {}) {
-        super(options);
-        /** @type {String} */ this.value;
-    }
 }
-
-// @ts-check
 
 class KeyBindingEntity extends IEntity {
 
@@ -758,16 +863,8 @@ class KeyBindingEntity extends IEntity {
         options.bAlt = options.bAlt ?? false;
         options.bCmd = options.bCmd ?? false;
         super(options);
-        /** @type {String} */ this.ActionName;
-        /** @type {Boolean} */ this.bShift;
-        /** @type {Boolean} */ this.bCtrl;
-        /** @type {Boolean} */ this.bAlt;
-        /** @type {Boolean} */ this.bCmd;
-        /** @type {IdentifierEntity} */ this.Key;
     }
 }
-
-// @ts-check
 
 class LinearColorEntity extends IEntity {
 
@@ -777,40 +874,7 @@ class LinearColorEntity extends IEntity {
         B: Number,
         A: Number,
     }
-
-    constructor(options = {}) {
-        super(options);
-        /** @type {Number} */ this.R;
-        /** @type {Number} */ this.G;
-        /** @type {Number} */ this.B;
-        /** @type {Number} */ this.A;
-    }
-
-    /**
-     * @param {Number} number
-     */
-    static numberToString(number) {
-        return Math.round(number * 255).toString(16)
-    }
-
-    static fromString(value) {
-        return new LinearColorEntity({
-            R: parseInt(value.substr(0, 2), 16) / 255,
-            G: parseInt(value.substr(2, 2), 16) / 255,
-            B: parseInt(value.substr(4, 2), 16) / 255,
-            A: parseInt(value.substr(6, 2), 16) / 255,
-        })
-    }
-
-    toString() {
-        return "#" + LinearColorEntity.numberToString(this.R)
-            + LinearColorEntity.numberToString(this.G)
-            + LinearColorEntity.numberToString(this.B)
-            + LinearColorEntity.numberToString(this.A)
-    }
 }
-
-// @ts-check
 
 class LocalizedTextEntity extends IEntity {
 
@@ -820,26 +884,12 @@ class LocalizedTextEntity extends IEntity {
         key: String,
         value: String,
     }
-
-    constructor(options = {}) {
-        super(options);
-        /** @type {String} */ this.namespace;
-        /** @type {String} */ this.key;
-        /** @type {String} */ this.value;
-    }
 }
-
-// @ts-check
 
 class PathSymbolEntity extends IEntity {
 
     static attributes = {
         value: String,
-    }
-
-    constructor(options = {}) {
-        super(options);
-        /** @type {String} */ this.value;
     }
 
     valueOf() {
@@ -851,23 +901,13 @@ class PathSymbolEntity extends IEntity {
     }
 }
 
-// @ts-check
-
 class PinReferenceEntity extends IEntity {
 
     static attributes = {
         objectName: PathSymbolEntity,
         pinGuid: GuidEntity,
     }
-
-    constructor(options = {}) {
-        super(options);
-        /** @type {PathSymbolEntity} */ this.objectName;
-        /** @type {GuidEntity} */ this.pinGuid;
-    }
 }
-
-// @ts-check
 
 class PinEntity extends IEntity {
 
@@ -904,42 +944,12 @@ class PinEntity extends IEntity {
         bOrphanedPin: false,
     }
 
-    constructor(options = {}) {
-        super(options);
-        /** @type {GuidEntity} */ this.PinId;
-        /** @type {String} */ this.PinName;
-        /** @type {LocalizedTextEntity} */ this.PinFriendlyName;
-        /** @type {String} */ this.PinToolTip;
-        /** @type {String} */ this.Direction;
-        /**
-         * @type {{
-         *     PinCategory: String,
-         *     PinSubCategory: String,
-         *     PinSubCategoryObject: ObjectReferenceEntity,
-         *     PinSubCategoryMemberReference: any,
-         *     PinValueType: String,
-         *     ContainerType: ObjectReferenceEntity,
-         *     bIsReference: Boolean,
-         *     bIsConst: Boolean,
-         *     bIsWeakPointer: Boolean,
-         *     bIsUObjectWrapper: Boolean,
-         * }}
-         */ this.PinType;
-        /** @type {PinReferenceEntity[]} */ this.LinkedTo;
-        /** @type {String | LinearColorEntity} */ this.DefaultValue;
-        /** @type {String} */ this.AutogeneratedDefaultValue;
-        /** @type {ObjectReferenceEntity} */ this.DefaultObject;
-        /** @type {GuidEntity} */ this.PersistentGuid;
-        /** @type {Boolean} */ this.bHidden;
-        /** @type {Boolean} */ this.bNotConnectable;
-        /** @type {Boolean} */ this.bDefaultValueIsReadOnly;
-        /** @type {Boolean} */ this.bDefaultValueIsIgnored;
-        /** @type {Boolean} */ this.bAdvancedView;
-        /** @type {Boolean} */ this.bOrphanedPin;
-    }
-
     getDefaultValue() {
         return this.DefaultValue ?? ""
+    }
+
+    isHidden() {
+        return this.bHidden
     }
 
     isInput() {
@@ -962,7 +972,6 @@ class PinEntity extends IEntity {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
         const linkFound = this.LinkedTo?.find(pinReferenceEntity => {
-            // @ts-ignore
             return pinReferenceEntity.objectName == targetObjectName
                 && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
@@ -981,12 +990,9 @@ class PinEntity extends IEntity {
      * @param {PinEntity} targetPinEntity
      */
     unlinkFrom(targetObjectName, targetPinEntity) {
-        /** @type {PinReferenceEntity[]} */
-        this.LinkedTo;
-        const indexElement = this.LinkedTo.findIndex(pinReferenceEntity => {
-            // @ts-expect-error
+        const indexElement = this.LinkedTo?.findIndex(pinReferenceEntity => {
             return pinReferenceEntity.objectName == targetObjectName
-                && pinReferenceEntity.pinGuid == targetPinEntity.PinId
+                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
         if (indexElement >= 0) {
             if (this.LinkedTo.length == 1) {
@@ -1012,8 +1018,6 @@ class PinEntity extends IEntity {
     }
 }
 
-// @ts-check
-
 class VariableReferenceEntity extends IEntity {
 
     static attributes = {
@@ -1021,16 +1025,7 @@ class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: false,
     }
-
-    constructor(options = {}) {
-        super(options);
-        /** @type {String} */ this.MemberName;
-        /** @type {GuidEntity} */ this.MemberGuid;
-        /** @type {Boolean} */ this.bSelfContext;
-    }
 }
-
-// @ts-check
 
 class ObjectEntity extends IEntity {
 
@@ -1054,25 +1049,6 @@ class ObjectEntity extends IEntity {
 
     static nameRegex = /(\w+)_(\d+)/
 
-    constructor(options = {}) {
-        super(options);
-        /** @type {ObjectReferenceEntity} */ this.Class;
-        /** @type {String} */ this.Name;
-        /** @type {Boolean?} */ this.bIsPureFunc;
-        /** @type {VariableReferenceEntity?} */ this.VariableReference;
-        /** @type {FunctionReferenceEntity?} */ this.FunctionReference;
-        /** @type {FunctionReferenceEntity?} */ this.EventReference;
-        /** @type {ObjectReferenceEntity?} */ this.TargetType;
-        /** @type {IntegerEntity} */ this.NodePosX;
-        /** @type {IntegerEntity} */ this.NodePosY;
-        /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
-        /** @type {IdentifierEntity?} */ this.EnabledState;
-        /** @type {GuidEntity} */ this.NodeGuid;
-        /** @type {IntegerEntity?} */ this.ErrorType;
-        /** @type {String?} */ this.ErrorMsg;
-        /** @type {PinEntity[]} */ this.CustomProperties;
-    }
-
     getObjectName(dropCounter = false) {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
@@ -1088,6 +1064,7 @@ class ObjectEntity extends IEntity {
         if (result && result.length == 3) {
             return [result[1], parseInt(result[2])]
         }
+        return ["", 0]
     }
 
     getDisplayName() {
@@ -1118,8 +1095,6 @@ var parsimmon_umd_min = {exports: {}};
 }(parsimmon_umd_min));
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
-
-// @ts-check
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -1227,9 +1202,7 @@ class Grammar {
          * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
          */
         P.seqMap(
-            // @ts-expect-error
             entityType.lookbehind
-                // @ts-expect-error
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
                 : P.string("("),
             Grammar.createAttributeGrammar(r, entityType)
@@ -1257,7 +1230,13 @@ class Grammar {
     Boolean = r => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false)
         .desc("either True or False")
 
+    HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")
+
     Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+
+    NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
+
+    ColorNumber = r => r.NaturalNumber.assert(n => 0 <= n && n < 256, "the color must be between 0 and 256 excluded")
 
     Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
 
@@ -1397,9 +1376,69 @@ class Grammar {
 
     /** @returns {Parsimmon.Parser<ObjectEntity[]>} */
     MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
-}
 
-// @ts-check
+    /*   ---   Others   ---   */
+
+    LinearColorFromHex = r => P
+        .string("#")
+        .then(r.HexDigit.times(2).tie().times(3, 4))
+        .trim(P.optWhitespace)
+        .map(([R, G, B, A]) => new LinearColorEntity({
+            R: parseInt(R, 16) / 255,
+            G: parseInt(G, 16) / 255,
+            B: parseInt(B, 16) / 255,
+            A: A ? parseInt(A, 16) / 255 : 1,
+        }))
+
+    LinearColorFromRGBList = r => P.seqMap(
+        r.ColorNumber,
+        P.string(",").skip(P.optWhitespace),
+        r.ColorNumber,
+        P.string(",").skip(P.optWhitespace),
+        r.ColorNumber.map(Number),
+        (R, _, G, __, B) => new LinearColorEntity({
+            R: R / 255,
+            G: G / 255,
+            B: B / 255,
+            A: 1,
+        })
+    )
+
+    LinearColorFromRGB = r => P.string("rgb").then(
+        r.LinearColorFromRGBList.wrap(
+            P.regex(/\(\s*/),
+            P.regex(/\s*\)/)
+        )
+    )
+
+    LinearColorFromRGBA = r => P.string("rgba").then(
+        P.seqMap(
+            r.ColorNumber,
+            P.string(",").skip(P.optWhitespace),
+            r.ColorNumber,
+            P.string(",").skip(P.optWhitespace),
+            r.ColorNumber.map(Number),
+            P.string(",").skip(P.optWhitespace),
+            P.regex(/0?\.\d+|[01]/).map(Number),
+            (R, _, G, __, B, ___, A) => new LinearColorEntity({
+                R: R / 255,
+                G: G / 255,
+                B: B / 255,
+                A: A,
+            })
+        ).wrap(
+            P.regex(/\(\s*/),
+            P.regex(/\s*\)/)
+        )
+    )
+
+    LinearColorFromAnyColor = r => P.alt(
+        r.LinearColorFromRGBList,
+        r.LinearColorFromHex,
+        r.LinearColorFromRGB,
+        r.LinearColorFromRGBA
+    )
+}
 
 class SerializerFactory {
 
@@ -1413,8 +1452,6 @@ class SerializerFactory {
         return SerializerFactory.#serializers.get(Utility.getType(entity))
     }
 }
-
-// @ts-check
 
 /**
  * @template {IEntity} T
@@ -1543,8 +1580,6 @@ class ISerializer {
     }
 }
 
-// @ts-check
-
 class ObjectSerializer extends ISerializer {
 
     constructor() {
@@ -1604,8 +1639,6 @@ End Object\n`;
     }
 }
 
-// @ts-check
-
 class Copy extends IInput {
 
     /** @type {(e: ClipboardEvent) => void} */
@@ -1629,23 +1662,14 @@ class Copy extends IInput {
     }
 
     copied() {
-        const value = this.blueprint.getNodes(true).map(node => this.serializer.serialize(node.entity, false)).join("\n");
+        const value = this.blueprint.getNodes(true).map(node => this.serializer.serialize(node.entity, false)).join("\n\n");
         navigator.clipboard.writeText(value);
     }
 }
 
-// @ts-check
-
-/**
- * This solves the sole purpose of providing compression capability for html inside template literals strings. Check rollup.config.js function minifyHTML()
- */
-const html = String.raw;
-
-// @ts-check
-
 /**
  * @typedef {import("../element/IElement").default} IElement
- * @typedef {import("../input/IInput").default} IInput")}
+ * @typedef {import("../input/IInput").default} IInput
  */
 
 /**
@@ -1653,26 +1677,59 @@ const html = String.raw;
  */
 class ITemplate {
 
+    static styles = r$2``
+
     /** @type {IInput[]} */
     #inputObjects = []
-
     get inputObjects() {
         return this.#inputObjects
     }
 
     /**
-     * @param {T} entity
+     * @param {T} element
      */
-    render(entity) {
-        return ""
+    constructed(element) {
     }
 
     /**
      * @param {T} element
      */
-    setup(element) {
-        // TODO replace with the safer element.setHTML(...) when it will be availableBreack
-        element.innerHTML = this.render(element);
+    connectedCallback(element) {
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    willUpdate(element, changedProperties) {
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    update(element, changedProperties) {
+    }
+
+    /**
+     * @param {T} element
+     */
+    render(element) {
+        return $``
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    firstUpdated(element, changedProperties) {
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    updated(element, changedProperties) {
     }
 
     /**
@@ -1698,8 +1755,6 @@ class ITemplate {
     }
 }
 
-// @ts-check
-
 class IKeyboardShortcut extends IInput {
 
     /** @type {KeyBindingEntity[]} */
@@ -1718,7 +1773,6 @@ class IKeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
-                // @ts-expect-error
                 const parsed = ISerializer.grammar.KeyBinding.parse(v);
                 if (parsed.status) {
                     return parsed.value
@@ -1796,8 +1850,6 @@ class IKeyboardShortcut extends IInput {
     }
 }
 
-// @ts-check
-
 class KeyboardCanc extends IKeyboardShortcut {
 
     /**
@@ -1814,8 +1866,6 @@ class KeyboardCanc extends IKeyboardShortcut {
         this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
@@ -1836,16 +1886,13 @@ class IPointing extends IInput {
      * @param {MouseEvent} mouseEvent
      */
     locationFromEvent(mouseEvent) {
-        return this.blueprint.compensateTranslation(
-            Utility.convertLocation(
-                [mouseEvent.clientX, mouseEvent.clientY],
-                this.movementSpace
-            )
-        )
+        const location = Utility.convertLocation(
+            [mouseEvent.clientX, mouseEvent.clientY],
+            this.movementSpace
+        );
+        return this.blueprint.compensateTranslation(location)
     }
 }
-
-// @ts-check
 
 class IMouseWheel extends IPointing {
 
@@ -1869,7 +1916,7 @@ class IMouseWheel extends IPointing {
         this.#mouseWheelHandler = e => {
             e.preventDefault();
             const location = self.locationFromEvent(e);
-            self.wheel(Math.sign(e.deltaY), location);
+            self.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location);
         };
         this.#mouseParentWheelHandler = e => e.preventDefault();
 
@@ -1892,8 +1939,6 @@ class IMouseWheel extends IPointing {
     wheel(variation, location) {
     }
 }
-
-// @ts-check
 
 class Zoom extends IMouseWheel {
 
@@ -1922,8 +1967,6 @@ class Zoom extends IMouseWheel {
     }
 }
 
-// @ts-check
-
 class KeyboardEnableZoom extends IKeyboardShortcut {
 
     /** @type {Zoom} */
@@ -1949,8 +1992,6 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
  */
@@ -1970,8 +2011,6 @@ class KeyboardSelectAll extends IKeyboardShortcut {
         this.blueprint.selectAll();
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
@@ -2013,12 +2052,12 @@ class IMouseClickDrag extends IPointing {
         let self = this;
 
         this.#mouseDownHandler = e => {
-            this.blueprint.setFocused(true);
+            self.blueprint.setFocused(true);
             switch (e.button) {
                 case self.options.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.options.looseTarget || e.target == e.currentTarget) {
-                        if (this.options.consumeEvent) {
+                        if (self.options.consumeEvent) {
                             e.stopImmediatePropagation(); // Captured, don't call anyone else
                         }
                         // Attach the listeners
@@ -2037,7 +2076,7 @@ class IMouseClickDrag extends IPointing {
         };
 
         this.#mouseStartedMovingHandler = e => {
-            if (this.options.consumeEvent) {
+            if (self.options.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             // Delegate from now on to self.#mouseMoveHandler
@@ -2045,14 +2084,15 @@ class IMouseClickDrag extends IPointing {
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
             const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
-            self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
+            self.#trackingMouse = self.target.dispatchEvent(dragEvent) == false;
+            const location = self.locationFromEvent(e);
             // Do actual actions
-            self.startDrag();
+            self.startDrag(location);
             self.started = true;
         };
 
         this.#mouseMoveHandler = e => {
-            if (this.options.consumeEvent) {
+            if (self.options.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             const location = self.locationFromEvent(e);
@@ -2065,7 +2105,7 @@ class IMouseClickDrag extends IPointing {
 
         this.#mouseUpHandler = e => {
             if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
-                if (this.options.consumeEvent) {
+                if (self.options.consumeEvent) {
                     e.stopImmediatePropagation(); // Captured, don't call anyone else
                 }
                 // Remove the handlers of "mousemove" and "mouseup"
@@ -2078,7 +2118,7 @@ class IMouseClickDrag extends IPointing {
                 self.unclicked();
                 if (self.#trackingMouse) {
                     const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end);
-                    this.target.dispatchEvent(dragEvent);
+                    self.target.dispatchEvent(dragEvent);
                     self.#trackingMouse = false;
                 }
                 self.started = false;
@@ -2126,12 +2166,10 @@ class IMouseClickDrag extends IPointing {
     }
 }
 
-// @ts-check
-
 class MouseScrollGraph extends IMouseClickDrag {
 
     startDrag() {
-        this.blueprint.template.applyStartDragScrolling(this.blueprint);
+        this.blueprint.scrolling = true;
     }
 
     dragTo(location, movement) {
@@ -2139,11 +2177,9 @@ class MouseScrollGraph extends IMouseClickDrag {
     }
 
     endDrag() {
-        this.blueprint.template.applyEndDragScrolling(this.blueprint);
+        this.blueprint.scrolling = false;
     }
 }
-
-// @ts-check
 
 class MouseTracking extends IPointing {
 
@@ -2217,8 +2253,6 @@ class MouseTracking extends IPointing {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -2230,15 +2264,20 @@ class MouseTracking extends IPointing {
  * @template {IEntity} T
  * @template {ITemplate} U
  */
-class IElement extends HTMLElement {
+class IElement extends s {
+
+    static properties = {
+    }
+
+    #nextUpdatedCallbacks = []
 
     /** @type {Blueprint} */
     #blueprint
     get blueprint() {
         return this.#blueprint
     }
-    set blueprint(blueprint) {
-        this.#blueprint = blueprint;
+    set blueprint(v) {
+        return this.#blueprint = v
     }
 
     /** @type {T} */
@@ -2255,9 +2294,6 @@ class IElement extends HTMLElement {
     get template() {
         return this.#template
     }
-    set template(template) {
-        this.#template = template;
-    }
 
     /** @type {IInput[]} */
     inputObjects = []
@@ -2271,45 +2307,82 @@ class IElement extends HTMLElement {
         this.#entity = entity;
         this.#template = template;
         this.inputObjects = [];
+        this.#template.constructed(this);
     }
 
-    getTemplate() {
-        return this.template
+    createRenderRoot() {
+        return this
     }
 
     connectedCallback() {
-        this.#blueprint = this.closest("ueb-blueprint");
-        this.template.setup(this);
+        super.connectedCallback();
+        this.blueprint = this.closest("ueb-blueprint");
+        this.template.connectedCallback(this);
+    }
+
+    /**
+     * @param {Map} changedProperties
+     */
+    willUpdate(changedProperties) {
+        super.willUpdate(changedProperties);
+        this.template.willUpdate(this, changedProperties);
+    }
+
+    /**
+     * @param {Map} changedProperties
+     */
+    update(changedProperties) {
+        super.update(changedProperties);
+        this.template.update(this, changedProperties);
+    }
+
+    render() {
+        return this.template.render(this)
+    }
+
+    /**
+     * @param {Map} changedProperties
+     */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.template.firstUpdated(this, changedProperties);
         this.template.inputSetup(this);
     }
 
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        this.template.updated(this, changedProperties);
+        this.#nextUpdatedCallbacks.forEach(f => f(changedProperties));
+        this.#nextUpdatedCallbacks = [];
+    }
+
     disconnectedCallback() {
+        super.disconnectedCallback();
         this.template.cleanup(this);
+    }
+
+    addNextUpdatedCallbacks(callback, requestUpdate = false) {
+        this.#nextUpdatedCallbacks.push(callback);
+        if (requestUpdate) {
+            this.requestUpdate();
+        }
     }
 
     /**
      * @param {IElement} element
      */
     isSameGraph(element) {
-        return this.#blueprint && this.#blueprint == element?.blueprint
+        return this.blueprint && this.blueprint == element?.blueprint
     }
 
     /**
      * @template {IInput} V
      * @param {new (...args: any[]) => V} type
-     * @returns {V}
      */
     getInputObject(type) {
         return /** @type {V} */ (this.template.inputObjects.find(object => object.constructor == type))
     }
-
-    // Subclasses will want to override
-    createInputObjects() {
-        return []
-    }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
@@ -2323,45 +2396,57 @@ class IElement extends HTMLElement {
  */
 class ISelectableDraggableElement extends IElement {
 
+    static properties = {
+        ...super.properties,
+        selected: {
+            type: Boolean,
+            attribute: "data-selected",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+        locationX: {
+            type: Number,
+            attribute: false,
+        },
+        locationY: {
+            type: Number,
+            attribute: false,
+        },
+    }
+
     constructor(...args) {
-        // @ts-expect-error
         super(...args);
-        this.dragObject = null;
-        this.location = [0, 0];
         this.selected = false;
+        this.locationX = 0;
+        this.locationY = 0;
+
+        this.listeningDrag = false;
 
         let self = this;
         this.dragHandler = e => self.addLocation(e.detail.value);
     }
 
-    #setSelected(value = true) {
-        this.selected = value;
-        if (this.blueprint) {
-            if (this.selected) {
-                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
-            } else {
-                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
-            }
-        }
-        this.template.applySelected(this);
-    }
-
     connectedCallback() {
         super.connectedCallback();
-        this.#setSelected(this.selected);
+        this.setSelected(this.selected);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
     }
 
     /**
-     * @param {Number[]} value
+     * @param {Number[]} param0
      */
-    setLocation(value = [0, 0]) {
-        const d = [value[0] - this.location[0], value[1] - this.location[1]];
-        this.location = value;
-        this.template.applyLocation(this);
+    setLocation([x, y]) {
+        const d = [x - this.locationX, y - this.locationY];
+        this.locationX = x;
+        this.locationY = y;
         if (this.blueprint) {
             const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
                 detail: {
-                    value: d
+                    value: d,
                 },
                 bubbles: false,
                 cancelable: true
@@ -2370,16 +2455,29 @@ class ISelectableDraggableElement extends IElement {
         }
     }
 
-    addLocation(value) {
-        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]]);
+    /**
+     * @param {Number[]} param0
+     */
+    addLocation([x, y]) {
+        this.setLocation([this.locationX + x, this.locationY + y]);
     }
 
     setSelected(value = true) {
-        if (this.selected != value) {
-            this.#setSelected(value);
+        this.selected = value;
+        if (this.blueprint) {
+            if (this.selected) {
+                this.listeningDrag = true;
+                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
+            } else {
+                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
+                this.listeningDrag = false;
+            }
         }
     }
 
+    /**
+     * @param {Number[]} value 
+     */
     dispatchDragEvent(value) {
         const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             detail: {
@@ -2392,8 +2490,8 @@ class ISelectableDraggableElement extends IElement {
     }
 
     snapToGrid() {
-        let snappedLocation = Utility.snapToGrid(this.location, Configuration.gridSize);
-        if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
+        const snappedLocation = Utility.snapToGrid([this.locationX, this.locationY], Configuration.gridSize);
+        if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
             this.setLocation(snappedLocation);
         }
     }
@@ -2414,30 +2512,114 @@ class MouseIgnore extends IMouseClickDrag {
     }
 }
 
-// @ts-check
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../template/ITemplate").default} ITemplate
+ */
 
-document.createElement("div");
+/**
+ * @template {IEntity} T
+ * @template {ITemplate} U
+ * @extends {IElement<T, U>}
+ */
+class IFromToPositionedElement extends IElement {
 
-const tagReplacement = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;'
-};
+    static properties = {
+        ...super.properties,
+        initialPositionX: {
+            type: Number,
+            attribute: false,
+        },
+        initialPositionY: {
+            type: Number,
+            attribute: false,
+        },
+        finaPositionX: {
+            type: Number,
+            attribute: false,
+        },
+        finaPositionY: {
+            type: Number,
+            attribute: false,
+        },
+    }
 
-function sanitizeText(value) {
-    return value.toString().replace(/[&<>'"]/g, tag => tagReplacement[tag])
+    constructor(...args) {
+        super(...args);
+        this.initialPositionX = 0;
+        this.initialPositionY = 0;
+        this.finaPositionX = 0;
+        this.finaPositionY = 0;
+    }
+
+    /**
+     * @param {Number[]} param0
+     */
+    setBothLocations([x, y]) {
+        this.initialPositionX = x;
+        this.initialPositionY = y;
+        this.finaPositionX = x;
+        this.finaPositionY = y;
+    }
+
+    /**
+     * @param {Number[]} offset
+     */
+    addSourceLocation([offsetX, offsetY]) {
+        this.initialPositionX += offsetX;
+        this.initialPositionY += offsetY;
+    }
+
+    /**
+     * @param {Number[]} offset
+     */
+    addDestinationLocation([offsetX, offsetY]) {
+        this.finaPositionX += offsetX;
+        this.finaPositionY += offsetY;
+    }
 }
 
-// @ts-check
+/**
+ * @typedef {import("../element/IFromToPositionedElement").default} IFromToPositionedElement
+ */
+
+/**
+ * @template {IFromToPositionedElement} T
+ * @extends {ITemplate<T>}
+ */
+class IFromToPositionedTemplate extends ITemplate {
+
+    /**
+     * @param {T} selector
+     * @param {Map} changedProperties
+     */
+    update(selector, changedProperties) {
+        super.update(selector, changedProperties);
+        if (changedProperties.has("initialPositionX")) {
+            selector.style.setProperty("--ueb-from-x", `${selector.initialPositionX}`);
+        }
+        if (changedProperties.has("initialPositionY")) {
+            selector.style.setProperty("--ueb-from-y", `${selector.initialPositionY}`);
+        }
+        if (changedProperties.has("finaPositionX")) {
+            selector.style.setProperty("--ueb-to-x", `${selector.finaPositionX}`);
+        }
+        if (changedProperties.has("finaPositionY")) {
+            selector.style.setProperty("--ueb-to-y", `${selector.finaPositionY}`);
+        }
+    }
+
+}
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
- * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
  */
 
-class LinkTemplate extends ITemplate {
+
+/**
+ * @extends {IFromToPositionedTemplate<LinkElement>}
+ */
+class LinkTemplate extends IFromToPositionedTemplate {
 
     /**
      * Returns a function performing the inverse multiplication y = a / x + q. The value of a and q are calculated using
@@ -2480,7 +2662,7 @@ class LinkTemplate extends ITemplate {
                 : m * x + q
     }
 
-    static c1DecreasingValue = LinkTemplate.decreasingValue(-0.1, [100, 15])
+    static c1DecreasingValue = LinkTemplate.decreasingValue(-0.15, [100, 15])
 
     static c2DecreasingValue = LinkTemplate.decreasingValue(-0.06, [500, 130])
 
@@ -2488,433 +2670,327 @@ class LinkTemplate extends ITemplate {
 
     /**
      * @param {LinkElement} link
+     * @param {Map} changedProperties
      */
-    render(link) {
-        const uniqueId = "ueb-id-" + Math.floor(Math.random() * 1E12);
-        return html`
-            <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <g>
-                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" />
-                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
-                </g>
-            </svg>
-        `
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
-    setup(link) {
-        super.setup(link);
-        if (link.linkMessageElement) {
-            link.appendChild(link.linkMessageElement);
-        }
-        link.classList.add("ueb-positioned");
-        link.pathElement = link.querySelector("path");
-        const referencePin = link.sourcePin ?? link.destinationPin;
-        if (referencePin) {
-            link.style.setProperty("--ueb-pin-color", referencePin.getColor());
-        }
-        this.applyPins(link);
-        if (link.sourcePin && link.destinationPin) {
-            this.applyFullLocation(link);
-        }
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
-    applyPins(link) {
-        if (link.sourcePin) {
-            link.dataset.source = link.sourcePin.GetPinId().toString();
-        }
-        if (link.destinationPin) {
-            link.dataset.destination = link.destinationPin.GetPinId().toString();
-        }
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
-    applyStartDragging(link) {
-        link.blueprint.dataset.creatingLink = "true";
-        link.classList.add("ueb-link-dragging");
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
-    applyFinishDragging(link) {
-        link.blueprint.dataset.creatingLink = "false";
-        link.classList.remove("ueb-link-dragging");
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
-    applySourceLocation(link) {
-        link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0");
-        link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
-        link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
-    }
-
-    /**
-     * @param {LinkElement} link
-     */
-    applyFullLocation(link) {
-        const dx = Math.max(Math.abs(link.sourceLocation[0] - link.destinationLocation[0]), 1);
+    willUpdate(link, changedProperties) {
+        super.willUpdate(link, changedProperties);
+        const dx = Math.max(Math.abs(link.initialPositionX - link.finaPositionX), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
-        Math.max(Math.abs(link.sourceLocation[1] - link.destinationLocation[1]), 1);
+        // const height = Math.max(Math.abs(link.initialPositionY - link.finaPositionY), 1)
         const fillRatio = dx / width;
+        // const aspectRatio = width / height
         const xInverted = link.originatesFromInput
-            ? link.sourceLocation[0] < link.destinationLocation[0]
-            : link.destinationLocation[0] < link.sourceLocation[0];
-        let start = dx < width // If under minimum width
+            ? link.initialPositionX < link.finaPositionX
+            : link.finaPositionX < link.initialPositionX;
+        link.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0; // Otherwise start from the beginning
-
-        link.style.setProperty("--ueb-from-x", sanitizeText(link.sourceLocation[0]));
-        link.style.setProperty("--ueb-from-y", sanitizeText(link.sourceLocation[1]));
-        link.style.setProperty("--ueb-to-x", sanitizeText(link.destinationLocation[0]));
-        link.style.setProperty("--ueb-to-y", sanitizeText(link.destinationLocation[1]));
-        link.style.setProperty("margin-left", `-${start}px`);
-        if (xInverted) {
-            start += fillRatio * 100;
-        }
-        link.style.setProperty("--ueb-start-percentage", `${start}%`);
+        link.startPercentage = xInverted ? link.startPixels + fillRatio * 100 : link.startPixels;
         const c1
-            = start
+            = link.startPercentage
             + (xInverted
                 ? LinkTemplate.c1DecreasingValue(width)
                 : 10
             )
             * fillRatio;
-        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + start;
+        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + link.startPercentage;
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width));
-        const d = Configuration.linkRightSVGPath(start, c1, c2);
-        // TODO move to CSS when Firefox will support property d and css will have enough functions
-        link.pathElement?.setAttribute("d", d);
+        link.svgPathD = Configuration.linkRightSVGPath(link.startPercentage, c1, c2);
     }
 
     /**
      * @param {LinkElement} link
-     * @param {LinkMessageElement} linkMessage
+     * @param {Map} changedProperties
      */
-    applyLinkMessage(link, linkMessage) {
-        link.querySelectorAll("ueb-link-message").forEach(element => element.remove());
-        link.appendChild(linkMessage);
-        link.linkMessageElement = linkMessage;
+    update(link, changedProperties) {
+        super.update(link, changedProperties);
+        if (changedProperties.has("originatesFromInput")) {
+            link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0");
+        }
+        const referencePin = link.sourcePin ?? link.destinationPin;
+        if (referencePin) {
+            link.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color));
+        }
+        link.style.setProperty("--ueb-link-start", `${Math.round(link.startPixels)}`);
+        link.style.setProperty("--ueb-start-percentage", `${Math.round(link.startPercentage)}%`);
+    }
+
+    /**
+     * @param {LinkElement} link
+     */
+    render(link) {
+        const uniqueId = "ueb-id-" + Math.floor(Math.random() * 1E12);
+        return $`
+            <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <g>
+                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${link.svgPathD}" />
+                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
+                </g>
+            </svg>
+            ${link.linkMessageIcon != "" || link.linkMessageText != "" ? $`
+                <div class="ueb-link-message">
+                    <span class="${link.linkMessageIcon}"></span>
+                    <span class="ueb-link-message-text">${link.linkMessageText}</span>
+                </div>
+            ` : $``}
+        `
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("./PinElement").default} PinElement
- * @typedef {import("./LinkMessageElement").default} LinkMessageElement
- * @typedef {import("../entity/IEntity").default} IEntity
  */
 
 /**
- * @extends {IElement<Object, LinkTemplate>}
+ * @extends {IFromToPositionedElement<Object, LinkTemplate>}
  */
-class LinkElement extends IElement {
+class LinkElement extends IFromToPositionedElement {
+
+    static properties = {
+        ...super.properties,
+        source: {
+            type: String,
+            reflect: true,
+        },
+        destination: {
+            type: String,
+            reflect: true,
+        },
+        dragging: {
+            type: Boolean,
+            attribute: "data-dragging",
+            converter: Utility.booleanConverter,
+            reflect: true,
+        },
+        originatesFromInput: {
+            type: Boolean,
+            attribute: false,
+        },
+        svgPathD: {
+            type: String,
+            attribute: false,
+        },
+        linkMessageIcon: {
+            type: String,
+            attribute: false,
+        },
+        linkMessageText: {
+            type: String,
+            attribute: false,
+        },
+    }
 
     /** @type {PinElement} */
-    #source
+    #sourcePin
     get sourcePin() {
-        return this.#source
+        return this.#sourcePin
     }
     set sourcePin(pin) {
-        if (this.#source == pin) {
-            return
-        }
-        if (this.#source) {
-            const nodeElement = this.#source.getNodeElement();
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
-            if (this.#destination) {
-                this.#unlinkPins();
-            }
-        }
-        this.#source = pin;
-        if (this.#source) {
-            const nodeElement = this.#source.getNodeElement();
-            this.originatesFromInput = pin.isInput();
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler);
-            this.setSourceLocation();
-            if (this.#destination) {
-                this.#linkPins();
-            }
-        }
-        this.template.applyPins(this);
+        this.#setPin(pin, false);
     }
 
     /** @type {PinElement} */
-    #destination
+    #destinationPin
     get destinationPin() {
-        return this.#destination
+        return this.#destinationPin
     }
     set destinationPin(pin) {
-        if (this.#destination == pin) {
-            return
-        }
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement();
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
-            if (this.#source) {
-                this.#unlinkPins();
-            }
-        }
-        this.#destination = pin;
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement();
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler);
-            this.setDestinationLocation();
-            if (this.#source) {
-                this.#linkPins();
-            }
-        }
-        this.template.applyPins(this);
+        this.#setPin(pin, true);
     }
 
     #nodeDeleteHandler
     #nodeDragSourceHandler
     #nodeDragDestinatonHandler
-    sourceLocation = [0, 0]
+    #nodeReflowSourceHandler
+    #nodeReflowDestinatonHandler
     /** @type {SVGPathElement} */
     pathElement
-    /** @type {LinkMessageElement} */
-    linkMessageElement
-    originatesFromInput = false
-    destinationLocation = [0, 0]
 
     /**
      * @param {PinElement} source
-     * @param {PinElement} destination
+     * @param {PinElement?} destination
      */
     constructor(source, destination) {
         super({}, new LinkTemplate());
         const self = this;
-        this.#nodeDeleteHandler = _ => self.remove();
+        this.#nodeDeleteHandler = () => self.remove();
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value);
         this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value);
+        this.#nodeReflowSourceHandler = e => self.setSourceLocation();
+        this.#nodeReflowDestinatonHandler = e => self.setDestinationLocation();
+        this.source = null;
+        this.destination = null;
+        this.dragging = false;
+        this.originatesFromInput = false;
+        this.startPercentage = 0;
+        this.svgPathD = "";
+        this.startPixels = 0;
+        this.linkMessageIcon = "";
+        this.linkMessageText = "";
         if (source) {
             this.sourcePin = source;
+            if (!destination) {
+                this.finaPositionX = this.initialPositionX;
+                this.finaPositionY = this.initialPositionY;
+            }
         }
         if (destination) {
             this.destinationPin = destination;
+            if (!source) {
+                this.initialPositionX = this.finaPositionX;
+                this.initialPositionY = this.finaPositionY;
+            }
         }
-        if (source && destination) {
+        this.#linkPins();
+    }
+
+    /**
+     * @param {PinElement} pin
+     * @param {Boolean} isDestinationPin
+     */
+    #setPin(pin, isDestinationPin) {
+        const getCurrentPin = () => isDestinationPin ? this.destinationPin : this.sourcePin;
+        if (getCurrentPin() == pin) {
+            return
+        }
+        if (getCurrentPin()) {
+            const nodeElement = getCurrentPin().getNodeElement();
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(
+                Configuration.nodeDragLocalEventName,
+                isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
+            );
+            nodeElement.removeEventListener(
+                Configuration.nodeReflowEventName,
+                isDestinationPin ? this.#nodeReflowDestinatonHandler : this.#nodeReflowSourceHandler
+            );
+            this.#unlinkPins();
+        }
+        isDestinationPin
+            ? this.#destinationPin = pin
+            : this.#sourcePin = pin;
+        if (getCurrentPin()) {
+            const nodeElement = getCurrentPin().getNodeElement();
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(
+                Configuration.nodeDragLocalEventName,
+                isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
+            );
+            nodeElement.addEventListener(
+                Configuration.nodeReflowEventName,
+                isDestinationPin ? this.#nodeReflowDestinatonHandler : this.#nodeReflowSourceHandler
+            );
+            isDestinationPin
+                ? this.setDestinationLocation()
+                : (this.setSourceLocation(), this.originatesFromInput = this.sourcePin.isInput());
             this.#linkPins();
         }
     }
 
     #linkPins() {
-        this.#source.linkTo(this.#destination);
-        this.#destination.linkTo(this.#source);
+        if (this.sourcePin && this.destinationPin) {
+            this.sourcePin.linkTo(this.destinationPin);
+            this.destinationPin.linkTo(this.sourcePin);
+        }
     }
 
     #unlinkPins() {
-        if (this.#source && this.#destination) {
-            this.#source.unlinkFrom(this.#destination);
-            this.#destination.unlinkFrom(this.#source);
+        if (this.sourcePin && this.destinationPin) {
+            this.sourcePin.unlinkFrom(this.destinationPin);
+            this.destinationPin.unlinkFrom(this.sourcePin);
         }
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.#unlinkPins();
+        this.sourcePin = null;
+        this.destinationPin = null;
     }
 
     /**
-     * @returns {Number[]}
-     */
-    getSourceLocation() {
-        return this.sourceLocation
-    }
-
-    /**
-     * @param {Number[]} offset
-     */
-    addSourceLocation(offset) {
-        const location = [
-            this.sourceLocation[0] + offset[0],
-            this.sourceLocation[1] + offset[1]
-        ];
-        this.sourceLocation = location;
-        this.template.applyFullLocation(this);
-    }
-
-    /**
-     * @param {Number[]} location
+     * @param {Number[]?} location
      */
     setSourceLocation(location = null) {
         if (location == null) {
-            location = this.#source.template.getLinkLocation(this.#source);
+            const self = this;
+            if (!this.hasUpdated || !this.sourcePin.hasUpdated) {
+                Promise.all([this.updateComplete, this.sourcePin.updateComplete]).then(() => self.setSourceLocation());
+                return
+            }
+            location = this.sourcePin.template.getLinkLocation(this.sourcePin);
         }
-        this.sourceLocation = location;
-        this.template.applySourceLocation(this);
-    }
-
-    getDestinationLocation() {
-        return this.destinationLocation
+        const [x, y] = location;
+        this.initialPositionX = x;
+        this.initialPositionY = y;
     }
 
     /**
-     * @param {Number[]} offset
-     */
-    addDestinationLocation(offset) {
-        const location = [
-            this.destinationLocation[0] + offset[0],
-            this.destinationLocation[1] + offset[1]
-        ];
-        this.setDestinationLocation(location);
-    }
-
-    /**
-     * @param {Number[]} location
+     * @param {Number[]?} location
      */
     setDestinationLocation(location = null) {
         if (location == null) {
-            location = this.#destination.template.getLinkLocation(this.#destination);
+            const self = this;
+            if (!this.hasUpdated || !this.destinationPin.hasUpdated) {
+                Promise.all([this.updateComplete, this.destinationPin.updateComplete]).then(() => self.setDestinationLocation());
+                return
+            }
+            location = this.destinationPin.template.getLinkLocation(this.destinationPin);
         }
-        this.destinationLocation = location;
-        this.template.applyFullLocation(this);
-    }
-
-    /**
-     * @param {LinkMessageElement} linkMessage
-     */
-    setLinkMessage(linkMessage) {
-        if (linkMessage) {
-            this.template.applyLinkMessage(this, linkMessage);
-        } else if (this.linkMessageElement) {
-            this.linkMessageElement.remove();
-            this.linkMessageElement = null;
-        }
+        this.finaPositionX = location[0];
+        this.finaPositionY = location[1];
     }
 
     startDragging() {
-        this.template.applyStartDragging(this);
+        this.dragging = true;
     }
 
     finishDragging() {
-        this.template.applyFinishDragging(this);
+        this.dragging = false;
+    }
+
+    removeMessage() {
+        this.linkMessageIcon = "";
+        this.linkMessageText = "";
+    }
+
+    setMessageConvertType() {
+        this.linkMessageIcon = "ueb-icon-conver-type";
+        this.linkMessageText = `Convert ${this.sourcePin.pinType} to ${this.destinationPin.pinType}.`;
+    }
+
+    setMessageCorrect() {
+        this.linkMessageIcon = "ueb-icon-correct";
+        this.linkMessageText = "";
+    }
+
+    setMessageDirectionsIncompatible() {
+        this.linkMessageIcon = "ueb-icon-directions-incompatible";
+        this.linkMessageText = "Directions are not compatbile.";
+    }
+
+    setMessagePlaceNode() {
+        this.linkMessageIcon = "ueb-icon-place-node";
+        this.linkMessageText = "Place a new node.";
+    }
+
+    setMessageReplaceLink() {
+        this.linkMessageIcon = "ueb-icon-replace-link";
+        this.linkMessageText = "Replace existing input connections.";
+    }
+
+    setMessageSameNode() {
+        this.linkMessageIcon = "ueb-icon-same-node";
+        this.linkMessageText = "Both are on the same node.";
+    }
+
+    setMEssagetypesIncompatible() {
+        this.linkMessageIcon = "ueb-icon-types-incompatible";
+        this.linkMessageText = `${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`;
     }
 }
 
 customElements.define("ueb-link", LinkElement);
-
-// @ts-check
-
-/**
- * @typedef {import("../element/LinkMessageElement").default} LinkMessageElement
- */
-
-class LinkMessageTemplate extends ITemplate {
-
-    /**
-     * @param {LinkMessageElement} linkMessage
-     */
-    render(linkMessage) {
-        return html`
-            <span class="${sanitizeText(linkMessage.icon)}"></span>
-            <span class="ueb-link-message"></span>
-        `
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {LinkMessageElement} linkMessage
-     */
-    setup(linkMessage) {
-        super.setup(linkMessage);
-        const linkMessageSetup = _ =>
-            /** @type {HTMLElement} */(linkMessage.querySelector(".ueb-link-message")).innerText = linkMessage.message(
-            linkMessage.linkElement.sourcePin,
-            linkMessage.linkElement.destinationPin
-        );
-        linkMessage.linkElement = linkMessage.closest("ueb-link");
-        if (linkMessage.linkElement) {
-            linkMessageSetup();
-        } else {
-            window.customElements.whenDefined("ueb-link-message").then(linkMessageSetup);
-        }
-    }
-
-}
-
-// @ts-check
-
-/**
- * @typedef {import("./PinElement").default} PinElement
- * @typedef {import("./LinkElement").default} LinkElement
- * @typedef {(sourcePin: PinElement, destinationPin: PinElement) => String} LinkRetrieval
- */
-
-/**
- * @extends {IElement<Object, LinkMessageTemplate>}
- */
-class LinkMessageElement extends IElement {
-
-    static convertType = _ => new LinkMessageElement(
-        "ueb-icon-conver-type",
-        /** @type {LinkRetrieval} */
-        (s, d) => `Convert ${s.getType()} to ${d.getType()}.`
-    )
-    static correct = _ => new LinkMessageElement(
-        "ueb-icon-correct",
-        /** @type {LinkRetrieval} */
-        (s, d) => ""
-    )
-    static directionsIncompatible = _ => new LinkMessageElement(
-        "ueb-icon-directions-incompatible",
-        /** @type {LinkRetrieval} */
-        (s, d) => "Directions are not compatbile."
-    )
-    static placeNode = _ => new LinkMessageElement(
-        "ueb-icon-place-node",
-        /** @type {LinkRetrieval} */
-        (s, d) => "Place a new node."
-    )
-    static replaceLink = _ => new LinkMessageElement(
-        "ueb-icon-replace-link",
-        /** @type {LinkRetrieval} */
-        (s, d) => "Replace existing input connections."
-    )
-    static sameNode = _ => new LinkMessageElement(
-        "ueb-icon-same-node",
-        /** @type {LinkRetrieval} */
-        (s, d) => "Both are on the same node."
-    )
-    static typesIncompatible = _ => new LinkMessageElement(
-        "ueb-icon-types-incompatible",
-        /** @type {LinkRetrieval} */
-        (s, d) => `${s.getType()} is not compatible with ${d.getType()}.`
-    )
-
-    /** @type {String} */
-    icon
-    /** @type {LinkRetrieval} */
-    message
-    /** @type {LinkElement} */
-    linkElement
-
-    constructor(icon, message) {
-        super({}, new LinkMessageTemplate());
-        this.icon = icon;
-        this.message = message;
-    }
-
-}
-
-customElements.define("ueb-link-message", LinkMessageElement);
-
-// @ts-check
 
 /**
  * @typedef {import("../../element/PinElement").default} PinElement
@@ -2934,34 +3010,34 @@ class MouseCreateLink extends IMouseClickDrag {
     /** @type {(e: MouseEvent) => void} */
     #mouseleaveHandler
 
-    /** @type {LinkElement} */
+    /** @type {LinkElement?} */
     link
 
-    /** @type {PinElement} */
+    /** @type {PinElement?} */
     enteredPin
 
     linkValid = false
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-
         let self = this;
         this.#mouseenterHandler = e => {
             if (!self.enteredPin) {
                 self.linkValid = false;
                 self.enteredPin = /** @type {PinElement} */ (e.target);
-                const a = self.enteredPin, b = self.target;
+                const a = self.enteredPin;
+                const b = self.target;
                 if (a.getNodeElement() == b.getNodeElement()) {
-                    this.setLinkMessage(LinkMessageElement.sameNode());
+                    self.link.setMessageSameNode();
                 } else if (a.isOutput() == b.isOutput()) {
-                    this.setLinkMessage(LinkMessageElement.directionsIncompatible());
+                    self.link.setMessageDirectionsIncompatible();
                 } else if (a.isOutput() == b.isOutput()) {
-                    this.setLinkMessage(LinkMessageElement.directionsIncompatible());
+                    self.link.setMessageDirectionsIncompatible();
                 } else if (self.blueprint.getLinks([a, b]).length) {
-                    this.setLinkMessage(LinkMessageElement.replaceLink());
+                    self.link.setMessageReplaceLink();
                     self.linkValid = true;
                 } else {
-                    this.setLinkMessage(LinkMessageElement.correct());
+                    self.link.setMessageCorrect();
                     self.linkValid = true;
                 }
             }
@@ -2970,15 +3046,15 @@ class MouseCreateLink extends IMouseClickDrag {
             if (self.enteredPin == e.target) {
                 self.enteredPin = null;
                 self.linkValid = false;
-                this.setLinkMessage(LinkMessageElement.placeNode());
+                self.link?.setMessagePlaceNode();
             }
         };
     }
 
-    startDrag() {
+    startDrag(location) {
         this.link = new LinkElement(this.target, null);
-        this.blueprint.nodesContainerElement.prepend(this.link);
-        this.setLinkMessage(LinkMessageElement.placeNode());
+        this.blueprint.linksContainerElement.prepend(this.link);
+        this.link.setMessagePlaceNode();
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin");
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
@@ -2987,7 +3063,7 @@ class MouseCreateLink extends IMouseClickDrag {
             }
         });
         this.link.startDragging();
-        this.link.setDestinationLocation(this.clickedPosition);
+        this.link.setDestinationLocation(location);
     }
 
     dragTo(location, movement) {
@@ -3002,7 +3078,7 @@ class MouseCreateLink extends IMouseClickDrag {
         if (this.enteredPin && this.linkValid) {
             this.blueprint.addGraphElement(this.link);
             this.link.destinationPin = this.enteredPin;
-            this.link.setLinkMessage(null);
+            this.link.removeMessage();
             this.link.finishDragging();
         } else {
             this.link.finishDragging();
@@ -3012,21 +3088,25 @@ class MouseCreateLink extends IMouseClickDrag {
         this.link = null;
         this.#listenedPins = null;
     }
-
-    setLinkMessage(linkMessage) {
-        this.link.setLinkMessage(linkMessage);
-    }
 }
 
-// @ts-check
-
 /**
- * @typedef {import ("../input/IInput").default} IInput
+ * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
 
 class PinTemplate extends ITemplate {
+
+    static styles = r$2``
+
+    /**
+     * @param {PinElement} pin
+     */
+    connectedCallback(pin) {
+        super.connectedCallback(pin);
+        pin.nodeElement = pin.closest("ueb-node");
+    }
 
     /**
      * @param {PinElement} pin
@@ -3045,20 +3125,20 @@ class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     render(pin) {
-        const icon = html`
+        const icon = $`
             <div class="ueb-pin-icon">
                 ${this.renderIcon(pin)}
             </div>
         `;
-        const content = html`
+        const content = $`
             <div class="ueb-pin-content">
-                <span class="ueb-pin-name">${sanitizeText(pin.getPinDisplayName())}</span>
+                <span class="ueb-pin-name">${pin.getPinDisplayName()}</span>
                 ${this.renderInput(pin)}
             </div>
         `;
-        return html`
+        return $`
             <div class="ueb-pin-wrapper">
-                ${pin.isInput() ? icon + content : content + icon}
+                ${pin.isInput() ? $`${icon}${content}` : $`${content}${icon}`}
             </div>
         `
     }
@@ -3067,42 +3147,24 @@ class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     renderIcon(pin) {
-        return '<span class="ueb-pin-icon-value"></span>'
+        return $`<span class="ueb-pin-icon-value"></span>`
     }
 
     /**
      * @param {PinElement} pin
      */
     renderInput(pin) {
-        return ""
+        return $``
     }
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin);
-        pin.classList.add(
-            "ueb-node-" + (pin.isInput() ? "input" : pin.isOutput() ? "output" : "hidden"),
-            "ueb-pin-type-" + sanitizeText(pin.getType())
-        );
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties);
         pin.dataset.id = pin.GetPinIdValue();
-        if (pin.entity.bAdvancedView) {
-            pin.dataset.advancedView = "true";
-        }
         pin.clickableElement = pin;
-        pin.nodeElement = pin.closest("ueb-node");
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    applyConnected(pin) {
-        if (pin.isLinked()) {
-            pin.classList.add("ueb-pin-fill");
-        } else {
-            pin.classList.remove("ueb-pin-fill");
-        }
     }
 
     /**
@@ -3110,13 +3172,13 @@ class PinTemplate extends ITemplate {
      */
     getLinkLocation(pin) {
         const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect();
-        return pin.blueprint.compensateTranslation(Utility.convertLocation(
+        const location = Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            pin.blueprint.gridElement))
+            pin.blueprint.gridElement
+        );
+        return pin.blueprint.compensateTranslation(location)
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -3132,21 +3194,18 @@ class IInputPinTemplate extends PinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin);
-        this.#inputContentElements = /** @type {HTMLElement[]} */(
-            [...pin.querySelectorAll(".ueb-pin-input-content")]
-        );
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties);
+        this.#inputContentElements = [...pin.querySelectorAll(".ueb-pin-input-content")];
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, [
-                Utility.decodeInputString(/** @type {String} */(pin.entity.DefaultValue))
-            ]);
+            this.setInputs(pin, this.getInputs(pin));
             let self = this;
             this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true);
             this.onFocusOutHandler = e => {
                 e.preventDefault();
-                document.getSelection().removeAllRanges(); // Deselect text inside the input
+                document.getSelection()?.removeAllRanges(); // Deselect text inside the input
                 self.setInputs(pin, this.getInputs(pin));
                 pin.blueprint.dispatchEditTextEvent(false);
             };
@@ -3189,6 +3248,7 @@ class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
+        Utility.decodeInputString(pin.entity.DefaultValue);
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
             element.innerHTML.replaceAll("<br>", "\n"))
@@ -3201,7 +3261,7 @@ class IInputPinTemplate extends PinTemplate {
     setInputs(pin, values = [], updateDefaultValue = true) {
         this.#inputContentElements.forEach((element, i) => element.innerText = values[i]);
         if (updateDefaultValue) {
-            pin.entity.DefaultValue = this.getInput(pin);
+            pin.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""));
         }
     }
 
@@ -3210,17 +3270,15 @@ class IInputPinTemplate extends PinTemplate {
      */
     renderInput(pin) {
         if (pin.isInput()) {
-            return html`
+            return $`
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"></span>
+                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true" .innerText=${pin.unreactiveDefaultValue}></span>
                 </div>
             `
         }
-        return ""
+        return $``
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -3233,9 +3291,10 @@ class BoolPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin);
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties);
         this.#input = pin.querySelector(".ueb-pin-input");
         let self = this;
         this.onChangeHandler = _ => pin.entity.DefaultValue = self.#input.checked ? "true" : "false";
@@ -3259,27 +3318,16 @@ class BoolPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
-     * @param {String[]?} value
-     */
-    setInputs(pin, value = []) {
-        pin.entity.DefaultValue = value.length ? value[0] : this.getInput(pin);
-        this.#input.checked = pin.entity.DefaultValue == "true";
-    }
-
-    /**
-     * @param {PinElement} pin
      */
     renderInput(pin) {
         if (pin.isInput()) {
-            return html`
-                <input type="checkbox" class="ueb-pin-input" ${pin.entity.DefaultValue == "true" ? "checked" : ""} />
+            return $`
+                <input type="checkbox" class="ueb-pin-input" .checked=${pin.defaultValue == "true"} />
             `
         }
         return super.renderInput(pin)
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -3291,31 +3339,19 @@ class ExecPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     renderIcon(pin) {
-        return html`
+        return $`
             <svg class="ueb-pin-icon-exec" width="16" height="16" viewBox="-2 0 16 16" fill="none">
-                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="currentColor" d="
-                    M 2 1
-                    a 2 2 0 0 0 -2 2
-                    v 10
-                    a 2 2 0 0 0 2 2
-                    h 4
-                    a 2 2 0 0 0 1.519 -0.698
-                    l 4.843 -5.651
-                    a 1 1 0 0 0 0 -1.302
-                    L 7.52 1.7
-                    a 2 2 0 0 0 -1.519 -0.698
-                    z
-                " />
+                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="currentColor"
+                    d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z"
+                />
             </svg>
         `
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity)}
+ * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity}
  */
 
 class LinearColorPinTemplate extends IInputPinTemplate {
@@ -3325,11 +3361,11 @@ class LinearColorPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin);
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties);
         this.#input = pin.querySelector(".ueb-pin-input");
-        this.#input.dataset.linearColor = /** @type {LinearColorEntity} */(pin.entity.DefaultValue).toString();
     }
 
     /**
@@ -3341,7 +3377,7 @@ class LinearColorPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
-     * @param {String[]?} value
+     * @param {String[]} value
      */
     setInputs(pin, value = []) {
     }
@@ -3351,15 +3387,13 @@ class LinearColorPinTemplate extends IInputPinTemplate {
      */
     renderInput(pin) {
         if (pin.isInput()) {
-            return html`
-                <span class="ueb-pin-input"></span>
+            return $`
+                <span class="ueb-pin-input" data-linear-color="${pin.defaultValue.toString()}"></span>
             `
         }
         return super.renderInput(pin)
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -3372,9 +3406,10 @@ class NamePinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin);
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties);
         this.onInputHandler = e => {
             e.stopPropagation();
             if (
@@ -3418,8 +3453,6 @@ class NamePinTemplate extends IInputPinTemplate {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
@@ -3435,7 +3468,7 @@ class RealPinTemplate extends IInputPinTemplate {
         let updateDefaultValue = true;
         if (isNaN(num)) {
             num = parseFloat(pin.entity.DefaultValue != ""
-                ? pin.entity.DefaultValue
+                ? /** @type {String} */(pin.entity.DefaultValue)
                 : pin.entity.AutogeneratedDefaultValue);
         }
         if (isNaN(num)) {
@@ -3447,8 +3480,6 @@ class RealPinTemplate extends IInputPinTemplate {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  */
@@ -3457,13 +3488,12 @@ class StringPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin);
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties);
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -3488,6 +3518,46 @@ class PinElement extends IElement {
         }
     }
 
+    static properties = {
+        advancedView: {
+            type: String,
+            attribute: "data-advanced-view",
+            reflect: true,
+        },
+        color: {
+            type: LinearColorEntity,
+            converter: {
+                fromAttribute: (value, type) => {
+                    return ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
+                },
+                toAttribute: (value, type) => {
+                    return Utility.printLinearColor(value)
+                },
+            },
+            reflect: true,
+        },
+        defaultValue: {
+            type: String,
+            attribute: false,
+        },
+        isLinked: {
+            type: Boolean,
+            converter: Utility.booleanConverter,
+            attribute: "data-linked",
+            reflect: true,
+        },
+        pinType: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
+        pinDirection: {
+            type: String,
+            attribute: "data-direction",
+            reflect: true,
+        },
+    }
+
     /**
      * @param {PinEntity} pinEntity
      * @return {PinTemplate}
@@ -3500,8 +3570,6 @@ class PinElement extends IElement {
         return result ?? PinTemplate
     }
 
-    #color = ""
-
     /** @type {NodeElement} */
     nodeElement
 
@@ -3510,20 +3578,42 @@ class PinElement extends IElement {
 
     connections = 0
 
+    get defaultValue() {
+        return this.unreactiveDefaultValue
+    }
+    set defaultValue(value) {
+        let oldValue = this.unreactiveDefaultValue;
+        this.unreactiveDefaultValue = value;
+        this.requestUpdate("defaultValue", oldValue);
+    }
+
     /**
      * @param {PinEntity} entity
      */
     constructor(entity) {
         super(
             entity,
-            // @ts-expect-error
             new (PinElement.getTypeTemplate(entity))()
         );
+        this.advancedView = entity.bAdvancedView;
+        this.unreactiveDefaultValue = entity.getDefaultValue();
+        this.pinType = this.entity.getType();
+        this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType].toString());
+        this.isLinked = false;
+        this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
+
+        this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString());
+        this.entity.subscribe("PinToolTip", value => {
+            let matchResult = value.match(/\s*(.+?(?=\n)|.+\S)\s*/);
+            if (matchResult) {
+                return Utility.formatStringName(matchResult[1])
+            }
+            return Utility.formatStringName(this.entity.PinName)
+        });
     }
 
     connectedCallback() {
         super.connectedCallback();
-        this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-pin-color");
     }
 
     /** @return {GuidEntity} */
@@ -3543,9 +3633,6 @@ class PinElement extends IElement {
         return this.entity.PinName
     }
 
-    /**
-     * @returns {String}
-     */
     getPinDisplayName() {
         let matchResult = null;
         if (
@@ -3566,20 +3653,8 @@ class PinElement extends IElement {
         return this.entity.isOutput()
     }
 
-    isLinked() {
-        return this.entity.isLinked()
-    }
-
-    getType() {
-        return this.entity.getType()
-    }
-
     getClickableElement() {
         return this.clickableElement
-    }
-
-    getColor() {
-        return this.#color
     }
 
     getLinkLocation() {
@@ -3590,11 +3665,15 @@ class PinElement extends IElement {
      * @returns {NodeElement}
      */
     getNodeElement() {
-        return this.closest("ueb-node")
+        return this.nodeElement
     }
 
     getLinks() {
         return this.entity.LinkedTo ?? []
+    }
+
+    setDefaultValue(value) {
+        this.entity.DefaultValue = value;
     }
 
     sanitizeLinks() {
@@ -3614,16 +3693,16 @@ class PinElement extends IElement {
      * @param {PinElement} targetPinElement
      */
     linkTo(targetPinElement) {
-        this.entity.linkTo(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity);
-        this.template.applyConnected(this);
+        this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity);
+        this.isLinked = this.entity.isLinked();
     }
 
     /**
      * @param {PinElement} targetPinElement
      */
     unlinkFrom(targetPinElement) {
-        this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity);
-        this.template.applyConnected(this);
+        this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity);
+        this.isLinked = this.entity.isLinked();
     }
 
     /**
@@ -3632,8 +3711,8 @@ class PinElement extends IElement {
      */
     redirectLink(originalPinElement, newReference) {
         const index = this.entity.LinkedTo.findIndex(pinReference =>
-            pinReference.objectName.toString() == originalPinElement.getPinName()
-            && pinReference.pinGuid == originalPinElement.entity.PinId
+            pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
+            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
         );
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference;
@@ -3644,8 +3723,6 @@ class PinElement extends IElement {
 }
 
 customElements.define("ueb-pin", PinElement);
-
-// @ts-check
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
@@ -3659,7 +3736,7 @@ class MouseMoveNodes extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize ?? this.blueprint.gridSize);
+        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
         this.mouseLocation = [0, 0];
     }
 
@@ -3674,9 +3751,10 @@ class MouseMoveNodes extends IMouseClickDrag {
     }
 
     dragTo(location, movement) {
+        const initialTargetLocation = [this.target.locationX, this.target.locationY];
         const [mouseLocation, targetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(this.target.location, this.stepSize)]
-            : [location, this.target.location];
+            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(initialTargetLocation, this.stepSize)]
+            : [location, initialTargetLocation];
         const d = [
             mouseLocation[0] - this.mouseLocation[0],
             mouseLocation[1] - this.mouseLocation[1]
@@ -3687,8 +3765,8 @@ class MouseMoveNodes extends IMouseClickDrag {
         }
 
         // Make sure it snaps on the grid
-        d[0] += targetLocation[0] - this.target.location[0];
-        d[1] += targetLocation[1] - this.target.location[1];
+        d[0] += targetLocation[0] - this.target.locationX;
+        d[1] += targetLocation[1] - this.target.locationY;
 
         this.target.dispatchDragEvent(d);
 
@@ -3704,19 +3782,18 @@ class MouseMoveNodes extends IMouseClickDrag {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 
 /**
- * @extends {ITemplate<ISelectableDraggableElement>}
+ * @template {ISelectableDraggableElement} T
+ * @extends {ITemplate<T>}
  */
 class SelectableDraggableTemplate extends ITemplate {
 
     /**
-     * @param {ISelectableDraggableElement} element
+     * @param {T} element
      */
     createInputObjects(element) {
         return [
@@ -3728,26 +3805,30 @@ class SelectableDraggableTemplate extends ITemplate {
     }
 
     /**
-     * @param {ISelectableDraggableElement} element
+     * @param {T} element
+     * @param {Map} changedProperties
      */
-    applyLocation(element) {
-        element.style.setProperty("--ueb-position-x", sanitizeText(element.location[0]));
-        element.style.setProperty("--ueb-position-y", sanitizeText(element.location[1]));
+    update(element, changedProperties) {
+        super.update(element, changedProperties);
+        if (changedProperties.has("locationX")) {
+            element.style.setProperty("--ueb-position-x", `${element.locationX}`);
+        }
+        if (changedProperties.has("locationY")) {
+            element.style.setProperty("--ueb-position-y", `${element.locationY}`);
+        }
     }
 
     /**
-     * @param {ISelectableDraggableElement} element
+     * @param {T} element
+     * @param {Map} changedProperties
      */
-    applySelected(element) {
-        if (element.selected) {
-            element.classList.add("ueb-selected");
-        } else {
-            element.classList.remove("ueb-selected");
+    firstUpdated(element, changedProperties) {
+        super.firstUpdated(element, changedProperties);
+        if (element.selected && !element.listeningDrag) {
+            element.setSelected(true);
         }
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
@@ -3758,19 +3839,17 @@ class NodeTemplate extends SelectableDraggableTemplate {
     toggleAdvancedDisplayHandler
 
     /**
-     * Computes the html content of the target element.
-     * @param {NodeElement} node Graph node element
-     * @returns The result html
+     * @param {NodeElement} node
      */
     render(node) {
-        return html`
+        return $`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
                         <div class="ueb-node-name">
                             <span class="ueb-node-name-symbol"></span>
                             <span class="ueb-node-name-text">
-                                ${sanitizeText(node.getNodeDisplayName())}
+                                ${node.nodeDisplayName}
                             </span>
                         </div>
                     </div>
@@ -3778,11 +3857,11 @@ class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${node.entity.EnabledState?.toString() == "DevelopmentOnly" ? html`
+                    ${node.enabledState?.toString() == "DevelopmentOnly" ? $`
                         <div class="ueb-node-developmentonly">Development Only</div>
-                    ` : ""}
-                    ${node.entity.AdvancedPinDisplay ? html`
-                        <div class="ueb-node-expansion">
+                    ` : $``}
+                    ${node.advancedPinDisplay ? $`
+                        <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="16"
@@ -3791,18 +3870,10 @@ class NodeTemplate extends SelectableDraggableTemplate {
                                 class="ueb-node-expansion-icon"
                                 viewBox="4 4 24 24"
                             >
-                                <path
-                                    d="
-                                        M 16.003 18.626
-                                        l 7.081 -7.081
-                                        L 25 13.46
-                                        l -8.997 8.998 -9.003 -9 1.917 -1.916
-                                        z
-                                    "
-                                />
+                                <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
                             </svg>
                         </div>
-                    ` : ""}
+                    ` : $``}
                 </div>
             </div>
         `
@@ -3810,51 +3881,25 @@ class NodeTemplate extends SelectableDraggableTemplate {
 
     /**
      * @param {NodeElement} node
+     * @param {Map} changedProperties
      */
-    setup(node) {
-        super.setup(node);
-        node.dataset.name = sanitizeText(node.entity.getObjectName());
-        if (node.entity.EnabledState) {
-            node.dataset.enabledState = node.entity.EnabledState.toString();
-        }
-        if (node.selected) {
-            node.classList.add("ueb-selected");
-        }
-        this.applyAdvancedPinDisplay(node);
-        node.style.setProperty("--ueb-position-x", sanitizeText(node.location[0]));
-        node.style.setProperty("--ueb-position-y", sanitizeText(node.location[1]));
-        /** @type {HTMLElement} */
-        let inputContainer = node.querySelector(".ueb-node-inputs");
-        /** @type {HTMLElement} */
-        let outputContainer = node.querySelector(".ueb-node-outputs");
-        let pins = node.getPinEntities();
-        pins.filter(v => v.isInput()).forEach(v => inputContainer.appendChild(new PinElement(v)));
-        pins.filter(v => v.isOutput()).forEach(v => outputContainer.appendChild(new PinElement(v)));
+    async firstUpdated(node, changedProperties) {
+        super.firstUpdated(node, changedProperties);
+        const inputContainer = /** @type {HTMLElement} */(node.querySelector(".ueb-node-inputs"));
+        const outputContainer = /** @type {HTMLElement} */(node.querySelector(".ueb-node-outputs"));
+        Promise.all(node.getPinElements().map(n => n.updateComplete)).then(() => node.dispatchReflowEvent());
+        node.getPinElements().forEach(p => {
+            if (p.isInput()) {
+                inputContainer.appendChild(p);
+            } else if (p.isOutput()) {
+                outputContainer.appendChild(p);
+            }
+        });
         this.toggleAdvancedDisplayHandler = _ => {
             node.toggleShowAdvancedPinDisplay();
+            node.addNextUpdatedCallbacks(() => node.dispatchReflowEvent(), true);
         };
-        if (node.entity.AdvancedPinDisplay) {
-            node.querySelector(".ueb-node-expansion").addEventListener("click", this.toggleAdvancedDisplayHandler);
-        }
-    }
-
-    /**
-     * @param {NodeElement} node
-     */
-    applyAdvancedPinDisplay(node) {
-        if (node.entity.AdvancedPinDisplay) {
-            node.dataset.advancedDisplay = node.entity.AdvancedPinDisplay.toString();
-        }
-    }
-
-    /**
-     * @param {NodeElement} node
-     */
-    applyRename(node) {
-        const nodeName = node.entity.getObjectName();
-        node.dataset.name = sanitizeText(nodeName);
-        // @ts-expect-error
-        node.querySelector(".ueb-node-name-text").innerText = sanitizeText(node.getNodeDisplayName());
+        node.nodeNameElement = /** @type {HTMLElement} */(node.querySelector(".ueb-node-name-text"));
     }
 
     /**
@@ -3866,20 +3911,69 @@ class NodeTemplate extends SelectableDraggableTemplate {
     }
 }
 
-// @ts-check
-
 /**
  * @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>}
  */
 class NodeElement extends ISelectableDraggableElement {
+
+    static properties = {
+        ...ISelectableDraggableElement.properties,
+        name: {
+            type: String,
+            attribute: "data-name",
+            reflect: true,
+        },
+        advancedPinDisplay: {
+            type: String,
+            attribute: "data-advanced-display",
+            converter: IdentifierEntity.attributeConverter,
+            reflect: true,
+        },
+        enabledState: {
+            type: String,
+            attribute: "data-enabled-state",
+            reflect: true,
+        },
+        nodeDisplayName: {
+            type: String,
+            attribute: false,
+        },
+    }
+
+    get blueprint() {
+        return super.blueprint
+    }
+    set blueprint(v) {
+        super.blueprint = v;
+        this.#pins.forEach(p => p.blueprint = v);
+    }
+
+    /** @type {HTMLElement} */
+    #nodeNameElement
+    get nodeNameElement() {
+        return this.#nodeNameElement
+    }
+    set nodeNameElement(value) {
+        this.#nodeNameElement = value;
+    }
+
+    #pins
 
     /**
      * @param {ObjectEntity} entity
      */
     constructor(entity) {
         super(entity, new NodeTemplate());
+        this.#pins = this.getPinEntities().filter(v => !v.isHidden()).map(v => new PinElement(v));
+        this.#pins.forEach(pin => pin.nodeElement = this);
+        this.name = entity.getObjectName();
+        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
+        this.enabledState = entity.EnabledState;
+        this.nodeDisplayName = entity.getDisplayName();
         this.dragLinkObjects = [];
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
+        this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value);
+        this.entity.subscribe("Name", value => this.name = value);
     }
 
     /**
@@ -3929,11 +4023,10 @@ class NodeElement extends ISelectableDraggableElement {
             }
         }
         this.entity.Name = name;
-        this.template.applyRename(this);
     }
 
     getPinElements() {
-        return this.template.getPinElements(this)
+        return this.#pins
     }
 
     /**
@@ -3945,9 +4038,7 @@ class NodeElement extends ISelectableDraggableElement {
 
     setLocation(value = [0, 0]) {
         let nodeType = this.entity.NodePosX.constructor;
-        // @ts-expect-error
         this.entity.NodePosX = new nodeType(value[0]);
-        // @ts-expect-error
         this.entity.NodePosY = new nodeType(value[1]);
         super.setLocation(value);
     }
@@ -3960,19 +4051,24 @@ class NodeElement extends ISelectableDraggableElement {
         this.dispatchEvent(deleteEvent);
     }
 
+    dispatchReflowEvent() {
+        let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName, {
+            bubbles: true,
+            cancelable: true
+        });
+        this.dispatchEvent(reflowEvent);
+    }
+
     setShowAdvancedPinDisplay(value) {
         this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden");
-        this.template.applyAdvancedPinDisplay(this);
     }
 
     toggleShowAdvancedPinDisplay() {
-        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay.value != "Shown");
+        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.toString() != "Shown");
     }
 }
 
 customElements.define("ueb-node", NodeElement);
-
-// @ts-check
 
 class Paste extends IInput {
 
@@ -4002,8 +4098,8 @@ class Paste extends IInput {
         let count = 0;
         let nodes = this.serializer.readMultiple(value).map(entity => {
             let node = new NodeElement(entity);
-            top += node.location[1];
-            left += node.location[0];
+            top += node.locationY;
+            left += node.locationX;
             ++count;
             return node
         });
@@ -4019,15 +4115,13 @@ class Paste extends IInput {
                 mousePosition[1] - top,
             ];
             node.addLocation(locationOffset);
-            node.setSelected(true);
             node.snapToGrid();
+            node.setSelected(true);
         });
         this.blueprint.addGraphElement(...nodes);
         return true
     }
 }
-
-// @ts-check
 
 class Select extends IMouseClickDrag {
 
@@ -4037,16 +4131,16 @@ class Select extends IMouseClickDrag {
     }
 
     startDrag() {
-        this.selectorElement.startSelecting(this.clickedPosition);
+        this.selectorElement.beginSelect(this.clickedPosition);
     }
 
     dragTo(location, movement) {
-        this.selectorElement.doSelecting(location);
+        this.selectorElement.selectTo(location);
     }
 
     endDrag() {
         if (this.started) {
-            this.selectorElement.finishSelecting();
+            this.selectorElement.endSelect();
         }
     }
 
@@ -4056,8 +4150,6 @@ class Select extends IMouseClickDrag {
         }
     }
 }
-
-// @ts-check
 
 class OrderedIndexArray {
 
@@ -4198,8 +4290,6 @@ class OrderedIndexArray {
         this.array.set(this.array.subarray(leftLimit, -steps), leftLimit + steps);
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {{
@@ -4364,92 +4454,58 @@ class FastSelectionModel {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../element/SelectorElement").default} SelectorElement
  */
 
-class SelectorTemplate extends ITemplate {
+class SelectorTemplate extends IFromToPositionedTemplate {
 
-    /**
-     * Applies the style to the element.
-     * @param {SelectorElement} selector Selector element
-     */
-    setup(selector) {
-        super.setup(selector);
-        this.applyFinishSelecting(selector);
-    }
-
-    /**
-     * Applies the style relative to selection beginning.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyStartSelecting(selector, initialPosition) {
-        // Set initial position
-        selector.style.setProperty("--ueb-from-x", sanitizeText(initialPosition[0]));
-        selector.style.setProperty("--ueb-from-y", sanitizeText(initialPosition[1]));
-        // Final position coincide with the initial position, at the beginning of selection
-        selector.style.setProperty("--ueb-to-x", sanitizeText(initialPosition[0]));
-        selector.style.setProperty("--ueb-to-y", sanitizeText(initialPosition[1]));
-        selector.blueprint.dataset.selecting = "true";
-    }
-
-    /**
-     * Applies the style relative to selection.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyDoSelecting(selector, finalPosition) {
-        selector.style.setProperty("--ueb-to-x", sanitizeText(finalPosition[0]));
-        selector.style.setProperty("--ueb-to-y", sanitizeText(finalPosition[1]));
-    }
-
-    /**
-     * Applies the style relative to selection finishing.
-     * @param {SelectorElement} selector Selector element
-     */
-    applyFinishSelecting(selector) {
-        selector.blueprint.dataset.selecting = "false";
-    }
 }
 
-// @ts-check
-
 /**
- * @extends {IElement<Object, SelectorTemplate>}
+ * @extends {IFromToPositionedElement<Object, SelectorTemplate>}
  */
-class SelectorElement extends IElement {
+class SelectorElement extends IFromToPositionedElement {
 
     constructor() {
         super({}, new SelectorTemplate());
         this.selectionModel = null;
     }
-
     /**
      * @param {Number[]} initialPosition
      */
-    startSelecting(initialPosition) {
-        this.template.applyStartSelecting(this, initialPosition);
-        this.selectionModel = new FastSelectionModel(initialPosition, this.blueprint.getNodes(), this.blueprint.nodeBoundariesSupplier, this.blueprint.nodeSelectToggleFunction);
+    beginSelect(initialPosition) {
+        this.blueprint.selecting = true;
+        this.setBothLocations(initialPosition);
+        this.selectionModel = new FastSelectionModel(
+            initialPosition,
+            this.blueprint.getNodes(),
+            this.blueprint.nodeBoundariesSupplier,
+            this.blueprint.nodeSelectToggleFunction
+        );
     }
 
     /**
      * @param {Number[]} finalPosition
      */
-    doSelecting(finalPosition) {
-        this.template.applyDoSelecting(this, finalPosition);
-        this.selectionModel.selectTo(finalPosition);
+    selectTo(finalPosition) {
+        /** @type {FastSelectionModel} */ (this.selectionModel)
+            .selectTo(finalPosition);
+        this.finaPositionX = finalPosition[0];
+        this.finaPositionY = finalPosition[1];
     }
 
-    finishSelecting() {
-        this.template.applyFinishSelecting(this);
+    endSelect() {
+        this.blueprint.selecting = false;
         this.selectionModel = null;
+        this.initialPositionX = 0;
+        this.initialPositionY = 0;
+        this.finaPositionX = 0;
+        this.finaPositionY = 0;
     }
 }
 
 customElements.define("ueb-selector", SelectorElement);
-
-// @ts-check
 
 class Unfocus extends IInput {
 
@@ -4486,8 +4542,6 @@ class Unfocus extends IInput {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  * @typedef {import("../element/PinElement").default} PinElement
@@ -4495,6 +4549,33 @@ class Unfocus extends IInput {
  */
 
 class BlueprintTemplate extends ITemplate {
+
+    static styleVariables = {
+        "--ueb-font-size": `${Configuration.fontSize}`,
+        "--ueb-grid-axis-line-color": `${Configuration.gridAxisLineColor}`,
+        "--ueb-grid-expand": `${Configuration.expandGridSize}px`,
+        "--ueb-grid-line-color": `${Configuration.gridLineColor}`,
+        "--ueb-grid-line-width": `${Configuration.gridLineWidth}px`,
+        "--ueb-grid-set-line-color": `${Configuration.gridSetLineColor}`,
+        "--ueb-grid-set": `${Configuration.gridSet}`,
+        "--ueb-grid-size": `${Configuration.gridSize}px`,
+        "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
+        "--ueb-node-radius": `${Configuration.nodeRadius}px`,
+        "--ueb-pin-bool-color": `${Configuration.pinColor.bool}`,
+        "--ueb-pin-default-color": `${Configuration.pinColor.default}`,
+        "--ueb-pin-exec-color": `${Configuration.pinColor.exec}`,
+        "--ueb-pin-name-color": `${Configuration.pinColor.name}`,
+        "--ueb-pin-real-color": `${Configuration.pinColor.real}`,
+        "--ueb-pin-string-color": `${Configuration.pinColor.string}`,
+        "--ueb-pin-struct-color": `${Configuration.pinColor.struct}`,
+    }
+
+    /**
+    * @param {Blueprint} blueprint
+    */
+    constructed(blueprint) {
+        blueprint.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("");
+    }
 
     /**
      * @param {Blueprint} blueprint
@@ -4527,36 +4608,22 @@ class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * @param {Blueprint} element
+     * Computes the html content of the target element.
+     * @param {Blueprint} element Target element
+     * @returns The computed html
      */
-    header(element) {
-        return html`
+    render(element) {
+        return $`
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">1:1</div>
             </div>
-        `
-    }
-
-    /**
-     * @param {Blueprint} element
-     */
-    overlay(element) {
-        return html`
             <div class="ueb-viewport-overlay"></div>
-        `
-    }
-
-    /**
-     * @param {Blueprint} element
-     */
-    viewport(element) {
-        return html`
             <div class="ueb-viewport-body">
                 <div class="ueb-grid" style="
-                    --ueb-additional-x:${sanitizeText(element.additional[0])};
-                    --ueb-additional-y:${sanitizeText(element.additional[1])};
-                    --ueb-translate-x:${sanitizeText(element.translateValue[0])};
-                    --ueb-translate-y:${sanitizeText(element.translateValue[1])};
+                    --ueb-additional-x: ${element};
+                    --ueb-additional-y: ${element.translateY};
+                    --ueb-translate-x: ${element.translateX};
+                    --ueb-translate-y: ${element.translateY};
                 ">
                     <div class="ueb-grid-content">
                         <div data-links></div>
@@ -4568,105 +4635,46 @@ class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * Computes the html content of the target element.
-     * @param {Blueprint} element Target element
-     * @returns The computed html
+     * @param {Blueprint} blueprint
+     * @param {Map} changedProperties
      */
-    render(element) {
-        return html`
-            ${this.header(element)}
-            ${this.overlay(element)}
-            ${this.viewport(element)}
-        `
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    setup(blueprint) {
-        super.setup(blueprint);
-        blueprint.classList.add("ueb", `ueb-zoom-${blueprint.zoom}`);
-        Object.entries({
-            "--ueb-font-size": sanitizeText(Configuration.fontSize),
-            "--ueb-grid-size": `${sanitizeText(Configuration.gridSize)}px`,
-            "--ueb-grid-line-width": `${sanitizeText(Configuration.gridLineWidth)}px`,
-            "--ueb-grid-line-color": sanitizeText(Configuration.gridLineColor),
-            "--ueb-grid-set": sanitizeText(Configuration.gridSet),
-            "--ueb-grid-set-line-color": sanitizeText(Configuration.gridSetLineColor),
-            "--ueb-grid-axis-line-color": sanitizeText(Configuration.gridAxisLineColor),
-            "--ueb-node-radius": `${sanitizeText(Configuration.nodeRadius)}px`,
-            "--ueb-link-min-width": sanitizeText(Configuration.linkMinWidth)
-        }).forEach(entry => blueprint.style.setProperty(entry[0], entry[1]));
-        blueprint.headerElement = blueprint.querySelector('.ueb-viewport-header');
-        blueprint.overlayElement = blueprint.querySelector('.ueb-viewport-overlay');
-        blueprint.viewportElement = blueprint.querySelector('.ueb-viewport-body');
+    firstUpdated(blueprint, changedProperties) {
+        super.firstUpdated(blueprint, changedProperties);
+        blueprint.headerElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-header'));
+        blueprint.overlayElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-overlay'));
+        blueprint.viewportElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-body'));
         blueprint.selectorElement = new SelectorElement();
-        blueprint.gridElement = blueprint.viewportElement.querySelector(".ueb-grid");
-        blueprint.querySelector(".ueb-grid-content").append(blueprint.selectorElement);
-        blueprint.linksContainerElement = blueprint.querySelector("[data-links]");
+        blueprint.querySelector(".ueb-grid-content")?.append(blueprint.selectorElement);
+        blueprint.gridElement = /** @type {HTMLElement} */(blueprint.viewportElement.querySelector(".ueb-grid"));
+        blueprint.linksContainerElement = /** @type {HTMLElement} */(blueprint.querySelector("[data-links]"));
         blueprint.linksContainerElement.append(...blueprint.getLinks());
-        blueprint.nodesContainerElement = blueprint.querySelector("[data-nodes]");
+        blueprint.nodesContainerElement = /** @type {HTMLElement} */(blueprint.querySelector("[data-nodes]"));
         blueprint.nodesContainerElement.append(...blueprint.getNodes());
-        this.applyEndDragScrolling(blueprint);
+        blueprint.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
     }
 
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyZoom(blueprint, newZoom) {
-        blueprint.classList.remove("ueb-zoom-" + sanitizeText(blueprint.zoom));
-        blueprint.classList.add("ueb-zoom-" + sanitizeText(newZoom));
-    }
 
     /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
+     * @param {Blueprint} blueprint
+     * @param {Map} changedProperties
      */
-    applyExpand(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-additional-x", sanitizeText(blueprint.additional[0]));
-        blueprint.gridElement.style.setProperty("--ueb-additional-y", sanitizeText(blueprint.additional[1]));
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyTranlate(blueprint) {
-        blueprint.gridElement.style.setProperty("--ueb-translate-x", sanitizeText(blueprint.translateValue[0]));
-        blueprint.gridElement.style.setProperty("--ueb-translate-y", sanitizeText(blueprint.translateValue[1]));
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyStartDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = "true";
-    }
-
-    /**
-     * Applies the style to the element.
-     * @param {Blueprint} blueprint The blueprint element
-     */
-    applyEndDragScrolling(blueprint) {
-        blueprint.dataset.dragScrolling = "false";
+    updated(blueprint, changedProperties) {
+        super.updated(blueprint, changedProperties);
+        if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
+            blueprint.viewportElement.scroll(blueprint.scrollX, blueprint.scrollY);
+        }
     }
 
     /**
      * @param {Blueprint} blueprint
      * @param {PinReferenceEntity} pinReference
-     * @returns {PinElement}
      */
     getPin(blueprint, pinReference) {
-        return blueprint.querySelector(
+        return /** @type {PinElement} */(blueprint.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
-        )
+        ))
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("./element/PinElement").default} PinElement
@@ -4679,27 +4687,60 @@ class BlueprintTemplate extends ITemplate {
  */
 class Blueprint extends IElement {
 
-    /** @type {Number[]} */
-    #additional
-    get additional() {
-        return this.#additional
+    static properties = {
+        selecting: {
+            type: Boolean,
+            attribute: "data-selecting",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+        scrolling: {
+            type: Boolean,
+            attribute: "data-scrolling",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+        focused: {
+            type: Boolean,
+            attribute: "data-focused",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+        zoom: {
+            type: Number,
+            attribute: "data-zoom",
+            reflect: true,
+        },
+        scrollX: {
+            type: Number,
+            attribute: false,
+        },
+        scrollY: {
+            type: Number,
+            attribute: false,
+        },
+        additionalX: {
+            type: Number,
+            attribute: false,
+        },
+        additionalY: {
+            type: Number,
+            attribute: false,
+        },
+        translateX: {
+            type: Number,
+            attribute: false,
+        },
+        translateY: {
+            type: Number,
+            attribute: false,
+        },
     }
-    set additional(value) {
-        value[0] = Math.abs(value[0]);
-        value[1] = Math.abs(value[1]);
-    }
-    /** @type {Number[]} */
-    #translateValue
-    get translateValue() {
-        return this.#translateValue
-    }
-    set translateValue(value) {
-        this.#translateValue = value;
-    }
+
+    static styles = BlueprintTemplate.styles
+
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
-    /** @type {Number} */
-    gridSize
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */
@@ -4707,21 +4748,19 @@ class Blueprint extends IElement {
     /** @type {Number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
-    gridElement = null
+    gridElement
     /** @type {HTMLElement} */
-    viewportElement = null
+    viewportElement
     /** @type {HTMLElement} */
-    overlayElement = null
+    overlayElement
     /** @type {SelectorElement} */
-    selectorElement = null
+    selectorElement
     /** @type {HTMLElement} */
-    linksContainerElement = null
+    linksContainerElement
     /** @type {HTMLElement} */
-    nodesContainerElement = null
-    /** @type {Number} */
-    zoom = 0
+    nodesContainerElement
     /** @type {HTMLElement} */
-    headerElement = null
+    headerElement
     focused = false
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect();
@@ -4745,36 +4784,14 @@ class Blueprint extends IElement {
      */
     constructor(settings = new Configuration()) {
         super({}, new BlueprintTemplate());
-        /** @type {Number} */
-        this.gridSize = Configuration.gridSize;
-        /** @type {Number[]} */
-        this.#additional = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
-        /** @type {Number[]} */
-        this.#translateValue = [Configuration.expandGridSize, Configuration.expandGridSize];
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    #expand(x, y) {
-        x = Math.round(x);
-        y = Math.round(y);
-        this.additional[0] += x;
-        this.additional[1] += y;
-        this.template.applyExpand(this);
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    #translate(x, y) {
-        x = Math.round(x);
-        y = Math.round(y);
-        this.translateValue[0] += x;
-        this.translateValue[1] += y;
-        this.template.applyTranlate(this);
+        this.selecting = false;
+        this.scrolling = false;
+        this.focused = false;
+        this.zoom = 0;
+        this.scrollX = Configuration.expandGridSize;
+        this.scrollY = Configuration.expandGridSize;
+        this.translateX = Configuration.expandGridSize;
+        this.translateY = Configuration.expandGridSize;
     }
 
     getGridDOMElement() {
@@ -4786,57 +4803,34 @@ class Blueprint extends IElement {
     }
 
     getScroll() {
-        return [this.viewportElement.scrollLeft, this.viewportElement.scrollTop]
+        return [this.scrollX, this.scrollY]
     }
 
-    setScroll(value, smooth = false) {
-        this.scroll = value;
-        if (!smooth) {
-            this.viewportElement.scroll(value[0], value[1]);
-        } else {
-            this.viewportElement.scroll({
-                left: value[0],
-                top: value[1],
-                behavior: "smooth"
-            });
-        }
+    setScroll([x, y], smooth = false) {
+        this.scrollX = x;
+        this.scrollY = y;
     }
 
     scrollDelta(delta, smooth = false) {
-        const maxScroll = this.getScrollMax();
+        const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
         let currentScroll = this.getScroll();
         let finalScroll = [
             currentScroll[0] + delta[0],
             currentScroll[1] + delta[1]
         ];
         let expand = [0, 0];
-        let shrink = [0, 0];
-        let direction = [0, 0];
         for (let i = 0; i < 2; ++i) {
             if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand left/top
-                expand[i] = Configuration.expandGridSize;
-                direction[i] = -1;
-                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
-                    shrink[i] = -Configuration.expandGridSize;
-                }
+                expand[i] = -1;
             } else if (delta[i] > 0 && finalScroll[i]
                 > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand right/bottom
-                expand[i] = Configuration.expandGridSize;
-                direction[i] = 1;
-                if (finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
-                    shrink[i] = -Configuration.expandGridSize;
-                }
+                expand[i] = 1;
             }
         }
         if (expand[0] != 0 || expand[1] != 0) {
-            this.seamlessExpand(expand, direction);
-            direction = [
-                -direction[0],
-                -direction[1]
-            ];
-            this.seamlessExpand(shrink, direction);
+            this.seamlessExpand(expand);
         }
         currentScroll = this.getScroll();
         finalScroll = [
@@ -4849,8 +4843,8 @@ class Blueprint extends IElement {
     scrollCenter() {
         const scroll = this.getScroll();
         const offset = [
-            this.translateValue[0] - scroll[0],
-            this.translateValue[1] - scroll[1]
+            this.translateX - scroll[0],
+            this.translateY - scroll[1]
         ];
         const targetOffset = this.getViewportSize().map(size => size / 2);
         const deltaOffset = [
@@ -4858,10 +4852,6 @@ class Blueprint extends IElement {
             offset[1] - targetOffset[1]
         ];
         this.scrollDelta(deltaOffset, true);
-    }
-
-    getExpandGridSize() {
-        return Configuration.expandGridSize
     }
 
     getViewportSize() {
@@ -4883,41 +4873,30 @@ class Blueprint extends IElement {
     }
 
     snapToGrid(location) {
-        return Utility.snapToGrid(location, this.gridSize)
+        return Utility.snapToGrid(location, Configuration.gridSize)
     }
 
     /**
-     * @param {Number} x - Horizontal
-     * @param {Number} y - Vertical expand value (negative means top, positive means bottom)
-     * @param {Number} factor - Either 1 (expand) or -1 (shrink)
+     * @param {Number[]} param0
      */
-
-    /**
-     * Expand or shrink the grind indefinitely, the content will remain into position
-     * @param {Number[]} param0 - Expand value (negative means shrink, positive means expand)
-     * @param {Number[]} param1 - Direction of expansion (negative: left/top, position: right/bottom)
-     */
-    seamlessExpand([x, y], [directionX, directionY] = [1, 1]) {
-        [
-            this.viewportElement.scrollLeft,
-            this.viewportElement.scrollTop
-        ];
+    seamlessExpand([x, y]) {
+        x = Math.round(x);
+        y = Math.round(y);
         let scale = this.getScale();
-        let scaledX = x / scale;
-        let scaledY = y / scale;
-        // First expand the grid to contain the additional space
-        this.#expand(scaledX, scaledY);
-        // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        const translate = [0, 0];
-        if (directionX < 0) {
-            this.viewportElement.scrollLeft += x;
-            translate[0] = scaledX;
+        {
+            // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
+            [x, y] = [-x * Configuration.expandGridSize, -y * Configuration.expandGridSize];
+            if (x != 0) {
+                this.scrollX += x;
+                x /= scale;
+            }
+            if (y != 0) {
+                this.scrollY += y;
+                y /= scale;
+            }
         }
-        if (directionY < 0) {
-            this.viewportElement.scrollTop += y;
-            translate[1] = scaledY;
-        }
-        this.#translate(translate[0], translate[1]);
+        this.translateX += x;
+        this.translateY += y;
     }
 
     progressiveSnapToGrid(x) {
@@ -4934,21 +4913,22 @@ class Blueprint extends IElement {
             return
         }
         let initialScale = this.getScale();
-        this.template.applyZoom(this, zoom);
         this.zoom = zoom;
 
         if (center) {
-            center[0] += this.translateValue[0];
-            center[1] += this.translateValue[1];
-            let relativeScale = this.getScale() / initialScale;
-            let newCenter = [
-                relativeScale * center[0],
-                relativeScale * center[1]
-            ];
-            this.scrollDelta([
-                (newCenter[0] - center[0]) * initialScale,
-                (newCenter[1] - center[1]) * initialScale
-            ]);
+            requestAnimationFrame(_ => {
+                center[0] += this.translateX;
+                center[1] += this.translateY;
+                let relativeScale = this.getScale() / initialScale;
+                let newCenter = [
+                    relativeScale * center[0],
+                    relativeScale * center[1]
+                ];
+                this.scrollDelta([
+                    (newCenter[0] - center[0]) * initialScale,
+                    (newCenter[1] - center[1]) * initialScale
+                ]);
+            });
         }
     }
 
@@ -4957,12 +4937,12 @@ class Blueprint extends IElement {
     }
 
     /**
-     * @param {Number[]} position
+     * @param {Number[]} param0
      */
-    compensateTranslation(position) {
-        position[0] -= this.translateValue[0];
-        position[1] -= this.translateValue[1];
-        return position
+    compensateTranslation([x, y]) {
+        x -= this.translateX;
+        y -= this.translateY;
+        return [x, y]
     }
 
     /**
@@ -4982,7 +4962,15 @@ class Blueprint extends IElement {
      * @param {PinReferenceEntity} pinReference
      */
     getPin(pinReference) {
-        return this.template.getPin(this, pinReference)
+        /*let result = this.template.getPin(this, pinReference)
+        if (result) {
+            return result
+        }*/
+        return [... this.nodes
+            //.filter(n => !n.parentNode)
+            .find(n => pinReference.objectName.toString() == n.getNodeName())
+            ?.getPinElements() ?? []]
+            .find(p => pinReference.pinGuid.toString() == p.GetPinIdValue())
     }
 
     /**
@@ -4997,7 +4985,8 @@ class Blueprint extends IElement {
         if (a != null && b != null) {
             return this.links.filter(link =>
                 link.sourcePin == a && link.destinationPin == b
-                || link.sourcePin == b && link.destinationPin == a)
+                || link.sourcePin == b && link.destinationPin == a
+            )
         }
         return this.links
     }
@@ -5032,6 +5021,7 @@ class Blueprint extends IElement {
      */
     addGraphElement(...graphElements) {
         for (let element of graphElements) {
+            element.blueprint = this;
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
                 const nodeName = element.entity.getObjectName();
                 const homonymNode = this.nodes.find(node => node.entity.getObjectName() == nodeName);
@@ -5050,7 +5040,9 @@ class Blueprint extends IElement {
                 this.nodesContainerElement?.appendChild(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
-                this.linksContainerElement?.appendChild(element);
+                if (this.linksContainerElement && !this.linksContainerElement.contains(element)) {
+                    this.linksContainerElement.appendChild(element);
+                }
             }
         }
         graphElements.filter(element => element instanceof NodeElement).forEach(
@@ -5084,7 +5076,6 @@ class Blueprint extends IElement {
         }
         let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus");
         this.focused = value;
-        this.dataset.focused = this.focused ? "true" : "false";
         if (!this.focused) {
             this.unselectAll();
         }
@@ -5102,8 +5093,6 @@ class Blueprint extends IElement {
 }
 
 customElements.define("ueb-blueprint", Blueprint);
-
-// @ts-check
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -5147,8 +5136,6 @@ class GeneralSerializer extends ISerializer {
     }
 }
 
-// @ts-check
-
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  */
@@ -5177,8 +5164,6 @@ class CustomSerializer extends GeneralSerializer {
     }
 }
 
-// @ts-check
-
 class PinSerializer extends GeneralSerializer {
 
     constructor() {
@@ -5191,14 +5176,11 @@ class PinSerializer extends GeneralSerializer {
      */
     writeValue(value, fullKey, insideString) {
         if (value?.constructor === String && fullKey.length == 1 && fullKey[0] == "DefaultValue") {
-            // @ts-expect-error
             return `"${Utility.encodeInputString(value)}"`
         }
         return super.writeValue(value, fullKey, insideString)
     }
 }
-
-// @ts-check
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -5228,30 +5210,24 @@ class ToStringSerializer extends GeneralSerializer {
     }
 }
 
-// @ts-check
-
 function initializeSerializerFactory() {
 
     const bracketsWrapped = v => `(${v})`;
 
     SerializerFactory.registerSerializer(
-        LinearColorEntity,
-        new GeneralSerializer(bracketsWrapped, LinearColorEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        ObjectEntity,
-        new ObjectSerializer()
-    );
-
-    SerializerFactory.registerSerializer(
-        PinEntity,
-        new PinSerializer()
-    );
-
-    SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
         new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
+    );
+
+    SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity));
+
+    SerializerFactory.registerSerializer(IdentifierEntity, new ToStringSerializer(IdentifierEntity));
+
+    SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));
+
+    SerializerFactory.registerSerializer(
+        InvariantTextEntity,
+        new GeneralSerializer(v => `${InvariantTextEntity.lookbehind}(${v})`, InvariantTextEntity, "", ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -5260,18 +5236,18 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        LinearColorEntity,
+        new GeneralSerializer(bracketsWrapped, LinearColorEntity)
+    );
+
+    SerializerFactory.registerSerializer(
         LocalizedTextEntity,
         new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
-        InvariantTextEntity,
-        new GeneralSerializer(v => `${InvariantTextEntity.lookbehind}(${v})`, InvariantTextEntity, "", ", ", false, "", _ => "")
-    );
-
-    SerializerFactory.registerSerializer(
-        PinReferenceEntity,
-        new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+        ObjectEntity,
+        new ObjectSerializer()
     );
 
     SerializerFactory.registerSerializer(
@@ -5287,16 +5263,18 @@ function initializeSerializerFactory() {
         )
     );
 
-    SerializerFactory.registerSerializer(IdentifierEntity, new ToStringSerializer(IdentifierEntity));
-
     SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity));
 
-    SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity));
+    SerializerFactory.registerSerializer(
+        PinReferenceEntity,
+        new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+    );
 
-    SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));
+    SerializerFactory.registerSerializer(
+        PinEntity,
+        new PinSerializer()
+    );
 }
-
-// @ts-check
 
 initializeSerializerFactory();
 

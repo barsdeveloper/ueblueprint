@@ -1,5 +1,3 @@
-// @ts-check
-
 import Configuration from "../Configuration"
 
 /**

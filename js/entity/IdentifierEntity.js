@@ -1,5 +1,3 @@
-// @ts-check
-
 import IEntity from "./IEntity"
 
 export default class IdentifierEntity extends IEntity {
@@ -8,9 +6,9 @@ export default class IdentifierEntity extends IEntity {
         value: String,
     }
 
-    constructor(options = {}) {
-        super(options)
-        /** @type {String} */ this.value
+    static attributeConverter = {
+        fromAttribute: (value, type) => new IdentifierEntity(value),
+        toAttribute: (value, type) => value.toString()
     }
 
     valueOf() {

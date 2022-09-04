@@ -1,5 +1,3 @@
-// @ts-check
-
 import Configuration from "../Configuration"
 import IElement from "./IElement"
 import Utility from "../Utility"
@@ -16,45 +14,57 @@ import Utility from "../Utility"
  */
 export default class ISelectableDraggableElement extends IElement {
 
+    static properties = {
+        ...super.properties,
+        selected: {
+            type: Boolean,
+            attribute: "data-selected",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+        locationX: {
+            type: Number,
+            attribute: false,
+        },
+        locationY: {
+            type: Number,
+            attribute: false,
+        },
+    }
+
     constructor(...args) {
-        // @ts-expect-error
         super(...args)
-        this.dragObject = null
-        this.location = [0, 0]
         this.selected = false
+        this.locationX = 0
+        this.locationY = 0
+
+        this.listeningDrag = false
 
         let self = this
         this.dragHandler = e => self.addLocation(e.detail.value)
     }
 
-    #setSelected(value = true) {
-        this.selected = value
-        if (this.blueprint) {
-            if (this.selected) {
-                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler)
-            } else {
-                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
-            }
-        }
-        this.template.applySelected(this)
-    }
-
     connectedCallback() {
         super.connectedCallback()
-        this.#setSelected(this.selected)
+        this.setSelected(this.selected)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
     }
 
     /**
-     * @param {Number[]} value
+     * @param {Number[]} param0
      */
-    setLocation(value = [0, 0]) {
-        const d = [value[0] - this.location[0], value[1] - this.location[1]]
-        this.location = value
-        this.template.applyLocation(this)
+    setLocation([x, y]) {
+        const d = [x - this.locationX, y - this.locationY]
+        this.locationX = x
+        this.locationY = y
         if (this.blueprint) {
             const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
                 detail: {
-                    value: d
+                    value: d,
                 },
                 bubbles: false,
                 cancelable: true
@@ -63,16 +73,29 @@ export default class ISelectableDraggableElement extends IElement {
         }
     }
 
-    addLocation(value) {
-        this.setLocation([this.location[0] + value[0], this.location[1] + value[1]])
+    /**
+     * @param {Number[]} param0
+     */
+    addLocation([x, y]) {
+        this.setLocation([this.locationX + x, this.locationY + y])
     }
 
     setSelected(value = true) {
-        if (this.selected != value) {
-            this.#setSelected(value)
+        this.selected = value
+        if (this.blueprint) {
+            if (this.selected) {
+                this.listeningDrag = true
+                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler)
+            } else {
+                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
+                this.listeningDrag = false
+            }
         }
     }
 
+    /**
+     * @param {Number[]} value 
+     */
     dispatchDragEvent(value) {
         const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             detail: {
@@ -85,8 +108,8 @@ export default class ISelectableDraggableElement extends IElement {
     }
 
     snapToGrid() {
-        let snappedLocation = Utility.snapToGrid(this.location, Configuration.gridSize)
-        if (this.location[0] != snappedLocation[0] || this.location[1] != snappedLocation[1]) {
+        const snappedLocation = Utility.snapToGrid([this.locationX, this.locationY], Configuration.gridSize)
+        if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
             this.setLocation(snappedLocation)
         }
     }

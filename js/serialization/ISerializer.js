@@ -1,5 +1,3 @@
-// @ts-check
-
 import Grammar from "./Grammar"
 import IEntity from "../entity/IEntity"
 import Parsimmon from "parsimmon"

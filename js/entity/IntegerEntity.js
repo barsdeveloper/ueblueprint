@@ -1,5 +1,3 @@
-// @ts-check
-
 import IEntity from "./IEntity"
 
 export default class IntegerEntity extends IEntity {

@@ -1,5 +1,3 @@
-// @ts-check
-
 import Configuration from "../../Configuration"
 import IKeyboardShortcut from "./IKeyboardShortcut"
 import Zoom from "../mouse/Zoom"

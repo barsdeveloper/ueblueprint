@@ -1,8 +1,8 @@
-// @ts-check
+import { css, html } from "lit"
 
 /**
  * @typedef {import("../element/IElement").default} IElement
- * @typedef {import("../input/IInput").default} IInput")}
+ * @typedef {import("../input/IInput").default} IInput
  */
 
 /**
@@ -10,26 +10,59 @@
  */
 export default class ITemplate {
 
+    static styles = css``
+
     /** @type {IInput[]} */
     #inputObjects = []
-
     get inputObjects() {
         return this.#inputObjects
     }
 
     /**
-     * @param {T} entity
+     * @param {T} element
      */
-    render(entity) {
-        return ""
+    constructed(element) {
     }
 
     /**
      * @param {T} element
      */
-    setup(element) {
-        // TODO replace with the safer element.setHTML(...) when it will be availableBreack
-        element.innerHTML = this.render(element)
+    connectedCallback(element) {
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    willUpdate(element, changedProperties) {
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    update(element, changedProperties) {
+    }
+
+    /**
+     * @param {T} element
+     */
+    render(element) {
+        return html``
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    firstUpdated(element, changedProperties) {
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    updated(element, changedProperties) {
     }
 
     /**

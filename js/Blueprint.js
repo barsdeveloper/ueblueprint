@@ -1,5 +1,3 @@
-// @ts-check
-
 import BlueprintTemplate from "./template/BlueprintTemplate"
 import Configuration from "./Configuration"
 import IElement from "./element/IElement"
@@ -19,27 +17,60 @@ import Utility from "./Utility"
  */
 export default class Blueprint extends IElement {
 
-    /** @type {Number[]} */
-    #additional
-    get additional() {
-        return this.#additional
+    static properties = {
+        selecting: {
+            type: Boolean,
+            attribute: "data-selecting",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+        scrolling: {
+            type: Boolean,
+            attribute: "data-scrolling",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+        focused: {
+            type: Boolean,
+            attribute: "data-focused",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+        zoom: {
+            type: Number,
+            attribute: "data-zoom",
+            reflect: true,
+        },
+        scrollX: {
+            type: Number,
+            attribute: false,
+        },
+        scrollY: {
+            type: Number,
+            attribute: false,
+        },
+        additionalX: {
+            type: Number,
+            attribute: false,
+        },
+        additionalY: {
+            type: Number,
+            attribute: false,
+        },
+        translateX: {
+            type: Number,
+            attribute: false,
+        },
+        translateY: {
+            type: Number,
+            attribute: false,
+        },
     }
-    set additional(value) {
-        value[0] = Math.abs(value[0])
-        value[1] = Math.abs(value[1])
-    }
-    /** @type {Number[]} */
-    #translateValue
-    get translateValue() {
-        return this.#translateValue
-    }
-    set translateValue(value) {
-        this.#translateValue = value
-    }
+
+    static styles = BlueprintTemplate.styles
+
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
-    /** @type {Number} */
-    gridSize
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */
@@ -47,21 +78,19 @@ export default class Blueprint extends IElement {
     /** @type {Number[]} */
     mousePosition = [0, 0]
     /** @type {HTMLElement} */
-    gridElement = null
+    gridElement
     /** @type {HTMLElement} */
-    viewportElement = null
+    viewportElement
     /** @type {HTMLElement} */
-    overlayElement = null
+    overlayElement
     /** @type {SelectorElement} */
-    selectorElement = null
+    selectorElement
     /** @type {HTMLElement} */
-    linksContainerElement = null
+    linksContainerElement
     /** @type {HTMLElement} */
-    nodesContainerElement = null
-    /** @type {Number} */
-    zoom = 0
+    nodesContainerElement
     /** @type {HTMLElement} */
-    headerElement = null
+    headerElement
     focused = false
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect()
@@ -85,36 +114,14 @@ export default class Blueprint extends IElement {
      */
     constructor(settings = new Configuration()) {
         super({}, new BlueprintTemplate())
-        /** @type {Number} */
-        this.gridSize = Configuration.gridSize
-        /** @type {Number[]} */
-        this.#additional = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
-        /** @type {Number[]} */
-        this.#translateValue = [Configuration.expandGridSize, Configuration.expandGridSize]
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    #expand(x, y) {
-        x = Math.round(x)
-        y = Math.round(y)
-        this.additional[0] += x
-        this.additional[1] += y
-        this.template.applyExpand(this)
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    #translate(x, y) {
-        x = Math.round(x)
-        y = Math.round(y)
-        this.translateValue[0] += x
-        this.translateValue[1] += y
-        this.template.applyTranlate(this)
+        this.selecting = false
+        this.scrolling = false
+        this.focused = false
+        this.zoom = 0
+        this.scrollX = Configuration.expandGridSize
+        this.scrollY = Configuration.expandGridSize
+        this.translateX = Configuration.expandGridSize
+        this.translateY = Configuration.expandGridSize
     }
 
     getGridDOMElement() {
@@ -126,57 +133,34 @@ export default class Blueprint extends IElement {
     }
 
     getScroll() {
-        return [this.viewportElement.scrollLeft, this.viewportElement.scrollTop]
+        return [this.scrollX, this.scrollY]
     }
 
-    setScroll(value, smooth = false) {
-        this.scroll = value
-        if (!smooth) {
-            this.viewportElement.scroll(value[0], value[1])
-        } else {
-            this.viewportElement.scroll({
-                left: value[0],
-                top: value[1],
-                behavior: "smooth"
-            })
-        }
+    setScroll([x, y], smooth = false) {
+        this.scrollX = x
+        this.scrollY = y
     }
 
     scrollDelta(delta, smooth = false) {
-        const maxScroll = this.getScrollMax()
+        const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
         let currentScroll = this.getScroll()
         let finalScroll = [
             currentScroll[0] + delta[0],
             currentScroll[1] + delta[1]
         ]
         let expand = [0, 0]
-        let shrink = [0, 0]
-        let direction = [0, 0]
         for (let i = 0; i < 2; ++i) {
             if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand left/top
-                expand[i] = Configuration.expandGridSize
-                direction[i] = -1
-                if (maxScroll[i] - finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
-                    shrink[i] = -Configuration.expandGridSize
-                }
+                expand[i] = -1
             } else if (delta[i] > 0 && finalScroll[i]
                 > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize) {
                 // Expand right/bottom
-                expand[i] = Configuration.expandGridSize
-                direction[i] = 1
-                if (finalScroll[i] > Configuration.gridShrinkThreshold * Configuration.expandGridSize) {
-                    shrink[i] = -Configuration.expandGridSize
-                }
+                expand[i] = 1
             }
         }
         if (expand[0] != 0 || expand[1] != 0) {
-            this.seamlessExpand(expand, direction)
-            direction = [
-                -direction[0],
-                -direction[1]
-            ]
-            this.seamlessExpand(shrink, direction)
+            this.seamlessExpand(expand)
         }
         currentScroll = this.getScroll()
         finalScroll = [
@@ -189,8 +173,8 @@ export default class Blueprint extends IElement {
     scrollCenter() {
         const scroll = this.getScroll()
         const offset = [
-            this.translateValue[0] - scroll[0],
-            this.translateValue[1] - scroll[1]
+            this.translateX - scroll[0],
+            this.translateY - scroll[1]
         ]
         const targetOffset = this.getViewportSize().map(size => size / 2)
         const deltaOffset = [
@@ -198,10 +182,6 @@ export default class Blueprint extends IElement {
             offset[1] - targetOffset[1]
         ]
         this.scrollDelta(deltaOffset, true)
-    }
-
-    getExpandGridSize() {
-        return Configuration.expandGridSize
     }
 
     getViewportSize() {
@@ -223,41 +203,30 @@ export default class Blueprint extends IElement {
     }
 
     snapToGrid(location) {
-        return Utility.snapToGrid(location, this.gridSize)
+        return Utility.snapToGrid(location, Configuration.gridSize)
     }
 
     /**
-     * @param {Number} x - Horizontal
-     * @param {Number} y - Vertical expand value (negative means top, positive means bottom)
-     * @param {Number} factor - Either 1 (expand) or -1 (shrink)
+     * @param {Number[]} param0
      */
-
-    /**
-     * Expand or shrink the grind indefinitely, the content will remain into position
-     * @param {Number[]} param0 - Expand value (negative means shrink, positive means expand)
-     * @param {Number[]} param1 - Direction of expansion (negative: left/top, position: right/bottom)
-     */
-    seamlessExpand([x, y], [directionX, directionY] = [1, 1]) {
-        const initialScroll = [
-            this.viewportElement.scrollLeft,
-            this.viewportElement.scrollTop
-        ]
+    seamlessExpand([x, y]) {
+        x = Math.round(x)
+        y = Math.round(y)
         let scale = this.getScale()
-        let scaledX = x / scale
-        let scaledY = y / scale
-        // First expand the grid to contain the additional space
-        this.#expand(scaledX, scaledY)
-        // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
-        const translate = [0, 0]
-        if (directionX < 0) {
-            this.viewportElement.scrollLeft += x
-            translate[0] = scaledX
+        {
+            // If the expansion is towards the left or top, then scroll back to give the illusion that the content is in the same position and translate it accordingly
+            [x, y] = [-x * Configuration.expandGridSize, -y * Configuration.expandGridSize]
+            if (x != 0) {
+                this.scrollX += x
+                x /= scale
+            }
+            if (y != 0) {
+                this.scrollY += y
+                y /= scale
+            }
         }
-        if (directionY < 0) {
-            this.viewportElement.scrollTop += y
-            translate[1] = scaledY
-        }
-        this.#translate(translate[0], translate[1])
+        this.translateX += x
+        this.translateY += y
     }
 
     progressiveSnapToGrid(x) {
@@ -274,21 +243,22 @@ export default class Blueprint extends IElement {
             return
         }
         let initialScale = this.getScale()
-        this.template.applyZoom(this, zoom)
         this.zoom = zoom
 
         if (center) {
-            center[0] += this.translateValue[0]
-            center[1] += this.translateValue[1]
-            let relativeScale = this.getScale() / initialScale
-            let newCenter = [
-                relativeScale * center[0],
-                relativeScale * center[1]
-            ]
-            this.scrollDelta([
-                (newCenter[0] - center[0]) * initialScale,
-                (newCenter[1] - center[1]) * initialScale
-            ])
+            requestAnimationFrame(_ => {
+                center[0] += this.translateX
+                center[1] += this.translateY
+                let relativeScale = this.getScale() / initialScale
+                let newCenter = [
+                    relativeScale * center[0],
+                    relativeScale * center[1]
+                ]
+                this.scrollDelta([
+                    (newCenter[0] - center[0]) * initialScale,
+                    (newCenter[1] - center[1]) * initialScale
+                ])
+            })
         }
     }
 
@@ -297,12 +267,12 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * @param {Number[]} position
+     * @param {Number[]} param0
      */
-    compensateTranslation(position) {
-        position[0] -= this.translateValue[0]
-        position[1] -= this.translateValue[1]
-        return position
+    compensateTranslation([x, y]) {
+        x -= this.translateX
+        y -= this.translateY
+        return [x, y]
     }
 
     /**
@@ -322,7 +292,15 @@ export default class Blueprint extends IElement {
      * @param {PinReferenceEntity} pinReference
      */
     getPin(pinReference) {
-        return this.template.getPin(this, pinReference)
+        /*let result = this.template.getPin(this, pinReference)
+        if (result) {
+            return result
+        }*/
+        return [... this.nodes
+            //.filter(n => !n.parentNode)
+            .find(n => pinReference.objectName.toString() == n.getNodeName())
+            ?.getPinElements() ?? []]
+            .find(p => pinReference.pinGuid.toString() == p.GetPinIdValue())
     }
 
     /**
@@ -337,7 +315,8 @@ export default class Blueprint extends IElement {
         if (a != null && b != null) {
             return this.links.filter(link =>
                 link.sourcePin == a && link.destinationPin == b
-                || link.sourcePin == b && link.destinationPin == a)
+                || link.sourcePin == b && link.destinationPin == a
+            )
         }
         return this.links
     }
@@ -373,6 +352,7 @@ export default class Blueprint extends IElement {
     addGraphElement(...graphElements) {
         let nodeElements = []
         for (let element of graphElements) {
+            element.blueprint = this
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
                 const nodeName = element.entity.getObjectName()
                 const homonymNode = this.nodes.find(node => node.entity.getObjectName() == nodeName)
@@ -392,7 +372,9 @@ export default class Blueprint extends IElement {
                 this.nodesContainerElement?.appendChild(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
-                this.linksContainerElement?.appendChild(element)
+                if (this.linksContainerElement && !this.linksContainerElement.contains(element)) {
+                    this.linksContainerElement.appendChild(element)
+                }
             }
         }
         graphElements.filter(element => element instanceof NodeElement).forEach(
@@ -426,7 +408,6 @@ export default class Blueprint extends IElement {
         }
         let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus")
         this.focused = value
-        this.dataset.focused = this.focused ? "true" : "false"
         if (!this.focused) {
             this.unselectAll()
         }

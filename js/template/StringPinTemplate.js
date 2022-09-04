@@ -1,5 +1,3 @@
-// @ts-check
-
 import IInputPinTemplate from "./IInputPinTemplate"
 
 /**
@@ -10,8 +8,9 @@ export default class StringPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @param {Map} changedProperties
      */
-    setup(pin) {
-        super.setup(pin)
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties)
     }
 }

@@ -1,11 +1,9 @@
-// @ts-check
-
 import IMouseClickDrag from "./IMouseClickDrag"
 
 export default class MouseScrollGraph extends IMouseClickDrag {
 
     startDrag() {
-        this.blueprint.template.applyStartDragScrolling(this.blueprint)
+        this.blueprint.scrolling = true
     }
 
     dragTo(location, movement) {
@@ -13,6 +11,6 @@ export default class MouseScrollGraph extends IMouseClickDrag {
     }
 
     endDrag() {
-        this.blueprint.template.applyEndDragScrolling(this.blueprint)
+        this.blueprint.scrolling = false
     }
 }

@@ -7,7 +7,7 @@ ueb-node {
     font-weight: lighter;
 }
 
-ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] ueb-node {
     cursor: move;
 }
 
@@ -17,7 +17,7 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
     border-radius: calc(var(--ueb-node-radius) * 1.4);
 }
 
-.ueb-selected>.ueb-node-border {
+ueb-node[data-selected="true"]>.ueb-node-border {
     background-image:
         linear-gradient(to right, #f1b000 0%, #f1b000 100%),
         linear-gradient(to bottom, #f1b000 0%, #cc6700 100%),
@@ -41,7 +41,8 @@ ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] ueb-node {
 
 .ueb-node-top {
     padding: 0.3em 0.7em;
-    box-shadow: inset 5px 1px 5px -3px #83b37b,
+    box-shadow:
+        inset 5px 1px 5px -3px #83b37b,
         inset 0 1px 0 0 #111311,
         inset 0 2px 0 0 #83b37b;
     border-radius: var(--ueb-node-radius) var(--ueb-node-radius) 0 0;
@@ -108,7 +109,7 @@ ueb-node[data-enabled-state="DevelopmentOnly"] .ueb-node-developmentonly {
     vertical-align: middle;
 }
 
-ueb-blueprint[data-drag-scrolling="false"][data-selecting="false"] .ueb-node-expansion:hover {
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-expansion:hover {
     background-color: #656765;
     cursor: pointer;
 }

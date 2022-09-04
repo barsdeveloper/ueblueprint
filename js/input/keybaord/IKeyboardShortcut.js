@@ -1,5 +1,3 @@
-// @ts-check
-
 import Configuration from "../../Configuration"
 import IInput from "../IInput"
 import ISerializer from "../../serialization/ISerializer"
@@ -23,7 +21,6 @@ export default class IKeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
-                // @ts-expect-error
                 const parsed = ISerializer.grammar.KeyBinding.parse(v)
                 if (parsed.status) {
                     return parsed.value

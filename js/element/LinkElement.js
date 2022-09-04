@@ -1,204 +1,258 @@
-// @ts-check
-
 import Configuration from "../Configuration"
-import IElement from "./IElement"
+import IFromToPositionedElement from "./IFromToPositionedElement"
 import LinkTemplate from "../template/LinkTemplate"
+import Utility from "../Utility"
 
 /**
  * @typedef {import("./PinElement").default} PinElement
- * @typedef {import("./LinkMessageElement").default} LinkMessageElement
- * @typedef {import("../entity/IEntity").default} IEntity
  */
 
 /**
- * @extends {IElement<Object, LinkTemplate>}
+ * @extends {IFromToPositionedElement<Object, LinkTemplate>}
  */
-export default class LinkElement extends IElement {
+export default class LinkElement extends IFromToPositionedElement {
+
+    static properties = {
+        ...super.properties,
+        source: {
+            type: String,
+            reflect: true,
+        },
+        destination: {
+            type: String,
+            reflect: true,
+        },
+        dragging: {
+            type: Boolean,
+            attribute: "data-dragging",
+            converter: Utility.booleanConverter,
+            reflect: true,
+        },
+        originatesFromInput: {
+            type: Boolean,
+            attribute: false,
+        },
+        svgPathD: {
+            type: String,
+            attribute: false,
+        },
+        linkMessageIcon: {
+            type: String,
+            attribute: false,
+        },
+        linkMessageText: {
+            type: String,
+            attribute: false,
+        },
+    }
 
     /** @type {PinElement} */
-    #source
+    #sourcePin
     get sourcePin() {
-        return this.#source
+        return this.#sourcePin
     }
     set sourcePin(pin) {
-        if (this.#source == pin) {
-            return
-        }
-        if (this.#source) {
-            const nodeElement = this.#source.getNodeElement()
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
-            if (this.#destination) {
-                this.#unlinkPins()
-            }
-        }
-        this.#source = pin
-        if (this.#source) {
-            const nodeElement = this.#source.getNodeElement()
-            this.originatesFromInput = pin.isInput()
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragSourceHandler)
-            this.setSourceLocation()
-            if (this.#destination) {
-                this.#linkPins()
-            }
-        }
-        this.template.applyPins(this)
+        this.#setPin(pin, false)
     }
 
     /** @type {PinElement} */
-    #destination
+    #destinationPin
     get destinationPin() {
-        return this.#destination
+        return this.#destinationPin
     }
     set destinationPin(pin) {
-        if (this.#destination == pin) {
-            return
-        }
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement()
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.removeEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
-            if (this.#source) {
-                this.#unlinkPins()
-            }
-        }
-        this.#destination = pin
-        if (this.#destination) {
-            const nodeElement = this.#destination.getNodeElement()
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
-            nodeElement.addEventListener(Configuration.nodeDragLocalEventName, this.#nodeDragDestinatonHandler)
-            this.setDestinationLocation()
-            if (this.#source) {
-                this.#linkPins()
-            }
-        }
-        this.template.applyPins(this)
+        this.#setPin(pin, true)
     }
 
     #nodeDeleteHandler
     #nodeDragSourceHandler
     #nodeDragDestinatonHandler
-    sourceLocation = [0, 0]
+    #nodeReflowSourceHandler
+    #nodeReflowDestinatonHandler
     /** @type {SVGPathElement} */
     pathElement
-    /** @type {LinkMessageElement} */
-    linkMessageElement
-    originatesFromInput = false
-    destinationLocation = [0, 0]
 
     /**
      * @param {PinElement} source
-     * @param {PinElement} destination
+     * @param {PinElement?} destination
      */
     constructor(source, destination) {
         super({}, new LinkTemplate())
         const self = this
-        this.#nodeDeleteHandler = _ => self.remove()
+        this.#nodeDeleteHandler = () => self.remove()
         this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value)
         this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value)
+        this.#nodeReflowSourceHandler = e => self.setSourceLocation()
+        this.#nodeReflowDestinatonHandler = e => self.setDestinationLocation()
+        this.source = null
+        this.destination = null
+        this.dragging = false
+        this.originatesFromInput = false
+        this.startPercentage = 0
+        this.svgPathD = ""
+        this.startPixels = 0
+        this.linkMessageIcon = ""
+        this.linkMessageText = ""
         if (source) {
             this.sourcePin = source
+            if (!destination) {
+                this.finaPositionX = this.initialPositionX
+                this.finaPositionY = this.initialPositionY
+            }
         }
         if (destination) {
             this.destinationPin = destination
+            if (!source) {
+                this.initialPositionX = this.finaPositionX
+                this.initialPositionY = this.finaPositionY
+            }
         }
-        if (source && destination) {
+        this.#linkPins()
+    }
+
+    /**
+     * @param {PinElement} pin
+     * @param {Boolean} isDestinationPin
+     */
+    #setPin(pin, isDestinationPin) {
+        const getCurrentPin = () => isDestinationPin ? this.destinationPin : this.sourcePin
+        if (getCurrentPin() == pin) {
+            return
+        }
+        if (getCurrentPin()) {
+            const nodeElement = getCurrentPin().getNodeElement()
+            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(
+                Configuration.nodeDragLocalEventName,
+                isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
+            )
+            nodeElement.removeEventListener(
+                Configuration.nodeReflowEventName,
+                isDestinationPin ? this.#nodeReflowDestinatonHandler : this.#nodeReflowSourceHandler
+            )
+            this.#unlinkPins()
+        }
+        isDestinationPin
+            ? this.#destinationPin = pin
+            : this.#sourcePin = pin
+        if (getCurrentPin()) {
+            const nodeElement = getCurrentPin().getNodeElement()
+            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(
+                Configuration.nodeDragLocalEventName,
+                isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
+            )
+            nodeElement.addEventListener(
+                Configuration.nodeReflowEventName,
+                isDestinationPin ? this.#nodeReflowDestinatonHandler : this.#nodeReflowSourceHandler
+            )
+            isDestinationPin
+                ? this.setDestinationLocation()
+                : (this.setSourceLocation(), this.originatesFromInput = this.sourcePin.isInput())
             this.#linkPins()
         }
     }
 
     #linkPins() {
-        this.#source.linkTo(this.#destination)
-        this.#destination.linkTo(this.#source)
+        if (this.sourcePin && this.destinationPin) {
+            this.sourcePin.linkTo(this.destinationPin)
+            this.destinationPin.linkTo(this.sourcePin)
+        }
     }
 
     #unlinkPins() {
-        if (this.#source && this.#destination) {
-            this.#source.unlinkFrom(this.#destination)
-            this.#destination.unlinkFrom(this.#source)
+        if (this.sourcePin && this.destinationPin) {
+            this.sourcePin.unlinkFrom(this.destinationPin)
+            this.destinationPin.unlinkFrom(this.sourcePin)
         }
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         this.#unlinkPins()
+        this.sourcePin = null
+        this.destinationPin = null
     }
 
     /**
-     * @returns {Number[]}
-     */
-    getSourceLocation() {
-        return this.sourceLocation
-    }
-
-    /**
-     * @param {Number[]} offset
-     */
-    addSourceLocation(offset) {
-        const location = [
-            this.sourceLocation[0] + offset[0],
-            this.sourceLocation[1] + offset[1]
-        ]
-        this.sourceLocation = location
-        this.template.applyFullLocation(this)
-    }
-
-    /**
-     * @param {Number[]} location
+     * @param {Number[]?} location
      */
     setSourceLocation(location = null) {
         if (location == null) {
-            location = this.#source.template.getLinkLocation(this.#source)
+            const self = this
+            if (!this.hasUpdated || !this.sourcePin.hasUpdated) {
+                Promise.all([this.updateComplete, this.sourcePin.updateComplete]).then(() => self.setSourceLocation())
+                return
+            }
+            location = this.sourcePin.template.getLinkLocation(this.sourcePin)
         }
-        this.sourceLocation = location
-        this.template.applySourceLocation(this)
-    }
-
-    getDestinationLocation() {
-        return this.destinationLocation
+        const [x, y] = location
+        this.initialPositionX = x
+        this.initialPositionY = y
     }
 
     /**
-     * @param {Number[]} offset
-     */
-    addDestinationLocation(offset) {
-        const location = [
-            this.destinationLocation[0] + offset[0],
-            this.destinationLocation[1] + offset[1]
-        ]
-        this.setDestinationLocation(location)
-    }
-
-    /**
-     * @param {Number[]} location
+     * @param {Number[]?} location
      */
     setDestinationLocation(location = null) {
         if (location == null) {
-            location = this.#destination.template.getLinkLocation(this.#destination)
+            const self = this
+            if (!this.hasUpdated || !this.destinationPin.hasUpdated) {
+                Promise.all([this.updateComplete, this.destinationPin.updateComplete]).then(() => self.setDestinationLocation())
+                return
+            }
+            location = this.destinationPin.template.getLinkLocation(this.destinationPin)
         }
-        this.destinationLocation = location
-        this.template.applyFullLocation(this)
-    }
-
-    /**
-     * @param {LinkMessageElement} linkMessage
-     */
-    setLinkMessage(linkMessage) {
-        if (linkMessage) {
-            this.template.applyLinkMessage(this, linkMessage)
-        } else if (this.linkMessageElement) {
-            this.linkMessageElement.remove()
-            this.linkMessageElement = null
-        }
+        this.finaPositionX = location[0]
+        this.finaPositionY = location[1]
     }
 
     startDragging() {
-        this.template.applyStartDragging(this)
+        this.dragging = true
     }
 
     finishDragging() {
-        this.template.applyFinishDragging(this)
+        this.dragging = false
+    }
+
+    removeMessage() {
+        this.linkMessageIcon = ""
+        this.linkMessageText = ""
+    }
+
+    setMessageConvertType() {
+        this.linkMessageIcon = "ueb-icon-conver-type"
+        this.linkMessageText = `Convert ${this.sourcePin.pinType} to ${this.destinationPin.pinType}.`
+    }
+
+    setMessageCorrect() {
+        this.linkMessageIcon = "ueb-icon-correct"
+        this.linkMessageText = ""
+    }
+
+    setMessageDirectionsIncompatible() {
+        this.linkMessageIcon = "ueb-icon-directions-incompatible"
+        this.linkMessageText = "Directions are not compatbile."
+    }
+
+    setMessagePlaceNode() {
+        this.linkMessageIcon = "ueb-icon-place-node"
+        this.linkMessageText = "Place a new node."
+    }
+
+    setMessageReplaceLink() {
+        this.linkMessageIcon = "ueb-icon-replace-link"
+        this.linkMessageText = "Replace existing input connections."
+    }
+
+    setMessageSameNode() {
+        this.linkMessageIcon = "ueb-icon-same-node"
+        this.linkMessageText = "Both are on the same node."
+    }
+
+    setMEssagetypesIncompatible() {
+        this.linkMessageIcon = "ueb-icon-types-incompatible"
+        this.linkMessageText = `${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`
     }
 }
 

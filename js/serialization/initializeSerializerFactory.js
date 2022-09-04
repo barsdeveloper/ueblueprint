@@ -1,5 +1,3 @@
-// @ts-check
-
 import CustomSerializer from "./CustomSerializer"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GeneralSerializer from "./GeneralSerializer"
@@ -25,23 +23,19 @@ export default function initializeSerializerFactory() {
     const bracketsWrapped = v => `(${v})`
 
     SerializerFactory.registerSerializer(
-        LinearColorEntity,
-        new GeneralSerializer(bracketsWrapped, LinearColorEntity)
-    )
-
-    SerializerFactory.registerSerializer(
-        ObjectEntity,
-        new ObjectSerializer()
-    )
-
-    SerializerFactory.registerSerializer(
-        PinEntity,
-        new PinSerializer()
-    )
-
-    SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
         new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
+    )
+
+    SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity))
+
+    SerializerFactory.registerSerializer(IdentifierEntity, new ToStringSerializer(IdentifierEntity))
+
+    SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity))
+
+    SerializerFactory.registerSerializer(
+        InvariantTextEntity,
+        new GeneralSerializer(v => `${InvariantTextEntity.lookbehind}(${v})`, InvariantTextEntity, "", ", ", false, "", _ => "")
     )
 
     SerializerFactory.registerSerializer(
@@ -50,18 +44,18 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        LinearColorEntity,
+        new GeneralSerializer(bracketsWrapped, LinearColorEntity)
+    )
+
+    SerializerFactory.registerSerializer(
         LocalizedTextEntity,
         new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
     )
 
     SerializerFactory.registerSerializer(
-        InvariantTextEntity,
-        new GeneralSerializer(v => `${InvariantTextEntity.lookbehind}(${v})`, InvariantTextEntity, "", ", ", false, "", _ => "")
-    )
-
-    SerializerFactory.registerSerializer(
-        PinReferenceEntity,
-        new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+        ObjectEntity,
+        new ObjectSerializer()
     )
 
     SerializerFactory.registerSerializer(
@@ -77,11 +71,15 @@ export default function initializeSerializerFactory() {
         )
     )
 
-    SerializerFactory.registerSerializer(IdentifierEntity, new ToStringSerializer(IdentifierEntity))
-
     SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity))
 
-    SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity))
+    SerializerFactory.registerSerializer(
+        PinReferenceEntity,
+        new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+    )
 
-    SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity))
+    SerializerFactory.registerSerializer(
+        PinEntity,
+        new PinSerializer()
+    )
 }

@@ -1,5 +1,3 @@
-// @ts-check
-
 import IInput from "../IInput"
 import Utility from "../../Utility"
 
@@ -22,11 +20,10 @@ export default class IPointing extends IInput {
      * @param {MouseEvent} mouseEvent
      */
     locationFromEvent(mouseEvent) {
-        return this.blueprint.compensateTranslation(
-            Utility.convertLocation(
-                [mouseEvent.clientX, mouseEvent.clientY],
-                this.movementSpace
-            )
+        const location = Utility.convertLocation(
+            [mouseEvent.clientX, mouseEvent.clientY],
+            this.movementSpace
         )
+        return this.blueprint.compensateTranslation(location)
     }
 }

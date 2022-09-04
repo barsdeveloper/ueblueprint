@@ -1,5 +1,3 @@
-// @ts-check
-
 import Configuration from "../../Configuration"
 import IPointing from "./IPointing"
 
@@ -43,12 +41,12 @@ export default class IMouseClickDrag extends IPointing {
         let self = this
 
         this.#mouseDownHandler = e => {
-            this.blueprint.setFocused(true)
+            self.blueprint.setFocused(true)
             switch (e.button) {
                 case self.options.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                     if (self.options.looseTarget || e.target == e.currentTarget) {
-                        if (this.options.consumeEvent) {
+                        if (self.options.consumeEvent) {
                             e.stopImmediatePropagation() // Captured, don't call anyone else
                         }
                         // Attach the listeners
@@ -67,7 +65,7 @@ export default class IMouseClickDrag extends IPointing {
         }
 
         this.#mouseStartedMovingHandler = e => {
-            if (this.options.consumeEvent) {
+            if (self.options.consumeEvent) {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
             // Delegate from now on to self.#mouseMoveHandler
@@ -75,14 +73,15 @@ export default class IMouseClickDrag extends IPointing {
             movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler)
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
             const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin)
-            self.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
+            self.#trackingMouse = self.target.dispatchEvent(dragEvent) == false
+            const location = self.locationFromEvent(e)
             // Do actual actions
-            self.startDrag()
+            self.startDrag(location)
             self.started = true
         }
 
         this.#mouseMoveHandler = e => {
-            if (this.options.consumeEvent) {
+            if (self.options.consumeEvent) {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
             const location = self.locationFromEvent(e)
@@ -95,7 +94,7 @@ export default class IMouseClickDrag extends IPointing {
 
         this.#mouseUpHandler = e => {
             if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
-                if (this.options.consumeEvent) {
+                if (self.options.consumeEvent) {
                     e.stopImmediatePropagation() // Captured, don't call anyone else
                 }
                 // Remove the handlers of "mousemove" and "mouseup"
@@ -108,7 +107,7 @@ export default class IMouseClickDrag extends IPointing {
                 self.unclicked()
                 if (self.#trackingMouse) {
                     const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end)
-                    this.target.dispatchEvent(dragEvent)
+                    self.target.dispatchEvent(dragEvent)
                     self.#trackingMouse = false
                 }
                 self.started = false

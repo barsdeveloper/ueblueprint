@@ -1,8 +1,25 @@
-// @ts-check
-
 import TypeInitialization from "./entity/TypeInitialization"
 
+/**
+ * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ */
+
 export default class Utility {
+
+    static booleanConverter = {
+        fromAttribute: (value, type) => {
+            value ? "true" : "false"
+        },
+        toAttribute: (value, type) => {
+            if (value === true) {
+                return "true"
+            }
+            if (value === false) {
+                return "false"
+            }
+            return ""
+        }
+    }
 
     static sigmoid(x, curvature = 1.7) {
         return 1 / (1 + (x / (1 - x) ** -curvature))
@@ -32,7 +49,6 @@ export default class Utility {
     /**
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
-     * @returns
      */
     static convertLocation(viewportLocation, movementElement) {
         const scaleCorrection = 1 / Utility.getScale(movementElement)
@@ -203,5 +219,12 @@ export default class Utility {
             .trim()
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
+    }
+
+    /**
+     * @param {LinearColorEntity} value
+     */
+    static printLinearColor(value) {
+        return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
     }
 }

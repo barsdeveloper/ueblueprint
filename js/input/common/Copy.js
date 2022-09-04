@@ -1,5 +1,3 @@
-// @ts-check
-
 import IInput from "../IInput"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
 
@@ -26,7 +24,7 @@ export default class Copy extends IInput {
     }
 
     copied() {
-        const value = this.blueprint.getNodes(true).map(node => this.serializer.serialize(node.entity, false)).join("\n")
+        const value = this.blueprint.getNodes(true).map(node => this.serializer.serialize(node.entity, false)).join("\n\n")
         navigator.clipboard.writeText(value)
     }
 }

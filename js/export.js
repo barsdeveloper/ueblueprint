@@ -1,5 +1,3 @@
-// @ts-check
-
 import Blueprint from "./Blueprint"
 import Configuration from "./Configuration"
 import initializeSerializerFactory from "./serialization/initializeSerializerFactory"

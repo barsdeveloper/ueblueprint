@@ -1,5 +1,3 @@
-// @ts-check
-
 import IInput from "../IInput"
 
 export default class Unfocus extends IInput {

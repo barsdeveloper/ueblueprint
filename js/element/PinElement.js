@@ -1,8 +1,9 @@
-// @ts-check
-
 import BoolPinTemplate from "../template/BoolPinTemplate"
+import Configuration from "../Configuration"
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
+import ISerializer from "../serialization/ISerializer"
+import LinearColorEntity from "../entity/LinearColorEntity"
 import LinearColorPinTemplate from "../template/LinearColorPinTemplate"
 import LinkElement from "./LinkElement"
 import NamePinTemplate from "../template/NamePinTemplate"
@@ -34,6 +35,46 @@ export default class PinElement extends IElement {
         }
     }
 
+    static properties = {
+        advancedView: {
+            type: String,
+            attribute: "data-advanced-view",
+            reflect: true,
+        },
+        color: {
+            type: LinearColorEntity,
+            converter: {
+                fromAttribute: (value, type) => {
+                    return ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
+                },
+                toAttribute: (value, type) => {
+                    return Utility.printLinearColor(value)
+                },
+            },
+            reflect: true,
+        },
+        defaultValue: {
+            type: String,
+            attribute: false,
+        },
+        isLinked: {
+            type: Boolean,
+            converter: Utility.booleanConverter,
+            attribute: "data-linked",
+            reflect: true,
+        },
+        pinType: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
+        pinDirection: {
+            type: String,
+            attribute: "data-direction",
+            reflect: true,
+        },
+    }
+
     /**
      * @param {PinEntity} pinEntity
      * @return {PinTemplate}
@@ -46,8 +87,6 @@ export default class PinElement extends IElement {
         return result ?? PinTemplate
     }
 
-    #color = ""
-
     /** @type {NodeElement} */
     nodeElement
 
@@ -56,20 +95,42 @@ export default class PinElement extends IElement {
 
     connections = 0
 
+    get defaultValue() {
+        return this.unreactiveDefaultValue
+    }
+    set defaultValue(value) {
+        let oldValue = this.unreactiveDefaultValue
+        this.unreactiveDefaultValue = value
+        this.requestUpdate("defaultValue", oldValue)
+    }
+
     /**
      * @param {PinEntity} entity
      */
     constructor(entity) {
         super(
             entity,
-            // @ts-expect-error
             new (PinElement.getTypeTemplate(entity))()
         )
+        this.advancedView = entity.bAdvancedView
+        this.unreactiveDefaultValue = entity.getDefaultValue()
+        this.pinType = this.entity.getType()
+        this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType].toString())
+        this.isLinked = false
+        this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
+
+        this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
+        this.entity.subscribe("PinToolTip", value => {
+            let matchResult = value.match(/\s*(.+?(?=\n)|.+\S)\s*/)
+            if (matchResult) {
+                return Utility.formatStringName(matchResult[1])
+            }
+            return Utility.formatStringName(this.entity.PinName)
+        })
     }
 
     connectedCallback() {
         super.connectedCallback()
-        this.#color = window.getComputedStyle(this).getPropertyValue("--ueb-pin-color")
     }
 
     /** @return {GuidEntity} */
@@ -89,9 +150,6 @@ export default class PinElement extends IElement {
         return this.entity.PinName
     }
 
-    /**
-     * @returns {String}
-     */
     getPinDisplayName() {
         let matchResult = null
         if (
@@ -112,20 +170,8 @@ export default class PinElement extends IElement {
         return this.entity.isOutput()
     }
 
-    isLinked() {
-        return this.entity.isLinked()
-    }
-
-    getType() {
-        return this.entity.getType()
-    }
-
     getClickableElement() {
         return this.clickableElement
-    }
-
-    getColor() {
-        return this.#color
     }
 
     getLinkLocation() {
@@ -136,11 +182,15 @@ export default class PinElement extends IElement {
      * @returns {NodeElement}
      */
     getNodeElement() {
-        return this.closest("ueb-node")
+        return this.nodeElement
     }
 
     getLinks() {
         return this.entity.LinkedTo ?? []
+    }
+
+    setDefaultValue(value) {
+        this.entity.DefaultValue = value
     }
 
     sanitizeLinks() {
@@ -160,16 +210,16 @@ export default class PinElement extends IElement {
      * @param {PinElement} targetPinElement
      */
     linkTo(targetPinElement) {
-        this.entity.linkTo(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
-        this.template.applyConnected(this)
+        this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)
+        this.isLinked = this.entity.isLinked()
     }
 
     /**
      * @param {PinElement} targetPinElement
      */
     unlinkFrom(targetPinElement) {
-        this.entity.unlinkFrom(targetPinElement.nodeElement.getNodeName(), targetPinElement.entity)
-        this.template.applyConnected(this)
+        this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)
+        this.isLinked = this.entity.isLinked()
     }
 
     /**
@@ -178,8 +228,8 @@ export default class PinElement extends IElement {
      */
     redirectLink(originalPinElement, newReference) {
         const index = this.entity.LinkedTo.findIndex(pinReference =>
-            pinReference.objectName.toString() == originalPinElement.getPinName()
-            && pinReference.pinGuid == originalPinElement.entity.PinId
+            pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
+            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
         )
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference

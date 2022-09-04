@@ -1,5 +1,4 @@
-// @ts-check
-
+import Configuration from "../../Configuration"
 import IPointing from "./IPointing"
 
 export default class IMouseWheel extends IPointing {
@@ -24,7 +23,7 @@ export default class IMouseWheel extends IPointing {
         this.#mouseWheelHandler = e => {
             e.preventDefault()
             const location = self.locationFromEvent(e)
-            self.wheel(Math.sign(e.deltaY), location)
+            self.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location)
         }
         this.#mouseParentWheelHandler = e => e.preventDefault()
 

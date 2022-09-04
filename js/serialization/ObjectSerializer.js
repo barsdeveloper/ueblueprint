@@ -1,5 +1,3 @@
-// @ts-check
-
 import ISerializer from "./ISerializer"
 import ObjectEntity from "../entity/ObjectEntity"
 import PinEntity from "../entity/PinEntity"

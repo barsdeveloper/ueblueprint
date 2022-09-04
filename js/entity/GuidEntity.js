@@ -1,5 +1,3 @@
-// @ts-check
-
 import IEntity from "./IEntity"
 
 export default class GuidEntity extends IEntity {
@@ -18,11 +16,6 @@ export default class GuidEntity extends IEntity {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8)
         })
         return new GuidEntity({ value: guid })
-    }
-
-    constructor(options = {}) {
-        super(options)
-        /** @type {String} */ this.value
     }
 
     valueOf() {

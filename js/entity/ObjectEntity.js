@@ -1,6 +1,3 @@
-// @ts-check
-
-import Utility from "../Utility"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
 import IdentifierEntity from "./IdentifierEntity"
@@ -9,6 +6,7 @@ import IntegerEntity from "./IntegerEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"
 import TypeInitialization from "./TypeInitialization"
+import Utility from "../Utility"
 import VariableReferenceEntity from "./VariableReferenceEntity"
 
 export default class ObjectEntity extends IEntity {
@@ -33,25 +31,6 @@ export default class ObjectEntity extends IEntity {
 
     static nameRegex = /(\w+)_(\d+)/
 
-    constructor(options = {}) {
-        super(options)
-        /** @type {ObjectReferenceEntity} */ this.Class
-        /** @type {String} */ this.Name
-        /** @type {Boolean?} */ this.bIsPureFunc
-        /** @type {VariableReferenceEntity?} */ this.VariableReference
-        /** @type {FunctionReferenceEntity?} */ this.FunctionReference
-        /** @type {FunctionReferenceEntity?} */ this.EventReference
-        /** @type {ObjectReferenceEntity?} */ this.TargetType
-        /** @type {IntegerEntity} */ this.NodePosX
-        /** @type {IntegerEntity} */ this.NodePosY
-        /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay
-        /** @type {IdentifierEntity?} */ this.EnabledState
-        /** @type {GuidEntity} */ this.NodeGuid
-        /** @type {IntegerEntity?} */ this.ErrorType
-        /** @type {String?} */ this.ErrorMsg
-        /** @type {PinEntity[]} */ this.CustomProperties
-    }
-
     getObjectName(dropCounter = false) {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
@@ -67,6 +46,7 @@ export default class ObjectEntity extends IEntity {
         if (result && result.length == 3) {
             return [result[1], parseInt(result[2])]
         }
+        return ["", 0]
     }
 
     getDisplayName() {
