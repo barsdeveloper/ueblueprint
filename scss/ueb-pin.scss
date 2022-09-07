@@ -1,5 +1,6 @@
 ueb-pin {
     display: block;
+    height: 30px;
 }
 
 ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
@@ -8,7 +9,7 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
 
 .ueb-pin-wrapper {
     display: inline-block;
-    margin: 5px 0 0 0;
+    margin: 4px 0 0 0;
     padding: 2px 2px;
 
     &>* {
@@ -26,51 +27,32 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:h
     text-align: right;
 }
 
-.ueb-pin-icon-exec {
-    display: inline-block;
-    vertical-align: text-top;
+ueb-pin[data-type="exec"] .ueb-pin-icon {
+    --ueb-pin-color: white;
+    width: 15px;
+    height: 15px;
 }
 
-.ueb-pin-icon-value {
-    display: inline-block;
-    position: relative;
-    width: 12px;
-    height: 12px;
-    vertical-align: baseline;
-    margin: 0 0.5em -1px 0.1em;
+.ueb-pin-icon {
+    width: 11px;
+    height: 11px;
+    margin-right: 0.5em;
+    color: var(--ueb-pin-color);
 }
 
-.ueb-pin-icon-value::before {
-    content: "";
+.ueb-pin-icon svg {
     display: block;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    border: 2px solid var(--ueb-pin-color);
-    border-radius: 50%;
+    width: 100%;
+    height: 100%;
 }
 
-ueb-pin[data-linked="true"] .ueb-pin-icon-value::before {
-    background: var(--ueb-pin-color);
+
+ueb-pin[data-linked="true"] .ueb-pin-tofill {
+    fill: var(--ueb-pin-color);
 }
 
 ueb-pin[data-linked="true"] .ueb-pin-tofill {
     fill: currentColor;
-}
-
-.ueb-pin-icon-value::after {
-    content: "";
-    display: block;
-    position: absolute;
-    top: 3px;
-    left: 13px;
-    width: 0;
-    height: 0;
-    border-top: 0.3em solid transparent;
-    border-bottom: 0.3em solid transparent;
-    border-left: 0.3em solid var(--ueb-pin-color);
 }
 
 .ueb-pin-name {

@@ -7,6 +7,7 @@ import PinElement from "./PinElement"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
+import Utility from "../Utility"
 
 /**
  * @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>}
@@ -35,6 +36,11 @@ export default class NodeElement extends ISelectableDraggableElement {
             type: String,
             attribute: false,
         },
+        pureFunction: {
+            type: Boolean,
+            converter: Utility.booleanConverter,
+            attribute: "data-pure-function",
+        }
     }
 
     get blueprint() {
@@ -67,6 +73,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
         this.enabledState = entity.EnabledState
         this.nodeDisplayName = entity.getDisplayName()
+        this.pureFunction = entity.bIsPureFunc
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value)

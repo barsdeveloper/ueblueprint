@@ -60,7 +60,12 @@ export default class PinTemplate extends ITemplate {
      * @param {PinElement} pin
      */
     renderIcon(pin) {
-        return html`<span class="ueb-pin-icon-value"></span>`
+        return html`
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="5" />
+                <path d="M 34 6 L 34 26 L 42 16 Z" fill="currentColor" />
+            </svg>
+        `
     }
 
     /**
