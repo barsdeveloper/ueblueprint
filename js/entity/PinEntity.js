@@ -104,16 +104,13 @@ export default class PinEntity extends IEntity {
     }
 
     getType() {
+        if (this.PinType.PinCategory == "struct") {
+            return this.PinType.PinSubCategoryObject.path
+        }
         return this.PinType.PinCategory
     }
 
     getSubCategory() {
         return this.PinType.PinSubCategoryObject.path
-    }
-
-    getColorValue() {
-        if (this.PinType.PinSubCategoryObject.path == "/Script/CoreUObject.LinearColor") {
-
-        }
     }
 }

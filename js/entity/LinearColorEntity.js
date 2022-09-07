@@ -1,3 +1,4 @@
+import Utility from "../Utility"
 import IEntity from "./IEntity"
 
 export default class LinearColorEntity extends IEntity {
@@ -7,5 +8,9 @@ export default class LinearColorEntity extends IEntity {
         G: Number,
         B: Number,
         A: Number,
+    }
+
+    toString() {
+        return Utility.printLinearColor(this)
     }
 }

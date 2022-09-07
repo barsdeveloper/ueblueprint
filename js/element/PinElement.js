@@ -30,9 +30,7 @@ export default class PinElement extends IElement {
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
-        "struct": {
-            "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
-        }
+        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
     }
 
     static properties = {
@@ -51,6 +49,7 @@ export default class PinElement extends IElement {
                     return Utility.printLinearColor(value)
                 },
             },
+            attribute: "data-color",
             reflect: true,
         },
         defaultValue: {
@@ -81,9 +80,6 @@ export default class PinElement extends IElement {
      */
     static getTypeTemplate(pinEntity) {
         let result = PinElement.#typeTemplateMap[pinEntity.getType()]
-        if (result.constructor === Object) {
-            result = result[pinEntity.getSubCategory()]
-        }
         return result ?? PinTemplate
     }
 

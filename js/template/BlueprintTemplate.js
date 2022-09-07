@@ -32,13 +32,13 @@ export default class BlueprintTemplate extends ITemplate {
         "--ueb-grid-size": `${Configuration.gridSize}px`,
         "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
-        "--ueb-pin-bool-color": `${Configuration.pinColor.bool}`,
-        "--ueb-pin-default-color": `${Configuration.pinColor.default}`,
-        "--ueb-pin-exec-color": `${Configuration.pinColor.exec}`,
-        "--ueb-pin-name-color": `${Configuration.pinColor.name}`,
-        "--ueb-pin-real-color": `${Configuration.pinColor.real}`,
-        "--ueb-pin-string-color": `${Configuration.pinColor.string}`,
-        "--ueb-pin-struct-color": `${Configuration.pinColor.struct}`,
+        "--ueb-pin-bool-color": `${Configuration.pinColor["bool"]}`,
+        "--ueb-pin-default-color": `${Configuration.pinColor["default"]}`,
+        "--ueb-pin-exec-color": `${Configuration.pinColor["exec"]}`,
+        "--ueb-pin-name-color": `${Configuration.pinColor["name"]}`,
+        "--ueb-pin-real-color": `${Configuration.pinColor["real"]}`,
+        "--ueb-pin-string-color": `${Configuration.pinColor["string"]}`,
+        "--ueb-pin-linear-color": `${Configuration.pinColor["/Script/CoreUObject.LinearColor"]}`,
     }
 
     /**

@@ -52,8 +52,8 @@ ueb-pin[data-type="string"] {
     --ueb-pin-color-rgb: var(--ueb-pin-string-color);
 }
 
-ueb-pin[data-type="struct"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-struct-color);
+ueb-pin[data-type="/Script/CoreUObject.LinearColor"] {
+    --ueb-pin-color-rgb: var(--ueb-pin-linear-color);
 }
 
 ueb-pin[data-type="vector"] {

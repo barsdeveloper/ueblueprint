@@ -311,7 +311,7 @@ ueb-node[data-selected=true] > .ueb-node-border {
   background: repeating-linear-gradient(-45deg, transparent 0, #57590a 1px, #57590a 11px, transparent 12px, transparent 24px);
   text-align: center;
   padding: 2px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-shadow: 1px 1px 1px black;
 }
 
@@ -430,6 +430,15 @@ ueb-pin[data-type=bool] .ueb-pin-input {
 
 ueb-pin[data-type=bool] .ueb-pin-input:checked {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="none" stroke="%230070e0" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M 5 10 l 3 3 l 6 -6" /></svg>');
+}
+
+ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  border-color: #505050;
+  border-radius: 0;
+  background-color: var(--ueb-linear-color);
 }
 
 .ueb-pin-input-content {
@@ -561,8 +570,8 @@ ueb-pin[data-type=string] {
   --ueb-pin-color-rgb: var(--ueb-pin-string-color);
 }
 
-ueb-pin[data-type=struct] {
-  --ueb-pin-color-rgb: var(--ueb-pin-struct-color);
+ueb-pin[data-type="/Script/CoreUObject.LinearColor"] {
+  --ueb-pin-color-rgb: var(--ueb-pin-linear-color);
 }
 
 ueb-pin[data-type=vector] {

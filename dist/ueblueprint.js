@@ -69,13 +69,13 @@ class Configuration {
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
     static pinColor = {
-        bool: r$2`117, 0, 0`, // #750000
-        default: r$2`167, 167, 167`, // #a7a7a7
-        exec: r$2`167, 167, 167`, // #a7a7a7
-        name: r$2`203, 129, 252`, // #cb81fc
-        real: r$2`50, 187, 0`, // #32bb00
-        string: r$2`213, 0, 176`, // #d500b0
-        struct: r$2`3, 76, 168` // #034ca8
+        "bool": r$2`117, 0, 0`, // #750000
+        "default": r$2`167, 167, 167`, // #a7a7a7
+        "exec": r$2`167, 167, 167`, // #a7a7a7
+        "name": r$2`203, 129, 252`, // #cb81fc
+        "real": r$2`50, 187, 0`, // #32bb00
+        "string": r$2`213, 0, 176`, // #d500b0
+        "/Script/CoreUObject.LinearColor": r$2`3, 76, 168` // #034ca8
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {
@@ -874,6 +874,10 @@ class LinearColorEntity extends IEntity {
         B: Number,
         A: Number,
     }
+
+    toString() {
+        return Utility.printLinearColor(this)
+    }
 }
 
 class LocalizedTextEntity extends IEntity {
@@ -1006,15 +1010,14 @@ class PinEntity extends IEntity {
     }
 
     getType() {
+        if (this.PinType.PinCategory == "struct") {
+            return this.PinType.PinSubCategoryObject.path
+        }
         return this.PinType.PinCategory
     }
 
     getSubCategory() {
         return this.PinType.PinSubCategoryObject.path
-    }
-
-    getColorValue() {
-        if (this.PinType.PinSubCategoryObject.path == "/Script/CoreUObject.LinearColor") ;
     }
 }
 
@@ -3393,7 +3396,12 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return $`
-                <span class="ueb-pin-input" data-linear-color="${pin.defaultValue.toString()}"></span>
+                <span
+                    class="ueb-pin-input"
+                    data-linear-color="${pin.defaultValue.toString()}"
+                    style="--ueb-linear-color:rgba(${pin.defaultValue.toString()})"
+                >
+                </span>
             `
         }
         return super.renderInput(pin)
@@ -3518,9 +3526,7 @@ class PinElement extends IElement {
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
-        "struct": {
-            "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
-        }
+        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
     }
 
     static properties = {
@@ -3539,6 +3545,7 @@ class PinElement extends IElement {
                     return Utility.printLinearColor(value)
                 },
             },
+            attribute: "data-color",
             reflect: true,
         },
         defaultValue: {
@@ -3569,9 +3576,6 @@ class PinElement extends IElement {
      */
     static getTypeTemplate(pinEntity) {
         let result = PinElement.#typeTemplateMap[pinEntity.getType()];
-        if (result.constructor === Object) {
-            result = result[pinEntity.getSubCategory()];
-        }
         return result ?? PinTemplate
     }
 
@@ -4579,13 +4583,13 @@ class BlueprintTemplate extends ITemplate {
         "--ueb-grid-size": `${Configuration.gridSize}px`,
         "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
-        "--ueb-pin-bool-color": `${Configuration.pinColor.bool}`,
-        "--ueb-pin-default-color": `${Configuration.pinColor.default}`,
-        "--ueb-pin-exec-color": `${Configuration.pinColor.exec}`,
-        "--ueb-pin-name-color": `${Configuration.pinColor.name}`,
-        "--ueb-pin-real-color": `${Configuration.pinColor.real}`,
-        "--ueb-pin-string-color": `${Configuration.pinColor.string}`,
-        "--ueb-pin-struct-color": `${Configuration.pinColor.struct}`,
+        "--ueb-pin-bool-color": `${Configuration.pinColor["bool"]}`,
+        "--ueb-pin-default-color": `${Configuration.pinColor["default"]}`,
+        "--ueb-pin-exec-color": `${Configuration.pinColor["exec"]}`,
+        "--ueb-pin-name-color": `${Configuration.pinColor["name"]}`,
+        "--ueb-pin-real-color": `${Configuration.pinColor["real"]}`,
+        "--ueb-pin-string-color": `${Configuration.pinColor["string"]}`,
+        "--ueb-pin-linear-color": `${Configuration.pinColor["/Script/CoreUObject.LinearColor"]}`,
     }
 
     /**

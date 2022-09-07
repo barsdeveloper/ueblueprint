@@ -40,7 +40,12 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-pin-input" data-linear-color="${pin.defaultValue.toString()}"></span>
+                <span
+                    class="ueb-pin-input"
+                    data-linear-color="${pin.defaultValue.toString()}"
+                    style="--ueb-linear-color:rgba(${pin.defaultValue.toString()})"
+                >
+                </span>
             `
         }
         return super.renderInput(pin)
