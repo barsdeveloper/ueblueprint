@@ -35,7 +35,6 @@ export default class TypeInitialization {
         if (targetType === undefined) {
             targetType = value?.constructor
         }
-        let wrongType = false
         if (
             targetType
             && targetType !== SerializedType

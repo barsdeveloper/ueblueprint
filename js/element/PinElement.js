@@ -11,6 +11,7 @@ import PinTemplate from "../template/PinTemplate"
 import RealPinTemplate from "../template/RealPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 import Utility from "../Utility"
+import VectorPinTemplate from "../template/VectorPinTemplate"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -31,6 +32,7 @@ export default class PinElement extends IElement {
         "real": RealPinTemplate,
         "string": StringPinTemplate,
         "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
+        "/Script/CoreUObject.Vector": VectorPinTemplate,
     }
 
     static properties = {
@@ -43,10 +45,10 @@ export default class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => {
-                    return ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
+                    return value ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value : null
                 },
                 toAttribute: (value, type) => {
-                    return Utility.printLinearColor(value)
+                    return value ? Utility.printLinearColor(value) : null
                 },
             },
             attribute: "data-color",
@@ -111,7 +113,7 @@ export default class PinElement extends IElement {
         this.advancedView = entity.bAdvancedView
         this.unreactiveDefaultValue = entity.getDefaultValue()
         this.pinType = this.entity.getType()
-        this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType].toString())
+        this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
 

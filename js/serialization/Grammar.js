@@ -15,6 +15,8 @@ import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializedType from "../entity/SerializedType"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
+import VectorEntity from "../entity/VectorEntity"
+import CalculatedType from "../entity/CalculatedType"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -28,13 +30,14 @@ export default class Grammar {
 
     static getGrammarForType(r, attributeType, defaultGrammar) {
         if (attributeType instanceof TypeInitialization) {
+            // Unpack TypeInitialization
             attributeType = attributeType.type
             return Grammar.getGrammarForType(r, attributeType, defaultGrammar)
         }
         if (attributeType instanceof SerializedType) {
-            const noStringTypes = attributeType.types.filter(t => t !== String)
+            const nonStringTypes = attributeType.types.filter(t => t !== String)
             let result = P.alt(
-                ...noStringTypes.map(t =>
+                ...nonStringTypes.map(t =>
                     Grammar.getGrammarForType(r, t).wrap(P.string('"'), P.string('"')).map(
                         /**
                          * @param {IEntity} entity
@@ -46,8 +49,13 @@ export default class Grammar {
                     )
                 )
             )
-            if (noStringTypes.length < attributeType.types.length) {
-                result = result.or(r.String) // Separated because it cannot be wrapped into " and "
+            if (nonStringTypes.length < attributeType.types.length) {
+                result = result.or(r.String/*.map(v => {
+                    if (attributeType.stringFallback) {
+                        console.log("Unrecognized value, fallback on String")
+                    }
+                    return v
+                })*/) // Separated because it cannot be wrapped into " and "
             }
             return result
         }
@@ -72,6 +80,8 @@ export default class Grammar {
                 return r.InvariantText
             case PinReferenceEntity:
                 return r.PinReference
+            case VectorEntity:
+                return r.Vector
             case LinearColorEntity:
                 return r.LinearColor
             case FunctionReferenceEntity:
@@ -99,36 +109,28 @@ export default class Grammar {
         }
     }
 
-    static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
+    static createPropertyGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
+                // Once the property name is known, look into entityType.properties to get its type 
                 const attributeKey = attributeName.split(".")
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey)
                 let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
-                // Returns attributeSetter: a function called with an object as argument that will set the correct attribute value
+                // Returns a setter function for the property
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
                 )
             })
 
-    /**
-     * @template T
-     * @param {new (values: Object) => T} entityType
-     * @returns {Parsimmon.Parser<T>}
-     */
-    static createMultiAttributeGrammar = (r, entityType) =>
-        /**
-         * Basically this creates a parser that looks for a string like 'Key (A=False,B="Something",)'
-         * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
-         */
+    static createEntityGrammar = (r, entityType) =>
         P.seqMap(
             entityType.lookbehind
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
                 : P.string("("),
-            Grammar.createAttributeGrammar(r, entityType)
-                .trim(P.optWhitespace)
-                .sepBy(P.string(","))
-                .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma
+            Grammar.createPropertyGrammar(r, entityType)
+                .trim(P.optWhitespace) // Drop spaces around a property assignment
+                .sepBy(P.string(",")) // Assignments are separated by comma
+                .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
             P.string(')'),
             (_, attributes, __) => {
                 let values = {}
@@ -183,8 +185,7 @@ export default class Grammar {
 
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
 
-    Guid = r => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v }))
-        .desc("32 digit hexadecimal (accepts all the letters for safety) value")
+    Guid = r => r.HexDigit.times(32).tie().map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal value")
 
     Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
 
@@ -240,7 +241,9 @@ export default class Grammar {
         r.Guid,
         r.LocalizedText,
         r.InvariantText,
-        r.Reference
+        r.Reference,
+        r.Vector,
+        r.LinearColor,
     )
 
     PinReference = r => P.seqMap(
@@ -249,22 +252,24 @@ export default class Grammar {
         r.Guid, // Goes into pinGuid
         (objectName, _, pinGuid) => new PinReferenceEntity({
             objectName: objectName,
-            pinGuid: pinGuid
+            pinGuid: pinGuid,
         })
     )
 
-    LinearColor = r => Grammar.createMultiAttributeGrammar(r, LinearColorEntity)
+    Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
 
-    FunctionReference = r => Grammar.createMultiAttributeGrammar(r, FunctionReferenceEntity)
+    LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity)
+
+    FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
 
     KeyBinding = r => P.alt(
         r.Identifier.map(identifier => new KeyBindingEntity({
             Key: identifier
         })),
-        Grammar.createMultiAttributeGrammar(r, KeyBindingEntity)
+        Grammar.createEntityGrammar(r, KeyBindingEntity)
     )
 
-    Pin = r => Grammar.createMultiAttributeGrammar(r, PinEntity)
+    Pin = r => Grammar.createEntityGrammar(r, PinEntity)
 
     CustomProperties = r =>
         P.string("CustomProperties")
@@ -283,7 +288,7 @@ export default class Grammar {
         P
             .alt(
                 r.CustomProperties,
-                Grammar.createAttributeGrammar(r, ObjectEntity)
+                Grammar.createPropertyGrammar(r, ObjectEntity)
             )
             .sepBy1(P.whitespace),
         P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
@@ -356,6 +361,6 @@ export default class Grammar {
         r.LinearColorFromRGBList,
         r.LinearColorFromHex,
         r.LinearColorFromRGB,
-        r.LinearColorFromRGBA
+        r.LinearColorFromRGBA,
     )
 }

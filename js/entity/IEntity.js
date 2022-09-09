@@ -1,6 +1,7 @@
 import Observable from "../Observable"
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
+import CalculatedType from "./CalculatedType"
 
 export default class IEntity extends Observable {
 
@@ -20,26 +21,33 @@ export default class IEntity extends Observable {
                 Object.getOwnPropertyNames(properties),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
+
                 let defaultValue = properties[property]
                 const defaultType = Utility.getType(defaultValue)
+
                 if (!(property in properties)) {
-                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}`)
+                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}.attributes`)
                 } else if (
                     defaultValue != null
                     && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
                     && !(property in values)
                 ) {
-                    console.warn(`${this.constructor.name} adds property ${prefix}${property} not defined in the serialized data`)
+                    console.warn(
+                        `${this.constructor.name} adds property ${prefix}${property} not defined in the serialized data`
+                    )
                 }
+
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (defaultType === Object) {
                     target[property] = {}
                     defineAllAttributes(target[property], properties[property], values[property], property + ".")
                     continue
                 }
+
                 /*
                  * The value can either be:
-                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World").
+                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X="4").
+                 *     - CalculatedType: the exact type depends on the previous attributes assigned to this entity.
                  *     - TypeInitialization: contains the maximum amount of information about the attribute.
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.
@@ -49,6 +57,10 @@ export default class IEntity extends Observable {
                     target[property] = TypeInitialization.sanitize(value, defaultType)
                     // We have a value, need nothing more
                     continue
+                }
+                if (defaultValue instanceof CalculatedType) {
+                    defaultValue = defaultValue.calculate(this)
+                    defaultType = Utility.getType(defaultValue)
                 }
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
@@ -60,9 +72,6 @@ export default class IEntity extends Observable {
                 if (defaultValue instanceof Array) {
                     target[property] = []
                     continue
-                }
-                if (defaultValue instanceof Function) {
-                    defaultValue = TypeInitialization.sanitize(new defaultValue(), defaultType)
                 }
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType)
             }

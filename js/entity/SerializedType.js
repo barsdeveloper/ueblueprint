@@ -8,7 +8,19 @@ export default class SerializedType {
         this.#types = v
     }
 
-    constructor(...acceptedTypes) {
-        this.#types = acceptedTypes
+    #stringFallback
+    get stringFallback() {
+        return this.#stringFallback
+    }
+    set stringFallback(v) {
+        this.#stringFallback = v
+    }
+
+    constructor([...acceptedTypes], stringFallback = true) {
+        this.#types = [...new Set([
+            ...acceptedTypes,
+            ...(stringFallback ? [String] : [])
+        ])]
+        this.#stringFallback = stringFallback
     }
 }

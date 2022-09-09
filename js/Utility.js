@@ -123,7 +123,7 @@ export default class Utility {
     /**
      * @param {String} value
      */
-    static FirstCapital(value) {
+    static firstCapital(value) {
         return value.charAt(0).toUpperCase() + value.substring(1)
     }
 
@@ -164,7 +164,15 @@ export default class Utility {
         for (let j = 0; j < b.length; ++j) {
             for (let i = 0; i < a.length; ++i) {
                 if (a[i] == b[j]) {
-                    result.push(...a.splice(0, i), ...b.splice(0, j), ...a.splice(0, 1))
+                    // Found a corresponding element in the two arrays
+                    result.push(
+                        // Take and append all the elements skipped from a
+                        ...a.splice(0, i),
+                        // Take and append all the elements skippend from b
+                        ...b.splice(0, j),
+                        // Take and append the element in common
+                        ...a.splice(0, 1)
+                    )
                     j = 0
                     i = 0
                     b.shift()
@@ -172,6 +180,7 @@ export default class Utility {
                 }
             }
         }
+        // Append remaining the elements in the arrays and make it unique
         return [...(new Set(result.concat(...a, ...b)))]
     }
 
@@ -226,5 +235,9 @@ export default class Utility {
      */
     static printLinearColor(value) {
         return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
+    }
+
+    static isFunction(value) {
+        return value instanceof Function && value.prototype === undefined
     }
 }

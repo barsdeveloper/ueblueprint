@@ -362,8 +362,20 @@ class SerializedType {
         this.#types = v;
     }
 
-    constructor(...acceptedTypes) {
-        this.#types = acceptedTypes;
+    #stringFallback
+    get stringFallback() {
+        return this.#stringFallback
+    }
+    set stringFallback(v) {
+        this.#stringFallback = v;
+    }
+
+    constructor([...acceptedTypes], stringFallback = true) {
+        this.#types = [...new Set([
+            ...acceptedTypes,
+            ...(stringFallback ? [String] : [])
+        ])];
+        this.#stringFallback = stringFallback;
     }
 }
 
@@ -558,7 +570,7 @@ class Utility {
     /**
      * @param {String} value
      */
-    static FirstCapital(value) {
+    static firstCapital(value) {
         return value.charAt(0).toUpperCase() + value.substring(1)
     }
 
@@ -599,7 +611,15 @@ class Utility {
         for (let j = 0; j < b.length; ++j) {
             for (let i = 0; i < a.length; ++i) {
                 if (a[i] == b[j]) {
-                    result.push(...a.splice(0, i), ...b.splice(0, j), ...a.splice(0, 1));
+                    // Found a corresponding element in the two arrays
+                    result.push(
+                        // Take and append all the elements skipped from a
+                        ...a.splice(0, i),
+                        // Take and append all the elements skippend from b
+                        ...b.splice(0, j),
+                        // Take and append the element in common
+                        ...a.splice(0, 1)
+                    );
                     j = 0;
                     i = 0;
                     b.shift();
@@ -607,6 +627,7 @@ class Utility {
                 }
             }
         }
+        // Append remaining the elements in the arrays and make it unique
         return [...(new Set(result.concat(...a, ...b)))]
     }
 
@@ -662,6 +683,33 @@ class Utility {
     static printLinearColor(value) {
         return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
     }
+
+    static isFunction(value) {
+        return value instanceof Function && value.prototype === undefined
+    }
+}
+
+/**
+ * @typedef {import("./IEntity").default} IEntity
+ */
+
+class CalculatedType {
+
+    #f
+
+    /**
+     * @param {Function} f
+     */
+    constructor(f) {
+        this.#f = f;
+    }
+
+    /**
+     * @param {IEntity} entity
+     */
+    calculate(entity) {
+        return this.f(entity)
+    }
 }
 
 class IEntity extends Observable {
@@ -682,26 +730,33 @@ class IEntity extends Observable {
                 Object.getOwnPropertyNames(properties),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
+
                 let defaultValue = properties[property];
                 const defaultType = Utility.getType(defaultValue);
+
                 if (!(property in properties)) {
-                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}`);
+                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}.attributes`);
                 } else if (
                     defaultValue != null
                     && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
                     && !(property in values)
                 ) {
-                    console.warn(`${this.constructor.name} adds property ${prefix}${property} not defined in the serialized data`);
+                    console.warn(
+                        `${this.constructor.name} adds property ${prefix}${property} not defined in the serialized data`
+                    );
                 }
+
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 if (defaultType === Object) {
                     target[property] = {};
                     defineAllAttributes(target[property], properties[property], values[property], property + ".");
                     continue
                 }
+
                 /*
                  * The value can either be:
-                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X=4, X="Hello World").
+                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X="4").
+                 *     - CalculatedType: the exact type depends on the previous attributes assigned to this entity.
                  *     - TypeInitialization: contains the maximum amount of information about the attribute.
                  *     - A type: the default value will be default constructed object without arguments.
                  *     - A proper value.
@@ -711,6 +766,10 @@ class IEntity extends Observable {
                     target[property] = TypeInitialization.sanitize(value, defaultType);
                     // We have a value, need nothing more
                     continue
+                }
+                if (defaultValue instanceof CalculatedType) {
+                    defaultValue = defaultValue.calculate(this);
+                    defaultType = Utility.getType(defaultValue);
                 }
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
@@ -722,9 +781,6 @@ class IEntity extends Observable {
                 if (defaultValue instanceof Array) {
                     target[property] = [];
                     continue
-                }
-                if (defaultValue instanceof Function) {
-                    defaultValue = TypeInitialization.sanitize(new defaultValue(), defaultType);
                 }
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType);
             }
@@ -866,7 +922,7 @@ class KeyBindingEntity extends IEntity {
     }
 }
 
-class LinearColorEntity extends IEntity {
+class LinearColorEntity$1 extends IEntity {
 
     static attributes = {
         R: Number,
@@ -936,7 +992,12 @@ class PinEntity extends IEntity {
             bSerializeAsSinglePrecisionFloat: false,
         },
         LinkedTo: new TypeInitialization([PinReferenceEntity], false),
-        DefaultValue: new TypeInitialization(new SerializedType(LinearColorEntity, String), false),
+        DefaultValue: new TypeInitialization(
+            new SerializedType([
+                LinearColorEntity$1,
+            ]),
+            false
+        ),
         AutogeneratedDefaultValue: new TypeInitialization(String, false),
         DefaultObject: new TypeInitialization(ObjectReferenceEntity, false, null),
         PersistentGuid: GuidEntity,
@@ -1099,6 +1160,15 @@ var parsimmon_umd_min = {exports: {}};
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
 
+class LinearColorEntity extends IEntity {
+
+    static attributes = {
+        X: Number,
+        Y: Number,
+        Z: Number,
+    }
+}
+
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  */
@@ -1111,13 +1181,14 @@ class Grammar {
 
     static getGrammarForType(r, attributeType, defaultGrammar) {
         if (attributeType instanceof TypeInitialization) {
+            // Unpack TypeInitialization
             attributeType = attributeType.type;
             return Grammar.getGrammarForType(r, attributeType, defaultGrammar)
         }
         if (attributeType instanceof SerializedType) {
-            const noStringTypes = attributeType.types.filter(t => t !== String);
+            const nonStringTypes = attributeType.types.filter(t => t !== String);
             let result = P.alt(
-                ...noStringTypes.map(t =>
+                ...nonStringTypes.map(t =>
                     Grammar.getGrammarForType(r, t).wrap(P.string('"'), P.string('"')).map(
                         /**
                          * @param {IEntity} entity
@@ -1129,8 +1200,13 @@ class Grammar {
                     )
                 )
             );
-            if (noStringTypes.length < attributeType.types.length) {
-                result = result.or(r.String); // Separated because it cannot be wrapped into " and "
+            if (nonStringTypes.length < attributeType.types.length) {
+                result = result.or(r.String/*.map(v => {
+                    if (attributeType.stringFallback) {
+                        console.log("Unrecognized value, fallback on String")
+                    }
+                    return v
+                })*/); // Separated because it cannot be wrapped into " and "
             }
             return result
         }
@@ -1156,6 +1232,8 @@ class Grammar {
             case PinReferenceEntity:
                 return r.PinReference
             case LinearColorEntity:
+                return r.Vector
+            case LinearColorEntity$1:
                 return r.LinearColor
             case FunctionReferenceEntity:
                 return r.FunctionReference
@@ -1182,36 +1260,28 @@ class Grammar {
         }
     }
 
-    static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
+    static createPropertyGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
+                // Once the property name is known, look into entityType.properties to get its type 
                 const attributeKey = attributeName.split(".");
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey);
                 let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue);
-                // Returns attributeSetter: a function called with an object as argument that will set the correct attribute value
+                // Returns a setter function for the property
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
                 )
             })
 
-    /**
-     * @template T
-     * @param {new (values: Object) => T} entityType
-     * @returns {Parsimmon.Parser<T>}
-     */
-    static createMultiAttributeGrammar = (r, entityType) =>
-        /**
-         * Basically this creates a parser that looks for a string like 'Key (A=False,B="Something",)'
-         * Then it populates an object of type EntityType with the attribute values found inside the parentheses.
-         */
+    static createEntityGrammar = (r, entityType) =>
         P.seqMap(
             entityType.lookbehind
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
                 : P.string("("),
-            Grammar.createAttributeGrammar(r, entityType)
-                .trim(P.optWhitespace)
-                .sepBy(P.string(","))
-                .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma
+            Grammar.createPropertyGrammar(r, entityType)
+                .trim(P.optWhitespace) // Drop spaces around a property assignment
+                .sepBy(P.string(",")) // Assignments are separated by comma
+                .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
             P.string(')'),
             (_, attributes, __) => {
                 let values = {};
@@ -1266,8 +1336,7 @@ class Grammar {
 
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
 
-    Guid = r => P.regex(/[0-9a-zA-Z]{32}/).map(v => new GuidEntity({ value: v }))
-        .desc("32 digit hexadecimal (accepts all the letters for safety) value")
+    Guid = r => r.HexDigit.times(32).tie().map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal value")
 
     Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
 
@@ -1323,7 +1392,9 @@ class Grammar {
         r.Guid,
         r.LocalizedText,
         r.InvariantText,
-        r.Reference
+        r.Reference,
+        r.Vector,
+        r.LinearColor,
     )
 
     PinReference = r => P.seqMap(
@@ -1336,18 +1407,20 @@ class Grammar {
         })
     )
 
-    LinearColor = r => Grammar.createMultiAttributeGrammar(r, LinearColorEntity)
+    Vector = r => Grammar.createEntityGrammar(r, LinearColorEntity)
 
-    FunctionReference = r => Grammar.createMultiAttributeGrammar(r, FunctionReferenceEntity)
+    LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity$1)
+
+    FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
 
     KeyBinding = r => P.alt(
         r.Identifier.map(identifier => new KeyBindingEntity({
             Key: identifier
         })),
-        Grammar.createMultiAttributeGrammar(r, KeyBindingEntity)
+        Grammar.createEntityGrammar(r, KeyBindingEntity)
     )
 
-    Pin = r => Grammar.createMultiAttributeGrammar(r, PinEntity)
+    Pin = r => Grammar.createEntityGrammar(r, PinEntity)
 
     CustomProperties = r =>
         P.string("CustomProperties")
@@ -1366,7 +1439,7 @@ class Grammar {
         P
             .alt(
                 r.CustomProperties,
-                Grammar.createAttributeGrammar(r, ObjectEntity)
+                Grammar.createPropertyGrammar(r, ObjectEntity)
             )
             .sepBy1(P.whitespace),
         P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
@@ -1386,7 +1459,7 @@ class Grammar {
         .string("#")
         .then(r.HexDigit.times(2).tie().times(3, 4))
         .trim(P.optWhitespace)
-        .map(([R, G, B, A]) => new LinearColorEntity({
+        .map(([R, G, B, A]) => new LinearColorEntity$1({
             R: parseInt(R, 16) / 255,
             G: parseInt(G, 16) / 255,
             B: parseInt(B, 16) / 255,
@@ -1399,12 +1472,12 @@ class Grammar {
         r.ColorNumber,
         P.string(",").skip(P.optWhitespace),
         r.ColorNumber.map(Number),
-        (R, _, G, __, B) => new LinearColorEntity({
+        (R, _, G, __, B) => new LinearColorEntity$1({
             R: R / 255,
             G: G / 255,
             B: B / 255,
             A: 1,
-        })
+        }),
     )
 
     LinearColorFromRGB = r => P.string("rgb").then(
@@ -1423,7 +1496,7 @@ class Grammar {
             r.ColorNumber.map(Number),
             P.string(",").skip(P.optWhitespace),
             P.regex(/0?\.\d+|[01]/).map(Number),
-            (R, _, G, __, B, ___, A) => new LinearColorEntity({
+            (R, _, G, __, B, ___, A) => new LinearColorEntity$1({
                 R: R / 255,
                 G: G / 255,
                 B: B / 255,
@@ -1439,7 +1512,7 @@ class Grammar {
         r.LinearColorFromRGBList,
         r.LinearColorFromHex,
         r.LinearColorFromRGB,
-        r.LinearColorFromRGBA
+        r.LinearColorFromRGBA,
     )
 }
 
@@ -1525,7 +1598,7 @@ class ISerializer {
             case Function:
                 return this.writeValue(value(), fullKey, insideString)
             case Boolean:
-                return Utility.FirstCapital(value.toString())
+                return Utility.firstCapital(value.toString())
             case Number:
                 return value.toString()
             case String:
@@ -3509,6 +3582,54 @@ class StringPinTemplate extends IInputPinTemplate {
 }
 
 /**
+ * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity}
+ */
+
+class VectorPinTemplate extends IInputPinTemplate {
+
+    /** @type {HTMLInputElement} */
+    #input
+
+    /**
+     * @param {PinElement} pin
+     * @param {Map} changedProperties
+     */
+    firstUpdated(pin, changedProperties) {
+        super.firstUpdated(pin, changedProperties);
+        this.#input = pin.querySelector(".ueb-pin-input");
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    getInputs(pin) {
+        return [this.#input.dataset.linearColor]
+    }
+
+    /**
+     * @param {PinElement} pin
+     * @param {String[]} value
+     */
+    setInputs(pin, value = []) {
+    }
+
+    /**
+     * @param {PinElement} pin
+     */
+    renderInput(pin) {
+        if (pin.isInput()) {
+            return $`
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-x" role="textbox" contenteditable="true" .innerText=${pin.unreactiveDefaultValue}></span>
+                </div>
+            `
+        }
+        return super.renderInput(pin)
+    }
+}
+
+/**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
  * @typedef {import("../entity/PinEntity").default} PinEntity
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
@@ -3527,6 +3648,7 @@ class PinElement extends IElement {
         "real": RealPinTemplate,
         "string": StringPinTemplate,
         "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
+        "/Script/CoreUObject.Vector": VectorPinTemplate,
     }
 
     static properties = {
@@ -3536,13 +3658,13 @@ class PinElement extends IElement {
             reflect: true,
         },
         color: {
-            type: LinearColorEntity,
+            type: LinearColorEntity$1,
             converter: {
                 fromAttribute: (value, type) => {
-                    return ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
+                    return value ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value : null
                 },
                 toAttribute: (value, type) => {
-                    return Utility.printLinearColor(value)
+                    return value ? Utility.printLinearColor(value) : null
                 },
             },
             attribute: "data-color",
@@ -3607,7 +3729,7 @@ class PinElement extends IElement {
         this.advancedView = entity.bAdvancedView;
         this.unreactiveDefaultValue = entity.getDefaultValue();
         this.pinType = this.entity.getType();
-        this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType].toString());
+        this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString());
         this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
 
@@ -5258,8 +5380,8 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
-        LinearColorEntity,
-        new GeneralSerializer(bracketsWrapped, LinearColorEntity)
+        LinearColorEntity$1,
+        new GeneralSerializer(bracketsWrapped, LinearColorEntity$1)
     );
 
     SerializerFactory.registerSerializer(

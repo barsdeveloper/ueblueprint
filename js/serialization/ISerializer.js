@@ -74,7 +74,7 @@ export default class ISerializer {
             case Function:
                 return this.writeValue(value(), fullKey, insideString)
             case Boolean:
-                return Utility.FirstCapital(value.toString())
+                return Utility.firstCapital(value.toString())
             case Number:
                 return value.toString()
             case String:
