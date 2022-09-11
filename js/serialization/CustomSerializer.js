@@ -5,16 +5,19 @@ import GeneralSerializer from "./GeneralSerializer"
  */
 
 /**
- * @template {IEntity} T
+ * @template {IEntity | Boolean | Number | String} T
  */
 export default class CustomSerializer extends GeneralSerializer {
 
+    #objectWriter
+
     /**
+     * @param {(v: T, insideString: Boolean) => String} objectWriter
      * @param {new () => T} entityType
      */
     constructor(objectWriter, entityType) {
         super(undefined, entityType)
-        this.objectWriter = objectWriter
+        this.#objectWriter = objectWriter
     }
 
     /**
@@ -22,8 +25,8 @@ export default class CustomSerializer extends GeneralSerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(object, insideString = false) {
-        let result = this.objectWriter(object, insideString)
+    write(entity, object, insideString = false) {
+        let result = this.#objectWriter(object, insideString)
         return result
     }
 }

@@ -71,7 +71,6 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
-        Utility.decodeInputString(pin.entity.DefaultValue)
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
             element.innerHTML.replaceAll("<br>", "\n"))

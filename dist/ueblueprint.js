@@ -246,6 +246,29 @@ class IInput {
     }
 }
 
+/**
+ * @typedef {import("./IEntity").default} IEntity
+ */
+
+class CalculatedType {
+
+    #f
+
+    /**
+     * @param {Function} f
+     */
+    constructor(f) {
+        this.#f = f;
+    }
+
+    /**
+     * @param {IEntity} entity
+     */
+    calculate(entity) {
+        return this.#f(entity)
+    }
+}
+
 class Observable {
 
     /** @type {Map<String, Object[]>} */
@@ -352,33 +375,6 @@ class Observable {
     }
 }
 
-class SerializedType {
-
-    #types
-    get types() {
-        return this.#types
-    }
-    set types(v) {
-        this.#types = v;
-    }
-
-    #stringFallback
-    get stringFallback() {
-        return this.#stringFallback
-    }
-    set stringFallback(v) {
-        this.#stringFallback = v;
-    }
-
-    constructor([...acceptedTypes], stringFallback = true) {
-        this.#types = [...new Set([
-            ...acceptedTypes,
-            ...(stringFallback ? [String] : [])
-        ])];
-        this.#stringFallback = stringFallback;
-    }
-}
-
 /**
  * @template T
  */
@@ -410,13 +406,22 @@ class TypeInitialization {
         this.#value = v;
     }
 
+    /** @type {Boolean} */
+    #serialized
+    get serialized() {
+        return this.#serialized
+    }
+    set serialized(v) {
+        this.#serialized = v;
+    }
+
     static sanitize(value, targetType) {
         if (targetType === undefined) {
             targetType = value?.constructor;
         }
         if (
             targetType
-            && targetType !== SerializedType
+            // value is not of type targetType
             && !(value?.constructor === targetType || value instanceof targetType)
         ) {
             value = new targetType(value);
@@ -428,28 +433,32 @@ class TypeInitialization {
     }
 
     /**
-     * @typedef {(new () => T) | SerializedType | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
+     * @typedef {(new () => T) | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
      * @param {Constructor|Array<Constructor>} type
      * @param {Boolean} showDefault
      * @param {any} value
+     * @param {Boolean} serialized
      */
-    constructor(type, showDefault = true, value = undefined) {
+    constructor(type, showDefault = true, value = undefined, serialized = false) {
         if (value === undefined) {
             if (type instanceof Array) {
                 value = [];
-            } else if (type instanceof SerializedType) {
+            } else if (serialized) {
                 value = "";
             } else {
                 value = TypeInitialization.sanitize(new type());
             }
         }
-        this.#showDefault = showDefault;
         this.#type = type;
+        this.#showDefault = showDefault;
+        this.#value = value;
+        this.#serialized = serialized;
     }
 }
 
 /**
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("./entity/IEntity").default} IEntity
  */
 
 class Utility {
@@ -505,6 +514,26 @@ class Utility {
             Math.round((viewportLocation[1] - targetOffset.y) * scaleCorrection)
         ];
         return location
+    }
+
+    /**
+     * @param {IEntity}
+     * @param {Object} target Object holding the data
+     * @param {String[]} keys The chained keys to access from object in order to get the value
+     * @param {Boolean} defaultValue Value to return in case from doesn't have it
+     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
+     */
+    static isSerialized(entity, keys, propertyDefinition = Utility.objectGet(entity.constructor.attributes, keys)) {
+        if (propertyDefinition instanceof CalculatedType) {
+            return Utility.isSerialized(entity, keys, propertyDefinition.calculate(entity))
+        }
+        if (propertyDefinition instanceof TypeInitialization) {
+            if (propertyDefinition.serialized) {
+                return true
+            }
+            return Utility.isSerialized(entity, keys, propertyDefinition.type)
+        }
+        return false
     }
 
     /**
@@ -575,6 +604,9 @@ class Utility {
     }
 
     static getType(value) {
+        if (value === null) {
+            return null
+        }
         let constructor = value?.constructor;
         switch (constructor) {
             case TypeInitialization:
@@ -654,8 +686,9 @@ class Utility {
      */
     static encodeString(value, input = false) {
         return value
+            .replaceAll('"', '\\"') // Escape "
+            .replaceAll("\n", "\\n") // Replace newline with \n
             .replaceAll("\u00A0", " ") // Replace special space symbol
-            .replaceAll("\n", String.raw`\n`) // Replace newline with \n
     }
 
     /**
@@ -663,8 +696,9 @@ class Utility {
      */
     static decodeString(value, input = false) {
         return value
-            .replaceAll(" ", "\u00A0") // Replace special space symbol
-            .replaceAll(String.raw`\n`, "\n") // Replace newline with \n
+            .replaceAll('\\"', '"')
+            .replaceAll("\\n", "\n")
+            .replaceAll(" ", "\u00A0")
     }
 
     /**
@@ -689,33 +723,33 @@ class Utility {
     }
 }
 
+/** @typedef {import("../entity/IEntity").default} IEntity */
 /**
- * @typedef {import("./IEntity").default} IEntity
+ * @template {IEntity} T
+ * @typedef {import("./ISerializer").default<T>} ISerializer
  */
 
-class CalculatedType {
+class SerializerFactory {
 
-    #f
+    /** @type {Map<T, ISerializer<T>>} */
+    static #serializers = new Map()
 
-    /**
-     * @param {Function} f
-     */
-    constructor(f) {
-        this.#f = f;
+    static registerSerializer(entity, object) {
+        SerializerFactory.#serializers.set(entity, object);
     }
 
     /**
-     * @param {IEntity} entity
+     * @template {IEntity} T
+     * @param {T} entity
      */
-    calculate(entity) {
-        return this.f(entity)
+    static getSerializer(entity) {
+        return SerializerFactory.#serializers.get(entity)
     }
 }
 
 class IEntity extends Observable {
 
     static attributes = {}
-    #showAsString = false
 
     constructor(values) {
         super();
@@ -730,19 +764,25 @@ class IEntity extends Observable {
                 Object.getOwnPropertyNames(properties),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
-
+                let value = Utility.objectGet(values, [property]);
                 let defaultValue = properties[property];
-                const defaultType = Utility.getType(defaultValue);
+                let defaultType = Utility.getType(defaultValue);
+                if (defaultValue instanceof CalculatedType) {
+                    defaultValue = defaultValue.calculate(this);
+                    defaultType = Utility.getType(defaultValue);
+                }
 
                 if (!(property in properties)) {
-                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}.attributes`);
+                    console.warn(
+                        `Property ${prefix}${property} in the serialized data is not defined in ${this.constructor.name}.properties`
+                    );
                 } else if (
-                    defaultValue != null
+                    !(property in values)
+                    && defaultValue !== undefined
                     && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
-                    && !(property in values)
                 ) {
                     console.warn(
-                        `${this.constructor.name} adds property ${prefix}${property} not defined in the serialized data`
+                        `${this.constructor.name}.properties will add property ${prefix}${property} not defined in the serialized data`
                     );
                 }
 
@@ -753,34 +793,34 @@ class IEntity extends Observable {
                     continue
                 }
 
-                /*
-                 * The value can either be:
-                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X="4").
-                 *     - CalculatedType: the exact type depends on the previous attributes assigned to this entity.
-                 *     - TypeInitialization: contains the maximum amount of information about the attribute.
-                 *     - A type: the default value will be default constructed object without arguments.
-                 *     - A proper value.
-                 */
-                const value = Utility.objectGet(values, [property]);
                 if (value !== undefined) {
-                    target[property] = TypeInitialization.sanitize(value, defaultType);
-                    // We have a value, need nothing more
-                    continue
+                    // Remember value can still be null
+                    if (
+                        value?.constructor === String
+                        && defaultValue instanceof TypeInitialization
+                        && defaultValue.serialized
+                        && defaultValue.type !== String
+                    ) {
+                        value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value);
+                    }
+                    target[property] = TypeInitialization.sanitize(value, Utility.getType(defaultValue));
+                    continue // We have a value, need nothing more
                 }
-                if (defaultValue instanceof CalculatedType) {
-                    defaultValue = defaultValue.calculate(this);
-                    defaultType = Utility.getType(defaultValue);
-                }
+
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
                         target[property] = undefined; // Declare undefined to preserve the order of attributes
                         continue
                     }
-                    defaultValue = defaultValue.value;
+                    if (defaultValue.serialized) {
+                        defaultValue = "";
+                    } else {
+                        defaultType = defaultValue.type;
+                        defaultValue = defaultValue.value;
+                    }
                 }
                 if (defaultValue instanceof Array) {
-                    target[property] = [];
-                    continue
+                    defaultValue = [];
                 }
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType);
             }
@@ -793,17 +833,6 @@ class IEntity extends Observable {
             };
         }
         defineAllAttributes(this, attributes, values);
-    }
-
-    isShownAsString() {
-        return this.#showAsString
-    }
-
-    /**
-     * @param {Boolean} v
-     */
-    setShowAsString(v) {
-        this.#showAsString = v;
     }
 }
 
@@ -922,7 +951,7 @@ class KeyBindingEntity extends IEntity {
     }
 }
 
-class LinearColorEntity$1 extends IEntity {
+class LinearColorEntity extends IEntity {
 
     static attributes = {
         R: Number,
@@ -969,8 +998,29 @@ class PinReferenceEntity extends IEntity {
     }
 }
 
+class VectorEntity extends IEntity {
+
+    static attributes = {
+        X: Number,
+        Y: Number,
+        Z: Number,
+    }
+}
+
 class PinEntity extends IEntity {
 
+    static #typeEntityMap = {
+        "/Script/CoreUObject.LinearColor": LinearColorEntity,
+        "/Script/CoreUObject.Vector": VectorEntity,
+        "bool": Boolean,
+        "exec": String,
+        "name": String,
+        "real": Number,
+        "string": String,
+    }
+    static get typeEntityMap() {
+        return PinEntity.#typeEntityMap
+    }
     static lookbehind = "Pin"
     static attributes = {
         PinId: GuidEntity,
@@ -992,12 +1042,16 @@ class PinEntity extends IEntity {
             bSerializeAsSinglePrecisionFloat: false,
         },
         LinkedTo: new TypeInitialization([PinReferenceEntity], false),
-        DefaultValue: new TypeInitialization(
-            new SerializedType([
-                LinearColorEntity$1,
-            ]),
-            false
-        ),
+        DefaultValue:
+            new CalculatedType(
+                /** @param {PinEntity} pinEntity */
+                pinEntity => new TypeInitialization(
+                    PinEntity.typeEntityMap[pinEntity.getType()] ?? String,
+                    false,
+                    undefined,
+                    true
+                )
+            ),
         AutogeneratedDefaultValue: new TypeInitialization(String, false),
         DefaultObject: new TypeInitialization(ObjectReferenceEntity, false, null),
         PersistentGuid: GuidEntity,
@@ -1007,6 +1061,13 @@ class PinEntity extends IEntity {
         bDefaultValueIsIgnored: false,
         bAdvancedView: false,
         bOrphanedPin: false,
+    }
+
+    getType() {
+        if (this.PinType.PinCategory == "struct") {
+            return this.PinType.PinSubCategoryObject.path
+        }
+        return this.PinType.PinCategory
     }
 
     getDefaultValue() {
@@ -1068,13 +1129,6 @@ class PinEntity extends IEntity {
             return true
         }
         return false
-    }
-
-    getType() {
-        if (this.PinType.PinCategory == "struct") {
-            return this.PinType.PinSubCategoryObject.path
-        }
-        return this.PinType.PinCategory
     }
 
     getSubCategory() {
@@ -1160,15 +1214,6 @@ var parsimmon_umd_min = {exports: {}};
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
 
-class LinearColorEntity extends IEntity {
-
-    static attributes = {
-        X: Number,
-        Y: Number,
-        Z: Number,
-    }
-}
-
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  */
@@ -1181,32 +1226,9 @@ class Grammar {
 
     static getGrammarForType(r, attributeType, defaultGrammar) {
         if (attributeType instanceof TypeInitialization) {
-            // Unpack TypeInitialization
-            attributeType = attributeType.type;
-            return Grammar.getGrammarForType(r, attributeType, defaultGrammar)
-        }
-        if (attributeType instanceof SerializedType) {
-            const nonStringTypes = attributeType.types.filter(t => t !== String);
-            let result = P.alt(
-                ...nonStringTypes.map(t =>
-                    Grammar.getGrammarForType(r, t).wrap(P.string('"'), P.string('"')).map(
-                        /**
-                         * @param {IEntity} entity
-                         */
-                        entity => {
-                            entity.setShowAsString(true); // Showing as string because it is inside a SerializedType
-                            return entity
-                        }
-                    )
-                )
-            );
-            if (nonStringTypes.length < attributeType.types.length) {
-                result = result.or(r.String/*.map(v => {
-                    if (attributeType.stringFallback) {
-                        console.log("Unrecognized value, fallback on String")
-                    }
-                    return v
-                })*/); // Separated because it cannot be wrapped into " and "
+            let result = Grammar.getGrammarForType(r, attributeType.type, defaultGrammar);
+            if (attributeType.serialized && !(attributeType.type instanceof String)) {
+                result = result.wrap(P.string('"'), P.string('"'));
             }
             return result
         }
@@ -1231,9 +1253,9 @@ class Grammar {
                 return r.InvariantText
             case PinReferenceEntity:
                 return r.PinReference
-            case LinearColorEntity:
+            case VectorEntity:
                 return r.Vector
-            case LinearColorEntity$1:
+            case LinearColorEntity:
                 return r.LinearColor
             case FunctionReferenceEntity:
                 return r.FunctionReference
@@ -1300,7 +1322,12 @@ class Grammar {
 
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
 
-    Boolean = r => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false)
+    Boolean = r => P.alt(
+        P.string("True"),
+        P.string("true"),
+        P.string("False"),
+        P.string("false"),
+    ).map(v => v.toLocaleLowerCase() === "true" ? true : false)
         .desc("either True or False")
 
     HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")
@@ -1403,13 +1430,13 @@ class Grammar {
         r.Guid, // Goes into pinGuid
         (objectName, _, pinGuid) => new PinReferenceEntity({
             objectName: objectName,
-            pinGuid: pinGuid
+            pinGuid: pinGuid,
         })
     )
 
-    Vector = r => Grammar.createEntityGrammar(r, LinearColorEntity)
+    Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
 
-    LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity$1)
+    LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity)
 
     FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
 
@@ -1459,7 +1486,7 @@ class Grammar {
         .string("#")
         .then(r.HexDigit.times(2).tie().times(3, 4))
         .trim(P.optWhitespace)
-        .map(([R, G, B, A]) => new LinearColorEntity$1({
+        .map(([R, G, B, A]) => new LinearColorEntity({
             R: parseInt(R, 16) / 255,
             G: parseInt(G, 16) / 255,
             B: parseInt(B, 16) / 255,
@@ -1472,12 +1499,12 @@ class Grammar {
         r.ColorNumber,
         P.string(",").skip(P.optWhitespace),
         r.ColorNumber.map(Number),
-        (R, _, G, __, B) => new LinearColorEntity$1({
+        (R, _, G, __, B) => new LinearColorEntity({
             R: R / 255,
             G: G / 255,
             B: B / 255,
             A: 1,
-        }),
+        })
     )
 
     LinearColorFromRGB = r => P.string("rgb").then(
@@ -1496,7 +1523,7 @@ class Grammar {
             r.ColorNumber.map(Number),
             P.string(",").skip(P.optWhitespace),
             P.regex(/0?\.\d+|[01]/).map(Number),
-            (R, _, G, __, B, ___, A) => new LinearColorEntity$1({
+            (R, _, G, __, B, ___, A) => new LinearColorEntity({
                 R: R / 255,
                 G: G / 255,
                 B: B / 255,
@@ -1514,19 +1541,6 @@ class Grammar {
         r.LinearColorFromRGB,
         r.LinearColorFromRGBA,
     )
-}
-
-class SerializerFactory {
-
-    static #serializers = new Map()
-
-    static registerSerializer(entity, object) {
-        SerializerFactory.#serializers.set(entity, object);
-    }
-
-    static getSerializer(entity) {
-        return SerializerFactory.#serializers.get(Utility.getType(entity))
-    }
 }
 
 /**
@@ -1558,13 +1572,8 @@ class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    serialize(object, insideString) {
-        insideString ||= object.isShownAsString();
-        let result = this.write(object, insideString);
-        if (object.isShownAsString()) {
-            result = `"${result}"`;
-        }
-        return result
+    serialize(object, insideString, entity = object) {
+        return this.write(entity, object, insideString)
     }
 
     /**
@@ -1580,7 +1589,7 @@ class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(object, insideString) {
+    write(entity, object, insideString) {
         throw new Error("Not implemented")
     }
 
@@ -1588,30 +1597,12 @@ class ISerializer {
      * @param {String[]} fullKey
      * @param {Boolean} insideString
      */
-    writeValue(value, fullKey, insideString) {
-        if (value === null) {
-            return "()"
+    writeValue(entity, value, fullKey, insideString) {
+        const serializer = SerializerFactory.getSerializer(Utility.getType(value));
+        if (!serializer) {
+            throw new Error("Unknown value type, a serializer must be registered in the SerializerFactory class")
         }
-        const serialize = v => SerializerFactory.getSerializer(Utility.getType(v)).serialize(v);
-        // This is an exact match (and not instanceof) to hit also primitive types (by accessing value.constructor they are converted to objects automatically)
-        switch (value?.constructor) {
-            case Function:
-                return this.writeValue(value(), fullKey, insideString)
-            case Boolean:
-                return Utility.firstCapital(value.toString())
-            case Number:
-                return value.toString()
-            case String:
-                return insideString
-                    ? `\\"${Utility.encodeString(value)}\\"`
-                    : `"${Utility.encodeString(value)}"`
-        }
-        if (value instanceof Array) {
-            return `(${value.map(v => serialize(v) + ",").join("")})`
-        }
-        if (value instanceof IEntity) {
-            return serialize(value)
-        }
+        return serializer.write(entity, value, insideString)
     }
 
     /**
@@ -1620,7 +1611,7 @@ class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    subWrite(key, object, insideString) {
+    subWrite(entity, key, object, insideString) {
         let result = "";
         let fullKey = key.concat("");
         const last = fullKey.length - 1;
@@ -1630,13 +1621,18 @@ class ISerializer {
             if (value?.constructor === Object) {
                 // Recursive call when finding an object
                 result += (result.length ? this.separator : "")
-                    + this.subWrite(fullKey, value, insideString);
-            } else if (value !== undefined && this.showProperty(object, fullKey, value)) {
+                    + this.subWrite(entity, fullKey, value, insideString);
+            } else if (value !== undefined && this.showProperty(entity, object, fullKey, value)) {
+                const isSerialized = Utility.isSerialized(entity, fullKey);
                 result += (result.length ? this.separator : "")
                     + this.prefix
                     + this.attributeKeyPrinter(fullKey)
                     + this.attributeValueConjunctionSign
-                    + this.writeValue(value, fullKey, insideString);
+                    + (
+                        isSerialized
+                            ? `"${this.writeValue(entity, value, fullKey, true)}"`
+                            : this.writeValue(entity, value, fullKey, insideString)
+                    );
             }
         }
         if (this.trailingSeparator && result.length && fullKey.length === 1) {
@@ -1646,7 +1642,7 @@ class ISerializer {
         return result
     }
 
-    showProperty(object, attributeKey, attributeValue) {
+    showProperty(entity, object, attributeKey, attributeValue) {
         const attributes = this.entityType.attributes;
         const attribute = Utility.objectGet(attributes, attributeKey);
         if (attribute instanceof TypeInitialization) {
@@ -1662,7 +1658,7 @@ class ObjectSerializer extends ISerializer {
         super(ObjectEntity, "   ", "\n", false);
     }
 
-    showProperty(object, attributeKey, attributeValue) {
+    showProperty(entity, object, attributeKey, attributeValue) {
         switch (attributeKey.toString()) {
             case "Class":
             case "Name":
@@ -1670,7 +1666,7 @@ class ObjectSerializer extends ISerializer {
                 // Serielized separately
                 return false
         }
-        return super.showProperty(object, attributeKey, attributeValue)
+        return super.showProperty(entity, object, attributeKey, attributeValue)
     }
 
     /**
@@ -1699,9 +1695,9 @@ class ObjectSerializer extends ISerializer {
      * @param {ObjectEntity} object
      * @param {Boolean} insideString
      */
-    write(object, insideString) {
-        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(object.Name, ["Name"], insideString)}
-${this.subWrite([], object, insideString)
+    write(entity, object, insideString) {
+        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(entity, object.Name, ["Name"], insideString)}
+${this.subWrite(entity, [], object, insideString)
             + object
                 .CustomProperties.map(pin =>
                     this.separator
@@ -3329,7 +3325,6 @@ class IInputPinTemplate extends PinTemplate {
      * @param {PinElement} pin
      */
     getInputs(pin) {
-        Utility.decodeInputString(pin.entity.DefaultValue);
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
             element.innerHTML.replaceAll("<br>", "\n"))
@@ -3658,7 +3653,7 @@ class PinElement extends IElement {
             reflect: true,
         },
         color: {
-            type: LinearColorEntity$1,
+            type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => {
                     return value ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value : null
@@ -5274,8 +5269,8 @@ class GeneralSerializer extends ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(object, insideString = false) {
-        let result = this.wrap(this.subWrite([], object, insideString));
+    write(entity, object, insideString = false) {
+        let result = this.wrap(this.subWrite(entity, [], object, insideString));
         return result
     }
 }
@@ -5285,16 +5280,19 @@ class GeneralSerializer extends ISerializer {
  */
 
 /**
- * @template {IEntity} T
+ * @template {IEntity | Boolean | Number | String} T
  */
 class CustomSerializer extends GeneralSerializer {
 
+    #objectWriter
+
     /**
+     * @param {(v: T, insideString: Boolean) => String} objectWriter
      * @param {new () => T} entityType
      */
     constructor(objectWriter, entityType) {
         super(undefined, entityType);
-        this.objectWriter = objectWriter;
+        this.#objectWriter = objectWriter;
     }
 
     /**
@@ -5302,27 +5300,9 @@ class CustomSerializer extends GeneralSerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(object, insideString = false) {
-        let result = this.objectWriter(object, insideString);
+    write(entity, object, insideString = false) {
+        let result = this.#objectWriter(object, insideString);
         return result
-    }
-}
-
-class PinSerializer extends GeneralSerializer {
-
-    constructor() {
-        super(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true);
-    }
-
-    /**
-     * @param {String[]} fullKey
-     * @param {Boolean} insideString
-     */
-    writeValue(value, fullKey, insideString) {
-        if (value?.constructor === String && fullKey.length == 1 && fullKey[0] == "DefaultValue") {
-            return `"${Utility.encodeInputString(value)}"`
-        }
-        return super.writeValue(value, fullKey, insideString)
     }
 }
 
@@ -5346,17 +5326,54 @@ class ToStringSerializer extends GeneralSerializer {
      * @param {T} object
      * @param {Boolean} insideString
      */
-    write(object, insideString) {
-        let result = insideString || object.isShownAsString()
-            ? `"${object.toString().replaceAll('"', '\\"')}"`
-            : object.toString();
-        return result
+    write(entity, object, insideString) {
+        return !insideString && object.constructor === String
+            ? `"${Utility.encodeString(object.toString())}"` // String will have quotes if not inside a string already
+            : Utility.encodeString(object.toString())
     }
 }
 
 function initializeSerializerFactory() {
 
     const bracketsWrapped = v => `(${v})`;
+
+    SerializerFactory.registerSerializer(
+        null,
+        new CustomSerializer(
+            (nullValue, insideString) => "()",
+            null
+        )
+    );
+
+    SerializerFactory.registerSerializer(
+        Array,
+        new CustomSerializer(
+            /** @param {Array} array */
+            (array, insideString) =>
+                `(${array
+                    .map(v =>
+                        SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
+                    )
+                    .join("")
+                })`,
+            Array
+        )
+    );
+
+    SerializerFactory.registerSerializer(
+        Boolean,
+        new CustomSerializer(
+            /** @param {Boolean} boolean */
+            (boolean, insideString) => boolean
+                ? insideString
+                    ? "true"
+                    : "True"
+                : insideString
+                    ? "false"
+                    : "False",
+            Boolean
+        )
+    );
 
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
@@ -5380,13 +5397,22 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
-        LinearColorEntity$1,
-        new GeneralSerializer(bracketsWrapped, LinearColorEntity$1)
+        LinearColorEntity,
+        new GeneralSerializer(bracketsWrapped, LinearColorEntity)
     );
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
         new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
+    );
+
+    SerializerFactory.registerSerializer(
+        Number,
+        new CustomSerializer(
+            /** @param {Number} value */
+            value => value.toString(),
+            Number
+        )
     );
 
     SerializerFactory.registerSerializer(
@@ -5410,13 +5436,23 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity));
 
     SerializerFactory.registerSerializer(
+        PinEntity,
+        new GeneralSerializer(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
+    );
+
+    SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
-        PinEntity,
-        new PinSerializer()
+        String,
+        new CustomSerializer(
+            (value, insideString) => insideString
+                ? Utility.encodeString(value)
+                : `"${Utility.encodeString(value)}"`,
+            String
+        )
     );
 }
 

@@ -1,3 +1,4 @@
+import Utility from "../Utility"
 import GeneralSerializer from "./GeneralSerializer"
 
 /**
@@ -20,10 +21,9 @@ export default class ToStringSerializer extends GeneralSerializer {
      * @param {T} object
      * @param {Boolean} insideString
      */
-    write(object, insideString) {
-        let result = insideString || object.isShownAsString()
-            ? `"${object.toString().replaceAll('"', '\\"')}"`
-            : object.toString()
-        return result
+    write(entity, object, insideString) {
+        return !insideString && object.constructor === String
+            ? `"${Utility.encodeString(object.toString())}"` // String will have quotes if not inside a string already
+            : Utility.encodeString(object.toString())
     }
 }

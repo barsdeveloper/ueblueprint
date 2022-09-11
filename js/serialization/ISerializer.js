@@ -34,13 +34,8 @@ export default class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    serialize(object, insideString) {
-        insideString ||= object.isShownAsString()
-        let result = this.write(object, insideString)
-        if (object.isShownAsString()) {
-            result = `"${result}"`
-        }
-        return result
+    serialize(object, insideString, entity = object) {
+        return this.write(entity, object, insideString)
     }
 
     /**
@@ -56,7 +51,7 @@ export default class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(object, insideString) {
+    write(entity, object, insideString) {
         throw new Error("Not implemented")
     }
 
@@ -64,30 +59,12 @@ export default class ISerializer {
      * @param {String[]} fullKey
      * @param {Boolean} insideString
      */
-    writeValue(value, fullKey, insideString) {
-        if (value === null) {
-            return "()"
+    writeValue(entity, value, fullKey, insideString) {
+        const serializer = SerializerFactory.getSerializer(Utility.getType(value))
+        if (!serializer) {
+            throw new Error("Unknown value type, a serializer must be registered in the SerializerFactory class")
         }
-        const serialize = v => SerializerFactory.getSerializer(Utility.getType(v)).serialize(v)
-        // This is an exact match (and not instanceof) to hit also primitive types (by accessing value.constructor they are converted to objects automatically)
-        switch (value?.constructor) {
-            case Function:
-                return this.writeValue(value(), fullKey, insideString)
-            case Boolean:
-                return Utility.firstCapital(value.toString())
-            case Number:
-                return value.toString()
-            case String:
-                return insideString
-                    ? `\\"${Utility.encodeString(value)}\\"`
-                    : `"${Utility.encodeString(value)}"`
-        }
-        if (value instanceof Array) {
-            return `(${value.map(v => serialize(v) + ",").join("")})`
-        }
-        if (value instanceof IEntity) {
-            return serialize(value)
-        }
+        return serializer.write(entity, value, insideString)
     }
 
     /**
@@ -96,7 +73,7 @@ export default class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    subWrite(key, object, insideString) {
+    subWrite(entity, key, object, insideString) {
         let result = ""
         let fullKey = key.concat("")
         const last = fullKey.length - 1
@@ -106,13 +83,18 @@ export default class ISerializer {
             if (value?.constructor === Object) {
                 // Recursive call when finding an object
                 result += (result.length ? this.separator : "")
-                    + this.subWrite(fullKey, value, insideString)
-            } else if (value !== undefined && this.showProperty(object, fullKey, value)) {
+                    + this.subWrite(entity, fullKey, value, insideString)
+            } else if (value !== undefined && this.showProperty(entity, object, fullKey, value)) {
+                const isSerialized = Utility.isSerialized(entity, fullKey)
                 result += (result.length ? this.separator : "")
                     + this.prefix
                     + this.attributeKeyPrinter(fullKey)
                     + this.attributeValueConjunctionSign
-                    + this.writeValue(value, fullKey, insideString)
+                    + (
+                        isSerialized
+                            ? `"${this.writeValue(entity, value, fullKey, true)}"`
+                            : this.writeValue(entity, value, fullKey, insideString)
+                    )
             }
         }
         if (this.trailingSeparator && result.length && fullKey.length === 1) {
@@ -122,7 +104,7 @@ export default class ISerializer {
         return result
     }
 
-    showProperty(object, attributeKey, attributeValue) {
+    showProperty(entity, object, attributeKey, attributeValue) {
         const attributes = this.entityType.attributes
         const attribute = Utility.objectGet(attributes, attributeKey)
         if (attribute instanceof TypeInitialization) {

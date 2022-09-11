@@ -1,7 +1,9 @@
+import CalculatedType from "./entity/CalculatedType"
 import TypeInitialization from "./entity/TypeInitialization"
 
 /**
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("./entity/IEntity").default} IEntity
  */
 
 export default class Utility {
@@ -58,6 +60,26 @@ export default class Utility {
             Math.round((viewportLocation[1] - targetOffset.y) * scaleCorrection)
         ]
         return location
+    }
+
+    /**
+     * @param {IEntity}
+     * @param {Object} target Object holding the data
+     * @param {String[]} keys The chained keys to access from object in order to get the value
+     * @param {Boolean} defaultValue Value to return in case from doesn't have it
+     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
+     */
+    static isSerialized(entity, keys, propertyDefinition = Utility.objectGet(entity.constructor.attributes, keys)) {
+        if (propertyDefinition instanceof CalculatedType) {
+            return Utility.isSerialized(entity, keys, propertyDefinition.calculate(entity))
+        }
+        if (propertyDefinition instanceof TypeInitialization) {
+            if (propertyDefinition.serialized) {
+                return true
+            }
+            return Utility.isSerialized(entity, keys, propertyDefinition.type)
+        }
+        return false
     }
 
     /**
@@ -128,6 +150,9 @@ export default class Utility {
     }
 
     static getType(value) {
+        if (value === null) {
+            return null
+        }
         let constructor = value?.constructor
         switch (constructor) {
             case TypeInitialization:
@@ -207,8 +232,9 @@ export default class Utility {
      */
     static encodeString(value, input = false) {
         return value
+            .replaceAll('"', '\\"') // Escape "
+            .replaceAll("\n", "\\n") // Replace newline with \n
             .replaceAll("\u00A0", " ") // Replace special space symbol
-            .replaceAll("\n", String.raw`\n`) // Replace newline with \n
     }
 
     /**
@@ -216,8 +242,9 @@ export default class Utility {
      */
     static decodeString(value, input = false) {
         return value
-            .replaceAll(" ", "\u00A0") // Replace special space symbol
-            .replaceAll(String.raw`\n`, "\n") // Replace newline with \n
+            .replaceAll('\\"', '"')
+            .replaceAll("\\n", "\n")
+            .replaceAll(" ", "\u00A0")
     }
 
     /**

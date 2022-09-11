@@ -9,7 +9,7 @@ export default class ObjectSerializer extends ISerializer {
         super(ObjectEntity, "   ", "\n", false)
     }
 
-    showProperty(object, attributeKey, attributeValue) {
+    showProperty(entity, object, attributeKey, attributeValue) {
         switch (attributeKey.toString()) {
             case "Class":
             case "Name":
@@ -17,7 +17,7 @@ export default class ObjectSerializer extends ISerializer {
                 // Serielized separately
                 return false
         }
-        return super.showProperty(object, attributeKey, attributeValue)
+        return super.showProperty(entity, object, attributeKey, attributeValue)
     }
 
     /**
@@ -46,9 +46,9 @@ export default class ObjectSerializer extends ISerializer {
      * @param {ObjectEntity} object
      * @param {Boolean} insideString
      */
-    write(object, insideString) {
-        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(object.Name, ["Name"], insideString)}
-${this.subWrite([], object, insideString)
+    write(entity, object, insideString) {
+        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(entity, object.Name, ["Name"], insideString)}
+${this.subWrite(entity, [], object, insideString)
             + object
                 .CustomProperties.map(pin =>
                     this.separator

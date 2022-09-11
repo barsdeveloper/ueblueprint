@@ -16,7 +16,6 @@ import SerializedType from "../entity/SerializedType"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
-import CalculatedType from "../entity/CalculatedType"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -30,32 +29,9 @@ export default class Grammar {
 
     static getGrammarForType(r, attributeType, defaultGrammar) {
         if (attributeType instanceof TypeInitialization) {
-            // Unpack TypeInitialization
-            attributeType = attributeType.type
-            return Grammar.getGrammarForType(r, attributeType, defaultGrammar)
-        }
-        if (attributeType instanceof SerializedType) {
-            const nonStringTypes = attributeType.types.filter(t => t !== String)
-            let result = P.alt(
-                ...nonStringTypes.map(t =>
-                    Grammar.getGrammarForType(r, t).wrap(P.string('"'), P.string('"')).map(
-                        /**
-                         * @param {IEntity} entity
-                         */
-                        entity => {
-                            entity.setShowAsString(true) // Showing as string because it is inside a SerializedType
-                            return entity
-                        }
-                    )
-                )
-            )
-            if (nonStringTypes.length < attributeType.types.length) {
-                result = result.or(r.String/*.map(v => {
-                    if (attributeType.stringFallback) {
-                        console.log("Unrecognized value, fallback on String")
-                    }
-                    return v
-                })*/) // Separated because it cannot be wrapped into " and "
+            let result = Grammar.getGrammarForType(r, attributeType.type, defaultGrammar)
+            if (attributeType.serialized && !(attributeType.type instanceof String)) {
+                result = result.wrap(P.string('"'), P.string('"'))
             }
             return result
         }
@@ -149,7 +125,12 @@ export default class Grammar {
 
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
 
-    Boolean = r => P.alt(P.string("True"), P.string("False")).map(v => v === "True" ? true : false)
+    Boolean = r => P.alt(
+        P.string("True"),
+        P.string("true"),
+        P.string("False"),
+        P.string("false"),
+    ).map(v => v.toLocaleLowerCase() === "true" ? true : false)
         .desc("either True or False")
 
     HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")

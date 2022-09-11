@@ -1,12 +1,12 @@
+import CalculatedType from "./CalculatedType"
 import Observable from "../Observable"
+import SerializerFactory from "../serialization/SerializerFactory"
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
-import CalculatedType from "./CalculatedType"
 
 export default class IEntity extends Observable {
 
     static attributes = {}
-    #showAsString = false
 
     constructor(values) {
         super()
@@ -21,19 +21,25 @@ export default class IEntity extends Observable {
                 Object.getOwnPropertyNames(properties),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
-
+                let value = Utility.objectGet(values, [property])
                 let defaultValue = properties[property]
-                const defaultType = Utility.getType(defaultValue)
+                let defaultType = Utility.getType(defaultValue)
+                if (defaultValue instanceof CalculatedType) {
+                    defaultValue = defaultValue.calculate(this)
+                    defaultType = Utility.getType(defaultValue)
+                }
 
                 if (!(property in properties)) {
-                    console.warn(`Property ${prefix}${property} is not defined in ${this.constructor.name}.attributes`)
+                    console.warn(
+                        `Property ${prefix}${property} in the serialized data is not defined in ${this.constructor.name}.properties`
+                    )
                 } else if (
-                    defaultValue != null
+                    !(property in values)
+                    && defaultValue !== undefined
                     && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
-                    && !(property in values)
                 ) {
                     console.warn(
-                        `${this.constructor.name} adds property ${prefix}${property} not defined in the serialized data`
+                        `${this.constructor.name}.properties will add property ${prefix}${property} not defined in the serialized data`
                     )
                 }
 
@@ -44,34 +50,34 @@ export default class IEntity extends Observable {
                     continue
                 }
 
-                /*
-                 * The value can either be:
-                 *     - Array: can contain multiple values, its property is assigned multiple times like (X=1, X="4").
-                 *     - CalculatedType: the exact type depends on the previous attributes assigned to this entity.
-                 *     - TypeInitialization: contains the maximum amount of information about the attribute.
-                 *     - A type: the default value will be default constructed object without arguments.
-                 *     - A proper value.
-                 */
-                const value = Utility.objectGet(values, [property])
                 if (value !== undefined) {
-                    target[property] = TypeInitialization.sanitize(value, defaultType)
-                    // We have a value, need nothing more
-                    continue
+                    // Remember value can still be null
+                    if (
+                        value?.constructor === String
+                        && defaultValue instanceof TypeInitialization
+                        && defaultValue.serialized
+                        && defaultValue.type !== String
+                    ) {
+                        value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value)
+                    }
+                    target[property] = TypeInitialization.sanitize(value, Utility.getType(defaultValue))
+                    continue // We have a value, need nothing more
                 }
-                if (defaultValue instanceof CalculatedType) {
-                    defaultValue = defaultValue.calculate(this)
-                    defaultType = Utility.getType(defaultValue)
-                }
+
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
                         target[property] = undefined // Declare undefined to preserve the order of attributes
                         continue
                     }
-                    defaultValue = defaultValue.value
+                    if (defaultValue.serialized) {
+                        defaultValue = ""
+                    } else {
+                        defaultType = defaultValue.type
+                        defaultValue = defaultValue.value
+                    }
                 }
                 if (defaultValue instanceof Array) {
-                    target[property] = []
-                    continue
+                    defaultValue = []
                 }
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType)
             }
@@ -84,16 +90,5 @@ export default class IEntity extends Observable {
             }
         }
         defineAllAttributes(this, attributes, values)
-    }
-
-    isShownAsString() {
-        return this.#showAsString
-    }
-
-    /**
-     * @param {Boolean} v
-     */
-    setShowAsString(v) {
-        this.#showAsString = v
     }
 }

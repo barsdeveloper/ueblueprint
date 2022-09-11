@@ -17,6 +17,6 @@ export default class CalculatedType {
      * @param {IEntity} entity
      */
     calculate(entity) {
-        return this.f(entity)
+        return this.#f(entity)
     }
 }

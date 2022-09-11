@@ -14,13 +14,51 @@ import ObjectSerializer from "./ObjectSerializer"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
-import PinSerializer from "./PinSerializer"
 import SerializerFactory from "./SerializerFactory"
 import ToStringSerializer from "./ToStringSerializer"
+import Utility from "../Utility"
 
 export default function initializeSerializerFactory() {
 
     const bracketsWrapped = v => `(${v})`
+
+    SerializerFactory.registerSerializer(
+        null,
+        new CustomSerializer(
+            (nullValue, insideString) => "()",
+            null
+        )
+    )
+
+    SerializerFactory.registerSerializer(
+        Array,
+        new CustomSerializer(
+            /** @param {Array} array */
+            (array, insideString) =>
+                `(${array
+                    .map(v =>
+                        SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
+                    )
+                    .join("")
+                })`,
+            Array
+        )
+    )
+
+    SerializerFactory.registerSerializer(
+        Boolean,
+        new CustomSerializer(
+            /** @param {Boolean} boolean */
+            (boolean, insideString) => boolean
+                ? insideString
+                    ? "true"
+                    : "True"
+                : insideString
+                    ? "false"
+                    : "False",
+            Boolean
+        )
+    )
 
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
@@ -54,6 +92,15 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        Number,
+        new CustomSerializer(
+            /** @param {Number} value */
+            value => value.toString(),
+            Number
+        )
+    )
+
+    SerializerFactory.registerSerializer(
         ObjectEntity,
         new ObjectSerializer()
     )
@@ -74,12 +121,22 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity))
 
     SerializerFactory.registerSerializer(
+        PinEntity,
+        new GeneralSerializer(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
+    )
+
+    SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
     )
 
     SerializerFactory.registerSerializer(
-        PinEntity,
-        new PinSerializer()
+        String,
+        new CustomSerializer(
+            (value, insideString) => insideString
+                ? Utility.encodeString(value)
+                : `"${Utility.encodeString(value)}"`,
+            String
+        )
     )
 }

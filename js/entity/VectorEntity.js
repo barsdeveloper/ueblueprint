@@ -1,6 +1,6 @@
 import IEntity from "./IEntity"
 
-export default class LinearColorEntity extends IEntity {
+export default class VectorEntity extends IEntity {
 
     static attributes = {
         X: Number,
