@@ -1,7 +1,7 @@
 import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
-import PinTemplate from "./PinTemplate"
 import Utility from "../Utility"
+import PinTemplate from "./PinTemplate"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -13,6 +13,20 @@ export default class IInputPinTemplate extends PinTemplate {
     #inputContentElements
     get inputContentElements() {
         return this.#inputContentElements
+    }
+
+    static stringFromInputToUE(value) {
+
+        return value
+            .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
+            .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
+    }
+
+    static stringFromUEToInput(value) {
+
+        return value
+            .replaceAll(/(?:\r|(?<=(?:^|[^\\])(?:\\\\)*)\\r)(?=\n)/g, "") // Remove \r leftover from \r\n
+            .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
     }
 
     /**
@@ -73,7 +87,10 @@ export default class IInputPinTemplate extends PinTemplate {
     getInputs(pin) {
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
-            element.innerHTML.replaceAll("<br>", "\n"))
+            element.innerHTML
+                .replaceAll("&nbsp;", "\u00A0")
+                .replaceAll("<br>", "\n")
+        )
     }
 
     /**
@@ -81,9 +98,13 @@ export default class IInputPinTemplate extends PinTemplate {
      * @param {String[]?} values
      */
     setInputs(pin, values = [], updateDefaultValue = true) {
-        this.#inputContentElements.forEach((element, i) => element.innerText = values[i])
+        this.#inputContentElements.forEach(
+            (element, i) => element.innerText = values[i]
+        )
         if (updateDefaultValue) {
-            pin.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""))
+            pin.setDefaultValue(values
+                .map(v => IInputPinTemplate.stringFromInputToUE(v)) // Double newline at the end of a contenteditable element
+                .reduce((acc, cur) => acc + cur, ""))
         }
     }
 
@@ -94,7 +115,8 @@ export default class IInputPinTemplate extends PinTemplate {
         if (pin.isInput()) {
             return html`
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true" .innerText=${pin.unreactiveDefaultValue}></span>
+                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.toString())}"></span>
                 </div>
             `
         }

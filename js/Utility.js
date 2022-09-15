@@ -142,13 +142,6 @@ export default class Utility {
         }
     }
 
-    /**
-     * @param {String} value
-     */
-    static firstCapital(value) {
-        return value.charAt(0).toUpperCase() + value.substring(1)
-    }
-
     static getType(value) {
         if (value === null) {
             return null
@@ -209,47 +202,21 @@ export default class Utility {
         return [...(new Set(result.concat(...a, ...b)))]
     }
 
-    /**
-     * @param {String} value
-     */
-    static encodeInputString(value) {
-        return value
-            .replace(/\n$/, "") // Remove trailing newline
-            .replaceAll("\u00A0", " ") // Replace special space symbol
-            .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
-    }
-
-    /**
-     * @param {String} value
-     */
-    static decodeInputString(value) {
-        return value
-            .replaceAll("\\r\n", "\n") // Replace newline with \r\n
-    }
-
-    /**
-     * @param {String} value
-     */
-    static encodeString(value, input = false) {
+    /** @param {String} value */
+    static escapeString(value, input = false) {
         return value
             .replaceAll('"', '\\"') // Escape "
             .replaceAll("\n", "\\n") // Replace newline with \n
-            .replaceAll("\u00A0", " ") // Replace special space symbol
     }
 
-    /**
-     * @param {String} value
-     */
-    static decodeString(value, input = false) {
+    /** @param {String} value */
+    static unescapeString(value, input = false) {
         return value
             .replaceAll('\\"', '"')
             .replaceAll("\\n", "\n")
-            .replaceAll(" ", "\u00A0")
     }
 
-    /**
-     * @param {String} value
-     */
+    /** @param {String} value */
     static formatStringName(value) {
         return value
             .trim()
@@ -257,14 +224,8 @@ export default class Utility {
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
     }
 
-    /**
-     * @param {LinearColorEntity} value
-     */
+    /** @param {LinearColorEntity} value */
     static printLinearColor(value) {
         return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
-    }
-
-    static isFunction(value) {
-        return value instanceof Function && value.prototype === undefined
     }
 }

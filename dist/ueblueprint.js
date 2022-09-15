@@ -596,13 +596,6 @@ class Utility {
         }
     }
 
-    /**
-     * @param {String} value
-     */
-    static firstCapital(value) {
-        return value.charAt(0).toUpperCase() + value.substring(1)
-    }
-
     static getType(value) {
         if (value === null) {
             return null
@@ -663,47 +656,21 @@ class Utility {
         return [...(new Set(result.concat(...a, ...b)))]
     }
 
-    /**
-     * @param {String} value
-     */
-    static encodeInputString(value) {
-        return value
-            .replace(/\n$/, "") // Remove trailing newline
-            .replaceAll("\u00A0", " ") // Replace special space symbol
-            .replaceAll("\n", String.raw`\r\n`) // Replace newline with \r\n
-    }
-
-    /**
-     * @param {String} value
-     */
-    static decodeInputString(value) {
-        return value
-            .replaceAll("\\r\n", "\n") // Replace newline with \r\n
-    }
-
-    /**
-     * @param {String} value
-     */
-    static encodeString(value, input = false) {
+    /** @param {String} value */
+    static escapeString(value, input = false) {
         return value
             .replaceAll('"', '\\"') // Escape "
             .replaceAll("\n", "\\n") // Replace newline with \n
-            .replaceAll("\u00A0", " ") // Replace special space symbol
     }
 
-    /**
-     * @param {String} value
-     */
-    static decodeString(value, input = false) {
+    /** @param {String} value */
+    static unescapeString(value, input = false) {
         return value
             .replaceAll('\\"', '"')
             .replaceAll("\\n", "\n")
-            .replaceAll(" ", "\u00A0")
     }
 
-    /**
-     * @param {String} value
-     */
+    /** @param {String} value */
     static formatStringName(value) {
         return value
             .trim()
@@ -711,15 +678,9 @@ class Utility {
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
     }
 
-    /**
-     * @param {LinearColorEntity} value
-     */
+    /** @param {LinearColorEntity} value */
     static printLinearColor(value) {
         return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
-    }
-
-    static isFunction(value) {
-        return value instanceof Function && value.prototype === undefined
     }
 }
 
@@ -1340,7 +1301,7 @@ class Grammar {
 
     Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
 
-    String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.decodeString)
+    String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.unescapeString)
         .desc('string (with possibility to escape the quote using \")')
 
     ReferencePath = r => P.seq(
@@ -3269,6 +3230,20 @@ class IInputPinTemplate extends PinTemplate {
         return this.#inputContentElements
     }
 
+    static stringFromInputToUE(value) {
+
+        return value
+            .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
+            .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
+    }
+
+    static stringFromUEToInput(value) {
+
+        return value
+            .replaceAll(/(?:\r|(?<=(?:^|[^\\])(?:\\\\)*)\\r)(?=\n)/g, "") // Remove \r leftover from \r\n
+            .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
+    }
+
     /**
      * @param {PinElement} pin
      * @param {Map} changedProperties
@@ -3327,7 +3302,10 @@ class IInputPinTemplate extends PinTemplate {
     getInputs(pin) {
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
-            element.innerHTML.replaceAll("<br>", "\n"))
+            element.innerHTML
+                .replaceAll("&nbsp;", "\u00A0")
+                .replaceAll("<br>", "\n")
+        )
     }
 
     /**
@@ -3335,9 +3313,13 @@ class IInputPinTemplate extends PinTemplate {
      * @param {String[]?} values
      */
     setInputs(pin, values = [], updateDefaultValue = true) {
-        this.#inputContentElements.forEach((element, i) => element.innerText = values[i]);
+        this.#inputContentElements.forEach(
+            (element, i) => element.innerText = values[i]
+        );
         if (updateDefaultValue) {
-            pin.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""));
+            pin.setDefaultValue(values
+                .map(v => IInputPinTemplate.stringFromInputToUE(v)) // Double newline at the end of a contenteditable element
+                .reduce((acc, cur) => acc + cur, ""));
         }
     }
 
@@ -3348,7 +3330,8 @@ class IInputPinTemplate extends PinTemplate {
         if (pin.isInput()) {
             return $`
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true" .innerText=${pin.unreactiveDefaultValue}></span>
+                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.toString())}"></span>
                 </div>
             `
         }
@@ -3561,19 +3544,7 @@ class RealPinTemplate extends IInputPinTemplate {
     }
 }
 
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- */
-
 class StringPinTemplate extends IInputPinTemplate {
-
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties);
-    }
 }
 
 /**
@@ -3631,19 +3602,17 @@ class VectorPinTemplate extends IInputPinTemplate {
  * @typedef {import("./NodeElement").default} NodeElement
  */
 
-/**
- * @extends {IElement<PinEntity, PinTemplate>}
- */
+/** @extends {IElement<PinEntity, PinTemplate>} */
 class PinElement extends IElement {
 
     static #typeTemplateMap = {
+        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
+        "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
-        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
-        "/Script/CoreUObject.Vector": VectorPinTemplate,
     }
 
     static properties = {
@@ -3707,6 +3676,7 @@ class PinElement extends IElement {
     get defaultValue() {
         return this.unreactiveDefaultValue
     }
+    /** @param {String} value */
     set defaultValue(value) {
         let oldValue = this.unreactiveDefaultValue;
         this.unreactiveDefaultValue = value;
@@ -3722,7 +3692,11 @@ class PinElement extends IElement {
             new (PinElement.getTypeTemplate(entity))()
         );
         this.advancedView = entity.bAdvancedView;
+        /** @type {String} */
         this.unreactiveDefaultValue = entity.getDefaultValue();
+        if (this.unreactiveDefaultValue.constructor === String) {
+            this.unreactiveDefaultValue = entity.getDefaultValue();
+        }
         this.pinType = this.entity.getType();
         this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString());
         this.isLinked = false;
@@ -5328,8 +5302,8 @@ class ToStringSerializer extends GeneralSerializer {
      */
     write(entity, object, insideString) {
         return !insideString && object.constructor === String
-            ? `"${Utility.encodeString(object.toString())}"` // String will have quotes if not inside a string already
-            : Utility.encodeString(object.toString())
+            ? `"${Utility.escapeString(object.toString())}"` // String will have quotes if not inside a string already
+            : Utility.escapeString(object.toString())
     }
 }
 
@@ -5449,8 +5423,8 @@ function initializeSerializerFactory() {
         String,
         new CustomSerializer(
             (value, insideString) => insideString
-                ? Utility.encodeString(value)
-                : `"${Utility.encodeString(value)}"`,
+                ? Utility.escapeString(value)
+                : `"${Utility.escapeString(value)}"`,
             String
         )
     );

@@ -343,7 +343,7 @@ ueb-node[data-advanced-display=Shown] .ueb-node-expansion-icon {
 
 ueb-pin {
   display: block;
-  height: 30px;
+  min-height: 30px;
 }
 
 ueb-node[data-advanced-display=Hidden] ueb-pin[data-advanced-view=true] {
@@ -449,6 +449,7 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
   min-width: 10px;
   max-width: 400px;
   max-height: 16em;
+  line-height: calc(1em + 1px);
   background: none;
   color: inherit;
   cursor: text;

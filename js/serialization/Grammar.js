@@ -143,7 +143,7 @@ export default class Grammar {
 
     Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
 
-    String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.decodeString)
+    String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.unescapeString)
         .desc('string (with possibility to escape the quote using \")')
 
     ReferencePath = r => P.seq(

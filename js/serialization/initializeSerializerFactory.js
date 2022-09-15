@@ -134,8 +134,8 @@ export default function initializeSerializerFactory() {
         String,
         new CustomSerializer(
             (value, insideString) => insideString
-                ? Utility.encodeString(value)
-                : `"${Utility.encodeString(value)}"`,
+                ? Utility.escapeString(value)
+                : `"${Utility.escapeString(value)}"`,
             String
         )
     )

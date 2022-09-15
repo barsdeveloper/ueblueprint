@@ -20,19 +20,17 @@ import VectorPinTemplate from "../template/VectorPinTemplate"
  * @typedef {import("./NodeElement").default} NodeElement
  */
 
-/**
- * @extends {IElement<PinEntity, PinTemplate>}
- */
+/** @extends {IElement<PinEntity, PinTemplate>} */
 export default class PinElement extends IElement {
 
     static #typeTemplateMap = {
+        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
+        "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
-        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
-        "/Script/CoreUObject.Vector": VectorPinTemplate,
     }
 
     static properties = {
@@ -96,6 +94,7 @@ export default class PinElement extends IElement {
     get defaultValue() {
         return this.unreactiveDefaultValue
     }
+    /** @param {String} value */
     set defaultValue(value) {
         let oldValue = this.unreactiveDefaultValue
         this.unreactiveDefaultValue = value
@@ -111,7 +110,11 @@ export default class PinElement extends IElement {
             new (PinElement.getTypeTemplate(entity))()
         )
         this.advancedView = entity.bAdvancedView
+        /** @type {String} */
         this.unreactiveDefaultValue = entity.getDefaultValue()
+        if (this.unreactiveDefaultValue.constructor === String) {
+            this.unreactiveDefaultValue = entity.getDefaultValue()
+        }
         this.pinType = this.entity.getType()
         this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
         this.isLinked = false

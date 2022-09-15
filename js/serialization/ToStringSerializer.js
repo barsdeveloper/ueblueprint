@@ -23,7 +23,7 @@ export default class ToStringSerializer extends GeneralSerializer {
      */
     write(entity, object, insideString) {
         return !insideString && object.constructor === String
-            ? `"${Utility.encodeString(object.toString())}"` // String will have quotes if not inside a string already
-            : Utility.encodeString(object.toString())
+            ? `"${Utility.escapeString(object.toString())}"` // String will have quotes if not inside a string already
+            : Utility.escapeString(object.toString())
     }
 }
