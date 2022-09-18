@@ -1,5 +1,5 @@
 ueb-blueprint {
-    --ueb-pin-dim-color: #afafaf;
+    --ueb-pin-color-dim: #afafaf;
 }
 
 ueb-link {
@@ -17,45 +17,49 @@ ueb-pin {
 }
 
 ueb-pin[data-type="bool"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-bool-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-bool);
 }
 
 ueb-pin[data-type="class"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-class-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-class);
 }
 
 ueb-pin[data-type="exec"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-exec-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-exec);
 }
 
 ueb-pin[data-type="int"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-int-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-int);
 }
 
 ueb-pin[data-type="name"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-name-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-name);
 }
 
 ueb-pin[data-type="object"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-object-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-object);
 }
 
 ueb-pin[data-type="real"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-real-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-real);
 }
 
 ueb-pin[data-type="rotator"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-rotator-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-rotator);
 }
 
 ueb-pin[data-type="string"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-string-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-string);
 }
 
 ueb-pin[data-type="/Script/CoreUObject.LinearColor"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-linear-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-linear-color);
+}
+
+ueb-pin[data-type="/Script/CoreUObject.Vector"] {
+    --ueb-pin-color-rgb: var(--ueb-pin-color-vector);
 }
 
 ueb-pin[data-type="vector"] {
-    --ueb-pin-color-rgb: var(--ueb-pin-vector-color);
+    --ueb-pin-color-rgb: var(--ueb-pin-color-vector);
 }

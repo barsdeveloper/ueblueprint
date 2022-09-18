@@ -45,13 +45,14 @@ export default class Configuration {
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
     static pinColor = {
+        "/Script/CoreUObject.LinearColor": css`3, 76, 168`, // #034ca8
+        "/Script/CoreUObject.Vector": css`182, 146, 28`, // b6921c
         "bool": css`117, 0, 0`, // #750000
         "default": css`167, 167, 167`, // #a7a7a7
         "exec": css`167, 167, 167`, // #a7a7a7
         "name": css`203, 129, 252`, // #cb81fc
         "real": css`50, 187, 0`, // #32bb00
         "string": css`213, 0, 176`, // #d500b0
-        "/Script/CoreUObject.LinearColor": css`3, 76, 168` // #034ca8
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {

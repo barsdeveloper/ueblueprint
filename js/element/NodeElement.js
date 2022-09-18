@@ -40,6 +40,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             type: Boolean,
             converter: Utility.booleanConverter,
             attribute: "data-pure-function",
+            reflect: true,
         }
     }
 

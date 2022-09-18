@@ -69,13 +69,14 @@ class Configuration {
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
     static pinColor = {
+        "/Script/CoreUObject.LinearColor": r$2`3, 76, 168`, // #034ca8
+        "/Script/CoreUObject.Vector": r$2`182, 146, 28`, // b6921c
         "bool": r$2`117, 0, 0`, // #750000
         "default": r$2`167, 167, 167`, // #a7a7a7
         "exec": r$2`167, 167, 167`, // #a7a7a7
         "name": r$2`203, 129, 252`, // #cb81fc
         "real": r$2`50, 187, 0`, // #32bb00
         "string": r$2`213, 0, 176`, // #d500b0
-        "/Script/CoreUObject.LinearColor": r$2`3, 76, 168` // #034ca8
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {
@@ -678,6 +679,14 @@ class Utility {
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
     }
 
+    /** @param {String} value */
+    static getIdFromReference(value) {
+        return value
+            .replace(/(?:.+\.)?([^\.]+)$/, "$1")
+            .replaceAll(/(?<=[a-z\d])(?=[A-Z])|(?<=[a-zA-Z])(?=\d)|(?<=[A-Z]{2})(?=[A-Z][a-z])/g, "-")
+            .toLocaleLowerCase()
+    }
+
     /** @param {LinearColorEntity} value */
     static printLinearColor(value) {
         return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
@@ -968,6 +977,9 @@ class VectorEntity extends IEntity {
     }
 }
 
+class SimpleSerializationVectorEntity extends VectorEntity {
+}
+
 class PinEntity extends IEntity {
 
     static #typeEntityMap = {
@@ -979,8 +991,8 @@ class PinEntity extends IEntity {
         "real": Number,
         "string": String,
     }
-    static get typeEntityMap() {
-        return PinEntity.#typeEntityMap
+    static #alternativeTypeEntityMap = {
+        "/Script/CoreUObject.Vector": SimpleSerializationVectorEntity,
     }
     static lookbehind = "Pin"
     static attributes = {
@@ -1007,7 +1019,7 @@ class PinEntity extends IEntity {
             new CalculatedType(
                 /** @param {PinEntity} pinEntity */
                 pinEntity => new TypeInitialization(
-                    PinEntity.typeEntityMap[pinEntity.getType()] ?? String,
+                    PinEntity.getEntityType(pinEntity.getType(), true) ?? String,
                     false,
                     undefined,
                     true
@@ -1022,6 +1034,13 @@ class PinEntity extends IEntity {
         bDefaultValueIsIgnored: false,
         bAdvancedView: false,
         bOrphanedPin: false,
+    }
+
+    static getEntityType(typeString, alternative = false) {
+        const [entity, alternativeEntity] = [this.#typeEntityMap[typeString], this.#alternativeTypeEntityMap[typeString]];
+        return alternative && alternativeEntity !== undefined
+            ? alternativeEntity
+            : entity
     }
 
     getType() {
@@ -1216,6 +1235,8 @@ class Grammar {
                 return r.PinReference
             case VectorEntity:
                 return r.Vector
+            case SimpleSerializationVectorEntity:
+                return r.SimpleSerializationVectorEntity
             case LinearColorEntity:
                 return r.LinearColor
             case FunctionReferenceEntity:
@@ -1266,7 +1287,7 @@ class Grammar {
                 .sepBy(P.string(",")) // Assignments are separated by comma
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
             P.string(')'),
-            (_, attributes, __) => {
+            (_0, attributes, _2) => {
                 let values = {};
                 attributes.forEach(attributeSetter => attributeSetter(values));
                 return new entityType(values)
@@ -1339,25 +1360,25 @@ class Grammar {
             ]),
         P.seqMap(
             r.Word, // Goes into referenceType
-            P.optWhitespace, // Goes into _ (ignored)
+            P.optWhitespace, // Goes into _1 (ignored)
             P.alt(...[r.ReferencePath].flatMap(referencePath => [
                 referencePath.wrap(P.string(`"`), P.string(`"`)),
                 referencePath.wrap(P.string(`'"`), P.string(`"'`))
             ])), // Goes into referencePath
-            (referenceType, _, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
+            (referenceType, _1, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
         ),
         r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
     )
 
     LocalizedText = r => P.seqMap(
-        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _ (ignored)
+        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _0 (ignored)
         r.String.trim(P.optWhitespace), // Goes into namespace
-        P.string(","), // Goes into __ (ignored)
+        P.string(","), // Goes into _2 (ignored)
         r.String.trim(P.optWhitespace), // Goes into key
-        P.string(","), // Goes into ___ (ignored)
+        P.string(","), // Goes into _4 (ignored)
         r.String.trim(P.optWhitespace), // Goes into value
-        P.string(")"), // Goes into ____ (ignored)
-        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
+        P.string(")"), // Goes into _6 (ignored)
+        (_0, namespace, _2, key, _4, value, _6) => new LocalizedTextEntity({
             namespace: namespace,
             key: key,
             value: value
@@ -1396,6 +1417,19 @@ class Grammar {
     )
 
     Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
+
+    SimpleSerializationVectorEntity = r => P.seqMap(
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        (x, _1, y, _3, z) => new SimpleSerializationVectorEntity({
+            X: x,
+            Y: y,
+            Z: z,
+        })
+    )
 
     LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity)
 
@@ -3268,9 +3302,7 @@ class IInputPinTemplate extends PinTemplate {
         }
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     cleanup(pin) {
         super.cleanup(pin);
         this.#inputContentElements.forEach(element => {
@@ -3279,9 +3311,7 @@ class IInputPinTemplate extends PinTemplate {
         });
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     createInputObjects(pin) {
         return [
             ...super.createInputObjects(pin),
@@ -3289,16 +3319,12 @@ class IInputPinTemplate extends PinTemplate {
         ]
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     getInput(pin) {
         return this.getInputs(pin).reduce((acc, cur) => acc + cur, "")
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     getInputs(pin) {
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
@@ -3323,9 +3349,7 @@ class IInputPinTemplate extends PinTemplate {
         }
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     renderInput(pin) {
         if (pin.isInput()) {
             return $`
@@ -3528,18 +3552,23 @@ class RealPinTemplate extends IInputPinTemplate {
      * @param {String[]?} values
      */
     setInputs(pin, values = []) {
-        let num = parseFloat(values.length ? values[0] : this.getInput(pin));
+        if (!values || values.length == 0) {
+            values = this.getInput(pin);
+        }
         let updateDefaultValue = true;
-        if (isNaN(num)) {
-            num = parseFloat(pin.entity.DefaultValue != ""
-                ? /** @type {String} */(pin.entity.DefaultValue)
-                : pin.entity.AutogeneratedDefaultValue);
+        for (let i = 0; i < values.length; ++i) {
+            let num = parseFloat(values[i]);
+            if (isNaN(num)) {
+                num = parseFloat(pin.entity.DefaultValue != ""
+                    ? /** @type {String} */(pin.entity.DefaultValue)
+                    : pin.entity.AutogeneratedDefaultValue);
+            }
+            if (isNaN(num)) {
+                num = 0;
+                updateDefaultValue = false;
+            }
+            values[i] = Utility.minDecimals(num);
         }
-        if (isNaN(num)) {
-            num = 0;
-            updateDefaultValue = false;
-        }
-        values[0] = Utility.minDecimals(num);
         super.setInputs(pin, values, updateDefaultValue);
     }
 }
@@ -3552,46 +3581,30 @@ class StringPinTemplate extends IInputPinTemplate {
  * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity}
  */
 
-class VectorPinTemplate extends IInputPinTemplate {
+class VectorPinTemplate extends RealPinTemplate {
 
-    /** @type {HTMLInputElement} */
-    #input
-
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties);
-        this.#input = pin.querySelector(".ueb-pin-input");
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
-    getInputs(pin) {
-        return [this.#input.dataset.linearColor]
-    }
-
-    /**
-     * @param {PinElement} pin
-     * @param {String[]} value
-     */
-    setInputs(pin, value = []) {
-    }
-
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     renderInput(pin) {
         if (pin.isInput()) {
             return $`
+                <span class="ueb-pin-input-label">X</span>
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-x" role="textbox" contenteditable="true" .innerText=${pin.unreactiveDefaultValue}></span>
+                    <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.X.toString())}"></span>
+                </div>
+                <span class="ueb-pin-input-label">Y</span>
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.Y.toString())}"></span>
+                </div>
+                <span class="ueb-pin-input-label">Z</span>
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.Z.toString())}"></span>
                 </div>
             `
         }
-        return super.renderInput(pin)
+        return $``
     }
 }
 
@@ -3683,9 +3696,7 @@ class PinElement extends IElement {
         this.requestUpdate("defaultValue", oldValue);
     }
 
-    /**
-     * @param {PinEntity} entity
-     */
+    /** @param {PinEntity} entity */
     constructor(entity) {
         super(
             entity,
@@ -3726,9 +3737,7 @@ class PinElement extends IElement {
         return this.GetPinId().value
     }
 
-    /**
-     * @returns {String}
-     */
+    /** @returns {String} */
     getPinName() {
         return this.entity.PinName
     }
@@ -3761,9 +3770,7 @@ class PinElement extends IElement {
         return this.template.getLinkLocation(this)
     }
 
-    /**
-     * @returns {NodeElement}
-     */
+    /** @returns {NodeElement} */
     getNodeElement() {
         return this.nodeElement
     }
@@ -3789,17 +3796,13 @@ class PinElement extends IElement {
         });
     }
 
-    /**
-     * @param {PinElement} targetPinElement
-     */
+    /** @param {PinElement} targetPinElement */
     linkTo(targetPinElement) {
         this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity);
         this.isLinked = this.entity.isLinked();
     }
 
-    /**
-     * @param {PinElement} targetPinElement
-     */
+    /** @param {PinElement} targetPinElement */
     unlinkFrom(targetPinElement) {
         this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity);
         this.isLinked = this.entity.isLinked();
@@ -4049,6 +4052,7 @@ class NodeElement extends ISelectableDraggableElement {
             type: Boolean,
             converter: Utility.booleanConverter,
             attribute: "data-pure-function",
+            reflect: true,
         }
     }
 
@@ -4674,13 +4678,14 @@ class BlueprintTemplate extends ITemplate {
         "--ueb-grid-size": `${Configuration.gridSize}px`,
         "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
-        "--ueb-pin-bool-color": `${Configuration.pinColor["bool"]}`,
-        "--ueb-pin-default-color": `${Configuration.pinColor["default"]}`,
-        "--ueb-pin-exec-color": `${Configuration.pinColor["exec"]}`,
-        "--ueb-pin-name-color": `${Configuration.pinColor["name"]}`,
-        "--ueb-pin-real-color": `${Configuration.pinColor["real"]}`,
-        "--ueb-pin-string-color": `${Configuration.pinColor["string"]}`,
-        "--ueb-pin-linear-color": `${Configuration.pinColor["/Script/CoreUObject.LinearColor"]}`,
+        ...Object.entries(Configuration.pinColor)
+            .map(([k, v]) => ({
+                [`--ueb-pin-color-${Utility.getIdFromReference(k)}`]: v.toString()
+            }))
+            .reduce((acc, cur) => ({
+                ...acc,
+                ...cur,
+            }), {}),
     }
 
     /**
@@ -5427,6 +5432,20 @@ function initializeSerializerFactory() {
                 : `"${Utility.escapeString(value)}"`,
             String
         )
+    );
+
+    SerializerFactory.registerSerializer(
+        SimpleSerializationVectorEntity,
+        new CustomSerializer(
+            /** @param {SimpleSerializationVectorEntity} value */
+            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
+            SimpleSerializationVectorEntity
+        )
+    );
+
+    SerializerFactory.registerSerializer(
+        VectorEntity,
+        new GeneralSerializer(bracketsWrapped, VectorEntity)
     );
 }
 

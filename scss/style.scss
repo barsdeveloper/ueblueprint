@@ -1,6 +1,6 @@
 @font-face {
     font-family: "Roboto";
-    font-style: light;
+    font-weight: lighter;
     src:
         url("../font/roboto-light.woff2") format("woff2"),
         url("../font/roboto-light.woff") format("woff");
@@ -8,10 +8,18 @@
 
 @font-face {
     font-family: "Roboto";
-    font-style: regular;
+    font-weight: normal;
     src:
         url("../font/roboto-regular.woff2") format("woff2"),
         url("../font/roboto-regular.woff") format("woff");
+}
+
+@font-face {
+    font-family: "Roboto";
+    font-weight: bold;
+    src:
+        url("../font/roboto-bold.woff2") format("woff2"),
+        url("../font/roboto-bold.woff") format("woff");
 }
 
 ueb-blueprint {

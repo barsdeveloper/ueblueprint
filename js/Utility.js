@@ -224,6 +224,14 @@ export default class Utility {
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
     }
 
+    /** @param {String} value */
+    static getIdFromReference(value) {
+        return value
+            .replace(/(?:.+\.)?([^\.]+)$/, "$1")
+            .replaceAll(/(?<=[a-z\d])(?=[A-Z])|(?<=[a-zA-Z])(?=\d)|(?<=[A-Z]{2})(?=[A-Z][a-z])/g, "-")
+            .toLocaleLowerCase()
+    }
+
     /** @param {LinearColorEntity} value */
     static printLinearColor(value) {
         return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`

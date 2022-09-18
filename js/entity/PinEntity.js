@@ -5,7 +5,7 @@ import LinearColorEntity from "./LinearColorEntity"
 import LocalizedTextEntity from "./LocalizedTextEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinReferenceEntity from "./PinReferenceEntity"
-import SerializedType from "./SerializedType"
+import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity"
 import TypeInitialization from "./TypeInitialization"
 import VectorEntity from "./VectorEntity"
 
@@ -20,8 +20,8 @@ export default class PinEntity extends IEntity {
         "real": Number,
         "string": String,
     }
-    static get typeEntityMap() {
-        return PinEntity.#typeEntityMap
+    static #alternativeTypeEntityMap = {
+        "/Script/CoreUObject.Vector": SimpleSerializationVectorEntity,
     }
     static lookbehind = "Pin"
     static attributes = {
@@ -48,7 +48,7 @@ export default class PinEntity extends IEntity {
             new CalculatedType(
                 /** @param {PinEntity} pinEntity */
                 pinEntity => new TypeInitialization(
-                    PinEntity.typeEntityMap[pinEntity.getType()] ?? String,
+                    PinEntity.getEntityType(pinEntity.getType(), true) ?? String,
                     false,
                     undefined,
                     true
@@ -63,6 +63,13 @@ export default class PinEntity extends IEntity {
         bDefaultValueIsIgnored: false,
         bAdvancedView: false,
         bOrphanedPin: false,
+    }
+
+    static getEntityType(typeString, alternative = false) {
+        const [entity, alternativeEntity] = [this.#typeEntityMap[typeString], this.#alternativeTypeEntityMap[typeString]]
+        return alternative && alternativeEntity !== undefined
+            ? alternativeEntity
+            : entity
     }
 
     getType() {

@@ -52,16 +52,16 @@ ueb-node[data-selected="true"]>.ueb-node-border {
     white-space: nowrap;
 }
 
-.ueb-node-top[data-pure-function="true"] {
+ueb-node[data-pure-function="true"] .ueb-node-top {
     box-shadow:
-        inset 5px 1px 5px -3px #7ba1b3,
+        inset 5px 1px 5px -3px #7aa674,
         inset 0 1px 0 0 #111213,
-        inset 0 2px 0 0 #7b9eb3;
+        inset 0 2px 0 0 #7bb386;
     background: linear-gradient(170deg, #5f815a 0%, #5f815a 50%, transparent 100%);
 }
 
 .ueb-node-name {
-    background: radial-gradient(ellipse 100% 100% at 30% 50%, rgba(0, 0, 0, 0.45) 20%, transparent 50%);
+    background: radial-gradient(ellipse 100% 100% at 35% 50%, rgba(0, 0, 0, 0.35) 20%, transparent 50%);
     margin: -0.1em -1.6em;
     padding: 0.1em 1.6em;
 }
@@ -74,8 +74,8 @@ ueb-node[data-selected="true"]>.ueb-node-border {
     vertical-align: middle;
 }
 
-.ueb-node-top[data-pure-function="true"] .ueb-node-name-symbol {
-    color: #74bff2;
+ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
+    color: #aaeda0;
 }
 
 .ueb-node-name-symbol path {

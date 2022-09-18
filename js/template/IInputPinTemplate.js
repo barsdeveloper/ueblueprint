@@ -53,9 +53,7 @@ export default class IInputPinTemplate extends PinTemplate {
         }
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     cleanup(pin) {
         super.cleanup(pin)
         this.#inputContentElements.forEach(element => {
@@ -64,9 +62,7 @@ export default class IInputPinTemplate extends PinTemplate {
         })
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     createInputObjects(pin) {
         return [
             ...super.createInputObjects(pin),
@@ -74,16 +70,12 @@ export default class IInputPinTemplate extends PinTemplate {
         ]
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     getInput(pin) {
         return this.getInputs(pin).reduce((acc, cur) => acc + cur, "")
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     getInputs(pin) {
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
@@ -108,9 +100,7 @@ export default class IInputPinTemplate extends PinTemplate {
         }
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     renderInput(pin) {
         if (pin.isInput()) {
             return html`

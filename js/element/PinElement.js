@@ -101,9 +101,7 @@ export default class PinElement extends IElement {
         this.requestUpdate("defaultValue", oldValue)
     }
 
-    /**
-     * @param {PinEntity} entity
-     */
+    /** @param {PinEntity} entity */
     constructor(entity) {
         super(
             entity,
@@ -144,9 +142,7 @@ export default class PinElement extends IElement {
         return this.GetPinId().value
     }
 
-    /**
-     * @returns {String}
-     */
+    /** @returns {String} */
     getPinName() {
         return this.entity.PinName
     }
@@ -179,9 +175,7 @@ export default class PinElement extends IElement {
         return this.template.getLinkLocation(this)
     }
 
-    /**
-     * @returns {NodeElement}
-     */
+    /** @returns {NodeElement} */
     getNodeElement() {
         return this.nodeElement
     }
@@ -207,17 +201,13 @@ export default class PinElement extends IElement {
         })
     }
 
-    /**
-     * @param {PinElement} targetPinElement
-     */
+    /** @param {PinElement} targetPinElement */
     linkTo(targetPinElement) {
         this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)
         this.isLinked = this.entity.isLinked()
     }
 
-    /**
-     * @param {PinElement} targetPinElement
-     */
+    /** @param {PinElement} targetPinElement */
     unlinkFrom(targetPinElement) {
         this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)
         this.isLinked = this.entity.isLinked()

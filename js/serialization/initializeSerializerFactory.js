@@ -15,8 +15,10 @@ import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "./SerializerFactory"
+import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import ToStringSerializer from "./ToStringSerializer"
 import Utility from "../Utility"
+import VectorEntity from "../entity/VectorEntity"
 
 export default function initializeSerializerFactory() {
 
@@ -138,5 +140,19 @@ export default function initializeSerializerFactory() {
                 : `"${Utility.escapeString(value)}"`,
             String
         )
+    )
+
+    SerializerFactory.registerSerializer(
+        SimpleSerializationVectorEntity,
+        new CustomSerializer(
+            /** @param {SimpleSerializationVectorEntity} value */
+            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
+            SimpleSerializationVectorEntity
+        )
+    )
+
+    SerializerFactory.registerSerializer(
+        VectorEntity,
+        new GeneralSerializer(bracketsWrapped, VectorEntity)
     )
 }

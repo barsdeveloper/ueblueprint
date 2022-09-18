@@ -104,6 +104,16 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     background-color: var(--ueb-linear-color);
 }
 
+.ueb-pin-input-label~.ueb-pin-input {
+    margin-left: 0;
+}
+
+.ueb-pin-input-label {
+    vertical-align: middle;
+    margin-left: 3px;
+    color: #777777;
+}
+
 .ueb-pin-input-content {
     display: block;
     outline: none;

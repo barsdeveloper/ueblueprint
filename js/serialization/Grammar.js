@@ -12,7 +12,7 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
-import SerializedType from "../entity/SerializedType"
+import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
@@ -58,6 +58,8 @@ export default class Grammar {
                 return r.PinReference
             case VectorEntity:
                 return r.Vector
+            case SimpleSerializationVectorEntity:
+                return r.SimpleSerializationVectorEntity
             case LinearColorEntity:
                 return r.LinearColor
             case FunctionReferenceEntity:
@@ -108,7 +110,7 @@ export default class Grammar {
                 .sepBy(P.string(",")) // Assignments are separated by comma
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
             P.string(')'),
-            (_, attributes, __) => {
+            (_0, attributes, _2) => {
                 let values = {}
                 attributes.forEach(attributeSetter => attributeSetter(values))
                 return new entityType(values)
@@ -181,25 +183,25 @@ export default class Grammar {
             ]),
         P.seqMap(
             r.Word, // Goes into referenceType
-            P.optWhitespace, // Goes into _ (ignored)
+            P.optWhitespace, // Goes into _1 (ignored)
             P.alt(...[r.ReferencePath].flatMap(referencePath => [
                 referencePath.wrap(P.string(`"`), P.string(`"`)),
                 referencePath.wrap(P.string(`'"`), P.string(`"'`))
             ])), // Goes into referencePath
-            (referenceType, _, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
+            (referenceType, _1, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
         ),
         r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
     )
 
     LocalizedText = r => P.seqMap(
-        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _ (ignored)
+        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _0 (ignored)
         r.String.trim(P.optWhitespace), // Goes into namespace
-        P.string(","), // Goes into __ (ignored)
+        P.string(","), // Goes into _2 (ignored)
         r.String.trim(P.optWhitespace), // Goes into key
-        P.string(","), // Goes into ___ (ignored)
+        P.string(","), // Goes into _4 (ignored)
         r.String.trim(P.optWhitespace), // Goes into value
-        P.string(")"), // Goes into ____ (ignored)
-        (_, namespace, __, key, ___, value, ____) => new LocalizedTextEntity({
+        P.string(")"), // Goes into _6 (ignored)
+        (_0, namespace, _2, key, _4, value, _6) => new LocalizedTextEntity({
             namespace: namespace,
             key: key,
             value: value
@@ -238,6 +240,19 @@ export default class Grammar {
     )
 
     Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
+
+    SimpleSerializationVectorEntity = r => P.seqMap(
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        (x, _1, y, _3, z) => new SimpleSerializationVectorEntity({
+            X: x,
+            Y: y,
+            Z: z,
+        })
+    )
 
     LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity)
 
