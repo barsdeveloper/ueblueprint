@@ -1,6 +1,5 @@
 import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
-import Utility from "../Utility"
 import PinTemplate from "./PinTemplate"
 
 /**
@@ -16,14 +15,12 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     static stringFromInputToUE(value) {
-
         return value
             .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
             .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
     }
 
     static stringFromUEToInput(value) {
-
         return value
             .replaceAll(/(?:\r|(?<=(?:^|[^\\])(?:\\\\)*)\\r)(?=\n)/g, "") // Remove \r leftover from \r\n
             .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline

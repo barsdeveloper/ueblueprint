@@ -3210,9 +3210,7 @@ class PinTemplate extends ITemplate {
         `
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     renderIcon(pin) {
         return $`
             <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -3265,14 +3263,12 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     static stringFromInputToUE(value) {
-
         return value
             .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
             .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
     }
 
     static stringFromUEToInput(value) {
-
         return value
             .replaceAll(/(?:\r|(?<=(?:^|[^\\])(?:\\\\)*)\\r)(?=\n)/g, "") // Remove \r leftover from \r\n
             .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
@@ -3583,6 +3579,21 @@ class StringPinTemplate extends IInputPinTemplate {
 
 class VectorPinTemplate extends RealPinTemplate {
 
+    /**
+     * @param {PinElement} pin
+     * @param {String[]?} values
+     */
+    setInputs(pin, values = [], updateDefaultValue = true) {
+        this.inputContentElements.forEach(
+            (element, i) => element.innerText = values[i]
+        );
+        if (updateDefaultValue) {
+            pin.setDefaultValue(values
+                .map(v => IInputPinTemplate.stringFromInputToUE(v)) // Double newline at the end of a contenteditable element
+                .reduce((acc, cur) => acc + cur, ""));
+        }
+    }
+
     /** @param {PinElement} pin */
     renderInput(pin) {
         if (pin.isInput()) {
@@ -3590,21 +3601,33 @@ class VectorPinTemplate extends RealPinTemplate {
                 <span class="ueb-pin-input-label">X</span>
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.X.toString())}"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().X.toString())}"></span>
                 </div>
                 <span class="ueb-pin-input-label">Y</span>
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.Y.toString())}"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
                 </div>
                 <span class="ueb-pin-input-label">Z</span>
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.Z.toString())}"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Z.toString())}"></span>
                 </div>
             `
         }
         return $``
+    }
+}
+
+class ReferencePinTemplate extends PinTemplate {
+
+    /** @param {PinElement} pin */
+    renderIcon(pin) {
+        return $`
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
+            </svg>
+        `
     }
 }
 
@@ -3626,6 +3649,7 @@ class PinElement extends IElement {
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
+        "REFERENCE": ReferencePinTemplate,
     }
 
     static properties = {
@@ -3674,7 +3698,11 @@ class PinElement extends IElement {
      * @return {PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
-        let result = PinElement.#typeTemplateMap[pinEntity.getType()];
+        let result = PinElement.#typeTemplateMap[
+            pinEntity.PinType.bIsReference
+                ? "REFERENCE"
+                : pinEntity.getType()
+        ];
         return result ?? PinTemplate
     }
 

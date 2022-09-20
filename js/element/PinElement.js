@@ -12,6 +12,7 @@ import RealPinTemplate from "../template/RealPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 import Utility from "../Utility"
 import VectorPinTemplate from "../template/VectorPinTemplate"
+import ReferencePinTemplate from "../template/ReferencePinTemplate"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -31,6 +32,7 @@ export default class PinElement extends IElement {
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
+        "REFERENCE": ReferencePinTemplate,
     }
 
     static properties = {
@@ -79,7 +81,11 @@ export default class PinElement extends IElement {
      * @return {PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
-        let result = PinElement.#typeTemplateMap[pinEntity.getType()]
+        let result = PinElement.#typeTemplateMap[
+            pinEntity.PinType.bIsReference
+                ? "REFERENCE"
+                : pinEntity.getType()
+        ]
         return result ?? PinTemplate
     }
 
