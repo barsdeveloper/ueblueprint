@@ -59,6 +59,7 @@ export default class Configuration {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
     }
+    static windowCloseEventName = "ueb-window-close"
     static ModifierKeys = [
         "Ctrl",
         "Shift",

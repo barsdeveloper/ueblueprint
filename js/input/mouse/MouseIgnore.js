@@ -1,4 +1,4 @@
-import IMouseClickDrag from "./IMouseClickDrag";
+import IMouseClickDrag from "./IMouseClickDrag"
 
 /**
  * @typedef {import("../../element/PinElement").default} PinElement

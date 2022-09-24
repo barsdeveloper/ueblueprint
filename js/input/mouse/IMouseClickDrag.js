@@ -1,12 +1,12 @@
 import Configuration from "../../Configuration"
 import IPointing from "./IPointing"
+import Utility from "../../Utility"
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
  */
 
 /**
- * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  * @template {HTMLElement} T
  * @extends {IPointing<T>}
  */
@@ -25,19 +25,26 @@ export default class IMouseClickDrag extends IPointing {
     #mouseUpHandler
 
     #trackingMouse = false
+    #movementListenedElement
+    #draggableElement
 
     started = false
+    stepSize = 1
+    clickedPosition = [0, 0]
+    mouseLocation = [0, 0]
 
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= 0
         options.consumeEvent ??= true
         options.exitAnyButton ??= true
+        options.draggableElement ??= target
         options.looseTarget ??= false
         options.moveEverywhere ??= false
         super(target, blueprint, options)
-        this.clickedPosition = [0, 0]
+        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize)
 
-        const movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace
+        this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace
+        this.#draggableElement = this.options.draggableElement
         let self = this
 
         this.#mouseDownHandler = e => {
@@ -50,7 +57,7 @@ export default class IMouseClickDrag extends IPointing {
                             e.stopImmediatePropagation() // Captured, don't call anyone else
                         }
                         // Attach the listeners
-                        movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler)
+                        self.#movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler)
                         document.addEventListener("mouseup", self.#mouseUpHandler)
                         self.clickedPosition = self.locationFromEvent(e)
                         self.clicked(self.clickedPosition)
@@ -69,13 +76,14 @@ export default class IMouseClickDrag extends IPointing {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
             // Delegate from now on to self.#mouseMoveHandler
-            movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
-            movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler)
+            self.#movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
+            self.#movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler)
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
             const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin)
             self.#trackingMouse = self.target.dispatchEvent(dragEvent) == false
             const location = self.locationFromEvent(e)
             // Do actual actions
+            this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize)
             self.startDrag(location)
             self.started = true
         }
@@ -98,8 +106,8 @@ export default class IMouseClickDrag extends IPointing {
                     e.stopImmediatePropagation() // Captured, don't call anyone else
                 }
                 // Remove the handlers of "mousemove" and "mouseup"
-                movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
-                movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler)
+                self.#movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
+                self.#movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler)
                 document.removeEventListener("mouseup", self.#mouseUpHandler)
                 if (self.started) {
                     self.endDrag()
@@ -118,14 +126,14 @@ export default class IMouseClickDrag extends IPointing {
     }
 
     listenEvents() {
-        this.target.addEventListener("mousedown", this.#mouseDownHandler)
+        this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler)
         if (this.options.clickButton == 2) {
-            this.target.addEventListener("contextmenu", e => e.preventDefault())
+            this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault())
         }
     }
 
     unlistenEvents() {
-        this.target.removeEventListener("mousedown", this.#mouseDownHandler)
+        this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler)
     }
 
     getEvent(eventName) {

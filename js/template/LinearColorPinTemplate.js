@@ -1,4 +1,5 @@
 import { html } from "lit"
+import MouseOpenWindow from "../input/mouse/MouseOpenWindow"
 import IInputPinTemplate from "./IInputPinTemplate"
 
 /**
@@ -22,6 +23,20 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
 
     /**
      * @param {PinElement} pin
+     * @returns {IInput[]}
+     */
+    createInputObjects(pin) {
+        return [
+            ...super.createInputObjects(pin),
+            new MouseOpenWindow(this.#input, pin.blueprint, {
+                moveEverywhere: true,
+                looseTarget: true
+            })
+        ]
+    }
+
+    /**
+     * @param {PinElement} pin
      */
     getInputs(pin) {
         return [this.#input.dataset.linearColor]
@@ -40,11 +55,8 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return html`
-                <span
-                    class="ueb-pin-input"
-                    data-linear-color="${pin.defaultValue.toString()}"
-                    style="--ueb-linear-color:rgba(${pin.defaultValue.toString()})"
-                >
+                <span class="ueb-pin-input" data-linear-color="${pin.defaultValue.toString()}"
+                    .style="--ueb-linear-color:rgba(${pin.defaultValue.toString()})">
                 </span>
             `
         }

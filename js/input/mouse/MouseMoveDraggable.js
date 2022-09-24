@@ -1,5 +1,4 @@
 import IMouseClickDrag from "./IMouseClickDrag"
-import MouseMoveDraggable from "./MouseMoveDraggable"
 import Utility from "../../Utility"
 
 /**
@@ -8,14 +7,7 @@ import Utility from "../../Utility"
  */
 
 /** @extends {IMouseClickDrag<ISelectableDraggableElement>} */
-export default class MouseMoveNodes extends MouseMoveDraggable {
-
-    startDrag() {
-        if (!this.target.selected) {
-            this.blueprint.unselectAll()
-            this.target.setSelected(true)
-        }
-    }
+export default class MouseMoveDraggable extends IMouseClickDrag {
 
     dragTo(location, movement) {
         const initialTargetLocation = [this.target.locationX, this.target.locationY]
@@ -32,15 +24,8 @@ export default class MouseMoveNodes extends MouseMoveDraggable {
         // Make sure it snaps on the grid
         d[0] += targetLocation[0] - this.target.locationX
         d[1] += targetLocation[1] - this.target.locationY
-        this.target.dispatchDragEvent(d)
+        this.target.addLocation(d)
         // Reassign the position of mouse
         this.mouseLocation = mouseLocation
-    }
-
-    unclicked() {
-        if (!this.started) {
-            this.blueprint.unselectAll()
-            this.target.setSelected(true)
-        }
     }
 }

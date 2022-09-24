@@ -83,6 +83,7 @@ class Configuration {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
     }
+    static windowCloseEventName = "ueb-window-close"
     static ModifierKeys = [
         "Ctrl",
         "Shift",
@@ -1752,15 +1753,11 @@ class ITemplate {
         return this.#inputObjects
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     constructed(element) {
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     connectedCallback(element) {
     }
 
@@ -1778,9 +1775,7 @@ class ITemplate {
     update(element, changedProperties) {
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     render(element) {
         return $``
     }
@@ -1799,16 +1794,12 @@ class ITemplate {
     updated(element, changedProperties) {
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     inputSetup(element) {
         this.#inputObjects = this.createInputObjects(element);
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     cleanup(element) {
         this.#inputObjects.forEach(v => v.unlistenDOMElement());
     }
@@ -2084,7 +2075,6 @@ class KeyboardSelectAll extends IKeyboardShortcut {
  */
 
 /**
- * This class manages the ui gesture of mouse click and drag. Tha actual operations are implemented by the subclasses.
  * @template {HTMLElement} T
  * @extends {IPointing<T>}
  */
@@ -2103,19 +2093,26 @@ class IMouseClickDrag extends IPointing {
     #mouseUpHandler
 
     #trackingMouse = false
+    #movementListenedElement
+    #draggableElement
 
     started = false
+    stepSize = 1
+    clickedPosition = [0, 0]
+    mouseLocation = [0, 0]
 
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= 0;
         options.consumeEvent ??= true;
         options.exitAnyButton ??= true;
+        options.draggableElement ??= target;
         options.looseTarget ??= false;
         options.moveEverywhere ??= false;
         super(target, blueprint, options);
-        this.clickedPosition = [0, 0];
+        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
 
-        const movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
+        this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
+        this.#draggableElement = this.options.draggableElement;
         let self = this;
 
         this.#mouseDownHandler = e => {
@@ -2128,7 +2125,7 @@ class IMouseClickDrag extends IPointing {
                             e.stopImmediatePropagation(); // Captured, don't call anyone else
                         }
                         // Attach the listeners
-                        movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler);
+                        self.#movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler);
                         document.addEventListener("mouseup", self.#mouseUpHandler);
                         self.clickedPosition = self.locationFromEvent(e);
                         self.clicked(self.clickedPosition);
@@ -2147,13 +2144,14 @@ class IMouseClickDrag extends IPointing {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             // Delegate from now on to self.#mouseMoveHandler
-            movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
-            movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
+            self.#movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
+            self.#movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
             // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
             const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
             self.#trackingMouse = self.target.dispatchEvent(dragEvent) == false;
             const location = self.locationFromEvent(e);
             // Do actual actions
+            this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
             self.startDrag(location);
             self.started = true;
         };
@@ -2176,8 +2174,8 @@ class IMouseClickDrag extends IPointing {
                     e.stopImmediatePropagation(); // Captured, don't call anyone else
                 }
                 // Remove the handlers of "mousemove" and "mouseup"
-                movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
-                movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler);
+                self.#movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
+                self.#movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler);
                 document.removeEventListener("mouseup", self.#mouseUpHandler);
                 if (self.started) {
                     self.endDrag();
@@ -2196,14 +2194,14 @@ class IMouseClickDrag extends IPointing {
     }
 
     listenEvents() {
-        this.target.addEventListener("mousedown", this.#mouseDownHandler);
+        this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler);
         if (this.options.clickButton == 2) {
-            this.target.addEventListener("contextmenu", e => e.preventDefault());
+            this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault());
         }
     }
 
     unlistenEvents() {
-        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
+        this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler);
     }
 
     getEvent(eventName) {
@@ -2461,16 +2459,10 @@ class IElement extends s {
  * @template {SelectableDraggableTemplate} U
  * @extends {IElement<T, U>}
  */
-class ISelectableDraggableElement extends IElement {
+class IDraggableElement extends IElement {
 
     static properties = {
         ...super.properties,
-        selected: {
-            type: Boolean,
-            attribute: "data-selected",
-            reflect: true,
-            converter: Utility.booleanConverter,
-        },
         locationX: {
             type: Number,
             attribute: false,
@@ -2483,29 +2475,11 @@ class ISelectableDraggableElement extends IElement {
 
     constructor(...args) {
         super(...args);
-        this.selected = false;
         this.locationX = 0;
         this.locationY = 0;
-
-        this.listeningDrag = false;
-
-        let self = this;
-        this.dragHandler = e => self.addLocation(e.detail.value);
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-        this.setSelected(this.selected);
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
-    }
-
-    /**
-     * @param {Number[]} param0
-     */
+    /** @param {Number[]} param0 */
     setLocation([x, y]) {
         const d = [x - this.locationX, y - this.locationY];
         this.locationX = x;
@@ -2522,29 +2496,12 @@ class ISelectableDraggableElement extends IElement {
         }
     }
 
-    /**
-     * @param {Number[]} param0
-     */
+    /** @param {Number[]} param0 */
     addLocation([x, y]) {
         this.setLocation([this.locationX + x, this.locationY + y]);
     }
 
-    setSelected(value = true) {
-        this.selected = value;
-        if (this.blueprint) {
-            if (this.selected) {
-                this.listeningDrag = true;
-                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
-            } else {
-                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
-                this.listeningDrag = false;
-            }
-        }
-    }
-
-    /**
-     * @param {Number[]} value 
-     */
+    /** @param {Number[]} value */
     dispatchDragEvent(value) {
         const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
             detail: {
@@ -2560,6 +2517,60 @@ class ISelectableDraggableElement extends IElement {
         const snappedLocation = Utility.snapToGrid([this.locationX, this.locationY], Configuration.gridSize);
         if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
             this.setLocation(snappedLocation);
+        }
+    }
+}
+
+/**
+ * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ * @typedef {import("../entity/IEntity").default} IEntity
+ */
+
+/**
+ * @template {IEntity} T
+ * @template {IDraggableElement} U
+ * @extends {IElement<T, U>}
+ */
+class ISelectableDraggableElement extends IDraggableElement {
+
+    static properties = {
+        ...super.properties,
+        selected: {
+            type: Boolean,
+            attribute: "data-selected",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+    }
+
+    constructor(...args) {
+        super(...args);
+        this.selected = false;
+        this.listeningDrag = false;
+        let self = this;
+        this.dragHandler = e => self.addLocation(e.detail.value);
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.setSelected(this.selected);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
+    }
+
+    setSelected(value = true) {
+        this.selected = value;
+        if (this.blueprint) {
+            if (this.selected) {
+                this.listeningDrag = true;
+                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
+            } else {
+                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
+                this.listeningDrag = false;
+            }
         }
     }
 }
@@ -3428,6 +3439,264 @@ class ExecPinTemplate extends PinTemplate {
     }
 }
 
+/** @typedef {import("../../Blueprint").default} Blueprint */
+
+/**
+ * @template {HTMLElement} T
+ * @extends {IPointing<T>}
+ */
+class IMouseClick extends IPointing {
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseDownHandler
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseUpHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.clickButton ??= 0;
+        options.consumeEvent ??= true;
+        options.exitAnyButton ??= true;
+        options.looseTarget ??= false;
+        super(target, blueprint, options);
+        this.clickedPosition = [0, 0];
+        let self = this;
+
+        this.#mouseDownHandler = e => {
+            self.blueprint.setFocused(true);
+            switch (e.button) {
+                case self.options.clickButton:
+                    // Either doesn't matter or consider the click only when clicking on the target, not descandants
+                    if (self.options.looseTarget || e.target == e.currentTarget) {
+                        if (self.options.consumeEvent) {
+                            e.stopImmediatePropagation(); // Captured, don't call anyone else
+                        }
+                        // Attach the listeners
+                        document.addEventListener("mouseup", self.#mouseUpHandler);
+                        self.clickedPosition = self.locationFromEvent(e);
+                        self.clicked(self.clickedPosition);
+                    }
+                    break
+                default:
+                    if (!self.options.exitAnyButton) {
+                        self.#mouseUpHandler(e);
+                    }
+                    break
+            }
+        };
+
+        this.#mouseUpHandler = e => {
+            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
+                if (self.options.consumeEvent) {
+                    e.stopImmediatePropagation(); // Captured, don't call anyone else
+                }
+                // Remove the handlers of "mousemove" and "mouseup"
+                document.removeEventListener("mouseup", self.#mouseUpHandler);
+                self.unclicked();
+            }
+        };
+
+        this.listenEvents();
+    }
+
+    listenEvents() {
+        this.target.addEventListener("mousedown", this.#mouseDownHandler);
+        if (this.options.clickButton == 2) {
+            this.target.addEventListener("contextmenu", e => e.preventDefault());
+        }
+    }
+
+    unlistenEvents() {
+        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
+    }
+
+    /* Subclasses will override the following methods */
+    clicked(location) {
+    }
+
+    unclicked(location) {
+    }
+}
+
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ */
+
+/** @extends {IMouseClickDrag<ISelectableDraggableElement>} */
+class MouseMoveDraggable extends IMouseClickDrag {
+
+    dragTo(location, movement) {
+        const initialTargetLocation = [this.target.locationX, this.target.locationY];
+        const [mouseLocation, targetLocation] = this.stepSize > 1
+            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(initialTargetLocation, this.stepSize)]
+            : [location, initialTargetLocation];
+        const d = [
+            mouseLocation[0] - this.mouseLocation[0],
+            mouseLocation[1] - this.mouseLocation[1]
+        ];
+        if (d[0] == 0 && d[1] == 0) {
+            return
+        }
+        // Make sure it snaps on the grid
+        d[0] += targetLocation[0] - this.target.locationX;
+        d[1] += targetLocation[1] - this.target.locationY;
+        this.target.addLocation(d);
+        // Reassign the position of mouse
+        this.mouseLocation = mouseLocation;
+    }
+}
+
+/**
+ * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+ * @template {ISelectableDraggableElement} T
+ * @extends {ITemplate<T>}
+ */
+class IDraggableTemplate extends ITemplate {
+
+    /** @param {T} element */
+    getDraggableElement(element) {
+        return element
+    }
+
+    createDraggableObject(element) {
+        return new MouseMoveDraggable(element, element.blueprint, {
+            draggableElement: this.getDraggableElement(element),
+            looseTarget: true,
+        })
+    }
+
+    /** @param {T} element */
+    createInputObjects(element) {
+        return [
+            ...super.createInputObjects(element),
+            this.createDraggableObject(element),
+        ]
+    }
+
+    /**
+     * @param {T} element
+     * @param {Map} changedProperties
+     */
+    update(element, changedProperties) {
+        super.update(element, changedProperties);
+        if (changedProperties.has("locationX")) {
+            element.style.setProperty("--ueb-position-x", `${element.locationX}`);
+        }
+        if (changedProperties.has("locationY")) {
+            element.style.setProperty("--ueb-position-y", `${element.locationY}`);
+        }
+    }
+}
+
+/** @typedef {import("../element/WindowElement").default} WindowElement */
+
+/** @extends {SelectableDraggableTemplate<WindowElement>} */
+class WindowTemplate extends IDraggableTemplate {
+
+    static windowName = $`Window`
+
+    toggleAdvancedDisplayHandler
+
+    /** @param {WindowElement} element */
+    getDraggableElement(element) {
+        return element.querySelector(".ueb-window-top")
+    }
+
+    createDraggableObject(element) {
+        return new MouseMoveDraggable(element, element.blueprint, {
+            draggableElement: this.getDraggableElement(element),
+            looseTarget: true,
+            stepSize: 1,
+        })
+    }
+
+    /** @param {WindowElement} element */
+    render(element) {
+        return $`
+            <div class="ueb-window">
+                <div class="ueb-window-top">
+                    <div class="ueb-window-name">${this.constructor.windowName}</div>
+                    <div class="ueb-window-close">
+                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
+                            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="ueb-window-content">
+                    Content
+                </div>
+            </div>
+        `
+    }
+}
+
+/** @extends {ISelectableDraggableElement<Object, WindowTemplate>} */
+class WindowElement extends ISelectableDraggableElement {
+
+    static #typeTemplateMap = {
+        "window": WindowTemplate,
+    }
+
+    static properties = {
+        ...ISelectableDraggableElement.properties,
+        type: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
+    }
+
+    constructor(properties = {}) {
+        properties.type ??= "window";
+        super({}, new WindowElement.#typeTemplateMap[properties.type]());
+        this.type = properties.type;
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.dispatchCloseEvent();
+    }
+
+    dispatchCloseEvent(value) {
+        let deleteEvent = new CustomEvent(Configuration.windowCloseEventName, {
+            bubbles: true,
+            cancelable: true,
+        });
+        this.dispatchEvent(deleteEvent);
+    }
+}
+
+customElements.define("ueb-window", WindowElement);
+
+/**
+ * @template {HTMLElement} T
+ * @extends {IMouseClick<T>}
+ */
+class MouseOpenWindow extends IMouseClick {
+
+    #window
+
+    constructor(target, blueprint, options = {}) {
+        options.windowType ??= "window";
+        super(target, blueprint, options);
+    }
+
+    clicked(location) {
+    }
+
+    unclicked(location) {
+        this.#window = new WindowElement({
+            type: this.options.windowType
+        });
+        this.blueprint.append(this.#window);
+    }
+}
+
 /**
  * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity}
@@ -3445,6 +3714,20 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     firstUpdated(pin, changedProperties) {
         super.firstUpdated(pin, changedProperties);
         this.#input = pin.querySelector(".ueb-pin-input");
+    }
+
+    /**
+     * @param {PinElement} pin
+     * @returns {IInput[]}
+     */
+    createInputObjects(pin) {
+        return [
+            ...super.createInputObjects(pin),
+            new MouseOpenWindow(this.#input, pin.blueprint, {
+                moveEverywhere: true,
+                looseTarget: true
+            })
+        ]
     }
 
     /**
@@ -3467,11 +3750,8 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return $`
-                <span
-                    class="ueb-pin-input"
-                    data-linear-color="${pin.defaultValue.toString()}"
-                    style="--ueb-linear-color:rgba(${pin.defaultValue.toString()})"
-                >
+                <span class="ueb-pin-input" data-linear-color="${pin.defaultValue.toString()}"
+                    .style="--ueb-linear-color:rgba(${pin.defaultValue.toString()})">
                 </span>
             `
         }
@@ -3648,8 +3928,8 @@ class PinElement extends IElement {
         "exec": ExecPinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
-        "string": StringPinTemplate,
         "REFERENCE": ReferencePinTemplate,
+        "string": StringPinTemplate,
     }
 
     static properties = {
@@ -3860,21 +4140,10 @@ customElements.define("ueb-pin", PinElement);
  * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 
-/**
- * @extends {IMouseClickDrag<ISelectableDraggableElement>}
- */
-class MouseMoveNodes extends IMouseClickDrag {
-
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
-        this.mouseLocation = [0, 0];
-    }
+/** @extends {IMouseClickDrag<ISelectableDraggableElement>} */
+class MouseMoveNodes extends MouseMoveDraggable {
 
     startDrag() {
-        // Get the current mouse position
-        this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
-
         if (!this.target.selected) {
             this.blueprint.unselectAll();
             this.target.setSelected(true);
@@ -3890,17 +4159,13 @@ class MouseMoveNodes extends IMouseClickDrag {
             mouseLocation[0] - this.mouseLocation[0],
             mouseLocation[1] - this.mouseLocation[1]
         ];
-
         if (d[0] == 0 && d[1] == 0) {
             return
         }
-
         // Make sure it snaps on the grid
         d[0] += targetLocation[0] - this.target.locationX;
         d[1] += targetLocation[1] - this.target.locationY;
-
         this.target.dispatchDragEvent(d);
-
         // Reassign the position of mouse
         this.mouseLocation = mouseLocation;
     }
@@ -3921,32 +4186,18 @@ class MouseMoveNodes extends IMouseClickDrag {
  * @template {ISelectableDraggableElement} T
  * @extends {ITemplate<T>}
  */
-class SelectableDraggableTemplate extends ITemplate {
+class SelectableDraggableTemplate extends IDraggableTemplate {
 
-    /**
-     * @param {T} element
-     */
-    createInputObjects(element) {
-        return [
-            ...super.createInputObjects(element),
-            new MouseMoveNodes(element, element.blueprint, {
-                looseTarget: true
-            }),
-        ]
+    /** @param {T} element */
+    getDraggableElement(element) {
+        return element
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    update(element, changedProperties) {
-        super.update(element, changedProperties);
-        if (changedProperties.has("locationX")) {
-            element.style.setProperty("--ueb-position-x", `${element.locationX}`);
-        }
-        if (changedProperties.has("locationY")) {
-            element.style.setProperty("--ueb-position-y", `${element.locationY}`);
-        }
+    createDraggableObject(element) {
+        return new MouseMoveNodes(element, element.blueprint, {
+            draggableElement: this.getDraggableElement(element),
+            looseTarget: true,
+        })
     }
 
     /**

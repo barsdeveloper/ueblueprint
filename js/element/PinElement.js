@@ -31,8 +31,8 @@ export default class PinElement extends IElement {
         "exec": ExecPinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
-        "string": StringPinTemplate,
         "REFERENCE": ReferencePinTemplate,
+        "string": StringPinTemplate,
     }
 
     static properties = {

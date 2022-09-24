@@ -18,15 +18,11 @@ export default class ITemplate {
         return this.#inputObjects
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     constructed(element) {
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     connectedCallback(element) {
     }
 
@@ -44,9 +40,7 @@ export default class ITemplate {
     update(element, changedProperties) {
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     render(element) {
         return html``
     }
@@ -65,16 +59,12 @@ export default class ITemplate {
     updated(element, changedProperties) {
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     inputSetup(element) {
         this.#inputObjects = this.createInputObjects(element)
     }
 
-    /**
-     * @param {T} element
-     */
+    /** @param {T} element */
     cleanup(element) {
         this.#inputObjects.forEach(v => v.unlistenDOMElement())
     }

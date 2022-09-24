@@ -1,0 +1,25 @@
+@use "style.scss";
+
+ueb-window {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
+    z-index: 1000;
+}
+
+.ueb-window-top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 8px;
+    height: 30px;
+    background: #1a1a1a;
+}
+
+.ueb-window-close {
+    padding: 8px;
+    height: 12px;
+    width: 12px;
+}
