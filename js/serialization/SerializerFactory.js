@@ -1,11 +1,11 @@
 import Utility from "../Utility"
 
 /** @typedef {import("../entity/IEntity").default} IEntity */
+
 /**
  * @template {IEntity} T
  * @typedef {import("./ISerializer").default<T>} ISerializer
  */
-
 export default class SerializerFactory {
 
     /** @type {Map<T, ISerializer<T>>} */
