@@ -3,14 +3,10 @@ import Configuration from "../Configuration"
 import Utility from "../Utility"
 import IFromToPositionedTemplate from "./IFromToPositionedTemplate"
 
-/**
- * @typedef {import("../element/LinkElement").default} LinkElement
- */
+/** @typedef {import("../element/LinkElement").default} LinkElement */
 
 
-/**
- * @extends {IFromToPositionedTemplate<LinkElement>}
- */
+/** @extends {IFromToPositionedTemplate<LinkElement>} */
 export default class LinkTemplate extends IFromToPositionedTemplate {
 
     /**
@@ -107,9 +103,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         link.style.setProperty("--ueb-start-percentage", `${Math.round(link.startPercentage)}%`)
     }
 
-    /**
-     * @param {LinkElement} link
-     */
+    /** @param {LinkElement} link */
     render(link) {
         const uniqueId = "ueb-id-" + Math.floor(Math.random() * 1E12)
         return html`
@@ -120,10 +114,10 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
                 </g>
             </svg>
             ${link.linkMessageIcon != "" || link.linkMessageText != "" ? html`
-                <div class="ueb-link-message">
-                    <span class="${link.linkMessageIcon}"></span>
-                    <span class="ueb-link-message-text">${link.linkMessageText}</span>
-                </div>
+            <div class="ueb-link-message">
+                <span class="${link.linkMessageIcon}"></span>
+                <span class="ueb-link-message-text">${link.linkMessageText}</span>
+            </div>
             ` : html``}
         `
     }

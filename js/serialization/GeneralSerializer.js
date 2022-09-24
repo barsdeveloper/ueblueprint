@@ -1,18 +1,12 @@
 import Grammar from "./Grammar"
 import ISerializer from "./ISerializer"
 
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- */
+/** @typedef {import("../entity/IEntity").default} IEntity */
 
-/**
- * @template {IEntity} T
- */
+/** @template {IEntity} T */
 export default class GeneralSerializer extends ISerializer {
 
-    /**
-     * @param {new () => T} entityType
-     */
+    /** @param {new () => T} entityType */
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`)
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter)

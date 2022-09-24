@@ -5,9 +5,7 @@ import SerializerFactory from "./SerializerFactory"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 
-/**
- * @template {IEntity} T
- */
+/** @template {IEntity} T */
 export default class ISerializer {
 
     static grammar = Parsimmon.createLanguage(new Grammar())

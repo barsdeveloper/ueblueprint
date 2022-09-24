@@ -9,9 +9,7 @@ import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
 
-/**
- * @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>}
- */
+/** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 export default class NodeElement extends ISelectableDraggableElement {
 
     static properties = {
@@ -63,9 +61,7 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     #pins
 
-    /**
-     * @param {ObjectEntity} entity
-     */
+    /** @param {ObjectEntity} entity */
     constructor(entity) {
         super(entity, new NodeTemplate())
         this.#pins = this.getPinEntities().filter(v => !v.isHidden()).map(v => new PinElement(v))
@@ -81,9 +77,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.entity.subscribe("Name", value => this.name = value)
     }
 
-    /**
-     * @param {String} str
-     */
+    /** @param {String} str */
     static fromSerializedObject(str) {
         str = str.trim()
         let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str)
@@ -112,9 +106,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.getPinElements().forEach(pin => pin.sanitizeLinks())
     }
 
-    /**
-     * @param {String} name
-     */
+    /** @param {String} name */
     rename(name) {
         if (this.entity.Name == name) {
             return false
@@ -134,9 +126,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         return this.#pins
     }
 
-    /**
-     * @returns {PinEntity[]}
-     */
+    /** @returns {PinEntity[]} */
     getPinEntities() {
         return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
     }

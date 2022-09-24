@@ -35,9 +35,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
         ]
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     getInputs(pin) {
         return [this.#input.dataset.linearColor]
     }
@@ -49,9 +47,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     setInputs(pin, value = []) {
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     renderInput(pin) {
         if (pin.isInput()) {
             return html`

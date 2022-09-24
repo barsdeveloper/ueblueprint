@@ -1,9 +1,7 @@
 import IInput from "../IInput"
 import Utility from "../../Utility"
 
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- */
+/** @typedef {import("../../Blueprint").default} Blueprint */
 
 /**
  * @template {HTMLElement} T
@@ -16,9 +14,7 @@ export default class IPointing extends IInput {
         this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
     }
 
-    /**
-     * @param {MouseEvent} mouseEvent
-     */
+    /** @param {MouseEvent} mouseEvent */
     locationFromEvent(mouseEvent) {
         const location = Utility.convertLocation(
             [mouseEvent.clientX, mouseEvent.clientY],

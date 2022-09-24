@@ -1,8 +1,6 @@
 import IInputPinTemplate from "./IInputPinTemplate"
 
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- */
+/** @typedef {import("../element/PinElement").default} PinElement */
 
 export default class NamePinTemplate extends IInputPinTemplate {
 
@@ -31,9 +29,7 @@ export default class NamePinTemplate extends IInputPinTemplate {
         })
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     cleanup(pin) {
         super.cleanup(pin)
         this.inputContentElements.forEach(element => {
@@ -41,9 +37,7 @@ export default class NamePinTemplate extends IInputPinTemplate {
         })
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     getInputs(pin) {
         return this.inputContentElements.map(element => element.textContent) // textContent for performance reason
     }

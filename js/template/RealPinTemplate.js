@@ -1,9 +1,7 @@
 import IInputPinTemplate from "./IInputPinTemplate"
 import Utility from "../Utility"
 
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- */
+/** @typedef {import("../element/PinElement").default} PinElement */
 
 export default class RealPinTemplate extends IInputPinTemplate {
 

@@ -5,9 +5,7 @@ import { css, html } from "lit"
  * @typedef {import("../input/IInput").default} IInput
  */
 
-/**
- * @template {IElement} T
- */
+/** @template {IElement} T */
 export default class ITemplate {
 
     static styles = css``

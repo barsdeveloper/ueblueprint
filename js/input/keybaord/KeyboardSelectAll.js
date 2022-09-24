@@ -1,9 +1,7 @@
 import Configuration from "../../Configuration"
 import IKeyboardShortcut from "./IKeyboardShortcut"
 
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- */
+/** @typedef {import("../../Blueprint").default} Blueprint */
 export default class KeyboardSelectAll extends IKeyboardShortcut {
 
     /**

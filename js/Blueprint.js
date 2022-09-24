@@ -12,9 +12,7 @@ import Utility from "./Utility"
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
  */
 
-/**
- * @extends {IElement<Object, BlueprintTemplate>}
- */
+/** @extends {IElement<Object, BlueprintTemplate>} */
 export default class Blueprint extends IElement {
 
     static properties = {
@@ -109,9 +107,7 @@ export default class Blueprint extends IElement {
         node.setSelected(selected)
     }
 
-    /**
-     * @param {Configuration} settings
-     */
+    /** @param {Configuration} settings */
     constructor(settings = new Configuration()) {
         super({}, new BlueprintTemplate())
         this.selecting = false
@@ -206,9 +202,7 @@ export default class Blueprint extends IElement {
         return Utility.snapToGrid(location, Configuration.gridSize)
     }
 
-    /**
-     * @param {Number[]} param0
-     */
+    /** @param {Number[]} param0 */
     seamlessExpand([x, y]) {
         x = Math.round(x)
         y = Math.round(y)
@@ -266,18 +260,13 @@ export default class Blueprint extends IElement {
         return parseFloat(getComputedStyle(this.gridElement).getPropertyValue("--ueb-scale"))
     }
 
-    /**
-     * @param {Number[]} param0
-     */
+    /** @param {Number[]} param0 */
     compensateTranslation([x, y]) {
         x -= this.translateX
         y -= this.translateY
         return [x, y]
     }
 
-    /**
-     * Returns the list of nodes in this blueprint. It can filter the list providing just the selected ones.
-     */
     getNodes(selected = false) {
         if (selected) {
             return this.nodes.filter(
@@ -288,9 +277,7 @@ export default class Blueprint extends IElement {
         }
     }
 
-    /**
-     * @param {PinReferenceEntity} pinReference
-     */
+    /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
         /*let result = this.template.getPin(this, pinReference)
         if (result) {
@@ -332,23 +319,15 @@ export default class Blueprint extends IElement {
         )
     }
 
-    /**
-     * Select all nodes
-     */
     selectAll() {
         this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, true))
     }
 
-    /**
-     * Unselect all nodes
-     */
     unselectAll() {
         this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, false))
     }
 
-    /**
-     * @param  {...IElement} graphElements
-     */
+    /** @param  {...IElement} graphElements */
     addGraphElement(...graphElements) {
         let nodeElements = []
         for (let element of graphElements) {
@@ -382,9 +361,7 @@ export default class Blueprint extends IElement {
         )
     }
 
-    /**
-     * @param  {...IElement} graphElements
-     */
+    /** @param  {...IElement} graphElements */
     removeGraphElement(...graphElements) {
         for (let element of graphElements) {
             if (element.closest("ueb-blueprint") == this) {

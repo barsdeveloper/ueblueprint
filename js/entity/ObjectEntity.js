@@ -38,9 +38,7 @@ export default class ObjectEntity extends IEntity {
         return this.Name
     }
 
-    /**
-     * @returns {[String, Number]}
-     */
+    /** @returns {[String, Number]} */
     getNameAndCounter() {
         const result = this.getObjectName(false).match(ObjectEntity.nameRegex)
         if (result && result.length == 3) {

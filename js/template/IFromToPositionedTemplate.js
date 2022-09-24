@@ -1,8 +1,6 @@
 import ITemplate from "./ITemplate"
 
-/**
- * @typedef {import("../element/IFromToPositionedElement").default} IFromToPositionedElement
- */
+/** @typedef {import("../element/IFromToPositionedElement").default} IFromToPositionedElement */
 
 /**
  * @template {IFromToPositionedElement} T

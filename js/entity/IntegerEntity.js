@@ -6,9 +6,7 @@ export default class IntegerEntity extends IEntity {
         value: Number,
     }
 
-    /**
-     * @param {Object | Number | String} options
-     */
+    /** @param {Object | Number | String} options */
     constructor(options = 0) {
         super(options)
         this.value = Math.round(this.value)

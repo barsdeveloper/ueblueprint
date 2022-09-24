@@ -1,13 +1,9 @@
 import IMouseClickDrag from "./IMouseClickDrag"
 import LinkElement from "../../element/LinkElement"
 
-/**
- * @typedef {import("../../element/PinElement").default} PinElement
- */
+/** @typedef {import("../../element/PinElement").default} PinElement */
 
-/**
- * @extends IMouseClickDrag<PinElement>
- */
+/** @extends IMouseClickDrag<PinElement> */
 export default class MouseCreateLink extends IMouseClickDrag {
 
     /** @type {NodeListOf<PinElement>} */

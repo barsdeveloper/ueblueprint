@@ -2,9 +2,7 @@ import Configuration from "../../Configuration"
 import IPointing from "./IPointing"
 import Utility from "../../Utility"
 
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- */
+/** @typedef {import("../../Blueprint").default} Blueprint */
 
 /**
  * @template {HTMLElement} T

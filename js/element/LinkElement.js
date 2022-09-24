@@ -3,13 +3,9 @@ import IFromToPositionedElement from "./IFromToPositionedElement"
 import LinkTemplate from "../template/LinkTemplate"
 import Utility from "../Utility"
 
-/**
- * @typedef {import("./PinElement").default} PinElement
- */
+/** @typedef {import("./PinElement").default} PinElement */
 
-/**
- * @extends {IFromToPositionedElement<Object, LinkTemplate>}
- */
+/** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 export default class LinkElement extends IFromToPositionedElement {
 
     static properties = {
@@ -174,9 +170,7 @@ export default class LinkElement extends IFromToPositionedElement {
         this.destinationPin = null
     }
 
-    /**
-     * @param {Number[]?} location
-     */
+    /** @param {Number[]?} location */
     setSourceLocation(location = null) {
         if (location == null) {
             const self = this
@@ -191,9 +185,7 @@ export default class LinkElement extends IFromToPositionedElement {
         this.initialPositionY = y
     }
 
-    /**
-     * @param {Number[]?} location
-     */
+    /** @param {Number[]?} location */
     setDestinationLocation(location = null) {
         if (location == null) {
             const self = this

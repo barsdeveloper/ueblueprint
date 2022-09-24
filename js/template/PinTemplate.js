@@ -13,9 +13,7 @@ export default class PinTemplate extends ITemplate {
 
     static styles = css``
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     connectedCallback(pin) {
         super.connectedCallback(pin)
         pin.nodeElement = pin.closest("ueb-node")
@@ -34,9 +32,7 @@ export default class PinTemplate extends ITemplate {
         ]
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     render(pin) {
         const icon = html`
             <div class="ueb-pin-icon">
@@ -66,9 +62,7 @@ export default class PinTemplate extends ITemplate {
         `
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     renderInput(pin) {
         return html``
     }
@@ -83,9 +77,7 @@ export default class PinTemplate extends ITemplate {
         pin.clickableElement = pin
     }
 
-    /**
-     * @param {PinElement} pin
-     */
+    /** @param {PinElement} pin */
     getLinkLocation(pin) {
         const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect()
         const location = Utility.convertLocation(

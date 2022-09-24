@@ -1,9 +1,7 @@
 import ITemplate from "./ITemplate"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
 
-/**
- * @typedef {import("../element/IDraggableElement").default} IDraggableElement
- */
+/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
 
 /**
  * @template {ISelectableDraggableElement} T

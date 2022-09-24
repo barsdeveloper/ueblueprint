@@ -16,9 +16,7 @@ export default class Unfocus extends IInput {
         }
     }
 
-    /**
-     * @param {HTMLElement} target
-     */
+    /** @param {HTMLElement} target */
     clickedSomewhere(target) {
         // If target is outside the blueprint grid
         if (!target.closest("ueb-blueprint")) {

@@ -20,9 +20,7 @@ export default class ObjectSerializer extends ISerializer {
         return super.showProperty(entity, object, attributeKey, attributeValue)
     }
 
-    /**
-     * @param {String} value
-     */
+    /** @param {String} value */
     read(value) {
         const parseResult = ISerializer.grammar.Object.parse(value)
         if (!parseResult.status) {
@@ -31,9 +29,7 @@ export default class ObjectSerializer extends ISerializer {
         return parseResult.value
     }
 
-    /**
-     * @param {String} value
-     */
+    /** @param {String} value */
     readMultiple(value) {
         const parseResult = ISerializer.grammar.MultipleObject.parse(value)
         if (!parseResult.status) {

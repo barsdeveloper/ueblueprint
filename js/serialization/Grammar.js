@@ -17,9 +17,7 @@ import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
 
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- */
+/** @typedef {import("../entity/IEntity").default} IEntity */
 
 let P = Parsimmon
 

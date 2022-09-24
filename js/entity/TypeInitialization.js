@@ -1,6 +1,4 @@
-/**
- * @template T
- */
+/** @template T */
 export default class TypeInitialization {
 
     /** @type {Constructor|Array<Constructor>} */

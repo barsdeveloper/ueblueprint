@@ -2,18 +2,14 @@ import FastSelectionModel from "../selection/FastSelectionModel"
 import IFromToPositionedElement from "./IFromToPositionedElement"
 import SelectorTemplate from "../template/SelectorTemplate"
 
-/**
- * @extends {IFromToPositionedElement<Object, SelectorTemplate>}
- */
+/** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
 export default class SelectorElement extends IFromToPositionedElement {
 
     constructor() {
         super({}, new SelectorTemplate())
         this.selectionModel = null
     }
-    /**
-     * @param {Number[]} initialPosition
-     */
+    /** @param {Number[]} initialPosition */
     beginSelect(initialPosition) {
         this.blueprint.selecting = true
         this.setBothLocations(initialPosition)
@@ -25,9 +21,7 @@ export default class SelectorElement extends IFromToPositionedElement {
         )
     }
 
-    /**
-     * @param {Number[]} finalPosition
-     */
+    /** @param {Number[]} finalPosition */
     selectTo(finalPosition) {
         /** @type {FastSelectionModel} */ (this.selectionModel)
             .selectTo(finalPosition)

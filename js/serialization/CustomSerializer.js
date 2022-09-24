@@ -1,12 +1,8 @@
 import GeneralSerializer from "./GeneralSerializer"
 
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- */
+/** @typedef {import("../entity/IEntity").default} IEntity */
 
-/**
- * @template {IEntity | Boolean | Number | String} T
- */
+/** @template {IEntity | Boolean | Number | String} T */
 export default class CustomSerializer extends GeneralSerializer {
 
     #objectWriter

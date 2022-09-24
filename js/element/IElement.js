@@ -67,17 +67,13 @@ export default class IElement extends LitElement {
         this.template.connectedCallback(this)
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
         this.template.willUpdate(this, changedProperties)
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
         this.template.update(this, changedProperties)
@@ -87,9 +83,7 @@ export default class IElement extends LitElement {
         return this.template.render(this)
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.template.firstUpdated(this, changedProperties)
@@ -115,9 +109,7 @@ export default class IElement extends LitElement {
         }
     }
 
-    /**
-     * @param {IElement} element
-     */
+    /** @param {IElement} element */
     isSameGraph(element) {
         return this.blueprint && this.blueprint == element?.blueprint
     }

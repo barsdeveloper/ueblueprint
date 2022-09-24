@@ -1,12 +1,8 @@
 import Configuration from "../Configuration"
 
-/**
- * @typedef {import("../Blueprint").default} Blueprint
- */
+/** @typedef {import("../Blueprint").default} Blueprint */
 
-/**
- * @template {HTMLElement} T
- */
+/** @template {HTMLElement} T */
 export default class IInput {
 
     /** @type {T} */

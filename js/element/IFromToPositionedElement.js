@@ -40,9 +40,7 @@ export default class IFromToPositionedElement extends IElement {
         this.finaPositionY = 0
     }
 
-    /**
-     * @param {Number[]} param0
-     */
+    /** @param {Number[]} param0 */
     setBothLocations([x, y]) {
         this.initialPositionX = x
         this.initialPositionY = y
@@ -50,17 +48,13 @@ export default class IFromToPositionedElement extends IElement {
         this.finaPositionY = y
     }
 
-    /**
-     * @param {Number[]} offset
-     */
+    /** @param {Number[]} offset */
     addSourceLocation([offsetX, offsetY]) {
         this.initialPositionX += offsetX
         this.initialPositionY += offsetY
     }
 
-    /**
-     * @param {Number[]} offset
-     */
+    /** @param {Number[]} offset */
     addDestinationLocation([offsetX, offsetY]) {
         this.finaPositionX += offsetX
         this.finaPositionY += offsetY

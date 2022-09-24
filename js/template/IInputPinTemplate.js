@@ -2,9 +2,7 @@ import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- */
+/** @typedef {import("../element/PinElement").default} PinElement */
 
 export default class IInputPinTemplate extends PinTemplate {
 
