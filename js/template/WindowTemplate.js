@@ -21,7 +21,16 @@ export default class WindowTemplate extends IDraggableTemplate {
             draggableElement: this.getDraggableElement(element),
             looseTarget: true,
             stepSize: 1,
+            movementSpace: element.blueprint,
         })
+    }
+
+    /** @param {T} element */
+    createInputObjects(element) {
+        return [
+            ...super.createInputObjects(element),
+            this.createDraggableObject(element),
+        ]
     }
 
     /** @param {WindowElement} element */

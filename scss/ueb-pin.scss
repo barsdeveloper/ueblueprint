@@ -46,11 +46,6 @@ ueb-pin[data-type="exec"] .ueb-pin-icon {
     height: 100%;
 }
 
-
-ueb-pin[data-linked="true"] .ueb-pin-tofill {
-    fill: var(--ueb-pin-color);
-}
-
 ueb-pin[data-linked="true"] .ueb-pin-tofill {
     fill: currentColor;
 }

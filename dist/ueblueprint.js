@@ -1908,8 +1908,9 @@ class KeyboardCanc extends IKeyboardShortcut {
 class IPointing extends IInput {
 
     constructor(target, blueprint, options) {
+        options.movementSpace ??= blueprint?.getGridDOMElement() ?? document.documentElement;
         super(target, blueprint, options);
-        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement;
+        this.movementSpace = options.movementSpace;
     }
 
     /** @param {MouseEvent} mouseEvent */
@@ -3322,7 +3323,7 @@ class BoolPinTemplate extends IInputPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return $`
-                <input type="checkbox" class="ueb-pin-input" .checked=${pin.defaultValue=="true" } />
+                <input type="checkbox" class="ueb-pin-input" .checked=${pin.entity.getDefaultValue()} />
             `
         }
         return super.renderInput(pin)
@@ -3337,7 +3338,7 @@ class ExecPinTemplate extends PinTemplate {
     renderIcon(pin) {
         return $`
             <svg viewBox="-2 0 16 16">
-                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white"
+                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
                     d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
             </svg>
         `
@@ -3514,7 +3515,16 @@ class WindowTemplate extends IDraggableTemplate {
             draggableElement: this.getDraggableElement(element),
             looseTarget: true,
             stepSize: 1,
+            movementSpace: element.blueprint,
         })
+    }
+
+    /** @param {T} element */
+    createInputObjects(element) {
+        return [
+            ...super.createInputObjects(element),
+            this.createDraggableObject(element),
+        ]
     }
 
     /** @param {WindowElement} element */
@@ -3749,21 +3759,6 @@ class StringPinTemplate extends IInputPinTemplate {
  */
 
 class VectorPinTemplate extends RealPinTemplate {
-
-    /**
-     * @param {PinElement} pin
-     * @param {String[]?} values
-     */
-    setInputs(pin, values = [], updateDefaultValue = true) {
-        this.inputContentElements.forEach(
-            (element, i) => element.innerText = values[i]
-        );
-        if (updateDefaultValue) {
-            pin.setDefaultValue(values
-                .map(v => IInputPinTemplate.stringFromInputToUE(v)) // Double newline at the end of a contenteditable element
-                .reduce((acc, cur) => acc + cur, ""));
-        }
-    }
 
     /** @param {PinElement} pin */
     renderInput(pin) {
@@ -4859,7 +4854,6 @@ class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * Computes the html content of the target element.
      * @param {Blueprint} element Target element
      * @returns The computed html
      */

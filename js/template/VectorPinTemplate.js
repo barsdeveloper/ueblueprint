@@ -9,21 +9,6 @@ import RealPinTemplate from "./RealPinTemplate"
 
 export default class VectorPinTemplate extends RealPinTemplate {
 
-    /**
-     * @param {PinElement} pin
-     * @param {String[]?} values
-     */
-    setInputs(pin, values = [], updateDefaultValue = true) {
-        this.inputContentElements.forEach(
-            (element, i) => element.innerText = values[i]
-        )
-        if (updateDefaultValue) {
-            pin.setDefaultValue(values
-                .map(v => IInputPinTemplate.stringFromInputToUE(v)) // Double newline at the end of a contenteditable element
-                .reduce((acc, cur) => acc + cur, ""))
-        }
-    }
-
     /** @param {PinElement} pin */
     renderInput(pin) {
         if (pin.isInput()) {

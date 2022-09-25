@@ -10,8 +10,9 @@ import Utility from "../../Utility"
 export default class IPointing extends IInput {
 
     constructor(target, blueprint, options) {
+        options.movementSpace ??= blueprint?.getGridDOMElement() ?? document.documentElement
         super(target, blueprint, options)
-        this.movementSpace = this.blueprint?.getGridDOMElement() ?? document.documentElement
+        this.movementSpace = options.movementSpace
     }
 
     /** @param {MouseEvent} mouseEvent */
