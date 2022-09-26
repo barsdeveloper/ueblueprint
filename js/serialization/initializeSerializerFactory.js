@@ -19,6 +19,8 @@ import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVector
 import ToStringSerializer from "./ToStringSerializer"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
+import RotatorEntity from "../entity/RotatorEntity"
+import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
 
 export default function initializeSerializerFactory() {
 
@@ -133,12 +135,26 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        RotatorEntity,
+        new GeneralSerializer(bracketsWrapped, RotatorEntity)
+    )
+
+    SerializerFactory.registerSerializer(
         String,
         new CustomSerializer(
             (value, insideString) => insideString
                 ? Utility.escapeString(value)
                 : `"${Utility.escapeString(value)}"`,
             String
+        )
+    )
+
+    SerializerFactory.registerSerializer(
+        SimpleSerializationRotatorEntity,
+        new CustomSerializer(
+            /** @param {SimpleSerializationRotatorEntity} value */
+            (value, insideString) => `${value.P}, ${value.Y}, ${value.R}`,
+            SimpleSerializationRotatorEntity
         )
     )
 

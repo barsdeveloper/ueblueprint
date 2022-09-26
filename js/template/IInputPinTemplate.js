@@ -32,13 +32,13 @@ export default class IInputPinTemplate extends PinTemplate {
         super.firstUpdated(pin, changedProperties)
         this.#inputContentElements = [...pin.querySelectorAll(".ueb-pin-input-content")]
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, this.getInputs(pin))
+            this.setInputs(pin, this.getInputs(pin), false)
             let self = this
             this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true)
             this.onFocusOutHandler = e => {
                 e.preventDefault()
                 document.getSelection()?.removeAllRanges() // Deselect text inside the input
-                self.setInputs(pin, this.getInputs(pin))
+                self.setInputs(pin, this.getInputs(pin), true)
                 pin.blueprint.dispatchEditTextEvent(false)
             }
             this.#inputContentElements.forEach(element => {
@@ -89,10 +89,12 @@ export default class IInputPinTemplate extends PinTemplate {
             (element, i) => element.innerText = values[i]
         )
         if (updateDefaultValue) {
-            pin.setDefaultValue(values
-                .map(v => IInputPinTemplate.stringFromInputToUE(v)) // Double newline at the end of a contenteditable element
-                .reduce((acc, cur) => acc + cur, ""))
+            this.setDefaultValue(pin, values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values)
         }
+    }
+
+    setDefaultValue(pin, values = [], rawValues = values) {
+        pin.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""))
     }
 
     /** @param {PinElement} pin */

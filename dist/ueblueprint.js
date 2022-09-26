@@ -69,14 +69,15 @@ class Configuration {
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
     static pinColor = {
-        "/Script/CoreUObject.LinearColor": r$2`3, 76, 168`, // #034ca8
-        "/Script/CoreUObject.Vector": r$2`182, 146, 28`, // b6921c
-        "bool": r$2`117, 0, 0`, // #750000
-        "default": r$2`167, 167, 167`, // #a7a7a7
-        "exec": r$2`167, 167, 167`, // #a7a7a7
-        "name": r$2`203, 129, 252`, // #cb81fc
-        "real": r$2`50, 187, 0`, // #32bb00
-        "string": r$2`213, 0, 176`, // #d500b0
+        "/Script/CoreUObject.LinearColor": r$2`3, 76, 168`,
+        "/Script/CoreUObject.Rotator": r$2`152, 171, 241`,
+        "/Script/CoreUObject.Vector": r$2`215, 202, 11`,
+        "bool": r$2`117, 0, 0`,
+        "default": r$2`167, 167, 167`,
+        "exec": r$2`167, 167, 167`,
+        "name": r$2`203, 129, 252`,
+        "real": r$2`50, 187, 0`,
+        "string": r$2`213, 0, 176`,
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static trackingMouseEventName = {
@@ -955,6 +956,18 @@ class PinReferenceEntity extends IEntity {
     }
 }
 
+class RotatorEntity extends IEntity {
+
+    static attributes = {
+        R: Number,
+        P: Number,
+        Y: Number,
+    }
+}
+
+class SimpleSerializationRotatorEntity extends RotatorEntity {
+}
+
 class VectorEntity extends IEntity {
 
     static attributes = {
@@ -971,6 +984,7 @@ class PinEntity extends IEntity {
 
     static #typeEntityMap = {
         "/Script/CoreUObject.LinearColor": LinearColorEntity,
+        "/Script/CoreUObject.Rotator": RotatorEntity,
         "/Script/CoreUObject.Vector": VectorEntity,
         "bool": Boolean,
         "exec": String,
@@ -980,6 +994,7 @@ class PinEntity extends IEntity {
     }
     static #alternativeTypeEntityMap = {
         "/Script/CoreUObject.Vector": SimpleSerializationVectorEntity,
+        "/Script/CoreUObject.Rotator": SimpleSerializationRotatorEntity,
     }
     static lookbehind = "Pin"
     static attributes = {
@@ -1218,8 +1233,12 @@ class Grammar {
                 return r.PinReference
             case VectorEntity:
                 return r.Vector
+            case RotatorEntity:
+                return r.Rotator
+            case SimpleSerializationRotatorEntity:
+                return r.SimpleSerializationRotator
             case SimpleSerializationVectorEntity:
-                return r.SimpleSerializationVectorEntity
+                return r.SimpleSerializationVector
             case LinearColorEntity:
                 return r.LinearColor
             case FunctionReferenceEntity:
@@ -1401,7 +1420,22 @@ class Grammar {
 
     Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
 
-    SimpleSerializationVectorEntity = r => P.seqMap(
+    Rotator = r => Grammar.createEntityGrammar(r, RotatorEntity)
+
+    SimpleSerializationRotator = r => P.seqMap(
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        (p, _1, y, _3, r) => new SimpleSerializationRotatorEntity({
+            R: r,
+            P: p,
+            Y: y,
+        })
+    )
+
+    SimpleSerializationVector = r => P.seqMap(
         r.Number,
         P.string(",").trim(P.optWhitespace),
         r.Number,
@@ -3212,13 +3246,13 @@ class IInputPinTemplate extends PinTemplate {
         super.firstUpdated(pin, changedProperties);
         this.#inputContentElements = [...pin.querySelectorAll(".ueb-pin-input-content")];
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, this.getInputs(pin));
+            this.setInputs(pin, this.getInputs(pin), false);
             let self = this;
             this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true);
             this.onFocusOutHandler = e => {
                 e.preventDefault();
                 document.getSelection()?.removeAllRanges(); // Deselect text inside the input
-                self.setInputs(pin, this.getInputs(pin));
+                self.setInputs(pin, this.getInputs(pin), true);
                 pin.blueprint.dispatchEditTextEvent(false);
             };
             this.#inputContentElements.forEach(element => {
@@ -3269,10 +3303,12 @@ class IInputPinTemplate extends PinTemplate {
             (element, i) => element.innerText = values[i]
         );
         if (updateDefaultValue) {
-            pin.setDefaultValue(values
-                .map(v => IInputPinTemplate.stringFromInputToUE(v)) // Double newline at the end of a contenteditable element
-                .reduce((acc, cur) => acc + cur, ""));
+            this.setDefaultValue(pin, values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
         }
+    }
+
+    setDefaultValue(pin, values = [], rawValues = values) {
+        pin.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""));
     }
 
     /** @param {PinElement} pin */
@@ -3317,6 +3353,10 @@ class BoolPinTemplate extends IInputPinTemplate {
     /** @param {PinElement} pin */
     getInputs(pin) {
         return [this.#input.checked ? "true" : "false"]
+    }
+
+    setDefaultValue(pin, values = [], rawValues = values) {
+        pin.setDefaultValue(values[0] == "true");
     }
 
     /** @param {PinElement} pin */
@@ -3728,11 +3768,11 @@ class RealPinTemplate extends IInputPinTemplate {
      * @param {PinElement} pin
      * @param {String[]?} values
      */
-    setInputs(pin, values = []) {
+    setInputs(pin, values = [], updateDefaultValue = false) {
         if (!values || values.length == 0) {
             values = this.getInput(pin);
         }
-        let updateDefaultValue = true;
+        let parsedValues = [];
         for (let i = 0; i < values.length; ++i) {
             let num = parseFloat(values[i]);
             if (isNaN(num)) {
@@ -3744,9 +3784,15 @@ class RealPinTemplate extends IInputPinTemplate {
                 num = 0;
                 updateDefaultValue = false;
             }
+            parsedValues.push(num);
             values[i] = Utility.minDecimals(num);
         }
-        super.setInputs(pin, values, updateDefaultValue);
+        super.setInputs(pin, values, false);
+        this.setDefaultValue(pin, parsedValues, values);
+    }
+
+    setDefaultValue(pin, values = [], rawValues = values) {
+        pin.setDefaultValue(values[0]);
     }
 }
 
@@ -3759,6 +3805,16 @@ class StringPinTemplate extends IInputPinTemplate {
  */
 
 class VectorPinTemplate extends RealPinTemplate {
+
+    setDefaultValue(pin, values = [], rawValues = values) {
+        if (!(pin.entity.DefaultValue instanceof VectorEntity)) {
+            throw new TypeError("Expected DefaultValue to be a VectorEntity")
+        }
+        let vector = pin.entity.DefaultValue;
+        vector.X = values[0];
+        vector.Y = values[1];
+        vector.Z = values[2];
+    }
 
     /** @param {PinElement} pin */
     renderInput(pin) {
@@ -3797,6 +3853,43 @@ class ReferencePinTemplate extends PinTemplate {
     }
 }
 
+class RotatorPinTemplate extends RealPinTemplate {
+
+    setDefaultValue(pin, values = [], rawValues = values) {
+        if (!(pin.entity.DefaultValue instanceof RotatorEntity)) {
+            throw new TypeError("Expected DefaultValue to be a VectorEntity")
+        }
+        let rotator = pin.entity.DefaultValue;
+        rotator.R = values[0]; // Roll
+        rotator.P = values[1]; // Pitch
+        rotator.Y = values[2]; // Yaw
+    }
+
+    /** @param {PinElement} pin */
+    renderInput(pin) {
+        if (pin.isInput()) {
+            return $`
+                <span class="ueb-pin-input-label">X</span>
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().R.toString())}"></span>
+                </div>
+                <span class="ueb-pin-input-label">Y</span>
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().P.toString())}"></span>
+                </div>
+                <span class="ueb-pin-input-label">Z</span>
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
+                </div>
+            `
+        }
+        return $``
+    }
+}
+
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
  * @typedef {import("../entity/PinEntity").default} PinEntity
@@ -3809,6 +3902,7 @@ class PinElement extends IElement {
 
     static #typeTemplateMap = {
         "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
+        "/Script/CoreUObject.Rotator": RotatorPinTemplate,
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
@@ -5509,12 +5603,26 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        RotatorEntity,
+        new GeneralSerializer(bracketsWrapped, RotatorEntity)
+    );
+
+    SerializerFactory.registerSerializer(
         String,
         new CustomSerializer(
             (value, insideString) => insideString
                 ? Utility.escapeString(value)
                 : `"${Utility.escapeString(value)}"`,
             String
+        )
+    );
+
+    SerializerFactory.registerSerializer(
+        SimpleSerializationRotatorEntity,
+        new CustomSerializer(
+            /** @param {SimpleSerializationRotatorEntity} value */
+            (value, insideString) => `${value.P}, ${value.Y}, ${value.R}`,
+            SimpleSerializationRotatorEntity
         )
     );
 

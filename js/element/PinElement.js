@@ -13,6 +13,7 @@ import StringPinTemplate from "../template/StringPinTemplate"
 import Utility from "../Utility"
 import VectorPinTemplate from "../template/VectorPinTemplate"
 import ReferencePinTemplate from "../template/ReferencePinTemplate"
+import RotatorPinTemplate from "../template/RotatorPinTemplate"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
@@ -26,6 +27,7 @@ export default class PinElement extends IElement {
 
     static #typeTemplateMap = {
         "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
+        "/Script/CoreUObject.Rotator": RotatorPinTemplate,
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,

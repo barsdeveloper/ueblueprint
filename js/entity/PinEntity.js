@@ -5,6 +5,8 @@ import LinearColorEntity from "./LinearColorEntity"
 import LocalizedTextEntity from "./LocalizedTextEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinReferenceEntity from "./PinReferenceEntity"
+import RotatorEntity from "./RotatorEntity"
+import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity"
 import TypeInitialization from "./TypeInitialization"
 import VectorEntity from "./VectorEntity"
@@ -13,6 +15,7 @@ export default class PinEntity extends IEntity {
 
     static #typeEntityMap = {
         "/Script/CoreUObject.LinearColor": LinearColorEntity,
+        "/Script/CoreUObject.Rotator": RotatorEntity,
         "/Script/CoreUObject.Vector": VectorEntity,
         "bool": Boolean,
         "exec": String,
@@ -22,6 +25,7 @@ export default class PinEntity extends IEntity {
     }
     static #alternativeTypeEntityMap = {
         "/Script/CoreUObject.Vector": SimpleSerializationVectorEntity,
+        "/Script/CoreUObject.Rotator": SimpleSerializationRotatorEntity,
     }
     static lookbehind = "Pin"
     static attributes = {

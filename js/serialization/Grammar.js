@@ -12,6 +12,8 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import RotatorEntity from "../entity/RotatorEntity"
+import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
@@ -56,8 +58,12 @@ export default class Grammar {
                 return r.PinReference
             case VectorEntity:
                 return r.Vector
+            case RotatorEntity:
+                return r.Rotator
+            case SimpleSerializationRotatorEntity:
+                return r.SimpleSerializationRotator
             case SimpleSerializationVectorEntity:
-                return r.SimpleSerializationVectorEntity
+                return r.SimpleSerializationVector
             case LinearColorEntity:
                 return r.LinearColor
             case FunctionReferenceEntity:
@@ -239,7 +245,22 @@ export default class Grammar {
 
     Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
 
-    SimpleSerializationVectorEntity = r => P.seqMap(
+    Rotator = r => Grammar.createEntityGrammar(r, RotatorEntity)
+
+    SimpleSerializationRotator = r => P.seqMap(
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        (p, _1, y, _3, r) => new SimpleSerializationRotatorEntity({
+            R: r,
+            P: p,
+            Y: y,
+        })
+    )
+
+    SimpleSerializationVector = r => P.seqMap(
         r.Number,
         P.string(",").trim(P.optWhitespace),
         r.Number,

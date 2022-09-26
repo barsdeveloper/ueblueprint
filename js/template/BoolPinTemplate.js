@@ -31,6 +31,10 @@ export default class BoolPinTemplate extends IInputPinTemplate {
         return [this.#input.checked ? "true" : "false"]
     }
 
+    setDefaultValue(pin, values = [], rawValues = values) {
+        pin.setDefaultValue(values[0] == "true")
+    }
+
     /** @param {PinElement} pin */
     renderInput(pin) {
         if (pin.isInput()) {

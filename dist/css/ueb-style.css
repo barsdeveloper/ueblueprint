@@ -586,6 +586,10 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] {
   --ueb-pin-color-rgb: var(--ueb-pin-color-linear-color);
 }
 
+ueb-pin[data-type="/Script/CoreUObject.Rotator"] {
+  --ueb-pin-color-rgb: var(--ueb-pin-color-rotator);
+}
+
 ueb-pin[data-type="/Script/CoreUObject.Vector"] {
   --ueb-pin-color-rgb: var(--ueb-pin-color-vector);
 }

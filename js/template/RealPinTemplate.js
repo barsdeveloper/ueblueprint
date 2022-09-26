@@ -9,11 +9,11 @@ export default class RealPinTemplate extends IInputPinTemplate {
      * @param {PinElement} pin
      * @param {String[]?} values
      */
-    setInputs(pin, values = []) {
+    setInputs(pin, values = [], updateDefaultValue = false) {
         if (!values || values.length == 0) {
             values = this.getInput(pin)
         }
-        let updateDefaultValue = true
+        let parsedValues = []
         for (let i = 0; i < values.length; ++i) {
             let num = parseFloat(values[i])
             if (isNaN(num)) {
@@ -25,8 +25,14 @@ export default class RealPinTemplate extends IInputPinTemplate {
                 num = 0
                 updateDefaultValue = false
             }
+            parsedValues.push(num)
             values[i] = Utility.minDecimals(num)
         }
-        super.setInputs(pin, values, updateDefaultValue)
+        super.setInputs(pin, values, false)
+        this.setDefaultValue(pin, parsedValues, values)
+    }
+
+    setDefaultValue(pin, values = [], rawValues = values) {
+        pin.setDefaultValue(values[0])
     }
 }
