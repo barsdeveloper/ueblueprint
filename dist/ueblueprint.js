@@ -3913,7 +3913,7 @@ class PinElement extends IElement {
         "exec": ExecPinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
-        "REFERENCE": ReferencePinTemplate,
+        "MUTABLE_REFERENCE": ReferencePinTemplate,
         "string": StringPinTemplate,
     }
 
@@ -3964,8 +3964,8 @@ class PinElement extends IElement {
      */
     static getTypeTemplate(pinEntity) {
         let result = PinElement.#typeTemplateMap[
-            pinEntity.PinType.bIsReference
-                ? "REFERENCE"
+            pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst
+                ? "MUTABLE_REFERENCE"
                 : pinEntity.getType()
         ];
         return result ?? PinTemplate
