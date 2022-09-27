@@ -9,6 +9,8 @@ import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
 
+/** @typedef {import("./IElement").default} IElement */
+
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 export default class NodeElement extends ISelectableDraggableElement {
 
@@ -102,8 +104,9 @@ export default class NodeElement extends ISelectableDraggableElement {
         return this.entity.getDisplayName()
     }
 
-    sanitizeLinks() {
-        this.getPinElements().forEach(pin => pin.sanitizeLinks())
+    /** @param  {IElement[]} nodesWhitelist */
+    sanitizeLinks(nodesWhitelist = []) {
+        this.getPinElements().forEach(pin => pin.sanitizeLinks(nodesWhitelist))
     }
 
     /** @param {String} name */

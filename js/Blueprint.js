@@ -279,12 +279,14 @@ export default class Blueprint extends IElement {
 
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
-        let result = this.template.getPin(this, pinReference)
-        if (result) {
+        let result = this.template.getPin(pinReference)
+        if (result
+            // Make sure it wasn't renamed in the meantime
+            && result.nodeElement.getNodeName() == pinReference.objectName) {
             return result
         }
+        // Slower fallback
         return [... this.nodes
-            //.filter(n => !n.parentNode)
             .find(n => pinReference.objectName.toString() == n.getNodeName())
             ?.getPinElements() ?? []]
             .find(p => pinReference.pinGuid.toString() == p.GetPinIdValue())
@@ -357,7 +359,7 @@ export default class Blueprint extends IElement {
             }
         }
         graphElements.filter(element => element instanceof NodeElement).forEach(
-            node => /** @type {NodeElement} */(node).sanitizeLinks()
+            node => /** @type {NodeElement} */(node).sanitizeLinks(graphElements)
         )
     }
 

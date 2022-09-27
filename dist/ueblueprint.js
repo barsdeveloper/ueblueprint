@@ -3998,10 +3998,14 @@ class PinElement extends IElement {
         this.entity.DefaultValue = value;
     }
 
-    sanitizeLinks() {
+    /** @param  {IElement[]} nodesWhitelist */
+    sanitizeLinks(nodesWhitelist = []) {
         this.entity.LinkedTo = this.getLinks().filter(pinReference => {
             let pin = this.blueprint.getPin(pinReference);
             if (pin) {
+                if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
+                    return false
+                }
                 let link = this.blueprint.getLink(this, pin, true);
                 if (!link) {
                     this.blueprint.addGraphElement(new LinkElement(this, pin));
@@ -4186,6 +4190,8 @@ class NodeTemplate extends SelectableDraggableTemplate {
     }
 }
 
+/** @typedef {import("./IElement").default} IElement */
+
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 class NodeElement extends ISelectableDraggableElement {
 
@@ -4279,8 +4285,9 @@ class NodeElement extends ISelectableDraggableElement {
         return this.entity.getDisplayName()
     }
 
-    sanitizeLinks() {
-        this.getPinElements().forEach(pin => pin.sanitizeLinks());
+    /** @param  {IElement[]} nodesWhitelist */
+    sanitizeLinks(nodesWhitelist = []) {
+        this.getPinElements().forEach(pin => pin.sanitizeLinks(nodesWhitelist));
     }
 
     /** @param {String} name */
@@ -5193,12 +5200,14 @@ class Blueprint extends IElement {
 
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
-        let result = this.template.getPin(this, pinReference);
-        if (result) {
+        let result = this.template.getPin(pinReference);
+        if (result
+            // Make sure it wasn't renamed in the meantime
+            && result.nodeElement.getNodeName() == pinReference.objectName) {
             return result
         }
+        // Slower fallback
         return [... this.nodes
-            //.filter(n => !n.parentNode)
             .find(n => pinReference.objectName.toString() == n.getNodeName())
             ?.getPinElements() ?? []]
             .find(p => pinReference.pinGuid.toString() == p.GetPinIdValue())
@@ -5269,7 +5278,7 @@ class Blueprint extends IElement {
             }
         }
         graphElements.filter(element => element instanceof NodeElement).forEach(
-            node => /** @type {NodeElement} */(node).sanitizeLinks()
+            node => /** @type {NodeElement} */(node).sanitizeLinks(graphElements)
         );
     }
 

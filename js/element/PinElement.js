@@ -192,10 +192,14 @@ export default class PinElement extends IElement {
         this.entity.DefaultValue = value
     }
 
-    sanitizeLinks() {
+    /** @param  {IElement[]} nodesWhitelist */
+    sanitizeLinks(nodesWhitelist = []) {
         this.entity.LinkedTo = this.getLinks().filter(pinReference => {
             let pin = this.blueprint.getPin(pinReference)
             if (pin) {
+                if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
+                    return false
+                }
                 let link = this.blueprint.getLink(this, pin, true)
                 if (!link) {
                     this.blueprint.addGraphElement(new LinkElement(this, pin))
