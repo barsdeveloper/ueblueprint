@@ -18,60 +18,42 @@ export default class ITemplate {
 
     /** @param {T} element */
     constructed(element) {
+        this.element = element
     }
 
-    /** @param {T} element */
-    connectedCallback(element) {
+    connectedCallback() {
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    willUpdate(element, changedProperties) {
+    /** @param {Map} changedProperties */
+    willUpdate(changedProperties) {
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    update(element, changedProperties) {
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
     }
 
-    /** @param {T} element */
-    render(element) {
+    render() {
         return html``
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    firstUpdated(element, changedProperties) {
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    updated(element, changedProperties) {
+    /** @param {Map} changedProperties */
+    updated(changedProperties) {
     }
 
-    /** @param {T} element */
-    inputSetup(element) {
-        this.#inputObjects = this.createInputObjects(element)
+    inputSetup() {
+        this.#inputObjects = this.createInputObjects()
     }
 
-    /** @param {T} element */
-    cleanup(element) {
+    cleanup() {
         this.#inputObjects.forEach(v => v.unlistenDOMElement())
     }
 
-    /**
-     * @param {T} element
-     * @returns {IInput[]}
-     */
-    createInputObjects(element) {
+    /** @returns {IInput[]} */
+    createInputObjects() {
         return []
     }
 }

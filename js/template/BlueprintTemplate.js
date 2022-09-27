@@ -43,44 +43,41 @@ export default class BlueprintTemplate extends ITemplate {
             }), {}),
     }
 
-    /** @param {Blueprint} blueprint */
-    constructed(blueprint) {
-        blueprint.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("")
+    /** @param {Blueprint} element */
+    constructed(element) {
+        super.constructed(element)
+        this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("")
     }
 
-    /** @param {Blueprint} blueprint */
-    createInputObjects(blueprint) {
+    createInputObjects() {
         return [
-            new Copy(blueprint.getGridDOMElement(), blueprint),
-            new Paste(blueprint.getGridDOMElement(), blueprint),
-            new KeyboardCanc(blueprint.getGridDOMElement(), blueprint),
-            new KeyboardSelectAll(blueprint.getGridDOMElement(), blueprint),
-            new Zoom(blueprint.getGridDOMElement(), blueprint, {
+            ...super.createInputObjects(),
+            new Copy(this.element.getGridDOMElement(), this.element),
+            new Paste(this.element.getGridDOMElement(), this.element),
+            new KeyboardCanc(this.element.getGridDOMElement(), this.element),
+            new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
+            new Zoom(this.element.getGridDOMElement(), this.element, {
                 looseTarget: true,
             }),
-            new Select(blueprint.getGridDOMElement(), blueprint, {
+            new Select(this.element.getGridDOMElement(), this.element, {
                 clickButton: 0,
                 exitAnyButton: true,
                 looseTarget: true,
                 moveEverywhere: true,
             }),
-            new MouseScrollGraph(blueprint.getGridDOMElement(), blueprint, {
+            new MouseScrollGraph(this.element.getGridDOMElement(), this.element, {
                 clickButton: 2,
                 exitAnyButton: false,
                 looseTarget: true,
                 moveEverywhere: true,
             }),
-            new Unfocus(blueprint.getGridDOMElement(), blueprint),
-            new MouseTracking(blueprint.getGridDOMElement(), blueprint),
-            new KeyboardEnableZoom(blueprint.getGridDOMElement(), blueprint),
+            new Unfocus(this.element.getGridDOMElement(), this.element),
+            new MouseTracking(this.element.getGridDOMElement(), this.element),
+            new KeyboardEnableZoom(this.element.getGridDOMElement(), this.element),
         ]
     }
 
-    /**
-     * @param {Blueprint} element Target element
-     * @returns The computed html
-     */
-    render(element) {
+    render() {
         return html`
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">1:1</div>
@@ -88,7 +85,7 @@ export default class BlueprintTemplate extends ITemplate {
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
-                    .style="--ueb-additional-x: ${element}; --ueb-additional-y: ${element.translateY}; --ueb-translate-x: ${element.translateX}; --ueb-translate-y: ${element.translateY};">
+                    .style="--ueb-additional-x: ${this.element}; --ueb-additional-y: ${this.element.translateY}; --ueb-translate-x: ${this.element.translateX}; --ueb-translate-y: ${this.element.translateY};">
                     <div class="ueb-grid-content">
                         <div data-links></div>
                         <div data-nodes></div>
@@ -99,42 +96,35 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * @param {Blueprint} blueprint
      * @param {Map} changedProperties
      */
-    firstUpdated(blueprint, changedProperties) {
-        super.firstUpdated(blueprint, changedProperties)
-        blueprint.headerElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-header'))
-        blueprint.overlayElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-overlay'))
-        blueprint.viewportElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-body'))
-        blueprint.selectorElement = new SelectorElement()
-        blueprint.querySelector(".ueb-grid-content")?.append(blueprint.selectorElement)
-        blueprint.gridElement = /** @type {HTMLElement} */(blueprint.viewportElement.querySelector(".ueb-grid"))
-        blueprint.linksContainerElement = /** @type {HTMLElement} */(blueprint.querySelector("[data-links]"))
-        blueprint.linksContainerElement.append(...blueprint.getLinks())
-        blueprint.nodesContainerElement = /** @type {HTMLElement} */(blueprint.querySelector("[data-nodes]"))
-        blueprint.nodesContainerElement.append(...blueprint.getNodes())
-        blueprint.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        this.element.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'))
+        this.element.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'))
+        this.element.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'))
+        this.element.selectorElement = new SelectorElement()
+        this.element.querySelector(".ueb-grid-content")?.append(this.element.selectorElement)
+        this.element.gridElement = /** @type {HTMLElement} */(this.element.viewportElement.querySelector(".ueb-grid"))
+        this.element.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"))
+        this.element.linksContainerElement.append(...this.element.getLinks())
+        this.element.nodesContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-nodes]"))
+        this.element.nodesContainerElement.append(...this.element.getNodes())
+        this.element.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
     }
 
 
-    /**
-     * @param {Blueprint} blueprint
-     * @param {Map} changedProperties
-     */
-    updated(blueprint, changedProperties) {
-        super.updated(blueprint, changedProperties)
+    /** @param {Map} changedProperties */
+    updated(changedProperties) {
+        super.updated(changedProperties)
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
-            blueprint.viewportElement.scroll(blueprint.scrollX, blueprint.scrollY)
+            this.element.viewportElement.scroll(this.element.scrollX, this.element.scrollY)
         }
     }
 
-    /**
-     * @param {Blueprint} blueprint
-     * @param {PinReferenceEntity} pinReference
-     */
-    getPin(blueprint, pinReference) {
-        return /** @type {PinElement} */(blueprint.querySelector(
+    /** @param {PinReferenceEntity} pinReference */
+    getPin(pinReference) {
+        return /** @type {PinElement} */(this.element.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
     }

@@ -10,26 +10,22 @@ import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
  */
 export default class SelectableDraggableTemplate extends IDraggableTemplate {
 
-    /** @param {T} element */
-    getDraggableElement(element) {
-        return element
+    getDraggableElement() {
+        return this.element
     }
 
-    createDraggableObject(element) {
-        return new MouseMoveNodes(element, element.blueprint, {
-            draggableElement: this.getDraggableElement(element),
+    createDraggableObject() {
+        return new MouseMoveNodes(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
             looseTarget: true,
         })
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    firstUpdated(element, changedProperties) {
-        super.firstUpdated(element, changedProperties)
-        if (element.selected && !element.listeningDrag) {
-            element.setSelected(true)
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        if (this.element.selected && !this.element.listeningDrag) {
+            this.element.setSelected(true)
         }
     }
 }

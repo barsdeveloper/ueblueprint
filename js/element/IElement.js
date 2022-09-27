@@ -64,42 +64,42 @@ export default class IElement extends LitElement {
     connectedCallback() {
         super.connectedCallback()
         this.blueprint = this.closest("ueb-blueprint")
-        this.template.connectedCallback(this)
+        this.template.connectedCallback()
     }
 
     /** @param {Map} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
-        this.template.willUpdate(this, changedProperties)
+        this.template.willUpdate(changedProperties)
     }
 
     /** @param {Map} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
-        this.template.update(this, changedProperties)
+        this.template.update(changedProperties)
     }
 
     render() {
-        return this.template.render(this)
+        return this.template.render()
     }
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.template.firstUpdated(this, changedProperties)
-        this.template.inputSetup(this)
+        this.template.firstUpdated(changedProperties)
+        this.template.inputSetup()
     }
 
     updated(changedProperties) {
         super.updated(changedProperties)
-        this.template.updated(this, changedProperties)
+        this.template.updated(changedProperties)
         this.#nextUpdatedCallbacks.forEach(f => f(changedProperties))
         this.#nextUpdatedCallbacks = []
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
-        this.template.cleanup(this)
+        this.template.cleanup()
     }
 
     addNextUpdatedCallbacks(callback, requestUpdate = false) {

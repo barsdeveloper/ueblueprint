@@ -4,4 +4,7 @@ import WindowTemplate from "./WindowTemplate"
 
 export default class ColorPickerWindowTemplate extends WindowTemplate {
 
+    #picker
+
+    ColorPickerWindowTemplate()
 }

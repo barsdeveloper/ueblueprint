@@ -8,23 +8,20 @@ import ITemplate from "./ITemplate"
  */
 export default class IFromToPositionedTemplate extends ITemplate {
 
-    /**
-     * @param {T} selector
-     * @param {Map} changedProperties
-     */
-    update(selector, changedProperties) {
-        super.update(selector, changedProperties)
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties)
         if (changedProperties.has("initialPositionX")) {
-            selector.style.setProperty("--ueb-from-x", `${selector.initialPositionX}`)
+            this.element.style.setProperty("--ueb-from-x", `${this.element.initialPositionX}`)
         }
         if (changedProperties.has("initialPositionY")) {
-            selector.style.setProperty("--ueb-from-y", `${selector.initialPositionY}`)
+            this.element.style.setProperty("--ueb-from-y", `${this.element.initialPositionY}`)
         }
         if (changedProperties.has("finaPositionX")) {
-            selector.style.setProperty("--ueb-to-x", `${selector.finaPositionX}`)
+            this.element.style.setProperty("--ueb-to-x", `${this.element.finaPositionX}`)
         }
         if (changedProperties.has("finaPositionY")) {
-            selector.style.setProperty("--ueb-to-y", `${selector.finaPositionY}`)
+            this.element.style.setProperty("--ueb-to-y", `${this.element.finaPositionY}`)
         }
     }
 

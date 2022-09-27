@@ -8,8 +8,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler
 
-    /** @param {NodeElement} node */
-    render(node) {
+    render() {
         return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
@@ -23,7 +22,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                                 </svg>
                             </span>
                             <span class="ueb-node-name-text">
-                                ${node.nodeDisplayName}
+                                ${this.element.nodeDisplayName}
                             </span>
                         </div>
                     </div>
@@ -31,10 +30,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${node.enabledState?.toString() == "DevelopmentOnly" ? html`
+                    ${this.element.enabledState?.toString() == "DevelopmentOnly" ? html`
                     <div class="ueb-node-developmentonly">Development Only</div>
                     ` : html``}
-                    ${node.advancedPinDisplay ? html`
+                    ${this.element.advancedPinDisplay ? html`
                     <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="ueb-node-expansion-icon" viewBox="4 4 24 24">
@@ -47,16 +46,13 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
         `
     }
 
-    /**
-     * @param {NodeElement} node
-     * @param {Map} changedProperties
-     */
-    async firstUpdated(node, changedProperties) {
-        super.firstUpdated(node, changedProperties)
-        const inputContainer = /** @type {HTMLElement} */(node.querySelector(".ueb-node-inputs"))
-        const outputContainer = /** @type {HTMLElement} */(node.querySelector(".ueb-node-outputs"))
-        Promise.all(node.getPinElements().map(n => n.updateComplete)).then(() => node.dispatchReflowEvent())
-        node.getPinElements().forEach(p => {
+    /** @param {Map} changedProperties */
+    async firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"))
+        const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"))
+        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent())
+        this.element.getPinElements().forEach(p => {
             if (p.isInput()) {
                 inputContainer.appendChild(p)
             } else if (p.isOutput()) {
@@ -64,10 +60,10 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
             }
         })
         this.toggleAdvancedDisplayHandler = _ => {
-            node.toggleShowAdvancedPinDisplay()
-            node.addNextUpdatedCallbacks(() => node.dispatchReflowEvent(), true)
+            this.element.toggleShowAdvancedPinDisplay()
+            this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true)
         }
-        node.nodeNameElement = /** @type {HTMLElement} */(node.querySelector(".ueb-node-name-text"))
+        this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"))
     }
 
     /**

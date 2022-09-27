@@ -1764,60 +1764,42 @@ class ITemplate {
 
     /** @param {T} element */
     constructed(element) {
+        this.element = element;
     }
 
-    /** @param {T} element */
-    connectedCallback(element) {
+    connectedCallback() {
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    willUpdate(element, changedProperties) {
+    /** @param {Map} changedProperties */
+    willUpdate(changedProperties) {
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    update(element, changedProperties) {
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
     }
 
-    /** @param {T} element */
-    render(element) {
+    render() {
         return $``
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    firstUpdated(element, changedProperties) {
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    updated(element, changedProperties) {
+    /** @param {Map} changedProperties */
+    updated(changedProperties) {
     }
 
-    /** @param {T} element */
-    inputSetup(element) {
-        this.#inputObjects = this.createInputObjects(element);
+    inputSetup() {
+        this.#inputObjects = this.createInputObjects();
     }
 
-    /** @param {T} element */
-    cleanup(element) {
+    cleanup() {
         this.#inputObjects.forEach(v => v.unlistenDOMElement());
     }
 
-    /**
-     * @param {T} element
-     * @returns {IInput[]}
-     */
-    createInputObjects(element) {
+    /** @returns {IInput[]} */
+    createInputObjects() {
         return []
     }
 }
@@ -2384,42 +2366,42 @@ class IElement extends s {
     connectedCallback() {
         super.connectedCallback();
         this.blueprint = this.closest("ueb-blueprint");
-        this.template.connectedCallback(this);
+        this.template.connectedCallback();
     }
 
     /** @param {Map} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
-        this.template.willUpdate(this, changedProperties);
+        this.template.willUpdate(changedProperties);
     }
 
     /** @param {Map} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
-        this.template.update(this, changedProperties);
+        this.template.update(changedProperties);
     }
 
     render() {
-        return this.template.render(this)
+        return this.template.render()
     }
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.template.firstUpdated(this, changedProperties);
-        this.template.inputSetup(this);
+        this.template.firstUpdated(changedProperties);
+        this.template.inputSetup();
     }
 
     updated(changedProperties) {
         super.updated(changedProperties);
-        this.template.updated(this, changedProperties);
+        this.template.updated(changedProperties);
         this.#nextUpdatedCallbacks.forEach(f => f(changedProperties));
         this.#nextUpdatedCallbacks = [];
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.template.cleanup(this);
+        this.template.cleanup();
     }
 
     addNextUpdatedCallbacks(callback, requestUpdate = false) {
@@ -2649,23 +2631,20 @@ class IFromToPositionedElement extends IElement {
  */
 class IFromToPositionedTemplate extends ITemplate {
 
-    /**
-     * @param {T} selector
-     * @param {Map} changedProperties
-     */
-    update(selector, changedProperties) {
-        super.update(selector, changedProperties);
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
         if (changedProperties.has("initialPositionX")) {
-            selector.style.setProperty("--ueb-from-x", `${selector.initialPositionX}`);
+            this.element.style.setProperty("--ueb-from-x", `${this.element.initialPositionX}`);
         }
         if (changedProperties.has("initialPositionY")) {
-            selector.style.setProperty("--ueb-from-y", `${selector.initialPositionY}`);
+            this.element.style.setProperty("--ueb-from-y", `${this.element.initialPositionY}`);
         }
         if (changedProperties.has("finaPositionX")) {
-            selector.style.setProperty("--ueb-to-x", `${selector.finaPositionX}`);
+            this.element.style.setProperty("--ueb-to-x", `${this.element.finaPositionX}`);
         }
         if (changedProperties.has("finaPositionY")) {
-            selector.style.setProperty("--ueb-to-y", `${selector.finaPositionY}`);
+            this.element.style.setProperty("--ueb-to-y", `${this.element.finaPositionY}`);
         }
     }
 
@@ -2725,66 +2704,63 @@ class LinkTemplate extends IFromToPositionedTemplate {
     static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
     /**
-     * @param {LinkElement} link
      * @param {Map} changedProperties
      */
-    willUpdate(link, changedProperties) {
-        super.willUpdate(link, changedProperties);
-        const dx = Math.max(Math.abs(link.initialPositionX - link.finaPositionX), 1);
+    willUpdate(changedProperties) {
+        super.willUpdate(changedProperties);
+        const dx = Math.max(Math.abs(this.element.initialPositionX - this.element.finaPositionX), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
         // const height = Math.max(Math.abs(link.initialPositionY - link.finaPositionY), 1)
         const fillRatio = dx / width;
         // const aspectRatio = width / height
-        const xInverted = link.originatesFromInput
-            ? link.initialPositionX < link.finaPositionX
-            : link.finaPositionX < link.initialPositionX;
-        link.startPixels = dx < width // If under minimum width
+        const xInverted = this.element.originatesFromInput
+            ? this.element.initialPositionX < this.element.finaPositionX
+            : this.element.finaPositionX < this.element.initialPositionX;
+        this.element.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0; // Otherwise start from the beginning
-        link.startPercentage = xInverted ? link.startPixels + fillRatio * 100 : link.startPixels;
+        this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels;
         const c1
-            = link.startPercentage
+            = this.element.startPercentage
             + (xInverted
                 ? LinkTemplate.c1DecreasingValue(width)
                 : 10
             )
             * fillRatio;
-        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + link.startPercentage;
+        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + this.element.startPercentage;
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width));
-        link.svgPathD = Configuration.linkRightSVGPath(link.startPercentage, c1, c2);
+        this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2);
     }
 
     /**
-     * @param {LinkElement} link
      * @param {Map} changedProperties
      */
-    update(link, changedProperties) {
-        super.update(link, changedProperties);
+    update(changedProperties) {
+        super.update(changedProperties);
         if (changedProperties.has("originatesFromInput")) {
-            link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0");
+            this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0");
         }
-        const referencePin = link.sourcePin ?? link.destinationPin;
+        const referencePin = this.element.sourcePin ?? this.element.destinationPin;
         if (referencePin) {
-            link.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color));
+            this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color));
         }
-        link.style.setProperty("--ueb-link-start", `${Math.round(link.startPixels)}`);
-        link.style.setProperty("--ueb-start-percentage", `${Math.round(link.startPercentage)}%`);
+        this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`);
+        this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`);
     }
 
-    /** @param {LinkElement} link */
-    render(link) {
+    render() {
         const uniqueId = "ueb-id-" + Math.floor(Math.random() * 1E12);
         return $`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <g>
-                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${link.svgPathD}" />
+                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
                     <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
                 </g>
             </svg>
-            ${link.linkMessageIcon != "" || link.linkMessageText != "" ? $`
+            ${this.element.linkMessageIcon != "" || this.element.linkMessageText != "" ? $`
             <div class="ueb-link-message">
-                <span class="${link.linkMessageIcon}"></span>
-                <span class="ueb-link-message-text">${link.linkMessageText}</span>
+                <span class="${this.element.linkMessageIcon}"></span>
+                <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
             </div>
             ` : $``}
         `
@@ -3142,41 +3118,36 @@ class PinTemplate extends ITemplate {
 
     static styles = r$2``
 
-    /** @param {PinElement} pin */
-    connectedCallback(pin) {
-        super.connectedCallback(pin);
-        pin.nodeElement = pin.closest("ueb-node");
+    connectedCallback() {
+        super.connectedCallback();
+        this.element.nodeElement = this.element.closest("ueb-node");
     }
 
-    /**
-     * @param {PinElement} pin
-     * @returns {IInput[]}
-     */
-    createInputObjects(pin) {
+    /** @returns {IInput[]} */
+    createInputObjects() {
         return [
-            new MouseCreateLink(pin.clickableElement, pin.blueprint, {
+            new MouseCreateLink(this.element.clickableElement, this.element.blueprint, {
                 moveEverywhere: true,
                 looseTarget: true
             })
         ]
     }
 
-    /** @param {PinElement} pin */
-    render(pin) {
+    render() {
         const icon = $`
             <div class="ueb-pin-icon">
-                ${this.renderIcon(pin)}
+                ${this.renderIcon()}
             </div>
         `;
         const content = $`
             <div class="ueb-pin-content">
-                <span class="ueb-pin-name">${pin.getPinDisplayName()}</span>
-                ${this.renderInput(pin)}
+                <span class="ueb-pin-name">${this.element.getPinDisplayName()}</span>
+                ${this.renderInput()}
             </div>
         `;
         return $`
             <div class="ueb-pin-wrapper">
-                ${pin.isInput() ? $`${icon}${content}` : $`${content}${icon}`}
+                ${this.element.isInput() ? $`${icon}${content}` : $`${content}${icon}`}
             </div>
         `
     }
@@ -3196,14 +3167,11 @@ class PinTemplate extends ITemplate {
         return $``
     }
 
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties);
-        pin.dataset.id = pin.GetPinIdValue();
-        pin.clickableElement = pin;
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.element.dataset.id = this.element.GetPinIdValue();
+        this.element.clickableElement = this.element;
     }
 
     /** @param {PinElement} pin */
@@ -3240,21 +3208,20 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     /**
-     * @param {PinElement} pin
      * @param {Map} changedProperties
      */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties);
-        this.#inputContentElements = [...pin.querySelectorAll(".ueb-pin-input-content")];
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.#inputContentElements = [...this.element.querySelectorAll(".ueb-pin-input-content")];
         if (this.#inputContentElements.length) {
-            this.setInputs(pin, this.getInputs(pin), false);
+            this.setInputs(this.getInputs(this.element), false);
             let self = this;
-            this.onFocusHandler = _ => pin.blueprint.dispatchEditTextEvent(true);
+            this.onFocusHandler = _ => this.element.blueprint.dispatchEditTextEvent(true);
             this.onFocusOutHandler = e => {
                 e.preventDefault();
                 document.getSelection()?.removeAllRanges(); // Deselect text inside the input
-                self.setInputs(pin, this.getInputs(pin), true);
-                pin.blueprint.dispatchEditTextEvent(false);
+                self.setInputs(this.getInputs(this.element), true);
+                this.element.blueprint.dispatchEditTextEvent(false);
             };
             this.#inputContentElements.forEach(element => {
                 element.addEventListener("focus", this.onFocusHandler);
@@ -3263,30 +3230,26 @@ class IInputPinTemplate extends PinTemplate {
         }
     }
 
-    /** @param {PinElement} pin */
-    cleanup(pin) {
-        super.cleanup(pin);
+    cleanup() {
+        super.cleanup();
         this.#inputContentElements.forEach(element => {
             element.removeEventListener("focus", this.onFocusHandler);
             element.removeEventListener("focusout", this.onFocusOutHandler);
         });
     }
 
-    /** @param {PinElement} pin */
-    createInputObjects(pin) {
+    createInputObjects() {
         return [
-            ...super.createInputObjects(pin),
-            ...this.#inputContentElements.map(element => new MouseIgnore(element, pin.blueprint))
+            ...super.createInputObjects(),
+            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.element.blueprint))
         ]
     }
 
-    /** @param {PinElement} pin */
-    getInput(pin) {
-        return this.getInputs(pin).reduce((acc, cur) => acc + cur, "")
+    getInput() {
+        return this.getInputs(this.element).reduce((acc, cur) => acc + cur, "")
     }
 
-    /** @param {PinElement} pin */
-    getInputs(pin) {
+    getInputs() {
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
             element.innerHTML
@@ -3295,30 +3258,26 @@ class IInputPinTemplate extends PinTemplate {
         )
     }
 
-    /**
-     * @param {PinElement} pin
-     * @param {String[]?} values
-     */
-    setInputs(pin, values = [], updateDefaultValue = true) {
+    /** @param {String[]?} values */
+    setInputs(values = [], updateDefaultValue = true) {
         this.#inputContentElements.forEach(
-            (element, i) => element.innerText = values[i]
+            (elem, i) => elem.innerText = values[i]
         );
         if (updateDefaultValue) {
-            this.setDefaultValue(pin, values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
+            this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
         }
     }
 
-    setDefaultValue(pin, values = [], rawValues = values) {
-        pin.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""));
+    setDefaultValue(values = [], rawValues = values) {
+        this.element.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""));
     }
 
-    /** @param {PinElement} pin */
-    renderInput(pin) {
-        if (pin.isInput()) {
+    renderInput() {
+        if (this.element.isInput()) {
             return $`
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.unreactiveDefaultValue.toString())}"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.unreactiveDefaultValue.toString())}"></span>
                 </div>
             `
         }
@@ -3333,41 +3292,35 @@ class BoolPinTemplate extends IInputPinTemplate {
     /** @type {HTMLInputElement} */
     #input
 
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties);
-        this.#input = pin.querySelector(".ueb-pin-input");
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.#input = this.element.querySelector(".ueb-pin-input");
         let self = this;
-        this.onChangeHandler = _ => pin.entity.DefaultValue = self.#input.checked ? "true" : "false";
+        this.onChangeHandler = _ => this.element.entity.DefaultValue = self.#input.checked ? "true" : "false";
         this.#input.addEventListener("change", this.onChangeHandler);
     }
 
-    /** @param {PinElement} pin */
-    cleanup(pin) {
-        super.cleanup(pin);
+    cleanup() {
+        super.cleanup();
         this.#input.removeEventListener("change", this.onChangeHandler);
     }
 
-    /** @param {PinElement} pin */
-    getInputs(pin) {
+    getInputs() {
         return [this.#input.checked ? "true" : "false"]
     }
 
-    setDefaultValue(pin, values = [], rawValues = values) {
-        pin.setDefaultValue(values[0] == "true");
+    setDefaultValue(values = [], rawValues = values) {
+        this.element.setDefaultValue(values[0] == "true");
     }
 
-    /** @param {PinElement} pin */
-    renderInput(pin) {
-        if (pin.isInput()) {
+    renderInput() {
+        if (this.element.isInput()) {
             return $`
-                <input type="checkbox" class="ueb-pin-input" .checked=${pin.entity.getDefaultValue()} />
+                <input type="checkbox" class="ueb-pin-input" .checked=${this.element.entity.getDefaultValue()} />
             `
         }
-        return super.renderInput(pin)
+        return super.renderInput()
     }
 }
 
@@ -3502,37 +3455,34 @@ class MouseMoveDraggable extends IMouseClickDrag {
  */
 class IDraggableTemplate extends ITemplate {
 
-    /** @param {T} element */
-    getDraggableElement(element) {
-        return element
+    getDraggableElement() {
+        return this.element
     }
 
-    createDraggableObject(element) {
-        return new MouseMoveDraggable(element, element.blueprint, {
-            draggableElement: this.getDraggableElement(element),
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
             looseTarget: true,
         })
     }
 
-    /** @param {T} element */
-    createInputObjects(element) {
+    createInputObjects() {
         return [
-            ...super.createInputObjects(element),
-            this.createDraggableObject(element),
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
         ]
     }
 
     /**
-     * @param {T} element
      * @param {Map} changedProperties
      */
-    update(element, changedProperties) {
-        super.update(element, changedProperties);
+    update(changedProperties) {
+        super.update(changedProperties);
         if (changedProperties.has("locationX")) {
-            element.style.setProperty("--ueb-position-x", `${element.locationX}`);
+            this.element.style.setProperty("--ueb-position-x", `${this.element.locationX}`);
         }
         if (changedProperties.has("locationY")) {
-            element.style.setProperty("--ueb-position-y", `${element.locationY}`);
+            this.element.style.setProperty("--ueb-position-y", `${this.element.locationY}`);
         }
     }
 }
@@ -3546,30 +3496,27 @@ class WindowTemplate extends IDraggableTemplate {
 
     toggleAdvancedDisplayHandler
 
-    /** @param {WindowElement} element */
-    getDraggableElement(element) {
-        return element.querySelector(".ueb-window-top")
+    getDraggableElement() {
+        return this.element.querySelector(".ueb-window-top")
     }
 
-    createDraggableObject(element) {
-        return new MouseMoveDraggable(element, element.blueprint, {
-            draggableElement: this.getDraggableElement(element),
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
             looseTarget: true,
             stepSize: 1,
-            movementSpace: element.blueprint,
+            movementSpace: this.element.blueprint,
         })
     }
 
-    /** @param {T} element */
-    createInputObjects(element) {
+    createInputObjects() {
         return [
-            ...super.createInputObjects(element),
-            this.createDraggableObject(element),
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
         ]
     }
 
-    /** @param {WindowElement} element */
-    render(element) {
+    render() {
         return $`
             <div class="ueb-window">
                 <div class="ueb-window-top">
@@ -3661,23 +3608,17 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     /** @type {HTMLInputElement} */
     #input
 
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties);
-        this.#input = pin.querySelector(".ueb-pin-input");
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.#input = this.element.querySelector(".ueb-pin-input");
     }
 
-    /**
-     * @param {PinElement} pin
-     * @returns {IInput[]}
-     */
-    createInputObjects(pin) {
+    /** @returns {IInput[]} */
+    createInputObjects() {
         return [
-            ...super.createInputObjects(pin),
-            new MouseOpenWindow(this.#input, pin.blueprint, {
+            ...super.createInputObjects(),
+            new MouseOpenWindow(this.#input, this.element.blueprint, {
                 moveEverywhere: true,
                 looseTarget: true
             })
@@ -3689,23 +3630,19 @@ class LinearColorPinTemplate extends IInputPinTemplate {
         return [this.#input.dataset.linearColor]
     }
 
-    /**
-     * @param {PinElement} pin
-     * @param {String[]} value
-     */
-    setInputs(pin, value = []) {
+    /** @param {String[]} value */
+    setInputs(value = []) {
     }
 
-    /** @param {PinElement} pin */
-    renderInput(pin) {
-        if (pin.isInput()) {
+    renderInput() {
+        if (this.element.isInput()) {
             return $`
-                <span class="ueb-pin-input" data-linear-color="${pin.defaultValue.toString()}"
-                    .style="--ueb-linear-color:rgba(${pin.defaultValue.toString()})">
+                <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
+                    .style="--ueb-linear-color:rgba(${this.element.defaultValue.toString()})">
                 </span>
             `
         }
-        return super.renderInput(pin)
+        return super.renderInput()
     }
 }
 
@@ -3720,8 +3657,8 @@ class NamePinTemplate extends IInputPinTemplate {
      * @param {PinElement} pin
      * @param {Map} changedProperties
      */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties);
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
         this.onInputHandler = e => {
             e.stopPropagation();
             if (
@@ -3738,9 +3675,8 @@ class NamePinTemplate extends IInputPinTemplate {
         });
     }
 
-    /** @param {PinElement} pin */
-    cleanup(pin) {
-        super.cleanup(pin);
+    cleanup() {
+        super.cleanup();
         this.inputContentElements.forEach(element => {
             element.removeEventListener("input", /** @type {(e : Event) => void} */(this.onInputHandler));
         });
@@ -3751,13 +3687,10 @@ class NamePinTemplate extends IInputPinTemplate {
         return this.inputContentElements.map(element => element.textContent) // textContent for performance reason
     }
 
-    /**
-     * @param {PinElement} pin
-     * @param {String[]?} values
-     */
-    setInputs(pin, values = [], updateDefaultValue = true) {
+    /** @param {String[]?} values */
+    setInputs(values = [], updateDefaultValue = true) {
         values = values.map(value => value.replaceAll("\n", "")); // get rid of the new lines
-        super.setInputs(pin, values, updateDefaultValue);
+        super.setInputs(values, updateDefaultValue);
     }
 }
 
@@ -3765,21 +3698,17 @@ class NamePinTemplate extends IInputPinTemplate {
 
 class RealPinTemplate extends IInputPinTemplate {
 
-    /**
-     * @param {PinElement} pin
-     * @param {String[]?} values
-     */
-    setInputs(pin, values = [], updateDefaultValue = false) {
+    setInputs(values = [], updateDefaultValue = false) {
         if (!values || values.length == 0) {
-            values = this.getInput(pin);
+            values = this.getInput();
         }
         let parsedValues = [];
         for (let i = 0; i < values.length; ++i) {
             let num = parseFloat(values[i]);
             if (isNaN(num)) {
-                num = parseFloat(pin.entity.DefaultValue != ""
-                    ? /** @type {String} */(pin.entity.DefaultValue)
-                    : pin.entity.AutogeneratedDefaultValue);
+                num = parseFloat(this.element.entity.DefaultValue != ""
+                    ? /** @type {String} */(this.element.entity.DefaultValue)
+                    : this.element.entity.AutogeneratedDefaultValue);
             }
             if (isNaN(num)) {
                 num = 0;
@@ -3788,12 +3717,12 @@ class RealPinTemplate extends IInputPinTemplate {
             parsedValues.push(num);
             values[i] = Utility.minDecimals(num);
         }
-        super.setInputs(pin, values, false);
-        this.setDefaultValue(pin, parsedValues, values);
+        super.setInputs(values, false);
+        this.setDefaultValue(parsedValues, values);
     }
 
-    setDefaultValue(pin, values = [], rawValues = values) {
-        pin.setDefaultValue(values[0]);
+    setDefaultValue(values = [], rawValues = values) {
+        this.element.setDefaultValue(values[0]);
     }
 }
 
@@ -3807,35 +3736,34 @@ class StringPinTemplate extends IInputPinTemplate {
 
 class VectorPinTemplate extends RealPinTemplate {
 
-    setDefaultValue(pin, values = [], rawValues = values) {
-        if (!(pin.entity.DefaultValue instanceof VectorEntity)) {
+    setDefaultValue(values = [], rawValues = values) {
+        if (!(this.element.entity.DefaultValue instanceof VectorEntity)) {
             throw new TypeError("Expected DefaultValue to be a VectorEntity")
         }
-        let vector = pin.entity.DefaultValue;
+        let vector = this.element.entity.DefaultValue;
         vector.X = values[0];
         vector.Y = values[1];
         vector.Z = values[2];
     }
 
-    /** @param {PinElement} pin */
-    renderInput(pin) {
-        if (pin.isInput()) {
+    renderInput() {
+        if (this.element.isInput()) {
             return $`
                 <div class="ueb-pin-input-wrapper">
                     <span class="ueb-pin-input-label">X</span>
                     <div class="ueb-pin-input">
                         <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().X.toString())}"></span>
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().X.toString())}"></span>
                     </div>
                     <span class="ueb-pin-input-label">Y</span>
                     <div class="ueb-pin-input">
                         <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().Y.toString())}"></span>
                     </div>
                     <span class="ueb-pin-input-label">Z</span>
                     <div class="ueb-pin-input">
                         <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Z.toString())}"></span>
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().Z.toString())}"></span>
                     </div>
                 </div>
             `
@@ -3846,8 +3774,7 @@ class VectorPinTemplate extends RealPinTemplate {
 
 class ReferencePinTemplate extends PinTemplate {
 
-    /** @param {PinElement} pin */
-    renderIcon(pin) {
+    renderIcon() {
         return $`
             <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                 <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
@@ -3858,35 +3785,34 @@ class ReferencePinTemplate extends PinTemplate {
 
 class RotatorPinTemplate extends RealPinTemplate {
 
-    setDefaultValue(pin, values = [], rawValues = values) {
-        if (!(pin.entity.DefaultValue instanceof RotatorEntity)) {
+    setDefaultValue(values = [], rawValues = values) {
+        if (!(this.element.entity.DefaultValue instanceof RotatorEntity)) {
             throw new TypeError("Expected DefaultValue to be a VectorEntity")
         }
-        let rotator = pin.entity.DefaultValue;
+        let rotator = this.element.entity.DefaultValue;
         rotator.R = values[0]; // Roll
         rotator.P = values[1]; // Pitch
         rotator.Y = values[2]; // Yaw
     }
 
-    /** @param {PinElement} pin */
-    renderInput(pin) {
-        if (pin.isInput()) {
+    renderInput() {
+        if (this.element.isInput()) {
             return $`
                 <div class="ueb-pin-input-wrapper">
                     <span class="ueb-pin-input-label">X</span>
                     <div class="ueb-pin-input">
                         <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().R.toString())}"></span>
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().R.toString())}"></span>
                     </div>
                     <span class="ueb-pin-input-label">Y</span>
                     <div class="ueb-pin-input">
                         <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().P.toString())}"></span>
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().P.toString())}"></span>
                     </div>
                     <span class="ueb-pin-input-label">Z</span>
                     <div class="ueb-pin-input">
                         <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().Y.toString())}"></span>
                     </div>
                 </div>
             `
@@ -4014,10 +3940,6 @@ class PinElement extends IElement {
             }
             return Utility.formatStringName(this.entity.PinName)
         });
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
     }
 
     /** @return {GuidEntity} */
@@ -4171,26 +4093,22 @@ class MouseMoveNodes extends MouseMoveDraggable {
  */
 class SelectableDraggableTemplate extends IDraggableTemplate {
 
-    /** @param {T} element */
-    getDraggableElement(element) {
-        return element
+    getDraggableElement() {
+        return this.element
     }
 
-    createDraggableObject(element) {
-        return new MouseMoveNodes(element, element.blueprint, {
-            draggableElement: this.getDraggableElement(element),
+    createDraggableObject() {
+        return new MouseMoveNodes(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
             looseTarget: true,
         })
     }
 
-    /**
-     * @param {T} element
-     * @param {Map} changedProperties
-     */
-    firstUpdated(element, changedProperties) {
-        super.firstUpdated(element, changedProperties);
-        if (element.selected && !element.listeningDrag) {
-            element.setSelected(true);
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        if (this.element.selected && !this.element.listeningDrag) {
+            this.element.setSelected(true);
         }
     }
 }
@@ -4201,8 +4119,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler
 
-    /** @param {NodeElement} node */
-    render(node) {
+    render() {
         return $`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
@@ -4216,7 +4133,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                                 </svg>
                             </span>
                             <span class="ueb-node-name-text">
-                                ${node.nodeDisplayName}
+                                ${this.element.nodeDisplayName}
                             </span>
                         </div>
                     </div>
@@ -4224,10 +4141,10 @@ class NodeTemplate extends SelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${node.enabledState?.toString() == "DevelopmentOnly" ? $`
+                    ${this.element.enabledState?.toString() == "DevelopmentOnly" ? $`
                     <div class="ueb-node-developmentonly">Development Only</div>
                     ` : $``}
-                    ${node.advancedPinDisplay ? $`
+                    ${this.element.advancedPinDisplay ? $`
                     <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="ueb-node-expansion-icon" viewBox="4 4 24 24">
@@ -4240,16 +4157,13 @@ class NodeTemplate extends SelectableDraggableTemplate {
         `
     }
 
-    /**
-     * @param {NodeElement} node
-     * @param {Map} changedProperties
-     */
-    async firstUpdated(node, changedProperties) {
-        super.firstUpdated(node, changedProperties);
-        const inputContainer = /** @type {HTMLElement} */(node.querySelector(".ueb-node-inputs"));
-        const outputContainer = /** @type {HTMLElement} */(node.querySelector(".ueb-node-outputs"));
-        Promise.all(node.getPinElements().map(n => n.updateComplete)).then(() => node.dispatchReflowEvent());
-        node.getPinElements().forEach(p => {
+    /** @param {Map} changedProperties */
+    async firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"));
+        const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"));
+        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent());
+        this.element.getPinElements().forEach(p => {
             if (p.isInput()) {
                 inputContainer.appendChild(p);
             } else if (p.isOutput()) {
@@ -4257,10 +4171,10 @@ class NodeTemplate extends SelectableDraggableTemplate {
             }
         });
         this.toggleAdvancedDisplayHandler = _ => {
-            node.toggleShowAdvancedPinDisplay();
-            node.addNextUpdatedCallbacks(() => node.dispatchReflowEvent(), true);
+            this.element.toggleShowAdvancedPinDisplay();
+            this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
         };
-        node.nodeNameElement = /** @type {HTMLElement} */(node.querySelector(".ueb-node-name-text"));
+        this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
     }
 
     /**
@@ -4919,44 +4833,41 @@ class BlueprintTemplate extends ITemplate {
             }), {}),
     }
 
-    /** @param {Blueprint} blueprint */
-    constructed(blueprint) {
-        blueprint.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("");
+    /** @param {Blueprint} element */
+    constructed(element) {
+        super.constructed(element);
+        this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("");
     }
 
-    /** @param {Blueprint} blueprint */
-    createInputObjects(blueprint) {
+    createInputObjects() {
         return [
-            new Copy(blueprint.getGridDOMElement(), blueprint),
-            new Paste(blueprint.getGridDOMElement(), blueprint),
-            new KeyboardCanc(blueprint.getGridDOMElement(), blueprint),
-            new KeyboardSelectAll(blueprint.getGridDOMElement(), blueprint),
-            new Zoom(blueprint.getGridDOMElement(), blueprint, {
+            ...super.createInputObjects(),
+            new Copy(this.element.getGridDOMElement(), this.element),
+            new Paste(this.element.getGridDOMElement(), this.element),
+            new KeyboardCanc(this.element.getGridDOMElement(), this.element),
+            new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
+            new Zoom(this.element.getGridDOMElement(), this.element, {
                 looseTarget: true,
             }),
-            new Select(blueprint.getGridDOMElement(), blueprint, {
+            new Select(this.element.getGridDOMElement(), this.element, {
                 clickButton: 0,
                 exitAnyButton: true,
                 looseTarget: true,
                 moveEverywhere: true,
             }),
-            new MouseScrollGraph(blueprint.getGridDOMElement(), blueprint, {
+            new MouseScrollGraph(this.element.getGridDOMElement(), this.element, {
                 clickButton: 2,
                 exitAnyButton: false,
                 looseTarget: true,
                 moveEverywhere: true,
             }),
-            new Unfocus(blueprint.getGridDOMElement(), blueprint),
-            new MouseTracking(blueprint.getGridDOMElement(), blueprint),
-            new KeyboardEnableZoom(blueprint.getGridDOMElement(), blueprint),
+            new Unfocus(this.element.getGridDOMElement(), this.element),
+            new MouseTracking(this.element.getGridDOMElement(), this.element),
+            new KeyboardEnableZoom(this.element.getGridDOMElement(), this.element),
         ]
     }
 
-    /**
-     * @param {Blueprint} element Target element
-     * @returns The computed html
-     */
-    render(element) {
+    render() {
         return $`
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">1:1</div>
@@ -4964,7 +4875,7 @@ class BlueprintTemplate extends ITemplate {
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
-                    .style="--ueb-additional-x: ${element}; --ueb-additional-y: ${element.translateY}; --ueb-translate-x: ${element.translateX}; --ueb-translate-y: ${element.translateY};">
+                    .style="--ueb-additional-x: ${this.element}; --ueb-additional-y: ${this.element.translateY}; --ueb-translate-x: ${this.element.translateX}; --ueb-translate-y: ${this.element.translateY};">
                     <div class="ueb-grid-content">
                         <div data-links></div>
                         <div data-nodes></div>
@@ -4975,42 +4886,35 @@ class BlueprintTemplate extends ITemplate {
     }
 
     /**
-     * @param {Blueprint} blueprint
      * @param {Map} changedProperties
      */
-    firstUpdated(blueprint, changedProperties) {
-        super.firstUpdated(blueprint, changedProperties);
-        blueprint.headerElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-header'));
-        blueprint.overlayElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-overlay'));
-        blueprint.viewportElement = /** @type {HTMLElement} */(blueprint.querySelector('.ueb-viewport-body'));
-        blueprint.selectorElement = new SelectorElement();
-        blueprint.querySelector(".ueb-grid-content")?.append(blueprint.selectorElement);
-        blueprint.gridElement = /** @type {HTMLElement} */(blueprint.viewportElement.querySelector(".ueb-grid"));
-        blueprint.linksContainerElement = /** @type {HTMLElement} */(blueprint.querySelector("[data-links]"));
-        blueprint.linksContainerElement.append(...blueprint.getLinks());
-        blueprint.nodesContainerElement = /** @type {HTMLElement} */(blueprint.querySelector("[data-nodes]"));
-        blueprint.nodesContainerElement.append(...blueprint.getNodes());
-        blueprint.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.element.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'));
+        this.element.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'));
+        this.element.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'));
+        this.element.selectorElement = new SelectorElement();
+        this.element.querySelector(".ueb-grid-content")?.append(this.element.selectorElement);
+        this.element.gridElement = /** @type {HTMLElement} */(this.element.viewportElement.querySelector(".ueb-grid"));
+        this.element.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"));
+        this.element.linksContainerElement.append(...this.element.getLinks());
+        this.element.nodesContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-nodes]"));
+        this.element.nodesContainerElement.append(...this.element.getNodes());
+        this.element.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
     }
 
 
-    /**
-     * @param {Blueprint} blueprint
-     * @param {Map} changedProperties
-     */
-    updated(blueprint, changedProperties) {
-        super.updated(blueprint, changedProperties);
+    /** @param {Map} changedProperties */
+    updated(changedProperties) {
+        super.updated(changedProperties);
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
-            blueprint.viewportElement.scroll(blueprint.scrollX, blueprint.scrollY);
+            this.element.viewportElement.scroll(this.element.scrollX, this.element.scrollY);
         }
     }
 
-    /**
-     * @param {Blueprint} blueprint
-     * @param {PinReferenceEntity} pinReference
-     */
-    getPin(blueprint, pinReference) {
-        return /** @type {PinElement} */(blueprint.querySelector(
+    /** @param {PinReferenceEntity} pinReference */
+    getPin(pinReference) {
+        return /** @type {PinElement} */(this.element.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
     }
@@ -5289,10 +5193,10 @@ class Blueprint extends IElement {
 
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
-        /*let result = this.template.getPin(this, pinReference)
+        let result = this.template.getPin(this, pinReference);
         if (result) {
             return result
-        }*/
+        }
         return [... this.nodes
             //.filter(n => !n.parentNode)
             .find(n => pinReference.objectName.toString() == n.getNodeName())

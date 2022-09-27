@@ -9,37 +9,34 @@ import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
  */
 export default class IDraggableTemplate extends ITemplate {
 
-    /** @param {T} element */
-    getDraggableElement(element) {
-        return element
+    getDraggableElement() {
+        return this.element
     }
 
-    createDraggableObject(element) {
-        return new MouseMoveDraggable(element, element.blueprint, {
-            draggableElement: this.getDraggableElement(element),
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
             looseTarget: true,
         })
     }
 
-    /** @param {T} element */
-    createInputObjects(element) {
+    createInputObjects() {
         return [
-            ...super.createInputObjects(element),
-            this.createDraggableObject(element),
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
         ]
     }
 
     /**
-     * @param {T} element
      * @param {Map} changedProperties
      */
-    update(element, changedProperties) {
-        super.update(element, changedProperties)
+    update(changedProperties) {
+        super.update(changedProperties)
         if (changedProperties.has("locationX")) {
-            element.style.setProperty("--ueb-position-x", `${element.locationX}`)
+            this.element.style.setProperty("--ueb-position-x", `${this.element.locationX}`)
         }
         if (changedProperties.has("locationY")) {
-            element.style.setProperty("--ueb-position-y", `${element.locationY}`)
+            this.element.style.setProperty("--ueb-position-y", `${this.element.locationY}`)
         }
     }
 }

@@ -136,10 +136,6 @@ export default class PinElement extends IElement {
         })
     }
 
-    connectedCallback() {
-        super.connectedCallback()
-    }
-
     /** @return {GuidEntity} */
     GetPinId() {
         return this.entity.PinId

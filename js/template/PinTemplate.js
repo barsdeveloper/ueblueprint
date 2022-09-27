@@ -13,41 +13,36 @@ export default class PinTemplate extends ITemplate {
 
     static styles = css``
 
-    /** @param {PinElement} pin */
-    connectedCallback(pin) {
-        super.connectedCallback(pin)
-        pin.nodeElement = pin.closest("ueb-node")
+    connectedCallback() {
+        super.connectedCallback()
+        this.element.nodeElement = this.element.closest("ueb-node")
     }
 
-    /**
-     * @param {PinElement} pin
-     * @returns {IInput[]}
-     */
-    createInputObjects(pin) {
+    /** @returns {IInput[]} */
+    createInputObjects() {
         return [
-            new MouseCreateLink(pin.clickableElement, pin.blueprint, {
+            new MouseCreateLink(this.element.clickableElement, this.element.blueprint, {
                 moveEverywhere: true,
                 looseTarget: true
             })
         ]
     }
 
-    /** @param {PinElement} pin */
-    render(pin) {
+    render() {
         const icon = html`
             <div class="ueb-pin-icon">
-                ${this.renderIcon(pin)}
+                ${this.renderIcon()}
             </div>
         `
         const content = html`
             <div class="ueb-pin-content">
-                <span class="ueb-pin-name">${pin.getPinDisplayName()}</span>
-                ${this.renderInput(pin)}
+                <span class="ueb-pin-name">${this.element.getPinDisplayName()}</span>
+                ${this.renderInput()}
             </div>
         `
         return html`
             <div class="ueb-pin-wrapper">
-                ${pin.isInput() ? html`${icon}${content}` : html`${content}${icon}`}
+                ${this.element.isInput() ? html`${icon}${content}` : html`${content}${icon}`}
             </div>
         `
     }
@@ -67,14 +62,11 @@ export default class PinTemplate extends ITemplate {
         return html``
     }
 
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties)
-        pin.dataset.id = pin.GetPinIdValue()
-        pin.clickableElement = pin
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        this.element.dataset.id = this.element.GetPinIdValue()
+        this.element.clickableElement = this.element
     }
 
     /** @param {PinElement} pin */

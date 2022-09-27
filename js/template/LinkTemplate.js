@@ -57,66 +57,63 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
     /**
-     * @param {LinkElement} link
      * @param {Map} changedProperties
      */
-    willUpdate(link, changedProperties) {
-        super.willUpdate(link, changedProperties)
-        const dx = Math.max(Math.abs(link.initialPositionX - link.finaPositionX), 1)
+    willUpdate(changedProperties) {
+        super.willUpdate(changedProperties)
+        const dx = Math.max(Math.abs(this.element.initialPositionX - this.element.finaPositionX), 1)
         const width = Math.max(dx, Configuration.linkMinWidth)
         // const height = Math.max(Math.abs(link.initialPositionY - link.finaPositionY), 1)
         const fillRatio = dx / width
         // const aspectRatio = width / height
-        const xInverted = link.originatesFromInput
-            ? link.initialPositionX < link.finaPositionX
-            : link.finaPositionX < link.initialPositionX
-        link.startPixels = dx < width // If under minimum width
+        const xInverted = this.element.originatesFromInput
+            ? this.element.initialPositionX < this.element.finaPositionX
+            : this.element.finaPositionX < this.element.initialPositionX
+        this.element.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0 // Otherwise start from the beginning
-        link.startPercentage = xInverted ? link.startPixels + fillRatio * 100 : link.startPixels
+        this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels
         const c1
-            = link.startPercentage
+            = this.element.startPercentage
             + (xInverted
                 ? LinkTemplate.c1DecreasingValue(width)
                 : 10
             )
             * fillRatio
-        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + link.startPercentage
+        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + this.element.startPercentage
         c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width))
-        link.svgPathD = Configuration.linkRightSVGPath(link.startPercentage, c1, c2)
+        this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2)
     }
 
     /**
-     * @param {LinkElement} link
      * @param {Map} changedProperties
      */
-    update(link, changedProperties) {
-        super.update(link, changedProperties)
+    update(changedProperties) {
+        super.update(changedProperties)
         if (changedProperties.has("originatesFromInput")) {
-            link.style.setProperty("--ueb-from-input", link.originatesFromInput ? "1" : "0")
+            this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0")
         }
-        const referencePin = link.sourcePin ?? link.destinationPin
+        const referencePin = this.element.sourcePin ?? this.element.destinationPin
         if (referencePin) {
-            link.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color))
+            this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color))
         }
-        link.style.setProperty("--ueb-link-start", `${Math.round(link.startPixels)}`)
-        link.style.setProperty("--ueb-start-percentage", `${Math.round(link.startPercentage)}%`)
+        this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`)
+        this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`)
     }
 
-    /** @param {LinkElement} link */
-    render(link) {
+    render() {
         const uniqueId = "ueb-id-" + Math.floor(Math.random() * 1E12)
         return html`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <g>
-                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${link.svgPathD}" />
+                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
                     <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
                 </g>
             </svg>
-            ${link.linkMessageIcon != "" || link.linkMessageText != "" ? html`
+            ${this.element.linkMessageIcon != "" || this.element.linkMessageText != "" ? html`
             <div class="ueb-link-message">
-                <span class="${link.linkMessageIcon}"></span>
-                <span class="ueb-link-message-text">${link.linkMessageText}</span>
+                <span class="${this.element.linkMessageIcon}"></span>
+                <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
             </div>
             ` : html``}
         `

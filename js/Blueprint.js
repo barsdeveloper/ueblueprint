@@ -279,10 +279,10 @@ export default class Blueprint extends IElement {
 
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
-        /*let result = this.template.getPin(this, pinReference)
+        let result = this.template.getPin(this, pinReference)
         if (result) {
             return result
-        }*/
+        }
         return [... this.nodes
             //.filter(n => !n.parentNode)
             .find(n => pinReference.objectName.toString() == n.getNodeName())

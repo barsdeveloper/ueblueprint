@@ -11,30 +11,27 @@ export default class WindowTemplate extends IDraggableTemplate {
 
     toggleAdvancedDisplayHandler
 
-    /** @param {WindowElement} element */
-    getDraggableElement(element) {
-        return element.querySelector(".ueb-window-top")
+    getDraggableElement() {
+        return this.element.querySelector(".ueb-window-top")
     }
 
-    createDraggableObject(element) {
-        return new MouseMoveDraggable(element, element.blueprint, {
-            draggableElement: this.getDraggableElement(element),
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
             looseTarget: true,
             stepSize: 1,
-            movementSpace: element.blueprint,
+            movementSpace: this.element.blueprint,
         })
     }
 
-    /** @param {T} element */
-    createInputObjects(element) {
+    createInputObjects() {
         return [
-            ...super.createInputObjects(element),
-            this.createDraggableObject(element),
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
         ]
     }
 
-    /** @param {WindowElement} element */
-    render(element) {
+    render() {
         return html`
             <div class="ueb-window">
                 <div class="ueb-window-top">

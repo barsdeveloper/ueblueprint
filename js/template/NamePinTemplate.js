@@ -11,8 +11,8 @@ export default class NamePinTemplate extends IInputPinTemplate {
      * @param {PinElement} pin
      * @param {Map} changedProperties
      */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties)
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
         this.onInputHandler = e => {
             e.stopPropagation()
             if (
@@ -29,9 +29,8 @@ export default class NamePinTemplate extends IInputPinTemplate {
         })
     }
 
-    /** @param {PinElement} pin */
-    cleanup(pin) {
-        super.cleanup(pin)
+    cleanup() {
+        super.cleanup()
         this.inputContentElements.forEach(element => {
             element.removeEventListener("input", /** @type {(e : Event) => void} */(this.onInputHandler))
         })
@@ -42,12 +41,9 @@ export default class NamePinTemplate extends IInputPinTemplate {
         return this.inputContentElements.map(element => element.textContent) // textContent for performance reason
     }
 
-    /**
-     * @param {PinElement} pin
-     * @param {String[]?} values
-     */
-    setInputs(pin, values = [], updateDefaultValue = true) {
+    /** @param {String[]?} values */
+    setInputs(values = [], updateDefaultValue = true) {
         values = values.map(value => value.replaceAll("\n", "")) // get rid of the new lines
-        super.setInputs(pin, values, updateDefaultValue)
+        super.setInputs(values, updateDefaultValue)
     }
 }

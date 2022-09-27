@@ -12,23 +12,17 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     /** @type {HTMLInputElement} */
     #input
 
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
-    firstUpdated(pin, changedProperties) {
-        super.firstUpdated(pin, changedProperties)
-        this.#input = pin.querySelector(".ueb-pin-input")
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        this.#input = this.element.querySelector(".ueb-pin-input")
     }
 
-    /**
-     * @param {PinElement} pin
-     * @returns {IInput[]}
-     */
-    createInputObjects(pin) {
+    /** @returns {IInput[]} */
+    createInputObjects() {
         return [
-            ...super.createInputObjects(pin),
-            new MouseOpenWindow(this.#input, pin.blueprint, {
+            ...super.createInputObjects(),
+            new MouseOpenWindow(this.#input, this.element.blueprint, {
                 moveEverywhere: true,
                 looseTarget: true
             })
@@ -40,22 +34,18 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
         return [this.#input.dataset.linearColor]
     }
 
-    /**
-     * @param {PinElement} pin
-     * @param {String[]} value
-     */
-    setInputs(pin, value = []) {
+    /** @param {String[]} value */
+    setInputs(value = []) {
     }
 
-    /** @param {PinElement} pin */
-    renderInput(pin) {
-        if (pin.isInput()) {
+    renderInput() {
+        if (this.element.isInput()) {
             return html`
-                <span class="ueb-pin-input" data-linear-color="${pin.defaultValue.toString()}"
-                    .style="--ueb-linear-color:rgba(${pin.defaultValue.toString()})">
+                <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
+                    .style="--ueb-linear-color:rgba(${this.element.defaultValue.toString()})">
                 </span>
             `
         }
-        return super.renderInput(pin)
+        return super.renderInput()
     }
 }
