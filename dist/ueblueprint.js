@@ -71,6 +71,7 @@ class Configuration {
     static pinColor = {
         "/Script/CoreUObject.LinearColor": r$2`3, 76, 168`,
         "/Script/CoreUObject.Rotator": r$2`152, 171, 241`,
+        "/Script/CoreUObject.Transform": r$2`241, 110, 1`,
         "/Script/CoreUObject.Vector": r$2`215, 202, 11`,
         "bool": r$2`117, 0, 0`,
         "default": r$2`167, 167, 167`,
@@ -3820,20 +3821,22 @@ class VectorPinTemplate extends RealPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return $`
-                <span class="ueb-pin-input-label">X</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().X.toString())}"></span>
-                </div>
-                <span class="ueb-pin-input-label">Y</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
-                </div>
-                <span class="ueb-pin-input-label">Z</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Z.toString())}"></span>
+                <div class="ueb-pin-input-wrapper">
+                    <span class="ueb-pin-input-label">X</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().X.toString())}"></span>
+                    </div>
+                    <span class="ueb-pin-input-label">Y</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
+                    </div>
+                    <span class="ueb-pin-input-label">Z</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Z.toString())}"></span>
+                    </div>
                 </div>
             `
         }
@@ -3869,20 +3872,22 @@ class RotatorPinTemplate extends RealPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return $`
-                <span class="ueb-pin-input-label">X</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().R.toString())}"></span>
-                </div>
-                <span class="ueb-pin-input-label">Y</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().P.toString())}"></span>
-                </div>
-                <span class="ueb-pin-input-label">Z</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
+                <div class="ueb-pin-input-wrapper">
+                    <span class="ueb-pin-input-label">X</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().R.toString())}"></span>
+                    </div>
+                    <span class="ueb-pin-input-label">Y</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().P.toString())}"></span>
+                    </div>
+                    <span class="ueb-pin-input-label">Z</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
+                    </div>
                 </div>
             `
         }

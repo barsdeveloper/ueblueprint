@@ -24,20 +24,22 @@ export default class VectorPinTemplate extends RealPinTemplate {
     renderInput(pin) {
         if (pin.isInput()) {
             return html`
-                <span class="ueb-pin-input-label">X</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().X.toString())}"></span>
-                </div>
-                <span class="ueb-pin-input-label">Y</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
-                </div>
-                <span class="ueb-pin-input-label">Z</span>
-                <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Z.toString())}"></span>
+                <div class="ueb-pin-input-wrapper">
+                    <span class="ueb-pin-input-label">X</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().X.toString())}"></span>
+                    </div>
+                    <span class="ueb-pin-input-label">Y</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Y.toString())}"></span>
+                    </div>
+                    <span class="ueb-pin-input-label">Z</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(pin.entity.getDefaultValue().Z.toString())}"></span>
+                    </div>
                 </div>
             `
         }

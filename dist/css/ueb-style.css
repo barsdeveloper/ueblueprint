@@ -458,6 +458,10 @@ ueb-pin[data-type=exec] .ueb-pin-name {
   display: none;
 }
 
+.ueb-pin-input-wrapper {
+  padding-left: 8px;
+}
+
 .ueb-pin-input {
   display: inline-block;
   vertical-align: middle;
@@ -588,6 +592,10 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] {
 
 ueb-pin[data-type="/Script/CoreUObject.Rotator"] {
   --ueb-pin-color-rgb: var(--ueb-pin-color-rotator);
+}
+
+ueb-pin[data-type="/Script/CoreUObject.Transform"] {
+  --ueb-pin-color-rgb: var(--ueb-pin-color-transform);
 }
 
 ueb-pin[data-type="/Script/CoreUObject.Vector"] {

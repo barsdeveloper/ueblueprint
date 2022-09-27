@@ -60,6 +60,10 @@ ueb-pin[data-type="/Script/CoreUObject.Rotator"] {
     --ueb-pin-color-rgb: var(--ueb-pin-color-rotator);
 }
 
+ueb-pin[data-type="/Script/CoreUObject.Transform"] {
+    --ueb-pin-color-rgb: var(--ueb-pin-color-transform);
+}
+
 ueb-pin[data-type="/Script/CoreUObject.Vector"] {
     --ueb-pin-color-rgb: var(--ueb-pin-color-vector);
 }

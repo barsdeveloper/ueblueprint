@@ -47,6 +47,7 @@ export default class Configuration {
     static pinColor = {
         "/Script/CoreUObject.LinearColor": css`3, 76, 168`,
         "/Script/CoreUObject.Rotator": css`152, 171, 241`,
+        "/Script/CoreUObject.Transform": css`241, 110, 1`,
         "/Script/CoreUObject.Vector": css`215, 202, 11`,
         "bool": css`117, 0, 0`,
         "default": css`167, 167, 167`,
