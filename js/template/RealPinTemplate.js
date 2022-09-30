@@ -1,7 +1,6 @@
+import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
 import Utility from "../Utility"
-
-/** @typedef {import("../element/PinElement").default} PinElement */
 
 export default class RealPinTemplate extends IInputPinTemplate {
 
@@ -22,7 +21,6 @@ export default class RealPinTemplate extends IInputPinTemplate {
                 updateDefaultValue = false
             }
             parsedValues.push(num)
-            values[i] = Utility.minDecimals(num)
         }
         super.setInputs(values, false)
         this.setDefaultValue(parsedValues, values)
@@ -30,5 +28,17 @@ export default class RealPinTemplate extends IInputPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         this.element.setDefaultValue(values[0])
+    }
+
+    renderInput() {
+        if (this.element.isInput()) {
+            return html`
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}"></span>
+                </div>
+            `
+        }
+        return html``
     }
 }

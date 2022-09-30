@@ -10,6 +10,9 @@ export default class ITemplate {
 
     static styles = css``
 
+    /** @type {T} */
+    element
+
     /** @type {IInput[]} */
     #inputObjects = []
     get inputObjects() {

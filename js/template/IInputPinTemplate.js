@@ -31,13 +31,13 @@ export default class IInputPinTemplate extends PinTemplate {
         super.firstUpdated(changedProperties)
         this.#inputContentElements = [...this.element.querySelectorAll(".ueb-pin-input-content")]
         if (this.#inputContentElements.length) {
-            this.setInputs(this.getInputs(this.element), false)
+            this.setInputs(this.getInputs(), false)
             let self = this
             this.onFocusHandler = _ => this.element.blueprint.dispatchEditTextEvent(true)
             this.onFocusOutHandler = e => {
                 e.preventDefault()
                 document.getSelection()?.removeAllRanges() // Deselect text inside the input
-                self.setInputs(this.getInputs(this.element), true)
+                self.setInputs(this.getInputs(), true)
                 this.element.blueprint.dispatchEditTextEvent(false)
             }
             this.#inputContentElements.forEach(element => {
@@ -63,7 +63,7 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     getInput() {
-        return this.getInputs(this.element).reduce((acc, cur) => acc + cur, "")
+        return this.getInputs().reduce((acc, cur) => acc + cur, "")
     }
 
     getInputs() {
@@ -94,7 +94,7 @@ export default class IInputPinTemplate extends PinTemplate {
             return html`
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.unreactiveDefaultValue.toString())}"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}"></span>
                 </div>
             `
         }

@@ -11,8 +11,8 @@ import Paste from "../input/common/Paste"
 import Select from "../input/mouse/Select"
 import SelectorElement from "../element/SelectorElement"
 import Unfocus from "../input/mouse/Unfocus"
-import Zoom from "../input/mouse/Zoom"
 import Utility from "../Utility"
+import Zoom from "../input/mouse/Zoom"
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint

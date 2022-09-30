@@ -44,9 +44,13 @@ export default class WindowTemplate extends IDraggableTemplate {
                     </div>
                 </div>
                 <div class="ueb-window-content">
-                    Content
+                    ${this.renderContent()}
                 </div>
             </div>
         `
+    }
+
+    renderContent() {
+        return html``
     }
 }

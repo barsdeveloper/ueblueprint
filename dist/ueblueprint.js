@@ -1756,6 +1756,9 @@ class ITemplate {
 
     static styles = r$2``
 
+    /** @type {T} */
+    element
+
     /** @type {IInput[]} */
     #inputObjects = []
     get inputObjects() {
@@ -3214,13 +3217,13 @@ class IInputPinTemplate extends PinTemplate {
         super.firstUpdated(changedProperties);
         this.#inputContentElements = [...this.element.querySelectorAll(".ueb-pin-input-content")];
         if (this.#inputContentElements.length) {
-            this.setInputs(this.getInputs(this.element), false);
+            this.setInputs(this.getInputs(), false);
             let self = this;
             this.onFocusHandler = _ => this.element.blueprint.dispatchEditTextEvent(true);
             this.onFocusOutHandler = e => {
                 e.preventDefault();
                 document.getSelection()?.removeAllRanges(); // Deselect text inside the input
-                self.setInputs(this.getInputs(this.element), true);
+                self.setInputs(this.getInputs(), true);
                 this.element.blueprint.dispatchEditTextEvent(false);
             };
             this.#inputContentElements.forEach(element => {
@@ -3246,7 +3249,7 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     getInput() {
-        return this.getInputs(this.element).reduce((acc, cur) => acc + cur, "")
+        return this.getInputs().reduce((acc, cur) => acc + cur, "")
     }
 
     getInputs() {
@@ -3277,7 +3280,7 @@ class IInputPinTemplate extends PinTemplate {
             return $`
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.unreactiveDefaultValue.toString())}"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}"></span>
                 </div>
             `
         }
@@ -3529,32 +3532,96 @@ class WindowTemplate extends IDraggableTemplate {
                     </div>
                 </div>
                 <div class="ueb-window-content">
-                    Content
+                    ${this.renderContent()}
                 </div>
+            </div>
+        `
+    }
+
+    renderContent() {
+        return $``
+    }
+}
+
+/** @typedef {import("../element/WindowElement").default} WindowElement */
+
+class ColorPickerWindowTemplate extends WindowTemplate {
+
+    static windowName = $`Color Picker`
+
+    #picker
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        this.#picker = new iro.ColorPicker(
+            this.element.querySelector(".ueb-color-picker"),
+            {
+                layout: [
+
+                ]
+            }
+        );
+    }
+
+    renderContent() {
+        return $`
+            <div class="ueb-color-picker">
+                <div class="ueb-color-picker-theme"></div>
+                <div class="ueb-color-picker-srgb"></div>
+                <div class="ueb-color-picker-wheel"></div>
+                <div class="ueb-color-picker-saturation"></div>
+                <div class="ueb-color-picker-value"></div>
+                <div class="ueb-color-picker-preview">
+                    <div class="ueb-color-picker-preview-old"></div>
+                    <div class="ueb-color-picker-preview-new"></div>
+                </div>
+                <div class="ueb-color-picker-advanced-toggle"></div>
+                <div class="ueb-color-picker-advanced">
+                    <div class="ueb-color-picker-r"></div>
+                    <div class="ueb-color-picker-g"></div>
+                    <div class="ueb-color-picker-b"></div>
+                    <div class="ueb-color-picker-a"></div>
+                    <div class="ueb-color-picker-h"></div>
+                    <div class="ueb-color-picker-s"></div>
+                    <div class="ueb-color-picker-v"></div>
+                    <div class="ueb-color-picker-hex-linear"></div>
+                    <div class="ueb-color-picker-hex-srgb"></div>
+                </div>
+                <div class="ueb-color-picker-ok"></div>
+                <div class="ueb-color-picker-cancel"></div>
             </div>
         `
     }
 }
 
 /** @extends {ISelectableDraggableElement<Object, WindowTemplate>} */
-class WindowElement extends ISelectableDraggableElement {
+class WindowElement extends IDraggableElement {
 
     static #typeTemplateMap = {
         "window": WindowTemplate,
+        "color-picker": ColorPickerWindowTemplate,
     }
 
     static properties = {
-        ...ISelectableDraggableElement.properties,
+        ...IDraggableElement.properties,
         type: {
-            type: String,
+            type: WindowTemplate,
             attribute: "data-type",
             reflect: true,
+            converter: {
+                fromAttribute: (value, type) => WindowElement.#typeTemplateMap[value],
+                toAttribute: (value, type) =>
+                    Object.entries(WindowElement.#typeTemplateMap).find(([k, v]) => value == v)[0]
+            },
         },
     }
 
     constructor(properties = {}) {
-        properties.type ??= "window";
-        super({}, new WindowElement.#typeTemplateMap[properties.type]());
+        if (properties.type.constructor == String) {
+            properties.type = WindowElement.#typeTemplateMap[properties.type];
+        }
+        properties.type ??= WindowTemplate;
+        super({}, new properties.type());
         this.type = properties.type;
     }
 
@@ -3694,8 +3761,6 @@ class NamePinTemplate extends IInputPinTemplate {
     }
 }
 
-/** @typedef {import("../element/PinElement").default} PinElement */
-
 class RealPinTemplate extends IInputPinTemplate {
 
     setInputs(values = [], updateDefaultValue = false) {
@@ -3715,7 +3780,6 @@ class RealPinTemplate extends IInputPinTemplate {
                 updateDefaultValue = false;
             }
             parsedValues.push(num);
-            values[i] = Utility.minDecimals(num);
         }
         super.setInputs(values, false);
         this.setDefaultValue(parsedValues, values);
@@ -3723,6 +3787,18 @@ class RealPinTemplate extends IInputPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         this.element.setDefaultValue(values[0]);
+    }
+
+    renderInput() {
+        if (this.element.isInput()) {
+            return $`
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}"></span>
+                </div>
+            `
+        }
+        return $``
     }
 }
 
@@ -3752,18 +3828,27 @@ class VectorPinTemplate extends RealPinTemplate {
                 <div class="ueb-pin-input-wrapper">
                     <span class="ueb-pin-input-label">X</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().X.toString())}"></span>
+                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate.stringFromUEToInput(
+                                Utility.minDecimals(
+                                    this.element.entity.getDefaultValue().X
+                                )
+                            )}"></span>
                     </div>
                     <span class="ueb-pin-input-label">Y</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().Y.toString())}"></span>
+                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate.stringFromUEToInput(
+                                Utility.minDecimals(
+                                    this.element.entity.getDefaultValue().Y
+                                )
+                            )}"></span>
                     </div>
                     <span class="ueb-pin-input-label">Z</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().Z.toString())}"></span>
+                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate.stringFromUEToInput(
+                                Utility.minDecimals(
+                                    this.element.entity.getDefaultValue().Z
+                                )
+                            )}"></span>
                     </div>
                 </div>
             `

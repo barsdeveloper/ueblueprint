@@ -1,26 +1,36 @@
+import ColorPickerWindowTemplate from "../template/ColorPickerWindowTemplate"
 import Configuration from "../Configuration"
-import ISelectableDraggableElement from "./ISelectableDraggableElement"
+import IDraggableElement from "./IDraggableElement"
 import WindowTemplate from "../template/WindowTemplate"
 
 /** @extends {ISelectableDraggableElement<Object, WindowTemplate>} */
-export default class WindowElement extends ISelectableDraggableElement {
+export default class WindowElement extends IDraggableElement {
 
     static #typeTemplateMap = {
         "window": WindowTemplate,
+        "color-picker": ColorPickerWindowTemplate,
     }
 
     static properties = {
-        ...ISelectableDraggableElement.properties,
+        ...IDraggableElement.properties,
         type: {
-            type: String,
+            type: WindowTemplate,
             attribute: "data-type",
             reflect: true,
+            converter: {
+                fromAttribute: (value, type) => WindowElement.#typeTemplateMap[value],
+                toAttribute: (value, type) =>
+                    Object.entries(WindowElement.#typeTemplateMap).find(([k, v]) => value == v)[0]
+            },
         },
     }
 
     constructor(properties = {}) {
-        properties.type ??= "window"
-        super({}, new WindowElement.#typeTemplateMap[properties.type]())
+        if (properties.type.constructor == String) {
+            properties.type = WindowElement.#typeTemplateMap[properties.type]
+        }
+        properties.type ??= WindowTemplate
+        super({}, new properties.type())
         this.type = properties.type
     }
 

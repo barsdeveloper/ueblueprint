@@ -4,9 +4,9 @@ import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import Utility from "../Utility"
 
 /**
- * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../input/IInput").default} IInput
  */
 
 export default class PinTemplate extends ITemplate {
