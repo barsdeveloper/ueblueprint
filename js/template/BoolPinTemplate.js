@@ -1,9 +1,10 @@
-import { html } from "lit"
-import IInputPinTemplate from "./IInputPinTemplate"
+import { html, nothing } from "lit"
+import PinTemplate from "./PinTemplate"
 
-/** @typedef {import("../element/PinElement").default} PinElement */
-
-export default class BoolPinTemplate extends IInputPinTemplate {
+/**
+ * @extends PinTemplate<Boolean>
+ */
+export default class BoolPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement} */
     #input
@@ -13,7 +14,7 @@ export default class BoolPinTemplate extends IInputPinTemplate {
         super.firstUpdated(changedProperties)
         this.#input = this.element.querySelector(".ueb-pin-input")
         let self = this
-        this.onChangeHandler = _ => this.element.entity.DefaultValue = self.#input.checked ? "true" : "false"
+        this.onChangeHandler = _ => this.element.setDefaultValue(self.#input.checked ? true : false)
         this.#input.addEventListener("change", this.onChangeHandler)
     }
 
@@ -26,14 +27,18 @@ export default class BoolPinTemplate extends IInputPinTemplate {
         return [this.#input.checked ? "true" : "false"]
     }
 
-    setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(values[0] == "true")
+    /**
+     * @param {Boolean[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        this.element.setDefaultValue(values[0])
     }
 
     renderInput() {
         if (this.element.isInput()) {
             return html`
-                <input type="checkbox" class="ueb-pin-input" .checked=${this.element.entity.getDefaultValue()} />
+                <input type="checkbox" class="ueb-pin-input" checked="${this.element.defaultValue ? "" : nothing}" />
             `
         }
         return super.renderInput()

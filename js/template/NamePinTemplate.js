@@ -7,10 +7,7 @@ export default class NamePinTemplate extends IInputPinTemplate {
     /** @type {(e : InputEvent) => void} */
     onInputHandler
 
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.onInputHandler = e => {
@@ -36,12 +33,11 @@ export default class NamePinTemplate extends IInputPinTemplate {
         })
     }
 
-    /** @param {PinElement} pin */
-    getInputs(pin) {
+    getInputs() {
         return this.inputContentElements.map(element => element.textContent) // textContent for performance reason
     }
 
-    /** @param {String[]?} values */
+    /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = true) {
         values = values.map(value => value.replaceAll("\n", "")) // get rid of the new lines
         super.setInputs(values, updateDefaultValue)

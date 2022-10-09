@@ -16,7 +16,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
     }
     /** @param {LinearColorEntity} value */
     set color(value) {
-        if (value.num() == this.color.num()) {
+        if (value.toNumber() == this.color.toNumber()) {
             this.element.requestUpdate("color", this.#color)
             this.#color = value
         }
@@ -32,10 +32,9 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
     }
 
     renderContent() {
-        const rgba = this.color.rgba()
         return html`
             <div class="ueb-color-picker"
-                .style="--ueb-color-r: ${rgba[0]}; --ueb-color-g: ${rgba[1]}; --ueb-color-b: ${rgba[2]}; --ueb-color-a: ${rgba[3]};">
+                .style="--ueb-color-r: ${this.color.R}; --ueb-color-g: ${this.color.G}; --ueb-color-b: ${this.color.B}; --ueb-color-a: ${this.color.A};">
                 <div class="ueb-color-picker-toolbar">
                     <div class="ueb-color-picker-theme"></div>
                     <div class="ueb-color-picker-srgb"></div>

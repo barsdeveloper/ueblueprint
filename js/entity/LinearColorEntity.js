@@ -1,13 +1,14 @@
-import Utility from "../Utility"
+import ColorChannelRealValueEntity from "./ColorChannelRealValueEntity"
 import IEntity from "./IEntity"
+import Utility from "../Utility"
 
 export default class LinearColorEntity extends IEntity {
 
     static attributes = {
-        R: Number,
-        G: Number,
-        B: Number,
-        A: Number,
+        R: ColorChannelRealValueEntity,
+        G: ColorChannelRealValueEntity,
+        B: ColorChannelRealValueEntity,
+        A: ColorChannelRealValueEntity,
     }
 
     static fromWheelLocation([x, y], radius) {
@@ -18,10 +19,10 @@ export default class LinearColorEntity extends IEntity {
 
     constructor(options = {}) {
         super(options)
-        /** @type {Number} */ this.R
-        /** @type {Number} */ this.G
-        /** @type {Number} */ this.B
-        /** @type {Number} */ this.A
+        /** @type {ColorChannelRealValueEntity} */ this.R
+        /** @type {ColorChannelRealValueEntity} */ this.G
+        /** @type {ColorChannelRealValueEntity} */ this.B
+        /** @type {ColorChannelRealValueEntity} */ this.A
     }
 
     toRGBA() {
@@ -29,24 +30,24 @@ export default class LinearColorEntity extends IEntity {
     }
 
     toHSV() {
-        const max = Math.max(this.R, this.G, this.B)
-        const min = Math.min(this.R, this.G, this.B)
+        const max = Math.max(this.R.value, this.G.value, this.B.value)
+        const min = Math.min(this.R.value, this.G.value, this.B.value)
         const d = max - min
         let h
-        const s = (max === 0 ? 0 : d / max)
+        const s = (max == 0 ? 0 : d / max)
         const v = max / 255
         switch (max) {
             case min:
                 h = 0
                 break
-            case this.R:
-                h = (this.G - this.B) + d * (this.G < this.B ? 6 : 0)
+            case this.R.value:
+                h = (this.G.value - this.B.value) + d * (this.G.value < this.B.value ? 6 : 0)
                 break
-            case this.G:
-                h = (this.B - this.R) + d * 2
+            case this.G.value:
+                h = (this.B.value - this.R.value) + d * 2
                 break
-            case this.B:
-                h = (this.R - this.G) + d * 4
+            case this.B.value:
+                h = (this.R.value - this.G.value) + d * 4
                 break
         }
         h /= 6 * d
@@ -54,7 +55,7 @@ export default class LinearColorEntity extends IEntity {
     }
 
     toNumber() {
-        return this.A + this.B << 8 + this.G << 16 + this.R << 24
+        return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
     }
 
     toString() {

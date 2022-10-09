@@ -1,4 +1,4 @@
-import { html } from "lit"
+import { html, nothing } from "lit"
 import PinElement from "../element/PinElement"
 import SelectableDraggableTemplate from "./SelectableDraggableTemplate"
 
@@ -32,7 +32,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                     </div>
                     ${this.element.enabledState?.toString() == "DevelopmentOnly" ? html`
                     <div class="ueb-node-developmentonly">Development Only</div>
-                    ` : html``}
+                    ` : nothing}
                     ${this.element.advancedPinDisplay ? html`
                     <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -40,7 +40,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                             <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
                         </svg>
                     </div>
-                    ` : html``}
+                    ` : nothing}
                 </div>
             </div>
         `

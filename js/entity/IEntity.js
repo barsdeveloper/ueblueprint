@@ -65,7 +65,7 @@ export default class IEntity extends Observable {
                         && defaultValue.type !== String
                     ) {
                         // @ts-expect-error
-                        value = SerializerFactory.getSerializer((defaultValue.type)).deserialize(value)
+                        value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value)
                     }
                     target[property] = TypeInitialization.sanitize(value, Utility.getType(defaultValue))
                     continue // We have a value, need nothing more

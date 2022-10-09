@@ -4,7 +4,6 @@ import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import Utility from "../Utility"
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../input/IInput").default} IInput
  */
 /**

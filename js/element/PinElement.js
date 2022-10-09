@@ -106,15 +106,6 @@ export default class PinElement extends IElement {
 
     connections = 0
 
-    get defaultValue() {
-        return this.unreactiveDefaultValue
-    }
-    set defaultValue(value) {
-        let oldValue = this.unreactiveDefaultValue
-        this.unreactiveDefaultValue = value
-        this.requestUpdate("defaultValue", oldValue)
-    }
-
     /** @param {PinEntity<T>} entity */
     constructor(entity) {
         super(
@@ -122,14 +113,14 @@ export default class PinElement extends IElement {
             new (PinElement.getTypeTemplate(entity))()
         )
         this.advancedView = entity.bAdvancedView
-        this.unreactiveDefaultValue = entity.getDefaultValue()
+        this.defaultValue = entity.getDefaultValue()
         this.pinType = this.entity.getType()
         // @ts-expect-error
         this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
 
-        this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
+        // this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
         this.entity.subscribe("PinToolTip", value => {
             let matchResult = value.match(/\s*(.+?(?=\n)|.+\S)\s*/)
             if (matchResult) {
@@ -191,8 +182,10 @@ export default class PinElement extends IElement {
         return this.entity.LinkedTo ?? []
     }
 
+    /** @param {T} value */
     setDefaultValue(value) {
         this.entity.DefaultValue = value
+        this.defaultValue = value
     }
 
     /** @param  {IElement[]} nodesWhitelist */

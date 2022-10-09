@@ -1,38 +1,22 @@
 import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
+import INumericPinTemplate from "./INumericPinTemplate"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
 
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
- */
+/** @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity */
 
 /**
  * @template {VectorEntity} T
- * @extends IInputPinTemplate<T>
+ * @extends INumericPinTemplate<T>
  */
-export default class VectorPinTemplate extends IInputPinTemplate {
+export default class VectorPinTemplate extends INumericPinTemplate {
 
-    /** @param {String[]} values */
-    setInputs(values = [], updateDefaultValue = false) {
-        if (!values || values.length == 0) {
-            values = [this.getInput()]
-        }
-        let parsedValues = []
-        for (let i = 0; i < values.length; ++i) {
-            let num = parseFloat(values[i])
-            if (isNaN(num)) {
-                num = 0
-                updateDefaultValue = false
-            }
-            parsedValues.push(num)
-        }
-        super.setInputs(values, false)
-        this.setDefaultValue(parsedValues, values)
-    }
-
-    setDefaultValue(values = [], rawValues = values) {
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values, rawValues) {
         if (!(this.element.entity.DefaultValue instanceof VectorEntity)) {
             throw new TypeError("Expected DefaultValue to be a VectorEntity")
         }

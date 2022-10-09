@@ -5,7 +5,7 @@ import MouseOpenWindow from "../input/mouse/MouseOpenWindow"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity}
+ * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
  */
 
 export default class LinearColorPinTemplate extends IInputPinTemplate {
@@ -19,7 +19,6 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
         this.#input = this.element.querySelector(".ueb-pin-input")
     }
 
-    /** @returns {IInput[]} */
     createInputObjects() {
         return [
             ...super.createInputObjects(),
@@ -37,8 +36,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
         ]
     }
 
-    /** @param {PinElement} pin */
-    getInputs(pin) {
+    getInputs() {
         return [this.#input.dataset.linearColor]
     }
 

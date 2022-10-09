@@ -1,4 +1,5 @@
 // @ts-nocheck
+import ColorChannelValueEntity from "../entity/ColorChannelValueEntity"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
@@ -20,29 +21,13 @@ import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
 
-/** @typedef {import("../entity/IEntity").default} IEntity */
-/**
- * @template {IEntity} T
- * @typedef {import("../entity/IEntity").IEntityConstructor<T>} IEntityConstructor
- */
-/**
- * @template T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
- */
-
 let P = Parsimmon
 
 export default class Grammar {
 
     /*   ---   Factory   ---   */
 
-    /**
-     * @template T, U
-     * @param {Grammar} r
-     * @param {AnyValueConstructor<T>} attributeType
-     * @param {Parsimmon<U>} defaultGrammar
-     * @returns
-     */
+    /** @param {Grammar} r */
     static getGrammarForType(r, attributeType, defaultGrammar = r.AttributeAnyValue) {
         if (attributeType instanceof TypeInitialization) {
             let result = Grammar.getGrammarForType(r, attributeType.type, defaultGrammar)
@@ -80,6 +65,10 @@ export default class Grammar {
                 return r.SimpleSerializationRotator
             case SimpleSerializationVectorEntity:
                 return r.SimpleSerializationVector
+            case ColorChannelValueEntity:
+                return r.ColorChannelValue
+            case ColorChannelRealValue:
+                return r.ColorChannelRealValue
             case LinearColorEntity:
                 return r.LinearColor
             case FunctionReferenceEntity:
@@ -107,12 +96,7 @@ export default class Grammar {
         }
     }
 
-    /**
-     * @param {Grammar} r
-     * @param {IEntityConstructor<IEntity>} entityType
-     * @param {Parsimmon.Parser<String>} valueSeparator
-     * @returns 
-     */
+    /** @param {Grammar} r */
     static createPropertyGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
@@ -126,11 +110,7 @@ export default class Grammar {
                 )
             })
 
-    /**
-     * @param {Grammar} r
-     * @param {IEntityConstructor<IEntity>} entityType
-     * @returns
-     */
+    /** @param {Grammar} r */
     static createEntityGrammar = (r, entityType) =>
         P.seqMap(
             entityType.lookbehind
@@ -175,7 +155,10 @@ export default class Grammar {
     HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")
 
     /** @param {Grammar} r */
-    Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+    Number = r => P.regex(/[-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+
+    /** @param {Grammar} r */
+    RealNumber = r => P.regex(/[-\+]?[0-9]+\.[0-9]+/).map(Number).desc("a number written as real")
 
     /** @param {Grammar} r */
     NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
@@ -325,6 +308,17 @@ export default class Grammar {
             Y: y,
             Z: z,
         })
+    )
+
+    /** @param {Grammar} r */
+    ColorChannelValue = r => P.alt(
+        r.RealNumber.map(v => new ColorChannelValueEntity(v * 255)),
+        r.ColorNumber.map(v => new ColorChannelValueEntity(v)),
+    )
+
+    /** @param {Grammar} r */
+    ColorChannelRealValue = r => P.alt(
+        r.RealNumber.map(v => new ColorChannelValueEntity(v * 255))
     )
 
     /** @param {Grammar} r */

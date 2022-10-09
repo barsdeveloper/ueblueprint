@@ -1,3 +1,5 @@
+import ColorChannelRealValueEntity from "../entity/ColorChannelRealValueEntity"
+import ColorChannelValueEntity from "../entity/ColorChannelValueEntity"
 import CustomSerializer from "./CustomSerializer"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GeneralSerializer from "./GeneralSerializer"
@@ -65,15 +67,34 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        ColorChannelRealValueEntity,
+        new ToStringSerializer(ColorChannelValueEntity)
+    )
+
+    SerializerFactory.registerSerializer(
+        ColorChannelValueEntity,
+        new ToStringSerializer(ColorChannelValueEntity)
+    )
+
+    SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
         new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
     )
 
-    SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity))
+    SerializerFactory.registerSerializer(
+        GuidEntity,
+        new ToStringSerializer(GuidEntity)
+    )
 
-    SerializerFactory.registerSerializer(IdentifierEntity, new ToStringSerializer(IdentifierEntity))
+    SerializerFactory.registerSerializer(
+        IdentifierEntity,
+        new ToStringSerializer(IdentifierEntity)
+    )
 
-    SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity))
+    SerializerFactory.registerSerializer(
+        IntegerEntity,
+        new ToStringSerializer(IntegerEntity)
+    )
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
@@ -112,7 +133,6 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ObjectReferenceEntity,
         new CustomSerializer(
-            /** @param {ObjectReferenceEntity} objectReference */
             objectReference => (objectReference.type ?? "") + (
                 objectReference.path
                     ? objectReference.type ? `'"${objectReference.path}"'` : `"${objectReference.path}"`
@@ -122,7 +142,10 @@ export default function initializeSerializerFactory() {
         )
     )
 
-    SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity))
+    SerializerFactory.registerSerializer(
+        PathSymbolEntity,
+        new ToStringSerializer(PathSymbolEntity)
+    )
 
     SerializerFactory.registerSerializer(
         PinEntity,
@@ -154,7 +177,6 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         SimpleSerializationRotatorEntity,
         new CustomSerializer(
-            /** @param {SimpleSerializationRotatorEntity} value */
             (value, insideString) => `${value.P}, ${value.Y}, ${value.R}`,
             SimpleSerializationRotatorEntity
         )
@@ -163,7 +185,6 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         SimpleSerializationVectorEntity,
         new CustomSerializer(
-            /** @param {SimpleSerializationVectorEntity} value */
             (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
             SimpleSerializationVectorEntity
         )

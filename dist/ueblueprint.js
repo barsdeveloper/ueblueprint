@@ -268,143 +268,6 @@ class CalculatedType {
     }
 }
 
-class Observable {
-
-    /** @type {Map<String, Object[]>} */
-    #observers = new Map()
-
-    /**
-     * @param {String} property
-     * @param {(value: any) => {}} observer
-     */
-    subscribe(property, observer) {
-        let observers = this.#observers;
-        if (observers.has(property)) {
-            let propertyObservers = observers.get(property);
-            if (propertyObservers.includes(observer)) {
-                return false
-            } else {
-                propertyObservers.push(observer);
-            }
-        } else {
-            let fromPrototype = false;
-            let propertyDescriptor = Object.getOwnPropertyDescriptor(this, property);
-            if (!propertyDescriptor) {
-                fromPrototype = true;
-                propertyDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), property) ?? {};
-                if (!propertyDescriptor) {
-                    return false
-                }
-            }
-            observers.set(property, [observer]);
-            const isValue = "value" in propertyDescriptor;
-            const hasSetter = "set" in propertyDescriptor;
-            if (!(isValue || hasSetter)) {
-                throw new Error(`Property ${property} is not a value or a setter`)
-            }
-            // A Symbol so it does not show up in Object.getOwnPropertyNames()
-            const storageKey = Symbol.for(property + "Storage");
-            const valInfoKey = Symbol.for(property + "ValInfo");
-            Object.defineProperties(
-                fromPrototype ? Object.getPrototypeOf(this) : this,
-                {
-                    [storageKey]: {
-                        configurable: true,
-                        enumerable: false, // Non enumerable so it does not show up in for...in or Object.keys()
-                        ...(isValue
-                            ? {
-                                value: this[property],
-                                writable: true,
-                            }
-                            : {
-                                get: propertyDescriptor.get,
-                                set: propertyDescriptor.set,
-                            }
-                        )
-                    },
-                    [valInfoKey]: {
-                        configurable: true,
-                        enumerable: false,
-                        value: [fromPrototype, isValue]
-                    },
-                    [property]: {
-                        configurable: true,
-                        ...(isValue && {
-                            get() {
-                                return this[storageKey]
-                            }
-                        }),
-                        set(v) {
-                            this[storageKey] = v;
-                            observers.get(property).forEach(observer => {
-                                observer(this[property]);
-                            });
-                        },
-                    }
-                }
-            );
-        }
-        return true
-    }
-
-    /**
-     * @param {String} property
-     * @param {Object} observer
-     */
-    unsubscribe(property, observer) {
-        let observers = this.#observers.get(property);
-        if (!observers?.includes(observer)) {
-            return false
-        }
-        observers.splice(observers.indexOf(observer), 1);
-        if (observers.length == 0) {
-            const storageKey = Symbol.for(property + "Storage");
-            const valInfoKey = Symbol.for(property + "ValInfo");
-            const fromPrototype = this[valInfoKey][0];
-            this[valInfoKey][1];
-            Object.defineProperty(
-                fromPrototype ? Object.getPrototypeOf(this) : this,
-                property,
-                Object.getOwnPropertyDescriptor(fromPrototype ? Object.getPrototypeOf(this) : this, storageKey),
-            );
-            delete this[valInfoKey];
-            delete this[storageKey];
-        }
-        return true
-    }
-}
-
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("./ISerializer").default<T>} ISerializer
- */
-
-class SerializerFactory {
-
-    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
-    static #serializers = new Map()
-
-    static registerSerializer(entity, object) {
-        SerializerFactory.#serializers.set(entity, object);
-    }
-
-    /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entity
-     */
-    static getSerializer(entity) {
-        return SerializerFactory.#serializers.get(entity)
-    }
-}
-
 /**
  * @typedef {import("./IEntity").default} IEntity
  * @typedef {IEntity | String | Number | Boolean | Array} AnyValue
@@ -738,6 +601,143 @@ class Utility {
     }
 }
 
+class Observable {
+
+    /** @type {Map<String, Object[]>} */
+    #observers = new Map()
+
+    /**
+     * @param {String} property
+     * @param {(value: any) => {}} observer
+     */
+    subscribe(property, observer) {
+        let observers = this.#observers;
+        if (observers.has(property)) {
+            let propertyObservers = observers.get(property);
+            if (propertyObservers.includes(observer)) {
+                return false
+            } else {
+                propertyObservers.push(observer);
+            }
+        } else {
+            let fromPrototype = false;
+            let propertyDescriptor = Object.getOwnPropertyDescriptor(this, property);
+            if (!propertyDescriptor) {
+                fromPrototype = true;
+                propertyDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), property) ?? {};
+                if (!propertyDescriptor) {
+                    return false
+                }
+            }
+            observers.set(property, [observer]);
+            const isValue = "value" in propertyDescriptor;
+            const hasSetter = "set" in propertyDescriptor;
+            if (!(isValue || hasSetter)) {
+                throw new Error(`Property ${property} is not a value or a setter`)
+            }
+            // A Symbol so it does not show up in Object.getOwnPropertyNames()
+            const storageKey = Symbol.for(property + "Storage");
+            const valInfoKey = Symbol.for(property + "ValInfo");
+            Object.defineProperties(
+                fromPrototype ? Object.getPrototypeOf(this) : this,
+                {
+                    [storageKey]: {
+                        configurable: true,
+                        enumerable: false, // Non enumerable so it does not show up in for...in or Object.keys()
+                        ...(isValue
+                            ? {
+                                value: this[property],
+                                writable: true,
+                            }
+                            : {
+                                get: propertyDescriptor.get,
+                                set: propertyDescriptor.set,
+                            }
+                        )
+                    },
+                    [valInfoKey]: {
+                        configurable: true,
+                        enumerable: false,
+                        value: [fromPrototype, isValue]
+                    },
+                    [property]: {
+                        configurable: true,
+                        ...(isValue && {
+                            get() {
+                                return this[storageKey]
+                            }
+                        }),
+                        set(v) {
+                            this[storageKey] = v;
+                            observers.get(property).forEach(observer => {
+                                observer(this[property]);
+                            });
+                        },
+                    }
+                }
+            );
+        }
+        return true
+    }
+
+    /**
+     * @param {String} property
+     * @param {Object} observer
+     */
+    unsubscribe(property, observer) {
+        let observers = this.#observers.get(property);
+        if (!observers?.includes(observer)) {
+            return false
+        }
+        observers.splice(observers.indexOf(observer), 1);
+        if (observers.length == 0) {
+            const storageKey = Symbol.for(property + "Storage");
+            const valInfoKey = Symbol.for(property + "ValInfo");
+            const fromPrototype = this[valInfoKey][0];
+            this[valInfoKey][1];
+            Object.defineProperty(
+                fromPrototype ? Object.getPrototypeOf(this) : this,
+                property,
+                Object.getOwnPropertyDescriptor(fromPrototype ? Object.getPrototypeOf(this) : this, storageKey),
+            );
+            delete this[valInfoKey];
+            delete this[storageKey];
+        }
+        return true
+    }
+}
+
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ */
+/**
+ * @template T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("./ISerializer").default<T>} ISerializer
+ */
+
+class SerializerFactory {
+
+    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
+    static #serializers = new Map()
+
+    static registerSerializer(entity, object) {
+        SerializerFactory.#serializers.set(entity, object);
+    }
+
+    /**
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entity
+     */
+    static getSerializer(entity) {
+        return SerializerFactory.#serializers.get(entity)
+    }
+}
+
 /**
  * @template {IEntity} T
  * @typedef {new (Object) => T} IEntityConstructor
@@ -799,7 +799,7 @@ class IEntity extends Observable {
                         && defaultValue.type !== String
                     ) {
                         // @ts-expect-error
-                        value = SerializerFactory.getSerializer((defaultValue.type)).deserialize(value);
+                        value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value);
                     }
                     target[property] = TypeInitialization.sanitize(value, Utility.getType(defaultValue));
                     continue // We have a value, need nothing more
@@ -833,6 +833,41 @@ class IEntity extends Observable {
             };
         }
         defineAllAttributes(this, attributes, values);
+    }
+}
+
+class IntegerEntity extends IEntity {
+
+    static attributes = {
+        value: Number,
+    }
+
+    /** @param {Object | Number | String} options */
+    constructor(options = 0) {
+        super(options);
+        /** @type {Number} */
+        this.value = Math.round(this.value);
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
+class ColorChannelValueEntity extends IntegerEntity {
+
+    static attributes = {
+        value: Number,
+    }
+
+    /** @param {Object | Number | String} options */
+    constructor(options = 0) {
+        super(options);
+        this.value = Utility.clamp(this.value, 0, 255);
     }
 }
 
@@ -921,28 +956,6 @@ class IdentifierEntity extends IEntity {
     }
 }
 
-class IntegerEntity extends IEntity {
-
-    static attributes = {
-        value: Number,
-    }
-
-    /** @param {Object | Number | String} options */
-    constructor(options = 0) {
-        super(options);
-        /** @type {Number} */
-        this.value = Math.round(this.value);
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
-
 class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
@@ -983,13 +996,20 @@ class KeyBindingEntity extends IEntity {
     }
 }
 
+class ColorChannelRealValueEntity extends IntegerEntity {
+
+    toString() {
+        return (this.value / 255).toFixed(6)
+    }
+}
+
 class LinearColorEntity extends IEntity {
 
     static attributes = {
-        R: Number,
-        G: Number,
-        B: Number,
-        A: Number,
+        R: ColorChannelRealValueEntity,
+        G: ColorChannelRealValueEntity,
+        B: ColorChannelRealValueEntity,
+        A: ColorChannelRealValueEntity,
     }
 
     static fromWheelLocation([x, y], radius) {
@@ -999,10 +1019,10 @@ class LinearColorEntity extends IEntity {
 
     constructor(options = {}) {
         super(options);
-        /** @type {Number} */ this.R;
-        /** @type {Number} */ this.G;
-        /** @type {Number} */ this.B;
-        /** @type {Number} */ this.A;
+        /** @type {ColorChannelRealValueEntity} */ this.R;
+        /** @type {ColorChannelRealValueEntity} */ this.G;
+        /** @type {ColorChannelRealValueEntity} */ this.B;
+        /** @type {ColorChannelRealValueEntity} */ this.A;
     }
 
     toRGBA() {
@@ -1010,24 +1030,24 @@ class LinearColorEntity extends IEntity {
     }
 
     toHSV() {
-        const max = Math.max(this.R, this.G, this.B);
-        const min = Math.min(this.R, this.G, this.B);
+        const max = Math.max(this.R.value, this.G.value, this.B.value);
+        const min = Math.min(this.R.value, this.G.value, this.B.value);
         const d = max - min;
         let h;
-        const s = (max === 0 ? 0 : d / max);
+        const s = (max == 0 ? 0 : d / max);
         const v = max / 255;
         switch (max) {
             case min:
                 h = 0;
                 break
-            case this.R:
-                h = (this.G - this.B) + d * (this.G < this.B ? 6 : 0);
+            case this.R.value:
+                h = (this.G.value - this.B.value) + d * (this.G.value < this.B.value ? 6 : 0);
                 break
-            case this.G:
-                h = (this.B - this.R) + d * 2;
+            case this.G.value:
+                h = (this.B.value - this.R.value) + d * 2;
                 break
-            case this.B:
-                h = (this.R - this.G) + d * 4;
+            case this.B.value:
+                h = (this.R.value - this.G.value) + d * 4;
                 break
         }
         h /= 6 * d;
@@ -1035,7 +1055,7 @@ class LinearColorEntity extends IEntity {
     }
 
     toNumber() {
-        return this.A + this.B << 8 + this.G << 16 + this.R << 24
+        return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
     }
 
     toString() {
@@ -1133,6 +1153,9 @@ class VectorEntity extends IEntity {
 class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
+/** @typedef {import("./TypeInitialization").AnyValue} AnyValue */
+
+/** @template {AnyValue} T */
 class PinEntity extends IEntity {
 
     static #typeEntityMap = {
@@ -1221,7 +1244,7 @@ class PinEntity extends IEntity {
          * }}
          */ this.PinType;
         /** @type {PinReferenceEntity[]} */ this.LinkedTo;
-        /** @type {String} */ this.DefaultValue;
+        /** @type {T} */ this.DefaultValue;
         /** @type {String} */ this.AutogeneratedDefaultValue;
         /** @type {ObjectReferenceEntity} */ this.DefaultObject;
         /** @type {GuidEntity} */ this.PersistentGuid;
@@ -1241,7 +1264,7 @@ class PinEntity extends IEntity {
     }
 
     getDefaultValue() {
-        return this.DefaultValue ?? ""
+        return this.DefaultValue
     }
 
     isHidden() {
@@ -1403,29 +1426,13 @@ var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
 
 // @ts-nocheck
 
-/** @typedef {import("../entity/IEntity").default} IEntity */
-/**
- * @template {IEntity} T
- * @typedef {import("../entity/IEntity").IEntityConstructor<T>} IEntityConstructor
- */
-/**
- * @template T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
- */
-
 let P = Parsimmon;
 
 class Grammar {
 
     /*   ---   Factory   ---   */
 
-    /**
-     * @template T, U
-     * @param {Grammar} r
-     * @param {AnyValueConstructor<T>} attributeType
-     * @param {Parsimmon<U>} defaultGrammar
-     * @returns
-     */
+    /** @param {Grammar} r */
     static getGrammarForType(r, attributeType, defaultGrammar = r.AttributeAnyValue) {
         if (attributeType instanceof TypeInitialization) {
             let result = Grammar.getGrammarForType(r, attributeType.type, defaultGrammar);
@@ -1463,6 +1470,8 @@ class Grammar {
                 return r.SimpleSerializationRotator
             case SimpleSerializationVectorEntity:
                 return r.SimpleSerializationVector
+            case ColorChannelValueEntity:
+                return r.ColorChannelValue
             case LinearColorEntity:
                 return r.LinearColor
             case FunctionReferenceEntity:
@@ -1490,12 +1499,7 @@ class Grammar {
         }
     }
 
-    /**
-     * @param {Grammar} r
-     * @param {IEntityConstructor<IEntity>} entityType
-     * @param {Parsimmon.Parser<String>} valueSeparator
-     * @returns 
-     */
+    /** @param {Grammar} r */
     static createPropertyGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
@@ -1509,11 +1513,7 @@ class Grammar {
                 )
             })
 
-    /**
-     * @param {Grammar} r
-     * @param {IEntityConstructor<IEntity>} entityType
-     * @returns
-     */
+    /** @param {Grammar} r */
     static createEntityGrammar = (r, entityType) =>
         P.seqMap(
             entityType.lookbehind
@@ -1558,7 +1558,10 @@ class Grammar {
     HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")
 
     /** @param {Grammar} r */
-    Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+    Number = r => P.regex(/[-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+
+    /** @param {Grammar} r */
+    RealNumber = r => P.regex(/[-\+]?[0-9]+\.[0-9]+/).map(Number).desc("a number written as real")
 
     /** @param {Grammar} r */
     NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
@@ -1708,6 +1711,17 @@ class Grammar {
             Y: y,
             Z: z,
         })
+    )
+
+    /** @param {Grammar} r */
+    ColorChannelValue = r => P.alt(
+        r.RealNumber.map(v => new ColorChannelValueEntity(v * 255)),
+        r.ColorNumber.map(v => new ColorChannelValueEntity(v)),
+    )
+
+    /** @param {Grammar} r */
+    ColorChannelRealValue = r => P.alt(
+        r.RealNumber.map(v => new ColorChannelValueEntity(v * 255))
     )
 
     /** @param {Grammar} r */
@@ -2858,17 +2872,6 @@ class ISelectableDraggableElement extends IDraggableElement {
     }
 }
 
-/** @typedef {import("../../element/PinElement").default} PinElement */
-
-/** @extends IMouseClickDrag<PinElement> */
-class MouseIgnore extends IMouseClickDrag {
-
-    constructor(target, blueprint, options = {}) {
-        options.consumeEvent = true;
-        super(target, blueprint, options);
-    }
-}
-
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../template/ITemplate").default} ITemplate
@@ -3250,7 +3253,7 @@ class LinkElement extends IFromToPositionedElement {
                 Promise.all([this.updateComplete, this.sourcePin.updateComplete]).then(() => self.setSourceLocation());
                 return
             }
-            location = this.sourcePin.template.getLinkLocation(this.sourcePin);
+            location = this.sourcePin.template.getLinkLocation();
         }
         const [x, y] = location;
         this.initialPositionX = x;
@@ -3265,7 +3268,7 @@ class LinkElement extends IFromToPositionedElement {
                 Promise.all([this.updateComplete, this.destinationPin.updateComplete]).then(() => self.setDestinationLocation());
                 return
             }
-            location = this.destinationPin.template.getLinkLocation(this.destinationPin);
+            location = this.destinationPin.template.getLinkLocation();
         }
         this.finaPositionX = location[0];
         this.finaPositionY = location[1];
@@ -3418,11 +3421,17 @@ class MouseCreateLink extends IMouseClickDrag {
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../input/IInput").default} IInput
  */
+/**
+ * @template T
+ * @typedef {import("../element/PinElement").default<T>} PinElement
+ */
 
-/** @extends ITemplate<PinElement> */
+/**
+ * @template T
+ * @extends ITemplate<PinElement<T>>
+ */
 class PinTemplate extends ITemplate {
 
     connectedCallback() {
@@ -3459,8 +3468,7 @@ class PinTemplate extends ITemplate {
         `
     }
 
-    /** @param {PinElement} pin */
-    renderIcon(pin) {
+    renderIcon() {
         return $`
             <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                 <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="5" />
@@ -3469,8 +3477,7 @@ class PinTemplate extends ITemplate {
         `
     }
 
-    /** @param {PinElement} pin */
-    renderInput(pin) {
+    renderInput() {
         return $``
     }
 
@@ -3481,19 +3488,306 @@ class PinTemplate extends ITemplate {
         this.element.clickableElement = this.element;
     }
 
-    /** @param {PinElement} pin */
-    getLinkLocation(pin) {
-        const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect();
+    getLinkLocation() {
+        const rect = this.element.querySelector(".ueb-pin-icon").getBoundingClientRect();
         const location = Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            pin.blueprint.gridElement
+            this.element.blueprint.gridElement
         );
-        return pin.blueprint.compensateTranslation(location)
+        return this.element.blueprint.compensateTranslation(location)
+    }
+}
+
+/**
+ * @extends PinTemplate<Boolean>
+ */
+class BoolPinTemplate extends PinTemplate {
+
+    /** @type {HTMLInputElement} */
+    #input
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.#input = this.element.querySelector(".ueb-pin-input");
+        let self = this;
+        this.onChangeHandler = _ => this.element.setDefaultValue(self.#input.checked ? true : false);
+        this.#input.addEventListener("change", this.onChangeHandler);
+    }
+
+    cleanup() {
+        super.cleanup();
+        this.#input.removeEventListener("change", this.onChangeHandler);
+    }
+
+    getInputs() {
+        return [this.#input.checked ? "true" : "false"]
+    }
+
+    /**
+     * @param {Boolean[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        this.element.setDefaultValue(values[0]);
+    }
+
+    renderInput() {
+        if (this.element.isInput()) {
+            return $`
+                <input type="checkbox" class="ueb-pin-input" checked="${this.element.defaultValue ? "" : w}" />
+            `
+        }
+        return super.renderInput()
     }
 }
 
 /** @typedef {import("../element/PinElement").default} PinElement */
 
+class ExecPinTemplate extends PinTemplate {
+
+    /** @param {PinElement} pin */
+    renderIcon(pin) {
+        return $`
+            <svg viewBox="-2 0 16 16">
+                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
+                    d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
+            </svg>
+        `
+    }
+}
+
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {IMouseClickDrag<T>}
+ */
+class MouseMoveDraggable extends IMouseClickDrag {
+
+    clicked(location) {
+        if (this.options.repositionClickOffset) {
+            this.target.setLocation(this.stepSize > 1
+                ? Utility.snapToGrid(location, this.stepSize)
+                : location
+            );
+        }
+    }
+
+    dragTo(location, offset) {
+        const targetLocation = [this.target.locationX, this.target.locationY];
+        const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
+            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
+            : [location, targetLocation];
+        offset = [
+            adjustedLocation[0] - this.mouseLocation[0],
+            adjustedLocation[1] - this.mouseLocation[1]
+        ];
+        if (offset[0] == 0 && offset[1] == 0) {
+            return
+        }
+        // Make sure it snaps on the grid
+        offset[0] += adjustedTargetLocation[0] - this.target.locationX;
+        offset[1] += adjustedTargetLocation[1] - this.target.locationY;
+        this.dragAction(adjustedLocation, offset);
+        // Reassign the position of mouse
+        this.mouseLocation = adjustedLocation;
+    }
+
+    dragAction(location, offset) {
+        this.target.addLocation(offset);
+    }
+}
+
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {ITemplate<T>}
+ */
+class IDraggableTemplate extends ITemplate {
+
+    getDraggableElement() {
+        return this.element
+    }
+
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
+            looseTarget: true,
+        })
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
+        ]
+    }
+
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
+        if (changedProperties.has("locationX")) {
+            this.element.style.setProperty("--ueb-position-x", `${this.element.locationX}`);
+        }
+        if (changedProperties.has("locationY")) {
+            this.element.style.setProperty("--ueb-position-y", `${this.element.locationY}`);
+        }
+    }
+}
+
+/** @typedef {import("../element/WindowElement").default} WindowElement */
+
+/** @extends {IDraggableTemplate<WindowElement>} */
+class WindowTemplate extends IDraggableTemplate {
+
+    static windowName = $`Window`
+
+    toggleAdvancedDisplayHandler
+
+    getDraggableElement() {
+        return /** @type {WindowElement} */(this.element.querySelector(".ueb-window-top"))
+    }
+
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
+            looseTarget: true,
+            stepSize: 1,
+            movementSpace: this.element.blueprint,
+        })
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
+        ]
+    }
+
+    render() {
+        return $`
+            <div class="ueb-window">
+                <div class="ueb-window-top">
+                    <div class="ueb-window-name ueb-ellipsis-nowrap-text">${
+                         // @ts-expect-error
+                         this.constructor.windowName}</div>
+                    <div class="ueb-window-close">
+                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
+                            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="ueb-window-content">
+                    ${this.renderContent()}
+                </div>
+            </div>
+        `
+    }
+
+    renderContent() {
+        return $``
+    }
+}
+
+/** @typedef {import("../element/WindowElement").default} WindowElement */
+
+class ColorPickerWindowTemplate extends WindowTemplate {
+
+    static windowName = $`Color Picker`
+
+    /** @type {LinearColorEntity} */
+    #color
+    get color() {
+        return this.#color
+    }
+    /** @param {LinearColorEntity} value */
+    set color(value) {
+        if (value.toNumber() == this.color.toNumber()) {
+            this.element.requestUpdate("color", this.#color);
+            this.#color = value;
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.color = this.element.windowOptions.getPinColor();
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+    }
+
+    renderContent() {
+        return $`
+            <div class="ueb-color-picker"
+                .style="--ueb-color-r: ${this.color.R}; --ueb-color-g: ${this.color.G}; --ueb-color-b: ${this.color.B}; --ueb-color-a: ${this.color.A};">
+                <div class="ueb-color-picker-toolbar">
+                    <div class="ueb-color-picker-theme"></div>
+                    <div class="ueb-color-picker-srgb"></div>
+                </div>
+                <div class="ueb-color-picker-main">
+                    <div class="ueb-color-picker-wheel">
+                        <ueb-color-handler></ueb-color-handler>
+                    </div>
+                    <div class="ueb-color-picker-saturation"></div>
+                    <div class="ueb-color-picker-value"></div>
+                    <div class="ueb-color-picker-preview">
+                        <div class="ueb-color-picker-preview-old"></div>
+                        <div class="ueb-color-picker-preview-new"></div>
+                    </div>
+                </div>
+                <div class="ueb-color-picker-advanced-toggle"></div>
+                <div class="ueb-color-picker-advanced">
+                    <div class="ueb-color-picker-r"></div>
+                    <div class="ueb-color-picker-g"></div>
+                    <div class="ueb-color-picker-b"></div>
+                    <div class="ueb-color-picker-a"></div>
+                    <div class="ueb-color-picker-h"></div>
+                    <div class="ueb-color-picker-s"></div>
+                    <div class="ueb-color-picker-v"></div>
+                    <div class="ueb-color-picker-hex-linear"></div>
+                    <div class="ueb-color-picker-hex-srgb"></div>
+                </div>
+                <div class="ueb-color-picker-ok"></div>
+                <div class="ueb-color-picker-cancel"></div>
+            </div>
+        `
+    }
+
+    cleanup() {
+        this.element.blueprint.removeEventListener(Configuration.colorWindowEventName, this.colorWindowHandler);
+    }
+}
+
+/** @typedef {import("../../element/PinElement").default} PinElement */
+
+/** @extends IMouseClickDrag<PinElement> */
+class MouseIgnore extends IMouseClickDrag {
+
+    constructor(target, blueprint, options = {}) {
+        options.consumeEvent = true;
+        super(target, blueprint, options);
+    }
+}
+
+/**
+ * @template T
+ * @typedef {import("../element/PinElement").default<T>} PinElement
+ */
+
+/**
+ * @template T
+ * @extends PinTemplate<T>
+ */
 class IInputPinTemplate extends PinTemplate {
 
     /** @type {HTMLElement[]} */
@@ -3502,24 +3796,24 @@ class IInputPinTemplate extends PinTemplate {
         return this.#inputContentElements
     }
 
+    /** @param {String} value */
     static stringFromInputToUE(value) {
         return value
             .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
             .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
     }
 
+    /** @param {String} value */
     static stringFromUEToInput(value) {
         return value
             .replaceAll(/(?:\r|(?<=(?:^|[^\\])(?:\\\\)*)\\r)(?=\n)/g, "") // Remove \r leftover from \r\n
             .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.#inputContentElements = [...this.element.querySelectorAll(".ueb-pin-input-content")];
+        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll(".ueb-pin-input-content")]);
         if (this.#inputContentElements.length) {
             this.setInputs(this.getInputs(), false);
             let self = this;
@@ -3589,267 +3883,6 @@ class IInputPinTemplate extends PinTemplate {
             `
         }
         return $``
-    }
-}
-
-/** @typedef {import("../element/PinElement").default} PinElement */
-
-class BoolPinTemplate extends IInputPinTemplate {
-
-    /** @type {HTMLInputElement} */
-    #input
-
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.#input = this.element.querySelector(".ueb-pin-input");
-        let self = this;
-        this.onChangeHandler = _ => this.element.entity.DefaultValue = self.#input.checked ? "true" : "false";
-        this.#input.addEventListener("change", this.onChangeHandler);
-    }
-
-    cleanup() {
-        super.cleanup();
-        this.#input.removeEventListener("change", this.onChangeHandler);
-    }
-
-    getInputs() {
-        return [this.#input.checked ? "true" : "false"]
-    }
-
-    setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(values[0] == "true");
-    }
-
-    renderInput() {
-        if (this.element.isInput()) {
-            return $`
-                <input type="checkbox" class="ueb-pin-input" .checked=${this.element.entity.getDefaultValue()} />
-            `
-        }
-        return super.renderInput()
-    }
-}
-
-/** @typedef {import("../element/PinElement").default} PinElement */
-
-class ExecPinTemplate extends PinTemplate {
-
-    /** @param {PinElement} pin */
-    renderIcon(pin) {
-        return $`
-            <svg viewBox="-2 0 16 16">
-                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
-                    d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
-            </svg>
-        `
-    }
-}
-
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
- */
-
-/**
- * @template {IDraggableElement} T
- * @extends {IMouseClickDrag<T>}
- */
-class MouseMoveDraggable extends IMouseClickDrag {
-
-    clicked(location) {
-        if (this.options.repositionClickOffset) {
-            this.target.setLocation(this.stepSize > 1
-                ? Utility.snapToGrid(location, this.stepSize)
-                : location
-            );
-        }
-    }
-
-    dragTo(location, offset) {
-        const targetLocation = [this.target.locationX, this.target.locationY];
-        const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
-            : [location, targetLocation];
-        offset = [
-            adjustedLocation[0] - this.mouseLocation[0],
-            adjustedLocation[1] - this.mouseLocation[1]
-        ];
-        if (offset[0] == 0 && offset[1] == 0) {
-            return
-        }
-        // Make sure it snaps on the grid
-        offset[0] += adjustedTargetLocation[0] - this.target.locationX;
-        offset[1] += adjustedTargetLocation[1] - this.target.locationY;
-        this.dragAction(adjustedLocation, offset);
-        // Reassign the position of mouse
-        this.mouseLocation = adjustedLocation;
-    }
-
-    dragAction(location, offset) {
-        this.target.addLocation(offset);
-    }
-}
-
-/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
-
-/**
- * @template {IDraggableElement} T
- * @extends {ITemplate<T>}
- */
-class IDraggableTemplate extends ITemplate {
-
-    getDraggableElement() {
-        return this.element
-    }
-
-    createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
-            draggableElement: this.getDraggableElement(),
-            looseTarget: true,
-        })
-    }
-
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            this.createDraggableObject(),
-        ]
-    }
-
-    /** @param {Map} changedProperties */
-    update(changedProperties) {
-        super.update(changedProperties);
-        if (changedProperties.has("locationX")) {
-            this.element.style.setProperty("--ueb-position-x", `${this.element.locationX}`);
-        }
-        if (changedProperties.has("locationY")) {
-            this.element.style.setProperty("--ueb-position-y", `${this.element.locationY}`);
-        }
-    }
-}
-
-/** @typedef {import("../element/WindowElement").default} WindowElement */
-
-/** @extends {IDraggableTemplate<WindowElement>} */
-class WindowTemplate extends IDraggableTemplate {
-
-    static windowName = $`Window`
-
-    toggleAdvancedDisplayHandler
-
-    getDraggableElement() {
-        return this.element.querySelector(".ueb-window-top")
-    }
-
-    createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
-            draggableElement: this.getDraggableElement(),
-            looseTarget: true,
-            stepSize: 1,
-            movementSpace: this.element.blueprint,
-        })
-    }
-
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            this.createDraggableObject(),
-        ]
-    }
-
-    render() {
-        return $`
-            <div class="ueb-window">
-                <div class="ueb-window-top">
-                    <div class="ueb-window-name ueb-ellipsis-nowrap-text">${this.constructor.windowName}</div>
-                    <div class="ueb-window-close">
-                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
-                            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="ueb-window-content">
-                    ${this.renderContent()}
-                </div>
-            </div>
-        `
-    }
-
-    renderContent() {
-        return $``
-    }
-}
-
-/** @typedef {import("../element/WindowElement").default} WindowElement */
-
-class ColorPickerWindowTemplate extends WindowTemplate {
-
-    static windowName = $`Color Picker`
-
-    /** @type {LinearColorEntity} */
-    #color
-    get color() {
-        return this.#color
-    }
-    /** @param {LinearColorEntity} value */
-    set color(value) {
-        if (value.num() == this.color.num()) {
-            this.element.requestUpdate("color", this.#color);
-            this.#color = value;
-        }
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        this.color = this.element.windowOptions.getPinColor();
-    }
-
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-    }
-
-    renderContent() {
-        const rgba = this.color.rgba();
-        return $`
-            <div class="ueb-color-picker"
-                .style="--ueb-color-r: ${rgba[0]}; --ueb-color-g: ${rgba[1]}; --ueb-color-b: ${rgba[2]}; --ueb-color-a: ${rgba[3]};">
-                <div class="ueb-color-picker-toolbar">
-                    <div class="ueb-color-picker-theme"></div>
-                    <div class="ueb-color-picker-srgb"></div>
-                </div>
-                <div class="ueb-color-picker-main">
-                    <div class="ueb-color-picker-wheel">
-                        <ueb-color-handler></ueb-color-handler>
-                    </div>
-                    <div class="ueb-color-picker-saturation"></div>
-                    <div class="ueb-color-picker-value"></div>
-                    <div class="ueb-color-picker-preview">
-                        <div class="ueb-color-picker-preview-old"></div>
-                        <div class="ueb-color-picker-preview-new"></div>
-                    </div>
-                </div>
-                <div class="ueb-color-picker-advanced-toggle"></div>
-                <div class="ueb-color-picker-advanced">
-                    <div class="ueb-color-picker-r"></div>
-                    <div class="ueb-color-picker-g"></div>
-                    <div class="ueb-color-picker-b"></div>
-                    <div class="ueb-color-picker-a"></div>
-                    <div class="ueb-color-picker-h"></div>
-                    <div class="ueb-color-picker-s"></div>
-                    <div class="ueb-color-picker-v"></div>
-                    <div class="ueb-color-picker-hex-linear"></div>
-                    <div class="ueb-color-picker-hex-srgb"></div>
-                </div>
-                <div class="ueb-color-picker-ok"></div>
-                <div class="ueb-color-picker-cancel"></div>
-            </div>
-        `
-    }
-
-    cleanup() {
-        this.element.blueprint.removeEventListener(Configuration.colorWindowEventName, this.colorWindowHandler);
     }
 }
 
@@ -4107,20 +4140,20 @@ class NamePinTemplate extends IInputPinTemplate {
     }
 }
 
-class RealPinTemplate extends IInputPinTemplate {
+/**
+ * @template T
+ * @extends IInputPinTemplate<T>
+ */
+class INumericPinTemplate extends IInputPinTemplate {
 
+    /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = false) {
         if (!values || values.length == 0) {
-            values = this.getInput();
+            values = [this.getInput()];
         }
         let parsedValues = [];
-        for (let i = 0; i < values.length; ++i) {
-            let num = parseFloat(values[i]);
-            if (isNaN(num)) {
-                num = parseFloat(this.element.entity.DefaultValue != ""
-                    ? /** @type {String} */(this.element.entity.DefaultValue)
-                    : this.element.entity.AutogeneratedDefaultValue);
-            }
+        for (const value of values) {
+            let num = parseFloat(value);
             if (isNaN(num)) {
                 num = 0;
                 updateDefaultValue = false;
@@ -4131,6 +4164,21 @@ class RealPinTemplate extends IInputPinTemplate {
         this.setDefaultValue(parsedValues, values);
     }
 
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        this.element.setDefaultValue(/** @type {T} */(values[0]));
+    }
+}
+
+/**
+ * @template {Number} T
+ * @extends INumericPinTemplate<T>
+ */
+class RealPinTemplate extends INumericPinTemplate {
+
     setDefaultValue(values = [], rawValues = values) {
         this.element.setDefaultValue(values[0]);
     }
@@ -4140,62 +4188,9 @@ class RealPinTemplate extends IInputPinTemplate {
             return $`
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}"></span>
-                </div>
-            `
-        }
-        return $``
-    }
-}
-
-class StringPinTemplate extends IInputPinTemplate {
-}
-
-/**
- * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity}
- */
-
-class VectorPinTemplate extends RealPinTemplate {
-
-    setDefaultValue(values = [], rawValues = values) {
-        if (!(this.element.entity.DefaultValue instanceof VectorEntity)) {
-            throw new TypeError("Expected DefaultValue to be a VectorEntity")
-        }
-        let vector = this.element.entity.DefaultValue;
-        vector.X = values[0];
-        vector.Y = values[1];
-        vector.Z = values[2];
-    }
-
-    renderInput() {
-        if (this.element.isInput()) {
-            return $`
-                <div class="ueb-pin-input-wrapper">
-                    <span class="ueb-pin-input-label">X</span>
-                    <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate.stringFromUEToInput(
-                                Utility.minDecimals(
-                                    this.element.entity.getDefaultValue().X
-                                )
-                            )}"></span>
-                    </div>
-                    <span class="ueb-pin-input-label">Y</span>
-                    <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate.stringFromUEToInput(
-                                Utility.minDecimals(
-                                    this.element.entity.getDefaultValue().Y
-                                )
-                            )}"></span>
-                    </div>
-                    <span class="ueb-pin-input-label">Z</span>
-                    <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate.stringFromUEToInput(
-                                Utility.minDecimals(
-                                    this.element.entity.getDefaultValue().Z
-                                )
-                            )}"></span>
-                    </div>
+                        .innerText="${
+                            IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))
+                        }"></span>
                 </div>
             `
         }
@@ -4214,7 +4209,10 @@ class ReferencePinTemplate extends PinTemplate {
     }
 }
 
-class RotatorPinTemplate extends RealPinTemplate {
+/** @typedef {import("../entity/RotatorEntity").default} Rotator */
+
+/** @extends INumericPinTemplate<Rotator> */
+class RotatorPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         if (!(this.element.entity.DefaultValue instanceof RotatorEntity)) {
@@ -4252,14 +4250,75 @@ class RotatorPinTemplate extends RealPinTemplate {
     }
 }
 
+/** @extends IInputPinTemplate<String> */
+class StringPinTemplate extends IInputPinTemplate {
+}
+
+/** @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity */
+
+/**
+ * @template {VectorEntity} T
+ * @extends INumericPinTemplate<T>
+ */
+class VectorPinTemplate extends INumericPinTemplate {
+
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values, rawValues) {
+        if (!(this.element.entity.DefaultValue instanceof VectorEntity)) {
+            throw new TypeError("Expected DefaultValue to be a VectorEntity")
+        }
+        let vector = this.element.entity.DefaultValue;
+        vector.X = values[0];
+        vector.Y = values[1];
+        vector.Z = values[2];
+    }
+
+    renderInput() {
+        if (this.element.isInput()) {
+            return $`
+                <div class="ueb-pin-input-wrapper">
+                    <span class="ueb-pin-input-label">X</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
+                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().X))
+                                }"></span>
+                    </div>
+                    <span class="ueb-pin-input-label">Y</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
+                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Y))
+                                }"></span>
+                    </div>
+                    <span class="ueb-pin-input-label">Z</span>
+                    <div class="ueb-pin-input">
+                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
+                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Z))
+                                }"></span>
+                    </div>
+                </div>
+            `
+        }
+        return $``
+    }
+}
+
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
- * @typedef {import("../entity/PinEntity").default} PinEntity
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./NodeElement").default} NodeElement
  */
+/**
+ * @template T
+ * @typedef {import("../entity/PinEntity").default<T>} PinEntity
+ */
 
-/** @extends {IElement<PinEntity, PinTemplate>} */
+/**
+ * @template T
+ * @extends {IElement<PinEntity<T>, PinTemplate>}
+ */
 class PinElement extends IElement {
 
     static #typeTemplateMap = {
@@ -4268,9 +4327,9 @@ class PinElement extends IElement {
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
+        "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
-        "MUTABLE_REFERENCE": ReferencePinTemplate,
         "string": StringPinTemplate,
     }
 
@@ -4317,7 +4376,7 @@ class PinElement extends IElement {
     }
 
     /**
-     * @param {PinEntity} pinEntity
+     * @param {PinEntity<any>} pinEntity
      * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
@@ -4337,35 +4396,21 @@ class PinElement extends IElement {
 
     connections = 0
 
-    get defaultValue() {
-        return this.unreactiveDefaultValue
-    }
-    /** @param {String} value */
-    set defaultValue(value) {
-        let oldValue = this.unreactiveDefaultValue;
-        this.unreactiveDefaultValue = value;
-        this.requestUpdate("defaultValue", oldValue);
-    }
-
-    /** @param {PinEntity} entity */
+    /** @param {PinEntity<T>} entity */
     constructor(entity) {
         super(
             entity,
             new (PinElement.getTypeTemplate(entity))()
         );
         this.advancedView = entity.bAdvancedView;
-        /** @type {String} */
-        this.unreactiveDefaultValue = entity.getDefaultValue();
-        if (this.unreactiveDefaultValue.constructor === String) {
-            this.unreactiveDefaultValue = entity.getDefaultValue();
-        }
+        this.defaultValue = entity.getDefaultValue();
         this.pinType = this.entity.getType();
         // @ts-expect-error
         this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString());
         this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
 
-        this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString());
+        // this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
         this.entity.subscribe("PinToolTip", value => {
             let matchResult = value.match(/\s*(.+?(?=\n)|.+\S)\s*/);
             if (matchResult) {
@@ -4415,7 +4460,7 @@ class PinElement extends IElement {
     }
 
     getLinkLocation() {
-        return this.template.getLinkLocation(this)
+        return this.template.getLinkLocation()
     }
 
     /** @returns {NodeElement} */
@@ -4427,8 +4472,10 @@ class PinElement extends IElement {
         return this.entity.LinkedTo ?? []
     }
 
+    /** @param {T} value */
     setDefaultValue(value) {
         this.entity.DefaultValue = value;
+        this.defaultValue = value;
     }
 
     /** @param  {IElement[]} nodesWhitelist */
@@ -4481,10 +4528,10 @@ customElements.define("ueb-pin", PinElement);
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
  */
 
-/** @extends {MouseMoveDraggable<NodeElement>} */
+/** @extends {MouseMoveDraggable<ISelectableDraggableElement>} */
 class MouseMoveNodes extends MouseMoveDraggable {
 
     startDrag() {
@@ -4506,11 +4553,14 @@ class MouseMoveNodes extends MouseMoveDraggable {
     }
 }
 
-/** @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement */
+/**
+ * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
+ */
 
 /**
  * @template {ISelectableDraggableElement} T
- * @extends {ITemplate<T>}
+ * @extends {IDraggableTemplate<T>}
  */
 class SelectableDraggableTemplate extends IDraggableTemplate {
 
@@ -4519,10 +4569,10 @@ class SelectableDraggableTemplate extends IDraggableTemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveNodes(this.element, this.element.blueprint, {
+        return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
             draggableElement: this.getDraggableElement(),
             looseTarget: true,
-        })
+        }))
     }
 
     /** @param {Map} changedProperties */
@@ -4564,7 +4614,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                     </div>
                     ${this.element.enabledState?.toString() == "DevelopmentOnly" ? $`
                     <div class="ueb-node-developmentonly">Development Only</div>
-                    ` : $``}
+                    ` : w}
                     ${this.element.advancedPinDisplay ? $`
                     <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -4572,7 +4622,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                             <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
                         </svg>
                     </div>
-                    ` : $``}
+                    ` : w}
                 </div>
             </div>
         `
@@ -5131,6 +5181,7 @@ class FastSelectionModel {
 
 /** @typedef {import("../element/SelectorElement").default} SelectorElement */
 
+/** @extends IFromToPositionedTemplate<SelectorElement> */
 class SelectorTemplate extends IFromToPositionedTemplate {
 
 }
@@ -5289,9 +5340,7 @@ class BlueprintTemplate extends ITemplate {
         `
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.element.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'));
@@ -5883,15 +5932,34 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        ColorChannelRealValueEntity,
+        new ToStringSerializer(ColorChannelValueEntity)
+    );
+
+    SerializerFactory.registerSerializer(
+        ColorChannelValueEntity,
+        new ToStringSerializer(ColorChannelValueEntity)
+    );
+
+    SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
         new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
     );
 
-    SerializerFactory.registerSerializer(GuidEntity, new ToStringSerializer(GuidEntity));
+    SerializerFactory.registerSerializer(
+        GuidEntity,
+        new ToStringSerializer(GuidEntity)
+    );
 
-    SerializerFactory.registerSerializer(IdentifierEntity, new ToStringSerializer(IdentifierEntity));
+    SerializerFactory.registerSerializer(
+        IdentifierEntity,
+        new ToStringSerializer(IdentifierEntity)
+    );
 
-    SerializerFactory.registerSerializer(IntegerEntity, new ToStringSerializer(IntegerEntity));
+    SerializerFactory.registerSerializer(
+        IntegerEntity,
+        new ToStringSerializer(IntegerEntity)
+    );
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
@@ -5930,7 +5998,6 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ObjectReferenceEntity,
         new CustomSerializer(
-            /** @param {ObjectReferenceEntity} objectReference */
             objectReference => (objectReference.type ?? "") + (
                 objectReference.path
                     ? objectReference.type ? `'"${objectReference.path}"'` : `"${objectReference.path}"`
@@ -5940,7 +6007,10 @@ function initializeSerializerFactory() {
         )
     );
 
-    SerializerFactory.registerSerializer(PathSymbolEntity, new ToStringSerializer(PathSymbolEntity));
+    SerializerFactory.registerSerializer(
+        PathSymbolEntity,
+        new ToStringSerializer(PathSymbolEntity)
+    );
 
     SerializerFactory.registerSerializer(
         PinEntity,
@@ -5972,7 +6042,6 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         SimpleSerializationRotatorEntity,
         new CustomSerializer(
-            /** @param {SimpleSerializationRotatorEntity} value */
             (value, insideString) => `${value.P}, ${value.Y}, ${value.R}`,
             SimpleSerializationRotatorEntity
         )
@@ -5981,7 +6050,6 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         SimpleSerializationVectorEntity,
         new CustomSerializer(
-            /** @param {SimpleSerializationVectorEntity} value */
             (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
             SimpleSerializationVectorEntity
         )
