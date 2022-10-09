@@ -33,7 +33,6 @@
     "terser": "^5.14.0"
   },
   "dependencies": {
-    "@jaames/iro": "^5.5.2",
     "lit": "^2.2.4",
     "parsimmon": "^1.18.0",
     "rollup-plugin-html-literals": "^1.1.5"

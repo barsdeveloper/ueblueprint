@@ -21,7 +21,7 @@ export default class NodeTemplate extends SelectableDraggableTemplate {
                                         fill="currentColor" />
                                 </svg>
                             </span>
-                            <span class="ueb-node-name-text">
+                            <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                                 ${this.element.nodeDisplayName}
                             </span>
                         </div>

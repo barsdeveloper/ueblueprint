@@ -1,12 +1,22 @@
 import Grammar from "./Grammar"
 import ISerializer from "./ISerializer"
 
-/** @typedef {import("../entity/IEntity").default} IEntity */
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
 
-/** @template {IEntity} T */
+/**
+ * @template {AnyValue} T
+ * @extends ISerializer<T>
+ */
 export default class GeneralSerializer extends ISerializer {
 
-    /** @param {new () => T} entityType */
+    /** @param {AnyValueConstructor<T>} entityType */
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`)
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter)
@@ -18,6 +28,7 @@ export default class GeneralSerializer extends ISerializer {
      * @returns {T}
      */
     read(value) {
+        // @ts-expect-error
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType)
         const parseResult = grammar.parse(value)
         if (!parseResult.status) {

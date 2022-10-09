@@ -18,6 +18,11 @@ export default class GuidEntity extends IEntity {
         return new GuidEntity({ value: guid })
     }
 
+    constructor(options = {}) {
+        super(options)
+        /** @type {String} */ this.value
+    }
+
     valueOf() {
         return this.value
     }

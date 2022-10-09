@@ -214,6 +214,12 @@ ueb-selector > * {
   visibility: visible;
 }
 
+.ueb-ellipsis-nowrap-text {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 ueb-link {
   --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
   /* when from-y > to-y */
@@ -612,6 +618,7 @@ ueb-window {
   top: 0;
   left: 0;
   transform: translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
+  background: #242424;
   z-index: 1000;
 }
 
@@ -624,10 +631,58 @@ ueb-window {
   background: #1a1a1a;
 }
 
+.ueb-window-name {
+  flex-grow: 1;
+  padding-left: 28px;
+  text-align: center;
+}
+
 .ueb-window-close {
   padding: 8px;
   height: 12px;
   width: 12px;
+}
+
+.ueb-color-picker-theme,
+.ueb-color-picker-srgb {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.ueb-color-picker-main {
+  display: grid;
+  grid-template: 1fr/auto min-content min-content min-content;
+}
+
+.ueb-color-picker-wheel {
+  position: relative;
+  padding-top: 100%;
+  min-width: 200px;
+  border-radius: 100%;
+  background: radial-gradient(white 5%, transparent 85%), conic-gradient(from 90deg, #FF0000 0deg, #FFFF00 60deg, #00FF00 120deg, #00FFFF 180deg, #0000FF 240deg, #FF00FF 300deg, #FF0000 360deg);
+}
+
+ueb-color-handler {
+  display: block;
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 4px;
+  height: 4px;
+  transform: translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
+  border: 1px solid #000;
+  border-radius: 4px;
+}
+
+.ueb-color-picker-saturation,
+.ueb-color-picker-value {
+  margin: 0 8px;
+  width: 30px;
+  background: linear-gradient(to bottom, transparent 10%, #000000 100%), rebeccapurple;
+}
+
+.ueb-color-picker-value {
+  background: linear-gradient(to bottom, transparent 10%, #FFFFFF 100%), rebeccapurple;
 }
 
 /*# sourceMappingURL=ueb-style.css.map */

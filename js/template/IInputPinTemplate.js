@@ -2,8 +2,15 @@ import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 
-/** @typedef {import("../element/PinElement").default} PinElement */
+/**
+ * @template T
+ * @typedef {import("../element/PinElement").default<T>} PinElement
+ */
 
+/**
+ * @template T
+ * @extends PinTemplate<T>
+ */
 export default class IInputPinTemplate extends PinTemplate {
 
     /** @type {HTMLElement[]} */
@@ -12,24 +19,24 @@ export default class IInputPinTemplate extends PinTemplate {
         return this.#inputContentElements
     }
 
+    /** @param {String} value */
     static stringFromInputToUE(value) {
         return value
             .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
             .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
     }
 
+    /** @param {String} value */
     static stringFromUEToInput(value) {
         return value
             .replaceAll(/(?:\r|(?<=(?:^|[^\\])(?:\\\\)*)\\r)(?=\n)/g, "") // Remove \r leftover from \r\n
             .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.#inputContentElements = [...this.element.querySelectorAll(".ueb-pin-input-content")]
+        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll(".ueb-pin-input-content")])
         if (this.#inputContentElements.length) {
             this.setInputs(this.getInputs(), false)
             let self = this

@@ -1,6 +1,7 @@
 import { html } from "lit"
-import MouseOpenWindow from "../input/mouse/MouseOpenWindow"
+import ColorPickerWindowTemplate from "./ColorPickerWindowTemplate"
 import IInputPinTemplate from "./IInputPinTemplate"
+import MouseOpenWindow from "../input/mouse/MouseOpenWindow"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -24,7 +25,14 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
             ...super.createInputObjects(),
             new MouseOpenWindow(this.#input, this.element.blueprint, {
                 moveEverywhere: true,
-                looseTarget: true
+                looseTarget: true,
+                windowType: ColorPickerWindowTemplate,
+                windowOptions: {
+                    // The created window will use the following functions to get and set the color
+                    getPinColor: () => this.element.defaultValue,
+                    /** @param {LinearColorEntity} color */
+                    setPinColor: color => this.element.setDefaultValue(color),
+                },
             })
         ]
     }

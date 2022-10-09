@@ -1,12 +1,7 @@
 import OrderedIndexArray from "./OrderedIndexArray"
 
 /**
- * @typedef {{
- *     primaryInf: Number,
- *     primarySup: Number,
- *     secondaryInf: Number,
- *     secondarySup: Number
- * }} BoundariesInfo
+ * @typedef {import("../Blueprint").BoundariesInfo} BoundariesInfo
  * @typedef {{
  *     primaryBoundary: Number,
  *     secondaryBoundary: Number,
@@ -19,15 +14,15 @@ import OrderedIndexArray from "./OrderedIndexArray"
 export default class FastSelectionModel {
 
     /**
-     * @param {Number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
-     * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
-     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
-     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc A function that selects or deselects individual rectangles.
+     * @param {Number[]} initialPosition
+     * @param {Rectangle[]} rectangles
+     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc
+     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc
      */
     constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
         this.initialPosition = initialPosition
         this.finalPosition = initialPosition
-        /** @type Metadata[] */
+        /** @type {Metadata[]} */
         this.metadata = new Array(rectangles.length)
         this.primaryOrder = new OrderedIndexArray((element) => this.metadata[element].primaryBoundary)
         this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary)
@@ -36,7 +31,7 @@ export default class FastSelectionModel {
         this.primaryOrder.reserve(this.rectangles.length)
         this.secondaryOrder.reserve(this.rectangles.length)
         rectangles.forEach((rect, index) => {
-            /** @type Metadata */
+            /** @type {Metadata} */
             let rectangleMetadata = {
                 primaryBoundary: this.initialPosition[0],
                 secondaryBoundary: this.initialPosition[1],

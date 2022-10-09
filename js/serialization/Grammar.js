@@ -1,3 +1,4 @@
+// @ts-nocheck
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
@@ -20,6 +21,14 @@ import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
 
 /** @typedef {import("../entity/IEntity").default} IEntity */
+/**
+ * @template {IEntity} T
+ * @typedef {import("../entity/IEntity").IEntityConstructor<T>} IEntityConstructor
+ */
+/**
+ * @template T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
 
 let P = Parsimmon
 
@@ -27,7 +36,14 @@ export default class Grammar {
 
     /*   ---   Factory   ---   */
 
-    static getGrammarForType(r, attributeType, defaultGrammar) {
+    /**
+     * @template T, U
+     * @param {Grammar} r
+     * @param {AnyValueConstructor<T>} attributeType
+     * @param {Parsimmon<U>} defaultGrammar
+     * @returns
+     */
+    static getGrammarForType(r, attributeType, defaultGrammar = r.AttributeAnyValue) {
         if (attributeType instanceof TypeInitialization) {
             let result = Grammar.getGrammarForType(r, attributeType.type, defaultGrammar)
             if (attributeType.serialized && !(attributeType.type instanceof String)) {
@@ -91,6 +107,12 @@ export default class Grammar {
         }
     }
 
+    /**
+     * @param {Grammar} r
+     * @param {IEntityConstructor<IEntity>} entityType
+     * @param {Parsimmon.Parser<String>} valueSeparator
+     * @returns 
+     */
     static createPropertyGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
@@ -104,6 +126,11 @@ export default class Grammar {
                 )
             })
 
+    /**
+     * @param {Grammar} r
+     * @param {IEntityConstructor<IEntity>} entityType
+     * @returns
+     */
     static createEntityGrammar = (r, entityType) =>
         P.seqMap(
             entityType.lookbehind
@@ -123,14 +150,19 @@ export default class Grammar {
 
     /*   ---   General   ---   */
 
+    /** @param {Grammar} r */
     InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("inline whitespace")
 
+    /** @param {Grammar} r */
     InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
 
+    /** @param {Grammar} r */
     MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
 
+    /** @param {Grammar} r */
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
 
+    /** @param {Grammar} r */
     Boolean = r => P.alt(
         P.string("True"),
         P.string("true"),
@@ -139,19 +171,26 @@ export default class Grammar {
     ).map(v => v.toLocaleLowerCase() === "true" ? true : false)
         .desc("either True or False")
 
+    /** @param {Grammar} r */
     HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")
 
+    /** @param {Grammar} r */
     Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
 
+    /** @param {Grammar} r */
     NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
 
+    /** @param {Grammar} r */
     ColorNumber = r => r.NaturalNumber.assert(n => 0 <= n && n < 256, "the color must be between 0 and 256 excluded")
 
+    /** @param {Grammar} r */
     Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
 
+    /** @param {Grammar} r */
     String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.unescapeString)
         .desc('string (with possibility to escape the quote using \")')
 
+    /** @param {Grammar} r */
     ReferencePath = r => P.seq(
         P.string("/"),
         r.PathSymbol
@@ -164,20 +203,27 @@ export default class Grammar {
         .tie()
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
 
+    /** @param {Grammar} r */
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
 
     /*   ---   Entity   ---   */
 
+    /** @param {Grammar} r */
     None = r => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
 
+    /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
 
+    /** @param {Grammar} r */
     Guid = r => r.HexDigit.times(32).tie().map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal value")
 
+    /** @param {Grammar} r */
     Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
 
+    /** @param {Grammar} r */
     PathSymbol = r => P.regex(/[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
+    /** @param {Grammar} r */
     Reference = r => P.alt(
         r.None,
         ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
@@ -197,6 +243,7 @@ export default class Grammar {
         r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
     )
 
+    /** @param {Grammar} r */
     LocalizedText = r => P.seqMap(
         P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _0 (ignored)
         r.String.trim(P.optWhitespace), // Goes into namespace
@@ -212,12 +259,14 @@ export default class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     InvariantText = r => r.String.trim(P.optWhitespace).wrap(
         P.string(InvariantTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")),
         P.string(")")
     )
         .map(value => new InvariantTextEntity({ value: value }))
 
+    /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(
         r.Null,
         r.None,
@@ -233,6 +282,7 @@ export default class Grammar {
         r.LinearColor,
     )
 
+    /** @param {Grammar} r */
     PinReference = r => P.seqMap(
         r.PathSymbol, // Goes into objectNAme
         P.whitespace, // Goes into _ (ignored)
@@ -243,10 +293,13 @@ export default class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
 
+    /** @param {Grammar} r */
     Rotator = r => Grammar.createEntityGrammar(r, RotatorEntity)
 
+    /** @param {Grammar} r */
     SimpleSerializationRotator = r => P.seqMap(
         r.Number,
         P.string(",").trim(P.optWhitespace),
@@ -260,6 +313,7 @@ export default class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     SimpleSerializationVector = r => P.seqMap(
         r.Number,
         P.string(",").trim(P.optWhitespace),
@@ -273,10 +327,13 @@ export default class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity)
 
+    /** @param {Grammar} r */
     FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
 
+    /** @param {Grammar} r */
     KeyBinding = r => P.alt(
         r.Identifier.map(identifier => new KeyBindingEntity({
             Key: identifier
@@ -284,8 +341,10 @@ export default class Grammar {
         Grammar.createEntityGrammar(r, KeyBindingEntity)
     )
 
+    /** @param {Grammar} r */
     Pin = r => Grammar.createEntityGrammar(r, PinEntity)
 
+    /** @param {Grammar} r */
     CustomProperties = r =>
         P.string("CustomProperties")
             .then(P.whitespace)
@@ -297,7 +356,7 @@ export default class Grammar {
                 Utility.objectSet(entity, ["CustomProperties"], properties, true)
             })
 
-    /** @returns {Parsimmon.Parser<ObjectEntity>} */
+    /** @param {Grammar} r */
     Object = r => P.seqMap(
         P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
         P
@@ -319,6 +378,7 @@ export default class Grammar {
 
     /*   ---   Others   ---   */
 
+    /** @param {Grammar} r */
     LinearColorFromHex = r => P
         .string("#")
         .then(r.HexDigit.times(2).tie().times(3, 4))
@@ -330,6 +390,7 @@ export default class Grammar {
             A: A ? parseInt(A, 16) / 255 : 1,
         }))
 
+    /** @param {Grammar} r */
     LinearColorFromRGBList = r => P.seqMap(
         r.ColorNumber,
         P.string(",").skip(P.optWhitespace),
@@ -344,6 +405,7 @@ export default class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     LinearColorFromRGB = r => P.string("rgb").then(
         r.LinearColorFromRGBList.wrap(
             P.regex(/\(\s*/),
@@ -351,6 +413,7 @@ export default class Grammar {
         )
     )
 
+    /** @param {Grammar} r */
     LinearColorFromRGBA = r => P.string("rgba").then(
         P.seqMap(
             r.ColorNumber,
@@ -372,6 +435,7 @@ export default class Grammar {
         )
     )
 
+    /** @param {Grammar} r */
     LinearColorFromAnyColor = r => P.alt(
         r.LinearColorFromRGBList,
         r.LinearColorFromHex,

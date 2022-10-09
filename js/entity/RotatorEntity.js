@@ -7,4 +7,11 @@ export default class RotatorEntity extends IEntity {
         P: Number,
         Y: Number,
     }
+
+    constructor(values = {}) {
+        super(values)
+        /** @type {Number} */ this.R
+        /** @type {Number} */ this.P
+        /** @type {Number} */ this.Y
+    }
 }

@@ -1,4 +1,6 @@
 import { html } from "lit"
+import Configuration from "../Configuration"
+import LinearColorEntity from "../entity/LinearColorEntity"
 import WindowTemplate from "./WindowTemplate"
 
 /** @typedef {import("../element/WindowElement").default} WindowElement */
@@ -7,31 +9,47 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
 
     static windowName = html`Color Picker`
 
-    #picker
+    /** @type {LinearColorEntity} */
+    #color
+    get color() {
+        return this.#color
+    }
+    /** @param {LinearColorEntity} value */
+    set color(value) {
+        if (value.num() == this.color.num()) {
+            this.element.requestUpdate("color", this.#color)
+            this.#color = value
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.color = this.element.windowOptions.getPinColor()
+    }
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
-        this.#picker = new iro.ColorPicker(
-            this.element.querySelector(".ueb-color-picker"),
-            {
-                layout: [
-
-                ]
-            }
-        )
     }
 
     renderContent() {
+        const rgba = this.color.rgba()
         return html`
-            <div class="ueb-color-picker">
-                <div class="ueb-color-picker-theme"></div>
-                <div class="ueb-color-picker-srgb"></div>
-                <div class="ueb-color-picker-wheel"></div>
-                <div class="ueb-color-picker-saturation"></div>
-                <div class="ueb-color-picker-value"></div>
-                <div class="ueb-color-picker-preview">
-                    <div class="ueb-color-picker-preview-old"></div>
-                    <div class="ueb-color-picker-preview-new"></div>
+            <div class="ueb-color-picker"
+                .style="--ueb-color-r: ${rgba[0]}; --ueb-color-g: ${rgba[1]}; --ueb-color-b: ${rgba[2]}; --ueb-color-a: ${rgba[3]};">
+                <div class="ueb-color-picker-toolbar">
+                    <div class="ueb-color-picker-theme"></div>
+                    <div class="ueb-color-picker-srgb"></div>
+                </div>
+                <div class="ueb-color-picker-main">
+                    <div class="ueb-color-picker-wheel">
+                        <ueb-color-handler></ueb-color-handler>
+                    </div>
+                    <div class="ueb-color-picker-saturation"></div>
+                    <div class="ueb-color-picker-value"></div>
+                    <div class="ueb-color-picker-preview">
+                        <div class="ueb-color-picker-preview-old"></div>
+                        <div class="ueb-color-picker-preview-new"></div>
+                    </div>
                 </div>
                 <div class="ueb-color-picker-advanced-toggle"></div>
                 <div class="ueb-color-picker-advanced">
@@ -49,5 +67,9 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                 <div class="ueb-color-picker-cancel"></div>
             </div>
         `
+    }
+
+    cleanup() {
+        this.element.blueprint.removeEventListener(Configuration.colorWindowEventName, this.colorWindowHandler)
     }
 }

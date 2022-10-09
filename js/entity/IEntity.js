@@ -4,6 +4,11 @@ import SerializerFactory from "../serialization/SerializerFactory"
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 
+/**
+ * @template {IEntity} T
+ * @typedef {new (Object) => T} IEntityConstructor
+ */
+
 export default class IEntity extends Observable {
 
     static attributes = {}
@@ -44,6 +49,7 @@ export default class IEntity extends Observable {
                 }
 
                 // Not instanceof because all objects are instenceof Object, exact match needed
+                // @ts-expect-error
                 if (defaultType === Object) {
                     target[property] = {}
                     defineAllAttributes(target[property], properties[property], values[property], property + ".")
@@ -58,7 +64,8 @@ export default class IEntity extends Observable {
                         && defaultValue.serialized
                         && defaultValue.type !== String
                     ) {
-                        value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value)
+                        // @ts-expect-error
+                        value = SerializerFactory.getSerializer((defaultValue.type)).deserialize(value)
                     }
                     target[property] = TypeInitialization.sanitize(value, Utility.getType(defaultValue))
                     continue // We have a value, need nothing more
@@ -72,6 +79,7 @@ export default class IEntity extends Observable {
                     if (defaultValue.serialized) {
                         defaultValue = ""
                     } else {
+                        // @ts-expect-error
                         defaultType = defaultValue.type
                         defaultValue = defaultValue.value
                     }
@@ -82,6 +90,7 @@ export default class IEntity extends Observable {
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType)
             }
         }
+        // @ts-expect-error
         const attributes = this.constructor.attributes
         if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
             // Where there is just one attribute, option can be the value of that attribute

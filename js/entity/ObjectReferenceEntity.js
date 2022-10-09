@@ -6,4 +6,10 @@ export default class ObjectReferenceEntity extends IEntity {
         type: String,
         path: String,
     }
+
+    constructor(options = {}) {
+        super(options)
+        /** @type {String} */ this.type
+        /** @type {String} */ this.path
+    }
 }

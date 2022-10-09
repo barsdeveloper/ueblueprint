@@ -6,4 +6,9 @@ export default class InvariantTextEntity extends IEntity {
     static attributes = {
         value: String,
     }
+
+    constructor(options = {}) {
+        super(options)
+        /** @type {String} */ this.value
+    }
 }

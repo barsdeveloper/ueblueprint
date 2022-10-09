@@ -1,17 +1,22 @@
-import { css, html } from "lit"
+import { html } from "lit"
 import ITemplate from "./ITemplate"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import Utility from "../Utility"
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../input/IInput").default} IInput
  */
+/**
+ * @template T
+ * @typedef {import("../element/PinElement").default<T>} PinElement
+ */
 
+/**
+ * @template T
+ * @extends ITemplate<PinElement<T>>
+ */
 export default class PinTemplate extends ITemplate {
-
-    static styles = css``
 
     connectedCallback() {
         super.connectedCallback()
@@ -23,7 +28,7 @@ export default class PinTemplate extends ITemplate {
         return [
             new MouseCreateLink(this.element.clickableElement, this.element.blueprint, {
                 moveEverywhere: true,
-                looseTarget: true
+                looseTarget: true,
             })
         ]
     }
@@ -36,7 +41,7 @@ export default class PinTemplate extends ITemplate {
         `
         const content = html`
             <div class="ueb-pin-content">
-                <span class="ueb-pin-name">${this.element.getPinDisplayName()}</span>
+                <span class="ueb-pin-name ">${this.element.getPinDisplayName()}</span>
                 ${this.renderInput()}
             </div>
         `
@@ -47,8 +52,7 @@ export default class PinTemplate extends ITemplate {
         `
     }
 
-    /** @param {PinElement} pin */
-    renderIcon(pin) {
+    renderIcon() {
         return html`
             <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                 <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="5" />
@@ -57,8 +61,7 @@ export default class PinTemplate extends ITemplate {
         `
     }
 
-    /** @param {PinElement} pin */
-    renderInput(pin) {
+    renderInput() {
         return html``
     }
 
@@ -69,13 +72,12 @@ export default class PinTemplate extends ITemplate {
         this.element.clickableElement = this.element
     }
 
-    /** @param {PinElement} pin */
-    getLinkLocation(pin) {
-        const rect = pin.querySelector(".ueb-pin-icon").getBoundingClientRect()
+    getLinkLocation() {
+        const rect = this.element.querySelector(".ueb-pin-icon").getBoundingClientRect()
         const location = Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            pin.blueprint.gridElement
+            this.element.blueprint.gridElement
         )
-        return pin.blueprint.compensateTranslation(location)
+        return this.element.blueprint.compensateTranslation(location)
     }
 }

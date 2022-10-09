@@ -3,7 +3,28 @@ import RotatorEntity from "../entity/RotatorEntity"
 import IInputPinTemplate from "./IInputPinTemplate"
 import RealPinTemplate from "./RealPinTemplate"
 
-export default class RotatorPinTemplate extends RealPinTemplate {
+/** @typedef {import("../entity/RotatorEntity").default} Rotator */
+
+/** @extends IInputPinTemplate<Rotator> */
+export default class RotatorPinTemplate extends IInputPinTemplate {
+
+    /** @param {String[]} values */
+    setInputs(values = [], updateDefaultValue = false) {
+        if (!values || values.length == 0) {
+            values = [this.getInput()]
+        }
+        let parsedValues = []
+        for (let i = 0; i < values.length; ++i) {
+            let num = parseFloat(values[i])
+            if (isNaN(num)) {
+                num = 0
+                updateDefaultValue = false
+            }
+            parsedValues.push(num)
+        }
+        super.setInputs(values, false)
+        this.setDefaultValue(parsedValues, values)
+    }
 
     setDefaultValue(values = [], rawValues = values) {
         if (!(this.element.entity.DefaultValue instanceof RotatorEntity)) {

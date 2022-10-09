@@ -3,7 +3,10 @@ import Configuration from "../Configuration"
 import IDraggableElement from "./IDraggableElement"
 import WindowTemplate from "../template/WindowTemplate"
 
-/** @extends {ISelectableDraggableElement<Object, WindowTemplate>} */
+/**
+ * @template {WindowTemplate} T
+ * @extends {IDraggableElement<Object, T>}
+ */
 export default class WindowElement extends IDraggableElement {
 
     static #typeTemplateMap = {
@@ -25,13 +28,15 @@ export default class WindowElement extends IDraggableElement {
         },
     }
 
-    constructor(properties = {}) {
-        if (properties.type.constructor == String) {
-            properties.type = WindowElement.#typeTemplateMap[properties.type]
+    constructor(options = {}) {
+        if (options.type.constructor == String) {
+            options.type = WindowElement.#typeTemplateMap[options.type]
         }
-        properties.type ??= WindowTemplate
-        super({}, new properties.type())
-        this.type = properties.type
+        options.type ??= WindowTemplate
+        options.windowOptions ??= {}
+        super({}, new options.type())
+        this.type = options.type
+        this.windowOptions = options.windowOptions
     }
 
     disconnectedCallback() {

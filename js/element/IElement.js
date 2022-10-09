@@ -13,6 +13,7 @@ import { LitElement } from "lit"
  */
 export default class IElement extends LitElement {
 
+    /** @type {import("lit").PropertyDeclarations} */
     static properties = {
     }
 
@@ -24,7 +25,7 @@ export default class IElement extends LitElement {
         return this.#blueprint
     }
     set blueprint(v) {
-        return this.#blueprint = v
+        this.#blueprint = v
     }
 
     /** @type {T} */
@@ -63,7 +64,7 @@ export default class IElement extends LitElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.blueprint = this.closest("ueb-blueprint")
+        this.blueprint = /** @type {Blueprint} */ this.closest("ueb-blueprint")
         this.template.connectedCallback()
     }
 

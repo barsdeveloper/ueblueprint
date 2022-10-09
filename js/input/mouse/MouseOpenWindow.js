@@ -9,17 +9,13 @@ export default class MouseOpenWindow extends IMouseClick {
 
     #window
 
-    constructor(target, blueprint, options = {}) {
-        options.windowType ??= "window"
-        super(target, blueprint, options)
-    }
-
     clicked(location) {
     }
 
     unclicked(location) {
         this.#window = new WindowElement({
-            type: this.options.windowType
+            type: this.options.windowType,
+            windowOptions: this.options.windowOptions,
         })
         this.blueprint.append(this.#window)
     }

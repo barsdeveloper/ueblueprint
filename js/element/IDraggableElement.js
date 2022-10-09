@@ -3,13 +3,13 @@ import IElement from "./IElement"
 import Utility from "../Utility"
 
 /**
- * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
  */
 
 /**
  * @template {IEntity} T
- * @template {SelectableDraggableTemplate} U
+ * @template {IDraggableTemplate} U
  * @extends {IElement<T, U>}
  */
 export default class IDraggableElement extends IElement {
@@ -25,8 +25,11 @@ export default class IDraggableElement extends IElement {
             attribute: false,
         },
     }
+    static dragEventName = Configuration.dragEventName
+    static dragGeneralEventName = Configuration.dragGeneralEventName
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args)
         this.locationX = 0
         this.locationY = 0
@@ -38,7 +41,8 @@ export default class IDraggableElement extends IElement {
         this.locationX = x
         this.locationY = y
         if (this.blueprint) {
-            const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
+            // @ts-expect-error
+            const dragLocalEvent = new CustomEvent(this.constructor.dragEventName, {
                 detail: {
                     value: d,
                 },
@@ -56,7 +60,8 @@ export default class IDraggableElement extends IElement {
 
     /** @param {Number[]} value */
     dispatchDragEvent(value) {
-        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
+        // @ts-expect-error
+        const dragEvent = new CustomEvent(this.constructor.dragGeneralEventName, {
             detail: {
                 value: value
             },

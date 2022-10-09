@@ -10,6 +10,12 @@ import Utility from "./Utility"
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {{
+ *     primaryInf: Number,
+ *     primarySup: Number,
+ *     secondaryInf: Number,
+ *     secondarySup: Number
+ * }} BoundariesInfo
  */
 
 /** @extends {IElement<Object, BlueprintTemplate>} */
@@ -94,7 +100,7 @@ export default class Blueprint extends IElement {
         let rect = node.getBoundingClientRect()
         let gridRect = this.nodesContainerElement.getBoundingClientRect()
         const scaleCorrection = 1 / this.getScale()
-        return {
+        return /** @type {BoundariesInfo} */ {
             primaryInf: (rect.left - gridRect.left) * scaleCorrection,
             primarySup: (rect.right - gridRect.right) * scaleCorrection,
             // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
@@ -132,11 +138,13 @@ export default class Blueprint extends IElement {
         return [this.scrollX, this.scrollY]
     }
 
+    /** @param {Number[]} param0 */
     setScroll([x, y], smooth = false) {
         this.scrollX = x
         this.scrollY = y
     }
 
+    /** @param {Number[]} delta */
     scrollDelta(delta, smooth = false) {
         const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
         let currentScroll = this.getScroll()
@@ -282,7 +290,7 @@ export default class Blueprint extends IElement {
         let result = this.template.getPin(pinReference)
         if (result
             // Make sure it wasn't renamed in the meantime
-            && result.nodeElement.getNodeName() == pinReference.objectName) {
+            && result.nodeElement.getNodeName() == pinReference.objectName.toString()) {
             return result
         }
         // Slower fallback

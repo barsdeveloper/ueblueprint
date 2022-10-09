@@ -1,10 +1,13 @@
 import ITemplate from "./ITemplate"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
 
-/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ */
 
 /**
- * @template {ISelectableDraggableElement} T
+ * @template {IDraggableElement} T
  * @extends {ITemplate<T>}
  */
 export default class IDraggableTemplate extends ITemplate {
@@ -27,9 +30,7 @@ export default class IDraggableTemplate extends ITemplate {
         ]
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
         if (changedProperties.has("locationX")) {

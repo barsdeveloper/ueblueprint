@@ -1,7 +1,12 @@
 import { css } from "lit"
 
 export default class Configuration {
+    static colorDragEventName = "ueb-color-drag"
+    static colorPickEventName = "ueb-color-pick"
+    static colorWindowEventName = "ueb-color-window"
     static deleteNodesKeyboardKey = "Delete"
+    static dragGeneralEventName = "ueb-drag-general"
+    static dragEventName = "ueb-drag"
     static editTextEventName = {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
@@ -39,8 +44,8 @@ export default class Configuration {
     static minZoom = -12
     static mouseWheelFactor = 0.2
     static nodeDeleteEventName = "ueb-node-delete"
+    static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
-    static nodeDragLocalEventName = "ueb-node-drag-local"
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"

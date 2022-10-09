@@ -43,6 +43,8 @@ export default class NodeElement extends ISelectableDraggableElement {
             reflect: true,
         }
     }
+    static dragEventName = Configuration.nodeDragEventName
+    static dragGeneralEventName = Configuration.nodeDragGeneralEventName
 
     get blueprint() {
         return super.blueprint
@@ -83,6 +85,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     static fromSerializedObject(str) {
         str = str.trim()
         let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str)
+        // @ts-expect-error
         return new NodeElement(entity)
     }
 
@@ -136,7 +139,9 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     setLocation(value = [0, 0]) {
         let nodeType = this.entity.NodePosX.constructor
+        // @ts-expect-error
         this.entity.NodePosX = new nodeType(value[0])
+        // @ts-expect-error
         this.entity.NodePosY = new nodeType(value[1])
         super.setLocation(value)
     }

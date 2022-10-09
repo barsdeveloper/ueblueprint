@@ -1,22 +1,38 @@
 import Grammar from "./Grammar"
-import IEntity from "../entity/IEntity"
 import Parsimmon from "parsimmon"
 import SerializerFactory from "./SerializerFactory"
 import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 
-/** @template {IEntity} T */
+/**
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
+
+/** @template {AnyValue} T */
 export default class ISerializer {
 
+    // @ts-expect-error
     static grammar = Parsimmon.createLanguage(new Grammar())
 
-    constructor(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
+    /** @param {AnyValueConstructor<T>} entityType */
+    constructor(
+        entityType,
+        prefix = "",
+        separator = ",",
+        trailingSeparator = false,
+        attributeValueConjunctionSign = "=",
+        attributeKeyPrinter = k => k.join(".")
+    ) {
         this.entityType = entityType
-        this.prefix = prefix ?? ""
-        this.separator = separator ?? ","
-        this.trailingSeparator = trailingSeparator ?? false
-        this.attributeValueConjunctionSign = attributeValueConjunctionSign ?? "="
-        this.attributeKeyPrinter = attributeKeyPrinter ?? (k => k.join("."))
+        this.prefix = prefix
+        this.separator = separator
+        this.trailingSeparator = trailingSeparator
+        this.attributeValueConjunctionSign = attributeValueConjunctionSign
+        this.attributeKeyPrinter = attributeKeyPrinter
     }
 
     /**
@@ -27,12 +43,8 @@ export default class ISerializer {
         return this.read(value)
     }
 
-    /**
-     * @param {T} object
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    serialize(object, insideString, entity = object) {
+    /** @param {T} object */
+    serialize(object, insideString = false, entity = object) {
         return this.write(entity, object, insideString)
     }
 
@@ -54,6 +66,7 @@ export default class ISerializer {
     }
 
     /**
+     * @param {AnyValue} value
      * @param {String[]} fullKey
      * @param {Boolean} insideString
      */
@@ -103,6 +116,7 @@ export default class ISerializer {
     }
 
     showProperty(entity, object, attributeKey, attributeValue) {
+        // @ts-expect-error
         const attributes = this.entityType.attributes
         const attribute = Utility.objectGet(attributes, attributeKey)
         if (attribute instanceof TypeInitialization) {

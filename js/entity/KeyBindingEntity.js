@@ -19,5 +19,11 @@ export default class KeyBindingEntity extends IEntity {
         options.bAlt = options.bAlt ?? false
         options.bCmd = options.bCmd ?? false
         super(options)
+        /** @type {String} */ this.ActionName
+        /** @type {Boolean} */ this.bShift
+        /** @type {Boolean} */ this.bCtrl
+        /** @type {Boolean} */ this.bAlt
+        /** @type {Boolean} */ this.bCmd
+        /** @type {IdentifierEntity} */ this.Key
     }
 }

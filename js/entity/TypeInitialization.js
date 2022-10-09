@@ -1,7 +1,21 @@
-/** @template T */
+
+/**
+ * @typedef {import("./IEntity").default} IEntity
+ * @typedef {IEntity | String | Number | Boolean | Array} AnyValue
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("./IEntity").IEntityConstructor<T>} IEntityConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {IEntityConstructor<T> | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ */
+
+/** @template {AnyValue} T */
 export default class TypeInitialization {
 
-    /** @type {Constructor|Array<Constructor>} */
+    /** @type {AnyValueConstructor<T>|AnyValueConstructor<T>[]} */
     #type
     get type() {
         return this.#type
@@ -18,7 +32,7 @@ export default class TypeInitialization {
         this.#showDefault = v
     }
 
-    /** @type {T} */
+    /** @type {T | T[] | String} */
     #value
     get value() {
         return this.#value
@@ -54,10 +68,9 @@ export default class TypeInitialization {
     }
 
     /**
-     * @typedef {(new () => T) | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
-     * @param {Constructor|Array<Constructor>} type
+     * @param {AnyValueConstructor<T>|AnyValueConstructor<T>[]} type
      * @param {Boolean} showDefault
-     * @param {any} value
+     * @param {T | T[] | String} value
      * @param {Boolean} serialized
      */
     constructor(type, showDefault = true, value = undefined, serialized = false) {

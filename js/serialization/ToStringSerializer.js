@@ -1,12 +1,18 @@
 import Utility from "../Utility"
 import GeneralSerializer from "./GeneralSerializer"
 
-/** @typedef {import("../entity/IEntity").default} IEntity */
-
-/** @template {IEntity} T */
+/** @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @extends {GeneralSerializer<T>}
+ */
 export default class ToStringSerializer extends GeneralSerializer {
 
-    /** @param {new () => T} entityType */
+    /** @param {AnyValueConstructor<T>} entityType */
     constructor(entityType) {
         super(undefined, entityType)
     }

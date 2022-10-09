@@ -31,13 +31,21 @@ export default class IMouseClickDrag extends IPointing {
     clickedPosition = [0, 0]
     mouseLocation = [0, 0]
 
+    /**
+     * 
+     * @param {T} target 
+     * @param {Blueprint} blueprint 
+     * @param {Object} options 
+     */
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= 0
         options.consumeEvent ??= true
-        options.exitAnyButton ??= true
         options.draggableElement ??= target
+        options.exitAnyButton ??= true
         options.looseTarget ??= false
         options.moveEverywhere ??= false
+        options.movementSpace ??= blueprint?.getGridDOMElement()
+        options.repositionClickOffset ??= false
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize)
 
@@ -151,7 +159,7 @@ export default class IMouseClickDrag extends IPointing {
     startDrag(location) {
     }
 
-    dragTo(location, movement) {
+    dragTo(location, offset) {
     }
 
     endDrag() {

@@ -8,4 +8,11 @@ export default class LocalizedTextEntity extends IEntity {
         key: String,
         value: String,
     }
+
+    constructor(options = {}) {
+        super(options)
+        /** @type {String} */ this.namespace
+        /** @type {String} */ this.key
+        /** @type {String} */ this.value
+    }
 }

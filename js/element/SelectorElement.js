@@ -9,6 +9,7 @@ export default class SelectorElement extends IFromToPositionedElement {
         super({}, new SelectorTemplate())
         this.selectionModel = null
     }
+
     /** @param {Number[]} initialPosition */
     beginSelect(initialPosition) {
         this.blueprint.selecting = true

@@ -33,6 +33,7 @@ export default class IFromToPositionedElement extends IElement {
     }
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args)
         this.initialPositionX = 0
         this.initialPositionY = 0

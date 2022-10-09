@@ -7,4 +7,10 @@ export default class FunctionReferenceEntity extends IEntity {
         MemberParent: ObjectReferenceEntity,
         MemberName: "",
     }
+
+    constructor(options = {}) {
+        super(options)
+        /** @type {ObjectReferenceEntity} */ this.MemberParent
+        /** @type {String} */ this.MemberName
+    }
 }

@@ -9,6 +9,7 @@ export default class IntegerEntity extends IEntity {
     /** @param {Object | Number | String} options */
     constructor(options = 0) {
         super(options)
+        /** @type {Number} */
         this.value = Math.round(this.value)
     }
 

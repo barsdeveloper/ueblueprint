@@ -2,8 +2,14 @@ import CalculatedType from "./entity/CalculatedType"
 import TypeInitialization from "./entity/TypeInitialization"
 
 /**
- * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("./element/IElement").default} IElement
  * @typedef {import("./entity/IEntity").default} IEntity
+ * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue 
+ */
+/**
+ * @template T
+ * @typedef {import("./entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor 
  */
 
 export default class Utility {
@@ -31,8 +37,10 @@ export default class Utility {
         return Math.min(Math.max(val, min), max)
     }
 
+    /** @param {HTMLElement} element */
     static getScale(element) {
-        return Number(getComputedStyle(element).getPropertyValue("--ueb-scale"))
+        const scale = getComputedStyle(element).getPropertyValue("--ueb-scale")
+        return scale != "" ? parseFloat(scale) : 1
     }
 
     /**
@@ -63,13 +71,17 @@ export default class Utility {
     }
 
     /**
-     * @param {IEntity}
-     * @param {Object} target Object holding the data
-     * @param {String[]} keys The chained keys to access from object in order to get the value
-     * @param {Boolean} defaultValue Value to return in case from doesn't have it
-     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
+     * @param {IEntity} entity
+     * @param {String[]} keys
+     * @param {any} propertyDefinition
+     * @returns {Boolean}
      */
-    static isSerialized(entity, keys, propertyDefinition = Utility.objectGet(entity.constructor.attributes, keys)) {
+    static isSerialized(
+        entity,
+        keys,
+        // @ts-expect-error
+        propertyDefinition = Utility.objectGet(entity.constructor.attributes, keys)
+    ) {
         if (propertyDefinition instanceof CalculatedType) {
             return Utility.isSerialized(entity, keys, propertyDefinition.calculate(entity))
         }
@@ -82,13 +94,7 @@ export default class Utility {
         return false
     }
 
-    /**
-     * Gets a value from an object, gives defaultValue in case of failure
-     * @param {Object} target Object holding the data
-     * @param {String[]} keys The chained keys to access from object in order to get the value
-     * @param {any} defaultValue Value to return in case from doesn't have it
-     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
-     */
+    /** @param {String[]} keys */
     static objectGet(target, keys, defaultValue = undefined) {
         if (target === undefined) {
             return undefined
@@ -106,12 +112,9 @@ export default class Utility {
     }
 
     /**
-     * Sets a value in an object
-     * @param {Object} target Object holding the data
-     * @param {String[]} keys The chained keys to access from object in order to set the value
-     * @param {*} value Value to be set
-     * @param {Boolean} create Whether to create or not the key in case it doesn't exist
-     * @returns {Boolean} Returns true on succes, false otherwise
+     * @param {String[]} keys
+     * @param {Boolean} create
+     * @returns {Boolean}
      */
     static objectSet(target, keys, value, create = false, defaultDictType = Object) {
         if (!(keys instanceof Array)) {
@@ -142,20 +145,23 @@ export default class Utility {
         }
     }
 
+    /**
+     * @param {AnyValue | AnyValueConstructor<IEntity>} value
+     * @returns {AnyValueConstructor<IEntity>} 
+     */
     static getType(value) {
         if (value === null) {
             return null
         }
-        let constructor = value?.constructor
-        switch (constructor) {
-            case TypeInitialization:
-                return Utility.getType(value.type)
-            case Function:
-                // value is already a constructor
-                return value
-            default:
-                return constructor
+        if (value instanceof TypeInitialization) {
+            return Utility.getType(value.type)
         }
+        if (value instanceof Function) {
+            // value is already a constructor
+            return value
+        }
+        /** @ts-expect-error */
+        return value?.constructor
     }
 
     /**

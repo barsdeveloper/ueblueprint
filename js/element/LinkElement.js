@@ -119,7 +119,7 @@ export default class LinkElement extends IFromToPositionedElement {
             const nodeElement = getCurrentPin().getNodeElement()
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.removeEventListener(
-                Configuration.nodeDragLocalEventName,
+                Configuration.nodeDragEventName,
                 isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
             )
             nodeElement.removeEventListener(
@@ -135,7 +135,7 @@ export default class LinkElement extends IFromToPositionedElement {
             const nodeElement = getCurrentPin().getNodeElement()
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
             nodeElement.addEventListener(
-                Configuration.nodeDragLocalEventName,
+                Configuration.nodeDragEventName,
                 isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
             )
             nodeElement.addEventListener(
@@ -178,7 +178,7 @@ export default class LinkElement extends IFromToPositionedElement {
                 Promise.all([this.updateComplete, this.sourcePin.updateComplete]).then(() => self.setSourceLocation())
                 return
             }
-            location = this.sourcePin.template.getLinkLocation(this.sourcePin)
+            location = this.sourcePin.template.getLinkLocation()
         }
         const [x, y] = location
         this.initialPositionX = x
@@ -193,7 +193,7 @@ export default class LinkElement extends IFromToPositionedElement {
                 Promise.all([this.updateComplete, this.destinationPin.updateComplete]).then(() => self.setDestinationLocation())
                 return
             }
-            location = this.destinationPin.template.getLinkLocation(this.destinationPin)
+            location = this.destinationPin.template.getLinkLocation()
         }
         this.finaPositionX = location[0]
         this.finaPositionY = location[1]

@@ -331,3 +331,9 @@ ueb-blueprint[data-selecting="true"] ueb-selector {
 ueb-selector>* {
     visibility: visible;
 }
+
+.ueb-ellipsis-nowrap-text {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}

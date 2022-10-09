@@ -14,13 +14,13 @@ import ObjectSerializer from "./ObjectSerializer"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import RotatorEntity from "../entity/RotatorEntity"
 import SerializerFactory from "./SerializerFactory"
+import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import ToStringSerializer from "./ToStringSerializer"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
-import RotatorEntity from "../entity/RotatorEntity"
-import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
 
 export default function initializeSerializerFactory() {
 
@@ -143,7 +143,9 @@ export default function initializeSerializerFactory() {
         String,
         new CustomSerializer(
             (value, insideString) => insideString
+                // @ts-expect-error
                 ? Utility.escapeString(value)
+                // @ts-expect-error
                 : `"${Utility.escapeString(value)}"`,
             String
         )

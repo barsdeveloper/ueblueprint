@@ -25,7 +25,12 @@ var t;const i=globalThis.trustedTypes,s$1=i?i.createPolicy("lit-html",{createHTM
  */var l,o;class s extends a$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=T(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return b}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
 class Configuration {
+    static colorDragEventName = "ueb-color-drag"
+    static colorPickEventName = "ueb-color-pick"
+    static colorWindowEventName = "ueb-color-window"
     static deleteNodesKeyboardKey = "Delete"
+    static dragGeneralEventName = "ueb-drag-general"
+    static dragEventName = "ueb-drag"
     static editTextEventName = {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
@@ -63,8 +68,8 @@ class Configuration {
     static minZoom = -12
     static mouseWheelFactor = 0.2
     static nodeDeleteEventName = "ueb-node-delete"
+    static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
-    static nodeDragLocalEventName = "ueb-node-drag-local"
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
@@ -369,10 +374,54 @@ class Observable {
     }
 }
 
-/** @template T */
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ */
+/**
+ * @template T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("./ISerializer").default<T>} ISerializer
+ */
+
+class SerializerFactory {
+
+    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
+    static #serializers = new Map()
+
+    static registerSerializer(entity, object) {
+        SerializerFactory.#serializers.set(entity, object);
+    }
+
+    /**
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entity
+     */
+    static getSerializer(entity) {
+        return SerializerFactory.#serializers.get(entity)
+    }
+}
+
+/**
+ * @typedef {import("./IEntity").default} IEntity
+ * @typedef {IEntity | String | Number | Boolean | Array} AnyValue
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("./IEntity").IEntityConstructor<T>} IEntityConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {IEntityConstructor<T> | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ */
+
+/** @template {AnyValue} T */
 class TypeInitialization {
 
-    /** @type {Constructor|Array<Constructor>} */
+    /** @type {AnyValueConstructor<T>|AnyValueConstructor<T>[]} */
     #type
     get type() {
         return this.#type
@@ -389,7 +438,7 @@ class TypeInitialization {
         this.#showDefault = v;
     }
 
-    /** @type {T} */
+    /** @type {T | T[] | String} */
     #value
     get value() {
         return this.#value
@@ -425,10 +474,9 @@ class TypeInitialization {
     }
 
     /**
-     * @typedef {(new () => T) | StringConstructor | NumberConstructor | BooleanConstructor} Constructor
-     * @param {Constructor|Array<Constructor>} type
+     * @param {AnyValueConstructor<T>|AnyValueConstructor<T>[]} type
      * @param {Boolean} showDefault
-     * @param {any} value
+     * @param {T | T[] | String} value
      * @param {Boolean} serialized
      */
     constructor(type, showDefault = true, value = undefined, serialized = false) {
@@ -449,8 +497,14 @@ class TypeInitialization {
 }
 
 /**
- * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("./element/IElement").default} IElement
  * @typedef {import("./entity/IEntity").default} IEntity
+ * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue 
+ */
+/**
+ * @template T
+ * @typedef {import("./entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor 
  */
 
 class Utility {
@@ -477,8 +531,10 @@ class Utility {
         return Math.min(Math.max(val, min), max)
     }
 
+    /** @param {HTMLElement} element */
     static getScale(element) {
-        return Number(getComputedStyle(element).getPropertyValue("--ueb-scale"))
+        const scale = getComputedStyle(element).getPropertyValue("--ueb-scale");
+        return scale != "" ? parseFloat(scale) : 1
     }
 
     /**
@@ -509,13 +565,17 @@ class Utility {
     }
 
     /**
-     * @param {IEntity}
-     * @param {Object} target Object holding the data
-     * @param {String[]} keys The chained keys to access from object in order to get the value
-     * @param {Boolean} defaultValue Value to return in case from doesn't have it
-     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
+     * @param {IEntity} entity
+     * @param {String[]} keys
+     * @param {any} propertyDefinition
+     * @returns {Boolean}
      */
-    static isSerialized(entity, keys, propertyDefinition = Utility.objectGet(entity.constructor.attributes, keys)) {
+    static isSerialized(
+        entity,
+        keys,
+        // @ts-expect-error
+        propertyDefinition = Utility.objectGet(entity.constructor.attributes, keys)
+    ) {
         if (propertyDefinition instanceof CalculatedType) {
             return Utility.isSerialized(entity, keys, propertyDefinition.calculate(entity))
         }
@@ -528,13 +588,7 @@ class Utility {
         return false
     }
 
-    /**
-     * Gets a value from an object, gives defaultValue in case of failure
-     * @param {Object} target Object holding the data
-     * @param {String[]} keys The chained keys to access from object in order to get the value
-     * @param {any} defaultValue Value to return in case from doesn't have it
-     * @returns {any} The value in from corresponding to the keys or defaultValue otherwise
-     */
+    /** @param {String[]} keys */
     static objectGet(target, keys, defaultValue = undefined) {
         if (target === undefined) {
             return undefined
@@ -552,12 +606,9 @@ class Utility {
     }
 
     /**
-     * Sets a value in an object
-     * @param {Object} target Object holding the data
-     * @param {String[]} keys The chained keys to access from object in order to set the value
-     * @param {*} value Value to be set
-     * @param {Boolean} create Whether to create or not the key in case it doesn't exist
-     * @returns {Boolean} Returns true on succes, false otherwise
+     * @param {String[]} keys
+     * @param {Boolean} create
+     * @returns {Boolean}
      */
     static objectSet(target, keys, value, create = false, defaultDictType = Object) {
         if (!(keys instanceof Array)) {
@@ -588,20 +639,23 @@ class Utility {
         }
     }
 
+    /**
+     * @param {AnyValue | AnyValueConstructor<IEntity>} value
+     * @returns {AnyValueConstructor<IEntity>} 
+     */
     static getType(value) {
         if (value === null) {
             return null
         }
-        let constructor = value?.constructor;
-        switch (constructor) {
-            case TypeInitialization:
-                return Utility.getType(value.type)
-            case Function:
-                // value is already a constructor
-                return value
-            default:
-                return constructor
+        if (value instanceof TypeInitialization) {
+            return Utility.getType(value.type)
         }
+        if (value instanceof Function) {
+            // value is already a constructor
+            return value
+        }
+        /** @ts-expect-error */
+        return value?.constructor
     }
 
     /**
@@ -684,29 +738,10 @@ class Utility {
     }
 }
 
-/** @typedef {import("../entity/IEntity").default} IEntity */
-
 /**
  * @template {IEntity} T
- * @typedef {import("./ISerializer").default<T>} ISerializer
+ * @typedef {new (Object) => T} IEntityConstructor
  */
-class SerializerFactory {
-
-    /** @type {Map<T, ISerializer<T>>} */
-    static #serializers = new Map()
-
-    static registerSerializer(entity, object) {
-        SerializerFactory.#serializers.set(entity, object);
-    }
-
-    /**
-     * @template {IEntity} T
-     * @param {T} entity
-     */
-    static getSerializer(entity) {
-        return SerializerFactory.#serializers.get(entity)
-    }
-}
 
 class IEntity extends Observable {
 
@@ -748,6 +783,7 @@ class IEntity extends Observable {
                 }
 
                 // Not instanceof because all objects are instenceof Object, exact match needed
+                // @ts-expect-error
                 if (defaultType === Object) {
                     target[property] = {};
                     defineAllAttributes(target[property], properties[property], values[property], property + ".");
@@ -762,7 +798,8 @@ class IEntity extends Observable {
                         && defaultValue.serialized
                         && defaultValue.type !== String
                     ) {
-                        value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value);
+                        // @ts-expect-error
+                        value = SerializerFactory.getSerializer((defaultValue.type)).deserialize(value);
                     }
                     target[property] = TypeInitialization.sanitize(value, Utility.getType(defaultValue));
                     continue // We have a value, need nothing more
@@ -776,6 +813,7 @@ class IEntity extends Observable {
                     if (defaultValue.serialized) {
                         defaultValue = "";
                     } else {
+                        // @ts-expect-error
                         defaultType = defaultValue.type;
                         defaultValue = defaultValue.value;
                     }
@@ -786,6 +824,7 @@ class IEntity extends Observable {
                 target[property] = TypeInitialization.sanitize(defaultValue, defaultType);
             }
         };
+        // @ts-expect-error
         const attributes = this.constructor.attributes;
         if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
             // Where there is just one attribute, option can be the value of that attribute
@@ -803,6 +842,12 @@ class ObjectReferenceEntity extends IEntity {
         type: String,
         path: String,
     }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.type;
+        /** @type {String} */ this.path;
+    }
 }
 
 class FunctionReferenceEntity extends IEntity {
@@ -810,6 +855,12 @@ class FunctionReferenceEntity extends IEntity {
     static attributes = {
         MemberParent: ObjectReferenceEntity,
         MemberName: "",
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {ObjectReferenceEntity} */ this.MemberParent;
+        /** @type {String} */ this.MemberName;
     }
 }
 
@@ -829,6 +880,11 @@ class GuidEntity extends IEntity {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
         });
         return new GuidEntity({ value: guid })
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.value;
     }
 
     valueOf() {
@@ -851,6 +907,11 @@ class IdentifierEntity extends IEntity {
         toAttribute: (value, type) => value.toString()
     }
 
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.value;
+    }
+
     valueOf() {
         return this.value
     }
@@ -869,6 +930,7 @@ class IntegerEntity extends IEntity {
     /** @param {Object | Number | String} options */
     constructor(options = 0) {
         super(options);
+        /** @type {Number} */
         this.value = Math.round(this.value);
     }
 
@@ -886,6 +948,11 @@ class InvariantTextEntity extends IEntity {
     static lookbehind = "INVTEXT"
     static attributes = {
         value: String,
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.value;
     }
 }
 
@@ -907,6 +974,12 @@ class KeyBindingEntity extends IEntity {
         options.bAlt = options.bAlt ?? false;
         options.bCmd = options.bCmd ?? false;
         super(options);
+        /** @type {String} */ this.ActionName;
+        /** @type {Boolean} */ this.bShift;
+        /** @type {Boolean} */ this.bCtrl;
+        /** @type {Boolean} */ this.bAlt;
+        /** @type {Boolean} */ this.bCmd;
+        /** @type {IdentifierEntity} */ this.Key;
     }
 }
 
@@ -919,9 +992,56 @@ class LinearColorEntity extends IEntity {
         A: Number,
     }
 
+    static fromWheelLocation([x, y], radius) {
+        x -= radius;
+        y -= radius;
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {Number} */ this.R;
+        /** @type {Number} */ this.G;
+        /** @type {Number} */ this.B;
+        /** @type {Number} */ this.A;
+    }
+
+    toRGBA() {
+        return [this.R, this.G, this.B, this.A]
+    }
+
+    toHSV() {
+        const max = Math.max(this.R, this.G, this.B);
+        const min = Math.min(this.R, this.G, this.B);
+        const d = max - min;
+        let h;
+        const s = (max === 0 ? 0 : d / max);
+        const v = max / 255;
+        switch (max) {
+            case min:
+                h = 0;
+                break
+            case this.R:
+                h = (this.G - this.B) + d * (this.G < this.B ? 6 : 0);
+                break
+            case this.G:
+                h = (this.B - this.R) + d * 2;
+                break
+            case this.B:
+                h = (this.R - this.G) + d * 4;
+                break
+        }
+        h /= 6 * d;
+        return [h, s, v]
+    }
+
+    toNumber() {
+        return this.A + this.B << 8 + this.G << 16 + this.R << 24
+    }
+
     toString() {
         return Utility.printLinearColor(this)
     }
+
 }
 
 class LocalizedTextEntity extends IEntity {
@@ -932,12 +1052,24 @@ class LocalizedTextEntity extends IEntity {
         key: String,
         value: String,
     }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.namespace;
+        /** @type {String} */ this.key;
+        /** @type {String} */ this.value;
+    }
 }
 
 class PathSymbolEntity extends IEntity {
 
     static attributes = {
         value: String,
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {String} */ this.value;
     }
 
     valueOf() {
@@ -955,6 +1087,12 @@ class PinReferenceEntity extends IEntity {
         objectName: PathSymbolEntity,
         pinGuid: GuidEntity,
     }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {PathSymbolEntity} */ this.objectName;
+        /** @type {GuidEntity} */ this.pinGuid;
+    }
 }
 
 class RotatorEntity extends IEntity {
@@ -963,6 +1101,13 @@ class RotatorEntity extends IEntity {
         R: Number,
         P: Number,
         Y: Number,
+    }
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {Number} */ this.R;
+        /** @type {Number} */ this.P;
+        /** @type {Number} */ this.Y;
     }
 }
 
@@ -975,6 +1120,13 @@ class VectorEntity extends IEntity {
         X: Number,
         Y: Number,
         Z: Number,
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {Number} */ this.X;
+        /** @type {Number} */ this.Y;
+        /** @type {Number} */ this.Z;
     }
 }
 
@@ -1046,6 +1198,41 @@ class PinEntity extends IEntity {
             : entity
     }
 
+    constructor(options = {}) {
+        super(options);
+        /** @type {GuidEntity} */ this.PinId;
+        /** @type {String} */ this.PinName;
+        /** @type {LocalizedTextEntity} */ this.PinFriendlyName;
+        /** @type {String} */ this.PinToolTip;
+        /** @type {String} */ this.Direction;
+        /**
+         * @type {{
+         *     PinCategory: String,
+         *     PinSubCategory: String,
+         *     PinSubCategoryObject: ObjectReferenceEntity,
+         *     PinSubCategoryMemberReference: any,
+         *     PinValueType: String,
+         *     ContainerType: ObjectReferenceEntity,
+         *     bIsReference: Boolean,
+         *     bIsConst: Boolean,
+         *     bIsWeakPointer: Boolean,
+         *     bIsUObjectWrapper: Boolean,
+         *     bSerializeAsSinglePrecisionFloat: Boolean,
+         * }}
+         */ this.PinType;
+        /** @type {PinReferenceEntity[]} */ this.LinkedTo;
+        /** @type {String} */ this.DefaultValue;
+        /** @type {String} */ this.AutogeneratedDefaultValue;
+        /** @type {ObjectReferenceEntity} */ this.DefaultObject;
+        /** @type {GuidEntity} */ this.PersistentGuid;
+        /** @type {Boolean} */ this.bHidden;
+        /** @type {Boolean} */ this.bNotConnectable;
+        /** @type {Boolean} */ this.bDefaultValueIsReadOnly;
+        /** @type {Boolean} */ this.bDefaultValueIsIgnored;
+        /** @type {Boolean} */ this.bAdvancedView;
+        /** @type {Boolean} */ this.bOrphanedPin;
+    }
+
     getType() {
         if (this.PinType.PinCategory == "struct") {
             return this.PinType.PinSubCategoryObject.path
@@ -1081,7 +1268,7 @@ class PinEntity extends IEntity {
         /** @type {PinReferenceEntity[]} */
         this.LinkedTo;
         const linkFound = this.LinkedTo?.find(pinReferenceEntity => {
-            return pinReferenceEntity.objectName == targetObjectName
+            return pinReferenceEntity.objectName.toString() == targetObjectName
                 && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
         if (!linkFound) {
@@ -1100,7 +1287,7 @@ class PinEntity extends IEntity {
      */
     unlinkFrom(targetObjectName, targetPinEntity) {
         const indexElement = this.LinkedTo?.findIndex(pinReferenceEntity => {
-            return pinReferenceEntity.objectName == targetObjectName
+            return pinReferenceEntity.objectName.toString() == targetObjectName
                 && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
         if (indexElement >= 0) {
@@ -1150,6 +1337,25 @@ class ObjectEntity extends IEntity {
 
     static nameRegex = /(\w+)_(\d+)/
 
+    constructor(options = {}) {
+        super(options);
+        /** @type {ObjectReferenceEntity} */ this.Class;
+        /** @type {String} */ this.Name;
+        /** @type {Boolean?} */ this.bIsPureFunc;
+        /** @type {VariableReferenceEntity?} */ this.VariableReference;
+        /** @type {FunctionReferenceEntity?} */ this.FunctionReference;
+        /** @type {FunctionReferenceEntity?} */ this.EventReference;
+        /** @type {ObjectReferenceEntity?} */ this.TargetType;
+        /** @type {IntegerEntity} */ this.NodePosX;
+        /** @type {IntegerEntity} */ this.NodePosY;
+        /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
+        /** @type {IdentifierEntity?} */ this.EnabledState;
+        /** @type {GuidEntity} */ this.NodeGuid;
+        /** @type {IntegerEntity?} */ this.ErrorType;
+        /** @type {String?} */ this.ErrorMsg;
+        /** @type {PinEntity[]} */ this.CustomProperties;
+    }
+
     getObjectName(dropCounter = false) {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
@@ -1195,7 +1401,17 @@ var parsimmon_umd_min = {exports: {}};
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
 
+// @ts-nocheck
+
 /** @typedef {import("../entity/IEntity").default} IEntity */
+/**
+ * @template {IEntity} T
+ * @typedef {import("../entity/IEntity").IEntityConstructor<T>} IEntityConstructor
+ */
+/**
+ * @template T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
 
 let P = Parsimmon;
 
@@ -1203,7 +1419,14 @@ class Grammar {
 
     /*   ---   Factory   ---   */
 
-    static getGrammarForType(r, attributeType, defaultGrammar) {
+    /**
+     * @template T, U
+     * @param {Grammar} r
+     * @param {AnyValueConstructor<T>} attributeType
+     * @param {Parsimmon<U>} defaultGrammar
+     * @returns
+     */
+    static getGrammarForType(r, attributeType, defaultGrammar = r.AttributeAnyValue) {
         if (attributeType instanceof TypeInitialization) {
             let result = Grammar.getGrammarForType(r, attributeType.type, defaultGrammar);
             if (attributeType.serialized && !(attributeType.type instanceof String)) {
@@ -1267,6 +1490,12 @@ class Grammar {
         }
     }
 
+    /**
+     * @param {Grammar} r
+     * @param {IEntityConstructor<IEntity>} entityType
+     * @param {Parsimmon.Parser<String>} valueSeparator
+     * @returns 
+     */
     static createPropertyGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
@@ -1280,6 +1509,11 @@ class Grammar {
                 )
             })
 
+    /**
+     * @param {Grammar} r
+     * @param {IEntityConstructor<IEntity>} entityType
+     * @returns
+     */
     static createEntityGrammar = (r, entityType) =>
         P.seqMap(
             entityType.lookbehind
@@ -1299,14 +1533,19 @@ class Grammar {
 
     /*   ---   General   ---   */
 
+    /** @param {Grammar} r */
     InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("inline whitespace")
 
+    /** @param {Grammar} r */
     InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
 
+    /** @param {Grammar} r */
     MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
 
+    /** @param {Grammar} r */
     Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
 
+    /** @param {Grammar} r */
     Boolean = r => P.alt(
         P.string("True"),
         P.string("true"),
@@ -1315,19 +1554,26 @@ class Grammar {
     ).map(v => v.toLocaleLowerCase() === "true" ? true : false)
         .desc("either True or False")
 
+    /** @param {Grammar} r */
     HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")
 
+    /** @param {Grammar} r */
     Number = r => P.regex(/[\-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
 
+    /** @param {Grammar} r */
     NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
 
+    /** @param {Grammar} r */
     ColorNumber = r => r.NaturalNumber.assert(n => 0 <= n && n < 256, "the color must be between 0 and 256 excluded")
 
+    /** @param {Grammar} r */
     Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
 
+    /** @param {Grammar} r */
     String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.unescapeString)
         .desc('string (with possibility to escape the quote using \")')
 
+    /** @param {Grammar} r */
     ReferencePath = r => P.seq(
         P.string("/"),
         r.PathSymbol
@@ -1340,20 +1586,27 @@ class Grammar {
         .tie()
         .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
 
+    /** @param {Grammar} r */
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
 
     /*   ---   Entity   ---   */
 
+    /** @param {Grammar} r */
     None = r => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
 
+    /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
 
+    /** @param {Grammar} r */
     Guid = r => r.HexDigit.times(32).tie().map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal value")
 
+    /** @param {Grammar} r */
     Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
 
+    /** @param {Grammar} r */
     PathSymbol = r => P.regex(/[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
+    /** @param {Grammar} r */
     Reference = r => P.alt(
         r.None,
         ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
@@ -1373,6 +1626,7 @@ class Grammar {
         r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
     )
 
+    /** @param {Grammar} r */
     LocalizedText = r => P.seqMap(
         P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _0 (ignored)
         r.String.trim(P.optWhitespace), // Goes into namespace
@@ -1388,12 +1642,14 @@ class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     InvariantText = r => r.String.trim(P.optWhitespace).wrap(
         P.string(InvariantTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")),
         P.string(")")
     )
         .map(value => new InvariantTextEntity({ value: value }))
 
+    /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(
         r.Null,
         r.None,
@@ -1409,6 +1665,7 @@ class Grammar {
         r.LinearColor,
     )
 
+    /** @param {Grammar} r */
     PinReference = r => P.seqMap(
         r.PathSymbol, // Goes into objectNAme
         P.whitespace, // Goes into _ (ignored)
@@ -1419,10 +1676,13 @@ class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
 
+    /** @param {Grammar} r */
     Rotator = r => Grammar.createEntityGrammar(r, RotatorEntity)
 
+    /** @param {Grammar} r */
     SimpleSerializationRotator = r => P.seqMap(
         r.Number,
         P.string(",").trim(P.optWhitespace),
@@ -1436,6 +1696,7 @@ class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     SimpleSerializationVector = r => P.seqMap(
         r.Number,
         P.string(",").trim(P.optWhitespace),
@@ -1449,10 +1710,13 @@ class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity)
 
+    /** @param {Grammar} r */
     FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
 
+    /** @param {Grammar} r */
     KeyBinding = r => P.alt(
         r.Identifier.map(identifier => new KeyBindingEntity({
             Key: identifier
@@ -1460,8 +1724,10 @@ class Grammar {
         Grammar.createEntityGrammar(r, KeyBindingEntity)
     )
 
+    /** @param {Grammar} r */
     Pin = r => Grammar.createEntityGrammar(r, PinEntity)
 
+    /** @param {Grammar} r */
     CustomProperties = r =>
         P.string("CustomProperties")
             .then(P.whitespace)
@@ -1473,7 +1739,7 @@ class Grammar {
                 Utility.objectSet(entity, ["CustomProperties"], properties, true);
             })
 
-    /** @returns {Parsimmon.Parser<ObjectEntity>} */
+    /** @param {Grammar} r */
     Object = r => P.seqMap(
         P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
         P
@@ -1495,6 +1761,7 @@ class Grammar {
 
     /*   ---   Others   ---   */
 
+    /** @param {Grammar} r */
     LinearColorFromHex = r => P
         .string("#")
         .then(r.HexDigit.times(2).tie().times(3, 4))
@@ -1506,6 +1773,7 @@ class Grammar {
             A: A ? parseInt(A, 16) / 255 : 1,
         }))
 
+    /** @param {Grammar} r */
     LinearColorFromRGBList = r => P.seqMap(
         r.ColorNumber,
         P.string(",").skip(P.optWhitespace),
@@ -1520,6 +1788,7 @@ class Grammar {
         })
     )
 
+    /** @param {Grammar} r */
     LinearColorFromRGB = r => P.string("rgb").then(
         r.LinearColorFromRGBList.wrap(
             P.regex(/\(\s*/),
@@ -1527,6 +1796,7 @@ class Grammar {
         )
     )
 
+    /** @param {Grammar} r */
     LinearColorFromRGBA = r => P.string("rgba").then(
         P.seqMap(
             r.ColorNumber,
@@ -1548,6 +1818,7 @@ class Grammar {
         )
     )
 
+    /** @param {Grammar} r */
     LinearColorFromAnyColor = r => P.alt(
         r.LinearColorFromRGBList,
         r.LinearColorFromHex,
@@ -1556,18 +1827,35 @@ class Grammar {
     )
 }
 
-/** @template {IEntity} T */
+/**
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
+
+/** @template {AnyValue} T */
 class ISerializer {
 
+    // @ts-expect-error
     static grammar = Parsimmon.createLanguage(new Grammar())
 
-    constructor(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
+    /** @param {AnyValueConstructor<T>} entityType */
+    constructor(
+        entityType,
+        prefix = "",
+        separator = ",",
+        trailingSeparator = false,
+        attributeValueConjunctionSign = "=",
+        attributeKeyPrinter = k => k.join(".")
+    ) {
         this.entityType = entityType;
-        this.prefix = prefix ?? "";
-        this.separator = separator ?? ",";
-        this.trailingSeparator = trailingSeparator ?? false;
-        this.attributeValueConjunctionSign = attributeValueConjunctionSign ?? "=";
-        this.attributeKeyPrinter = attributeKeyPrinter ?? (k => k.join("."));
+        this.prefix = prefix;
+        this.separator = separator;
+        this.trailingSeparator = trailingSeparator;
+        this.attributeValueConjunctionSign = attributeValueConjunctionSign;
+        this.attributeKeyPrinter = attributeKeyPrinter;
     }
 
     /**
@@ -1578,12 +1866,8 @@ class ISerializer {
         return this.read(value)
     }
 
-    /**
-     * @param {T} object
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    serialize(object, insideString, entity = object) {
+    /** @param {T} object */
+    serialize(object, insideString = false, entity = object) {
         return this.write(entity, object, insideString)
     }
 
@@ -1605,6 +1889,7 @@ class ISerializer {
     }
 
     /**
+     * @param {AnyValue} value
      * @param {String[]} fullKey
      * @param {Boolean} insideString
      */
@@ -1654,6 +1939,7 @@ class ISerializer {
     }
 
     showProperty(entity, object, attributeKey, attributeValue) {
+        // @ts-expect-error
         const attributes = this.entityType.attributes;
         const attribute = Utility.objectGet(attributes, attributeKey);
         if (attribute instanceof TypeInitialization) {
@@ -1825,6 +2111,7 @@ class IKeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
+                // @ts-expect-error
                 const parsed = ISerializer.grammar.KeyBinding.parse(v);
                 if (parsed.status) {
                     return parsed.value
@@ -1928,6 +2215,7 @@ class KeyboardCanc extends IKeyboardShortcut {
 class IPointing extends IInput {
 
     constructor(target, blueprint, options) {
+        options.ignoreTranslateCompensate ??= false;
         options.movementSpace ??= blueprint?.getGridDOMElement() ?? document.documentElement;
         super(target, blueprint, options);
         this.movementSpace = options.movementSpace;
@@ -1939,7 +2227,9 @@ class IPointing extends IInput {
             [mouseEvent.clientX, mouseEvent.clientY],
             this.movementSpace
         );
-        return this.blueprint.compensateTranslation(location)
+        return this.options.ignoreTranslateCompensate
+            ? location
+            : this.blueprint.compensateTranslation(location)
     }
 }
 
@@ -2088,13 +2378,21 @@ class IMouseClickDrag extends IPointing {
     clickedPosition = [0, 0]
     mouseLocation = [0, 0]
 
+    /**
+     * 
+     * @param {T} target 
+     * @param {Blueprint} blueprint 
+     * @param {Object} options 
+     */
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= 0;
         options.consumeEvent ??= true;
-        options.exitAnyButton ??= true;
         options.draggableElement ??= target;
+        options.exitAnyButton ??= true;
         options.looseTarget ??= false;
         options.moveEverywhere ??= false;
+        options.movementSpace ??= blueprint?.getGridDOMElement();
+        options.repositionClickOffset ??= false;
         super(target, blueprint, options);
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
 
@@ -2208,7 +2506,7 @@ class IMouseClickDrag extends IPointing {
     startDrag(location) {
     }
 
-    dragTo(location, movement) {
+    dragTo(location, offset) {
     }
 
     endDrag() {
@@ -2318,6 +2616,7 @@ class MouseTracking extends IPointing {
  */
 class IElement extends s {
 
+    /** @type {import("lit").PropertyDeclarations} */
     static properties = {
     }
 
@@ -2329,7 +2628,7 @@ class IElement extends s {
         return this.#blueprint
     }
     set blueprint(v) {
-        return this.#blueprint = v
+        this.#blueprint = v;
     }
 
     /** @type {T} */
@@ -2368,7 +2667,7 @@ class IElement extends s {
 
     connectedCallback() {
         super.connectedCallback();
-        this.blueprint = this.closest("ueb-blueprint");
+        this.blueprint = /** @type {Blueprint} */ this.closest("ueb-blueprint");
         this.template.connectedCallback();
     }
 
@@ -2429,13 +2728,13 @@ class IElement extends s {
 }
 
 /**
- * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
  */
 
 /**
  * @template {IEntity} T
- * @template {SelectableDraggableTemplate} U
+ * @template {IDraggableTemplate} U
  * @extends {IElement<T, U>}
  */
 class IDraggableElement extends IElement {
@@ -2451,8 +2750,11 @@ class IDraggableElement extends IElement {
             attribute: false,
         },
     }
+    static dragEventName = Configuration.dragEventName
+    static dragGeneralEventName = Configuration.dragGeneralEventName
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args);
         this.locationX = 0;
         this.locationY = 0;
@@ -2464,7 +2766,8 @@ class IDraggableElement extends IElement {
         this.locationX = x;
         this.locationY = y;
         if (this.blueprint) {
-            const dragLocalEvent = new CustomEvent(Configuration.nodeDragLocalEventName, {
+            // @ts-expect-error
+            const dragLocalEvent = new CustomEvent(this.constructor.dragEventName, {
                 detail: {
                     value: d,
                 },
@@ -2482,7 +2785,8 @@ class IDraggableElement extends IElement {
 
     /** @param {Number[]} value */
     dispatchDragEvent(value) {
-        const dragEvent = new CustomEvent(Configuration.nodeDragEventName, {
+        // @ts-expect-error
+        const dragEvent = new CustomEvent(this.constructor.dragGeneralEventName, {
             detail: {
                 value: value
             },
@@ -2507,8 +2811,8 @@ class IDraggableElement extends IElement {
 
 /**
  * @template {IEntity} T
- * @template {IDraggableElement} U
- * @extends {IElement<T, U>}
+ * @template {SelectableDraggableTemplate} U
+ * @extends {IDraggableElement<T, U>}
  */
 class ISelectableDraggableElement extends IDraggableElement {
 
@@ -2537,7 +2841,7 @@ class ISelectableDraggableElement extends IDraggableElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
+        this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
     }
 
     setSelected(value = true) {
@@ -2545,9 +2849,9 @@ class ISelectableDraggableElement extends IDraggableElement {
         if (this.blueprint) {
             if (this.selected) {
                 this.listeningDrag = true;
-                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler);
+                this.blueprint.addEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
             } else {
-                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler);
+                this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
                 this.listeningDrag = false;
             }
         }
@@ -2598,6 +2902,7 @@ class IFromToPositionedElement extends IElement {
     }
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args);
         this.initialPositionX = 0;
         this.initialPositionY = 0;
@@ -2886,7 +3191,7 @@ class LinkElement extends IFromToPositionedElement {
             const nodeElement = getCurrentPin().getNodeElement();
             nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.removeEventListener(
-                Configuration.nodeDragLocalEventName,
+                Configuration.nodeDragEventName,
                 isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
             );
             nodeElement.removeEventListener(
@@ -2902,7 +3207,7 @@ class LinkElement extends IFromToPositionedElement {
             const nodeElement = getCurrentPin().getNodeElement();
             nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
             nodeElement.addEventListener(
-                Configuration.nodeDragLocalEventName,
+                Configuration.nodeDragEventName,
                 isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
             );
             nodeElement.addEventListener(
@@ -3112,14 +3417,13 @@ class MouseCreateLink extends IMouseClickDrag {
 }
 
 /**
- * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../input/IInput").default} IInput
  */
 
+/** @extends ITemplate<PinElement> */
 class PinTemplate extends ITemplate {
-
-    static styles = r$2``
 
     connectedCallback() {
         super.connectedCallback();
@@ -3131,7 +3435,7 @@ class PinTemplate extends ITemplate {
         return [
             new MouseCreateLink(this.element.clickableElement, this.element.blueprint, {
                 moveEverywhere: true,
-                looseTarget: true
+                looseTarget: true,
             })
         ]
     }
@@ -3144,7 +3448,7 @@ class PinTemplate extends ITemplate {
         `;
         const content = $`
             <div class="ueb-pin-content">
-                <span class="ueb-pin-name">${this.element.getPinDisplayName()}</span>
+                <span class="ueb-pin-name ">${this.element.getPinDisplayName()}</span>
                 ${this.renderInput()}
             </div>
         `;
@@ -3342,6 +3646,213 @@ class ExecPinTemplate extends PinTemplate {
     }
 }
 
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {IMouseClickDrag<T>}
+ */
+class MouseMoveDraggable extends IMouseClickDrag {
+
+    clicked(location) {
+        if (this.options.repositionClickOffset) {
+            this.target.setLocation(this.stepSize > 1
+                ? Utility.snapToGrid(location, this.stepSize)
+                : location
+            );
+        }
+    }
+
+    dragTo(location, offset) {
+        const targetLocation = [this.target.locationX, this.target.locationY];
+        const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
+            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
+            : [location, targetLocation];
+        offset = [
+            adjustedLocation[0] - this.mouseLocation[0],
+            adjustedLocation[1] - this.mouseLocation[1]
+        ];
+        if (offset[0] == 0 && offset[1] == 0) {
+            return
+        }
+        // Make sure it snaps on the grid
+        offset[0] += adjustedTargetLocation[0] - this.target.locationX;
+        offset[1] += adjustedTargetLocation[1] - this.target.locationY;
+        this.dragAction(adjustedLocation, offset);
+        // Reassign the position of mouse
+        this.mouseLocation = adjustedLocation;
+    }
+
+    dragAction(location, offset) {
+        this.target.addLocation(offset);
+    }
+}
+
+/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {ITemplate<T>}
+ */
+class IDraggableTemplate extends ITemplate {
+
+    getDraggableElement() {
+        return this.element
+    }
+
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
+            looseTarget: true,
+        })
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
+        ]
+    }
+
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
+        if (changedProperties.has("locationX")) {
+            this.element.style.setProperty("--ueb-position-x", `${this.element.locationX}`);
+        }
+        if (changedProperties.has("locationY")) {
+            this.element.style.setProperty("--ueb-position-y", `${this.element.locationY}`);
+        }
+    }
+}
+
+/** @typedef {import("../element/WindowElement").default} WindowElement */
+
+/** @extends {IDraggableTemplate<WindowElement>} */
+class WindowTemplate extends IDraggableTemplate {
+
+    static windowName = $`Window`
+
+    toggleAdvancedDisplayHandler
+
+    getDraggableElement() {
+        return this.element.querySelector(".ueb-window-top")
+    }
+
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
+            looseTarget: true,
+            stepSize: 1,
+            movementSpace: this.element.blueprint,
+        })
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
+        ]
+    }
+
+    render() {
+        return $`
+            <div class="ueb-window">
+                <div class="ueb-window-top">
+                    <div class="ueb-window-name ueb-ellipsis-nowrap-text">${this.constructor.windowName}</div>
+                    <div class="ueb-window-close">
+                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
+                            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="ueb-window-content">
+                    ${this.renderContent()}
+                </div>
+            </div>
+        `
+    }
+
+    renderContent() {
+        return $``
+    }
+}
+
+/** @typedef {import("../element/WindowElement").default} WindowElement */
+
+class ColorPickerWindowTemplate extends WindowTemplate {
+
+    static windowName = $`Color Picker`
+
+    /** @type {LinearColorEntity} */
+    #color
+    get color() {
+        return this.#color
+    }
+    /** @param {LinearColorEntity} value */
+    set color(value) {
+        if (value.num() == this.color.num()) {
+            this.element.requestUpdate("color", this.#color);
+            this.#color = value;
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.color = this.element.windowOptions.getPinColor();
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+    }
+
+    renderContent() {
+        const rgba = this.color.rgba();
+        return $`
+            <div class="ueb-color-picker"
+                .style="--ueb-color-r: ${rgba[0]}; --ueb-color-g: ${rgba[1]}; --ueb-color-b: ${rgba[2]}; --ueb-color-a: ${rgba[3]};">
+                <div class="ueb-color-picker-toolbar">
+                    <div class="ueb-color-picker-theme"></div>
+                    <div class="ueb-color-picker-srgb"></div>
+                </div>
+                <div class="ueb-color-picker-main">
+                    <div class="ueb-color-picker-wheel">
+                        <ueb-color-handler></ueb-color-handler>
+                    </div>
+                    <div class="ueb-color-picker-saturation"></div>
+                    <div class="ueb-color-picker-value"></div>
+                    <div class="ueb-color-picker-preview">
+                        <div class="ueb-color-picker-preview-old"></div>
+                        <div class="ueb-color-picker-preview-new"></div>
+                    </div>
+                </div>
+                <div class="ueb-color-picker-advanced-toggle"></div>
+                <div class="ueb-color-picker-advanced">
+                    <div class="ueb-color-picker-r"></div>
+                    <div class="ueb-color-picker-g"></div>
+                    <div class="ueb-color-picker-b"></div>
+                    <div class="ueb-color-picker-a"></div>
+                    <div class="ueb-color-picker-h"></div>
+                    <div class="ueb-color-picker-s"></div>
+                    <div class="ueb-color-picker-v"></div>
+                    <div class="ueb-color-picker-hex-linear"></div>
+                    <div class="ueb-color-picker-hex-srgb"></div>
+                </div>
+                <div class="ueb-color-picker-ok"></div>
+                <div class="ueb-color-picker-cancel"></div>
+            </div>
+        `
+    }
+
+    cleanup() {
+        this.element.blueprint.removeEventListener(Configuration.colorWindowEventName, this.colorWindowHandler);
+    }
+}
+
 /** @typedef {import("../../Blueprint").default} Blueprint */
 
 /**
@@ -3422,179 +3933,9 @@ class IMouseClick extends IPointing {
 }
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @template {WindowTemplate} T
+ * @extends {IDraggableElement<Object, T>}
  */
-
-/** @extends {IMouseClickDrag<ISelectableDraggableElement>} */
-class MouseMoveDraggable extends IMouseClickDrag {
-
-    dragTo(location, movement) {
-        const initialTargetLocation = [this.target.locationX, this.target.locationY];
-        const [mouseLocation, targetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(initialTargetLocation, this.stepSize)]
-            : [location, initialTargetLocation];
-        const d = [
-            mouseLocation[0] - this.mouseLocation[0],
-            mouseLocation[1] - this.mouseLocation[1]
-        ];
-        if (d[0] == 0 && d[1] == 0) {
-            return
-        }
-        // Make sure it snaps on the grid
-        d[0] += targetLocation[0] - this.target.locationX;
-        d[1] += targetLocation[1] - this.target.locationY;
-        this.target.addLocation(d);
-        // Reassign the position of mouse
-        this.mouseLocation = mouseLocation;
-    }
-}
-
-/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
-
-/**
- * @template {ISelectableDraggableElement} T
- * @extends {ITemplate<T>}
- */
-class IDraggableTemplate extends ITemplate {
-
-    getDraggableElement() {
-        return this.element
-    }
-
-    createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
-            draggableElement: this.getDraggableElement(),
-            looseTarget: true,
-        })
-    }
-
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            this.createDraggableObject(),
-        ]
-    }
-
-    /**
-     * @param {Map} changedProperties
-     */
-    update(changedProperties) {
-        super.update(changedProperties);
-        if (changedProperties.has("locationX")) {
-            this.element.style.setProperty("--ueb-position-x", `${this.element.locationX}`);
-        }
-        if (changedProperties.has("locationY")) {
-            this.element.style.setProperty("--ueb-position-y", `${this.element.locationY}`);
-        }
-    }
-}
-
-/** @typedef {import("../element/WindowElement").default} WindowElement */
-
-/** @extends {SelectableDraggableTemplate<WindowElement>} */
-class WindowTemplate extends IDraggableTemplate {
-
-    static windowName = $`Window`
-
-    toggleAdvancedDisplayHandler
-
-    getDraggableElement() {
-        return this.element.querySelector(".ueb-window-top")
-    }
-
-    createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
-            draggableElement: this.getDraggableElement(),
-            looseTarget: true,
-            stepSize: 1,
-            movementSpace: this.element.blueprint,
-        })
-    }
-
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            this.createDraggableObject(),
-        ]
-    }
-
-    render() {
-        return $`
-            <div class="ueb-window">
-                <div class="ueb-window-top">
-                    <div class="ueb-window-name">${this.constructor.windowName}</div>
-                    <div class="ueb-window-close">
-                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
-                            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="ueb-window-content">
-                    ${this.renderContent()}
-                </div>
-            </div>
-        `
-    }
-
-    renderContent() {
-        return $``
-    }
-}
-
-/** @typedef {import("../element/WindowElement").default} WindowElement */
-
-class ColorPickerWindowTemplate extends WindowTemplate {
-
-    static windowName = $`Color Picker`
-
-    #picker
-
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        this.#picker = new iro.ColorPicker(
-            this.element.querySelector(".ueb-color-picker"),
-            {
-                layout: [
-
-                ]
-            }
-        );
-    }
-
-    renderContent() {
-        return $`
-            <div class="ueb-color-picker">
-                <div class="ueb-color-picker-theme"></div>
-                <div class="ueb-color-picker-srgb"></div>
-                <div class="ueb-color-picker-wheel"></div>
-                <div class="ueb-color-picker-saturation"></div>
-                <div class="ueb-color-picker-value"></div>
-                <div class="ueb-color-picker-preview">
-                    <div class="ueb-color-picker-preview-old"></div>
-                    <div class="ueb-color-picker-preview-new"></div>
-                </div>
-                <div class="ueb-color-picker-advanced-toggle"></div>
-                <div class="ueb-color-picker-advanced">
-                    <div class="ueb-color-picker-r"></div>
-                    <div class="ueb-color-picker-g"></div>
-                    <div class="ueb-color-picker-b"></div>
-                    <div class="ueb-color-picker-a"></div>
-                    <div class="ueb-color-picker-h"></div>
-                    <div class="ueb-color-picker-s"></div>
-                    <div class="ueb-color-picker-v"></div>
-                    <div class="ueb-color-picker-hex-linear"></div>
-                    <div class="ueb-color-picker-hex-srgb"></div>
-                </div>
-                <div class="ueb-color-picker-ok"></div>
-                <div class="ueb-color-picker-cancel"></div>
-            </div>
-        `
-    }
-}
-
-/** @extends {ISelectableDraggableElement<Object, WindowTemplate>} */
 class WindowElement extends IDraggableElement {
 
     static #typeTemplateMap = {
@@ -3616,13 +3957,15 @@ class WindowElement extends IDraggableElement {
         },
     }
 
-    constructor(properties = {}) {
-        if (properties.type.constructor == String) {
-            properties.type = WindowElement.#typeTemplateMap[properties.type];
+    constructor(options = {}) {
+        if (options.type.constructor == String) {
+            options.type = WindowElement.#typeTemplateMap[options.type];
         }
-        properties.type ??= WindowTemplate;
-        super({}, new properties.type());
-        this.type = properties.type;
+        options.type ??= WindowTemplate;
+        options.windowOptions ??= {};
+        super({}, new options.type());
+        this.type = options.type;
+        this.windowOptions = options.windowOptions;
     }
 
     disconnectedCallback() {
@@ -3649,17 +3992,13 @@ class MouseOpenWindow extends IMouseClick {
 
     #window
 
-    constructor(target, blueprint, options = {}) {
-        options.windowType ??= "window";
-        super(target, blueprint, options);
-    }
-
     clicked(location) {
     }
 
     unclicked(location) {
         this.#window = new WindowElement({
-            type: this.options.windowType
+            type: this.options.windowType,
+            windowOptions: this.options.windowOptions,
         });
         this.blueprint.append(this.#window);
     }
@@ -3687,7 +4026,14 @@ class LinearColorPinTemplate extends IInputPinTemplate {
             ...super.createInputObjects(),
             new MouseOpenWindow(this.#input, this.element.blueprint, {
                 moveEverywhere: true,
-                looseTarget: true
+                looseTarget: true,
+                windowType: ColorPickerWindowTemplate,
+                windowOptions: {
+                    // The created window will use the following functions to get and set the color
+                    getPinColor: () => this.element.defaultValue,
+                    /** @param {LinearColorEntity} color */
+                    setPinColor: color => this.element.setDefaultValue(color),
+                },
             })
         ]
     }
@@ -3938,6 +4284,7 @@ class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => {
+                    // @ts-expect-error
                     return value ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value : null
                 },
                 toAttribute: (value, type) => {
@@ -3971,7 +4318,7 @@ class PinElement extends IElement {
 
     /**
      * @param {PinEntity} pinEntity
-     * @return {PinTemplate}
+     * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
         let result = PinElement.#typeTemplateMap[
@@ -4013,6 +4360,7 @@ class PinElement extends IElement {
             this.unreactiveDefaultValue = entity.getDefaultValue();
         }
         this.pinType = this.entity.getType();
+        // @ts-expect-error
         this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString());
         this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
@@ -4133,10 +4481,10 @@ customElements.define("ueb-pin", PinElement);
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
  */
 
-/** @extends {IMouseClickDrag<ISelectableDraggableElement>} */
+/** @extends {MouseMoveDraggable<NodeElement>} */
 class MouseMoveNodes extends MouseMoveDraggable {
 
     startDrag() {
@@ -4146,24 +4494,8 @@ class MouseMoveNodes extends MouseMoveDraggable {
         }
     }
 
-    dragTo(location, movement) {
-        const initialTargetLocation = [this.target.locationX, this.target.locationY];
-        const [mouseLocation, targetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(initialTargetLocation, this.stepSize)]
-            : [location, initialTargetLocation];
-        const d = [
-            mouseLocation[0] - this.mouseLocation[0],
-            mouseLocation[1] - this.mouseLocation[1]
-        ];
-        if (d[0] == 0 && d[1] == 0) {
-            return
-        }
-        // Make sure it snaps on the grid
-        d[0] += targetLocation[0] - this.target.locationX;
-        d[1] += targetLocation[1] - this.target.locationY;
-        this.target.dispatchDragEvent(d);
-        // Reassign the position of mouse
-        this.mouseLocation = mouseLocation;
+    dragAction(location, offset) {
+        this.target.dispatchDragEvent(offset);
     }
 
     unclicked() {
@@ -4221,7 +4553,7 @@ class NodeTemplate extends SelectableDraggableTemplate {
                                         fill="currentColor" />
                                 </svg>
                             </span>
-                            <span class="ueb-node-name-text">
+                            <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                                 ${this.element.nodeDisplayName}
                             </span>
                         </div>
@@ -4309,6 +4641,8 @@ class NodeElement extends ISelectableDraggableElement {
             reflect: true,
         }
     }
+    static dragEventName = Configuration.nodeDragEventName
+    static dragGeneralEventName = Configuration.nodeDragGeneralEventName
 
     get blueprint() {
         return super.blueprint
@@ -4349,6 +4683,7 @@ class NodeElement extends ISelectableDraggableElement {
     static fromSerializedObject(str) {
         str = str.trim();
         let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str);
+        // @ts-expect-error
         return new NodeElement(entity)
     }
 
@@ -4402,7 +4737,9 @@ class NodeElement extends ISelectableDraggableElement {
 
     setLocation(value = [0, 0]) {
         let nodeType = this.entity.NodePosX.constructor;
+        // @ts-expect-error
         this.entity.NodePosX = new nodeType(value[0]);
+        // @ts-expect-error
         this.entity.NodePosY = new nodeType(value[1]);
         super.setLocation(value);
     }
@@ -4518,20 +4855,17 @@ class Select extends IMouseClickDrag {
 class OrderedIndexArray {
 
     /**
-     * @param {(arrayElement: number) => number} compareFunction A function that, given acouple of elements of the array telles what order are they on.
-     * @param {(number|array)} value Initial length or array to copy from
+     * @param {(arrayElement: number) => number} comparisonValueSupplier
+     * @param {number} value
      */
-    constructor(comparisonValueSupplier = (a) => a, value = null) {
+    constructor(comparisonValueSupplier = v => v, value = null) {
         this.array = new Uint32Array(value);
         this.comparisonValueSupplier = comparisonValueSupplier;
         this.length = 0;
         this.currentPosition = 0;
     }
 
-    /**
-     * @param {number} index The index of the value to return
-     * @returns The element of the array
-     */
+    /** @param {number} index */
     get(index) {
         if (index >= 0 && index < this.length) {
             return this.array[index]
@@ -4539,19 +4873,11 @@ class OrderedIndexArray {
         return null
     }
 
-    /**
-     * Returns the array used by this object.
-     * @returns The array.
-     */
     getArray() {
         return this.array
     }
 
-    /**
-     * Get the position that the value supplied should (or does) occupy in the aray.
-     * @param {number} value The value to look for (it doesn't have to be part of the array).
-     * @returns The position index.
-     */
+    /** @param {number} value */
     getPosition(value) {
         let l = 0;
         let r = this.length;
@@ -4574,11 +4900,7 @@ class OrderedIndexArray {
         }
     }
 
-    /**
-     * Inserts the element in the array.
-     * @param element {number} The value to insert into the array.
-     * @returns {number} The position into occupied by value into the array.
-     */
+    /** @param {number} element */
     insert(element, comparisonValue = null) {
         let position = this.getPosition(this.comparisonValueSupplier(element));
         if (
@@ -4592,10 +4914,7 @@ class OrderedIndexArray {
         return position
     }
 
-    /**
-     * Removes the element from the array.
-     * @param {number} value The value of the element to be remove.
-     */
+    /** @param {number} element */
     remove(element) {
         let position = this.getPosition(this.comparisonValueSupplier(element));
         if (this.array[position] == element) {
@@ -4603,10 +4922,7 @@ class OrderedIndexArray {
         }
     }
 
-    /**
-     * Removes the element into the specified position from the array.
-     * @param {number} position The index of the element to be remove.
-     */
+    /** @param {number} position */
     removeAt(position) {
         if (position < this.currentPosition) {
             --this.currentPosition;
@@ -4656,12 +4972,7 @@ class OrderedIndexArray {
 }
 
 /**
- * @typedef {{
- *     primaryInf: Number,
- *     primarySup: Number,
- *     secondaryInf: Number,
- *     secondarySup: Number
- * }} BoundariesInfo
+ * @typedef {import("../Blueprint").BoundariesInfo} BoundariesInfo
  * @typedef {{
  *     primaryBoundary: Number,
  *     secondaryBoundary: Number,
@@ -4674,15 +4985,15 @@ class OrderedIndexArray {
 class FastSelectionModel {
 
     /**
-     * @param {Number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
-     * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
-     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
-     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc A function that selects or deselects individual rectangles.
+     * @param {Number[]} initialPosition
+     * @param {Rectangle[]} rectangles
+     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc
+     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc
      */
     constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
         this.initialPosition = initialPosition;
         this.finalPosition = initialPosition;
-        /** @type Metadata[] */
+        /** @type {Metadata[]} */
         this.metadata = new Array(rectangles.length);
         this.primaryOrder = new OrderedIndexArray((element) => this.metadata[element].primaryBoundary);
         this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary);
@@ -4691,7 +5002,7 @@ class FastSelectionModel {
         this.primaryOrder.reserve(this.rectangles.length);
         this.secondaryOrder.reserve(this.rectangles.length);
         rectangles.forEach((rect, index) => {
-            /** @type Metadata */
+            /** @type {Metadata} */
             let rectangleMetadata = {
                 primaryBoundary: this.initialPosition[0],
                 secondaryBoundary: this.initialPosition[1],
@@ -4831,6 +5142,7 @@ class SelectorElement extends IFromToPositionedElement {
         super({}, new SelectorTemplate());
         this.selectionModel = null;
     }
+
     /** @param {Number[]} initialPosition */
     beginSelect(initialPosition) {
         this.blueprint.selecting = true;
@@ -5016,6 +5328,12 @@ class BlueprintTemplate extends ITemplate {
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {{
+ *     primaryInf: Number,
+ *     primarySup: Number,
+ *     secondaryInf: Number,
+ *     secondarySup: Number
+ * }} BoundariesInfo
  */
 
 /** @extends {IElement<Object, BlueprintTemplate>} */
@@ -5100,7 +5418,7 @@ class Blueprint extends IElement {
         let rect = node.getBoundingClientRect();
         let gridRect = this.nodesContainerElement.getBoundingClientRect();
         const scaleCorrection = 1 / this.getScale();
-        return {
+        return /** @type {BoundariesInfo} */ {
             primaryInf: (rect.left - gridRect.left) * scaleCorrection,
             primarySup: (rect.right - gridRect.right) * scaleCorrection,
             // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
@@ -5138,11 +5456,13 @@ class Blueprint extends IElement {
         return [this.scrollX, this.scrollY]
     }
 
+    /** @param {Number[]} param0 */
     setScroll([x, y], smooth = false) {
         this.scrollX = x;
         this.scrollY = y;
     }
 
+    /** @param {Number[]} delta */
     scrollDelta(delta, smooth = false) {
         const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
         let currentScroll = this.getScroll();
@@ -5288,7 +5608,7 @@ class Blueprint extends IElement {
         let result = this.template.getPin(pinReference);
         if (result
             // Make sure it wasn't renamed in the meantime
-            && result.nodeElement.getNodeName() == pinReference.objectName) {
+            && result.nodeElement.getNodeName() == pinReference.objectName.toString()) {
             return result
         }
         // Slower fallback
@@ -5409,12 +5729,22 @@ class Blueprint extends IElement {
 
 customElements.define("ueb-blueprint", Blueprint);
 
-/** @typedef {import("../entity/IEntity").default} IEntity */
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
 
-/** @template {IEntity} T */
+/**
+ * @template {AnyValue} T
+ * @extends ISerializer<T>
+ */
 class GeneralSerializer extends ISerializer {
 
-    /** @param {new () => T} entityType */
+    /** @param {AnyValueConstructor<T>} entityType */
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`);
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter);
@@ -5426,6 +5756,7 @@ class GeneralSerializer extends ISerializer {
      * @returns {T}
      */
     read(value) {
+        // @ts-expect-error
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType);
         const parseResult = grammar.parse(value);
         if (!parseResult.status) {
@@ -5445,16 +5776,26 @@ class GeneralSerializer extends ISerializer {
     }
 }
 
-/** @typedef {import("../entity/IEntity").default} IEntity */
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
 
-/** @template {IEntity | Boolean | Number | String} T */
+/**
+ * @template {AnyValue} T
+ * @extends {GeneralSerializer<T>} 
+ */
 class CustomSerializer extends GeneralSerializer {
 
     #objectWriter
 
     /**
      * @param {(v: T, insideString: Boolean) => String} objectWriter
-     * @param {new () => T} entityType
+     * @param {AnyValueConstructor<T>} entityType
      */
     constructor(objectWriter, entityType) {
         super(undefined, entityType);
@@ -5472,12 +5813,18 @@ class CustomSerializer extends GeneralSerializer {
     }
 }
 
-/** @typedef {import("../entity/IEntity").default} IEntity */
-
-/** @template {IEntity} T */
+/** @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @extends {GeneralSerializer<T>}
+ */
 class ToStringSerializer extends GeneralSerializer {
 
-    /** @param {new () => T} entityType */
+    /** @param {AnyValueConstructor<T>} entityType */
     constructor(entityType) {
         super(undefined, entityType);
     }
@@ -5614,7 +5961,9 @@ function initializeSerializerFactory() {
         String,
         new CustomSerializer(
             (value, insideString) => insideString
+                // @ts-expect-error
                 ? Utility.escapeString(value)
+                // @ts-expect-error
                 : `"${Utility.escapeString(value)}"`,
             String
         )

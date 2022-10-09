@@ -9,20 +9,26 @@ import LinkElement from "./LinkElement"
 import NamePinTemplate from "../template/NamePinTemplate"
 import PinTemplate from "../template/PinTemplate"
 import RealPinTemplate from "../template/RealPinTemplate"
+import ReferencePinTemplate from "../template/ReferencePinTemplate"
+import RotatorPinTemplate from "../template/RotatorPinTemplate"
 import StringPinTemplate from "../template/StringPinTemplate"
 import Utility from "../Utility"
 import VectorPinTemplate from "../template/VectorPinTemplate"
-import ReferencePinTemplate from "../template/ReferencePinTemplate"
-import RotatorPinTemplate from "../template/RotatorPinTemplate"
 
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
- * @typedef {import("../entity/PinEntity").default} PinEntity
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./NodeElement").default} NodeElement
  */
+/**
+ * @template T
+ * @typedef {import("../entity/PinEntity").default<T>} PinEntity
+ */
 
-/** @extends {IElement<PinEntity, PinTemplate>} */
+/**
+ * @template T
+ * @extends {IElement<PinEntity<T>, PinTemplate>}
+ */
 export default class PinElement extends IElement {
 
     static #typeTemplateMap = {
@@ -31,9 +37,9 @@ export default class PinElement extends IElement {
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
+        "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
-        "MUTABLE_REFERENCE": ReferencePinTemplate,
         "string": StringPinTemplate,
     }
 
@@ -47,6 +53,7 @@ export default class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => {
+                    // @ts-expect-error
                     return value ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value : null
                 },
                 toAttribute: (value, type) => {
@@ -79,8 +86,8 @@ export default class PinElement extends IElement {
     }
 
     /**
-     * @param {PinEntity} pinEntity
-     * @return {PinTemplate}
+     * @param {PinEntity<any>} pinEntity
+     * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
         let result = PinElement.#typeTemplateMap[
@@ -102,26 +109,22 @@ export default class PinElement extends IElement {
     get defaultValue() {
         return this.unreactiveDefaultValue
     }
-    /** @param {String} value */
     set defaultValue(value) {
         let oldValue = this.unreactiveDefaultValue
         this.unreactiveDefaultValue = value
         this.requestUpdate("defaultValue", oldValue)
     }
 
-    /** @param {PinEntity} entity */
+    /** @param {PinEntity<T>} entity */
     constructor(entity) {
         super(
             entity,
             new (PinElement.getTypeTemplate(entity))()
         )
         this.advancedView = entity.bAdvancedView
-        /** @type {String} */
         this.unreactiveDefaultValue = entity.getDefaultValue()
-        if (this.unreactiveDefaultValue.constructor === String) {
-            this.unreactiveDefaultValue = entity.getDefaultValue()
-        }
         this.pinType = this.entity.getType()
+        // @ts-expect-error
         this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
@@ -176,7 +179,7 @@ export default class PinElement extends IElement {
     }
 
     getLinkLocation() {
-        return this.template.getLinkLocation(this)
+        return this.template.getLinkLocation()
     }
 
     /** @returns {NodeElement} */

@@ -1,20 +1,17 @@
 export default class OrderedIndexArray {
 
     /**
-     * @param {(arrayElement: number) => number} compareFunction A function that, given acouple of elements of the array telles what order are they on.
-     * @param {(number|array)} value Initial length or array to copy from
+     * @param {(arrayElement: number) => number} comparisonValueSupplier
+     * @param {number} value
      */
-    constructor(comparisonValueSupplier = (a) => a, value = null) {
+    constructor(comparisonValueSupplier = v => v, value = null) {
         this.array = new Uint32Array(value)
         this.comparisonValueSupplier = comparisonValueSupplier
         this.length = 0
         this.currentPosition = 0
     }
 
-    /**
-     * @param {number} index The index of the value to return
-     * @returns The element of the array
-     */
+    /** @param {number} index */
     get(index) {
         if (index >= 0 && index < this.length) {
             return this.array[index]
@@ -22,19 +19,11 @@ export default class OrderedIndexArray {
         return null
     }
 
-    /**
-     * Returns the array used by this object.
-     * @returns The array.
-     */
     getArray() {
         return this.array
     }
 
-    /**
-     * Get the position that the value supplied should (or does) occupy in the aray.
-     * @param {number} value The value to look for (it doesn't have to be part of the array).
-     * @returns The position index.
-     */
+    /** @param {number} value */
     getPosition(value) {
         let l = 0
         let r = this.length
@@ -57,11 +46,7 @@ export default class OrderedIndexArray {
         }
     }
 
-    /**
-     * Inserts the element in the array.
-     * @param element {number} The value to insert into the array.
-     * @returns {number} The position into occupied by value into the array.
-     */
+    /** @param {number} element */
     insert(element, comparisonValue = null) {
         let position = this.getPosition(this.comparisonValueSupplier(element))
         if (
@@ -75,10 +60,7 @@ export default class OrderedIndexArray {
         return position
     }
 
-    /**
-     * Removes the element from the array.
-     * @param {number} value The value of the element to be remove.
-     */
+    /** @param {number} element */
     remove(element) {
         let position = this.getPosition(this.comparisonValueSupplier(element))
         if (this.array[position] == element) {
@@ -86,10 +68,7 @@ export default class OrderedIndexArray {
         }
     }
 
-    /**
-     * Removes the element into the specified position from the array.
-     * @param {number} position The index of the element to be remove.
-     */
+    /** @param {number} position */
     removeAt(position) {
         if (position < this.currentPosition) {
             --this.currentPosition

@@ -10,8 +10,8 @@ import IDraggableElement from "./IDraggableElement"
 
 /**
  * @template {IEntity} T
- * @template {IDraggableElement} U
- * @extends {IElement<T, U>}
+ * @template {SelectableDraggableTemplate} U
+ * @extends {IDraggableElement<T, U>}
  */
 export default class ISelectableDraggableElement extends IDraggableElement {
 
@@ -40,7 +40,7 @@ export default class ISelectableDraggableElement extends IDraggableElement {
 
     disconnectedCallback() {
         super.disconnectedCallback()
-        this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
+        this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler)
     }
 
     setSelected(value = true) {
@@ -48,9 +48,9 @@ export default class ISelectableDraggableElement extends IDraggableElement {
         if (this.blueprint) {
             if (this.selected) {
                 this.listeningDrag = true
-                this.blueprint.addEventListener(Configuration.nodeDragEventName, this.dragHandler)
+                this.blueprint.addEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler)
             } else {
-                this.blueprint.removeEventListener(Configuration.nodeDragEventName, this.dragHandler)
+                this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler)
                 this.listeningDrag = false
             }
         }

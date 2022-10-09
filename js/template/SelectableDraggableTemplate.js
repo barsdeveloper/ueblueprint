@@ -1,12 +1,14 @@
 import IDraggableTemplate from "./IDraggableTemplate"
-import ITemplate from "./ITemplate"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
-/** @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement */
+/**
+ * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
+ */
 
 /**
  * @template {ISelectableDraggableElement} T
- * @extends {ITemplate<T>}
+ * @extends {IDraggableTemplate<T>}
  */
 export default class SelectableDraggableTemplate extends IDraggableTemplate {
 
@@ -15,10 +17,10 @@ export default class SelectableDraggableTemplate extends IDraggableTemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveNodes(this.element, this.element.blueprint, {
+        return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
             draggableElement: this.getDraggableElement(),
             looseTarget: true,
-        })
+        }))
     }
 
     /** @param {Map} changedProperties */
