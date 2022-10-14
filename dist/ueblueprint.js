@@ -2858,7 +2858,7 @@ class IDraggableElement extends IElement {
 }
 
 /**
- * @typedef {import("../template/SelectableDraggableTemplate").default} ISelectableDraggableTemplate
+ * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
  */
 

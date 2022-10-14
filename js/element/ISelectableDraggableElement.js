@@ -4,7 +4,7 @@ import Utility from "../Utility"
 import IDraggableElement from "./IDraggableElement"
 
 /**
- * @typedef {import("../template/SelectableDraggableTemplate").default} ISelectableDraggableTemplate
+ * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
  */
 

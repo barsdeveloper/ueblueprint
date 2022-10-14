@@ -1,6 +1,6 @@
 import { html, nothing } from "lit"
 import PinElement from "../element/PinElement"
-import ISelectableDraggableTemplate from "./SelectableDraggableTemplate"
+import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
 
 /** @typedef {import("../element/NodeElement").default} NodeElement */
 
