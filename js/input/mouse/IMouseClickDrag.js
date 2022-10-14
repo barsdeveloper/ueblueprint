@@ -46,10 +46,10 @@ export default class IMouseClickDrag extends IPointing {
         options.consumeEvent ??= true
         options.draggableElement ??= target
         options.exitAnyButton ??= true
-        options.looseTarget ??= false
         options.moveEverywhere ??= false
         options.movementSpace ??= blueprint?.getGridDOMElement()
-        options.repositionClickOffset ??= false
+        options.repositionOnClick ??= false
+        options.strictTarget ??= false
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize)
 
@@ -62,7 +62,7 @@ export default class IMouseClickDrag extends IPointing {
             switch (e.button) {
                 case self.options.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                    if (self.options.looseTarget || e.target == e.currentTarget) {
+                    if (!self.options.strictTarget || e.target == e.currentTarget) {
                         if (self.options.consumeEvent) {
                             e.stopImmediatePropagation() // Captured, don't call anyone else
                         }

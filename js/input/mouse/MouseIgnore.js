@@ -1,8 +1,13 @@
 import IMouseClickDrag from "./IMouseClickDrag"
 
-/** @typedef {import("../../element/PinElement").default} PinElement */
+/**
+ * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ */
 
-/** @extends IMouseClickDrag<PinElement> */
+/**
+* @template {IDraggableElement} T
+* @extends {IMouseClickDrag<T>}
+*/
 export default class MouseIgnore extends IMouseClickDrag {
 
     constructor(target, blueprint, options = {}) {

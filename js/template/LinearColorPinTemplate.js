@@ -24,7 +24,6 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
             ...super.createInputObjects(),
             new MouseOpenWindow(this.#input, this.element.blueprint, {
                 moveEverywhere: true,
-                looseTarget: true,
                 windowType: ColorPickerWindowTemplate,
                 windowOptions: {
                     // The created window will use the following functions to get and set the color

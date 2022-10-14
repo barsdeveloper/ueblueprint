@@ -4,5 +4,4 @@ import IFromToPositionedTemplate from "./IFromToPositionedTemplate"
 
 /** @extends IFromToPositionedTemplate<SelectorElement> */
 export default class SelectorTemplate extends IFromToPositionedTemplate {
-
 }

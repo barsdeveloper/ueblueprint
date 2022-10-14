@@ -2290,10 +2290,10 @@ class IMouseWheel extends IPointing {
      * @param {import("../../Blueprint").default} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options) {
+    constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
         super(target, blueprint, options);
-        this.looseTarget = options?.looseTarget ?? true;
+        this.strictTarget = options?.strictTarget ?? false;
         let self = this;
 
         this.#mouseWheelHandler = e => {
@@ -2437,10 +2437,10 @@ class IMouseClickDrag extends IPointing {
         options.consumeEvent ??= true;
         options.draggableElement ??= target;
         options.exitAnyButton ??= true;
-        options.looseTarget ??= false;
+        options.strictTarget ??= false;
         options.moveEverywhere ??= false;
         options.movementSpace ??= blueprint?.getGridDOMElement();
-        options.repositionClickOffset ??= false;
+        options.repositionOnClick ??= false;
         super(target, blueprint, options);
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
 
@@ -2453,7 +2453,7 @@ class IMouseClickDrag extends IPointing {
             switch (e.button) {
                 case self.options.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                    if (self.options.looseTarget || e.target == e.currentTarget) {
+                    if (!self.options.strictTarget || e.target == e.currentTarget) {
                         if (self.options.consumeEvent) {
                             e.stopImmediatePropagation(); // Captured, don't call anyone else
                         }
@@ -2908,6 +2908,22 @@ class ISelectableDraggableElement extends IDraggableElement {
                 this.listeningDrag = false;
             }
         }
+    }
+}
+
+/**
+ * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+* @template {IDraggableElement} T
+* @extends {IMouseClickDrag<T>}
+*/
+class MouseIgnore extends IMouseClickDrag {
+
+    constructor(target, blueprint, options = {}) {
+        options.consumeEvent = true;
+        super(target, blueprint, options);
     }
 }
 
@@ -3482,7 +3498,6 @@ class PinTemplate extends ITemplate {
         return [
             new MouseCreateLink(this.element.clickableElement, this.element.blueprint, {
                 moveEverywhere: true,
-                looseTarget: true,
             })
         ]
     }
@@ -3558,6 +3573,13 @@ class BoolPinTemplate extends PinTemplate {
         this.#input.removeEventListener("change", this.onChangeHandler);
     }
 
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            new MouseIgnore(this.#input, this.element.blueprint),
+        ]
+    }
+
     getInputs() {
         return [this.#input.checked ? "true" : "false"]
     }
@@ -3606,7 +3628,7 @@ class ExecPinTemplate extends PinTemplate {
 class MouseMoveDraggable extends IMouseClickDrag {
 
     clicked(location) {
-        if (this.options.repositionClickOffset) {
+        if (this.options.repositionOnClick) {
             this.target.setLocation(this.stepSize > 1
                 ? Utility.snapToGrid(location, this.stepSize)
                 : location
@@ -3661,7 +3683,6 @@ class IDraggableTemplate extends ITemplate {
     createDraggableObject() {
         return new MouseMoveDraggable(this.element, this.element.blueprint, {
             draggableElement: this.getDraggableElement(),
-            looseTarget: true,
         })
     }
 
@@ -3703,10 +3724,9 @@ class ColorHandlerTemplate extends IDraggableTemplate {
         return new MouseMoveDraggable(this.element, this.element.blueprint, {
             draggableElement: this.element.parentElement,
             ignoreTranslateCompensate: true,
-            looseTarget: true,
             moveEverywhere: true,
             movementSpace: this.element.parentElement,
-            repositionClickOffset: true,
+            repositionOnClick: true,
             stepSize: 1,
         })
     }
@@ -3779,7 +3799,6 @@ class WindowTemplate extends IDraggableTemplate {
         return new MouseMoveDraggable(this.element, this.element.blueprint, {
             draggableElement: this.getDraggableElement(),
             ignoreTranslateCompensate: true,
-            looseTarget: true,
             movementSpace: this.element.blueprint,
             stepSize: 1,
         })
@@ -3894,17 +3913,6 @@ class ColorPickerWindowTemplate extends WindowTemplate {
     }
 }
 
-/** @typedef {import("../../element/PinElement").default} PinElement */
-
-/** @extends IMouseClickDrag<PinElement> */
-class MouseIgnore extends IMouseClickDrag {
-
-    constructor(target, blueprint, options = {}) {
-        options.consumeEvent = true;
-        super(target, blueprint, options);
-    }
-}
-
 /**
  * @template T
  * @typedef {import("../element/PinElement").default<T>} PinElement
@@ -3968,7 +3976,7 @@ class IInputPinTemplate extends PinTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.element.blueprint))
+            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.element.blueprint)),
         ]
     }
 
@@ -4030,7 +4038,7 @@ class IMouseClick extends IPointing {
         options.clickButton ??= 0;
         options.consumeEvent ??= true;
         options.exitAnyButton ??= true;
-        options.looseTarget ??= false;
+        options.strictTarget ??= false;
         super(target, blueprint, options);
         this.clickedPosition = [0, 0];
         let self = this;
@@ -4040,7 +4048,7 @@ class IMouseClick extends IPointing {
             switch (e.button) {
                 case self.options.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the target, not descandants
-                    if (self.options.looseTarget || e.target == e.currentTarget) {
+                    if (!self.options.strictTarget || e.target == e.currentTarget) {
                         if (self.options.consumeEvent) {
                             e.stopImmediatePropagation(); // Captured, don't call anyone else
                         }
@@ -4184,7 +4192,6 @@ class LinearColorPinTemplate extends IInputPinTemplate {
             ...super.createInputObjects(),
             new MouseOpenWindow(this.#input, this.element.blueprint, {
                 moveEverywhere: true,
-                looseTarget: true,
                 windowType: ColorPickerWindowTemplate,
                 windowOptions: {
                     // The created window will use the following functions to get and set the color
@@ -4691,7 +4698,6 @@ class ISelectableDraggableTemplate extends IDraggableTemplate {
     createDraggableObject() {
         return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
             draggableElement: this.getDraggableElement(),
-            looseTarget: true,
         }))
     }
 
@@ -5303,7 +5309,6 @@ class FastSelectionModel {
 
 /** @extends IFromToPositionedTemplate<SelectorElement> */
 class SelectorTemplate extends IFromToPositionedTemplate {
-
 }
 
 /** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
@@ -5421,19 +5426,15 @@ class BlueprintTemplate extends ITemplate {
             new Paste(this.element.getGridDOMElement(), this.element),
             new KeyboardCanc(this.element.getGridDOMElement(), this.element),
             new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
-            new Zoom(this.element.getGridDOMElement(), this.element, {
-                looseTarget: true,
-            }),
+            new Zoom(this.element.getGridDOMElement(), this.element),
             new Select(this.element.getGridDOMElement(), this.element, {
                 clickButton: 0,
                 exitAnyButton: true,
-                looseTarget: true,
                 moveEverywhere: true,
             }),
             new MouseScrollGraph(this.element.getGridDOMElement(), this.element, {
                 clickButton: 2,
                 exitAnyButton: false,
-                looseTarget: true,
                 moveEverywhere: true,
             }),
             new Unfocus(this.element.getGridDOMElement(), this.element),

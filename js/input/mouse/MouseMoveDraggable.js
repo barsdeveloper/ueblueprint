@@ -13,7 +13,7 @@ import Utility from "../../Utility"
 export default class MouseMoveDraggable extends IMouseClickDrag {
 
     clicked(location) {
-        if (this.options.repositionClickOffset) {
+        if (this.options.repositionOnClick) {
             this.target.setLocation(this.stepSize > 1
                 ? Utility.snapToGrid(location, this.stepSize)
                 : location

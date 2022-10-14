@@ -14,12 +14,13 @@ export default class IMouseWheel extends IPointing {
      * @param {import("../../Blueprint").default} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options) {
+    constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true
+        options.strictTarget ??= false
         super(target, blueprint, options)
-        this.looseTarget = options?.looseTarget ?? true
-        let self = this
+        this.strictTarget = options.strictTarget
 
+        const self = this
         this.#mouseWheelHandler = e => {
             e.preventDefault()
             const location = self.locationFromEvent(e)

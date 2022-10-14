@@ -21,10 +21,9 @@ export default class ColorHandlerTemplate extends IDraggableTemplate {
         return new MouseMoveDraggable(this.element, this.element.blueprint, {
             draggableElement: this.element.parentElement,
             ignoreTranslateCompensate: true,
-            looseTarget: true,
             moveEverywhere: true,
             movementSpace: this.element.parentElement,
-            repositionClickOffset: true,
+            repositionOnClick: true,
             stepSize: 1,
         })
     }

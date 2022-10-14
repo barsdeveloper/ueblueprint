@@ -18,7 +18,7 @@ export default class IMouseClick extends IPointing {
         options.clickButton ??= 0
         options.consumeEvent ??= true
         options.exitAnyButton ??= true
-        options.looseTarget ??= false
+        options.strictTarget ??= false
         super(target, blueprint, options)
         this.clickedPosition = [0, 0]
         let self = this
@@ -28,7 +28,7 @@ export default class IMouseClick extends IPointing {
             switch (e.button) {
                 case self.options.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the target, not descandants
-                    if (self.options.looseTarget || e.target == e.currentTarget) {
+                    if (!self.options.strictTarget || e.target == e.currentTarget) {
                         if (self.options.consumeEvent) {
                             e.stopImmediatePropagation() // Captured, don't call anyone else
                         }

@@ -56,19 +56,15 @@ export default class BlueprintTemplate extends ITemplate {
             new Paste(this.element.getGridDOMElement(), this.element),
             new KeyboardCanc(this.element.getGridDOMElement(), this.element),
             new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
-            new Zoom(this.element.getGridDOMElement(), this.element, {
-                looseTarget: true,
-            }),
+            new Zoom(this.element.getGridDOMElement(), this.element),
             new Select(this.element.getGridDOMElement(), this.element, {
                 clickButton: 0,
                 exitAnyButton: true,
-                looseTarget: true,
                 moveEverywhere: true,
             }),
             new MouseScrollGraph(this.element.getGridDOMElement(), this.element, {
                 clickButton: 2,
                 exitAnyButton: false,
-                looseTarget: true,
                 moveEverywhere: true,
             }),
             new Unfocus(this.element.getGridDOMElement(), this.element),

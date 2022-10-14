@@ -1,4 +1,5 @@
 import { html, nothing } from "lit"
+import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 
 /**
@@ -21,6 +22,13 @@ export default class BoolPinTemplate extends PinTemplate {
     cleanup() {
         super.cleanup()
         this.#input.removeEventListener("change", this.onChangeHandler)
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            new MouseIgnore(this.#input, this.element.blueprint),
+        ]
     }
 
     getInputs() {
