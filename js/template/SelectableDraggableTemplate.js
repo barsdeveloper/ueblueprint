@@ -10,7 +10,7 @@ import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
  * @template {ISelectableDraggableElement} T
  * @extends {IDraggableTemplate<T>}
  */
-export default class SelectableDraggableTemplate extends IDraggableTemplate {
+export default class ISelectableDraggableTemplate extends IDraggableTemplate {
 
     getDraggableElement() {
         return this.element

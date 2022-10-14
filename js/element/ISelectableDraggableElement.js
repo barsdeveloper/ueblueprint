@@ -4,13 +4,13 @@ import Utility from "../Utility"
 import IDraggableElement from "./IDraggableElement"
 
 /**
- * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ * @typedef {import("../template/SelectableDraggableTemplate").default} ISelectableDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
  */
 
 /**
  * @template {IEntity} T
- * @template {SelectableDraggableTemplate} U
+ * @template {ISelectableDraggableTemplate} U
  * @extends {IDraggableElement<T, U>}
  */
 export default class ISelectableDraggableElement extends IDraggableElement {

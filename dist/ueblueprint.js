@@ -2858,13 +2858,13 @@ class IDraggableElement extends IElement {
 }
 
 /**
- * @typedef {import("../template/SelectableDraggableTemplate").default} SelectableDraggableTemplate
+ * @typedef {import("../template/SelectableDraggableTemplate").default} ISelectableDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
  */
 
 /**
  * @template {IEntity} T
- * @template {SelectableDraggableTemplate} U
+ * @template {ISelectableDraggableTemplate} U
  * @extends {IDraggableElement<T, U>}
  */
 class ISelectableDraggableElement extends IDraggableElement {
@@ -4682,7 +4682,7 @@ class MouseMoveNodes extends MouseMoveDraggable {
  * @template {ISelectableDraggableElement} T
  * @extends {IDraggableTemplate<T>}
  */
-class SelectableDraggableTemplate extends IDraggableTemplate {
+class ISelectableDraggableTemplate extends IDraggableTemplate {
 
     getDraggableElement() {
         return this.element
@@ -4706,7 +4706,7 @@ class SelectableDraggableTemplate extends IDraggableTemplate {
 
 /** @typedef {import("../element/NodeElement").default} NodeElement */
 
-class NodeTemplate extends SelectableDraggableTemplate {
+class NodeTemplate extends ISelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler
 
