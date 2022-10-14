@@ -1,6 +1,8 @@
 import { html } from "lit"
+import ColorHandlerElement from "../element/ColorHandlerElement"
 import Configuration from "../Configuration"
 import LinearColorEntity from "../entity/LinearColorEntity"
+import Utility from "../Utility"
 import WindowTemplate from "./WindowTemplate"
 
 /** @typedef {import("../element/WindowElement").default} WindowElement */
@@ -16,10 +18,11 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
     }
     /** @param {LinearColorEntity} value */
     set color(value) {
-        if (value.toNumber() == this.color.toNumber()) {
-            this.element.requestUpdate("color", this.#color)
-            this.#color = value
+        if (value.toNumber() == this.color?.toNumber()) {
+            return
         }
+        this.element.requestUpdate("color", this.#color)
+        this.#color = value
     }
 
     connectedCallback() {
@@ -29,6 +32,14 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
+        const wheelHandler = new ColorHandlerElement()
+        const spectrumHandler = new ColorHandlerElement()
+        wheelHandler.template.setLocationChangeCallback(([x, y]) => {
+            const [r, theta] = Utility.getPolarCoordinates([x, y])
+            this.color = LinearColorEntity.fromWheelLocation(x, y)
+        })
+        this.element.querySelector(".ueb-color-picker-wheel").appendChild(new ColorHandlerElement())
+
     }
 
     renderContent() {
@@ -40,9 +51,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                     <div class="ueb-color-picker-srgb"></div>
                 </div>
                 <div class="ueb-color-picker-main">
-                    <div class="ueb-color-picker-wheel">
-                        <ueb-color-handler></ueb-color-handler>
-                    </div>
+                    <div class="ueb-color-picker-wheel"></div>
                     <div class="ueb-color-picker-saturation"></div>
                     <div class="ueb-color-picker-value"></div>
                     <div class="ueb-color-picker-preview">

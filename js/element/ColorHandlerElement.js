@@ -8,6 +8,7 @@ import IDraggableElement from "./IDraggableElement"
  * @typedef {import("./WindowElement").default<T>} WindowElement
  */
 
+/** @extends {IDraggableElement<Object, ColorHandlerTemplate>} */
 export default class ColorHandlerElement extends IDraggableElement {
 
     /** @type {WindowElement<ColorPickerWindowTemplate>} */
@@ -23,10 +24,8 @@ export default class ColorHandlerElement extends IDraggableElement {
     }
 
     /** @param {Number[]} param0 */
-    addLocation([x, y]) {
-        super.addLocation([x, y])
-        this.windowElement.windowOptions
-        this.windowElement.template.color = this.computeColor()
+    setLocation([x, y]) {
+        super.setLocation(this.template.adjustLocation([x, y]))
     }
 
     computeColor() {

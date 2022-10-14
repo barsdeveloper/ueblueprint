@@ -268,6 +268,143 @@ class CalculatedType {
     }
 }
 
+class Observable {
+
+    /** @type {Map<String, Object[]>} */
+    #observers = new Map()
+
+    /**
+     * @param {String} property
+     * @param {(value: any) => {}} observer
+     */
+    subscribe(property, observer) {
+        let observers = this.#observers;
+        if (observers.has(property)) {
+            let propertyObservers = observers.get(property);
+            if (propertyObservers.includes(observer)) {
+                return false
+            } else {
+                propertyObservers.push(observer);
+            }
+        } else {
+            let fromPrototype = false;
+            let propertyDescriptor = Object.getOwnPropertyDescriptor(this, property);
+            if (!propertyDescriptor) {
+                fromPrototype = true;
+                propertyDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), property) ?? {};
+                if (!propertyDescriptor) {
+                    return false
+                }
+            }
+            observers.set(property, [observer]);
+            const isValue = "value" in propertyDescriptor;
+            const hasSetter = "set" in propertyDescriptor;
+            if (!(isValue || hasSetter)) {
+                throw new Error(`Property ${property} is not a value or a setter`)
+            }
+            // A Symbol so it does not show up in Object.getOwnPropertyNames()
+            const storageKey = Symbol.for(property + "Storage");
+            const valInfoKey = Symbol.for(property + "ValInfo");
+            Object.defineProperties(
+                fromPrototype ? Object.getPrototypeOf(this) : this,
+                {
+                    [storageKey]: {
+                        configurable: true,
+                        enumerable: false, // Non enumerable so it does not show up in for...in or Object.keys()
+                        ...(isValue
+                            ? {
+                                value: this[property],
+                                writable: true,
+                            }
+                            : {
+                                get: propertyDescriptor.get,
+                                set: propertyDescriptor.set,
+                            }
+                        )
+                    },
+                    [valInfoKey]: {
+                        configurable: true,
+                        enumerable: false,
+                        value: [fromPrototype, isValue]
+                    },
+                    [property]: {
+                        configurable: true,
+                        ...(isValue && {
+                            get() {
+                                return this[storageKey]
+                            }
+                        }),
+                        set(v) {
+                            this[storageKey] = v;
+                            observers.get(property).forEach(observer => {
+                                observer(this[property]);
+                            });
+                        },
+                    }
+                }
+            );
+        }
+        return true
+    }
+
+    /**
+     * @param {String} property
+     * @param {Object} observer
+     */
+    unsubscribe(property, observer) {
+        let observers = this.#observers.get(property);
+        if (!observers?.includes(observer)) {
+            return false
+        }
+        observers.splice(observers.indexOf(observer), 1);
+        if (observers.length == 0) {
+            const storageKey = Symbol.for(property + "Storage");
+            const valInfoKey = Symbol.for(property + "ValInfo");
+            const fromPrototype = this[valInfoKey][0];
+            this[valInfoKey][1];
+            Object.defineProperty(
+                fromPrototype ? Object.getPrototypeOf(this) : this,
+                property,
+                Object.getOwnPropertyDescriptor(fromPrototype ? Object.getPrototypeOf(this) : this, storageKey),
+            );
+            delete this[valInfoKey];
+            delete this[storageKey];
+        }
+        return true
+    }
+}
+
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ */
+/**
+ * @template T
+ * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("./ISerializer").default<T>} ISerializer
+ */
+
+class SerializerFactory {
+
+    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
+    static #serializers = new Map()
+
+    static registerSerializer(entity, object) {
+        SerializerFactory.#serializers.set(entity, object);
+    }
+
+    /**
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entity
+     */
+    static getSerializer(entity) {
+        return SerializerFactory.#serializers.get(entity)
+    }
+}
+
 /**
  * @typedef {import("./IEntity").default} IEntity
  * @typedef {IEntity | String | Number | Boolean | Array} AnyValue
@@ -597,144 +734,23 @@ class Utility {
 
     /** @param {LinearColorEntity} value */
     static printLinearColor(value) {
-        return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
-    }
-}
-
-class Observable {
-
-    /** @type {Map<String, Object[]>} */
-    #observers = new Map()
-
-    /**
-     * @param {String} property
-     * @param {(value: any) => {}} observer
-     */
-    subscribe(property, observer) {
-        let observers = this.#observers;
-        if (observers.has(property)) {
-            let propertyObservers = observers.get(property);
-            if (propertyObservers.includes(observer)) {
-                return false
-            } else {
-                propertyObservers.push(observer);
-            }
-        } else {
-            let fromPrototype = false;
-            let propertyDescriptor = Object.getOwnPropertyDescriptor(this, property);
-            if (!propertyDescriptor) {
-                fromPrototype = true;
-                propertyDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), property) ?? {};
-                if (!propertyDescriptor) {
-                    return false
-                }
-            }
-            observers.set(property, [observer]);
-            const isValue = "value" in propertyDescriptor;
-            const hasSetter = "set" in propertyDescriptor;
-            if (!(isValue || hasSetter)) {
-                throw new Error(`Property ${property} is not a value or a setter`)
-            }
-            // A Symbol so it does not show up in Object.getOwnPropertyNames()
-            const storageKey = Symbol.for(property + "Storage");
-            const valInfoKey = Symbol.for(property + "ValInfo");
-            Object.defineProperties(
-                fromPrototype ? Object.getPrototypeOf(this) : this,
-                {
-                    [storageKey]: {
-                        configurable: true,
-                        enumerable: false, // Non enumerable so it does not show up in for...in or Object.keys()
-                        ...(isValue
-                            ? {
-                                value: this[property],
-                                writable: true,
-                            }
-                            : {
-                                get: propertyDescriptor.get,
-                                set: propertyDescriptor.set,
-                            }
-                        )
-                    },
-                    [valInfoKey]: {
-                        configurable: true,
-                        enumerable: false,
-                        value: [fromPrototype, isValue]
-                    },
-                    [property]: {
-                        configurable: true,
-                        ...(isValue && {
-                            get() {
-                                return this[storageKey]
-                            }
-                        }),
-                        set(v) {
-                            this[storageKey] = v;
-                            observers.get(property).forEach(observer => {
-                                observer(this[property]);
-                            });
-                        },
-                    }
-                }
-            );
-        }
-        return true
+        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
     }
 
-    /**
-     * @param {String} property
-     * @param {Object} observer
-     */
-    unsubscribe(property, observer) {
-        let observers = this.#observers.get(property);
-        if (!observers?.includes(observer)) {
-            return false
-        }
-        observers.splice(observers.indexOf(observer), 1);
-        if (observers.length == 0) {
-            const storageKey = Symbol.for(property + "Storage");
-            const valInfoKey = Symbol.for(property + "ValInfo");
-            const fromPrototype = this[valInfoKey][0];
-            this[valInfoKey][1];
-            Object.defineProperty(
-                fromPrototype ? Object.getPrototypeOf(this) : this,
-                property,
-                Object.getOwnPropertyDescriptor(fromPrototype ? Object.getPrototypeOf(this) : this, storageKey),
-            );
-            delete this[valInfoKey];
-            delete this[storageKey];
-        }
-        return true
-    }
-}
-
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("./ISerializer").default<T>} ISerializer
- */
-
-class SerializerFactory {
-
-    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
-    static #serializers = new Map()
-
-    static registerSerializer(entity, object) {
-        SerializerFactory.#serializers.set(entity, object);
+    /**  @param {[Number, Number]} param0 */
+    static getPolarCoordinates([x, y]) {
+        return [
+            Math.sqrt(x * x + y * y),
+            Math.atan2(y, x),
+        ]
     }
 
-    /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entity
-     */
-    static getSerializer(entity) {
-        return SerializerFactory.#serializers.get(entity)
+    /**  @param {[Number, Number]} param0 */
+    static getCartesianCoordinates([r, theta]) {
+        return [
+            r * Math.cos(theta),
+            r * Math.sin(theta)
+        ]
     }
 }
 
@@ -836,41 +852,6 @@ class IEntity extends Observable {
     }
 }
 
-class IntegerEntity extends IEntity {
-
-    static attributes = {
-        value: Number,
-    }
-
-    /** @param {Object | Number | String} options */
-    constructor(options = 0) {
-        super(options);
-        /** @type {Number} */
-        this.value = Math.round(this.value);
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
-
-class ColorChannelValueEntity extends IntegerEntity {
-
-    static attributes = {
-        value: Number,
-    }
-
-    /** @param {Object | Number | String} options */
-    constructor(options = 0) {
-        super(options);
-        this.value = Utility.clamp(this.value, 0, 255);
-    }
-}
-
 class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
@@ -956,6 +937,28 @@ class IdentifierEntity extends IEntity {
     }
 }
 
+class IntegerEntity extends IEntity {
+
+    static attributes = {
+        value: Number,
+    }
+
+    /** @param {Object | Number | String} options */
+    constructor(options = 0) {
+        super(options);
+        /** @type {Number} */
+        this.value = Math.round(this.value);
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
 class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
@@ -996,42 +999,77 @@ class KeyBindingEntity extends IEntity {
     }
 }
 
-class ColorChannelRealValueEntity extends IntegerEntity {
+class RealUnitEntity extends IEntity {
+
+    static attributes = {
+        value: Number,
+    }
+
+    /** @param {Object | Number | String} options */
+    constructor(options = 0) {
+        super(options);
+        /** @type {Number} */
+        this.value = Utility.clamp(this.value, 0, 1);
+    }
+
+    valueOf() {
+        return this.value
+    }
 
     toString() {
-        return (this.value / 255).toFixed(6)
+        return this.value.toFixed(6)
     }
 }
 
 class LinearColorEntity extends IEntity {
 
     static attributes = {
-        R: ColorChannelRealValueEntity,
-        G: ColorChannelRealValueEntity,
-        B: ColorChannelRealValueEntity,
-        A: ColorChannelRealValueEntity,
+        R: RealUnitEntity,
+        G: RealUnitEntity,
+        B: RealUnitEntity,
+        A: new RealUnitEntity(1),
     }
 
     static fromWheelLocation([x, y], radius) {
         x -= radius;
         y -= radius;
+        const [r, theta] = Utility.getPolarCoordinates([x, y]);
+        return LinearColorEntity.fromHSV([-theta, r])
+    }
+
+    /** @param {Number[]} param0 */
+    static fromHSV([h, s, v, a = 1]) {
+        const i = Math.floor(h * 6);
+        const f = h * 6 - i;
+        const p = v * (1 - s);
+        const q = v * (1 - f * s);
+        const t = v * (1 - (1 - f) * s);
+        const values = [v, q, p, p, t, v];
+        const [r, g, b] = [values[i % 6], values[(i + 4) % 6], values[(i + 2) % 6]];
+        return new LinearColorEntity({
+            R: r,
+            G: g,
+            B: b,
+            A: a,
+        })
     }
 
     constructor(options = {}) {
         super(options);
-        /** @type {ColorChannelRealValueEntity} */ this.R;
-        /** @type {ColorChannelRealValueEntity} */ this.G;
-        /** @type {ColorChannelRealValueEntity} */ this.B;
-        /** @type {ColorChannelRealValueEntity} */ this.A;
+        /** @type {RealUnitEntity} */ this.R;
+        /** @type {RealUnitEntity} */ this.G;
+        /** @type {RealUnitEntity} */ this.B;
+        /** @type {RealUnitEntity} */ this.A;
     }
 
     toRGBA() {
-        return [this.R, this.G, this.B, this.A]
+        return [this.R.value * 255, this.G.value * 255, this.B.value * 255, this.A.value * 255]
     }
 
     toHSV() {
-        const max = Math.max(this.R.value, this.G.value, this.B.value);
-        const min = Math.min(this.R.value, this.G.value, this.B.value);
+        const [r, g, b, a] = this.toRGBA();
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
         const d = max - min;
         let h;
         const s = (max == 0 ? 0 : d / max);
@@ -1040,14 +1078,14 @@ class LinearColorEntity extends IEntity {
             case min:
                 h = 0;
                 break
-            case this.R.value:
-                h = (this.G.value - this.B.value) + d * (this.G.value < this.B.value ? 6 : 0);
+            case r:
+                h = (g - b) + d * (g < b ? 6 : 0);
                 break
-            case this.G.value:
-                h = (this.B.value - this.R.value) + d * 2;
+            case g:
+                h = (b - r) + d * 2;
                 break
-            case this.B.value:
-                h = (this.R.value - this.G.value) + d * 4;
+            case b:
+                h = (r - g) + d * 4;
                 break
         }
         h /= 6 * d;
@@ -1055,7 +1093,7 @@ class LinearColorEntity extends IEntity {
     }
 
     toNumber() {
-        return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
+        return (this.R.value * 0xff << 3 * 0x8) + (this.G.value * 0xff << 2 * 0x8) + (this.B.value * 0xff << 0x8) + this.A.value
     }
 
     toString() {
@@ -1442,42 +1480,6 @@ class Grammar {
             return result
         }
         switch (Utility.getType(attributeType)) {
-            case Boolean:
-                return r.Boolean
-            case Number:
-                return r.Number
-            case IntegerEntity:
-                return r.Integer
-            case String:
-                return r.String
-            case GuidEntity:
-                return r.Guid
-            case IdentifierEntity:
-                return r.Identifier
-            case ObjectReferenceEntity:
-                return r.Reference
-            case LocalizedTextEntity:
-                return r.LocalizedText
-            case InvariantTextEntity:
-                return r.InvariantText
-            case PinReferenceEntity:
-                return r.PinReference
-            case VectorEntity:
-                return r.Vector
-            case RotatorEntity:
-                return r.Rotator
-            case SimpleSerializationRotatorEntity:
-                return r.SimpleSerializationRotator
-            case SimpleSerializationVectorEntity:
-                return r.SimpleSerializationVector
-            case ColorChannelValueEntity:
-                return r.ColorChannelValue
-            case LinearColorEntity:
-                return r.LinearColor
-            case FunctionReferenceEntity:
-                return r.FunctionReference
-            case PinEntity:
-                return r.Pin
             case Array:
                 return P.seqMap(
                     P.string("("),
@@ -1494,6 +1496,42 @@ class Grammar {
                     P.string(")"),
                     (_, grammar, __) => grammar
                 )
+            case Boolean:
+                return r.Boolean
+            case FunctionReferenceEntity:
+                return r.FunctionReference
+            case GuidEntity:
+                return r.Guid
+            case IdentifierEntity:
+                return r.Identifier
+            case IntegerEntity:
+                return r.Integer
+            case InvariantTextEntity:
+                return r.InvariantText
+            case LinearColorEntity:
+                return r.LinearColor
+            case LocalizedTextEntity:
+                return r.LocalizedText
+            case Number:
+                return r.Number
+            case ObjectReferenceEntity:
+                return r.Reference
+            case PinEntity:
+                return r.Pin
+            case PinReferenceEntity:
+                return r.PinReference
+            case RealUnitEntity:
+                return r.RealUnit
+            case RotatorEntity:
+                return r.Rotator
+            case SimpleSerializationRotatorEntity:
+                return r.SimpleSerializationRotator
+            case SimpleSerializationVectorEntity:
+                return r.SimpleSerializationVector
+            case String:
+                return r.String
+            case VectorEntity:
+                return r.Vector
             default:
                 return defaultGrammar
         }
@@ -1562,6 +1600,9 @@ class Grammar {
 
     /** @param {Grammar} r */
     RealNumber = r => P.regex(/[-\+]?[0-9]+\.[0-9]+/).map(Number).desc("a number written as real")
+
+    /** @param {Grammar} r */
+    RealUnit = r => P.regex(/\+?[0-9]+(?:\.[0-9]+)?/).map(Number).assert(v => v >= 0 && v <= 1).desc("a number between 0 and 1")
 
     /** @param {Grammar} r */
     NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
@@ -1711,17 +1752,6 @@ class Grammar {
             Y: y,
             Z: z,
         })
-    )
-
-    /** @param {Grammar} r */
-    ColorChannelValue = r => P.alt(
-        r.RealNumber.map(v => new ColorChannelValueEntity(v * 255)),
-        r.ColorNumber.map(v => new ColorChannelValueEntity(v)),
-    )
-
-    /** @param {Grammar} r */
-    ColorChannelRealValue = r => P.alt(
-        r.RealNumber.map(v => new ColorChannelValueEntity(v * 255))
     )
 
     /** @param {Grammar} r */
@@ -2363,10 +2393,13 @@ class KeyboardSelectAll extends IKeyboardShortcut {
     }
 }
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ */
 
 /**
- * @template {HTMLElement} T
+ * @template {IDraggableElement} T
  * @extends {IPointing<T>}
  */
 class IMouseClickDrag extends IPointing {
@@ -2390,6 +2423,7 @@ class IMouseClickDrag extends IPointing {
     started = false
     stepSize = 1
     clickedPosition = [0, 0]
+    clickedOffset = [0, 0]
     mouseLocation = [0, 0]
 
     /**
@@ -2427,6 +2461,10 @@ class IMouseClickDrag extends IPointing {
                         self.#movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler);
                         document.addEventListener("mouseup", self.#mouseUpHandler);
                         self.clickedPosition = self.locationFromEvent(e);
+                        self.clickedOffset = [
+                            self.clickedPosition[0] - self.target.locationX,
+                            self.clickedPosition[1] - self.target.locationY,
+                        ];
                         self.clicked(self.clickedPosition);
                     }
                     break
@@ -2708,6 +2746,7 @@ class IElement extends s {
         this.template.inputSetup();
     }
 
+    /** @param {Map<String, String>} */
     updated(changedProperties) {
         super.updated(changedProperties);
         this.template.updated(changedProperties);
@@ -3420,7 +3459,6 @@ class MouseCreateLink extends IMouseClickDrag {
 }
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../input/IInput").default} IInput
  */
 /**
@@ -3546,8 +3584,7 @@ class BoolPinTemplate extends PinTemplate {
 
 class ExecPinTemplate extends PinTemplate {
 
-    /** @param {PinElement} pin */
-    renderIcon(pin) {
+    renderIcon() {
         return $`
             <svg viewBox="-2 0 16 16">
                 <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
@@ -3574,6 +3611,7 @@ class MouseMoveDraggable extends IMouseClickDrag {
                 ? Utility.snapToGrid(location, this.stepSize)
                 : location
             );
+            this.clickedOffset = [0, 0];
         }
     }
 
@@ -3598,7 +3636,10 @@ class MouseMoveDraggable extends IMouseClickDrag {
     }
 
     dragAction(location, offset) {
-        this.target.addLocation(offset);
+        this.target.setLocation([
+            location[0] - this.clickedOffset[0],
+            location[1] - this.clickedOffset[1]
+        ]);
     }
 }
 
@@ -3643,6 +3684,84 @@ class IDraggableTemplate extends ITemplate {
     }
 }
 
+/** @typedef {import("../element/ColorHandlerElement").default} ColorHandlerElement */
+
+/** @extends {IDraggableTemplate<ColorHandlerElement>} */
+class ColorHandlerTemplate extends IDraggableTemplate {
+
+    #locationChangeCallback
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.window = this.element.closest("ueb-window");
+        this.movementSpace = this.element.parentElement;
+        const bounding = this.movementSpace.getBoundingClientRect();
+        this.movementSpaceSize = [bounding.width, bounding.height];
+    }
+
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.element.parentElement,
+            ignoreTranslateCompensate: true,
+            looseTarget: true,
+            moveEverywhere: true,
+            movementSpace: this.element.parentElement,
+            repositionClickOffset: true,
+            stepSize: 1,
+        })
+    }
+
+    /**  @param {[Number, Number]} param0 */
+    adjustLocation([x, y]) {
+        const radius = Math.round(this.movementSpaceSize[0] / 2);
+        x = x - radius;
+        y = -(y - radius);
+        let [r, theta] = Utility.getPolarCoordinates([x, y]);
+        r = Math.min(r, radius), [x, y] = Utility.getCartesianCoordinates([r, theta]);
+        x = Math.round(x + radius);
+        y = Math.round(-y + radius);
+        this.#locationChangeCallback?.([x, y]);
+        return [x, y]
+    }
+
+    setLocationChangeCallback(callback) {
+        this.#locationChangeCallback = callback;
+    }
+}
+
+/** @typedef {import("../template/ColorPickerWindowTemplate").default} ColorPickerWindowTemplate */
+/**
+ * @template T
+ * @typedef {import("./WindowElement").default<T>} WindowElement
+ */
+
+/** @extends {IDraggableElement<Object, ColorHandlerTemplate>} */
+class ColorHandlerElement extends IDraggableElement {
+
+    /** @type {WindowElement<ColorPickerWindowTemplate>} */
+    windowElement
+
+    constructor() {
+        super({}, new ColorHandlerTemplate());
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.windowElement = this.closest("ueb-window");
+    }
+
+    /** @param {Number[]} param0 */
+    setLocation([x, y]) {
+        super.setLocation(this.template.adjustLocation([x, y]));
+    }
+
+    computeColor() {
+        return new LinearColorEntity()
+    }
+}
+
+customElements.define("ueb-color-handler", ColorHandlerElement);
+
 /** @typedef {import("../element/WindowElement").default} WindowElement */
 
 /** @extends {IDraggableTemplate<WindowElement>} */
@@ -3659,9 +3778,10 @@ class WindowTemplate extends IDraggableTemplate {
     createDraggableObject() {
         return new MouseMoveDraggable(this.element, this.element.blueprint, {
             draggableElement: this.getDraggableElement(),
+            ignoreTranslateCompensate: true,
             looseTarget: true,
-            stepSize: 1,
             movementSpace: this.element.blueprint,
+            stepSize: 1,
         })
     }
 
@@ -3711,10 +3831,11 @@ class ColorPickerWindowTemplate extends WindowTemplate {
     }
     /** @param {LinearColorEntity} value */
     set color(value) {
-        if (value.toNumber() == this.color.toNumber()) {
-            this.element.requestUpdate("color", this.#color);
-            this.#color = value;
+        if (value.toNumber() == this.color?.toNumber()) {
+            return
         }
+        this.element.requestUpdate("color", this.#color);
+        this.#color = value;
     }
 
     connectedCallback() {
@@ -3724,6 +3845,13 @@ class ColorPickerWindowTemplate extends WindowTemplate {
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
+        const wheelHandler = new ColorHandlerElement();
+        new ColorHandlerElement();
+        wheelHandler.template.setLocationChangeCallback(([x, y]) => {
+            this.color = LinearColorEntity.fromWheelLocation(x, y);
+        });
+        this.element.querySelector(".ueb-color-picker-wheel").appendChild(new ColorHandlerElement());
+
     }
 
     renderContent() {
@@ -3735,9 +3863,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                     <div class="ueb-color-picker-srgb"></div>
                 </div>
                 <div class="ueb-color-picker-main">
-                    <div class="ueb-color-picker-wheel">
-                        <ueb-color-handler></ueb-color-handler>
-                    </div>
+                    <div class="ueb-color-picker-wheel"></div>
                     <div class="ueb-color-picker-saturation"></div>
                     <div class="ueb-color-picker-value"></div>
                     <div class="ueb-color-picker-preview">
@@ -4039,7 +4165,7 @@ class MouseOpenWindow extends IMouseClick {
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity}
+ * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
  */
 
 class LinearColorPinTemplate extends IInputPinTemplate {
@@ -4053,7 +4179,6 @@ class LinearColorPinTemplate extends IInputPinTemplate {
         this.#input = this.element.querySelector(".ueb-pin-input");
     }
 
-    /** @returns {IInput[]} */
     createInputObjects() {
         return [
             ...super.createInputObjects(),
@@ -4071,8 +4196,7 @@ class LinearColorPinTemplate extends IInputPinTemplate {
         ]
     }
 
-    /** @param {PinElement} pin */
-    getInputs(pin) {
+    getInputs() {
         return [this.#input.dataset.linearColor]
     }
 
@@ -4099,10 +4223,7 @@ class NamePinTemplate extends IInputPinTemplate {
     /** @type {(e : InputEvent) => void} */
     onInputHandler
 
-    /**
-     * @param {PinElement} pin
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.onInputHandler = e => {
@@ -4128,12 +4249,11 @@ class NamePinTemplate extends IInputPinTemplate {
         });
     }
 
-    /** @param {PinElement} pin */
-    getInputs(pin) {
+    getInputs() {
         return this.inputContentElements.map(element => element.textContent) // textContent for performance reason
     }
 
-    /** @param {String[]?} values */
+    /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = true) {
         values = values.map(value => value.replaceAll("\n", "")); // get rid of the new lines
         super.setInputs(values, updateDefaultValue);
@@ -5932,16 +6052,6 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
-        ColorChannelRealValueEntity,
-        new ToStringSerializer(ColorChannelValueEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        ColorChannelValueEntity,
-        new ToStringSerializer(ColorChannelValueEntity)
-    );
-
-    SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
         new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
     );
@@ -6020,6 +6130,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+    );
+
+    SerializerFactory.registerSerializer(
+        RealUnitEntity,
+        new ToStringSerializer(RealUnitEntity)
     );
 
     SerializerFactory.registerSerializer(

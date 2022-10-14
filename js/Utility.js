@@ -240,6 +240,22 @@ export default class Utility {
 
     /** @param {LinearColorEntity} value */
     static printLinearColor(value) {
-        return `${Math.round(value.R * 255)}, ${Math.round(value.G * 255)}, ${Math.round(value.B * 255)}`
+        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
+    }
+
+    /**  @param {[Number, Number]} param0 */
+    static getPolarCoordinates([x, y]) {
+        return [
+            Math.sqrt(x * x + y * y),
+            Math.atan2(y, x),
+        ]
+    }
+
+    /**  @param {[Number, Number]} param0 */
+    static getCartesianCoordinates([r, theta]) {
+        return [
+            r * Math.cos(theta),
+            r * Math.sin(theta)
+        ]
     }
 }

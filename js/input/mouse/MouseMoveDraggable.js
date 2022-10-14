@@ -18,6 +18,7 @@ export default class MouseMoveDraggable extends IMouseClickDrag {
                 ? Utility.snapToGrid(location, this.stepSize)
                 : location
             )
+            this.clickedOffset = [0, 0]
         }
     }
 
@@ -42,6 +43,9 @@ export default class MouseMoveDraggable extends IMouseClickDrag {
     }
 
     dragAction(location, offset) {
-        this.target.addLocation(offset)
+        this.target.setLocation([
+            location[0] - this.clickedOffset[0],
+            location[1] - this.clickedOffset[1]
+        ])
     }
 }

@@ -1,5 +1,4 @@
 // @ts-nocheck
-import ColorChannelValueEntity from "../entity/ColorChannelValueEntity"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
@@ -14,6 +13,7 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import RealUnitEntity from "../entity/UnitRealEntity"
 import RotatorEntity from "../entity/RotatorEntity"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
@@ -37,44 +37,6 @@ export default class Grammar {
             return result
         }
         switch (Utility.getType(attributeType)) {
-            case Boolean:
-                return r.Boolean
-            case Number:
-                return r.Number
-            case IntegerEntity:
-                return r.Integer
-            case String:
-                return r.String
-            case GuidEntity:
-                return r.Guid
-            case IdentifierEntity:
-                return r.Identifier
-            case ObjectReferenceEntity:
-                return r.Reference
-            case LocalizedTextEntity:
-                return r.LocalizedText
-            case InvariantTextEntity:
-                return r.InvariantText
-            case PinReferenceEntity:
-                return r.PinReference
-            case VectorEntity:
-                return r.Vector
-            case RotatorEntity:
-                return r.Rotator
-            case SimpleSerializationRotatorEntity:
-                return r.SimpleSerializationRotator
-            case SimpleSerializationVectorEntity:
-                return r.SimpleSerializationVector
-            case ColorChannelValueEntity:
-                return r.ColorChannelValue
-            case ColorChannelRealValue:
-                return r.ColorChannelRealValue
-            case LinearColorEntity:
-                return r.LinearColor
-            case FunctionReferenceEntity:
-                return r.FunctionReference
-            case PinEntity:
-                return r.Pin
             case Array:
                 return P.seqMap(
                     P.string("("),
@@ -91,6 +53,42 @@ export default class Grammar {
                     P.string(")"),
                     (_, grammar, __) => grammar
                 )
+            case Boolean:
+                return r.Boolean
+            case FunctionReferenceEntity:
+                return r.FunctionReference
+            case GuidEntity:
+                return r.Guid
+            case IdentifierEntity:
+                return r.Identifier
+            case IntegerEntity:
+                return r.Integer
+            case InvariantTextEntity:
+                return r.InvariantText
+            case LinearColorEntity:
+                return r.LinearColor
+            case LocalizedTextEntity:
+                return r.LocalizedText
+            case Number:
+                return r.Number
+            case ObjectReferenceEntity:
+                return r.Reference
+            case PinEntity:
+                return r.Pin
+            case PinReferenceEntity:
+                return r.PinReference
+            case RealUnitEntity:
+                return r.RealUnit
+            case RotatorEntity:
+                return r.Rotator
+            case SimpleSerializationRotatorEntity:
+                return r.SimpleSerializationRotator
+            case SimpleSerializationVectorEntity:
+                return r.SimpleSerializationVector
+            case String:
+                return r.String
+            case VectorEntity:
+                return r.Vector
             default:
                 return defaultGrammar
         }
@@ -159,6 +157,9 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     RealNumber = r => P.regex(/[-\+]?[0-9]+\.[0-9]+/).map(Number).desc("a number written as real")
+
+    /** @param {Grammar} r */
+    RealUnit = r => P.regex(/\+?[0-9]+(?:\.[0-9]+)?/).map(Number).assert(v => v >= 0 && v <= 1).desc("a number between 0 and 1")
 
     /** @param {Grammar} r */
     NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
@@ -308,17 +309,6 @@ export default class Grammar {
             Y: y,
             Z: z,
         })
-    )
-
-    /** @param {Grammar} r */
-    ColorChannelValue = r => P.alt(
-        r.RealNumber.map(v => new ColorChannelValueEntity(v * 255)),
-        r.ColorNumber.map(v => new ColorChannelValueEntity(v)),
-    )
-
-    /** @param {Grammar} r */
-    ColorChannelRealValue = r => P.alt(
-        r.RealNumber.map(v => new ColorChannelValueEntity(v * 255))
     )
 
     /** @param {Grammar} r */

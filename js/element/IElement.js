@@ -91,6 +91,7 @@ export default class IElement extends LitElement {
         this.template.inputSetup()
     }
 
+    /** @param {Map<String, String>} */
     updated(changedProperties) {
         super.updated(changedProperties)
         this.template.updated(changedProperties)

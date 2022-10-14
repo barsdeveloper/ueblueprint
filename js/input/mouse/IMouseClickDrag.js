@@ -2,10 +2,13 @@ import Configuration from "../../Configuration"
 import IPointing from "./IPointing"
 import Utility from "../../Utility"
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ */
 
 /**
- * @template {HTMLElement} T
+ * @template {IDraggableElement} T
  * @extends {IPointing<T>}
  */
 export default class IMouseClickDrag extends IPointing {
@@ -29,6 +32,7 @@ export default class IMouseClickDrag extends IPointing {
     started = false
     stepSize = 1
     clickedPosition = [0, 0]
+    clickedOffset = [0, 0]
     mouseLocation = [0, 0]
 
     /**
@@ -66,6 +70,10 @@ export default class IMouseClickDrag extends IPointing {
                         self.#movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler)
                         document.addEventListener("mouseup", self.#mouseUpHandler)
                         self.clickedPosition = self.locationFromEvent(e)
+                        self.clickedOffset = [
+                            self.clickedPosition[0] - self.target.locationX,
+                            self.clickedPosition[1] - self.target.locationY,
+                        ]
                         self.clicked(self.clickedPosition)
                     }
                     break

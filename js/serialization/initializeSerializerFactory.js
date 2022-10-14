@@ -1,5 +1,3 @@
-import ColorChannelRealValueEntity from "../entity/ColorChannelRealValueEntity"
-import ColorChannelValueEntity from "../entity/ColorChannelValueEntity"
 import CustomSerializer from "./CustomSerializer"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GeneralSerializer from "./GeneralSerializer"
@@ -16,6 +14,7 @@ import ObjectSerializer from "./ObjectSerializer"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import RealUnitEntity from "../entity/UnitRealEntity"
 import RotatorEntity from "../entity/RotatorEntity"
 import SerializerFactory from "./SerializerFactory"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
@@ -64,16 +63,6 @@ export default function initializeSerializerFactory() {
                     : "False",
             Boolean
         )
-    )
-
-    SerializerFactory.registerSerializer(
-        ColorChannelRealValueEntity,
-        new ToStringSerializer(ColorChannelValueEntity)
-    )
-
-    SerializerFactory.registerSerializer(
-        ColorChannelValueEntity,
-        new ToStringSerializer(ColorChannelValueEntity)
     )
 
     SerializerFactory.registerSerializer(
@@ -155,6 +144,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+    )
+
+    SerializerFactory.registerSerializer(
+        RealUnitEntity,
+        new ToStringSerializer(RealUnitEntity)
     )
 
     SerializerFactory.registerSerializer(
