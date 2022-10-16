@@ -31,7 +31,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
                     /** @param {LinearColorEntity} color */
                     setPinColor: color => this.element.setDefaultValue(color),
                 },
-            })
+            }),
         ]
     }
 
@@ -47,7 +47,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
         if (this.element.isInput()) {
             return html`
                 <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
-                    .style="--ueb-linear-color:rgba(${this.element.defaultValue.toString()})">
+                    style="--ueb-linear-color:rgba(${this.element.defaultValue.toString()})">
                 </span>
             `
         }

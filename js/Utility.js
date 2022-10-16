@@ -244,10 +244,14 @@ export default class Utility {
     }
 
     /**  @param {[Number, Number]} param0 */
-    static getPolarCoordinates([x, y]) {
+    static getPolarCoordinates([x, y], positiveTheta = false) {
+        let theta = Math.atan2(y, x)
+        if (positiveTheta && theta < 0) {
+            theta = 2 * Math.PI + theta
+        }
         return [
             Math.sqrt(x * x + y * y),
-            Math.atan2(y, x),
+            theta,
         ]
     }
 

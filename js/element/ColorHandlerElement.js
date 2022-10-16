@@ -1,6 +1,5 @@
-import LinearColorEntity from "../entity/LinearColorEntity"
 import ColorHandlerTemplate from "../template/ColorHandlerTemplate"
-import IDraggableElement from "./IDraggableElement"
+import IDraggableControlElement from "./IDraggableControlElement"
 
 /** @typedef {import("../template/ColorPickerWindowTemplate").default} ColorPickerWindowTemplate */
 /**
@@ -8,28 +7,11 @@ import IDraggableElement from "./IDraggableElement"
  * @typedef {import("./WindowElement").default<T>} WindowElement
  */
 
-/** @extends {IDraggableElement<Object, ColorHandlerTemplate>} */
-export default class ColorHandlerElement extends IDraggableElement {
-
-    /** @type {WindowElement<ColorPickerWindowTemplate>} */
-    windowElement
+/** @extends {IDraggableControlElement<Object, ColorHandlerTemplate>} */
+export default class ColorHandlerElement extends IDraggableControlElement {
 
     constructor() {
         super({}, new ColorHandlerTemplate())
-    }
-
-    connectedCallback() {
-        super.connectedCallback()
-        this.windowElement = this.closest("ueb-window")
-    }
-
-    /** @param {Number[]} param0 */
-    setLocation([x, y]) {
-        super.setLocation(this.template.adjustLocation([x, y]))
-    }
-
-    computeColor() {
-        return new LinearColorEntity()
     }
 }
 

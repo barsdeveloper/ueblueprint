@@ -14,7 +14,7 @@ import Utility from "./Utility"
  *     primaryInf: Number,
  *     primarySup: Number,
  *     secondaryInf: Number,
- *     secondarySup: Number
+ *     secondarySup: Number,
  * }} BoundariesInfo
  */
 

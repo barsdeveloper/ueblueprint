@@ -7,8 +7,6 @@ import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
 /** @extends {IDraggableTemplate<WindowElement>} */
 export default class WindowTemplate extends IDraggableTemplate {
 
-    static windowName = html`Window`
-
     toggleAdvancedDisplayHandler
 
     getDraggableElement() {
@@ -24,20 +22,11 @@ export default class WindowTemplate extends IDraggableTemplate {
         })
     }
 
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            this.createDraggableObject(),
-        ]
-    }
-
     render() {
         return html`
             <div class="ueb-window">
                 <div class="ueb-window-top">
-                    <div class="ueb-window-name ueb-ellipsis-nowrap-text">${
-                         // @ts-expect-error
-                         this.constructor.windowName}</div>
+                    <div class="ueb-window-name ueb-ellipsis-nowrap-text">${this.renderWindowName()}</div>
                     <div class="ueb-window-close">
                         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
@@ -50,6 +39,10 @@ export default class WindowTemplate extends IDraggableTemplate {
                 </div>
             </div>
         `
+    }
+
+    renderWindowName() {
+        return html`Window`
     }
 
     renderContent() {

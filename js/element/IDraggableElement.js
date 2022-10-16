@@ -28,9 +28,12 @@ export default class IDraggableElement extends IElement {
     static dragEventName = Configuration.dragEventName
     static dragGeneralEventName = Configuration.dragGeneralEventName
 
-    constructor(...args) {
-        // @ts-expect-error
-        super(...args)
+    /**
+     * @param {T} entity
+     * @param {U} template
+     */
+    constructor(entity, template) {
+        super(entity, template)
         this.locationX = 0
         this.locationY = 0
     }

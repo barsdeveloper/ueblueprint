@@ -73,11 +73,48 @@ ueb-color-handler {
 
 .ueb-color-picker-saturation,
 .ueb-color-picker-value {
-    margin: 0 8px;
+    margin: 0 6px;
     width: 30px;
-    background: linear-gradient(to bottom, transparent 10%, #000000 100%), rebeccapurple;
+    background-color: rgb(calc(var(--ueb-color-r) * 255), calc(var(--ueb-color-g) * 255), calc(var(--ueb-color-b) * 255));
+}
+
+.ueb-color-picker-saturation {
+    background-image: linear-gradient(to bottom, transparent 10px, #FFFFFF 100%);
 }
 
 .ueb-color-picker-value {
-    background: linear-gradient(to bottom, transparent 10%, #FFFFFF 100%), rebeccapurple;
+    background-image: linear-gradient(to bottom, transparent 10px, #000000 100%);
+}
+
+.ueb-color-picker-slider {
+    position: relative;
+    padding-bottom: 10px;
+
+    &::before,
+    &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        width: 0;
+        height: 0;
+        border: 5px solid transparent;
+    }
+
+    &::before {
+        left: -4px;
+        border-left-color: #e0e0e0;
+    }
+
+    &::after {
+        right: -4px;
+        border-right-color: #e0e0e0;
+    }
+}
+
+.ueb-color-picker-saturation .ueb-color-picker-slider {
+    top: calc(100% - var(--ueb-color-s) * 100%)
+}
+
+.ueb-color-picker-value .ueb-color-picker-slider {
+    top: calc(100% - var(--ueb-color-v) * 100%)
 }

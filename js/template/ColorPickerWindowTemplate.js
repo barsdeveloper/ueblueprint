@@ -1,15 +1,13 @@
 import { html } from "lit"
+import { styleMap } from "lit/directives/style-map.js"
 import ColorHandlerElement from "../element/ColorHandlerElement"
-import Configuration from "../Configuration"
+import ColorSliderElement from "../element/ColorSliderElement"
 import LinearColorEntity from "../entity/LinearColorEntity"
-import Utility from "../Utility"
 import WindowTemplate from "./WindowTemplate"
 
 /** @typedef {import("../element/WindowElement").default} WindowElement */
 
 export default class ColorPickerWindowTemplate extends WindowTemplate {
-
-    static windowName = html`Color Picker`
 
     /** @type {LinearColorEntity} */
     #color
@@ -34,26 +32,38 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
     firstUpdated(changedProperties) {
         const wheelHandler = new ColorHandlerElement()
         const spectrumHandler = new ColorHandlerElement()
-        wheelHandler.template.setLocationChangeCallback(([x, y]) => {
-            const [r, theta] = Utility.getPolarCoordinates([x, y])
-            this.color = LinearColorEntity.fromWheelLocation(x, y)
-        })
-        this.element.querySelector(".ueb-color-picker-wheel").appendChild(new ColorHandlerElement())
-
+        const saturationSlider = new ColorSliderElement()
+        wheelHandler.template.locationChangeCallback = ([x, y], radius, v, a) => {
+            this.color = LinearColorEntity.fromWheelLocation([x, y], radius, v, a)
+        }
+        this.element.querySelector(".ueb-color-picker-wheel").appendChild(wheelHandler)
     }
 
     renderContent() {
+        const [h, s, v] = this.color.toHSVA()
+        const style = {
+            "--ueb-color-r": this.color.R.toString(),
+            "--ueb-color-g": this.color.G.toString(),
+            "--ueb-color-b": this.color.B.toString(),
+            "--ueb-color-a": this.color.A.toString(),
+            "--ueb-color-h": h.toString(),
+            "--ueb-color-s": s.toString(),
+            "--ueb-color-v": v.toString(),
+        }
         return html`
-            <div class="ueb-color-picker"
-                .style="--ueb-color-r: ${this.color.R}; --ueb-color-g: ${this.color.G}; --ueb-color-b: ${this.color.B}; --ueb-color-a: ${this.color.A};">
+            <div class="ueb-color-picker" style=${styleMap(style)}>
                 <div class="ueb-color-picker-toolbar">
                     <div class="ueb-color-picker-theme"></div>
                     <div class="ueb-color-picker-srgb"></div>
                 </div>
                 <div class="ueb-color-picker-main">
                     <div class="ueb-color-picker-wheel"></div>
-                    <div class="ueb-color-picker-saturation"></div>
-                    <div class="ueb-color-picker-value"></div>
+                    <div class="ueb-color-picker-saturation">
+                        <div class="ueb-color-picker-slider"></div>
+                    </div>
+                    <div class="ueb-color-picker-value">
+                        <div class="ueb-color-picker-slider"></div>
+                    </div>
                     <div class="ueb-color-picker-preview">
                         <div class="ueb-color-picker-preview-old"></div>
                         <div class="ueb-color-picker-preview-new"></div>
@@ -77,7 +87,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
         `
     }
 
-    cleanup() {
-        this.element.blueprint.removeEventListener(Configuration.colorWindowEventName, this.colorWindowHandler)
+    renderWindowName() {
+        return html`Color Picker`
     }
 }

@@ -81,7 +81,7 @@ export default class BlueprintTemplate extends ITemplate {
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
-                    .style="--ueb-additional-x: ${this.element}; --ueb-additional-y: ${this.element.translateY}; --ueb-translate-x: ${this.element.translateX}; --ueb-translate-y: ${this.element.translateY};">
+                    style="--ueb-additional-x: ${this.element}; --ueb-additional-y: ${this.element.translateY}; --ueb-translate-x: ${this.element.translateX}; --ueb-translate-y: ${this.element.translateY};">
                     <div class="ueb-grid-content">
                         <div data-links></div>
                         <div data-nodes></div>
