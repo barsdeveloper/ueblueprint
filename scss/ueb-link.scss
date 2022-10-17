@@ -16,7 +16,7 @@ ueb-link {
 }
 
 ueb-link svg {
-    --ueb-y-opposite-coefficient: calc(2* var(--ueb-y-opposite) - 1);
+    --ueb-y-opposite-coefficient: calc(2 * var(--ueb-y-opposite) - 1);
     position: absolute;
     top: 0;
     left: 0;
@@ -29,12 +29,12 @@ ueb-link svg {
 ueb-link svg path {
     visibility: visible;
     stroke: var(--ueb-link-color);
-    stroke-width: 1;
+    stroke-width: calc(3px / var(--ueb-scale));
 }
 
 ueb-link[data-dragging="true"] svg path,
 ueb-link svg g:hover path {
-    stroke-width: 5;
+    stroke-width: calc(6px / var(--ueb-scale));
     transition: stroke-width 0.8s;
 }
 

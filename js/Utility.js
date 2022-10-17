@@ -262,4 +262,8 @@ export default class Utility {
             r * Math.sin(theta)
         ]
     }
+
+    static range(begin, end, step = 1) {
+        return Array.from({ length: Math.ceil((end - begin) / step) }, (_, i) => begin + (i * step))
+    }
 }

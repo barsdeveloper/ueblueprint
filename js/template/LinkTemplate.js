@@ -107,7 +107,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <g>
                     <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
-                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
+                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="15" />
                 </g>
             </svg>
             ${this.element.linkMessageIcon != "" || this.element.linkMessageText != "" ? html`

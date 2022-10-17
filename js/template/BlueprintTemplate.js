@@ -20,6 +20,7 @@ import Zoom from "../input/mouse/Zoom"
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
 
+/** @extends ITemplate<Blueprint> */
 export default class BlueprintTemplate extends ITemplate {
 
     static styleVariables = {
@@ -76,12 +77,12 @@ export default class BlueprintTemplate extends ITemplate {
     render() {
         return html`
             <div class="ueb-viewport-header">
-                <div class="ueb-viewport-zoom">1:1</div>
+                <div class="ueb-viewport-zoom">${this.element.zoom == 0 ? "1:1" : this.element.zoom}</div>
             </div>
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
-                    style="--ueb-additional-x: ${this.element}; --ueb-additional-y: ${this.element.translateY}; --ueb-translate-x: ${this.element.translateX}; --ueb-translate-y: ${this.element.translateY};">
+                    style="--ueb-additional-x: ${Math.round(this.element.translateX)}; --ueb-additional-y: ${Math.round(this.element.translateY)}; --ueb-translate-x: ${Math.round(this.element.translateX)}; --ueb-translate-y: ${Math.round(this.element.translateY)};">
                     <div class="ueb-grid-content">
                         <div data-links></div>
                         <div data-nodes></div>
@@ -113,6 +114,20 @@ export default class BlueprintTemplate extends ITemplate {
         super.updated(changedProperties)
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
             this.element.viewportElement.scroll(this.element.scrollX, this.element.scrollY)
+        }
+        if (changedProperties.has("zoom")) {
+            const previousZoom = changedProperties.get("zoom")
+            const minZoom = Math.min(previousZoom, this.element.zoom)
+            const maxZoom = Math.max(previousZoom, this.element.zoom)
+            const classes = Utility.range(minZoom, maxZoom)
+            const getClassName = v => `ueb-zoom-${v}`
+            if (previousZoom < this.element.zoom) {
+                this.element.classList.remove(...classes.filter(v => v < 0).map(getClassName))
+                this.element.classList.add(...classes.filter(v => v > 0).map(getClassName))
+            } else {
+                this.element.classList.remove(...classes.filter(v => v > 0).map(getClassName))
+                this.element.classList.add(...classes.filter(v => v < 0).map(getClassName))
+            }
         }
     }
 

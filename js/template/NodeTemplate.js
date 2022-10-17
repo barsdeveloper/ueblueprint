@@ -31,7 +31,9 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                         <div class="ueb-node-outputs"></div>
                     </div>
                     ${this.element.enabledState?.toString() == "DevelopmentOnly" ? html`
-                    <div class="ueb-node-developmentonly">Development Only</div>
+                    <div class="ueb-node-developmentonly">
+                        <span class="ueb-node-developmentonly-text">Development Only</span>
+                    </div>
                     ` : nothing}
                     ${this.element.advancedPinDisplay ? html`
                     <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">

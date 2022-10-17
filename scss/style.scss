@@ -171,6 +171,10 @@ ueb-blueprint[data-zoom="-4"] {
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
 }
 
+ueb-blueprint.ueb-zoom--4 {
+    --ueb-node-radius: 0 !important;
+}
+
 ueb-blueprint[data-zoom="-5"] {
     --ueb-scale: 0.375;
     --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);

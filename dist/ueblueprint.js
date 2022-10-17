@@ -80,7 +80,7 @@ class Configuration {
         "/Script/CoreUObject.Vector": r$2`215, 202, 11`,
         "bool": r$2`117, 0, 0`,
         "default": r$2`167, 167, 167`,
-        "exec": r$2`167, 167, 167`,
+        "exec": r$2`240, 240, 240`,
         "name": r$2`203, 129, 252`,
         "real": r$2`50, 187, 0`,
         "string": r$2`213, 0, 176`,
@@ -755,6 +755,10 @@ class Utility {
             r * Math.cos(theta),
             r * Math.sin(theta)
         ]
+    }
+
+    static range(begin, end, step = 1) {
+        return Array.from({ length: Math.ceil((end - begin) / step) }, (_, i) => begin + (i * step))
     }
 }
 
@@ -3019,16 +3023,16 @@ class IFromToPositionedTemplate extends ITemplate {
     update(changedProperties) {
         super.update(changedProperties);
         if (changedProperties.has("initialPositionX")) {
-            this.element.style.setProperty("--ueb-from-x", `${this.element.initialPositionX}`);
+            this.element.style.setProperty("--ueb-from-x", `${Math.round(this.element.initialPositionX)}`);
         }
         if (changedProperties.has("initialPositionY")) {
-            this.element.style.setProperty("--ueb-from-y", `${this.element.initialPositionY}`);
+            this.element.style.setProperty("--ueb-from-y", `${Math.round(this.element.initialPositionY)}`);
         }
         if (changedProperties.has("finaPositionX")) {
-            this.element.style.setProperty("--ueb-to-x", `${this.element.finaPositionX}`);
+            this.element.style.setProperty("--ueb-to-x", `${Math.round(this.element.finaPositionX)}`);
         }
         if (changedProperties.has("finaPositionY")) {
-            this.element.style.setProperty("--ueb-to-y", `${this.element.finaPositionY}`);
+            this.element.style.setProperty("--ueb-to-y", `${Math.round(this.element.finaPositionY)}`);
         }
     }
 
@@ -3138,7 +3142,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <g>
                     <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
-                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="10" />
+                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="15" />
                 </g>
             </svg>
             ${this.element.linkMessageIcon != "" || this.element.linkMessageText != "" ? $`
@@ -3716,10 +3720,10 @@ class IDraggableTemplate extends ITemplate {
     update(changedProperties) {
         super.update(changedProperties);
         if (changedProperties.has("locationX")) {
-            this.element.style.setProperty("--ueb-position-x", `${this.element.locationX}`);
+            this.element.style.left = `${this.element.locationX}px`;
         }
         if (changedProperties.has("locationY")) {
-            this.element.style.setProperty("--ueb-position-y", `${this.element.locationY}`);
+            this.element.style.top = `${this.element.locationY}px`;
         }
     }
 }
@@ -4838,7 +4842,9 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                         <div class="ueb-node-outputs"></div>
                     </div>
                     ${this.element.enabledState?.toString() == "DevelopmentOnly" ? $`
-                    <div class="ueb-node-developmentonly">Development Only</div>
+                    <div class="ueb-node-developmentonly">
+                        <span class="ueb-node-developmentonly-text">Development Only</span>
+                    </div>
                     ` : w}
                     ${this.element.advancedPinDisplay ? $`
                     <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
@@ -5489,6 +5495,7 @@ class Unfocus extends IInput {
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
 
+/** @extends ITemplate<Blueprint> */
 class BlueprintTemplate extends ITemplate {
 
     static styleVariables = {
@@ -5545,12 +5552,12 @@ class BlueprintTemplate extends ITemplate {
     render() {
         return $`
             <div class="ueb-viewport-header">
-                <div class="ueb-viewport-zoom">1:1</div>
+                <div class="ueb-viewport-zoom">${this.element.zoom == 0 ? "1:1" : this.element.zoom}</div>
             </div>
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
-                    style="--ueb-additional-x: ${this.element}; --ueb-additional-y: ${this.element.translateY}; --ueb-translate-x: ${this.element.translateX}; --ueb-translate-y: ${this.element.translateY};">
+                    style="--ueb-additional-x: ${Math.round(this.element.translateX)}; --ueb-additional-y: ${Math.round(this.element.translateY)}; --ueb-translate-x: ${Math.round(this.element.translateX)}; --ueb-translate-y: ${Math.round(this.element.translateY)};">
                     <div class="ueb-grid-content">
                         <div data-links></div>
                         <div data-nodes></div>
@@ -5582,6 +5589,20 @@ class BlueprintTemplate extends ITemplate {
         super.updated(changedProperties);
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
             this.element.viewportElement.scroll(this.element.scrollX, this.element.scrollY);
+        }
+        if (changedProperties.has("zoom")) {
+            const previousZoom = changedProperties.get("zoom");
+            const minZoom = Math.min(previousZoom, this.element.zoom);
+            const maxZoom = Math.max(previousZoom, this.element.zoom);
+            const classes = Utility.range(minZoom, maxZoom);
+            const getClassName = v => `ueb-zoom-${v}`;
+            if (previousZoom < this.element.zoom) {
+                this.element.classList.remove(...classes.filter(v => v < 0).map(getClassName));
+                this.element.classList.add(...classes.filter(v => v > 0).map(getClassName));
+            } else {
+                this.element.classList.remove(...classes.filter(v => v > 0).map(getClassName));
+                this.element.classList.add(...classes.filter(v => v < 0).map(getClassName));
+            }
         }
     }
 

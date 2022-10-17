@@ -33,10 +33,10 @@ export default class IDraggableTemplate extends ITemplate {
     update(changedProperties) {
         super.update(changedProperties)
         if (changedProperties.has("locationX")) {
-            this.element.style.setProperty("--ueb-position-x", `${this.element.locationX}`)
+            this.element.style.left = `${this.element.locationX}px`
         }
         if (changedProperties.has("locationY")) {
-            this.element.style.setProperty("--ueb-position-y", `${this.element.locationY}`)
+            this.element.style.top = `${this.element.locationY}px`
         }
     }
 }

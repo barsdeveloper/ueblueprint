@@ -56,7 +56,7 @@ export default class Configuration {
         "/Script/CoreUObject.Vector": css`215, 202, 11`,
         "bool": css`117, 0, 0`,
         "default": css`167, 167, 167`,
-        "exec": css`167, 167, 167`,
+        "exec": css`240, 240, 240`,
         "name": css`203, 129, 252`,
         "real": css`50, 187, 0`,
         "string": css`213, 0, 176`,
