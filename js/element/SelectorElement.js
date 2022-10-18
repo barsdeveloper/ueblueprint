@@ -26,17 +26,17 @@ export default class SelectorElement extends IFromToPositionedElement {
     selectTo(finalPosition) {
         /** @type {FastSelectionModel} */ (this.selectionModel)
             .selectTo(finalPosition)
-        this.finaPositionX = finalPosition[0]
-        this.finaPositionY = finalPosition[1]
+        this.toX = finalPosition[0]
+        this.toY = finalPosition[1]
     }
 
     endSelect() {
         this.blueprint.selecting = false
         this.selectionModel = null
-        this.initialPositionX = 0
-        this.initialPositionY = 0
-        this.finaPositionX = 0
-        this.finaPositionY = 0
+        this.fromX = 0
+        this.fromY = 0
+        this.toX = 0
+        this.toY = 0
     }
 }
 

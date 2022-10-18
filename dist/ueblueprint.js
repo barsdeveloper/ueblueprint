@@ -2963,19 +2963,19 @@ class IFromToPositionedElement extends IElement {
 
     static properties = {
         ...super.properties,
-        initialPositionX: {
+        fromX: {
             type: Number,
             attribute: false,
         },
-        initialPositionY: {
+        fromY: {
             type: Number,
             attribute: false,
         },
-        finaPositionX: {
+        toX: {
             type: Number,
             attribute: false,
         },
-        finaPositionY: {
+        toY: {
             type: Number,
             attribute: false,
         },
@@ -2984,30 +2984,30 @@ class IFromToPositionedElement extends IElement {
     constructor(...args) {
         // @ts-expect-error
         super(...args);
-        this.initialPositionX = 0;
-        this.initialPositionY = 0;
-        this.finaPositionX = 0;
-        this.finaPositionY = 0;
+        this.fromX = 0;
+        this.fromY = 0;
+        this.toX = 0;
+        this.toY = 0;
     }
 
     /** @param {Number[]} param0 */
     setBothLocations([x, y]) {
-        this.initialPositionX = x;
-        this.initialPositionY = y;
-        this.finaPositionX = x;
-        this.finaPositionY = y;
+        this.fromX = x;
+        this.fromY = y;
+        this.toX = x;
+        this.toY = y;
     }
 
     /** @param {Number[]} offset */
     addSourceLocation([offsetX, offsetY]) {
-        this.initialPositionX += offsetX;
-        this.initialPositionY += offsetY;
+        this.fromX += offsetX;
+        this.fromY += offsetY;
     }
 
     /** @param {Number[]} offset */
     addDestinationLocation([offsetX, offsetY]) {
-        this.finaPositionX += offsetX;
-        this.finaPositionY += offsetY;
+        this.toX += offsetX;
+        this.toY += offsetY;
     }
 }
 
@@ -3022,17 +3022,25 @@ class IFromToPositionedTemplate extends ITemplate {
     /** @param {Map} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
-        if (changedProperties.has("initialPositionX")) {
-            this.element.style.setProperty("--ueb-from-x", `${Math.round(this.element.initialPositionX)}`);
+        const [fromX, fromY, toX, toY] = [
+            Math.round(this.element.fromX),
+            Math.round(this.element.fromY),
+            Math.round(this.element.toX),
+            Math.round(this.element.toY),
+        ];
+        const [left, top, width, height] = [
+            Math.min(fromX, toX),
+            Math.min(fromY, toY),
+            Math.abs(fromX - toX),
+            Math.abs(fromY - toY),
+        ];
+        if (changedProperties.has("fromX") || changedProperties.has("toX")) {
+            this.element.style.left = `${left}px`;
+            this.element.style.width = `${width}px`;
         }
-        if (changedProperties.has("initialPositionY")) {
-            this.element.style.setProperty("--ueb-from-y", `${Math.round(this.element.initialPositionY)}`);
-        }
-        if (changedProperties.has("finaPositionX")) {
-            this.element.style.setProperty("--ueb-to-x", `${Math.round(this.element.finaPositionX)}`);
-        }
-        if (changedProperties.has("finaPositionY")) {
-            this.element.style.setProperty("--ueb-to-y", `${Math.round(this.element.finaPositionY)}`);
+        if (changedProperties.has("fromY") || changedProperties.has("toY")) {
+            this.element.style.top = `${top}px`;
+            this.element.style.height = `${height}px`;
         }
     }
 
@@ -3096,14 +3104,14 @@ class LinkTemplate extends IFromToPositionedTemplate {
      */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
-        const dx = Math.max(Math.abs(this.element.initialPositionX - this.element.finaPositionX), 1);
+        const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
-        // const height = Math.max(Math.abs(link.initialPositionY - link.finaPositionY), 1)
+        // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
         const fillRatio = dx / width;
         // const aspectRatio = width / height
         const xInverted = this.element.originatesFromInput
-            ? this.element.initialPositionX < this.element.finaPositionX
-            : this.element.finaPositionX < this.element.initialPositionX;
+            ? this.element.fromX < this.element.toX
+            : this.element.toX < this.element.fromX;
         this.element.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0; // Otherwise start from the beginning
@@ -3132,8 +3140,9 @@ class LinkTemplate extends IFromToPositionedTemplate {
         if (referencePin) {
             this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color));
         }
-        this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`);
+        this.element.style.setProperty("--ueb-y-reflected", `${this.element.fromY > this.element.toY ? 1 : 0}`);
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`);
+        this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`);
     }
 
     render() {
@@ -3150,7 +3159,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
                 <span class="${this.element.linkMessageIcon}"></span>
                 <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
             </div>
-            ` : $``}
+            ` : w}
         `
     }
 }
@@ -3244,15 +3253,15 @@ class LinkElement extends IFromToPositionedElement {
         if (source) {
             this.sourcePin = source;
             if (!destination) {
-                this.finaPositionX = this.initialPositionX;
-                this.finaPositionY = this.initialPositionY;
+                this.toX = this.fromX;
+                this.toY = this.fromY;
             }
         }
         if (destination) {
             this.destinationPin = destination;
             if (!source) {
-                this.initialPositionX = this.finaPositionX;
-                this.initialPositionY = this.finaPositionY;
+                this.fromX = this.toX;
+                this.fromY = this.toY;
             }
         }
         this.#linkPins();
@@ -3333,8 +3342,8 @@ class LinkElement extends IFromToPositionedElement {
             location = this.sourcePin.template.getLinkLocation();
         }
         const [x, y] = location;
-        this.initialPositionX = x;
-        this.initialPositionY = y;
+        this.fromX = x;
+        this.fromY = y;
     }
 
     /** @param {Number[]?} location */
@@ -3347,8 +3356,8 @@ class LinkElement extends IFromToPositionedElement {
             }
             location = this.destinationPin.template.getLinkLocation();
         }
-        this.finaPositionX = location[0];
-        this.finaPositionY = location[1];
+        this.toX = location[0];
+        this.toY = location[1];
     }
 
     startDragging() {
@@ -5440,17 +5449,17 @@ class SelectorElement extends IFromToPositionedElement {
     selectTo(finalPosition) {
         /** @type {FastSelectionModel} */ (this.selectionModel)
             .selectTo(finalPosition);
-        this.finaPositionX = finalPosition[0];
-        this.finaPositionY = finalPosition[1];
+        this.toX = finalPosition[0];
+        this.toY = finalPosition[1];
     }
 
     endSelect() {
         this.blueprint.selecting = false;
         this.selectionModel = null;
-        this.initialPositionX = 0;
-        this.initialPositionY = 0;
-        this.finaPositionX = 0;
-        this.finaPositionY = 0;
+        this.fromX = 0;
+        this.fromY = 0;
+        this.toX = 0;
+        this.toY = 0;
     }
 }
 

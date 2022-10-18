@@ -228,17 +228,7 @@ ueb-blueprint[data-zoom="-12"] {
 }
 
 .ueb-positioned {
-    --ueb-computed-min-x: min(var(--ueb-from-x), var(--ueb-to-x));
-    --ueb-computed-max-x: max(var(--ueb-from-x), var(--ueb-to-x));
-    --ueb-computed-min-y: min(var(--ueb-from-y), var(--ueb-to-y));
-    --ueb-computed-max-y: max(var(--ueb-from-y), var(--ueb-to-y));
-    --ueb-computed-width: max(var(--ueb-from-x) - var(--ueb-to-x), var(--ueb-to-x) - var(--ueb-from-x));
-    --ueb-computed-height: max(var(--ueb-from-y) - var(--ueb-to-y), var(--ueb-to-y) - var(--ueb-from-y));
     position: absolute;
-    top: calc(var(--ueb-computed-min-y) * 1px);
-    left: calc(var(--ueb-computed-min-x) * 1px);
-    width: calc(var(--ueb-computed-width) * 1px);
-    height: calc(var(--ueb-computed-height) * 1px);
 }
 
 ueb-selector {

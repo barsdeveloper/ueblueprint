@@ -1,4 +1,4 @@
-import { css, html } from "lit"
+import { css, html, nothing } from "lit"
 import Configuration from "../Configuration"
 import Utility from "../Utility"
 import IFromToPositionedTemplate from "./IFromToPositionedTemplate"
@@ -61,14 +61,14 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
      */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
-        const dx = Math.max(Math.abs(this.element.initialPositionX - this.element.finaPositionX), 1)
+        const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1)
         const width = Math.max(dx, Configuration.linkMinWidth)
-        // const height = Math.max(Math.abs(link.initialPositionY - link.finaPositionY), 1)
+        // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
         const fillRatio = dx / width
         // const aspectRatio = width / height
         const xInverted = this.element.originatesFromInput
-            ? this.element.initialPositionX < this.element.finaPositionX
-            : this.element.finaPositionX < this.element.initialPositionX
+            ? this.element.fromX < this.element.toX
+            : this.element.toX < this.element.fromX
         this.element.startPixels = dx < width // If under minimum width
             ? (width - dx) / 2 // Start from half the empty space
             : 0 // Otherwise start from the beginning
@@ -97,8 +97,9 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         if (referencePin) {
             this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color))
         }
-        this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`)
+        this.element.style.setProperty("--ueb-y-reflected", `${this.element.fromY > this.element.toY ? 1 : 0}`)
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`)
+        this.element.style.setProperty("--ueb-link-start", `${Math.round(this.element.startPixels)}`)
     }
 
     render() {
@@ -115,7 +116,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
                 <span class="${this.element.linkMessageIcon}"></span>
                 <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
             </div>
-            ` : html``}
+            ` : nothing}
         `
     }
 }

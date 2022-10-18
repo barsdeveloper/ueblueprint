@@ -92,15 +92,15 @@ export default class LinkElement extends IFromToPositionedElement {
         if (source) {
             this.sourcePin = source
             if (!destination) {
-                this.finaPositionX = this.initialPositionX
-                this.finaPositionY = this.initialPositionY
+                this.toX = this.fromX
+                this.toY = this.fromY
             }
         }
         if (destination) {
             this.destinationPin = destination
             if (!source) {
-                this.initialPositionX = this.finaPositionX
-                this.initialPositionY = this.finaPositionY
+                this.fromX = this.toX
+                this.fromY = this.toY
             }
         }
         this.#linkPins()
@@ -181,8 +181,8 @@ export default class LinkElement extends IFromToPositionedElement {
             location = this.sourcePin.template.getLinkLocation()
         }
         const [x, y] = location
-        this.initialPositionX = x
-        this.initialPositionY = y
+        this.fromX = x
+        this.fromY = y
     }
 
     /** @param {Number[]?} location */
@@ -195,8 +195,8 @@ export default class LinkElement extends IFromToPositionedElement {
             }
             location = this.destinationPin.template.getLinkLocation()
         }
-        this.finaPositionX = location[0]
-        this.finaPositionY = location[1]
+        this.toX = location[0]
+        this.toY = location[1]
     }
 
     startDragging() {
