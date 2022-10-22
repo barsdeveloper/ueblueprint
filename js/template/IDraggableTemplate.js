@@ -28,15 +28,4 @@ export default class IDraggableTemplate extends ITemplate {
             this.createDraggableObject(),
         ]
     }
-
-    /** @param {Map} changedProperties */
-    update(changedProperties) {
-        super.update(changedProperties)
-        if (changedProperties.has("locationX")) {
-            this.element.style.left = `${this.element.locationX}px`
-        }
-        if (changedProperties.has("locationY")) {
-            this.element.style.top = `${this.element.locationY}px`
-        }
-    }
 }

@@ -13,14 +13,9 @@ export default class ColorHandlerTemplate extends IDraggableControlTemplate {
         y = -(y - radius)
         let [r, theta] = Utility.getPolarCoordinates([x, y])
         r = Math.min(r, radius), [x, y] = Utility.getCartesianCoordinates([r, theta])
+        this.locationChangeCallback?.([x / radius, y / radius])
         x = Math.round(x + radius)
         y = Math.round(-y + radius)
-        const hsva = this.getColor().toHSVA()
-        this.locationChangeCallback?.([x, y], radius, hsva[2], hsva[3])
         return [x, y]
-    }
-
-    getColor() {
-        return this.element.windowElement.template.color
     }
 }

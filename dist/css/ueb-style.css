@@ -667,10 +667,12 @@ ueb-pin[data-type=vector] {
 ueb-window {
   display: block;
   position: absolute;
+  border: 2px solid black;
   top: 0;
   left: 0;
   transform: translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
   background: #242424;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.6274509804);
   z-index: 1000;
 }
 
@@ -681,6 +683,11 @@ ueb-window {
   padding: 4px 8px;
   height: 30px;
   background: #1a1a1a;
+}
+
+.ueb-window-content {
+  padding: 10px;
+  border: 1px solid #303030;
 }
 
 .ueb-window-name {
@@ -717,20 +724,24 @@ ueb-window {
 ueb-color-handler {
   display: block;
   position: absolute;
-  top: -3px;
-  left: -3px;
+  margin-top: -3px;
+  margin-left: -3px;
   width: 4px;
   height: 4px;
-  transform: translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));
   border: 1px solid #000;
   border-radius: 4px;
+}
+
+.ueb-color-picker-wheel ueb-color-handler {
+  left: var(--ueb-color-wheel-x);
+  top: var(--ueb-color-wheel-y);
 }
 
 .ueb-color-picker-saturation,
 .ueb-color-picker-value {
   margin: 0 6px;
+  padding-bottom: 10px;
   width: 30px;
-  background-color: rgb(calc(var(--ueb-color-r) * 255), calc(var(--ueb-color-g) * 255), calc(var(--ueb-color-b) * 255));
 }
 
 .ueb-color-picker-saturation {
@@ -741,11 +752,12 @@ ueb-color-handler {
   background-image: linear-gradient(to bottom, transparent 10px, #000000 100%);
 }
 
-.ueb-color-picker-slider {
+ueb-color-slider {
+  display: block;
   position: relative;
   padding-bottom: 10px;
 }
-.ueb-color-picker-slider::before, .ueb-color-picker-slider::after {
+ueb-color-slider::before, ueb-color-slider::after {
   content: "";
   display: block;
   position: absolute;
@@ -753,21 +765,42 @@ ueb-color-handler {
   height: 0;
   border: 5px solid transparent;
 }
-.ueb-color-picker-slider::before {
+ueb-color-slider::before {
   left: -4px;
   border-left-color: #e0e0e0;
 }
-.ueb-color-picker-slider::after {
+ueb-color-slider::after {
   right: -4px;
   border-right-color: #e0e0e0;
 }
 
-.ueb-color-picker-saturation .ueb-color-picker-slider {
+.ueb-color-picker-saturation ueb-color-slider {
   top: calc(100% - var(--ueb-color-s) * 100%);
 }
 
-.ueb-color-picker-value .ueb-color-picker-slider {
+.ueb-color-picker-value ueb-color-slider {
   top: calc(100% - var(--ueb-color-v) * 100%);
+}
+
+.ueb-color-picker-preview {
+  position: relative;
+}
+.ueb-color-picker-preview::before, .ueb-color-picker-preview::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 39px;
+  width: 5px;
+  border-top: 2px solid black;
+}
+.ueb-color-picker-preview::after {
+  right: 0;
+}
+
+.ueb-color-picker-preview-old,
+.ueb-color-picker-preview-new {
+  width: 100px;
+  height: 40px;
 }
 
 /*# sourceMappingURL=ueb-style.css.map */

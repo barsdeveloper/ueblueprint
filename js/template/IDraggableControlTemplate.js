@@ -11,7 +11,8 @@ import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
  */
 export default class IDraggableControlTemplate extends IDraggableTemplate {
 
-    #locationChangeCallback = ([x, y], ...args) => [x, y]
+    /** @param {[Number, Number]} param0 */
+    #locationChangeCallback = ([x, y], ..._) => { }
     get locationChangeCallback() {
         return this.#locationChangeCallback
     }

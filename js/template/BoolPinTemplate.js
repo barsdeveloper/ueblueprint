@@ -1,4 +1,4 @@
-import { html, nothing } from "lit"
+import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 
@@ -34,7 +34,7 @@ export default class BoolPinTemplate extends PinTemplate {
     renderInput() {
         if (this.element.isInput()) {
             return html`
-                <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue ? "" : nothing}" />
+                <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
             `
         }
         return super.renderInput()

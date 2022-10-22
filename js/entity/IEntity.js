@@ -17,42 +17,42 @@ export default class IEntity extends Observable {
         super()
         /**
          * @param {Object} target
-         * @param {Object} properties
+         * @param {Object} attributes
          * @param {Object} values
          * @param {String} prefix
          */
-        const defineAllAttributes = (target, properties, values, prefix = "") => {
-            for (let property of Utility.mergeArrays(
-                Object.getOwnPropertyNames(properties),
+        const defineAllAttributes = (target, attributes, values, prefix = "") => {
+            for (let attribute of Utility.mergeArrays(
+                Object.getOwnPropertyNames(attributes),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
-                let value = Utility.objectGet(values, [property])
-                let defaultValue = properties[property]
+                let value = Utility.objectGet(values, [attribute])
+                let defaultValue = attributes[attribute]
                 let defaultType = Utility.getType(defaultValue)
                 if (defaultValue instanceof CalculatedType) {
                     defaultValue = defaultValue.calculate(this)
                     defaultType = Utility.getType(defaultValue)
                 }
 
-                if (!(property in properties)) {
+                if (!(attribute in attributes)) {
                     console.warn(
-                        `Property ${prefix}${property} in the serialized data is not defined in ${this.constructor.name}.properties`
+                        `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
                     )
                 } else if (
-                    !(property in values)
+                    !(attribute in values)
                     && defaultValue !== undefined
                     && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
                 ) {
                     console.warn(
-                        `${this.constructor.name}.properties will add property ${prefix}${property} not defined in the serialized data`
+                        `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
                     )
                 }
 
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 // @ts-expect-error
                 if (defaultType === Object) {
-                    target[property] = {}
-                    defineAllAttributes(target[property], properties[property], values[property], property + ".")
+                    target[attribute] = {}
+                    defineAllAttributes(target[attribute], attributes[attribute], values[attribute], attribute + ".")
                     continue
                 }
 
@@ -67,13 +67,13 @@ export default class IEntity extends Observable {
                         // @ts-expect-error
                         value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value)
                     }
-                    target[property] = TypeInitialization.sanitize(value, Utility.getType(defaultValue))
+                    target[attribute] = TypeInitialization.sanitize(value, Utility.getType(defaultValue))
                     continue // We have a value, need nothing more
                 }
 
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
-                        target[property] = undefined // Declare undefined to preserve the order of attributes
+                        target[attribute] = undefined // Declare undefined to preserve the order of attributes
                         continue
                     }
                     if (defaultValue.serialized) {
@@ -82,12 +82,15 @@ export default class IEntity extends Observable {
                         // @ts-expect-error
                         defaultType = defaultValue.type
                         defaultValue = defaultValue.value
+                        if (defaultValue instanceof Function) {
+                            defaultValue = defaultValue()
+                        }
                     }
                 }
                 if (defaultValue instanceof Array) {
                     defaultValue = []
                 }
-                target[property] = TypeInitialization.sanitize(defaultValue, defaultType)
+                target[attribute] = TypeInitialization.sanitize(defaultValue, defaultType)
             }
         }
         // @ts-expect-error

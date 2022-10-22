@@ -95,14 +95,14 @@ export default class Grammar {
     }
 
     /** @param {Grammar} r */
-    static createPropertyGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
+    static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
-                // Once the property name is known, look into entityType.properties to get its type 
+                // Once the attribute name is known, look into entityType.attributes to get its type 
                 const attributeKey = attributeName.split(".")
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey)
                 let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
-                // Returns a setter function for the property
+                // Returns a setter function for the attribute
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
                 )
@@ -114,8 +114,8 @@ export default class Grammar {
             entityType.lookbehind
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
                 : P.string("("),
-            Grammar.createPropertyGrammar(r, entityType)
-                .trim(P.optWhitespace) // Drop spaces around a property assignment
+            Grammar.createAttributeGrammar(r, entityType)
+                .trim(P.optWhitespace) // Drop spaces around a attribute assignment
                 .sepBy(P.string(",")) // Assignments are separated by comma
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
             P.string(')'),
@@ -346,7 +346,7 @@ export default class Grammar {
         P
             .alt(
                 r.CustomProperties,
-                Grammar.createPropertyGrammar(r, ObjectEntity)
+                Grammar.createAttributeGrammar(r, ObjectEntity)
             )
             .sepBy1(P.whitespace),
         P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),

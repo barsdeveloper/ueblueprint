@@ -1,4 +1,4 @@
-import IDraggableTemplate from "./IDraggableTemplate"
+import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
 /**
@@ -8,9 +8,9 @@ import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
 /**
  * @template {ISelectableDraggableElement} T
- * @extends {IDraggableTemplate<T>}
+ * @extends {IDraggablePositionedTemplate<T>}
  */
-export default class ISelectableDraggableTemplate extends IDraggableTemplate {
+export default class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
     getDraggableElement() {
         return this.element

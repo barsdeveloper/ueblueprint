@@ -10,12 +10,7 @@ export default class ColorSliderTemplate extends IDraggableControlTemplate {
     adjustLocation([x, y]) {
         x = 0
         y = Utility.clamp(y, 0, this.movementSpaceSize[1])
-        const hsva = this.getColor().toHSVA()
-        this.locationChangeCallback?.([x, y])
+        this.locationChangeCallback?.([x / this.movementSpaceSize[0], 1 - y / this.movementSpaceSize[1]])
         return [x, y]
-    }
-
-    getColor() {
-        return this.element.windowElement.template.color
     }
 }

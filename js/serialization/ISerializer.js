@@ -120,6 +120,9 @@ export default class ISerializer {
         const attributes = this.entityType.attributes
         const attribute = Utility.objectGet(attributes, attributeKey)
         if (attribute instanceof TypeInitialization) {
+            if (attribute.ignored) {
+                return false
+            }
             return !Utility.equals(attribute.value, attributeValue) || attribute.showDefault
         }
         return true

@@ -14,6 +14,8 @@ import TypeInitialization from "./entity/TypeInitialization"
 
 export default class Utility {
 
+    static emptyObj = {}
+
     static booleanConverter = {
         fromAttribute: (value, type) => {
             value ? "true" : "false"

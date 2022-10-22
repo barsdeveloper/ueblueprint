@@ -1,11 +1,11 @@
 import { html } from "lit"
-import IDraggableTemplate from "./IDraggableTemplate"
+import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
 
 /** @typedef {import("../element/WindowElement").default} WindowElement */
 
-/** @extends {IDraggableTemplate<WindowElement>} */
-export default class WindowTemplate extends IDraggableTemplate {
+/** @extends {IDraggablePositionedTemplate<WindowElement>} */
+export default class WindowTemplate extends IDraggablePositionedTemplate {
 
     toggleAdvancedDisplayHandler
 

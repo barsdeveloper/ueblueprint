@@ -4,7 +4,7 @@ import Utility from "../Utility"
 export default class RealUnitEntity extends IEntity {
 
     static attributes = {
-        value: Number,
+        value: 0,
     }
 
     /** @param {Object | Number | String} options */

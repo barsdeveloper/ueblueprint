@@ -32,7 +32,7 @@ export default class TypeInitialization {
         this.#showDefault = v
     }
 
-    /** @type {T | T[] | String} */
+    /** @type {T | T[] | String | (() => T) | (() => T[])} */
     #value
     get value() {
         return this.#value
@@ -48,6 +48,14 @@ export default class TypeInitialization {
     }
     set serialized(v) {
         this.#serialized = v
+    }
+
+    #ignored
+    get ignored() {
+        return this.#ignored
+    }
+    set ignored(v) {
+        this.#ignored = v
     }
 
     static sanitize(value, targetType) {
@@ -70,22 +78,23 @@ export default class TypeInitialization {
     /**
      * @param {AnyValueConstructor<T>|AnyValueConstructor<T>[]} type
      * @param {Boolean} showDefault
-     * @param {T | T[] | String} value
+     * @param {T | T[] | String | (() => T) | (() => T[])} value
      * @param {Boolean} serialized
      */
-    constructor(type, showDefault = true, value = undefined, serialized = false) {
+    constructor(type, showDefault = true, value = undefined, serialized = false, ignored = false) {
         if (value === undefined) {
             if (type instanceof Array) {
                 value = []
             } else if (serialized) {
                 value = ""
             } else {
-                value = TypeInitialization.sanitize(new type())
+                value = () => TypeInitialization.sanitize(new type())
             }
         }
         this.#type = type
         this.#showDefault = showDefault
         this.#value = value
         this.#serialized = serialized
+        this.#ignored = ignored
     }
 }

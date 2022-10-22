@@ -438,7 +438,7 @@ class TypeInitialization {
         this.#showDefault = v;
     }
 
-    /** @type {T | T[] | String} */
+    /** @type {T | T[] | String | (() => T) | (() => T[])} */
     #value
     get value() {
         return this.#value
@@ -454,6 +454,14 @@ class TypeInitialization {
     }
     set serialized(v) {
         this.#serialized = v;
+    }
+
+    #ignored
+    get ignored() {
+        return this.#ignored
+    }
+    set ignored(v) {
+        this.#ignored = v;
     }
 
     static sanitize(value, targetType) {
@@ -476,23 +484,24 @@ class TypeInitialization {
     /**
      * @param {AnyValueConstructor<T>|AnyValueConstructor<T>[]} type
      * @param {Boolean} showDefault
-     * @param {T | T[] | String} value
+     * @param {T | T[] | String | (() => T) | (() => T[])} value
      * @param {Boolean} serialized
      */
-    constructor(type, showDefault = true, value = undefined, serialized = false) {
+    constructor(type, showDefault = true, value = undefined, serialized = false, ignored = false) {
         if (value === undefined) {
             if (type instanceof Array) {
                 value = [];
             } else if (serialized) {
                 value = "";
             } else {
-                value = TypeInitialization.sanitize(new type());
+                value = () => TypeInitialization.sanitize(new type());
             }
         }
         this.#type = type;
         this.#showDefault = showDefault;
         this.#value = value;
         this.#serialized = serialized;
+        this.#ignored = ignored;
     }
 }
 
@@ -508,6 +517,8 @@ class TypeInitialization {
  */
 
 class Utility {
+
+    static emptyObj = {}
 
     static booleanConverter = {
         fromAttribute: (value, type) => {
@@ -775,42 +786,42 @@ class IEntity extends Observable {
         super();
         /**
          * @param {Object} target
-         * @param {Object} properties
+         * @param {Object} attributes
          * @param {Object} values
          * @param {String} prefix
          */
-        const defineAllAttributes = (target, properties, values, prefix = "") => {
-            for (let property of Utility.mergeArrays(
-                Object.getOwnPropertyNames(properties),
+        const defineAllAttributes = (target, attributes, values, prefix = "") => {
+            for (let attribute of Utility.mergeArrays(
+                Object.getOwnPropertyNames(attributes),
                 Object.getOwnPropertyNames(values ?? {})
             )) {
-                let value = Utility.objectGet(values, [property]);
-                let defaultValue = properties[property];
+                let value = Utility.objectGet(values, [attribute]);
+                let defaultValue = attributes[attribute];
                 let defaultType = Utility.getType(defaultValue);
                 if (defaultValue instanceof CalculatedType) {
                     defaultValue = defaultValue.calculate(this);
                     defaultType = Utility.getType(defaultValue);
                 }
 
-                if (!(property in properties)) {
+                if (!(attribute in attributes)) {
                     console.warn(
-                        `Property ${prefix}${property} in the serialized data is not defined in ${this.constructor.name}.properties`
+                        `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
                     );
                 } else if (
-                    !(property in values)
+                    !(attribute in values)
                     && defaultValue !== undefined
                     && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
                 ) {
                     console.warn(
-                        `${this.constructor.name}.properties will add property ${prefix}${property} not defined in the serialized data`
+                        `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
                     );
                 }
 
                 // Not instanceof because all objects are instenceof Object, exact match needed
                 // @ts-expect-error
                 if (defaultType === Object) {
-                    target[property] = {};
-                    defineAllAttributes(target[property], properties[property], values[property], property + ".");
+                    target[attribute] = {};
+                    defineAllAttributes(target[attribute], attributes[attribute], values[attribute], attribute + ".");
                     continue
                 }
 
@@ -825,13 +836,13 @@ class IEntity extends Observable {
                         // @ts-expect-error
                         value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value);
                     }
-                    target[property] = TypeInitialization.sanitize(value, Utility.getType(defaultValue));
+                    target[attribute] = TypeInitialization.sanitize(value, Utility.getType(defaultValue));
                     continue // We have a value, need nothing more
                 }
 
                 if (defaultValue instanceof TypeInitialization) {
                     if (!defaultValue.showDefault) {
-                        target[property] = undefined; // Declare undefined to preserve the order of attributes
+                        target[attribute] = undefined; // Declare undefined to preserve the order of attributes
                         continue
                     }
                     if (defaultValue.serialized) {
@@ -840,12 +851,15 @@ class IEntity extends Observable {
                         // @ts-expect-error
                         defaultType = defaultValue.type;
                         defaultValue = defaultValue.value;
+                        if (defaultValue instanceof Function) {
+                            defaultValue = defaultValue();
+                        }
                     }
                 }
                 if (defaultValue instanceof Array) {
                     defaultValue = [];
                 }
-                target[property] = TypeInitialization.sanitize(defaultValue, defaultType);
+                target[attribute] = TypeInitialization.sanitize(defaultValue, defaultType);
             }
         };
         // @ts-expect-error
@@ -1010,7 +1024,7 @@ class KeyBindingEntity extends IEntity {
 class RealUnitEntity extends IEntity {
 
     static attributes = {
-        value: Number,
+        value: 0,
     }
 
     /** @param {Object | Number | String} options */
@@ -1035,36 +1049,10 @@ class LinearColorEntity extends IEntity {
         R: RealUnitEntity,
         G: RealUnitEntity,
         B: RealUnitEntity,
-        A: new RealUnitEntity(1),
-    }
-
-    static fromWheelLocation([x, y], radius, v, a) {
-        x -= radius;
-        y -= radius;
-        const [r, theta] = Utility.getPolarCoordinates([x, y], true);
-        return LinearColorEntity.fromHSVA([
-            1 - theta / (2 * Math.PI),
-            r / radius,
-            v,
-            a,
-        ])
-    }
-
-    /** @param {Number[]} param0 */
-    static fromHSVA([h, s, v, a = 1]) {
-        const i = Math.floor(h * 6);
-        const f = h * 6 - i;
-        const p = v * (1 - s);
-        const q = v * (1 - f * s);
-        const t = v * (1 - (1 - f) * s);
-        const values = [v, q, p, p, t, v];
-        const [r, g, b] = [values[i % 6], values[(i + 2) % 6], values[(i + 4) % 6]];
-        return new LinearColorEntity({
-            R: r,
-            G: g,
-            B: b,
-            A: a,
-        })
+        A: new TypeInitialization(RealUnitEntity, true, () => new RealUnitEntity(1), false, true),
+        H: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
+        S: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
+        V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
     }
 
     constructor(options = {}) {
@@ -1073,25 +1061,27 @@ class LinearColorEntity extends IEntity {
         /** @type {RealUnitEntity} */ this.G;
         /** @type {RealUnitEntity} */ this.B;
         /** @type {RealUnitEntity} */ this.A;
+        /** @type {RealUnitEntity} */ this.H;
+        /** @type {RealUnitEntity} */ this.S;
+        /** @type {RealUnitEntity} */ this.V;
+        this.#updateValues();
     }
 
-    toRGBA() {
-        return [
-            Math.round(this.R.value * 255),
-            Math.round(this.G.value * 255),
-            Math.round(this.B.value * 255),
-            Math.round(this.A.value * 255),
-        ]
-    }
-
-    toHSVA() {
-        const [r, g, b, a] = [this.R.value, this.G.value, this.B.value, this.A.value];
+    #updateValues() {
+        const r = this.R.value;
+        const g = this.G.value;
+        const b = this.B.value;
+        if (
+            !(Math.abs(r - g) > Number.EPSILON)
+            && !(Math.abs(r - b) > Number.EPSILON)
+            && !(Math.abs(g - b) > Number.EPSILON)
+        ) {
+            return
+        }
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
         const d = max - min;
         let h;
-        const s = (max == 0 ? 0 : d / max);
-        const v = max;
         switch (max) {
             case min:
                 h = 0;
@@ -1107,11 +1097,67 @@ class LinearColorEntity extends IEntity {
                 break
         }
         h /= 6;
-        return [new RealUnitEntity(h), new RealUnitEntity(s), new RealUnitEntity(v), new RealUnitEntity(a)]
+        this.H.value = h;
+        this.S.value = max == 0 ? 0 : d / max;
+        this.V.value = max;
+    }
+
+    /** @param {Number[]} param0 */
+    setFromHSVA([h, s, v, a = 1]) {
+        const i = Math.floor(h * 6);
+        const f = h * 6 - i;
+        const p = v * (1 - s);
+        const q = v * (1 - f * s);
+        const t = v * (1 - (1 - f) * s);
+        const values = [v, q, p, p, t, v];
+        const [r, g, b] = [values[i % 6], values[(i + 4) % 6], values[(i + 2) % 6]];
+        this.R.value = r;
+        this.G.value = g;
+        this.B.value = b;
+        this.A.value = a;
+        this.H.value = h;
+        this.S.value = s;
+        this.V.value = v;
+    }
+
+    setFromWheelLocation([x, y], v, a) {
+        const [r, theta] = Utility.getPolarCoordinates([x, y], true);
+        this.setFromHSVA([
+            1 - theta / (2 * Math.PI),
+            r,
+            v,
+            a,
+        ]);
+    }
+
+    toRGBA() {
+        return [
+            Math.round(this.R.value * 255),
+            Math.round(this.G.value * 255),
+            Math.round(this.B.value * 255),
+            Math.round(this.A.value * 255),
+        ]
+    }
+
+    toRGBAString() {
+        return this.toRGBA().map(v => v.toString(16).padStart(2, "0")).join("")
+    }
+
+    toHSVA() {
+        const r = this.R.value;
+        const g = this.G.value;
+        const b = this.B.value;
+        const a = this.A.value;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const d = max - min;
+        const s = (max == 0 ? 0 : d / max);
+        const v = max;
+        return [this.H.value, s, v, a]
     }
 
     toNumber() {
-        return (this.R.value * 0xff << 3 * 0x8) + (this.G.value * 0xff << 2 * 0x8) + (this.B.value * 0xff << 0x8) + this.A.value
+        return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
     }
 
     toString() {
@@ -1556,14 +1602,14 @@ class Grammar {
     }
 
     /** @param {Grammar} r */
-    static createPropertyGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
+    static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
-                // Once the property name is known, look into entityType.properties to get its type 
+                // Once the attribute name is known, look into entityType.attributes to get its type 
                 const attributeKey = attributeName.split(".");
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey);
                 let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue);
-                // Returns a setter function for the property
+                // Returns a setter function for the attribute
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
                 )
@@ -1575,8 +1621,8 @@ class Grammar {
             entityType.lookbehind
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
                 : P.string("("),
-            Grammar.createPropertyGrammar(r, entityType)
-                .trim(P.optWhitespace) // Drop spaces around a property assignment
+            Grammar.createAttributeGrammar(r, entityType)
+                .trim(P.optWhitespace) // Drop spaces around a attribute assignment
                 .sepBy(P.string(",")) // Assignments are separated by comma
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
             P.string(')'),
@@ -1807,7 +1853,7 @@ class Grammar {
         P
             .alt(
                 r.CustomProperties,
-                Grammar.createPropertyGrammar(r, ObjectEntity)
+                Grammar.createAttributeGrammar(r, ObjectEntity)
             )
             .sepBy1(P.whitespace),
         P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
@@ -2005,6 +2051,9 @@ class ISerializer {
         const attributes = this.entityType.attributes;
         const attribute = Utility.objectGet(attributes, attributeKey);
         if (attribute instanceof TypeInitialization) {
+            if (attribute.ignored) {
+                return false
+            }
             return !Utility.equals(attribute.value, attributeValue) || attribute.showDefault
         }
         return true
@@ -3614,7 +3663,7 @@ class BoolPinTemplate extends PinTemplate {
     renderInput() {
         if (this.element.isInput()) {
             return $`
-                <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue ? "" : w}" />
+                <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
             `
         }
         return super.renderInput()
@@ -3724,17 +3773,6 @@ class IDraggableTemplate extends ITemplate {
             this.createDraggableObject(),
         ]
     }
-
-    /** @param {Map} changedProperties */
-    update(changedProperties) {
-        super.update(changedProperties);
-        if (changedProperties.has("locationX")) {
-            this.element.style.left = `${this.element.locationX}px`;
-        }
-        if (changedProperties.has("locationY")) {
-            this.element.style.top = `${this.element.locationY}px`;
-        }
-    }
 }
 
 /**
@@ -3747,7 +3785,8 @@ class IDraggableTemplate extends ITemplate {
  */
 class IDraggableControlTemplate extends IDraggableTemplate {
 
-    #locationChangeCallback = ([x, y], ...args) => [x, y]
+    /** @param {[Number, Number]} param0 */
+    #locationChangeCallback = ([x, y], ..._) => { }
     get locationChangeCallback() {
         return this.#locationChangeCallback
     }
@@ -3795,15 +3834,10 @@ class ColorHandlerTemplate extends IDraggableControlTemplate {
         y = -(y - radius);
         let [r, theta] = Utility.getPolarCoordinates([x, y]);
         r = Math.min(r, radius), [x, y] = Utility.getCartesianCoordinates([r, theta]);
+        this.locationChangeCallback?.([x / radius, y / radius]);
         x = Math.round(x + radius);
         y = Math.round(-y + radius);
-        const hsva = this.getColor().toHSVA();
-        this.locationChangeCallback?.([x, y], radius, hsva[2], hsva[3]);
         return [x, y]
-    }
-
-    getColor() {
-        return this.element.windowElement.template.color
     }
 }
 
@@ -3868,13 +3902,8 @@ class ColorSliderTemplate extends IDraggableControlTemplate {
     adjustLocation([x, y]) {
         x = 0;
         y = Utility.clamp(y, 0, this.movementSpaceSize[1]);
-        this.getColor().toHSVA();
-        this.locationChangeCallback?.([x, y]);
+        this.locationChangeCallback?.([x / this.movementSpaceSize[0], 1 - y / this.movementSpaceSize[1]]);
         return [x, y]
-    }
-
-    getColor() {
-        return this.element.windowElement.template.color
     }
 }
 
@@ -3890,10 +3919,30 @@ class ColorSliderElement extends IDraggableControlElement {
 
 customElements.define("ueb-color-slider", ColorSliderElement);
 
+/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {IDraggableTemplate<T>}
+ */
+class IDraggablePositionedTemplate extends IDraggableTemplate {
+
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
+        if (changedProperties.has("locationX")) {
+            this.element.style.left = `${this.element.locationX}px`;
+        }
+        if (changedProperties.has("locationY")) {
+            this.element.style.top = `${this.element.locationY}px`;
+        }
+    }
+}
+
 /** @typedef {import("../element/WindowElement").default} WindowElement */
 
-/** @extends {IDraggableTemplate<WindowElement>} */
-class WindowTemplate extends IDraggableTemplate {
+/** @extends {IDraggablePositionedTemplate<WindowElement>} */
+class WindowTemplate extends IDraggablePositionedTemplate {
 
     toggleAdvancedDisplayHandler
 
@@ -3942,8 +3991,22 @@ class WindowTemplate extends IDraggableTemplate {
 
 class ColorPickerWindowTemplate extends WindowTemplate {
 
-    /** @type {LinearColorEntity} */
-    #color
+    #wheelHandler = new ColorHandlerElement()
+    get wheelHandler() {
+        return this.#wheelHandler
+    }
+
+    #saturationSlider = new ColorSliderElement()
+    get saturationSlider() {
+        return this.#saturationSlider
+    }
+
+    #valueSlider = new ColorSliderElement()
+    get valueSlider() {
+        return this.#valueSlider
+    }
+
+    #color = new LinearColorEntity()
     get color() {
         return this.#color
     }
@@ -3956,32 +4019,72 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         this.#color = value;
     }
 
+    #fullColor = new LinearColorEntity()
+    get fullColor() {
+        return this.#fullColor
+    }
+
+    /** @type {LinearColorEntity} */
+    #initialColor
+    get initialColor() {
+        return this.#initialColor
+    }
+
+
     connectedCallback() {
         super.connectedCallback();
-        this.color = this.element.windowOptions.getPinColor();
+        this.#initialColor = this.element.windowOptions.getPinColor();
+        this.color.setFromHSVA([
+            this.initialColor.H.value,
+            this.initialColor.S.value,
+            this.initialColor.V.value,
+            this.initialColor.A.value
+        ]);
+        this.fullColor.setFromHSVA([this.color.H.value, 1, 1, 1]);
     }
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
-        const wheelHandler = new ColorHandlerElement();
-        new ColorHandlerElement();
-        new ColorSliderElement();
-        wheelHandler.template.locationChangeCallback = ([x, y], radius, v, a) => {
-            this.color = LinearColorEntity.fromWheelLocation([x, y], radius, v, a);
-        };
-        this.element.querySelector(".ueb-color-picker-wheel").appendChild(wheelHandler);
+        this.wheelHandler.template.locationChangeCallback =
+            /** @param {[Number, Number]} param0 x, y in the range [-1, 1] */
+            ([x, y]) => {
+                this.color.setFromWheelLocation([x, y], this.color.V.value, this.color.A.value);
+                this.fullColor.setFromHSVA([this.color.H.value, 1, 1, 1]);
+                this.element.requestUpdate();
+            };
+        this.saturationSlider.template.locationChangeCallback =
+            /** @param {[Number, Number]} param0 y is in the range [0, 1] */
+            ([_, y]) => {
+                this.color.setFromHSVA([this.color.H.value, y, this.color.V.value, this.color.A.value]);
+                this.element.requestUpdate();
+            };
+        this.valueSlider.template.locationChangeCallback =
+            /** @param {[Number, Number]} param0 y is in the range [0, 1] */
+            ([_, y]) => {
+                this.color.setFromHSVA([this.color.H.value, this.color.S.value, y, this.color.A.value]);
+                this.element.requestUpdate();
+            };
+        this.element.querySelector(".ueb-color-picker-wheel").appendChild(this.wheelHandler);
+        this.element.querySelector(".ueb-color-picker-saturation").appendChild(this.saturationSlider);
+        this.element.querySelector(".ueb-color-picker-value").appendChild(this.valueSlider);
     }
 
     renderContent() {
-        const [h, s, v] = this.color.toHSVA();
+        const theta = this.color.H.value * 2 * Math.PI;
+        const wheelRadius = Math.max(
+            this.#wheelHandler.template.movementSpaceSize[0],
+            this.#wheelHandler.template.movementSpaceSize[1],
+        ) / 2;
         const style = {
             "--ueb-color-r": this.color.R.toString(),
             "--ueb-color-g": this.color.G.toString(),
             "--ueb-color-b": this.color.B.toString(),
             "--ueb-color-a": this.color.A.toString(),
-            "--ueb-color-h": h.toString(),
-            "--ueb-color-s": s.toString(),
-            "--ueb-color-v": v.toString(),
+            "--ueb-color-h": this.color.H.toString(),
+            "--ueb-color-s": this.color.S.toString(),
+            "--ueb-color-v": this.color.V.toString(),
+            "--ueb-color-wheel-x": `${Math.round(this.color.S.value * Math.cos(theta) * wheelRadius + wheelRadius)}px`,
+            "--ueb-color-wheel-y": `${Math.round(this.color.S.value * Math.sin(theta) * wheelRadius + wheelRadius)}px`,
         };
         return $`
             <div class="ueb-color-picker" style=${i(style)}>
@@ -3991,17 +4094,20 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                 </div>
                 <div class="ueb-color-picker-main">
                     <div class="ueb-color-picker-wheel"></div>
-                    <div class="ueb-color-picker-saturation">
-                        <div class="ueb-color-picker-slider"></div>
+                    <div class="ueb-color-picker-saturation"
+                        style="background-color: #${this.fullColor.toRGBAString()}">
                     </div>
-                    <div class="ueb-color-picker-value">
-                        <div class="ueb-color-picker-slider"></div>
-                    </div>
+                    <div class="ueb-color-picker-value"
+                        style="background-color: #${this.fullColor.toRGBAString()}"></div>
                     <div class="ueb-color-picker-preview">
-                        <div class="ueb-color-picker-preview-old"></div>
-                        <div class="ueb-color-picker-preview-new"></div>
-                    </div>
-                </div>
+                        <div class="ueb-color-picker-preview-old"
+                            style="background: #${this.#initialColor.toRGBAString()}">
+                        </div>
+                        <div class="ueb-color-picker-preview-new"
+                            style="background: #${this.color.toRGBAString()}">
+                        </div >
+                    </div >
+                </div >
                 <div class="ueb-color-picker-advanced-toggle"></div>
                 <div class="ueb-color-picker-advanced">
                     <div class="ueb-color-picker-r"></div>
@@ -4016,8 +4122,8 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                 </div>
                 <div class="ueb-color-picker-ok"></div>
                 <div class="ueb-color-picker-cancel"></div>
-            </div>
-        `
+            </div >
+            `
     }
 
     renderWindowName() {
@@ -4799,9 +4905,9 @@ class MouseMoveNodes extends MouseMoveDraggable {
 
 /**
  * @template {ISelectableDraggableElement} T
- * @extends {IDraggableTemplate<T>}
+ * @extends {IDraggablePositionedTemplate<T>}
  */
-class ISelectableDraggableTemplate extends IDraggableTemplate {
+class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
     getDraggableElement() {
         return this.element
