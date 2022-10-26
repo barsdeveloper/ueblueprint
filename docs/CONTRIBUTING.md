@@ -1,0 +1,30 @@
+# Development Guide
+Getting started with the development of this application is very easy because it has a (arguably) well defined architecture and separation of concerns.
+Before starting, the gentle reader might want to make sure to be familiar with the [Lit](https://lit.dev/) library and its element [lifecycle](https://lit.dev/docs/components/lifecycle/). This library is used extensively throught the application to keep the HTML elements in sync with the data and avoid updating the DOM too often. One important detail is that it does not make use of the shadow DOM, the real reason is that the decision to use Lit instead of vanilla JavaScript was made at a later time but it is still nice to be able to have global CSS style so that restyling the library is just a matter of adding another CSS file and rewrite a few properties. The only other external library that is used here is the awesome [Parsimmon](https://github.com/jneen/parsimmon): a very small but capable text parsing library used to deserialize the text produced by the Unreal Engine Blueprint Editor.
+
+## Overview
+There are a few concepts that must be assimilated in order to understand the design. Those concepts are in general each mapped into a subfolder in `js/`.
+
+### Entity
+An Entity is just a data holder object that does not really do anything by itself, it has a purely information storage related purpose. The top class at the hierarchy of entities is `IEntity`. This one is a bit more complicated in the sense that it does the initialization of the entity in its constructor according to the information contained in the object provided as an argument or from the attributes static field. This ended up being a somewhat wacky runtime type system implemented into JavaScript but it does its purpose.
+
+A class which is related to entities but not one of them is `TypeInitialization` (please note it does not follow the naming convention seen for entities classes), which may be used in the entities' attributes static field to add information relative the the initial value an entity field will have. Contains flags that tells whether or not should a field be shown if it is has the default value, should it be ignored and so on.
+
+### Grammar and Serializer
+In the `serialization/` folder the gentle reader will find all the classes responsible for transforming entities from and to text that the UE Blueprint Enditor can understand. One important class here is `Grammar` that contains similar formal grammar rules that use the [Parsimmon library](https://github.com/jneen/parsimmon) to create entities from Blueprint text. `ISerializer` is at the top of the serializer classes hierarchy and it uses a factory design pattern to register serializers for the various entities types (check `js/serialization/initializeSerializerFactory.js`). It does both read and write of entities: to read it will use the Grammar after creating a language using a function from Parsimmon, to write it will use methods from the class itself.
+
+### Element
+Each element is just a custom HTML element type and its tag name is registered in the file class. The top level of the hierarchy is `IElement` and it inherits from `LitElement`. This class can be thought as an association between an entity and a template (and those are the arguments of the constructor). The top class `IElement` does propagate the lifecycle provided by `LitElement` to the template so that a template can hook into it.
+
+### Template
+When looking at the Lit documentation, it might be noticed that usually HTML templates are returned as part of the `render()` method of an Element. The problem with such approach is that it makes it hard to have very different templates and UI behavior for the same element in a natural way (by means of inheritance because a custom element cannot be mapped to multiple classes). Take for example a `<ueb-pin>` in a graph node, it may or may not have any input and if it has one, the input might be a checkbox, a vector or something completely different like a texture. For this reason the responsibility to render the HTML content is moved from the Element to the Template and inheritance is replaced with composition so that two same elements can have different templates.
+Templates do have access to the same lyfecycle as elements have, this is implemented in the IElement class that calls, for each method in the lifecycle, the relative method in the template. Moreover the templates hierarchy can also introduce new behaviors that can be replaced by subclasses, one example of such is IInputPinTemplate.
+
+### Input
+Classes used to map input events (generated from a mouse or a keyboard for example) to actions on the graph. They do model user actions that are originated by input JavaScript events or related to inputs.
+
+### Selection
+It contains just a few classes related exclusively to the slection action. It is an (arguably useless) attempt to optimize the selection in case of graphs with a very large numbers of nodes (it is not really usefull because in the case of many many nodes, the bootleneck becomes the DOM rendering, not deciding in JavaScript which nodes are selected and which are not even though this happens every frame). Selection has two models: one very simple that every frame checks all the nodes in the graph to see whether or not they are selected by the selector, and the fast model that attemps to optimize the number of nodes that are looked up at, much more complicated and not super usefull as stated before.
+
+## Naming convention
+In general all the names that might collide with other names, like css classes, custom elements names, ...; they all start with "ueb".
