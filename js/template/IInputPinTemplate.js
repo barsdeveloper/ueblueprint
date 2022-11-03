@@ -101,7 +101,8 @@ export default class IInputPinTemplate extends PinTemplate {
             return html`
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
+                    </span>
                 </div>
             `
         }

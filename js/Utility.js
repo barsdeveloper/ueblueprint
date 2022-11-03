@@ -59,6 +59,15 @@ export default class Utility {
     }
 
     /**
+     * @param {Number} num
+     * @param {Number} decimals
+     */
+    static roundDecimals(num, decimals = 1) {
+        const power = 10 ** decimals
+        return Math.round(num * power) / power
+    }
+
+    /**
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
      */

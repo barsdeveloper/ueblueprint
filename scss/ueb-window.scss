@@ -86,48 +86,28 @@ ueb-color-handler {
 .ueb-color-picker-value {
     margin: 0 6px;
     padding-bottom: 10px;
-    width: 30px;
+    width: 25px;
 }
 
 .ueb-color-picker-saturation {
+    margin-left: 25px;
     background-image: linear-gradient(to bottom, transparent 10px, #FFFFFF 100%);
 }
 
 .ueb-color-picker-value {
+    margin-right: 25px;
     background-image: linear-gradient(to bottom, transparent 10px, #000000 100%);
 }
 
-ueb-color-slider {
+ueb-ui-slider {
     display: block;
-    position: relative;
-    padding-bottom: 10px;
-
-    &::before,
-    &::after {
-        content: "";
-        display: block;
-        position: absolute;
-        width: 0;
-        height: 0;
-        border: 5px solid transparent;
-    }
-
-    &::before {
-        left: -4px;
-        border-left-color: #e0e0e0;
-    }
-
-    &::after {
-        right: -4px;
-        border-right-color: #e0e0e0;
-    }
 }
 
-.ueb-color-picker-saturation ueb-color-slider {
+.ueb-color-picker-saturation ueb-ui-slider {
     top: calc(100% - var(--ueb-color-s) * 100%)
 }
 
-.ueb-color-picker-value ueb-color-slider {
+.ueb-color-picker-value ueb-ui-slider {
     top: calc(100% - var(--ueb-color-v) * 100%)
 }
 
@@ -153,4 +133,63 @@ ueb-color-slider {
 .ueb-color-picker-preview-new {
     width: 100px;
     height: 40px;
+}
+
+.ueb-color-picker-advanced {
+    display: flex;
+    column-gap: 10px;
+    padding-top: 5px;
+}
+
+.ueb-color-picker-advanced .ueb-color-picker-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+}
+
+.ueb-color-picker-advanced .ueb-color-picker-column>div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+
+    &>div {
+        flex-grow: 1;
+    }
+}
+
+.ueb-color-picker-advanced .ueb-horizontal-slider {
+    flex-grow: 1;
+}
+
+.ueb-color-picker-r .ueb-horizontal-slider>ueb-ui-slider {
+    width: calc(var(--ueb-color-r) * 100%);
+}
+
+.ueb-color-picker-g .ueb-horizontal-slider>ueb-ui-slider {
+    width: calc(var(--ueb-color-g) * 100%);
+}
+
+.ueb-color-picker-b .ueb-horizontal-slider>ueb-ui-slider {
+    width: calc(var(--ueb-color-b) * 100%);
+}
+
+.ueb-color-picker-a .ueb-horizontal-slider>ueb-ui-slider {
+    width: calc(var(--ueb-color-a) * 100%);
+}
+
+.ueb-color-picker-h .ueb-horizontal-slider>ueb-ui-slider {
+    width: calc(var(--ueb-color-h) * 100%);
+}
+
+.ueb-color-picker-s .ueb-horizontal-slider>ueb-ui-slider {
+    width: calc(var(--ueb-color-s) * 100%);
+}
+
+.ueb-color-picker-v .ueb-horizontal-slider>ueb-ui-slider {
+    width: calc(var(--ueb-color-v) * 100%);
+}
+
+.ueb-color-picker-gradient {
+    height: 6px;
 }

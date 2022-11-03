@@ -562,6 +562,15 @@ class Utility {
     }
 
     /**
+     * @param {Number} num
+     * @param {Number} decimals
+     */
+    static roundDecimals(num, decimals = 1) {
+        const power = 10 ** decimals;
+        return Math.round(num * power) / power
+    }
+
+    /**
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
      */
@@ -1064,10 +1073,10 @@ class LinearColorEntity extends IEntity {
         /** @type {RealUnitEntity} */ this.H;
         /** @type {RealUnitEntity} */ this.S;
         /** @type {RealUnitEntity} */ this.V;
-        this.#updateValues();
+        this.#updateHSV();
     }
 
-    #updateValues() {
+    #updateHSV() {
         const r = this.R.value;
         const g = this.G.value;
         const b = this.B.value;
@@ -1076,6 +1085,7 @@ class LinearColorEntity extends IEntity {
             && !(Math.abs(r - b) > Number.EPSILON)
             && !(Math.abs(g - b) > Number.EPSILON)
         ) {
+            this.V.value = 0;
             return
         }
         const max = Math.max(r, g, b);
@@ -1103,7 +1113,21 @@ class LinearColorEntity extends IEntity {
     }
 
     /** @param {Number[]} param0 */
-    setFromHSVA([h, s, v, a = 1]) {
+    setFromRGBA([r, g, b, a = 1]) {
+        this.R.value = r;
+        this.G.value = g;
+        this.B.value = b;
+        this.A.value = a;
+        this.#updateHSV();
+    }
+
+    /**
+     * @param {Number} h
+     * @param {Number} s
+     * @param {Number} v
+     * @param {Number} a
+     */
+    setFromHSVA(h, s, v, a = 1) {
         const i = Math.floor(h * 6);
         const f = h * 6 - i;
         const p = v * (1 - s);
@@ -1122,12 +1146,7 @@ class LinearColorEntity extends IEntity {
 
     setFromWheelLocation([x, y], v, a) {
         const [r, theta] = Utility.getPolarCoordinates([x, y], true);
-        this.setFromHSVA([
-            1 - theta / (2 * Math.PI),
-            r,
-            v,
-            a,
-        ]);
+        this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a);
     }
 
     toRGBA() {
@@ -3785,8 +3804,8 @@ class IDraggableTemplate extends ITemplate {
  */
 class IDraggableControlTemplate extends IDraggableTemplate {
 
-    /** @param {[Number, Number]} param0 */
-    #locationChangeCallback = ([x, y], ..._) => { }
+    /** @type {(x: Number, y: Number) => void} */
+    #locationChangeCallback
     get locationChangeCallback() {
         return this.#locationChangeCallback
     }
@@ -3817,7 +3836,7 @@ class IDraggableControlTemplate extends IDraggableTemplate {
 
     /**  @param {[Number, Number]} param0 */
     adjustLocation([x, y]) {
-        this.#locationChangeCallback([x, y]);
+        this.locationChangeCallback?.(x, y);
         return [x, y]
     }
 }
@@ -3834,7 +3853,7 @@ class ColorHandlerTemplate extends IDraggableControlTemplate {
         y = -(y - radius);
         let [r, theta] = Utility.getPolarCoordinates([x, y]);
         r = Math.min(r, radius), [x, y] = Utility.getCartesianCoordinates([r, theta]);
-        this.locationChangeCallback?.([x / radius, y / radius]);
+        this.locationChangeCallback?.(x / radius, y / radius);
         x = Math.round(x + radius);
         y = Math.round(-y + radius);
         return [x, y]
@@ -3898,11 +3917,17 @@ customElements.define("ueb-color-handler", ColorHandlerElement);
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
 class ColorSliderTemplate extends IDraggableControlTemplate {
 
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+        ]
+    }
+
     /**  @param {[Number, Number]} param0 */
     adjustLocation([x, y]) {
-        x = 0;
+        x = Utility.clamp(x, 0, this.movementSpaceSize[0]);
         y = Utility.clamp(y, 0, this.movementSpaceSize[1]);
-        this.locationChangeCallback?.([x / this.movementSpaceSize[0], 1 - y / this.movementSpaceSize[1]]);
+        this.locationChangeCallback?.(x / this.movementSpaceSize[0], 1 - y / this.movementSpaceSize[1]);
         return [x, y]
     }
 }
@@ -3917,7 +3942,7 @@ class ColorSliderElement extends IDraggableControlElement {
     }
 }
 
-customElements.define("ueb-color-slider", ColorSliderElement);
+customElements.define("ueb-ui-slider", ColorSliderElement);
 
 /** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
 
@@ -4006,6 +4031,41 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         return this.#valueSlider
     }
 
+    #rSlider = new ColorSliderElement()
+    get rSlider() {
+        return this.#rSlider
+    }
+
+    #gSlider = new ColorSliderElement()
+    get gSlider() {
+        return this.#gSlider
+    }
+
+    #bSlider = new ColorSliderElement()
+    get bSlider() {
+        return this.#bSlider
+    }
+
+    #aSlider = new ColorSliderElement()
+    get aSlider() {
+        return this.#aSlider
+    }
+
+    #hSlider = new ColorSliderElement()
+    get hSlider() {
+        return this.#hSlider
+    }
+
+    #sSlider = new ColorSliderElement()
+    get sSlider() {
+        return this.#sSlider
+    }
+
+    #vSlider = new ColorSliderElement()
+    get vSlider() {
+        return this.#vSlider
+    }
+
     #color = new LinearColorEntity()
     get color() {
         return this.#color
@@ -4030,43 +4090,174 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         return this.#initialColor
     }
 
+    #tempColor = new LinearColorEntity()
+
+    #colorHexReplace(channel, value) {
+        const colorHex = this.color.toRGBAString();
+        return `${colorHex.substring(0, 2 * channel)}${value}${colorHex.substring(2 + 2 * channel)}`
+    }
 
     connectedCallback() {
         super.connectedCallback();
         this.#initialColor = this.element.windowOptions.getPinColor();
-        this.color.setFromHSVA([
+        this.color.setFromHSVA(
             this.initialColor.H.value,
             this.initialColor.S.value,
             this.initialColor.V.value,
-            this.initialColor.A.value
-        ]);
-        this.fullColor.setFromHSVA([this.color.H.value, 1, 1, 1]);
+            this.initialColor.A.value,
+        );
+        this.fullColor.setFromHSVA(this.color.H.value, 1, 1, 1);
     }
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         this.wheelHandler.template.locationChangeCallback =
-            /** @param {[Number, Number]} param0 x, y in the range [-1, 1] */
-            ([x, y]) => {
+            /**
+             * @param {Number} x in the range [0, 1]
+             * @param {Number} y in the range [0, 1]
+             */
+            (x, y) => {
                 this.color.setFromWheelLocation([x, y], this.color.V.value, this.color.A.value);
-                this.fullColor.setFromHSVA([this.color.H.value, 1, 1, 1]);
+                this.fullColor.setFromHSVA(this.color.H.value, 1, 1, 1);
                 this.element.requestUpdate();
             };
         this.saturationSlider.template.locationChangeCallback =
-            /** @param {[Number, Number]} param0 y is in the range [0, 1] */
-            ([_, y]) => {
-                this.color.setFromHSVA([this.color.H.value, y, this.color.V.value, this.color.A.value]);
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromHSVA(this.color.H.value, y, this.color.V.value, this.color.A.value);
                 this.element.requestUpdate();
             };
         this.valueSlider.template.locationChangeCallback =
-            /** @param {[Number, Number]} param0 y is in the range [0, 1] */
-            ([_, y]) => {
-                this.color.setFromHSVA([this.color.H.value, this.color.S.value, y, this.color.A.value]);
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromHSVA(this.color.H.value, this.color.S.value, y, this.color.A.value);
+                this.element.requestUpdate();
+            };
+        this.rSlider.template.locationChangeCallback =
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromRGBA([x, this.color.G.value, this.color.B.value, this.color.A.value]);
+                this.element.requestUpdate();
+            };
+        this.gSlider.template.locationChangeCallback =
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromRGBA([this.color.R.value, x, this.color.B.value, this.color.A.value]);
+                this.element.requestUpdate();
+            };
+        this.bSlider.template.locationChangeCallback =
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromRGBA([this.color.R.value, this.color.G.value, x, this.color.A.value]);
+                this.element.requestUpdate();
+            };
+        this.aSlider.template.locationChangeCallback =
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromRGBA([this.color.R.value, this.color.G.value, this.color.B.value, x]);
+                this.element.requestUpdate();
+            };
+        this.hSlider.template.locationChangeCallback =
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromHSVA(x, this.color.S.value, this.color.V.value, this.color.A.value);
+                this.element.requestUpdate();
+            };
+        this.sSlider.template.locationChangeCallback =
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromHSVA(this.color.H.value, x, this.color.V.value, this.color.A.value);
+                this.element.requestUpdate();
+            };
+        this.vSlider.template.locationChangeCallback =
+            /** @param {Number} x in the range [0, 1] */
+            (x, y) => {
+                this.color.setFromHSVA(this.color.H.value, this.color.S.value, x, this.color.A.value);
                 this.element.requestUpdate();
             };
         this.element.querySelector(".ueb-color-picker-wheel").appendChild(this.wheelHandler);
         this.element.querySelector(".ueb-color-picker-saturation").appendChild(this.saturationSlider);
         this.element.querySelector(".ueb-color-picker-value").appendChild(this.valueSlider);
+        this.element.querySelector(".ueb-color-picker-r .ueb-horizontal-slider").appendChild(this.rSlider);
+        this.element.querySelector(".ueb-color-picker-g .ueb-horizontal-slider").appendChild(this.gSlider);
+        this.element.querySelector(".ueb-color-picker-b .ueb-horizontal-slider").appendChild(this.bSlider);
+        this.element.querySelector(".ueb-color-picker-a .ueb-horizontal-slider").appendChild(this.aSlider);
+        this.element.querySelector(".ueb-color-picker-h .ueb-horizontal-slider").appendChild(this.hSlider);
+        this.element.querySelector(".ueb-color-picker-s .ueb-horizontal-slider").appendChild(this.sSlider);
+        this.element.querySelector(".ueb-color-picker-v .ueb-horizontal-slider").appendChild(this.vSlider);
+    }
+
+    /** @param {Number} channel */
+    renderSlider(channel) {
+        let channelLetter = "";
+        let channelValue = 0;
+        let background = "";
+        const getCommonBackground = channel =>
+            `linear-gradient(to right, #${this.#colorHexReplace(channel, '00')}, #${this.#colorHexReplace(channel, 'ff')})`;
+        switch (channel) {
+            case 0:
+                channelLetter = "r";
+                channelValue = this.color.R.value;
+                background = getCommonBackground(channel);
+                break
+            case 1:
+                channelLetter = "g";
+                channelValue = this.color.G.value;
+                background = getCommonBackground(channel);
+                break
+            case 2:
+                channelLetter = "b";
+                channelValue = this.color.B.value;
+                background = getCommonBackground(channel);
+                break
+            case 3:
+                channelLetter = "a";
+                channelValue = this.color.A.value;
+                background = `repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px, ${getCommonBackground(channel)}`;
+                break
+            case 4:
+                channelLetter = "h";
+                channelValue = this.color.H.value;
+                background = "linear-gradient(to right, #f00 0%, #ff0 16.666%, #0f0 33.333%, #0ff 50%, #00f 66.666%, #f0f 83.333%, #f00 100%)";
+                break
+            case 5:
+                channelLetter = "s";
+                channelValue = this.color.S.value;
+                background = "linear-gradient("
+                    + "to right,"
+                    + `#${this.#tempColor.setFromHSVA(
+                        this.color.H.value,
+                        0,
+                        this.color.V.value,
+                        this.color.A.value
+                    ), this.#tempColor.toRGBAString()},`
+                    + `#${this.#tempColor.setFromHSVA(
+                        this.color.H.value,
+                        1,
+                        this.color.V.value,
+                        this.color.A.value,
+                    ), this.#tempColor.toRGBAString()})`;
+                break
+            case 6:
+                channelLetter = "v";
+                channelValue = this.color.V.value;
+                background = `linear-gradient(to right, #000, #${this.fullColor.toRGBAString()})`;
+                break
+        }
+        background = `background: ${background};`;
+        return $`
+            <div class="ueb-color-picker-${channelLetter.toLowerCase()}">
+                <span>${channelLetter.toUpperCase()}</span>
+                <div>
+                    <div class="ueb-horizontal-slider">
+                        <span class="ueb-horizontal-slider-text"
+                            .innerText="${Utility.minDecimals(Utility.roundDecimals(channelValue))}">
+                        </span>
+                    </div>
+                    <div class="ueb-color-picker-gradient" style="${background}"></div>
+                </div>
+            </div>
+        `
     }
 
     renderContent() {
@@ -4086,44 +4277,54 @@ class ColorPickerWindowTemplate extends WindowTemplate {
             "--ueb-color-wheel-x": `${Math.round(this.color.S.value * Math.cos(theta) * wheelRadius + wheelRadius)}px`,
             "--ueb-color-wheel-y": `${Math.round(this.color.S.value * Math.sin(theta) * wheelRadius + wheelRadius)}px`,
         };
+        this.color.toRGBAString();
+        const fullColorHex = this.fullColor.toRGBAString();
         return $`
-            <div class="ueb-color-picker" style=${i(style)}>
+            <div class="ueb-color-picker" style="${i(style)}">
                 <div class="ueb-color-picker-toolbar">
                     <div class="ueb-color-picker-theme"></div>
                     <div class="ueb-color-picker-srgb"></div>
                 </div>
                 <div class="ueb-color-picker-main">
                     <div class="ueb-color-picker-wheel"></div>
-                    <div class="ueb-color-picker-saturation"
-                        style="background-color: #${this.fullColor.toRGBAString()}">
+                    <div class="ueb-color-picker-saturation ueb-vertical-slider"
+                        style="background-color: #${fullColorHex}">
                     </div>
-                    <div class="ueb-color-picker-value"
-                        style="background-color: #${this.fullColor.toRGBAString()}"></div>
+                    <div class="ueb-color-picker-value ueb-vertical-slider"
+                        style="background-color: #${fullColorHex}"></div>
                     <div class="ueb-color-picker-preview">
-                        <div class="ueb-color-picker-preview-old"
+                        Old
+                        <div class="ueb-color-picker-preview-old "
                             style="background: #${this.#initialColor.toRGBAString()}">
                         </div>
                         <div class="ueb-color-picker-preview-new"
                             style="background: #${this.color.toRGBAString()}">
-                        </div >
-                    </div >
-                </div >
-                <div class="ueb-color-picker-advanced-toggle"></div>
+                        </div>
+                        New
+                    </div>
+                </div>
+                <div class="ueb-color-picker-advanced-toggle ueb-toggle-control">
+                    Advanced
+                </div>
                 <div class="ueb-color-picker-advanced">
-                    <div class="ueb-color-picker-r"></div>
-                    <div class="ueb-color-picker-g"></div>
-                    <div class="ueb-color-picker-b"></div>
-                    <div class="ueb-color-picker-a"></div>
-                    <div class="ueb-color-picker-h"></div>
-                    <div class="ueb-color-picker-s"></div>
-                    <div class="ueb-color-picker-v"></div>
-                    <div class="ueb-color-picker-hex-linear"></div>
-                    <div class="ueb-color-picker-hex-srgb"></div>
+                    <div class="ueb-color-picker-column">
+                        ${this.renderSlider(0)}
+                        ${this.renderSlider(1)}
+                        ${this.renderSlider(2)}
+                        ${this.renderSlider(3)}
+                    </div>
+                    <div class="ueb-color-picker-column">
+                        ${this.renderSlider(4)}
+                        ${this.renderSlider(5)}
+                        ${this.renderSlider(6)}
+                        <div class="ueb-color-picker-hex-linear"></div>
+                        <div class="ueb-color-picker-hex-srgb"></div>
+                    </div>
                 </div>
                 <div class="ueb-color-picker-ok"></div>
                 <div class="ueb-color-picker-cancel"></div>
-            </div >
-            `
+            </div>
+        `
     }
 
     renderWindowName() {
@@ -4230,7 +4431,8 @@ class IInputPinTemplate extends PinTemplate {
             return $`
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
+                    </span>
                 </div>
             `
         }

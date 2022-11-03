@@ -24,10 +24,10 @@ export default class LinearColorEntity extends IEntity {
         /** @type {RealUnitEntity} */ this.H
         /** @type {RealUnitEntity} */ this.S
         /** @type {RealUnitEntity} */ this.V
-        this.#updateValues()
+        this.#updateHSV()
     }
 
-    #updateValues() {
+    #updateHSV() {
         const r = this.R.value
         const g = this.G.value
         const b = this.B.value
@@ -36,6 +36,7 @@ export default class LinearColorEntity extends IEntity {
             && !(Math.abs(r - b) > Number.EPSILON)
             && !(Math.abs(g - b) > Number.EPSILON)
         ) {
+            this.V.value = 0
             return
         }
         const max = Math.max(r, g, b)
@@ -63,7 +64,21 @@ export default class LinearColorEntity extends IEntity {
     }
 
     /** @param {Number[]} param0 */
-    setFromHSVA([h, s, v, a = 1]) {
+    setFromRGBA([r, g, b, a = 1]) {
+        this.R.value = r
+        this.G.value = g
+        this.B.value = b
+        this.A.value = a
+        this.#updateHSV()
+    }
+
+    /**
+     * @param {Number} h
+     * @param {Number} s
+     * @param {Number} v
+     * @param {Number} a
+     */
+    setFromHSVA(h, s, v, a = 1) {
         const i = Math.floor(h * 6)
         const f = h * 6 - i
         const p = v * (1 - s)
@@ -82,12 +97,7 @@ export default class LinearColorEntity extends IEntity {
 
     setFromWheelLocation([x, y], v, a) {
         const [r, theta] = Utility.getPolarCoordinates([x, y], true)
-        this.setFromHSVA([
-            1 - theta / (2 * Math.PI),
-            r,
-            v,
-            a,
-        ])
+        this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a)
     }
 
     toRGBA() {

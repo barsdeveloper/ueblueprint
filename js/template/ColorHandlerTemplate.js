@@ -13,7 +13,7 @@ export default class ColorHandlerTemplate extends IDraggableControlTemplate {
         y = -(y - radius)
         let [r, theta] = Utility.getPolarCoordinates([x, y])
         r = Math.min(r, radius), [x, y] = Utility.getCartesianCoordinates([r, theta])
-        this.locationChangeCallback?.([x / radius, y / radius])
+        this.locationChangeCallback?.(x / radius, y / radius)
         x = Math.round(x + radius)
         y = Math.round(-y + radius)
         return [x, y]
