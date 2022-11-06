@@ -90,6 +90,8 @@ class Configuration {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
     }
+    static windowApplyEventName = "ueb-window-apply"
+    static windowCancelEventName = "ueb-window-cancel"
     static windowCloseEventName = "ueb-window-close"
     static ModifierKeys = [
         "Ctrl",
@@ -215,12 +217,12 @@ class IInput {
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options) {
-        this.#target = target;
-        this.#blueprint = blueprint;
+    constructor(target, blueprint, options = {}) {
         options.consumeEvent ??= false;
         options.listenOnFocus ??= false;
         options.unlistenOnTextEdit ??= false;
+        this.#target = target;
+        this.#blueprint = blueprint;
         this.options = options;
         let self = this;
         this.listenHandler = _ => self.listenEvents();
@@ -2136,14 +2138,15 @@ End Object\n`;
 
 class Copy extends IInput {
 
+    static #serializer = new ObjectSerializer()
+
     /** @type {(e: ClipboardEvent) => void} */
     #copyHandler
 
     constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true;
-        options.unlistenOnTextEdit = true; // No nodes copy if inside a text field, just text (default behavior)
+        options.listenOnFocus ??= true;
+        options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
         super(target, blueprint, options);
-        this.serializer = new ObjectSerializer();
         let self = this;
         this.#copyHandler = _ => self.copied();
     }
@@ -2157,7 +2160,10 @@ class Copy extends IInput {
     }
 
     copied() {
-        const value = this.blueprint.getNodes(true).map(node => this.serializer.serialize(node.entity, false)).join("\n\n");
+        const value = this.blueprint
+            .getNodes(true)
+            .map(node => Copy.#serializer.serialize(node.entity, false))
+            .join("\n\n");
         navigator.clipboard.writeText(value);
     }
 }
@@ -2344,9 +2350,9 @@ class KeyboardCanc extends IKeyboardShortcut {
  */
 class IPointing extends IInput {
 
-    constructor(target, blueprint, options) {
+    constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false;
-        options.movementSpace ??= blueprint?.getGridDOMElement() ?? document.documentElement;
+        options.movementSpace ??= blueprint.getGridDOMElement() ?? document.documentElement;
         super(target, blueprint, options);
         this.movementSpace = options.movementSpace;
     }
@@ -3964,6 +3970,112 @@ class IDraggablePositionedTemplate extends IDraggableTemplate {
     }
 }
 
+/** @typedef {import("../../Blueprint").default} Blueprint */
+
+/**
+ * @template {HTMLElement} T
+ * @extends {IPointing<T>}
+ */
+class IMouseClick extends IPointing {
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseDownHandler
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseUpHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.clickButton ??= 0;
+        options.consumeEvent ??= true;
+        options.exitAnyButton ??= true;
+        options.strictTarget ??= false;
+        super(target, blueprint, options);
+        this.clickedPosition = [0, 0];
+        let self = this;
+
+        this.#mouseDownHandler = e => {
+            self.blueprint.setFocused(true);
+            switch (e.button) {
+                case self.options.clickButton:
+                    // Either doesn't matter or consider the click only when clicking on the target, not descandants
+                    if (!self.options.strictTarget || e.target == e.currentTarget) {
+                        if (self.options.consumeEvent) {
+                            e.stopImmediatePropagation(); // Captured, don't call anyone else
+                        }
+                        // Attach the listeners
+                        document.addEventListener("mouseup", self.#mouseUpHandler);
+                        self.clickedPosition = self.locationFromEvent(e);
+                        self.clicked(self.clickedPosition);
+                    }
+                    break
+                default:
+                    if (!self.options.exitAnyButton) {
+                        self.#mouseUpHandler(e);
+                    }
+                    break
+            }
+        };
+
+        this.#mouseUpHandler = e => {
+            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
+                if (self.options.consumeEvent) {
+                    e.stopImmediatePropagation(); // Captured, don't call anyone else
+                }
+                // Remove the handlers of "mousemove" and "mouseup"
+                document.removeEventListener("mouseup", self.#mouseUpHandler);
+                self.unclicked();
+            }
+        };
+
+        this.listenEvents();
+    }
+
+    listenEvents() {
+        this.target.addEventListener("mousedown", this.#mouseDownHandler);
+        if (this.options.clickButton == 2) {
+            this.target.addEventListener("contextmenu", e => e.preventDefault());
+        }
+    }
+
+    unlistenEvents() {
+        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
+    }
+
+    /* Subclasses will override the following methods */
+    clicked(location) {
+    }
+
+    unclicked(location) {
+    }
+}
+
+class MouseClickAction extends IMouseClick {
+
+    static #ignoreEvent =
+        /** @param {MouseClickAction} self */
+        self => { }
+
+    constructor(
+        target,
+        blueprint,
+        options,
+        onMouseDown = MouseClickAction.#ignoreEvent,
+        onMouseUp = MouseClickAction.#ignoreEvent
+    ) {
+        super(target, blueprint, options);
+        this.onMouseDown = onMouseDown;
+        this.onMouseUp = onMouseUp;
+    }
+
+    clicked() {
+        this.onMouseDown(this);
+    }
+
+    unclicked() {
+        this.onMouseUp(this);
+    }
+}
+
 /** @typedef {import("../element/WindowElement").default} WindowElement */
 
 /** @extends {IDraggablePositionedTemplate<WindowElement>} */
@@ -3982,6 +4094,16 @@ class WindowTemplate extends IDraggablePositionedTemplate {
             movementSpace: this.element.blueprint,
             stepSize: 1,
         })
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            new MouseClickAction(this.element.querySelector(".ueb-window-close"), this.element.blueprint, {},
+                undefined,
+                () => this.element.remove()
+            ),
+        ]
     }
 
     render() {
@@ -4440,85 +4562,6 @@ class IInputPinTemplate extends PinTemplate {
     }
 }
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
-
-/**
- * @template {HTMLElement} T
- * @extends {IPointing<T>}
- */
-class IMouseClick extends IPointing {
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseDownHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseUpHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.clickButton ??= 0;
-        options.consumeEvent ??= true;
-        options.exitAnyButton ??= true;
-        options.strictTarget ??= false;
-        super(target, blueprint, options);
-        this.clickedPosition = [0, 0];
-        let self = this;
-
-        this.#mouseDownHandler = e => {
-            self.blueprint.setFocused(true);
-            switch (e.button) {
-                case self.options.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the target, not descandants
-                    if (!self.options.strictTarget || e.target == e.currentTarget) {
-                        if (self.options.consumeEvent) {
-                            e.stopImmediatePropagation(); // Captured, don't call anyone else
-                        }
-                        // Attach the listeners
-                        document.addEventListener("mouseup", self.#mouseUpHandler);
-                        self.clickedPosition = self.locationFromEvent(e);
-                        self.clicked(self.clickedPosition);
-                    }
-                    break
-                default:
-                    if (!self.options.exitAnyButton) {
-                        self.#mouseUpHandler(e);
-                    }
-                    break
-            }
-        };
-
-        this.#mouseUpHandler = e => {
-            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
-                if (self.options.consumeEvent) {
-                    e.stopImmediatePropagation(); // Captured, don't call anyone else
-                }
-                // Remove the handlers of "mousemove" and "mouseup"
-                document.removeEventListener("mouseup", self.#mouseUpHandler);
-                self.unclicked();
-            }
-        };
-
-        this.listenEvents();
-    }
-
-    listenEvents() {
-        this.target.addEventListener("mousedown", this.#mouseDownHandler);
-        if (this.options.clickButton == 2) {
-            this.target.addEventListener("contextmenu", e => e.preventDefault());
-        }
-    }
-
-    unlistenEvents() {
-        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
-    }
-
-    /* Subclasses will override the following methods */
-    clicked(location) {
-    }
-
-    unclicked(location) {
-    }
-}
-
 /**
  * @template {WindowTemplate} T
  * @extends {IDraggableElement<Object, T>}
@@ -4560,36 +4603,13 @@ class WindowElement extends IDraggableElement {
         this.dispatchCloseEvent();
     }
 
-    dispatchCloseEvent(value) {
-        let deleteEvent = new CustomEvent(Configuration.windowCloseEventName, {
-            bubbles: true,
-            cancelable: true,
-        });
+    dispatchCloseEvent() {
+        let deleteEvent = new CustomEvent(Configuration.windowCloseEventName);
         this.dispatchEvent(deleteEvent);
     }
 }
 
 customElements.define("ueb-window", WindowElement);
-
-/**
- * @template {HTMLElement} T
- * @extends {IMouseClick<T>}
- */
-class MouseOpenWindow extends IMouseClick {
-
-    #window
-
-    clicked(location) {
-    }
-
-    unclicked(location) {
-        this.#window = new WindowElement({
-            type: this.options.windowType,
-            windowOptions: this.options.windowOptions,
-        });
-        this.blueprint.append(this.#window);
-    }
-}
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -4601,6 +4621,9 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     /** @type {HTMLInputElement} */
     #input
 
+    /** @type {WindowElement} */
+    #window
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
@@ -4610,16 +4633,29 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            new MouseOpenWindow(this.#input, this.element.blueprint, {
-                moveEverywhere: true,
-                windowType: ColorPickerWindowTemplate,
-                windowOptions: {
-                    // The created window will use the following functions to get and set the color
-                    getPinColor: () => this.element.defaultValue,
-                    /** @param {LinearColorEntity} color */
-                    setPinColor: color => this.element.setDefaultValue(color),
+            new MouseClickAction(this.#input, this.element.blueprint, undefined,
+                inputInstance => {
+                    this.#window = new WindowElement({
+                        type: ColorPickerWindowTemplate,
+                        windowOptions: {
+                            // The created window will use the following functions to get and set the color
+                            getPinColor: () => this.element.defaultValue,
+                            /** @param {LinearColorEntity} color */
+                            setPinColor: color => this.element.setDefaultValue(color),
+                        },
+                    });
+                    this.element.blueprint.append(this.#window);
+                    const windowApplyHandler = () => {
+                        this.element.color = /** @type {ColorPickerWindowTemplate} */(this.#window.template).color;
+                    };
+                    const windowCloseHandler = () => {
+                        this.#window.removeEventListener(Configuration.windowApplyEventName, windowApplyHandler);
+                        this.#window.removeEventListener(Configuration.windowCloseEventName, windowCloseHandler);
+                    };
+                    this.#window.addEventListener(Configuration.windowApplyEventName, windowApplyHandler);
+                    this.#window.addEventListener(Configuration.windowCloseEventName, windowCloseHandler);
                 },
-            }),
+            ),
         ]
     }
 
@@ -4635,7 +4671,7 @@ class LinearColorPinTemplate extends IInputPinTemplate {
         if (this.element.isInput()) {
             return $`
                 <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
-                    style="--ueb-linear-color:rgba(${this.element.defaultValue.toString()})">
+                    style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
                 </span>
             `
         }
@@ -5132,6 +5168,7 @@ class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
 /** @typedef {import("../element/NodeElement").default} NodeElement */
 
+/** @extends {ISelectableDraggableTemplate<NodeElement>} */
 class NodeTemplate extends ISelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler
@@ -5342,19 +5379,13 @@ class NodeElement extends ISelectableDraggableElement {
         super.setLocation(value);
     }
 
-    dispatchDeleteEvent(value) {
-        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName, {
-            bubbles: true,
-            cancelable: true,
-        });
+    dispatchDeleteEvent() {
+        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName);
         this.dispatchEvent(deleteEvent);
     }
 
     dispatchReflowEvent() {
-        let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName, {
-            bubbles: true,
-            cancelable: true
-        });
+        let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName);
         this.dispatchEvent(reflowEvent);
     }
 
@@ -5371,14 +5402,15 @@ customElements.define("ueb-node", NodeElement);
 
 class Paste extends IInput {
 
+    static #serializer = new ObjectSerializer()
+
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
 
     constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true;
-        options.unlistenOnTextEdit = true; // No nodes paste if inside a text field, just text (default behavior)
+        options.listenOnFocus ??= true;
+        options.unlistenOnTextEdit ??= true; // No nodes paste if inside a text field, just text (default behavior)
         super(target, blueprint, options);
-        this.serializer = new ObjectSerializer();
         let self = this;
         this.#pasteHandle = e => self.pasted(e.clipboardData.getData("Text"));
     }
@@ -5395,7 +5427,7 @@ class Paste extends IInput {
         let top = 0;
         let left = 0;
         let count = 0;
-        let nodes = this.serializer.readMultiple(value).map(entity => {
+        let nodes = Paste.#serializer.readMultiple(value).map(entity => {
             let node = new NodeElement(entity);
             top += node.locationY;
             left += node.locationX;

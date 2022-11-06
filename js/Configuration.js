@@ -66,6 +66,8 @@ export default class Configuration {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
     }
+    static windowApplyEventName = "ueb-window-apply"
+    static windowCancelEventName = "ueb-window-cancel"
     static windowCloseEventName = "ueb-window-close"
     static ModifierKeys = [
         "Ctrl",

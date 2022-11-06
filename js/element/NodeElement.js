@@ -146,19 +146,13 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.setLocation(value)
     }
 
-    dispatchDeleteEvent(value) {
-        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName, {
-            bubbles: true,
-            cancelable: true,
-        })
+    dispatchDeleteEvent() {
+        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName)
         this.dispatchEvent(deleteEvent)
     }
 
     dispatchReflowEvent() {
-        let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName, {
-            bubbles: true,
-            cancelable: true
-        })
+        let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName)
         this.dispatchEvent(reflowEvent)
     }
 

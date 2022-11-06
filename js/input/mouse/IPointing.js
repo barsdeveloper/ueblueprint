@@ -9,9 +9,9 @@ import Utility from "../../Utility"
  */
 export default class IPointing extends IInput {
 
-    constructor(target, blueprint, options) {
+    constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false
-        options.movementSpace ??= blueprint?.getGridDOMElement() ?? document.documentElement
+        options.movementSpace ??= blueprint.getGridDOMElement() ?? document.documentElement
         super(target, blueprint, options)
         this.movementSpace = options.movementSpace
     }

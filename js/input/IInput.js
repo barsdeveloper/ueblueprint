@@ -25,12 +25,12 @@ export default class IInput {
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options) {
-        this.#target = target
-        this.#blueprint = blueprint
+    constructor(target, blueprint, options = {}) {
         options.consumeEvent ??= false
         options.listenOnFocus ??= false
         options.unlistenOnTextEdit ??= false
+        this.#target = target
+        this.#blueprint = blueprint
         this.options = options
         let self = this
         this.listenHandler = _ => self.listenEvents()

@@ -44,11 +44,8 @@ export default class WindowElement extends IDraggableElement {
         this.dispatchCloseEvent()
     }
 
-    dispatchCloseEvent(value) {
-        let deleteEvent = new CustomEvent(Configuration.windowCloseEventName, {
-            bubbles: true,
-            cancelable: true,
-        })
+    dispatchCloseEvent() {
+        let deleteEvent = new CustomEvent(Configuration.windowCloseEventName)
         this.dispatchEvent(deleteEvent)
     }
 }

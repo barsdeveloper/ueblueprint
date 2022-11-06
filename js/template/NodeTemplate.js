@@ -1,9 +1,10 @@
 import { html, nothing } from "lit"
-import PinElement from "../element/PinElement"
 import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
+import PinElement from "../element/PinElement"
 
 /** @typedef {import("../element/NodeElement").default} NodeElement */
 
+/** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler

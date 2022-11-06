@@ -4,14 +4,15 @@ import ObjectSerializer from "../../serialization/ObjectSerializer"
 
 export default class Paste extends IInput {
 
+    static #serializer = new ObjectSerializer()
+
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
 
     constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true
-        options.unlistenOnTextEdit = true // No nodes paste if inside a text field, just text (default behavior)
+        options.listenOnFocus ??= true
+        options.unlistenOnTextEdit ??= true // No nodes paste if inside a text field, just text (default behavior)
         super(target, blueprint, options)
-        this.serializer = new ObjectSerializer()
         let self = this
         this.#pasteHandle = e => self.pasted(e.clipboardData.getData("Text"))
     }
@@ -28,7 +29,7 @@ export default class Paste extends IInput {
         let top = 0
         let left = 0
         let count = 0
-        let nodes = this.serializer.readMultiple(value).map(entity => {
+        let nodes = Paste.#serializer.readMultiple(value).map(entity => {
             let node = new NodeElement(entity)
             top += node.locationY
             left += node.locationX

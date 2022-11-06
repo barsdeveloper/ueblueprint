@@ -1,7 +1,9 @@
 import { html } from "lit"
 import ColorPickerWindowTemplate from "./ColorPickerWindowTemplate"
+import Configuration from "../Configuration"
 import IInputPinTemplate from "./IInputPinTemplate"
-import MouseOpenWindow from "../input/mouse/MouseOpenWindow"
+import MouseClickAction from "../input/mouse/MouseClickAction"
+import WindowElement from "../element/WindowElement"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -13,6 +15,9 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     /** @type {HTMLInputElement} */
     #input
 
+    /** @type {WindowElement} */
+    #window
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
@@ -22,16 +27,30 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            new MouseOpenWindow(this.#input, this.element.blueprint, {
-                moveEverywhere: true,
-                windowType: ColorPickerWindowTemplate,
-                windowOptions: {
-                    // The created window will use the following functions to get and set the color
-                    getPinColor: () => this.element.defaultValue,
-                    /** @param {LinearColorEntity} color */
-                    setPinColor: color => this.element.setDefaultValue(color),
+            new MouseClickAction(this.#input, this.element.blueprint, undefined,
+                inputInstance => {
+                    this.#window = new WindowElement({
+                        type: ColorPickerWindowTemplate,
+                        windowOptions: {
+                            // The created window will use the following functions to get and set the color
+                            getPinColor: () => this.element.defaultValue,
+                            /** @param {LinearColorEntity} color */
+                            setPinColor: color => this.element.setDefaultValue(color),
+                        },
+                    })
+                    this.element.blueprint.append(this.#window)
+                    const windowApplyHandler = () => {
+                        this.element.color = /** @type {ColorPickerWindowTemplate} */(this.#window.template).color
+                    }
+                    const windowCloseHandler = () => {
+                        this.#window.removeEventListener(Configuration.windowApplyEventName, windowApplyHandler)
+                        this.#window.removeEventListener(Configuration.windowCloseEventName, windowCloseHandler)
+                        this.#window = null
+                    }
+                    this.#window.addEventListener(Configuration.windowApplyEventName, windowApplyHandler)
+                    this.#window.addEventListener(Configuration.windowCloseEventName, windowCloseHandler)
                 },
-            }),
+            ),
         ]
     }
 
@@ -47,7 +66,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
         if (this.element.isInput()) {
             return html`
                 <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
-                    style="--ueb-linear-color:rgba(${this.element.defaultValue.toString()})">
+                    style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
                 </span>
             `
         }

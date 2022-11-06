@@ -1,5 +1,6 @@
 import { html } from "lit"
 import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate"
+import MouseClickAction from "../input/mouse/MouseClickAction"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
 
 /** @typedef {import("../element/WindowElement").default} WindowElement */
@@ -20,6 +21,16 @@ export default class WindowTemplate extends IDraggablePositionedTemplate {
             movementSpace: this.element.blueprint,
             stepSize: 1,
         })
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            new MouseClickAction(this.element.querySelector(".ueb-window-close"), this.element.blueprint, {},
+                undefined,
+                () => this.element.remove()
+            ),
+        ]
     }
 
     render() {
