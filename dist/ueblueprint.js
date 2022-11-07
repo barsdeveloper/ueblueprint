@@ -739,6 +739,13 @@ class Utility {
     }
 
     /** @param {String} value */
+    static clearHTMLWhitespace(value) {
+        return value
+            .replaceAll("&nbsp;", "\u00A0")
+            .replaceAll("<br>", "\n")
+    }
+
+    /** @param {String} value */
     static formatStringName(value) {
         return value
             .trim()
@@ -1066,6 +1073,30 @@ class LinearColorEntity extends IEntity {
         V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
     }
 
+    static linearToSRGB(x) {
+        if (x <= 0) {
+            return 0
+        } else if (x >= 1) {
+            return 1
+        } else if (x < 0.0031308) {
+            return x * 12.92
+        } else {
+            return Math.pow(x, 1 / 2.4) * 1.055 - 0.055
+        }
+    }
+
+    static sRGBtoLinear(x) {
+        if (x <= 0) {
+            return 0
+        } else if (x >= 1) {
+            return 1
+        } else if (x < 0.04045) {
+            return x / 12.92
+        } else {
+            return Math.pow((x + 0.055) / 1.055, 2.4)
+        }
+    }
+
     constructor(options = {}) {
         super(options);
         /** @type {RealUnitEntity} */ this.R;
@@ -1160,8 +1191,27 @@ class LinearColorEntity extends IEntity {
         ]
     }
 
+    toSRGBA() {
+        return [
+            Math.round(LinearColorEntity.linearToSRGB(this.R.value) * 255),
+            Math.round(LinearColorEntity.linearToSRGB(this.G.value) * 255),
+            Math.round(LinearColorEntity.linearToSRGB(this.B.value) * 255),
+            Math.round(this.A.value * 255),
+        ]
+    }
+
     toRGBAString() {
-        return this.toRGBA().map(v => v.toString(16).padStart(2, "0")).join("")
+        return this
+            .toRGBA()
+            .map(v => v.toString(16).toUpperCase().padStart(2, "0"))
+            .join("")
+    }
+
+    toSRGBAString() {
+        return this
+            .toSRGBA()
+            .map(v => v.toString(16).toUpperCase().padStart(2, "0"))
+            .join("")
     }
 
     toHSVA() {
@@ -1181,10 +1231,25 @@ class LinearColorEntity extends IEntity {
         return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
     }
 
+    setFromRGBANumber(number) {
+        this.A.value = (number & 0xFF) / 0xff;
+        this.B.value = ((number >> 8) & 0xFF) / 0xff;
+        this.G.value = ((number >> 16) & 0xFF) / 0xff;
+        this.R.value = ((number >> 24) & 0xFF) / 0xff;
+        this.#updateHSV();
+    }
+
+    setFromSRGBANumber(number) {
+        this.A.value = (number & 0xFF) / 0xff;
+        this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xFF) / 0xff);
+        this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xFF) / 0xff);
+        this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xFF) / 0xff);
+        this.#updateHSV();
+    }
+
     toString() {
         return Utility.printLinearColor(this)
     }
-
 }
 
 class LocalizedTextEntity extends IEntity {
@@ -3008,6 +3073,161 @@ class ISelectableDraggableElement extends IDraggableElement {
 }
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {IMouseClickDrag<T>}
+ */
+class MouseMoveDraggable extends IMouseClickDrag {
+
+    clicked(location) {
+        if (this.options.repositionOnClick) {
+            this.target.setLocation(this.stepSize > 1
+                ? Utility.snapToGrid(location, this.stepSize)
+                : location
+            );
+            this.clickedOffset = [0, 0];
+        }
+    }
+
+    dragTo(location, offset) {
+        const targetLocation = [this.target.locationX, this.target.locationY];
+        const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
+            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
+            : [location, targetLocation];
+        offset = [
+            adjustedLocation[0] - this.mouseLocation[0],
+            adjustedLocation[1] - this.mouseLocation[1]
+        ];
+        if (offset[0] == 0 && offset[1] == 0) {
+            return
+        }
+        // Make sure it snaps on the grid
+        offset[0] += adjustedTargetLocation[0] - this.target.locationX;
+        offset[1] += adjustedTargetLocation[1] - this.target.locationY;
+        this.dragAction(adjustedLocation, offset);
+        // Reassign the position of mouse
+        this.mouseLocation = adjustedLocation;
+    }
+
+    dragAction(location, offset) {
+        this.target.setLocation([
+            location[0] - this.clickedOffset[0],
+            location[1] - this.clickedOffset[1]
+        ]);
+    }
+}
+
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {ITemplate<T>}
+ */
+class IDraggableTemplate extends ITemplate {
+
+    getDraggableElement() {
+        return this.element
+    }
+
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
+        })
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
+        ]
+    }
+}
+
+/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {IDraggableTemplate<T>}
+ */
+class IDraggablePositionedTemplate extends IDraggableTemplate {
+
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
+        if (changedProperties.has("locationX")) {
+            this.element.style.left = `${this.element.locationX}px`;
+        }
+        if (changedProperties.has("locationY")) {
+            this.element.style.top = `${this.element.locationY}px`;
+        }
+    }
+}
+
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ */
+
+/** @extends {MouseMoveDraggable<ISelectableDraggableElement>} */
+class MouseMoveNodes extends MouseMoveDraggable {
+
+    startDrag() {
+        if (!this.target.selected) {
+            this.blueprint.unselectAll();
+            this.target.setSelected(true);
+        }
+    }
+
+    dragAction(location, offset) {
+        this.target.dispatchDragEvent(offset);
+    }
+
+    unclicked() {
+        if (!this.started) {
+            this.blueprint.unselectAll();
+            this.target.setSelected(true);
+        }
+    }
+}
+
+/**
+ * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
+ */
+
+/**
+ * @template {ISelectableDraggableElement} T
+ * @extends {IDraggablePositionedTemplate<T>}
+ */
+class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
+
+    getDraggableElement() {
+        return this.element
+    }
+
+    createDraggableObject() {
+        return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
+        }))
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        if (this.element.selected && !this.element.listeningDrag) {
+            this.element.setSelected(true);
+        }
+    }
+}
+
+/**
  * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
  */
 
@@ -3723,84 +3943,6 @@ const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e
  */const i=e(class extends i$1{constructor(t$1){var e;if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||(null===(e=t$1.strings)||void 0===e?void 0:e.length)>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce(((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`}),"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.vt){this.vt=new Set;for(const t in r)this.vt.add(t);return this.render(r)}this.vt.forEach((t=>{null==r[t]&&(this.vt.delete(t),t.includes("-")?s.removeProperty(t):s[t]="");}));for(const t in r){const e=r[t];null!=e&&(this.vt.add(t),t.includes("-")?s.setProperty(t,e):s[t]=e);}return b}});
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
- */
-
-/**
- * @template {IDraggableElement} T
- * @extends {IMouseClickDrag<T>}
- */
-class MouseMoveDraggable extends IMouseClickDrag {
-
-    clicked(location) {
-        if (this.options.repositionOnClick) {
-            this.target.setLocation(this.stepSize > 1
-                ? Utility.snapToGrid(location, this.stepSize)
-                : location
-            );
-            this.clickedOffset = [0, 0];
-        }
-    }
-
-    dragTo(location, offset) {
-        const targetLocation = [this.target.locationX, this.target.locationY];
-        const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
-            : [location, targetLocation];
-        offset = [
-            adjustedLocation[0] - this.mouseLocation[0],
-            adjustedLocation[1] - this.mouseLocation[1]
-        ];
-        if (offset[0] == 0 && offset[1] == 0) {
-            return
-        }
-        // Make sure it snaps on the grid
-        offset[0] += adjustedTargetLocation[0] - this.target.locationX;
-        offset[1] += adjustedTargetLocation[1] - this.target.locationY;
-        this.dragAction(adjustedLocation, offset);
-        // Reassign the position of mouse
-        this.mouseLocation = adjustedLocation;
-    }
-
-    dragAction(location, offset) {
-        this.target.setLocation([
-            location[0] - this.clickedOffset[0],
-            location[1] - this.clickedOffset[1]
-        ]);
-    }
-}
-
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../element/IDraggableElement").default} IDraggableElement
- */
-
-/**
- * @template {IDraggableElement} T
- * @extends {ITemplate<T>}
- */
-class IDraggableTemplate extends ITemplate {
-
-    getDraggableElement() {
-        return this.element
-    }
-
-    createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
-            draggableElement: this.getDraggableElement(),
-        })
-    }
-
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            this.createDraggableObject(),
-        ]
-    }
-}
-
-/**
  * @typedef {import("../element/IDraggableElement").default} IDraggableElement
  */
 
@@ -3923,12 +4065,6 @@ customElements.define("ueb-color-handler", ColorHandlerElement);
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
 class ColorSliderTemplate extends IDraggableControlTemplate {
 
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-        ]
-    }
-
     /**  @param {[Number, Number]} param0 */
     adjustLocation([x, y]) {
         x = Utility.clamp(x, 0, this.movementSpaceSize[0]);
@@ -3950,132 +4086,6 @@ class ColorSliderElement extends IDraggableControlElement {
 
 customElements.define("ueb-ui-slider", ColorSliderElement);
 
-/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
-
-/**
- * @template {IDraggableElement} T
- * @extends {IDraggableTemplate<T>}
- */
-class IDraggablePositionedTemplate extends IDraggableTemplate {
-
-    /** @param {Map} changedProperties */
-    update(changedProperties) {
-        super.update(changedProperties);
-        if (changedProperties.has("locationX")) {
-            this.element.style.left = `${this.element.locationX}px`;
-        }
-        if (changedProperties.has("locationY")) {
-            this.element.style.top = `${this.element.locationY}px`;
-        }
-    }
-}
-
-/** @typedef {import("../../Blueprint").default} Blueprint */
-
-/**
- * @template {HTMLElement} T
- * @extends {IPointing<T>}
- */
-class IMouseClick extends IPointing {
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseDownHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseUpHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.clickButton ??= 0;
-        options.consumeEvent ??= true;
-        options.exitAnyButton ??= true;
-        options.strictTarget ??= false;
-        super(target, blueprint, options);
-        this.clickedPosition = [0, 0];
-        let self = this;
-
-        this.#mouseDownHandler = e => {
-            self.blueprint.setFocused(true);
-            switch (e.button) {
-                case self.options.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the target, not descandants
-                    if (!self.options.strictTarget || e.target == e.currentTarget) {
-                        if (self.options.consumeEvent) {
-                            e.stopImmediatePropagation(); // Captured, don't call anyone else
-                        }
-                        // Attach the listeners
-                        document.addEventListener("mouseup", self.#mouseUpHandler);
-                        self.clickedPosition = self.locationFromEvent(e);
-                        self.clicked(self.clickedPosition);
-                    }
-                    break
-                default:
-                    if (!self.options.exitAnyButton) {
-                        self.#mouseUpHandler(e);
-                    }
-                    break
-            }
-        };
-
-        this.#mouseUpHandler = e => {
-            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
-                if (self.options.consumeEvent) {
-                    e.stopImmediatePropagation(); // Captured, don't call anyone else
-                }
-                // Remove the handlers of "mousemove" and "mouseup"
-                document.removeEventListener("mouseup", self.#mouseUpHandler);
-                self.unclicked();
-            }
-        };
-
-        this.listenEvents();
-    }
-
-    listenEvents() {
-        this.target.addEventListener("mousedown", this.#mouseDownHandler);
-        if (this.options.clickButton == 2) {
-            this.target.addEventListener("contextmenu", e => e.preventDefault());
-        }
-    }
-
-    unlistenEvents() {
-        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
-    }
-
-    /* Subclasses will override the following methods */
-    clicked(location) {
-    }
-
-    unclicked(location) {
-    }
-}
-
-class MouseClickAction extends IMouseClick {
-
-    static #ignoreEvent =
-        /** @param {MouseClickAction} self */
-        self => { }
-
-    constructor(
-        target,
-        blueprint,
-        options,
-        onMouseDown = MouseClickAction.#ignoreEvent,
-        onMouseUp = MouseClickAction.#ignoreEvent
-    ) {
-        super(target, blueprint, options);
-        this.onMouseDown = onMouseDown;
-        this.onMouseUp = onMouseUp;
-    }
-
-    clicked() {
-        this.onMouseDown(this);
-    }
-
-    unclicked() {
-        this.onMouseUp(this);
-    }
-}
-
 /** @typedef {import("../element/WindowElement").default} WindowElement */
 
 /** @extends {IDraggablePositionedTemplate<WindowElement>} */
@@ -4096,22 +4106,12 @@ class WindowTemplate extends IDraggablePositionedTemplate {
         })
     }
 
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            new MouseClickAction(this.element.querySelector(".ueb-window-close"), this.element.blueprint, {},
-                undefined,
-                () => this.element.remove()
-            ),
-        ]
-    }
-
     render() {
         return $`
             <div class="ueb-window">
                 <div class="ueb-window-top">
                     <div class="ueb-window-name ueb-ellipsis-nowrap-text">${this.renderWindowName()}</div>
-                    <div class="ueb-window-close">
+                    <div class="ueb-window-close" @click="${() => this.element.remove()}">
                         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
                             <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
@@ -4131,6 +4131,16 @@ class WindowTemplate extends IDraggablePositionedTemplate {
 
     renderContent() {
         return $``
+    }
+
+    apply() {
+        this.element.dispatchEvent(new CustomEvent(Configuration.windowApplyEventName));
+        this.element.remove();
+    }
+
+    cancel() {
+        this.element.dispatchEvent(new CustomEvent(Configuration.windowCancelEventName));
+        this.element.remove();
     }
 }
 
@@ -4187,6 +4197,32 @@ class ColorPickerWindowTemplate extends WindowTemplate {
     get vSlider() {
         return this.#vSlider
     }
+
+    #hexRGBHandler =
+        /** @param {FocusEvent} v */
+        v => {
+            // Faster than innerText which causes reflow
+            const input = Utility.clearHTMLWhitespace(/** @type {HTMLElement} */(v.target).innerHTML);
+            const RGBAValue = parseInt(input, 16);
+            if (isNaN(RGBAValue)) {
+                return
+            }
+            this.color.setFromRGBANumber(RGBAValue);
+            this.element.requestUpdate();
+        }
+
+    #hexSRGBHandler =
+        /** @param {FocusEvent} v */
+        v => {
+            // Faster than innerText which causes reflow
+            const input = Utility.clearHTMLWhitespace(/** @type {HTMLElement} */(v.target).innerHTML);
+            const sRGBAValue = parseInt(input, 16);
+            if (isNaN(sRGBAValue)) {
+                return
+            }
+            this.color.setFromSRGBANumber(sRGBAValue);
+            this.element.requestUpdate();
+        }
 
     #color = new LinearColorEntity()
     get color() {
@@ -4339,7 +4375,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                 break
             case 4:
                 channelLetter = "h";
-                channelValue = this.color.H.value;
+                channelValue = this.color.H.value * 360;
                 background = "linear-gradient(to right, #f00 0%, #ff0 16.666%, #0f0 33.333%, #0ff 50%, #00f 66.666%, #f0f 83.333%, #f00 100%)";
                 break
             case 5:
@@ -4369,11 +4405,11 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         background = `background: ${background};`;
         return $`
             <div class="ueb-color-picker-${channelLetter.toLowerCase()}">
-                <span>${channelLetter.toUpperCase()}</span>
+                <span class="ueb-color-control-label">${channelLetter.toUpperCase()}</span>
                 <div>
                     <div class="ueb-horizontal-slider">
                         <span class="ueb-horizontal-slider-text"
-                            .innerText="${Utility.minDecimals(Utility.roundDecimals(channelValue))}">
+                            .innerText="${Utility.minDecimals(Utility.roundDecimals(channelValue, 3))}">
                         </span>
                     </div>
                     <div class="ueb-color-picker-gradient" style="${background}"></div>
@@ -4439,12 +4475,30 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                         ${this.renderSlider(4)}
                         ${this.renderSlider(5)}
                         ${this.renderSlider(6)}
-                        <div class="ueb-color-picker-hex-linear"></div>
-                        <div class="ueb-color-picker-hex-srgb"></div>
+                        <div class="ueb-color-control">
+                            <span class="ueb-color-control-label">Hex Linear</span>
+                            <div class="ueb-color-picker-hex-linear ueb-text-input">
+                                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                                    .innerText="${this.color.toRGBAString()}"
+                                    @focusout="${this.#hexRGBHandler}">
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ueb-color-control">
+                            <span class="ueb-color-control-label">Hex sRGB</span>
+                            <div class="ueb-color-picker-hex-srgb ueb-text-input">
+                                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                                    .innerText="${this.color.toSRGBAString()}"
+                                    @focusout="${this.#hexSRGBHandler}">
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="ueb-color-picker-ok"></div>
-                <div class="ueb-color-picker-cancel"></div>
+                <div class="ueb-buttons">
+                    <div class="ueb-color-picker-ok ueb-button" @click="${() => this.apply()}">OK</div>
+                    <div class="ueb-color-picker-cancel ueb-button" @click="${() => this.cancel()}">Cancel</div>
+                </div>
             </div>
         `
     }
@@ -4528,9 +4582,7 @@ class IInputPinTemplate extends PinTemplate {
     getInputs() {
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
-            element.innerHTML
-                .replaceAll("&nbsp;", "\u00A0")
-                .replaceAll("<br>", "\n")
+            Utility.clearHTMLWhitespace(element.innerHTML)
         )
     }
 
@@ -4559,6 +4611,112 @@ class IInputPinTemplate extends PinTemplate {
             `
         }
         return $``
+    }
+}
+
+/** @typedef {import("../../Blueprint").default} Blueprint */
+
+/**
+ * @template {HTMLElement} T
+ * @extends {IPointing<T>}
+ */
+class IMouseClick extends IPointing {
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseDownHandler
+
+    /** @type {(e: MouseEvent) => void} */
+    #mouseUpHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.clickButton ??= 0;
+        options.consumeEvent ??= true;
+        options.exitAnyButton ??= true;
+        options.strictTarget ??= false;
+        super(target, blueprint, options);
+        this.clickedPosition = [0, 0];
+        let self = this;
+
+        this.#mouseDownHandler = e => {
+            self.blueprint.setFocused(true);
+            switch (e.button) {
+                case self.options.clickButton:
+                    // Either doesn't matter or consider the click only when clicking on the target, not descandants
+                    if (!self.options.strictTarget || e.target == e.currentTarget) {
+                        if (self.options.consumeEvent) {
+                            e.stopImmediatePropagation(); // Captured, don't call anyone else
+                        }
+                        // Attach the listeners
+                        document.addEventListener("mouseup", self.#mouseUpHandler);
+                        self.clickedPosition = self.locationFromEvent(e);
+                        self.clicked(self.clickedPosition);
+                    }
+                    break
+                default:
+                    if (!self.options.exitAnyButton) {
+                        self.#mouseUpHandler(e);
+                    }
+                    break
+            }
+        };
+
+        this.#mouseUpHandler = e => {
+            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
+                if (self.options.consumeEvent) {
+                    e.stopImmediatePropagation(); // Captured, don't call anyone else
+                }
+                // Remove the handlers of "mousemove" and "mouseup"
+                document.removeEventListener("mouseup", self.#mouseUpHandler);
+                self.unclicked();
+            }
+        };
+
+        this.listenEvents();
+    }
+
+    listenEvents() {
+        this.target.addEventListener("mousedown", this.#mouseDownHandler);
+        if (this.options.clickButton == 2) {
+            this.target.addEventListener("contextmenu", e => e.preventDefault());
+        }
+    }
+
+    unlistenEvents() {
+        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
+    }
+
+    /* Subclasses will override the following methods */
+    clicked(location) {
+    }
+
+    unclicked(location) {
+    }
+}
+
+class MouseClickAction extends IMouseClick {
+
+    static #ignoreEvent =
+        /** @param {MouseClickAction} self */
+        self => { }
+
+    constructor(
+        target,
+        blueprint,
+        options,
+        onMouseDown = MouseClickAction.#ignoreEvent,
+        onMouseUp = MouseClickAction.#ignoreEvent
+    ) {
+        super(target, blueprint, options);
+        this.onMouseDown = onMouseDown;
+        this.onMouseUp = onMouseUp;
+    }
+
+    clicked() {
+        this.onMouseDown(this);
+    }
+
+    unclicked() {
+        this.onMouseUp(this);
     }
 }
 
@@ -4616,6 +4774,7 @@ customElements.define("ueb-window", WindowElement);
  * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
  */
 
+/** @extends IInputPinTemplate<LinearColorEntity> */
 class LinearColorPinTemplate extends IInputPinTemplate {
 
     /** @type {HTMLInputElement} */
@@ -4646,11 +4805,14 @@ class LinearColorPinTemplate extends IInputPinTemplate {
                     });
                     this.element.blueprint.append(this.#window);
                     const windowApplyHandler = () => {
-                        this.element.color = /** @type {ColorPickerWindowTemplate} */(this.#window.template).color;
+                        this.element.setDefaultValue(
+                            /** @type {ColorPickerWindowTemplate} */(this.#window.template).color
+                        );
                     };
                     const windowCloseHandler = () => {
                         this.#window.removeEventListener(Configuration.windowApplyEventName, windowApplyHandler);
                         this.#window.removeEventListener(Configuration.windowCloseEventName, windowCloseHandler);
+                        this.#window = null;
                     };
                     this.#window.addEventListener(Configuration.windowApplyEventName, windowApplyHandler);
                     this.#window.addEventListener(Configuration.windowCloseEventName, windowCloseHandler);
@@ -4771,9 +4933,8 @@ class RealPinTemplate extends INumericPinTemplate {
             return $`
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                        .innerText="${
-                            IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))
-                        }"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
+                    </span>
                 </div>
             `
         }
@@ -4988,8 +5149,7 @@ class PinElement extends IElement {
         this.advancedView = entity.bAdvancedView;
         this.defaultValue = entity.getDefaultValue();
         this.pinType = this.entity.getType();
-        // @ts-expect-error
-        this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString());
+        this.color = PinElement.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString());
         this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
 
@@ -5108,63 +5268,6 @@ class PinElement extends IElement {
 }
 
 customElements.define("ueb-pin", PinElement);
-
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
- */
-
-/** @extends {MouseMoveDraggable<ISelectableDraggableElement>} */
-class MouseMoveNodes extends MouseMoveDraggable {
-
-    startDrag() {
-        if (!this.target.selected) {
-            this.blueprint.unselectAll();
-            this.target.setSelected(true);
-        }
-    }
-
-    dragAction(location, offset) {
-        this.target.dispatchDragEvent(offset);
-    }
-
-    unclicked() {
-        if (!this.started) {
-            this.blueprint.unselectAll();
-            this.target.setSelected(true);
-        }
-    }
-}
-
-/**
- * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
- * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
- */
-
-/**
- * @template {ISelectableDraggableElement} T
- * @extends {IDraggablePositionedTemplate<T>}
- */
-class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
-
-    getDraggableElement() {
-        return this.element
-    }
-
-    createDraggableObject() {
-        return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
-            draggableElement: this.getDraggableElement(),
-        }))
-    }
-
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        if (this.element.selected && !this.element.listeningDrag) {
-            this.element.setSelected(true);
-        }
-    }
-}
 
 /** @typedef {import("../element/NodeElement").default} NodeElement */
 

@@ -234,6 +234,13 @@ export default class Utility {
     }
 
     /** @param {String} value */
+    static clearHTMLWhitespace(value) {
+        return value
+            .replaceAll("&nbsp;", "\u00A0")
+            .replaceAll("<br>", "\n")
+    }
+
+    /** @param {String} value */
     static formatStringName(value) {
         return value
             .trim()

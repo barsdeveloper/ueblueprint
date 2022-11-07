@@ -1,6 +1,7 @@
 import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
+import Utility from "../Utility"
 
 /**
  * @template T
@@ -76,9 +77,7 @@ export default class IInputPinTemplate extends PinTemplate {
     getInputs() {
         return this.#inputContentElements.map(element =>
             // Faster than innerText which causes reflow
-            element.innerHTML
-                .replaceAll("&nbsp;", "\u00A0")
-                .replaceAll("<br>", "\n")
+            Utility.clearHTMLWhitespace(element.innerHTML)
         )
     }
 

@@ -15,6 +15,30 @@ export default class LinearColorEntity extends IEntity {
         V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
     }
 
+    static linearToSRGB(x) {
+        if (x <= 0) {
+            return 0
+        } else if (x >= 1) {
+            return 1
+        } else if (x < 0.0031308) {
+            return x * 12.92
+        } else {
+            return Math.pow(x, 1 / 2.4) * 1.055 - 0.055
+        }
+    }
+
+    static sRGBtoLinear(x) {
+        if (x <= 0) {
+            return 0
+        } else if (x >= 1) {
+            return 1
+        } else if (x < 0.04045) {
+            return x / 12.92
+        } else {
+            return Math.pow((x + 0.055) / 1.055, 2.4)
+        }
+    }
+
     constructor(options = {}) {
         super(options)
         /** @type {RealUnitEntity} */ this.R
@@ -109,8 +133,27 @@ export default class LinearColorEntity extends IEntity {
         ]
     }
 
+    toSRGBA() {
+        return [
+            Math.round(LinearColorEntity.linearToSRGB(this.R.value) * 255),
+            Math.round(LinearColorEntity.linearToSRGB(this.G.value) * 255),
+            Math.round(LinearColorEntity.linearToSRGB(this.B.value) * 255),
+            Math.round(this.A.value * 255),
+        ]
+    }
+
     toRGBAString() {
-        return this.toRGBA().map(v => v.toString(16).padStart(2, "0")).join("")
+        return this
+            .toRGBA()
+            .map(v => v.toString(16).toUpperCase().padStart(2, "0"))
+            .join("")
+    }
+
+    toSRGBAString() {
+        return this
+            .toSRGBA()
+            .map(v => v.toString(16).toUpperCase().padStart(2, "0"))
+            .join("")
     }
 
     toHSVA() {
@@ -130,8 +173,23 @@ export default class LinearColorEntity extends IEntity {
         return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
     }
 
+    setFromRGBANumber(number) {
+        this.A.value = (number & 0xFF) / 0xff
+        this.B.value = ((number >> 8) & 0xFF) / 0xff
+        this.G.value = ((number >> 16) & 0xFF) / 0xff
+        this.R.value = ((number >> 24) & 0xFF) / 0xff
+        this.#updateHSV()
+    }
+
+    setFromSRGBANumber(number) {
+        this.A.value = (number & 0xFF) / 0xff
+        this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xFF) / 0xff)
+        this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xFF) / 0xff)
+        this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xFF) / 0xff)
+        this.#updateHSV()
+    }
+
     toString() {
         return Utility.printLinearColor(this)
     }
-
 }

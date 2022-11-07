@@ -6,12 +6,6 @@ import Utility from "../Utility"
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
 export default class ColorSliderTemplate extends IDraggableControlTemplate {
 
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-        ]
-    }
-
     /**  @param {[Number, Number]} param0 */
     adjustLocation([x, y]) {
         x = Utility.clamp(x, 0, this.movementSpaceSize[0])

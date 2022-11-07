@@ -10,6 +10,7 @@ import WindowElement from "../element/WindowElement"
  * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
  */
 
+/** @extends IInputPinTemplate<LinearColorEntity> */
 export default class LinearColorPinTemplate extends IInputPinTemplate {
 
     /** @type {HTMLInputElement} */
@@ -40,7 +41,9 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
                     })
                     this.element.blueprint.append(this.#window)
                     const windowApplyHandler = () => {
-                        this.element.color = /** @type {ColorPickerWindowTemplate} */(this.#window.template).color
+                        this.element.setDefaultValue(
+                            /** @type {ColorPickerWindowTemplate} */(this.#window.template).color
+                        )
                     }
                     const windowCloseHandler = () => {
                         this.#window.removeEventListener(Configuration.windowApplyEventName, windowApplyHandler)

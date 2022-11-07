@@ -60,6 +60,32 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
         return this.#vSlider
     }
 
+    #hexRGBHandler =
+        /** @param {FocusEvent} v */
+        v => {
+            // Faster than innerText which causes reflow
+            const input = Utility.clearHTMLWhitespace(/** @type {HTMLElement} */(v.target).innerHTML)
+            const RGBAValue = parseInt(input, 16)
+            if (isNaN(RGBAValue)) {
+                return
+            }
+            this.color.setFromRGBANumber(RGBAValue)
+            this.element.requestUpdate()
+        }
+
+    #hexSRGBHandler =
+        /** @param {FocusEvent} v */
+        v => {
+            // Faster than innerText which causes reflow
+            const input = Utility.clearHTMLWhitespace(/** @type {HTMLElement} */(v.target).innerHTML)
+            const sRGBAValue = parseInt(input, 16)
+            if (isNaN(sRGBAValue)) {
+                return
+            }
+            this.color.setFromSRGBANumber(sRGBAValue)
+            this.element.requestUpdate()
+        }
+
     #color = new LinearColorEntity()
     get color() {
         return this.#color
@@ -211,7 +237,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                 break
             case 4:
                 channelLetter = "h"
-                channelValue = this.color.H.value
+                channelValue = this.color.H.value * 360
                 background = "linear-gradient(to right, #f00 0%, #ff0 16.666%, #0f0 33.333%, #0ff 50%, #00f 66.666%, #f0f 83.333%, #f00 100%)"
                 break
             case 5:
@@ -241,11 +267,11 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
         background = `background: ${background};`
         return html`
             <div class="ueb-color-picker-${channelLetter.toLowerCase()}">
-                <span>${channelLetter.toUpperCase()}</span>
+                <span class="ueb-color-control-label">${channelLetter.toUpperCase()}</span>
                 <div>
                     <div class="ueb-horizontal-slider">
                         <span class="ueb-horizontal-slider-text"
-                            .innerText="${Utility.minDecimals(Utility.roundDecimals(channelValue))}">
+                            .innerText="${Utility.minDecimals(Utility.roundDecimals(channelValue, 3))}">
                         </span>
                     </div>
                     <div class="ueb-color-picker-gradient" style="${background}"></div>
@@ -311,12 +337,30 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                         ${this.renderSlider(4)}
                         ${this.renderSlider(5)}
                         ${this.renderSlider(6)}
-                        <div class="ueb-color-picker-hex-linear"></div>
-                        <div class="ueb-color-picker-hex-srgb"></div>
+                        <div class="ueb-color-control">
+                            <span class="ueb-color-control-label">Hex Linear</span>
+                            <div class="ueb-color-picker-hex-linear ueb-text-input">
+                                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                                    .innerText="${this.color.toRGBAString()}"
+                                    @focusout="${this.#hexRGBHandler}">
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ueb-color-control">
+                            <span class="ueb-color-control-label">Hex sRGB</span>
+                            <div class="ueb-color-picker-hex-srgb ueb-text-input">
+                                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                                    .innerText="${this.color.toSRGBAString()}"
+                                    @focusout="${this.#hexSRGBHandler}">
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="ueb-color-picker-ok"></div>
-                <div class="ueb-color-picker-cancel"></div>
+                <div class="ueb-buttons">
+                    <div class="ueb-color-picker-ok ueb-button" @click="${() => this.apply()}">OK</div>
+                    <div class="ueb-color-picker-cancel ueb-button" @click="${() => this.cancel()}">Cancel</div>
+                </div>
             </div>
         `
     }

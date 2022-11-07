@@ -1,3 +1,23 @@
+.ueb-button {
+    min-width: 60px;
+    border: 1px solid #0f0f0f;
+    padding: 2px 10px;
+    background: #383838;
+    text-align: center;
+    cursor: pointer;
+
+    &:hover {
+        background: #575757;
+    }
+}
+
+.ueb-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
 .ueb-vertical-slider>ueb-ui-slider {
     position: relative;
     padding-bottom: 10px;
@@ -23,16 +43,25 @@
     }
 }
 
-.ueb-horizontal-slider {
+.ueb-horizontal-slider,
+.ueb-text-input {
     position: relative;
     border: 1px solid #383838;
     border-radius: 6px;
-    padding: 1px;
     background: #0f0f0f;
+}
+
+.ueb-horizontal-slider {
+    position: relative;
+    padding: 1px;
 
     &:hover {
         cursor: ew-resize;
     }
+}
+
+ueb-window .ueb-pin-input-content {
+    padding: 1px 10px;
 }
 
 .ueb-horizontal-slider>ueb-ui-slider {

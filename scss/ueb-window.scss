@@ -147,6 +147,7 @@ ueb-ui-slider {
     flex-direction: column;
     justify-content: space-between;
     flex-grow: 1;
+    width: 50%;
 }
 
 .ueb-color-picker-advanced .ueb-color-picker-column>div {
@@ -193,4 +194,19 @@ ueb-ui-slider {
 
 .ueb-color-picker-gradient {
     height: 6px;
+}
+
+.ueb-color-control {
+    align-self: flex-end;
+}
+
+.ueb-color-control-label {
+    margin-right: 5px;
+    color: #c0c0c0;
+}
+
+.ueb-color-control .ueb-pin-input-content {
+    line-height: 20px;
+    font-family: monospace;
+    color: #c0c0c0;
 }

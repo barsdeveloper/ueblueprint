@@ -18,9 +18,8 @@ export default class RealPinTemplate extends INumericPinTemplate {
             return html`
                 <div class="ueb-pin-input">
                     <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                        .innerText="${
-                            IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))
-                        }"></span>
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
+                    </span>
                 </div>
             `
         }

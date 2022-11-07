@@ -664,6 +664,25 @@ ueb-pin[data-type=vector] {
   --ueb-pin-color-rgb: var(--ueb-pin-color-vector);
 }
 
+.ueb-button {
+  min-width: 60px;
+  border: 1px solid #0f0f0f;
+  padding: 2px 10px;
+  background: #383838;
+  text-align: center;
+  cursor: pointer;
+}
+.ueb-button:hover {
+  background: #575757;
+}
+
+.ueb-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 .ueb-vertical-slider > ueb-ui-slider {
   position: relative;
   padding-bottom: 10px;
@@ -685,15 +704,24 @@ ueb-pin[data-type=vector] {
   border-right-color: #e0e0e0;
 }
 
-.ueb-horizontal-slider {
+.ueb-horizontal-slider,
+.ueb-text-input {
   position: relative;
   border: 1px solid #383838;
   border-radius: 6px;
-  padding: 1px;
   background: #0f0f0f;
+}
+
+.ueb-horizontal-slider {
+  position: relative;
+  padding: 1px;
 }
 .ueb-horizontal-slider:hover {
   cursor: ew-resize;
+}
+
+ueb-window .ueb-pin-input-content {
+  padding: 1px 10px;
 }
 
 .ueb-horizontal-slider > ueb-ui-slider {
@@ -858,6 +886,7 @@ ueb-ui-slider {
   flex-direction: column;
   justify-content: space-between;
   flex-grow: 1;
+  width: 50%;
 }
 
 .ueb-color-picker-advanced .ueb-color-picker-column > div {
@@ -903,6 +932,21 @@ ueb-ui-slider {
 
 .ueb-color-picker-gradient {
   height: 6px;
+}
+
+.ueb-color-control {
+  align-self: flex-end;
+}
+
+.ueb-color-control-label {
+  margin-right: 5px;
+  color: #c0c0c0;
+}
+
+.ueb-color-control .ueb-pin-input-content {
+  line-height: 20px;
+  font-family: monospace;
+  color: #c0c0c0;
 }
 
 /*# sourceMappingURL=ueb-style.css.map */

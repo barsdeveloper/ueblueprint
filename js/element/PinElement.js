@@ -115,8 +115,7 @@ export default class PinElement extends IElement {
         this.advancedView = entity.bAdvancedView
         this.defaultValue = entity.getDefaultValue()
         this.pinType = this.entity.getType()
-        // @ts-expect-error
-        this.color = this.constructor.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
+        this.color = PinElement.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
 
