@@ -2,6 +2,7 @@ import { html } from "lit"
 import { styleMap } from "lit/directives/style-map.js"
 import ColorHandlerElement from "../element/ColorHandlerElement"
 import ColorSliderElement from "../element/ColorSliderElement"
+import Configuration from "../Configuration"
 import LinearColorEntity from "../entity/LinearColorEntity"
 import Utility from "../Utility"
 import WindowTemplate from "./WindowTemplate"
@@ -61,7 +62,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
     }
 
     #hexRGBHandler =
-        /** @param {FocusEvent} v */
+        /** @param {UIEvent} v */
         v => {
             // Faster than innerText which causes reflow
             const input = Utility.clearHTMLWhitespace(/** @type {HTMLElement} */(v.target).innerHTML)
@@ -74,7 +75,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
         }
 
     #hexSRGBHandler =
-        /** @param {FocusEvent} v */
+        /** @param {UIEvent} v */
         v => {
             // Faster than innerText which causes reflow
             const input = Utility.clearHTMLWhitespace(/** @type {HTMLElement} */(v.target).innerHTML)
@@ -85,6 +86,17 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
             this.color.setFromSRGBANumber(sRGBAValue)
             this.element.requestUpdate()
         }
+
+    #doOnEnter =
+        /** @param {(e: UIEvent) => void} action */
+        action =>
+            /** @param {KeyboardEvent} e */
+            e => {
+                if (e.code == "Enter") {
+                    action(e)
+                    e.preventDefault()
+                }
+            }
 
     #color = new LinearColorEntity()
     get color() {
@@ -233,7 +245,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
             case 3:
                 channelLetter = "a"
                 channelValue = this.color.A.value
-                background = `repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px, ${getCommonBackground(channel)}`
+                background = `${Configuration.alphaPattern}, ${getCommonBackground(channel)}`
                 break
             case 4:
                 channelLetter = "h"
@@ -297,7 +309,8 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
             "--ueb-color-wheel-x": `${Math.round(this.color.S.value * Math.cos(theta) * wheelRadius + wheelRadius)}px`,
             "--ueb-color-wheel-y": `${Math.round(this.color.S.value * Math.sin(theta) * wheelRadius + wheelRadius)}px`,
         }
-        const colorHex = this.color.toRGBAString()
+        const colorRGB = this.color.toRGBAString()
+        const colorSRGB = this.color.toSRGBAString()
         const fullColorHex = this.fullColor.toRGBAString()
         return html`
             <div class="ueb-color-picker" style="${styleMap(style)}">
@@ -317,8 +330,13 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                         <div class="ueb-color-picker-preview-old "
                             style="background: #${this.#initialColor.toRGBAString()}">
                         </div>
-                        <div class="ueb-color-picker-preview-new"
-                            style="background: #${this.color.toRGBAString()}">
+                        <div class="ueb-color-picker-preview-new">
+                            <div class="ueb-color-picker-preview-1"
+                                style="background: #${this.#colorHexReplace(3, "FF")}">
+                            </div>
+                            <div class="ueb-color-picker-preview-2"
+                                style="background: ${`linear-gradient(#${colorRGB}, #${colorRGB}),${Configuration.alphaPattern}`}">
+                            </div>
                         </div>
                         New
                     </div>
@@ -341,8 +359,9 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                             <span class="ueb-color-control-label">Hex Linear</span>
                             <div class="ueb-color-picker-hex-linear ueb-text-input">
                                 <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                                    .innerText="${this.color.toRGBAString()}"
-                                    @focusout="${this.#hexRGBHandler}">
+                                    .innerText="${colorRGB}"
+                                    @focusout="${this.#hexRGBHandler}"
+                                    @keydown="${this.#doOnEnter(this.#hexRGBHandler)}">
                                 </span>
                             </div>
                         </div>
@@ -350,8 +369,9 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                             <span class="ueb-color-control-label">Hex sRGB</span>
                             <div class="ueb-color-picker-hex-srgb ueb-text-input">
                                 <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
-                                    .innerText="${this.color.toSRGBAString()}"
-                                    @focusout="${this.#hexSRGBHandler}">
+                                    .innerText="${colorSRGB}"
+                                    @focusout="${this.#hexSRGBHandler}"
+                                    @keydown="${this.#doOnEnter(this.#hexSRGBHandler)}">
                                 </span>
                             </div>
                         </div>

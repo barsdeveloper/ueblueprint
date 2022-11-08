@@ -114,13 +114,14 @@ ueb-ui-slider {
 
 .ueb-color-picker-preview {
     position: relative;
+    align-self: flex-start;
 
     &::before,
     &::after {
         content: "";
         display: block;
         position: absolute;
-        top: 39px;
+        top: calc(50% - 1px);
         width: 5px;
         border-top: 2px solid black;
     }
@@ -134,6 +135,15 @@ ueb-ui-slider {
 .ueb-color-picker-preview-new {
     width: 100px;
     height: 40px;
+}
+
+.ueb-color-picker-preview-new {
+    display: flex;
+}
+
+.ueb-color-picker-preview-1,
+.ueb-color-picker-preview-2 {
+    width: 50%;
 }
 
 .ueb-color-picker-advanced {
@@ -206,6 +216,7 @@ ueb-ui-slider {
 }
 
 .ueb-color-control .ueb-pin-input-content {
+    width: 8ch;
     line-height: 20px;
     font-family: monospace;
     color: #c0c0c0;

@@ -1,6 +1,7 @@
 import { css } from "lit"
 
 export default class Configuration {
+    static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
     static colorWindowEventName = "ueb-color-window"
