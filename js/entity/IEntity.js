@@ -41,7 +41,7 @@ export default class IEntity extends Observable {
                 } else if (
                     !(attribute in values)
                     && defaultValue !== undefined
-                    && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
+                    && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
                 ) {
                     console.warn(
                         `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`

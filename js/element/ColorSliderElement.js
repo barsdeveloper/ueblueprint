@@ -10,5 +10,3 @@ export default class ColorSliderElement extends IDraggableControlElement {
         super({}, new ColorSliderTemplate())
     }
 }
-
-customElements.define("ueb-ui-slider", ColorSliderElement)

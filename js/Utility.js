@@ -236,8 +236,9 @@ export default class Utility {
     /** @param {String} value */
     static clearHTMLWhitespace(value) {
         return value
-            .replaceAll("&nbsp;", "\u00A0")
-            .replaceAll("<br>", "\n")
+            .replaceAll("&nbsp;", "\u00A0") // whitespace
+            .replaceAll("<br>", "\n") // newlines
+            .replaceAll(/(\<!--.*?\-->)/g, "") // html comments
     }
 
     /** @param {String} value */

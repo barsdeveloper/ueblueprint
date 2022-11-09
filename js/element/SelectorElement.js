@@ -39,5 +39,3 @@ export default class SelectorElement extends IFromToPositionedElement {
         this.toY = 0
     }
 }
-
-customElements.define("ueb-selector", SelectorElement)

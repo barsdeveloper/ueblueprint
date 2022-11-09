@@ -3,11 +3,22 @@ import IInput from "../IInput"
 import ISerializer from "../../serialization/ISerializer"
 import KeyBindingEntity from "../../entity/KeyBindingEntity"
 
+/** @typedef {import("../../Blueprint").default} Blueprint */
+
+/**
+ * @template {HTMLElement} T
+ * @extends IInput<T>
+ */
 export default class IKeyboardShortcut extends IInput {
 
     /** @type {KeyBindingEntity[]} */
     #activationKeys
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
     constructor(target, blueprint, options = {}) {
         options.activateAnyKey ??= false
         options.activationKeys ??= []

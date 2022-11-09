@@ -14,5 +14,3 @@ export default class ColorHandlerElement extends IDraggableControlElement {
         super({}, new ColorHandlerTemplate())
     }
 }
-
-customElements.define("ueb-color-handler", ColorHandlerElement)

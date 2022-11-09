@@ -37,19 +37,15 @@ export default class IInputPinTemplate extends PinTemplate {
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll(".ueb-pin-input-content")])
+        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
         if (this.#inputContentElements.length) {
             this.setInputs(this.getInputs(), false)
             let self = this
-            this.onFocusHandler = _ => this.element.blueprint.dispatchEditTextEvent(true)
             this.onFocusOutHandler = e => {
                 e.preventDefault()
-                document.getSelection()?.removeAllRanges() // Deselect text inside the input
                 self.setInputs(this.getInputs(), true)
-                this.element.blueprint.dispatchEditTextEvent(false)
             }
             this.#inputContentElements.forEach(element => {
-                element.addEventListener("focus", this.onFocusHandler)
                 element.addEventListener("focusout", this.onFocusOutHandler)
             })
         }
@@ -58,7 +54,6 @@ export default class IInputPinTemplate extends PinTemplate {
     cleanup() {
         super.cleanup()
         this.#inputContentElements.forEach(element => {
-            element.removeEventListener("focus", this.onFocusHandler)
             element.removeEventListener("focusout", this.onFocusOutHandler)
         })
     }
@@ -99,9 +94,9 @@ export default class IInputPinTemplate extends PinTemplate {
         if (this.element.isInput()) {
             return html`
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                    <ueb-input
                         .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
-                    </span>
+                    </ueb-input>
                 </div>
             `
         }

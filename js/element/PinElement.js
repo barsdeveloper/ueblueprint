@@ -232,5 +232,3 @@ export default class PinElement extends IElement {
         return false
     }
 }
-
-customElements.define("ueb-pin", PinElement)

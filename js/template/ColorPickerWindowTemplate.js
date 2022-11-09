@@ -124,9 +124,10 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
 
     #tempColor = new LinearColorEntity()
 
-    #colorHexReplace(channel, value) {
+    #colorHexReplace(channel, value, opaque = false) {
         const colorHex = this.color.toRGBAString()
-        return `${colorHex.substring(0, 2 * channel)}${value}${colorHex.substring(2 + 2 * channel)}`
+        const result = `${colorHex.substring(0, 2 * channel)}${value}${colorHex.substring(2 + 2 * channel)}`
+        return opaque ? `${result.substring(0, 6)}FF` : result
     }
 
     connectedCallback() {
@@ -225,7 +226,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
         let channelValue = 0
         let background = ""
         const getCommonBackground = channel =>
-            `linear-gradient(to right, #${this.#colorHexReplace(channel, '00')}, #${this.#colorHexReplace(channel, 'ff')})`
+            `linear-gradient(to right, #${this.#colorHexReplace(channel, '00', true)}, #${this.#colorHexReplace(channel, 'ff', true)})`
         switch (channel) {
             case 0:
                 channelLetter = "r"
@@ -261,13 +262,13 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                         this.color.H.value,
                         0,
                         this.color.V.value,
-                        this.color.A.value
+                        1
                     ), this.#tempColor.toRGBAString()},`
                     + `#${this.#tempColor.setFromHSVA(
                         this.color.H.value,
                         1,
                         this.color.V.value,
-                        this.color.A.value,
+                        1,
                     ), this.#tempColor.toRGBAString()})`
                 break
             case 6:
@@ -366,7 +367,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                             </div>
                         </div>
                         <div class="ueb-color-control">
-                            <span class="ueb-color-control-label">Hex sRGB</span>
+                             <span class="ueb-color-control-label">Hex sRGB</span>
                             <div class="ueb-color-picker-hex-srgb ueb-text-input">
                                 <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
                                     .innerText="${colorSRGB}"

@@ -26,6 +26,7 @@ export default class ISelectableDraggableElement extends IDraggableElement {
     }
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args)
         this.selected = false
         this.listeningDrag = false

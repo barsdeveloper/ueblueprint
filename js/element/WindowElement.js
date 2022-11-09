@@ -49,5 +49,3 @@ export default class WindowElement extends IDraggableElement {
         this.dispatchEvent(deleteEvent)
     }
 }
-
-customElements.define("ueb-window", WindowElement)

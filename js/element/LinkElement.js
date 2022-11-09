@@ -247,5 +247,3 @@ export default class LinkElement extends IFromToPositionedElement {
         this.linkMessageText = `${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`
     }
 }
-
-customElements.define("ueb-link", LinkElement)

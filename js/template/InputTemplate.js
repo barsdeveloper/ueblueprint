@@ -1,3 +1,4 @@
+import FocusTextEdit from "../input/common/FocusTextEdit"
 import ITemplate from "./ITemplate"
 
 /** @typedef {import ("../element/InputElement").default} InputElement */
@@ -5,20 +6,18 @@ import ITemplate from "./ITemplate"
 /** @extends {ITemplate<InputElement>} */
 export default class InputTemplate extends ITemplate {
 
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            new FocusTextEdit(this.element, this.element.blueprint),
+        ]
+    }
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.onFocusHandler =
-            /** @param {FocusEvent} e */
-            e => this.element.blueprint.dispatchEditTextEvent(true)
-        this.onFocusOutHandler =
-            /** @param {FocusEvent} e */
-            e => {
-                e.preventDefault()
-                document.getSelection()?.removeAllRanges() // Deselect text inside the input
-                this.element.blueprint.dispatchEditTextEvent(false)
-            }
-        this.element.addEventListener("focus", this.onFocusHandler)
-        this.element.addEventListener("focusout", this.onFocusOutHandler)
+        this.element.classList.add("ueb-pin-input-content")
+        this.element.setAttribute("role", "textbox")
+        this.element.contentEditable = "true"
     }
 }

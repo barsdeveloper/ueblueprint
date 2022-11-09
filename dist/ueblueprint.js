@@ -742,8 +742,9 @@ class Utility {
     /** @param {String} value */
     static clearHTMLWhitespace(value) {
         return value
-            .replaceAll("&nbsp;", "\u00A0")
-            .replaceAll("<br>", "\n")
+            .replaceAll("&nbsp;", "\u00A0") // whitespace
+            .replaceAll("<br>", "\n") // newlines
+            .replaceAll(/(\<!--.*?\-->)/g, "") // html comments
     }
 
     /** @param {String} value */
@@ -829,7 +830,7 @@ class IEntity extends Observable {
                 } else if (
                     !(attribute in values)
                     && defaultValue !== undefined
-                    && !(defaultValue instanceof TypeInitialization && !defaultValue.showDefault)
+                    && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
                 ) {
                     console.warn(
                         `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
@@ -2258,6 +2259,11 @@ class ITemplate {
         this.element = element;
     }
 
+    /** @returns {IInput[]} */
+    createInputObjects() {
+        return []
+    }
+
     connectedCallback() {
     }
 
@@ -2270,7 +2276,7 @@ class ITemplate {
     }
 
     render() {
-        return $``
+        return w
     }
 
     /** @param {Map} changedProperties */
@@ -2288,18 +2294,24 @@ class ITemplate {
     cleanup() {
         this.#inputObjects.forEach(v => v.unlistenDOMElement());
     }
-
-    /** @returns {IInput[]} */
-    createInputObjects() {
-        return []
-    }
 }
 
+/** @typedef {import("../../Blueprint").default} Blueprint */
+
+/**
+ * @template {HTMLElement} T
+ * @extends IInput<T>
+ */
 class IKeyboardShortcut extends IInput {
 
     /** @type {KeyBindingEntity[]} */
     #activationKeys
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
     constructor(target, blueprint, options = {}) {
         options.activateAnyKey ??= false;
         options.activationKeys ??= [];
@@ -3042,6 +3054,7 @@ class ISelectableDraggableElement extends IDraggableElement {
     }
 
     constructor(...args) {
+        // @ts-expect-error
         super(...args);
         this.selected = false;
         this.listeningDrag = false;
@@ -3704,8 +3717,6 @@ class LinkElement extends IFromToPositionedElement {
     }
 }
 
-customElements.define("ueb-link", LinkElement);
-
 /** @typedef {import("../../element/PinElement").default} PinElement */
 
 /** @extends IMouseClickDrag<PinElement> */
@@ -4059,8 +4070,6 @@ class ColorHandlerElement extends IDraggableControlElement {
     }
 }
 
-customElements.define("ueb-color-handler", ColorHandlerElement);
-
 /** @typedef {import("../element/ColorHandlerElement").default} ColorHandlerElement */
 
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
@@ -4084,8 +4093,6 @@ class ColorSliderElement extends IDraggableControlElement {
         super({}, new ColorSliderTemplate());
     }
 }
-
-customElements.define("ueb-ui-slider", ColorSliderElement);
 
 /** @typedef {import("../element/WindowElement").default} WindowElement */
 
@@ -4262,9 +4269,10 @@ class ColorPickerWindowTemplate extends WindowTemplate {
 
     #tempColor = new LinearColorEntity()
 
-    #colorHexReplace(channel, value) {
+    #colorHexReplace(channel, value, opaque = false) {
         const colorHex = this.color.toRGBAString();
-        return `${colorHex.substring(0, 2 * channel)}${value}${colorHex.substring(2 + 2 * channel)}`
+        const result = `${colorHex.substring(0, 2 * channel)}${value}${colorHex.substring(2 + 2 * channel)}`;
+        return opaque ? `${result.substring(0, 6)}FF` : result
     }
 
     connectedCallback() {
@@ -4363,7 +4371,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         let channelValue = 0;
         let background = "";
         const getCommonBackground = channel =>
-            `linear-gradient(to right, #${this.#colorHexReplace(channel, '00')}, #${this.#colorHexReplace(channel, 'ff')})`;
+            `linear-gradient(to right, #${this.#colorHexReplace(channel, '00', true)}, #${this.#colorHexReplace(channel, 'ff', true)})`;
         switch (channel) {
             case 0:
                 channelLetter = "r";
@@ -4399,13 +4407,13 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                         this.color.H.value,
                         0,
                         this.color.V.value,
-                        this.color.A.value
+                        1
                     ), this.#tempColor.toRGBAString()},`
                     + `#${this.#tempColor.setFromHSVA(
                         this.color.H.value,
                         1,
                         this.color.V.value,
-                        this.color.A.value,
+                        1,
                     ), this.#tempColor.toRGBAString()})`;
                 break
             case 6:
@@ -4504,7 +4512,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                             </div>
                         </div>
                         <div class="ueb-color-control">
-                            <span class="ueb-color-control-label">Hex sRGB</span>
+                             <span class="ueb-color-control-label">Hex sRGB</span>
                             <div class="ueb-color-picker-hex-srgb ueb-text-input">
                                 <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
                                     .innerText="${colorSRGB}"
@@ -4562,19 +4570,15 @@ class IInputPinTemplate extends PinTemplate {
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll(".ueb-pin-input-content")]);
+        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
         if (this.#inputContentElements.length) {
             this.setInputs(this.getInputs(), false);
             let self = this;
-            this.onFocusHandler = _ => this.element.blueprint.dispatchEditTextEvent(true);
             this.onFocusOutHandler = e => {
                 e.preventDefault();
-                document.getSelection()?.removeAllRanges(); // Deselect text inside the input
                 self.setInputs(this.getInputs(), true);
-                this.element.blueprint.dispatchEditTextEvent(false);
             };
             this.#inputContentElements.forEach(element => {
-                element.addEventListener("focus", this.onFocusHandler);
                 element.addEventListener("focusout", this.onFocusOutHandler);
             });
         }
@@ -4583,7 +4587,6 @@ class IInputPinTemplate extends PinTemplate {
     cleanup() {
         super.cleanup();
         this.#inputContentElements.forEach(element => {
-            element.removeEventListener("focus", this.onFocusHandler);
             element.removeEventListener("focusout", this.onFocusOutHandler);
         });
     }
@@ -4624,9 +4627,9 @@ class IInputPinTemplate extends PinTemplate {
         if (this.element.isInput()) {
             return $`
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                    <ueb-input
                         .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
-                    </span>
+                    </ueb-input>
                 </div>
             `
         }
@@ -4786,8 +4789,6 @@ class WindowElement extends IDraggableElement {
         this.dispatchEvent(deleteEvent);
     }
 }
-
-customElements.define("ueb-window", WindowElement);
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
@@ -4952,9 +4953,9 @@ class RealPinTemplate extends INumericPinTemplate {
         if (this.element.isInput()) {
             return $`
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                    <ueb-input
                         .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
-                    </span>
+                    </ueb-input>
                 </div>
             `
         }
@@ -5287,8 +5288,6 @@ class PinElement extends IElement {
     }
 }
 
-customElements.define("ueb-pin", PinElement);
-
 /** @typedef {import("../element/NodeElement").default} NodeElement */
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
@@ -5520,8 +5519,6 @@ class NodeElement extends ISelectableDraggableElement {
         this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.toString() != "Shown");
     }
 }
-
-customElements.define("ueb-node", NodeElement);
 
 class Paste extends IInput {
 
@@ -5925,8 +5922,6 @@ class SelectorElement extends IFromToPositionedElement {
         this.toY = 0;
     }
 }
-
-customElements.define("ueb-selector", SelectorElement);
 
 class Unfocus extends IInput {
 
@@ -6479,9 +6474,9 @@ class Blueprint extends IElement {
         this.dispatchEvent(event);
     }
 
-    dispatchEditTextEvent(value) {
+    dispatchEditTextEvent(beginning) {
         const event = new CustomEvent(
-            value
+            beginning
                 ? Configuration.editTextEventName.begin
                 : Configuration.editTextEventName.end
         );
@@ -6490,6 +6485,95 @@ class Blueprint extends IElement {
 }
 
 customElements.define("ueb-blueprint", Blueprint);
+
+class IFocus extends IInput {
+
+    /** @type {(e: FocusEvent) => void} */
+    #focusHandler
+
+    /** @type {(e: FocusEvent) => void} */
+    #focusoutHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus ??= true;
+        super(target, blueprint, options);
+        this.#focusHandler = e => {
+            e.preventDefault();
+            this.focused();
+        };
+        this.#focusoutHandler = e => {
+            e.preventDefault();
+            this.unfocused();
+        };
+    }
+
+    listenEvents() {
+        this.target.addEventListener("focus", this.#focusHandler);
+        this.target.addEventListener("focusout", this.#focusoutHandler);
+    }
+
+    unlistenEvents() {
+        this.target.removeEventListener("focus", this.#focusHandler);
+        this.target.removeEventListener("focusout", this.#focusoutHandler);
+    }
+
+    focused() {
+    }
+
+    unfocused() {
+    }
+}
+
+class FocusTextEdit extends IFocus {
+
+    focused() {
+        this.blueprint.dispatchEditTextEvent(true);
+    }
+
+    unfocused() {
+        document.getSelection()?.removeAllRanges(); // Deselect eventually selected text inside the input
+        this.blueprint.dispatchEditTextEvent(false);
+    }
+}
+
+/** @typedef {import ("../element/InputElement").default} InputElement */
+
+/** @extends {ITemplate<InputElement>} */
+class InputTemplate extends ITemplate {
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            new FocusTextEdit(this.element, this.element.blueprint),
+        ]
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.element.classList.add("ueb-pin-input-content");
+        this.element.setAttribute("role", "textbox");
+        this.element.contentEditable = "true";
+    }
+}
+
+class InputElement extends IElement {
+
+    constructor() {
+        super({}, new InputTemplate());
+    }
+}
+
+function defineElements() {
+    customElements.define("ueb-color-handler", ColorHandlerElement);
+    customElements.define("ueb-input", InputElement);
+    customElements.define("ueb-link", LinkElement);
+    customElements.define("ueb-node", NodeElement);
+    customElements.define("ueb-pin", PinElement);
+    customElements.define("ueb-selector", SelectorElement);
+    customElements.define("ueb-ui-slider", ColorSliderElement);
+    customElements.define("ueb-window", WindowElement);
+}
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -6770,5 +6854,6 @@ function initializeSerializerFactory() {
 }
 
 initializeSerializerFactory();
+defineElements();
 
 export { Blueprint, Configuration, LinkElement, NodeElement };

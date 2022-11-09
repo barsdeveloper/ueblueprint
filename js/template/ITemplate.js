@@ -1,4 +1,4 @@
-import { css, html } from "lit"
+import { css, nothing } from "lit"
 
 /**
  * @typedef {import("../element/IElement").default} IElement
@@ -24,6 +24,11 @@ export default class ITemplate {
         this.element = element
     }
 
+    /** @returns {IInput[]} */
+    createInputObjects() {
+        return []
+    }
+
     connectedCallback() {
     }
 
@@ -36,7 +41,7 @@ export default class ITemplate {
     }
 
     render() {
-        return html``
+        return nothing
     }
 
     /** @param {Map} changedProperties */
@@ -53,10 +58,5 @@ export default class ITemplate {
 
     cleanup() {
         this.#inputObjects.forEach(v => v.unlistenDOMElement())
-    }
-
-    /** @returns {IInput[]} */
-    createInputObjects() {
-        return []
     }
 }

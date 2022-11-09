@@ -164,5 +164,3 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.toString() != "Shown")
     }
 }
-
-customElements.define("ueb-node", NodeElement)
