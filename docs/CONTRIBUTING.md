@@ -1,6 +1,8 @@
 # Development Guide
 Getting started with the development of this application is very easy because it has a (arguably) well defined object-oriented architecture and separation of concerns.
+
 Before starting, the gentle reader might want to make sure to be familiar with the [Lit](https://lit.dev/) library and its element [lifecycle](https://lit.dev/docs/components/lifecycle/). This library is used extensively throught the application to keep the HTML elements in sync with the data and avoid updating the DOM too often. The original author is aware that there are way more popular alternatives out there like React, Vue and Svelte, but the design of Lit fits very well into the original design of this application: vanilla JavaScript and object-oriented. This allowed the introduction of Lit with a relatively small amount of changes to the existing code, yes because the decision to use Lit was made at a later point in time. One important detail is that it does not make use of the shadow DOM (part of the Web Components), the real reason is that the development started without using Lit but it is still nice to be able to have a global CSS style (which wouldn't be possibile with a shadow root) so that restyling the library is just a matter of adding another CSS file and rewrite a few properties.
+
 The only other external library that is used here is the awesome [Parsimmon](https://github.com/jneen/parsimmon): a very small but capable text parsing library used to deserialize the text produced by the Unreal Engine Blueprint Editor.
 
 ## Overview
