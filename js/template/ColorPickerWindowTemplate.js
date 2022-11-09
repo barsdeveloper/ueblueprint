@@ -11,55 +11,35 @@ import WindowTemplate from "./WindowTemplate"
 
 export default class ColorPickerWindowTemplate extends WindowTemplate {
 
-    #wheelHandler = new ColorHandlerElement()
-    get wheelHandler() {
-        return this.#wheelHandler
-    }
+    /** @type {ColorHandlerElement} */
+    #wheelHandler
 
-    #saturationSlider = new ColorSliderElement()
-    get saturationSlider() {
-        return this.#saturationSlider
-    }
+    /** @type {ColorSliderElement} */
+    #saturationSlider
 
-    #valueSlider = new ColorSliderElement()
-    get valueSlider() {
-        return this.#valueSlider
-    }
+    /** @type {ColorSliderElement} */
+    #valueSlider
 
-    #rSlider = new ColorSliderElement()
-    get rSlider() {
-        return this.#rSlider
-    }
+    /** @type {ColorSliderElement} */
+    #rSlider
 
-    #gSlider = new ColorSliderElement()
-    get gSlider() {
-        return this.#gSlider
-    }
+    /** @type {ColorSliderElement} */
+    #gSlider
 
-    #bSlider = new ColorSliderElement()
-    get bSlider() {
-        return this.#bSlider
-    }
+    /** @type {ColorSliderElement} */
+    #bSlider
 
-    #aSlider = new ColorSliderElement()
-    get aSlider() {
-        return this.#aSlider
-    }
+    /** @type {ColorSliderElement} */
+    #aSlider
 
-    #hSlider = new ColorSliderElement()
-    get hSlider() {
-        return this.#hSlider
-    }
+    /** @type {ColorSliderElement} */
+    #hSlider
 
-    #sSlider = new ColorSliderElement()
-    get sSlider() {
-        return this.#sSlider
-    }
+    /** @type {ColorSliderElement} */
+    #sSlider
 
-    #vSlider = new ColorSliderElement()
-    get vSlider() {
-        return this.#vSlider
-    }
+    /** @type {ColorSliderElement} */
+    #vSlider
 
     #hexRGBHandler =
         /** @param {UIEvent} v */
@@ -144,7 +124,17 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
-        this.wheelHandler.template.locationChangeCallback =
+        this.#wheelHandler = this.element.querySelector(".ueb-color-picker-wheel ueb-color-handler")
+        this.#saturationSlider = this.element.querySelector(".ueb-color-picker-saturation ueb-ui-slider")
+        this.#valueSlider = this.element.querySelector(".ueb-color-picker-value ueb-ui-slider")
+        this.#rSlider = this.element.querySelector(".ueb-color-picker-r ueb-ui-slider")
+        this.#gSlider = this.element.querySelector(".ueb-color-picker-g ueb-ui-slider")
+        this.#bSlider = this.element.querySelector(".ueb-color-picker-b ueb-ui-slider")
+        this.#aSlider = this.element.querySelector(".ueb-color-picker-a ueb-ui-slider")
+        this.#hSlider = this.element.querySelector(".ueb-color-picker-h ueb-ui-slider")
+        this.#sSlider = this.element.querySelector(".ueb-color-picker-s ueb-ui-slider")
+        this.#vSlider = this.element.querySelector(".ueb-color-picker-v ueb-ui-slider")
+        this.#wheelHandler.template.locationChangeCallback =
             /**
              * @param {Number} x in the range [0, 1]
              * @param {Number} y in the range [0, 1]
@@ -154,70 +144,60 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                 this.fullColor.setFromHSVA(this.color.H.value, 1, 1, 1)
                 this.element.requestUpdate()
             }
-        this.saturationSlider.template.locationChangeCallback =
+        this.#saturationSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromHSVA(this.color.H.value, y, this.color.V.value, this.color.A.value)
                 this.element.requestUpdate()
             }
-        this.valueSlider.template.locationChangeCallback =
+        this.#valueSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromHSVA(this.color.H.value, this.color.S.value, y, this.color.A.value)
                 this.element.requestUpdate()
             }
-        this.rSlider.template.locationChangeCallback =
+        this.#rSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromRGBA([x, this.color.G.value, this.color.B.value, this.color.A.value])
                 this.element.requestUpdate()
             }
-        this.gSlider.template.locationChangeCallback =
+        this.#gSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromRGBA([this.color.R.value, x, this.color.B.value, this.color.A.value])
                 this.element.requestUpdate()
             }
-        this.bSlider.template.locationChangeCallback =
+        this.#bSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromRGBA([this.color.R.value, this.color.G.value, x, this.color.A.value])
                 this.element.requestUpdate()
             }
-        this.aSlider.template.locationChangeCallback =
+        this.#aSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromRGBA([this.color.R.value, this.color.G.value, this.color.B.value, x])
                 this.element.requestUpdate()
             }
-        this.hSlider.template.locationChangeCallback =
+        this.#hSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromHSVA(x, this.color.S.value, this.color.V.value, this.color.A.value)
                 this.element.requestUpdate()
             }
-        this.sSlider.template.locationChangeCallback =
+        this.#sSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromHSVA(this.color.H.value, x, this.color.V.value, this.color.A.value)
                 this.element.requestUpdate()
             }
-        this.vSlider.template.locationChangeCallback =
+        this.#vSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
                 this.color.setFromHSVA(this.color.H.value, this.color.S.value, x, this.color.A.value)
                 this.element.requestUpdate()
             }
-        this.element.querySelector(".ueb-color-picker-wheel").appendChild(this.wheelHandler)
-        this.element.querySelector(".ueb-color-picker-saturation").appendChild(this.saturationSlider)
-        this.element.querySelector(".ueb-color-picker-value").appendChild(this.valueSlider)
-        this.element.querySelector(".ueb-color-picker-r .ueb-horizontal-slider").appendChild(this.rSlider)
-        this.element.querySelector(".ueb-color-picker-g .ueb-horizontal-slider").appendChild(this.gSlider)
-        this.element.querySelector(".ueb-color-picker-b .ueb-horizontal-slider").appendChild(this.bSlider)
-        this.element.querySelector(".ueb-color-picker-a .ueb-horizontal-slider").appendChild(this.aSlider)
-        this.element.querySelector(".ueb-color-picker-h .ueb-horizontal-slider").appendChild(this.hSlider)
-        this.element.querySelector(".ueb-color-picker-s .ueb-horizontal-slider").appendChild(this.sSlider)
-        this.element.querySelector(".ueb-color-picker-v .ueb-horizontal-slider").appendChild(this.vSlider)
     }
 
     /** @param {Number} channel */
@@ -286,6 +266,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                         <span class="ueb-horizontal-slider-text"
                             .innerText="${Utility.minDecimals(Utility.roundDecimals(channelValue, 3))}">
                         </span>
+                        <ueb-ui-slider></ueb-ui-slider>
                     </div>
                     <div class="ueb-color-picker-gradient" style="${background}"></div>
                 </div>
@@ -295,10 +276,6 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
 
     renderContent() {
         const theta = this.color.H.value * 2 * Math.PI
-        const wheelRadius = Math.max(
-            this.#wheelHandler.template.movementSpaceSize[0],
-            this.#wheelHandler.template.movementSpaceSize[1],
-        ) / 2
         const style = {
             "--ueb-color-r": this.color.R.toString(),
             "--ueb-color-g": this.color.G.toString(),
@@ -307,8 +284,8 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
             "--ueb-color-h": this.color.H.toString(),
             "--ueb-color-s": this.color.S.toString(),
             "--ueb-color-v": this.color.V.toString(),
-            "--ueb-color-wheel-x": `${Math.round(this.color.S.value * Math.cos(theta) * wheelRadius + wheelRadius)}px`,
-            "--ueb-color-wheel-y": `${Math.round(this.color.S.value * Math.sin(theta) * wheelRadius + wheelRadius)}px`,
+            "--ueb-color-wheel-x": `${(this.color.S.value * Math.cos(theta) * 0.5 + 0.5) * 100}%`,
+            "--ueb-color-wheel-y": `${(this.color.S.value * Math.sin(theta) * 0.5 + 0.5) * 100}%`,
         }
         const colorRGB = this.color.toRGBAString()
         const colorSRGB = this.color.toSRGBAString()
@@ -320,12 +297,17 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                     <div class="ueb-color-picker-srgb"></div>
                 </div>
                 <div class="ueb-color-picker-main">
-                    <div class="ueb-color-picker-wheel"></div>
+                    <div class="ueb-color-picker-wheel">
+                        <ueb-color-handler></ueb-color-handler>
+                    </div>
                     <div class="ueb-color-picker-saturation ueb-vertical-slider"
                         style="background-color: #${fullColorHex}">
+                        <ueb-ui-slider></ueb-ui-slider>
                     </div>
                     <div class="ueb-color-picker-value ueb-vertical-slider"
-                        style="background-color: #${fullColorHex}"></div>
+                        style="background-color: #${fullColorHex}">
+                        <ueb-ui-slider></ueb-ui-slider>
+                    </div>
                     <div class="ueb-color-picker-preview">
                         Old
                         <div class="ueb-color-picker-preview-old "
