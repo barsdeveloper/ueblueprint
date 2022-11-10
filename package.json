@@ -34,7 +34,6 @@
   },
   "dependencies": {
     "lit": "^2.2.4",
-    "parsimmon": "^1.18.0",
-    "rollup-plugin-html-literals": "^1.1.5"
+    "parsimmon": "^1.18.0"
   }
 }

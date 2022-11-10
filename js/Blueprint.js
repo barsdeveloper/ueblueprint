@@ -401,9 +401,10 @@ export default class Blueprint extends IElement {
         this.dispatchEvent(event)
     }
 
-    dispatchEditTextEvent(beginning) {
+    /** @param {Boolean} begin */
+    dispatchEditTextEvent(begin) {
         const event = new CustomEvent(
-            beginning
+            begin
                 ? Configuration.editTextEventName.begin
                 : Configuration.editTextEventName.end
         )

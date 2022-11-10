@@ -2238,6 +2238,7 @@ class Copy extends IInput {
 /**
  * @typedef {import("../element/IElement").default} IElement
  * @typedef {import("../input/IInput").default} IInput
+ * @typedef {import("lit").TemplateResult<1>} TemplateResult
  */
 
 /** @template {IElement} T */
@@ -2275,6 +2276,7 @@ class ITemplate {
     update(changedProperties) {
     }
 
+    /** @returns {TemplateResult | symbol} */
     render() {
         return w
     }
@@ -2831,6 +2833,7 @@ class MouseTracking extends IPointing {
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../template/ITemplate").default} ITemplate
+ * @typedef {import("lit").PropertyDeclarations} PropertyDeclarations
  */
 
 /**
@@ -2839,7 +2842,7 @@ class MouseTracking extends IPointing {
  */
 class IElement extends s {
 
-    /** @type {import("lit").PropertyDeclarations} */
+    /** @type {PropertyDeclarations} */
     static properties = {
     }
 
@@ -3813,6 +3816,7 @@ class MouseCreateLink extends IMouseClickDrag {
 
 /**
  * @typedef {import("../input/IInput").default} IInput
+ * @typedef {import("lit").TemplateResult} TemplateResult
  */
 /**
  * @template T
@@ -3858,6 +3862,7 @@ class PinTemplate extends ITemplate {
         `
     }
 
+    /** @returns {TemplateResult | symbol} */
     renderIcon() {
         return $`
             <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -3867,8 +3872,9 @@ class PinTemplate extends ITemplate {
         `
     }
 
+    /** @returns {TemplateResult | symbol} */
     renderInput() {
-        return $``
+        return w
     }
 
     /** @param {Map} changedProperties */
@@ -4094,7 +4100,10 @@ class ColorSliderElement extends IDraggableControlElement {
     }
 }
 
-/** @typedef {import("../element/WindowElement").default} WindowElement */
+/**
+ * @typedef {import("../element/WindowElement").default} WindowElement
+ * @typedef {import("lit").TemplateResult<1>} TemplateResult
+ */
 
 /** @extends {IDraggablePositionedTemplate<WindowElement>} */
 class WindowTemplate extends IDraggablePositionedTemplate {
@@ -4137,8 +4146,9 @@ class WindowTemplate extends IDraggablePositionedTemplate {
         return $`Window`
     }
 
+    /** @returns {TemplateResult | symbol} */
     renderContent() {
-        return $``
+        return w
     }
 
     apply() {
@@ -4218,8 +4228,8 @@ class ColorPickerWindowTemplate extends WindowTemplate {
             /** @param {KeyboardEvent} e */
             e => {
                 if (e.code == "Enter") {
-                    action(e);
                     e.preventDefault();
+                    action(e);
                 }
             }
 
@@ -4486,21 +4496,21 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                         <div class="ueb-color-control">
                             <span class="ueb-color-control-label">Hex Linear</span>
                             <div class="ueb-color-picker-hex-linear ueb-text-input">
-                                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                                <ueb-input
                                     .innerText="${colorRGB}"
                                     @focusout="${this.#hexRGBHandler}"
                                     @keydown="${this.#doOnEnter(this.#hexRGBHandler)}">
-                                </span>
+                                </ueb-input>
                             </div>
                         </div>
                         <div class="ueb-color-control">
                              <span class="ueb-color-control-label">Hex sRGB</span>
                             <div class="ueb-color-picker-hex-srgb ueb-text-input">
-                                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                                <ueb-input
                                     .innerText="${colorSRGB}"
                                     @focusout="${this.#hexSRGBHandler}"
                                     @keydown="${this.#doOnEnter(this.#hexSRGBHandler)}">
-                                </span>
+                                </ueb-input>
                             </div>
                         </div>
                     </div>
@@ -4549,19 +4559,16 @@ class IInputPinTemplate extends PinTemplate {
             .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
     }
 
+    #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
         if (this.#inputContentElements.length) {
             this.setInputs(this.getInputs(), false);
-            let self = this;
-            this.onFocusOutHandler = e => {
-                e.preventDefault();
-                self.setInputs(this.getInputs(), true);
-            };
             this.#inputContentElements.forEach(element => {
-                element.addEventListener("focusout", this.onFocusOutHandler);
+                element.addEventListener("focusout", this.#onFocusOutHandler);
             });
         }
     }
@@ -4569,7 +4576,7 @@ class IInputPinTemplate extends PinTemplate {
     cleanup() {
         super.cleanup();
         this.#inputContentElements.forEach(element => {
-            element.removeEventListener("focusout", this.onFocusOutHandler);
+            element.removeEventListener("focusout", this.#onFocusOutHandler);
         });
     }
 
@@ -4615,7 +4622,7 @@ class IInputPinTemplate extends PinTemplate {
                 </div>
             `
         }
-        return $``
+        return w
     }
 }
 
@@ -4935,7 +4942,7 @@ class RealPinTemplate extends INumericPinTemplate {
         if (this.element.isInput()) {
             return $`
                 <div class="ueb-pin-input">
-                    <ueb-input
+                    <ueb-input .singleLine="${true}"
                         .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
                     </ueb-input>
                 </div>
@@ -6456,9 +6463,10 @@ class Blueprint extends IElement {
         this.dispatchEvent(event);
     }
 
-    dispatchEditTextEvent(beginning) {
+    /** @param {Boolean} begin */
+    dispatchEditTextEvent(begin) {
         const event = new CustomEvent(
-            beginning
+            begin
                 ? Configuration.editTextEventName.begin
                 : Configuration.editTextEventName.end
         );
@@ -6468,81 +6476,80 @@ class Blueprint extends IElement {
 
 customElements.define("ueb-blueprint", Blueprint);
 
-class IFocus extends IInput {
-
-    /** @type {(e: FocusEvent) => void} */
-    #focusHandler
-
-    /** @type {(e: FocusEvent) => void} */
-    #focusoutHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.listenOnFocus ??= true;
-        super(target, blueprint, options);
-        this.#focusHandler = e => {
-            e.preventDefault();
-            this.focused();
-        };
-        this.#focusoutHandler = e => {
-            e.preventDefault();
-            this.unfocused();
-        };
-    }
-
-    listenEvents() {
-        this.target.addEventListener("focus", this.#focusHandler);
-        this.target.addEventListener("focusout", this.#focusoutHandler);
-    }
-
-    unlistenEvents() {
-        this.target.removeEventListener("focus", this.#focusHandler);
-        this.target.removeEventListener("focusout", this.#focusoutHandler);
-    }
-
-    focused() {
-    }
-
-    unfocused() {
-    }
-}
-
-class FocusTextEdit extends IFocus {
-
-    focused() {
-        this.blueprint.dispatchEditTextEvent(true);
-    }
-
-    unfocused() {
-        document.getSelection()?.removeAllRanges(); // Deselect eventually selected text inside the input
-        this.blueprint.dispatchEditTextEvent(false);
-    }
-}
-
 /** @typedef {import ("../element/InputElement").default} InputElement */
 
 /** @extends {ITemplate<InputElement>} */
 class InputTemplate extends ITemplate {
 
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            new FocusTextEdit(this.element, this.element.blueprint),
-        ]
+    #focusHandler = () => this.element.blueprint.dispatchEditTextEvent(true)
+    #focusoutHandler = () => {
+        this.element.blueprint.dispatchEditTextEvent(false);
+        document.getSelection()?.removeAllRanges(); // Deselect eventually selected text inside the input
     }
+    #inputSingleLineHandler =
+        /** @param {InputEvent} e */
+        e =>  /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
+    #onKeydownBlurOnEnterHandler =
+        /** @param {KeyboardEvent} e */
+        e => {
+            if (e.code == "Enter" && !e.shiftKey) {
+                    /** @type {HTMLElement} */(e.target).blur();
+            }
+        }
 
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
+    /** @param {InputElement} element */
+    constructed(element) {
+        super.constructed(element);
         this.element.classList.add("ueb-pin-input-content");
         this.element.setAttribute("role", "textbox");
         this.element.contentEditable = "true";
+    }
+
+    connectedCallback() {
+        this.element.addEventListener("focus", this.#focusHandler);
+        this.element.addEventListener("focusout", this.#focusoutHandler);
+        if (this.element.singleLine) {
+            this.element.addEventListener("input", this.#inputSingleLineHandler);
+        }
+        if (this.element.blurOnEnter) {
+            this.element.addEventListener("keydown", this.#onKeydownBlurOnEnterHandler);
+        }
+    }
+
+    cleanup() {
+        this.element.removeEventListener("focus", this.#focusHandler);
+        this.element.removeEventListener("focusout", this.#focusoutHandler);
+        if (this.element.singleLine) {
+            this.element.removeEventListener("input", this.#inputSingleLineHandler);
+        }
+        if (this.element.blurOnEnter) {
+            this.element.removeEventListener("keydown", this.#onKeydownBlurOnEnterHandler);
+        }
     }
 }
 
 class InputElement extends IElement {
 
+    static properties = {
+        ...super.properties,
+        singleLine: {
+            type: Boolean,
+            attribute: "data-single-line",
+            converter: Utility.booleanConverter,
+            reflect: true,
+        },
+        blurOnEnter: {
+            type: Boolean,
+            attribute: "data-blur-enter",
+            converter: Utility.booleanConverter,
+            reflect: true,
+        },
+    }
+
     constructor() {
         super({}, new InputTemplate());
+        this.singleLine = false;
+        this.blurOnEnter = true;
     }
 }
 

@@ -73,8 +73,8 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
             /** @param {KeyboardEvent} e */
             e => {
                 if (e.code == "Enter") {
-                    action(e)
                     e.preventDefault()
+                    action(e)
                 }
             }
 
@@ -341,21 +341,21 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                         <div class="ueb-color-control">
                             <span class="ueb-color-control-label">Hex Linear</span>
                             <div class="ueb-color-picker-hex-linear ueb-text-input">
-                                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                                <ueb-input
                                     .innerText="${colorRGB}"
                                     @focusout="${this.#hexRGBHandler}"
                                     @keydown="${this.#doOnEnter(this.#hexRGBHandler)}">
-                                </span>
+                                </ueb-input>
                             </div>
                         </div>
                         <div class="ueb-color-control">
                              <span class="ueb-color-control-label">Hex sRGB</span>
                             <div class="ueb-color-picker-hex-srgb ueb-text-input">
-                                <span class="ueb-pin-input-content" role="textbox" contenteditable="true"
+                                <ueb-input
                                     .innerText="${colorSRGB}"
                                     @focusout="${this.#hexSRGBHandler}"
                                     @keydown="${this.#doOnEnter(this.#hexSRGBHandler)}">
-                                </span>
+                                </ueb-input>
                             </div>
                         </div>
                     </div>

@@ -1,8 +1,7 @@
-import { html } from "lit"
+import { html, nothing } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 import Utility from "../Utility"
-
 /**
  * @template T
  * @typedef {import("../element/PinElement").default<T>} PinElement
@@ -34,19 +33,16 @@ export default class IInputPinTemplate extends PinTemplate {
             .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
     }
 
+    #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
         if (this.#inputContentElements.length) {
             this.setInputs(this.getInputs(), false)
-            let self = this
-            this.onFocusOutHandler = e => {
-                e.preventDefault()
-                self.setInputs(this.getInputs(), true)
-            }
             this.#inputContentElements.forEach(element => {
-                element.addEventListener("focusout", this.onFocusOutHandler)
+                element.addEventListener("focusout", this.#onFocusOutHandler)
             })
         }
     }
@@ -54,7 +50,7 @@ export default class IInputPinTemplate extends PinTemplate {
     cleanup() {
         super.cleanup()
         this.#inputContentElements.forEach(element => {
-            element.removeEventListener("focusout", this.onFocusOutHandler)
+            element.removeEventListener("focusout", this.#onFocusOutHandler)
         })
     }
 
@@ -100,6 +96,6 @@ export default class IInputPinTemplate extends PinTemplate {
                 </div>
             `
         }
-        return html``
+        return nothing
     }
 }

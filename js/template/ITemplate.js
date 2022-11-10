@@ -3,6 +3,7 @@ import { css, nothing } from "lit"
 /**
  * @typedef {import("../element/IElement").default} IElement
  * @typedef {import("../input/IInput").default} IInput
+ * @typedef {import("lit").TemplateResult<1>} TemplateResult
  */
 
 /** @template {IElement} T */
@@ -40,6 +41,7 @@ export default class ITemplate {
     update(changedProperties) {
     }
 
+    /** @returns {TemplateResult | symbol} */
     render() {
         return nothing
     }

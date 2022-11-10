@@ -1,9 +1,12 @@
-import { html } from "lit"
+import { html, nothing } from "lit"
 import Configuration from "../Configuration"
 import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
 
-/** @typedef {import("../element/WindowElement").default} WindowElement */
+/**
+ * @typedef {import("../element/WindowElement").default} WindowElement
+ * @typedef {import("lit").TemplateResult<1>} TemplateResult
+ */
 
 /** @extends {IDraggablePositionedTemplate<WindowElement>} */
 export default class WindowTemplate extends IDraggablePositionedTemplate {
@@ -46,8 +49,9 @@ export default class WindowTemplate extends IDraggablePositionedTemplate {
         return html`Window`
     }
 
+    /** @returns {TemplateResult | symbol} */
     renderContent() {
-        return html``
+        return nothing
     }
 
     apply() {

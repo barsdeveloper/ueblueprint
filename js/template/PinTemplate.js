@@ -1,10 +1,11 @@
-import { html } from "lit"
+import { html, nothing } from "lit"
 import ITemplate from "./ITemplate"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import Utility from "../Utility"
 
 /**
  * @typedef {import("../input/IInput").default} IInput
+ * @typedef {import("lit").TemplateResult} TemplateResult
  */
 /**
  * @template T
@@ -50,6 +51,7 @@ export default class PinTemplate extends ITemplate {
         `
     }
 
+    /** @returns {TemplateResult | symbol} */
     renderIcon() {
         return html`
             <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -59,8 +61,9 @@ export default class PinTemplate extends ITemplate {
         `
     }
 
+    /** @returns {TemplateResult | symbol} */
     renderInput() {
-        return html``
+        return nothing
     }
 
     /** @param {Map} changedProperties */

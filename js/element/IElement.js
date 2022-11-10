@@ -5,6 +5,7 @@ import { LitElement } from "lit"
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../template/ITemplate").default} ITemplate
+ * @typedef {import("lit").PropertyDeclarations} PropertyDeclarations
  */
 
 /**
@@ -13,7 +14,7 @@ import { LitElement } from "lit"
  */
 export default class IElement extends LitElement {
 
-    /** @type {import("lit").PropertyDeclarations} */
+    /** @type {PropertyDeclarations} */
     static properties = {
     }
 
