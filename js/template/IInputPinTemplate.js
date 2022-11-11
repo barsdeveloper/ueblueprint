@@ -2,6 +2,7 @@ import { html, nothing } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 import Utility from "../Utility"
+
 /**
  * @template T
  * @typedef {import("../element/PinElement").default<T>} PinElement
@@ -12,6 +13,9 @@ import Utility from "../Utility"
  * @extends PinTemplate<T>
  */
 export default class IInputPinTemplate extends PinTemplate {
+
+    static singleLineInput = false
+    static selectOnFocus = true
 
     /** @type {HTMLElement[]} */
     #inputContentElements
@@ -74,8 +78,10 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /** @param {String[]?} values */
     setInputs(values = [], updateDefaultValue = true) {
-        this.#inputContentElements.forEach(
-            (elem, i) => elem.innerText = values[i]
+        // @ts-expect-error 
+        this.#inputContentElements.forEach(this.constructor.singleLineInput
+            ? (elem, i) => elem.innerText = values[i]
+            : (elem, i) => elem.innerText = values[i].replaceAll("\n", "")
         )
         if (updateDefaultValue) {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values)
@@ -83,14 +89,21 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""))
+        this.element.setDefaultValue(
+            // @ts-expect-error
+            values.join("")
+        )
     }
 
     renderInput() {
         if (this.element.isInput()) {
+            // @ts-expect-error
+            const singleLine = this.constructor.singleLineInput
+            // @ts-expect-error
+            const selectOnFocus = this.constructor.selectOnFocus
             return html`
                 <div class="ueb-pin-input">
-                    <ueb-input
+                    <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
                         .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
                     </ueb-input>
                 </div>

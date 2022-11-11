@@ -5,7 +5,12 @@ import ITemplate from "./ITemplate"
 /** @extends {ITemplate<InputElement>} */
 export default class InputTemplate extends ITemplate {
 
-    #focusHandler = () => this.element.blueprint.dispatchEditTextEvent(true)
+    #focusHandler = () => {
+        this.element.blueprint.dispatchEditTextEvent(true)
+        if (this.element.selectOnFocus) {
+            getSelection().selectAllChildren(this.element)
+        }
+    }
     #focusoutHandler = () => {
         this.element.blueprint.dispatchEditTextEvent(false)
         document.getSelection()?.removeAllRanges() // Deselect eventually selected text inside the input

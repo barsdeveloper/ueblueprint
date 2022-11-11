@@ -4539,6 +4539,9 @@ class ColorPickerWindowTemplate extends WindowTemplate {
  */
 class IInputPinTemplate extends PinTemplate {
 
+    static singleLineInput = false
+    static selectOnFocus = true
+
     /** @type {HTMLElement[]} */
     #inputContentElements
     get inputContentElements() {
@@ -4600,8 +4603,10 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @param {String[]?} values */
     setInputs(values = [], updateDefaultValue = true) {
-        this.#inputContentElements.forEach(
-            (elem, i) => elem.innerText = values[i]
+        // @ts-expect-error 
+        this.#inputContentElements.forEach(this.constructor.singleLineInput
+            ? (elem, i) => elem.innerText = values[i]
+            : (elem, i) => elem.innerText = values[i].replaceAll("\n", "")
         );
         if (updateDefaultValue) {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
@@ -4609,14 +4614,21 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(values.reduce((acc, cur) => acc + cur, ""));
+        this.element.setDefaultValue(
+            // @ts-expect-error
+            values.join("")
+        );
     }
 
     renderInput() {
         if (this.element.isInput()) {
+            // @ts-expect-error
+            const singleLine = this.constructor.singleLineInput;
+            // @ts-expect-error
+            const selectOnFocus = this.constructor.selectOnFocus;
             return $`
                 <div class="ueb-pin-input">
-                    <ueb-input
+                    <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
                         .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
                     </ueb-input>
                 </div>
@@ -4855,44 +4867,7 @@ class LinearColorPinTemplate extends IInputPinTemplate {
 
 class NamePinTemplate extends IInputPinTemplate {
 
-    /** @type {(e : InputEvent) => void} */
-    onInputHandler
-
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.onInputHandler = e => {
-            e.stopPropagation();
-            if (
-                e.inputType == "insertParagraph"
-                || e.inputType == "insertLineBreak"
-                || (e.inputType == "insertFromPaste" && /** @type {HTMLElement} */(e.target).innerText.includes("\n"))
-            ) {
-                /** @type {HTMLElement} */(e.target).blur(); // Loose focus in case it tries to insert newline
-                this.inputContentElements.forEach(element => element.innerText = element.innerText.replaceAll("\n", ""));
-            }
-        };
-        this.inputContentElements.forEach(element => {
-            element.addEventListener("input", /** @type {(e : Event) => void} */(this.onInputHandler));
-        });
-    }
-
-    cleanup() {
-        super.cleanup();
-        this.inputContentElements.forEach(element => {
-            element.removeEventListener("input", /** @type {(e : Event) => void} */(this.onInputHandler));
-        });
-    }
-
-    getInputs() {
-        return this.inputContentElements.map(element => element.textContent) // textContent for performance reason
-    }
-
-    /** @param {String[]} values */
-    setInputs(values = [], updateDefaultValue = true) {
-        values = values.map(value => value.replaceAll("\n", "")); // get rid of the new lines
-        super.setInputs(values, updateDefaultValue);
-    }
+    static singleLineInput = true
 }
 
 /**
@@ -4900,6 +4875,8 @@ class NamePinTemplate extends IInputPinTemplate {
  * @extends IInputPinTemplate<T>
  */
 class INumericPinTemplate extends IInputPinTemplate {
+
+    static singleLineInput = true
 
     /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = false) {
@@ -5036,21 +5013,21 @@ class VectorPinTemplate extends INumericPinTemplate {
                 <div class="ueb-pin-input-wrapper">
                     <span class="ueb-pin-input-label">X</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
-                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().X))
-                                }"></span>
+                        <ueb-input .singleLine="${true}"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().X))}">
+                        </ueb-input>
                     </div>
                     <span class="ueb-pin-input-label">Y</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
-                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Y))
-                                }"></span>
+                        <ueb-input .singleLine="${true}"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Y))}">
+                        </ueb-input>
                     </div>
                     <span class="ueb-pin-input-label">Z</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
-                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Z))
-                                }"></span>
+                        <ueb-input .singleLine="${true}"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Z))}">
+                        </ueb-input>
                     </div>
                 </div>
             `
@@ -6481,7 +6458,12 @@ customElements.define("ueb-blueprint", Blueprint);
 /** @extends {ITemplate<InputElement>} */
 class InputTemplate extends ITemplate {
 
-    #focusHandler = () => this.element.blueprint.dispatchEditTextEvent(true)
+    #focusHandler = () => {
+        this.element.blueprint.dispatchEditTextEvent(true);
+        if (this.element.selectOnFocus) {
+            getSelection().selectAllChildren(this.element);
+        }
+    }
     #focusoutHandler = () => {
         this.element.blueprint.dispatchEditTextEvent(false);
         document.getSelection()?.removeAllRanges(); // Deselect eventually selected text inside the input
@@ -6538,6 +6520,12 @@ class InputElement extends IElement {
             converter: Utility.booleanConverter,
             reflect: true,
         },
+        selectOnFocus: {
+            type: Boolean,
+            attribute: "data-select-focus",
+            converter: Utility.booleanConverter,
+            reflect: true,
+        },
         blurOnEnter: {
             type: Boolean,
             attribute: "data-blur-enter",
@@ -6549,6 +6537,7 @@ class InputElement extends IElement {
     constructor() {
         super({}, new InputTemplate());
         this.singleLine = false;
+        this.selectOnFocus = true;
         this.blurOnEnter = true;
     }
 }

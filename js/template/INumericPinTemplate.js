@@ -6,6 +6,8 @@ import IInputPinTemplate from "./IInputPinTemplate"
  */
 export default class INumericPinTemplate extends IInputPinTemplate {
 
+    static singleLineInput = true
+
     /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = false) {
         if (!values || values.length == 0) {

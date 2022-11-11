@@ -32,21 +32,21 @@ export default class VectorPinTemplate extends INumericPinTemplate {
                 <div class="ueb-pin-input-wrapper">
                     <span class="ueb-pin-input-label">X</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
-                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().X))
-                                }"></span>
+                        <ueb-input .singleLine="${true}"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().X))}">
+                        </ueb-input>
                     </div>
                     <span class="ueb-pin-input-label">Y</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
-                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Y))
-                                }"></span>
+                        <ueb-input .singleLine="${true}"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Y))}">
+                        </ueb-input>
                     </div>
                     <span class="ueb-pin-input-label">Z</span>
                     <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true" .innerText="${IInputPinTemplate
-                                    .stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Z))
-                                }"></span>
+                        <ueb-input .singleLine="${true}"
+                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Z))}">
+                        </ueb-input>
                     </div>
                 </div>
             `

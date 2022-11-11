@@ -12,6 +12,12 @@ export default class InputElement extends IElement {
             converter: Utility.booleanConverter,
             reflect: true,
         },
+        selectOnFocus: {
+            type: Boolean,
+            attribute: "data-select-focus",
+            converter: Utility.booleanConverter,
+            reflect: true,
+        },
         blurOnEnter: {
             type: Boolean,
             attribute: "data-blur-enter",
@@ -23,6 +29,7 @@ export default class InputElement extends IElement {
     constructor() {
         super({}, new InputTemplate())
         this.singleLine = false
+        this.selectOnFocus = true
         this.blurOnEnter = true
     }
 }
