@@ -1,6 +1,7 @@
 import CalculatedType from "./CalculatedType"
 import GuidEntity from "./GuidEntity"
 import IEntity from "./IEntity"
+import IntegerEntity from "./IntegerEntity"
 import LinearColorEntity from "./LinearColorEntity"
 import LocalizedTextEntity from "./LocalizedTextEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
@@ -22,6 +23,7 @@ export default class PinEntity extends IEntity {
         "/Script/CoreUObject.Vector": VectorEntity,
         "bool": Boolean,
         "exec": String,
+        "int": IntegerEntity,
         "name": String,
         "real": Number,
         "string": String,
@@ -115,7 +117,7 @@ export default class PinEntity extends IEntity {
     }
 
     getType() {
-        if (this.PinType.PinCategory == "struct") {
+        if (this.PinType.PinCategory == "struct" || this.PinType.PinCategory == "object") {
             return this.PinType.PinSubCategoryObject.path
         }
         return this.PinType.PinCategory

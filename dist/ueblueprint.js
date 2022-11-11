@@ -79,9 +79,11 @@ class Configuration {
         "/Script/CoreUObject.Rotator": r$2`152, 171, 241`,
         "/Script/CoreUObject.Transform": r$2`241, 110, 1`,
         "/Script/CoreUObject.Vector": r$2`215, 202, 11`,
+        "/Script/Engine.Actor": r$2`0, 168, 240`,
         "bool": r$2`117, 0, 0`,
         "default": r$2`167, 167, 167`,
         "exec": r$2`240, 240, 240`,
+        "int": r$2`32, 224, 173`,
         "name": r$2`203, 129, 252`,
         "real": r$2`50, 187, 0`,
         "string": r$2`213, 0, 176`,
@@ -1354,6 +1356,7 @@ class PinEntity extends IEntity {
         "/Script/CoreUObject.Vector": VectorEntity,
         "bool": Boolean,
         "exec": String,
+        "int": IntegerEntity,
         "name": String,
         "real": Number,
         "string": String,
@@ -1447,7 +1450,7 @@ class PinEntity extends IEntity {
     }
 
     getType() {
-        if (this.PinType.PinCategory == "struct") {
+        if (this.PinType.PinCategory == "struct" || this.PinType.PinCategory == "object") {
             return this.PinType.PinSubCategoryObject.path
         }
         return this.PinType.PinCategory
@@ -3924,7 +3927,7 @@ class BoolPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
+        if (this.element.isInput() && !this.element.isLinked) {
             return $`
                 <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
             `
@@ -4621,7 +4624,7 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
+        if (this.element.isInput() && !this.element.isLinked) {
             // @ts-expect-error
             const singleLine = this.constructor.singleLineInput;
             // @ts-expect-error
@@ -4852,7 +4855,7 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
+        if (this.element.isInput() && !this.element.isLinked) {
             return $`
                 <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
                     style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
@@ -4916,7 +4919,7 @@ class RealPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
+        if (this.element.isInput() && !this.element.isLinked) {
             return $`
                 <div class="ueb-pin-input">
                     <ueb-input .singleLine="${true}"
@@ -4925,7 +4928,7 @@ class RealPinTemplate extends INumericPinTemplate {
                 </div>
             `
         }
-        return $``
+        return w
     }
 }
 
@@ -5036,6 +5039,28 @@ class VectorPinTemplate extends INumericPinTemplate {
     }
 }
 
+/** @typedef {import("../entity/IntegerEntity").default} IntEntity */
+
+/** @extends INumericPinTemplate<IntEntity> */
+class IntPinTemplate extends INumericPinTemplate {
+
+    setDefaultValue(values = [], rawValues = values) {
+        this.element.setDefaultValue(values[0]);
+    }
+
+    renderInput() {
+        if (this.element.isInput() && !this.element.isLinked) {
+            return $`
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}" .innerText="${this.element.entity.DefaultValue.toString()}">
+                    </ueb-input>
+                </div>
+            `
+        }
+        return w
+    }
+}
+
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
@@ -5058,6 +5083,7 @@ class PinElement extends IElement {
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
+        "int": IntPinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,

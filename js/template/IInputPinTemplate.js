@@ -96,7 +96,7 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
+        if (this.element.isInput() && !this.element.isLinked) {
             // @ts-expect-error
             const singleLine = this.constructor.singleLineInput
             // @ts-expect-error

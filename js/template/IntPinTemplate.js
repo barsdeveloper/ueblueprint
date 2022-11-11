@@ -1,13 +1,10 @@
 import { html, nothing } from "lit"
-import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericPinTemplate"
-import Utility from "../Utility"
 
-/**
- * @template {Number} T
- * @extends INumericPinTemplate<T>
- */
-export default class RealPinTemplate extends INumericPinTemplate {
+/** @typedef {import("../entity/IntegerEntity").default} IntEntity */
+
+/** @extends INumericPinTemplate<IntEntity> */
+export default class IntPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         this.element.setDefaultValue(values[0])
@@ -17,8 +14,7 @@ export default class RealPinTemplate extends INumericPinTemplate {
         if (this.element.isInput() && !this.element.isLinked) {
             return html`
                 <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
+                    <ueb-input .singleLine="${true}" .innerText="${this.element.entity.DefaultValue.toString()}">
                     </ueb-input>
                 </div>
             `

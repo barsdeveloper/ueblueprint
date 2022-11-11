@@ -644,6 +644,14 @@ ueb-pin[data-type=string] {
   --ueb-pin-color-rgb: var(--ueb-pin-color-string);
 }
 
+ueb-pin[data-type="/Script/Engine.Actor"] {
+  --ueb-pin-color-rgb: var(--ueb-pin-color-actor);
+}
+
+ueb-pin[data-type="/Script/Engine.Pawn"] {
+  --ueb-pin-color-rgb: var(--ueb-pin-color-actor);
+}
+
 ueb-pin[data-type="/Script/CoreUObject.LinearColor"] {
   --ueb-pin-color-rgb: var(--ueb-pin-color-linear-color);
 }
@@ -657,10 +665,6 @@ ueb-pin[data-type="/Script/CoreUObject.Transform"] {
 }
 
 ueb-pin[data-type="/Script/CoreUObject.Vector"] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-vector);
-}
-
-ueb-pin[data-type=vector] {
   --ueb-pin-color-rgb: var(--ueb-pin-color-vector);
 }
 

@@ -66,7 +66,7 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
+        if (this.element.isInput() && !this.element.isLinked) {
             return html`
                 <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
                     style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">

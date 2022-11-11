@@ -2,6 +2,7 @@ import BoolPinTemplate from "../template/BoolPinTemplate"
 import Configuration from "../Configuration"
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
+import IntPinTemplate from "../template/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
 import LinearColorPinTemplate from "../template/LinearColorPinTemplate"
@@ -37,6 +38,7 @@ export default class PinElement extends IElement {
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolPinTemplate,
         "exec": ExecPinTemplate,
+        "int": IntPinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,

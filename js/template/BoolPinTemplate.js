@@ -32,7 +32,7 @@ export default class BoolPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
+        if (this.element.isInput() && !this.element.isLinked) {
             return html`
                 <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
             `
