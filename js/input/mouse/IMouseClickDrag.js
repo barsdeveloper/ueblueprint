@@ -29,6 +29,8 @@ export default class IMouseClickDrag extends IPointing {
                         this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler)
                         document.addEventListener("mouseup", this.#mouseUpHandler)
                         this.clickedPosition = this.locationFromEvent(e)
+                        this.blueprint.mousePosition[0] = this.clickedPosition[0]
+                        this.blueprint.mousePosition[1] = this.clickedPosition[1]
                         if (this.target instanceof IDraggableElement) {
                             this.clickedOffset = [
                                 this.clickedPosition[0] - this.target.locationX,

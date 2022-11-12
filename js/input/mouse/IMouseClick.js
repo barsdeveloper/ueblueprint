@@ -22,6 +22,8 @@ export default class IMouseClick extends IPointing {
                         // Attach the listeners
                         document.addEventListener("mouseup", this.#mouseUpHandler)
                         this.clickedPosition = this.locationFromEvent(e)
+                        this.blueprint.mousePosition[0] = this.clickedPosition[0]
+                        this.blueprint.mousePosition[1] = this.clickedPosition[1]
                         this.clicked(this.clickedPosition)
                     }
                     break

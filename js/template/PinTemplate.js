@@ -48,7 +48,7 @@ export default class PinTemplate extends ITemplate {
         const content = html`
             <div class="ueb-pin-content">
                 <span class="ueb-pin-name ">${this.element.getPinDisplayName()}</span>
-                ${this.element.isInput() ? this.renderInput() : nothing}
+                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : html``}
             </div>
         `
         return html`
@@ -70,7 +70,7 @@ export default class PinTemplate extends ITemplate {
 
     /** @returns {TemplateResult | symbol} */
     renderInput() {
-        return nothing
+        return html``
     }
 
     /** @param {Map} changedProperties */

@@ -2794,6 +2794,8 @@ class IMouseClickDrag extends IPointing {
                         this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
                         document.addEventListener("mouseup", this.#mouseUpHandler);
                         this.clickedPosition = this.locationFromEvent(e);
+                        this.blueprint.mousePosition[0] = this.clickedPosition[0];
+                        this.blueprint.mousePosition[1] = this.clickedPosition[1];
                         if (this.target instanceof IDraggableElement) {
                             this.clickedOffset = [
                                 this.clickedPosition[0] - this.target.locationX,
@@ -3846,7 +3848,7 @@ class PinTemplate extends ITemplate {
         const content = $`
             <div class="ueb-pin-content">
                 <span class="ueb-pin-name ">${this.element.getPinDisplayName()}</span>
-                ${this.element.isInput() ? this.renderInput() : w}
+                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : $``}
             </div>
         `;
         return $`
@@ -3868,7 +3870,7 @@ class PinTemplate extends ITemplate {
 
     /** @returns {TemplateResult | symbol} */
     renderInput() {
-        return w
+        return $``
     }
 
     /** @param {Map} changedProperties */
