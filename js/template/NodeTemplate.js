@@ -7,7 +7,10 @@ import PinElement from "../element/PinElement"
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class NodeTemplate extends ISelectableDraggableTemplate {
 
-    toggleAdvancedDisplayHandler
+    toggleAdvancedDisplayHandler = _ => {
+        this.element.toggleShowAdvancedPinDisplay()
+        this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true)
+    }
 
     render() {
         return html`
@@ -50,7 +53,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     /** @param {Map} changedProperties */
-    async firstUpdated(changedProperties) {
+    firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"))
         const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"))
@@ -62,10 +65,6 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 outputContainer.appendChild(p)
             }
         })
-        this.toggleAdvancedDisplayHandler = _ => {
-            this.element.toggleShowAdvancedPinDisplay()
-            this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true)
-        }
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"))
     }
 

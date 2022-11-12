@@ -9,11 +9,39 @@ export default class MouseCreateLink extends IMouseClickDrag {
     /** @type {NodeListOf<PinElement>} */
     #listenedPins
 
-    /** @type {(e: MouseEvent) => void} */
-    #mouseenterHandler
+    #mouseenterHandler =
+        /** @param {MouseEvent} e */
+        e => {
+            if (!this.enteredPin) {
+                this.linkValid = false
+                this.enteredPin = /** @type {PinElement} */ (e.target)
+                const a = this.enteredPin
+                const b = this.target
+                if (a.getNodeElement() == b.getNodeElement()) {
+                    this.link.setMessageSameNode()
+                } else if (a.isOutput() == b.isOutput()) {
+                    this.link.setMessageDirectionsIncompatible()
+                } else if (a.isOutput() == b.isOutput()) {
+                    this.link.setMessageDirectionsIncompatible()
+                } else if (this.blueprint.getLinks([a, b]).length) {
+                    this.link.setMessageReplaceLink()
+                    this.linkValid = true
+                } else {
+                    this.link.setMessageCorrect()
+                    this.linkValid = true
+                }
+            }
+        }
 
-    /** @type {(e: MouseEvent) => void} */
-    #mouseleaveHandler
+    #mouseleaveHandler =
+        /** @param {MouseEvent} e */
+        e => {
+            if (this.enteredPin == e.target) {
+                this.enteredPin = null
+                this.linkValid = false
+                this.link?.setMessagePlaceNode()
+            }
+        }
 
     /** @type {LinkElement?} */
     link
@@ -23,39 +51,6 @@ export default class MouseCreateLink extends IMouseClickDrag {
 
     linkValid = false
 
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options)
-        let self = this
-        this.#mouseenterHandler = e => {
-            if (!self.enteredPin) {
-                self.linkValid = false
-                self.enteredPin = /** @type {PinElement} */ (e.target)
-                const a = self.enteredPin
-                const b = self.target
-                if (a.getNodeElement() == b.getNodeElement()) {
-                    self.link.setMessageSameNode()
-                } else if (a.isOutput() == b.isOutput()) {
-                    self.link.setMessageDirectionsIncompatible()
-                } else if (a.isOutput() == b.isOutput()) {
-                    self.link.setMessageDirectionsIncompatible()
-                } else if (self.blueprint.getLinks([a, b]).length) {
-                    self.link.setMessageReplaceLink()
-                    self.linkValid = true
-                } else {
-                    self.link.setMessageCorrect()
-                    self.linkValid = true
-                }
-            }
-        }
-        this.#mouseleaveHandler = e => {
-            if (self.enteredPin == e.target) {
-                self.enteredPin = null
-                self.linkValid = false
-                self.link?.setMessagePlaceNode()
-            }
-        }
-    }
-
     startDrag(location) {
         this.link = new LinkElement(this.target, null)
         this.blueprint.linksContainerElement.prepend(this.link)
@@ -63,8 +58,9 @@ export default class MouseCreateLink extends IMouseClickDrag {
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin")
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
-                pin.getClickableElement().addEventListener("mouseenter", this.#mouseenterHandler)
-                pin.getClickableElement().addEventListener("mouseleave", this.#mouseleaveHandler)
+                const clickableElement = pin.template.getClickableElement()
+                clickableElement.addEventListener("mouseenter", this.#mouseenterHandler)
+                clickableElement.addEventListener("mouseleave", this.#mouseleaveHandler)
             }
         })
         this.link.startDragging()

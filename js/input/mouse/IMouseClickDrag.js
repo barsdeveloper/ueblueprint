@@ -1,39 +1,117 @@
 import Configuration from "../../Configuration"
+import IDraggableElement from "../../element/IDraggableElement"
 import IPointing from "./IPointing"
 import Utility from "../../Utility"
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("../../element/IElement").default} IElement
  */
 
 /**
- * @template {IDraggableElement} T
+ * @template {IElement} T
  * @extends {IPointing<T>}
  */
 export default class IMouseClickDrag extends IPointing {
 
-    /** @type {(e: MouseEvent) => void} */
-    #mouseDownHandler
+    #mouseDownHandler =
+        /** @param {MouseEvent} e  */
+        e => {
+            this.blueprint.setFocused(true)
+            switch (e.button) {
+                case this.options.clickButton:
+                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+                    if (!this.options.strictTarget || e.target == e.currentTarget) {
+                        if (this.options.consumeEvent) {
+                            e.stopImmediatePropagation() // Captured, don't call anyone else
+                        }
+                        // Attach the listeners
+                        this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler)
+                        document.addEventListener("mouseup", this.#mouseUpHandler)
+                        this.clickedPosition = this.locationFromEvent(e)
+                        if (this.target instanceof IDraggableElement) {
+                            this.clickedOffset = [
+                                this.clickedPosition[0] - this.target.locationX,
+                                this.clickedPosition[1] - this.target.locationY,
+                            ]
+                        }
+                        this.clicked(this.clickedPosition)
+                    }
+                    break
+                default:
+                    if (!this.options.exitAnyButton) {
+                        this.#mouseUpHandler(e)
+                    }
+                    break
+            }
+        }
 
-    /** @type {(e: MouseEvent) => void} */
-    #mouseStartedMovingHandler
+    #mouseStartedMovingHandler =
+        /** @param {MouseEvent} e  */
+        e => {
+            if (this.options.consumeEvent) {
+                e.stopImmediatePropagation() // Captured, don't call anyone else
+            }
+            // Delegate from now on to this.#mouseMoveHandler
+            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler)
+            this.#movementListenedElement.addEventListener("mousemove", this.#mouseMoveHandler)
+            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
+            const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin)
+            this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
+            const location = this.locationFromEvent(e)
+            // Do actual actions
+            this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize)
+            this.startDrag(location)
+            this.started = true
+        }
 
-    /** @type {(e: MouseEvent) => void} */
-    #mouseMoveHandler
+    #mouseMoveHandler =
+        /** @param {MouseEvent} e  */
+        e => {
+            if (this.options.consumeEvent) {
+                e.stopImmediatePropagation() // Captured, don't call anyone else
+            }
+            const location = this.locationFromEvent(e)
+            const movement = [e.movementX, e.movementY]
+            this.dragTo(location, movement)
+            if (this.#trackingMouse) {
+                this.blueprint.mousePosition = this.locationFromEvent(e)
+            }
+        }
 
-    /** @type {(e: MouseEvent) => void} */
-    #mouseUpHandler
+    #mouseUpHandler =
+        /** @param {MouseEvent} e  */
+        e => {
+            if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
+                if (this.options.consumeEvent) {
+                    e.stopImmediatePropagation() // Captured, don't call anyone else
+                }
+                // Remove the handlers of "mousemove" and "mouseup"
+                this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler)
+                this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler)
+                document.removeEventListener("mouseup", this.#mouseUpHandler)
+                if (this.started) {
+                    this.endDrag()
+                }
+                this.unclicked()
+                if (this.#trackingMouse) {
+                    const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end)
+                    this.target.dispatchEvent(dragEvent)
+                    this.#trackingMouse = false
+                }
+                this.started = false
+            }
+        }
 
     #trackingMouse = false
     #movementListenedElement
     #draggableElement
 
+    clickedOffset = [0, 0]
+    clickedPosition = [0, 0]
+    mouseLocation = [0, 0]
     started = false
     stepSize = 1
-    clickedPosition = [0, 0]
-    clickedOffset = [0, 0]
-    mouseLocation = [0, 0]
 
     /**
      * 
@@ -52,89 +130,8 @@ export default class IMouseClickDrag extends IPointing {
         options.strictTarget ??= false
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize)
-
         this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace
         this.#draggableElement = this.options.draggableElement
-        let self = this
-
-        this.#mouseDownHandler = e => {
-            self.blueprint.setFocused(true)
-            switch (e.button) {
-                case self.options.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                    if (!self.options.strictTarget || e.target == e.currentTarget) {
-                        if (self.options.consumeEvent) {
-                            e.stopImmediatePropagation() // Captured, don't call anyone else
-                        }
-                        // Attach the listeners
-                        self.#movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler)
-                        document.addEventListener("mouseup", self.#mouseUpHandler)
-                        self.clickedPosition = self.locationFromEvent(e)
-                        self.clickedOffset = [
-                            self.clickedPosition[0] - self.target.locationX,
-                            self.clickedPosition[1] - self.target.locationY,
-                        ]
-                        self.clicked(self.clickedPosition)
-                    }
-                    break
-                default:
-                    if (!self.options.exitAnyButton) {
-                        self.#mouseUpHandler(e)
-                    }
-                    break
-            }
-        }
-
-        this.#mouseStartedMovingHandler = e => {
-            if (self.options.consumeEvent) {
-                e.stopImmediatePropagation() // Captured, don't call anyone else
-            }
-            // Delegate from now on to self.#mouseMoveHandler
-            self.#movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
-            self.#movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler)
-            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin)
-            self.#trackingMouse = self.target.dispatchEvent(dragEvent) == false
-            const location = self.locationFromEvent(e)
-            // Do actual actions
-            this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize)
-            self.startDrag(location)
-            self.started = true
-        }
-
-        this.#mouseMoveHandler = e => {
-            if (self.options.consumeEvent) {
-                e.stopImmediatePropagation() // Captured, don't call anyone else
-            }
-            const location = self.locationFromEvent(e)
-            const movement = [e.movementX, e.movementY]
-            self.dragTo(location, movement)
-            if (self.#trackingMouse) {
-                self.blueprint.mousePosition = self.locationFromEvent(e)
-            }
-        }
-
-        this.#mouseUpHandler = e => {
-            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
-                if (self.options.consumeEvent) {
-                    e.stopImmediatePropagation() // Captured, don't call anyone else
-                }
-                // Remove the handlers of "mousemove" and "mouseup"
-                self.#movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler)
-                self.#movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler)
-                document.removeEventListener("mouseup", self.#mouseUpHandler)
-                if (self.started) {
-                    self.endDrag()
-                }
-                self.unclicked()
-                if (self.#trackingMouse) {
-                    const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end)
-                    self.target.dispatchEvent(dragEvent)
-                    self.#trackingMouse = false
-                }
-                self.started = false
-            }
-        }
 
         this.listenEvents()
     }

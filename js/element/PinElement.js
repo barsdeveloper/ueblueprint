@@ -103,8 +103,6 @@ export default class PinElement extends IElement {
     /** @type {NodeElement} */
     nodeElement
 
-    /** @type {HTMLElement} */
-    clickableElement
 
     connections = 0
 
@@ -164,10 +162,6 @@ export default class PinElement extends IElement {
 
     isOutput() {
         return this.entity.isOutput()
-    }
-
-    getClickableElement() {
-        return this.clickableElement
     }
 
     getLinkLocation() {

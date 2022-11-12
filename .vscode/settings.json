@@ -1,4 +1,5 @@
 {
     "files.trimFinalNewlines": true,
-    "files.insertFinalNewline": true
+    "files.insertFinalNewline": true,
+    "javascript.format.semicolons": "remove"
 }

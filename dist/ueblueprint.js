@@ -812,11 +812,9 @@ class IEntity extends Observable {
          * @param {Object} values
          * @param {String} prefix
          */
-        const defineAllAttributes = (target, attributes, values, prefix = "") => {
-            for (let attribute of Utility.mergeArrays(
-                Object.getOwnPropertyNames(attributes),
-                Object.getOwnPropertyNames(values ?? {})
-            )) {
+        const defineAllAttributes = (target, attributes, values = {}, prefix = "") => {
+            const valuesPropertyNames = Object.getOwnPropertyNames(values);
+            for (let attribute of Utility.mergeArrays(Object.getOwnPropertyNames(attributes), valuesPropertyNames)) {
                 let value = Utility.objectGet(values, [attribute]);
                 let defaultValue = attributes[attribute];
                 let defaultType = Utility.getType(defaultValue);
@@ -830,7 +828,8 @@ class IEntity extends Observable {
                         `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
                     );
                 } else if (
-                    !(attribute in values)
+                    valuesPropertyNames.length > 0
+                    && !(attribute in values)
                     && defaultValue !== undefined
                     && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
                 ) {
@@ -2454,11 +2453,17 @@ class IPointing extends IInput {
 
 class IMouseWheel extends IPointing {
 
-    /** @type {(e: WheelEvent) => void} */
-    #mouseWheelHandler
+    #mouseWheelHandler =
+        /** @param {WheelEvent} e */
+        e => {
+            e.preventDefault();
+            const location = this.locationFromEvent(e);
+            this.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location);
+        }
 
-    /** @type {(e: WheelEvent) => void} */
-    #mouseParentWheelHandler
+    #mouseParentWheelHandler =
+        /** @param {WheelEvent} e */
+        e => e.preventDefault()
 
     /**
      * @param {HTMLElement} target
@@ -2470,18 +2475,6 @@ class IMouseWheel extends IPointing {
         options.strictTarget ??= false;
         super(target, blueprint, options);
         this.strictTarget = options.strictTarget;
-
-        const self = this;
-        this.#mouseWheelHandler = e => {
-            e.preventDefault();
-            const location = self.locationFromEvent(e);
-            self.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location);
-        };
-        this.#mouseParentWheelHandler = e => e.preventDefault();
-
-        if (this.blueprint.focused) {
-            this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false);
-        }
     }
 
     listenEvents() {
@@ -2566,268 +2559,6 @@ class KeyboardSelectAll extends IKeyboardShortcut {
 
     fire() {
         this.blueprint.selectAll();
-    }
-}
-
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
- */
-
-/**
- * @template {IDraggableElement} T
- * @extends {IPointing<T>}
- */
-class IMouseClickDrag extends IPointing {
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseDownHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseStartedMovingHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseMoveHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseUpHandler
-
-    #trackingMouse = false
-    #movementListenedElement
-    #draggableElement
-
-    started = false
-    stepSize = 1
-    clickedPosition = [0, 0]
-    clickedOffset = [0, 0]
-    mouseLocation = [0, 0]
-
-    /**
-     * 
-     * @param {T} target 
-     * @param {Blueprint} blueprint 
-     * @param {Object} options 
-     */
-    constructor(target, blueprint, options = {}) {
-        options.clickButton ??= 0;
-        options.consumeEvent ??= true;
-        options.draggableElement ??= target;
-        options.exitAnyButton ??= true;
-        options.moveEverywhere ??= false;
-        options.movementSpace ??= blueprint?.getGridDOMElement();
-        options.repositionOnClick ??= false;
-        options.strictTarget ??= false;
-        super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
-
-        this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
-        this.#draggableElement = this.options.draggableElement;
-        let self = this;
-
-        this.#mouseDownHandler = e => {
-            self.blueprint.setFocused(true);
-            switch (e.button) {
-                case self.options.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                    if (!self.options.strictTarget || e.target == e.currentTarget) {
-                        if (self.options.consumeEvent) {
-                            e.stopImmediatePropagation(); // Captured, don't call anyone else
-                        }
-                        // Attach the listeners
-                        self.#movementListenedElement.addEventListener("mousemove", self.#mouseStartedMovingHandler);
-                        document.addEventListener("mouseup", self.#mouseUpHandler);
-                        self.clickedPosition = self.locationFromEvent(e);
-                        self.clickedOffset = [
-                            self.clickedPosition[0] - self.target.locationX,
-                            self.clickedPosition[1] - self.target.locationY,
-                        ];
-                        self.clicked(self.clickedPosition);
-                    }
-                    break
-                default:
-                    if (!self.options.exitAnyButton) {
-                        self.#mouseUpHandler(e);
-                    }
-                    break
-            }
-        };
-
-        this.#mouseStartedMovingHandler = e => {
-            if (self.options.consumeEvent) {
-                e.stopImmediatePropagation(); // Captured, don't call anyone else
-            }
-            // Delegate from now on to self.#mouseMoveHandler
-            self.#movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
-            self.#movementListenedElement.addEventListener("mousemove", self.#mouseMoveHandler);
-            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-            const dragEvent = self.getEvent(Configuration.trackingMouseEventName.begin);
-            self.#trackingMouse = self.target.dispatchEvent(dragEvent) == false;
-            const location = self.locationFromEvent(e);
-            // Do actual actions
-            this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
-            self.startDrag(location);
-            self.started = true;
-        };
-
-        this.#mouseMoveHandler = e => {
-            if (self.options.consumeEvent) {
-                e.stopImmediatePropagation(); // Captured, don't call anyone else
-            }
-            const location = self.locationFromEvent(e);
-            const movement = [e.movementX, e.movementY];
-            self.dragTo(location, movement);
-            if (self.#trackingMouse) {
-                self.blueprint.mousePosition = self.locationFromEvent(e);
-            }
-        };
-
-        this.#mouseUpHandler = e => {
-            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
-                if (self.options.consumeEvent) {
-                    e.stopImmediatePropagation(); // Captured, don't call anyone else
-                }
-                // Remove the handlers of "mousemove" and "mouseup"
-                self.#movementListenedElement.removeEventListener("mousemove", self.#mouseStartedMovingHandler);
-                self.#movementListenedElement.removeEventListener("mousemove", self.#mouseMoveHandler);
-                document.removeEventListener("mouseup", self.#mouseUpHandler);
-                if (self.started) {
-                    self.endDrag();
-                }
-                self.unclicked();
-                if (self.#trackingMouse) {
-                    const dragEvent = self.getEvent(Configuration.trackingMouseEventName.end);
-                    self.target.dispatchEvent(dragEvent);
-                    self.#trackingMouse = false;
-                }
-                self.started = false;
-            }
-        };
-
-        this.listenEvents();
-    }
-
-    listenEvents() {
-        this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler);
-        if (this.options.clickButton == 2) {
-            this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault());
-        }
-    }
-
-    unlistenEvents() {
-        this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler);
-    }
-
-    getEvent(eventName) {
-        return new CustomEvent(eventName, {
-            detail: {
-                tracker: this
-            },
-            bubbles: true,
-            cancelable: true
-        })
-    }
-
-    /* Subclasses will override the following methods */
-    clicked(location) {
-    }
-
-    startDrag(location) {
-    }
-
-    dragTo(location, offset) {
-    }
-
-    endDrag() {
-    }
-
-    unclicked(location) {
-    }
-}
-
-class MouseScrollGraph extends IMouseClickDrag {
-
-    startDrag() {
-        this.blueprint.scrolling = true;
-    }
-
-    dragTo(location, movement) {
-        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
-    }
-
-    endDrag() {
-        this.blueprint.scrolling = false;
-    }
-}
-
-class MouseTracking extends IPointing {
-
-    /** @type {IPointing} */
-    #mouseTracker = null
-
-    /** @type {(e: MouseEvent) => void} */
-    #mousemoveHandler
-
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseStolenHandler
-
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseGaveBackHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true;
-        super(target, blueprint, options);
-
-        let self = this;
-
-        this.#mousemoveHandler = e => {
-            e.preventDefault();
-            self.blueprint.mousePosition = self.locationFromEvent(e);
-        };
-
-        this.#trackingMouseStolenHandler = e => {
-            if (!self.#mouseTracker) {
-                e.preventDefault();
-                this.#mouseTracker = e.detail.tracker;
-                self.unlistenMouseMove();
-            }
-        };
-
-        this.#trackingMouseGaveBackHandler = e => {
-            if (self.#mouseTracker == e.detail.tracker) {
-                e.preventDefault();
-                self.#mouseTracker = null;
-                self.listenMouseMove();
-            }
-        };
-    }
-
-    listenMouseMove() {
-        this.target.addEventListener("mousemove", this.#mousemoveHandler);
-    }
-
-    unlistenMouseMove() {
-        this.target.removeEventListener("mousemove", this.#mousemoveHandler);
-    }
-
-    listenEvents() {
-        this.listenMouseMove();
-        this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.begin,
-            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
-        this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.end,
-            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
-    }
-
-    unlistenEvents() {
-        this.unlistenMouseMove();
-        this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.begin,
-            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
-        this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.end,
-            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
-        );
     }
 }
 
@@ -3034,6 +2765,264 @@ class IDraggableElement extends IElement {
         if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
             this.setLocation(snappedLocation);
         }
+    }
+}
+
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/IElement").default} IElement
+ */
+
+/**
+ * @template {IElement} T
+ * @extends {IPointing<T>}
+ */
+class IMouseClickDrag extends IPointing {
+
+    #mouseDownHandler =
+        /** @param {MouseEvent} e  */
+        e => {
+            this.blueprint.setFocused(true);
+            switch (e.button) {
+                case this.options.clickButton:
+                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+                    if (!this.options.strictTarget || e.target == e.currentTarget) {
+                        if (this.options.consumeEvent) {
+                            e.stopImmediatePropagation(); // Captured, don't call anyone else
+                        }
+                        // Attach the listeners
+                        this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
+                        document.addEventListener("mouseup", this.#mouseUpHandler);
+                        this.clickedPosition = this.locationFromEvent(e);
+                        if (this.target instanceof IDraggableElement) {
+                            this.clickedOffset = [
+                                this.clickedPosition[0] - this.target.locationX,
+                                this.clickedPosition[1] - this.target.locationY,
+                            ];
+                        }
+                        this.clicked(this.clickedPosition);
+                    }
+                    break
+                default:
+                    if (!this.options.exitAnyButton) {
+                        this.#mouseUpHandler(e);
+                    }
+                    break
+            }
+        }
+
+    #mouseStartedMovingHandler =
+        /** @param {MouseEvent} e  */
+        e => {
+            if (this.options.consumeEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            }
+            // Delegate from now on to this.#mouseMoveHandler
+            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
+            this.#movementListenedElement.addEventListener("mousemove", this.#mouseMoveHandler);
+            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
+            const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin);
+            this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
+            const location = this.locationFromEvent(e);
+            // Do actual actions
+            this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
+            this.startDrag(location);
+            this.started = true;
+        }
+
+    #mouseMoveHandler =
+        /** @param {MouseEvent} e  */
+        e => {
+            if (this.options.consumeEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            }
+            const location = this.locationFromEvent(e);
+            const movement = [e.movementX, e.movementY];
+            this.dragTo(location, movement);
+            if (this.#trackingMouse) {
+                this.blueprint.mousePosition = this.locationFromEvent(e);
+            }
+        }
+
+    #mouseUpHandler =
+        /** @param {MouseEvent} e  */
+        e => {
+            if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
+                if (this.options.consumeEvent) {
+                    e.stopImmediatePropagation(); // Captured, don't call anyone else
+                }
+                // Remove the handlers of "mousemove" and "mouseup"
+                this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
+                this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler);
+                document.removeEventListener("mouseup", this.#mouseUpHandler);
+                if (this.started) {
+                    this.endDrag();
+                }
+                this.unclicked();
+                if (this.#trackingMouse) {
+                    const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end);
+                    this.target.dispatchEvent(dragEvent);
+                    this.#trackingMouse = false;
+                }
+                this.started = false;
+            }
+        }
+
+    #trackingMouse = false
+    #movementListenedElement
+    #draggableElement
+
+    clickedOffset = [0, 0]
+    clickedPosition = [0, 0]
+    mouseLocation = [0, 0]
+    started = false
+    stepSize = 1
+
+    /**
+     * 
+     * @param {T} target 
+     * @param {Blueprint} blueprint 
+     * @param {Object} options 
+     */
+    constructor(target, blueprint, options = {}) {
+        options.clickButton ??= 0;
+        options.consumeEvent ??= true;
+        options.draggableElement ??= target;
+        options.exitAnyButton ??= true;
+        options.moveEverywhere ??= false;
+        options.movementSpace ??= blueprint?.getGridDOMElement();
+        options.repositionOnClick ??= false;
+        options.strictTarget ??= false;
+        super(target, blueprint, options);
+        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
+        this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
+        this.#draggableElement = this.options.draggableElement;
+
+        this.listenEvents();
+    }
+
+    listenEvents() {
+        this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler);
+        if (this.options.clickButton == 2) {
+            this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault());
+        }
+    }
+
+    unlistenEvents() {
+        this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler);
+    }
+
+    getEvent(eventName) {
+        return new CustomEvent(eventName, {
+            detail: {
+                tracker: this
+            },
+            bubbles: true,
+            cancelable: true
+        })
+    }
+
+    /* Subclasses will override the following methods */
+    clicked(location) {
+    }
+
+    startDrag(location) {
+    }
+
+    dragTo(location, offset) {
+    }
+
+    endDrag() {
+    }
+
+    unclicked(location) {
+    }
+}
+
+class MouseScrollGraph extends IMouseClickDrag {
+
+    startDrag() {
+        this.blueprint.scrolling = true;
+    }
+
+    dragTo(location, movement) {
+        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
+    }
+
+    endDrag() {
+        this.blueprint.scrolling = false;
+    }
+}
+
+class MouseTracking extends IPointing {
+
+    /** @type {IPointing} */
+    #mouseTracker = null
+
+    /** @type {(e: MouseEvent) => void} */
+    #mousemoveHandler
+
+    /** @type {(e: CustomEvent) => void} */
+    #trackingMouseStolenHandler
+
+    /** @type {(e: CustomEvent) => void} */
+    #trackingMouseGaveBackHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus = true;
+        super(target, blueprint, options);
+
+        let self = this;
+
+        this.#mousemoveHandler = e => {
+            e.preventDefault();
+            self.blueprint.mousePosition = self.locationFromEvent(e);
+        };
+
+        this.#trackingMouseStolenHandler = e => {
+            if (!self.#mouseTracker) {
+                e.preventDefault();
+                this.#mouseTracker = e.detail.tracker;
+                self.unlistenMouseMove();
+            }
+        };
+
+        this.#trackingMouseGaveBackHandler = e => {
+            if (self.#mouseTracker == e.detail.tracker) {
+                e.preventDefault();
+                self.#mouseTracker = null;
+                self.listenMouseMove();
+            }
+        };
+    }
+
+    listenMouseMove() {
+        this.target.addEventListener("mousemove", this.#mousemoveHandler);
+    }
+
+    unlistenMouseMove() {
+        this.target.removeEventListener("mousemove", this.#mousemoveHandler);
+    }
+
+    listenEvents() {
+        this.listenMouseMove();
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
+    }
+
+    unlistenEvents() {
+        this.unlistenMouseMove();
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
+        );
     }
 }
 
@@ -3731,11 +3720,39 @@ class MouseCreateLink extends IMouseClickDrag {
     /** @type {NodeListOf<PinElement>} */
     #listenedPins
 
-    /** @type {(e: MouseEvent) => void} */
-    #mouseenterHandler
+    #mouseenterHandler =
+        /** @param {MouseEvent} e */
+        e => {
+            if (!this.enteredPin) {
+                this.linkValid = false;
+                this.enteredPin = /** @type {PinElement} */ (e.target);
+                const a = this.enteredPin;
+                const b = this.target;
+                if (a.getNodeElement() == b.getNodeElement()) {
+                    this.link.setMessageSameNode();
+                } else if (a.isOutput() == b.isOutput()) {
+                    this.link.setMessageDirectionsIncompatible();
+                } else if (a.isOutput() == b.isOutput()) {
+                    this.link.setMessageDirectionsIncompatible();
+                } else if (this.blueprint.getLinks([a, b]).length) {
+                    this.link.setMessageReplaceLink();
+                    this.linkValid = true;
+                } else {
+                    this.link.setMessageCorrect();
+                    this.linkValid = true;
+                }
+            }
+        }
 
-    /** @type {(e: MouseEvent) => void} */
-    #mouseleaveHandler
+    #mouseleaveHandler =
+        /** @param {MouseEvent} e */
+        e => {
+            if (this.enteredPin == e.target) {
+                this.enteredPin = null;
+                this.linkValid = false;
+                this.link?.setMessagePlaceNode();
+            }
+        }
 
     /** @type {LinkElement?} */
     link
@@ -3745,39 +3762,6 @@ class MouseCreateLink extends IMouseClickDrag {
 
     linkValid = false
 
-    constructor(target, blueprint, options) {
-        super(target, blueprint, options);
-        let self = this;
-        this.#mouseenterHandler = e => {
-            if (!self.enteredPin) {
-                self.linkValid = false;
-                self.enteredPin = /** @type {PinElement} */ (e.target);
-                const a = self.enteredPin;
-                const b = self.target;
-                if (a.getNodeElement() == b.getNodeElement()) {
-                    self.link.setMessageSameNode();
-                } else if (a.isOutput() == b.isOutput()) {
-                    self.link.setMessageDirectionsIncompatible();
-                } else if (a.isOutput() == b.isOutput()) {
-                    self.link.setMessageDirectionsIncompatible();
-                } else if (self.blueprint.getLinks([a, b]).length) {
-                    self.link.setMessageReplaceLink();
-                    self.linkValid = true;
-                } else {
-                    self.link.setMessageCorrect();
-                    self.linkValid = true;
-                }
-            }
-        };
-        this.#mouseleaveHandler = e => {
-            if (self.enteredPin == e.target) {
-                self.enteredPin = null;
-                self.linkValid = false;
-                self.link?.setMessagePlaceNode();
-            }
-        };
-    }
-
     startDrag(location) {
         this.link = new LinkElement(this.target, null);
         this.blueprint.linksContainerElement.prepend(this.link);
@@ -3785,8 +3769,9 @@ class MouseCreateLink extends IMouseClickDrag {
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin");
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
-                pin.getClickableElement().addEventListener("mouseenter", this.#mouseenterHandler);
-                pin.getClickableElement().addEventListener("mouseleave", this.#mouseleaveHandler);
+                const clickableElement = pin.template.getClickableElement();
+                clickableElement.addEventListener("mouseenter", this.#mouseenterHandler);
+                clickableElement.addEventListener("mouseleave", this.#mouseleaveHandler);
             }
         });
         this.link.startDragging();
@@ -3832,6 +3817,12 @@ class MouseCreateLink extends IMouseClickDrag {
  */
 class PinTemplate extends ITemplate {
 
+    /** @param {PinElement<T>} element */
+    constructed(element) {
+        super.constructed(element);
+        this.element.dataset.id = this.element.GetPinIdValue();
+    }
+
     connectedCallback() {
         super.connectedCallback();
         this.element.nodeElement = this.element.closest("ueb-node");
@@ -3840,7 +3831,7 @@ class PinTemplate extends ITemplate {
     /** @returns {IInput[]} */
     createInputObjects() {
         return [
-            new MouseCreateLink(this.element.clickableElement, this.element.blueprint, {
+            new MouseCreateLink(this.getClickableElement(), this.element.blueprint, {
                 moveEverywhere: true,
             })
         ]
@@ -3880,13 +3871,6 @@ class PinTemplate extends ITemplate {
         return w
     }
 
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.element.dataset.id = this.element.GetPinIdValue();
-        this.element.clickableElement = this.element;
-    }
-
     getLinkLocation() {
         const rect = this.element.querySelector(".ueb-pin-icon").getBoundingClientRect();
         const location = Utility.convertLocation(
@@ -3894,6 +3878,10 @@ class PinTemplate extends ITemplate {
             this.element.blueprint.gridElement
         );
         return this.element.blueprint.compensateTranslation(location)
+    }
+
+    getClickableElement() {
+        return this.element
     }
 }
 
@@ -3905,18 +3893,18 @@ class BoolPinTemplate extends PinTemplate {
     /** @type {HTMLInputElement} */
     #input
 
+    #onChangeHandler = _ => this.element.setDefaultValue(this.#input.checked)
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.#input = this.element.querySelector(".ueb-pin-input");
-        let self = this;
-        this.onChangeHandler = _ => this.element.setDefaultValue(self.#input.checked);
-        this.#input.addEventListener("change", this.onChangeHandler);
+        this.#input.addEventListener("change", this.#onChangeHandler);
     }
 
     cleanup() {
         super.cleanup();
-        this.#input.removeEventListener("change", this.onChangeHandler);
+        this.#input.removeEventListener("change", this.#onChangeHandler);
     }
 
     createInputObjects() {
@@ -3947,6 +3935,173 @@ class ExecPinTemplate extends PinTemplate {
                     d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
             </svg>
         `
+    }
+}
+
+/**
+ * @template T
+ * @typedef {import("../element/PinElement").default<T>} PinElement
+ */
+
+/**
+ * @template T
+ * @extends PinTemplate<T>
+ */
+class IInputPinTemplate extends PinTemplate {
+
+    static singleLineInput = false
+    static selectOnFocus = true
+
+    /** @type {HTMLElement[]} */
+    #inputContentElements
+    get inputContentElements() {
+        return this.#inputContentElements
+    }
+
+    /** @param {String} value */
+    static stringFromInputToUE(value) {
+        return value
+            .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
+            .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
+    }
+
+    /** @param {String} value */
+    static stringFromUEToInput(value) {
+        return value
+            .replaceAll(/(?:\r|(?<=(?:^|[^\\])(?:\\\\)*)\\r)(?=\n)/g, "") // Remove \r leftover from \r\n
+            .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
+    }
+
+    #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
+        if (this.#inputContentElements.length) {
+            this.setInputs(this.getInputs(), false);
+            this.#inputContentElements.forEach(element => {
+                element.addEventListener("focusout", this.#onFocusOutHandler);
+            });
+        }
+    }
+
+    cleanup() {
+        super.cleanup();
+        this.#inputContentElements.forEach(element => {
+            element.removeEventListener("focusout", this.#onFocusOutHandler);
+        });
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.element.blueprint)),
+        ]
+    }
+
+    getInput() {
+        return this.getInputs().reduce((acc, cur) => acc + cur, "")
+    }
+
+    getInputs() {
+        return this.#inputContentElements.map(element =>
+            // Faster than innerText which causes reflow
+            Utility.clearHTMLWhitespace(element.innerHTML)
+        )
+    }
+
+    /** @param {String[]?} values */
+    setInputs(values = [], updateDefaultValue = true) {
+        // @ts-expect-error 
+        this.#inputContentElements.forEach(this.constructor.singleLineInput
+            ? (elem, i) => elem.innerText = values[i]
+            : (elem, i) => elem.innerText = values[i].replaceAll("\n", "")
+        );
+        if (updateDefaultValue) {
+            this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
+        }
+    }
+
+    setDefaultValue(values = [], rawValues = values) {
+        this.element.setDefaultValue(
+            // @ts-expect-error
+            values.join("")
+        );
+    }
+
+    renderInput() {
+        if (this.element.isInput() && !this.element.isLinked) {
+            // @ts-expect-error
+            const singleLine = this.constructor.singleLineInput;
+            // @ts-expect-error
+            const selectOnFocus = this.constructor.selectOnFocus;
+            return $`
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
+                    </ueb-input>
+                </div>
+            `
+        }
+        return w
+    }
+}
+
+/**
+ * @template T
+ * @extends IInputPinTemplate<T>
+ */
+class INumericPinTemplate extends IInputPinTemplate {
+
+    static singleLineInput = true
+
+    /** @param {String[]} values */
+    setInputs(values = [], updateDefaultValue = false) {
+        if (!values || values.length == 0) {
+            values = [this.getInput()];
+        }
+        let parsedValues = [];
+        for (const value of values) {
+            let num = parseFloat(value);
+            if (isNaN(num)) {
+                num = 0;
+                updateDefaultValue = false;
+            }
+            parsedValues.push(num);
+        }
+        super.setInputs(values, false);
+        this.setDefaultValue(parsedValues, values);
+    }
+
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        this.element.setDefaultValue(/** @type {T} */(values[0]));
+    }
+}
+
+/** @typedef {import("../entity/IntegerEntity").default} IntEntity */
+
+/** @extends INumericPinTemplate<IntEntity> */
+class IntPinTemplate extends INumericPinTemplate {
+
+    setDefaultValue(values = [], rawValues = values) {
+        this.element.setDefaultValue(values[0]);
+    }
+
+    renderInput() {
+        if (this.element.isInput() && !this.element.isLinked) {
+            return $`
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}" .innerText="${this.element.entity.DefaultValue.toString()}">
+                    </ueb-input>
+                </div>
+            `
+        }
+        return w
     }
 }
 
@@ -4532,222 +4687,6 @@ class ColorPickerWindowTemplate extends WindowTemplate {
 }
 
 /**
- * @template T
- * @typedef {import("../element/PinElement").default<T>} PinElement
- */
-
-/**
- * @template T
- * @extends PinTemplate<T>
- */
-class IInputPinTemplate extends PinTemplate {
-
-    static singleLineInput = false
-    static selectOnFocus = true
-
-    /** @type {HTMLElement[]} */
-    #inputContentElements
-    get inputContentElements() {
-        return this.#inputContentElements
-    }
-
-    /** @param {String} value */
-    static stringFromInputToUE(value) {
-        return value
-            .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
-            .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
-    }
-
-    /** @param {String} value */
-    static stringFromUEToInput(value) {
-        return value
-            .replaceAll(/(?:\r|(?<=(?:^|[^\\])(?:\\\\)*)\\r)(?=\n)/g, "") // Remove \r leftover from \r\n
-            .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
-    }
-
-    #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
-
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
-        if (this.#inputContentElements.length) {
-            this.setInputs(this.getInputs(), false);
-            this.#inputContentElements.forEach(element => {
-                element.addEventListener("focusout", this.#onFocusOutHandler);
-            });
-        }
-    }
-
-    cleanup() {
-        super.cleanup();
-        this.#inputContentElements.forEach(element => {
-            element.removeEventListener("focusout", this.#onFocusOutHandler);
-        });
-    }
-
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.element.blueprint)),
-        ]
-    }
-
-    getInput() {
-        return this.getInputs().reduce((acc, cur) => acc + cur, "")
-    }
-
-    getInputs() {
-        return this.#inputContentElements.map(element =>
-            // Faster than innerText which causes reflow
-            Utility.clearHTMLWhitespace(element.innerHTML)
-        )
-    }
-
-    /** @param {String[]?} values */
-    setInputs(values = [], updateDefaultValue = true) {
-        // @ts-expect-error 
-        this.#inputContentElements.forEach(this.constructor.singleLineInput
-            ? (elem, i) => elem.innerText = values[i]
-            : (elem, i) => elem.innerText = values[i].replaceAll("\n", "")
-        );
-        if (updateDefaultValue) {
-            this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
-        }
-    }
-
-    setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(
-            // @ts-expect-error
-            values.join("")
-        );
-    }
-
-    renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            // @ts-expect-error
-            const singleLine = this.constructor.singleLineInput;
-            // @ts-expect-error
-            const selectOnFocus = this.constructor.selectOnFocus;
-            return $`
-                <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
-                    </ueb-input>
-                </div>
-            `
-        }
-        return w
-    }
-}
-
-/** @typedef {import("../../Blueprint").default} Blueprint */
-
-/**
- * @template {HTMLElement} T
- * @extends {IPointing<T>}
- */
-class IMouseClick extends IPointing {
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseDownHandler
-
-    /** @type {(e: MouseEvent) => void} */
-    #mouseUpHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.clickButton ??= 0;
-        options.consumeEvent ??= true;
-        options.exitAnyButton ??= true;
-        options.strictTarget ??= false;
-        super(target, blueprint, options);
-        this.clickedPosition = [0, 0];
-        let self = this;
-
-        this.#mouseDownHandler = e => {
-            self.blueprint.setFocused(true);
-            switch (e.button) {
-                case self.options.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the target, not descandants
-                    if (!self.options.strictTarget || e.target == e.currentTarget) {
-                        if (self.options.consumeEvent) {
-                            e.stopImmediatePropagation(); // Captured, don't call anyone else
-                        }
-                        // Attach the listeners
-                        document.addEventListener("mouseup", self.#mouseUpHandler);
-                        self.clickedPosition = self.locationFromEvent(e);
-                        self.clicked(self.clickedPosition);
-                    }
-                    break
-                default:
-                    if (!self.options.exitAnyButton) {
-                        self.#mouseUpHandler(e);
-                    }
-                    break
-            }
-        };
-
-        this.#mouseUpHandler = e => {
-            if (!self.options.exitAnyButton || e.button == self.options.clickButton) {
-                if (self.options.consumeEvent) {
-                    e.stopImmediatePropagation(); // Captured, don't call anyone else
-                }
-                // Remove the handlers of "mousemove" and "mouseup"
-                document.removeEventListener("mouseup", self.#mouseUpHandler);
-                self.unclicked();
-            }
-        };
-
-        this.listenEvents();
-    }
-
-    listenEvents() {
-        this.target.addEventListener("mousedown", this.#mouseDownHandler);
-        if (this.options.clickButton == 2) {
-            this.target.addEventListener("contextmenu", e => e.preventDefault());
-        }
-    }
-
-    unlistenEvents() {
-        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
-    }
-
-    /* Subclasses will override the following methods */
-    clicked(location) {
-    }
-
-    unclicked(location) {
-    }
-}
-
-class MouseClickAction extends IMouseClick {
-
-    static #ignoreEvent =
-        /** @param {MouseClickAction} self */
-        self => { }
-
-    constructor(
-        target,
-        blueprint,
-        options,
-        onMouseDown = MouseClickAction.#ignoreEvent,
-        onMouseUp = MouseClickAction.#ignoreEvent
-    ) {
-        super(target, blueprint, options);
-        this.onMouseDown = onMouseDown;
-        this.onMouseUp = onMouseUp;
-    }
-
-    clicked() {
-        this.onMouseDown(this);
-    }
-
-    unclicked() {
-        this.onMouseUp(this);
-    }
-}
-
-/**
  * @template {WindowTemplate} T
  * @extends {IDraggableElement<Object, T>}
  */
@@ -4808,42 +4747,38 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     /** @type {WindowElement} */
     #window
 
+    #launchColorPickerWindow =
+        /** @param {MouseEvent} e */
+        e => {
+            //e.preventDefault()
+            this.#window = new WindowElement({
+                type: ColorPickerWindowTemplate,
+                windowOptions: {
+                    // The created window will use the following functions to get and set the color
+                    getPinColor: () => this.element.defaultValue,
+                    /** @param {LinearColorEntity} color */
+                    setPinColor: color => this.element.setDefaultValue(color),
+                },
+            });
+            this.element.blueprint.append(this.#window);
+            const windowApplyHandler = () => {
+                this.element.setDefaultValue(
+                /** @type {ColorPickerWindowTemplate} */(this.#window.template).color
+                );
+            };
+            const windowCloseHandler = () => {
+                this.#window.removeEventListener(Configuration.windowApplyEventName, windowApplyHandler);
+                this.#window.removeEventListener(Configuration.windowCloseEventName, windowCloseHandler);
+                this.#window = null;
+            };
+            this.#window.addEventListener(Configuration.windowApplyEventName, windowApplyHandler);
+            this.#window.addEventListener(Configuration.windowCloseEventName, windowCloseHandler);
+        }
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.#input = this.element.querySelector(".ueb-pin-input");
-    }
-
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            new MouseClickAction(this.#input, this.element.blueprint, undefined,
-                inputInstance => {
-                    this.#window = new WindowElement({
-                        type: ColorPickerWindowTemplate,
-                        windowOptions: {
-                            // The created window will use the following functions to get and set the color
-                            getPinColor: () => this.element.defaultValue,
-                            /** @param {LinearColorEntity} color */
-                            setPinColor: color => this.element.setDefaultValue(color),
-                        },
-                    });
-                    this.element.blueprint.append(this.#window);
-                    const windowApplyHandler = () => {
-                        this.element.setDefaultValue(
-                            /** @type {ColorPickerWindowTemplate} */(this.#window.template).color
-                        );
-                    };
-                    const windowCloseHandler = () => {
-                        this.#window.removeEventListener(Configuration.windowApplyEventName, windowApplyHandler);
-                        this.#window.removeEventListener(Configuration.windowCloseEventName, windowCloseHandler);
-                        this.#window = null;
-                    };
-                    this.#window.addEventListener(Configuration.windowApplyEventName, windowApplyHandler);
-                    this.#window.addEventListener(Configuration.windowCloseEventName, windowCloseHandler);
-                },
-            ),
-        ]
     }
 
     getInputs() {
@@ -4858,6 +4793,7 @@ class LinearColorPinTemplate extends IInputPinTemplate {
         if (this.element.isInput() && !this.element.isLinked) {
             return $`
                 <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
+                    @click="${this.#launchColorPickerWindow}"
                     style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
                 </span>
             `
@@ -4871,41 +4807,6 @@ class LinearColorPinTemplate extends IInputPinTemplate {
 class NamePinTemplate extends IInputPinTemplate {
 
     static singleLineInput = true
-}
-
-/**
- * @template T
- * @extends IInputPinTemplate<T>
- */
-class INumericPinTemplate extends IInputPinTemplate {
-
-    static singleLineInput = true
-
-    /** @param {String[]} values */
-    setInputs(values = [], updateDefaultValue = false) {
-        if (!values || values.length == 0) {
-            values = [this.getInput()];
-        }
-        let parsedValues = [];
-        for (const value of values) {
-            let num = parseFloat(value);
-            if (isNaN(num)) {
-                num = 0;
-                updateDefaultValue = false;
-            }
-            parsedValues.push(num);
-        }
-        super.setInputs(values, false);
-        this.setDefaultValue(parsedValues, values);
-    }
-
-    /**
-     * @param {Number[]} values
-     * @param {String[]} rawValues
-     */
-    setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(/** @type {T} */(values[0]));
-    }
 }
 
 /**
@@ -5039,28 +4940,6 @@ class VectorPinTemplate extends INumericPinTemplate {
     }
 }
 
-/** @typedef {import("../entity/IntegerEntity").default} IntEntity */
-
-/** @extends INumericPinTemplate<IntEntity> */
-class IntPinTemplate extends INumericPinTemplate {
-
-    setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(values[0]);
-    }
-
-    renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            return $`
-                <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}" .innerText="${this.element.entity.DefaultValue.toString()}">
-                    </ueb-input>
-                </div>
-            `
-        }
-        return w
-    }
-}
-
 /**
  * @typedef {import("../entity/GuidEntity").default} GuidEntity
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
@@ -5148,8 +5027,6 @@ class PinElement extends IElement {
     /** @type {NodeElement} */
     nodeElement
 
-    /** @type {HTMLElement} */
-    clickableElement
 
     connections = 0
 
@@ -5209,10 +5086,6 @@ class PinElement extends IElement {
 
     isOutput() {
         return this.entity.isOutput()
-    }
-
-    getClickableElement() {
-        return this.clickableElement
     }
 
     getLinkLocation() {
@@ -5285,7 +5158,10 @@ class PinElement extends IElement {
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 class NodeTemplate extends ISelectableDraggableTemplate {
 
-    toggleAdvancedDisplayHandler
+    toggleAdvancedDisplayHandler = _ => {
+        this.element.toggleShowAdvancedPinDisplay();
+        this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
+    }
 
     render() {
         return $`
@@ -5328,7 +5204,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     /** @param {Map} changedProperties */
-    async firstUpdated(changedProperties) {
+    firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"));
         const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"));
@@ -5340,10 +5216,6 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 outputContainer.appendChild(p);
             }
         });
-        this.toggleAdvancedDisplayHandler = _ => {
-            this.element.toggleShowAdvancedPinDisplay();
-            this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
-        };
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
     }
 

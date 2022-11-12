@@ -10,18 +10,18 @@ export default class BoolPinTemplate extends PinTemplate {
     /** @type {HTMLInputElement} */
     #input
 
+    #onChangeHandler = _ => this.element.setDefaultValue(this.#input.checked)
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.#input = this.element.querySelector(".ueb-pin-input")
-        let self = this
-        this.onChangeHandler = _ => this.element.setDefaultValue(self.#input.checked)
-        this.#input.addEventListener("change", this.onChangeHandler)
+        this.#input.addEventListener("change", this.#onChangeHandler)
     }
 
     cleanup() {
         super.cleanup()
-        this.#input.removeEventListener("change", this.onChangeHandler)
+        this.#input.removeEventListener("change", this.#onChangeHandler)
     }
 
     createInputObjects() {

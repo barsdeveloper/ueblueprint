@@ -3,11 +3,17 @@ import IPointing from "./IPointing"
 
 export default class IMouseWheel extends IPointing {
 
-    /** @type {(e: WheelEvent) => void} */
-    #mouseWheelHandler
+    #mouseWheelHandler =
+        /** @param {WheelEvent} e */
+        e => {
+            e.preventDefault()
+            const location = this.locationFromEvent(e)
+            this.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location)
+        }
 
-    /** @type {(e: WheelEvent) => void} */
-    #mouseParentWheelHandler
+    #mouseParentWheelHandler =
+        /** @param {WheelEvent} e */
+        e => e.preventDefault()
 
     /**
      * @param {HTMLElement} target
@@ -19,18 +25,6 @@ export default class IMouseWheel extends IPointing {
         options.strictTarget ??= false
         super(target, blueprint, options)
         this.strictTarget = options.strictTarget
-
-        const self = this
-        this.#mouseWheelHandler = e => {
-            e.preventDefault()
-            const location = self.locationFromEvent(e)
-            self.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location)
-        }
-        this.#mouseParentWheelHandler = e => e.preventDefault()
-
-        if (this.blueprint.focused) {
-            this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false)
-        }
     }
 
     listenEvents() {

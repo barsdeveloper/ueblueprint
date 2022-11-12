@@ -18,6 +18,12 @@ import Utility from "../Utility"
  */
 export default class PinTemplate extends ITemplate {
 
+    /** @param {PinElement<T>} element */
+    constructed(element) {
+        super.constructed(element)
+        this.element.dataset.id = this.element.GetPinIdValue()
+    }
+
     connectedCallback() {
         super.connectedCallback()
         this.element.nodeElement = this.element.closest("ueb-node")
@@ -26,7 +32,7 @@ export default class PinTemplate extends ITemplate {
     /** @returns {IInput[]} */
     createInputObjects() {
         return [
-            new MouseCreateLink(this.element.clickableElement, this.element.blueprint, {
+            new MouseCreateLink(this.getClickableElement(), this.element.blueprint, {
                 moveEverywhere: true,
             })
         ]
@@ -66,13 +72,6 @@ export default class PinTemplate extends ITemplate {
         return nothing
     }
 
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties)
-        this.element.dataset.id = this.element.GetPinIdValue()
-        this.element.clickableElement = this.element
-    }
-
     getLinkLocation() {
         const rect = this.element.querySelector(".ueb-pin-icon").getBoundingClientRect()
         const location = Utility.convertLocation(
@@ -80,5 +79,9 @@ export default class PinTemplate extends ITemplate {
             this.element.blueprint.gridElement
         )
         return this.element.blueprint.compensateTranslation(location)
+    }
+
+    getClickableElement() {
+        return this.element
     }
 }

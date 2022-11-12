@@ -21,11 +21,9 @@ export default class IEntity extends Observable {
          * @param {Object} values
          * @param {String} prefix
          */
-        const defineAllAttributes = (target, attributes, values, prefix = "") => {
-            for (let attribute of Utility.mergeArrays(
-                Object.getOwnPropertyNames(attributes),
-                Object.getOwnPropertyNames(values ?? {})
-            )) {
+        const defineAllAttributes = (target, attributes, values = {}, prefix = "") => {
+            const valuesPropertyNames = Object.getOwnPropertyNames(values)
+            for (let attribute of Utility.mergeArrays(Object.getOwnPropertyNames(attributes), valuesPropertyNames)) {
                 let value = Utility.objectGet(values, [attribute])
                 let defaultValue = attributes[attribute]
                 let defaultType = Utility.getType(defaultValue)
@@ -39,7 +37,8 @@ export default class IEntity extends Observable {
                         `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
                     )
                 } else if (
-                    !(attribute in values)
+                    valuesPropertyNames.length > 0
+                    && !(attribute in values)
                     && defaultValue !== undefined
                     && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
                 ) {
