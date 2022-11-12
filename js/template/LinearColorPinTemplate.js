@@ -1,7 +1,7 @@
 import { html } from "lit"
 import ColorPickerWindowTemplate from "./ColorPickerWindowTemplate"
 import Configuration from "../Configuration"
-import IInputPinTemplate from "./IInputPinTemplate"
+import PinTemplate from "./PinTemplate"
 import WindowElement from "../element/WindowElement"
 
 /**
@@ -9,8 +9,8 @@ import WindowElement from "../element/WindowElement"
  * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
  */
 
-/** @extends IInputPinTemplate<LinearColorEntity> */
-export default class LinearColorPinTemplate extends IInputPinTemplate {
+/** @extends PinTemplate<LinearColorEntity> */
+export default class LinearColorPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement} */
     #input
@@ -50,14 +50,6 @@ export default class LinearColorPinTemplate extends IInputPinTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.#input = this.element.querySelector(".ueb-pin-input")
-    }
-
-    getInputs() {
-        return [this.#input.dataset.linearColor]
-    }
-
-    /** @param {String[]} value */
-    setInputs(value = []) {
     }
 
     renderInput() {

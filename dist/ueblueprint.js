@@ -1076,6 +1076,7 @@ class LinearColorEntity extends IEntity {
         V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
     }
 
+    /** @param {Number} x */
     static linearToSRGB(x) {
         if (x <= 0) {
             return 0
@@ -1088,6 +1089,7 @@ class LinearColorEntity extends IEntity {
         }
     }
 
+    /** @param {Number} x */
     static sRGBtoLinear(x) {
         if (x <= 0) {
             return 0
@@ -1100,7 +1102,7 @@ class LinearColorEntity extends IEntity {
         }
     }
 
-    constructor(options = {}) {
+    constructor(options) {
         super(options);
         /** @type {RealUnitEntity} */ this.R;
         /** @type {RealUnitEntity} */ this.G;
@@ -1148,8 +1150,13 @@ class LinearColorEntity extends IEntity {
         this.V.value = max;
     }
 
-    /** @param {Number[]} param0 */
-    setFromRGBA([r, g, b, a = 1]) {
+    /**
+     * @param {Number} r
+     * @param {Number} g
+     * @param {Number} b
+     * @param {Number} a
+     */
+    setFromRGBA(r, g, b, a = 1) {
         this.R.value = r;
         this.G.value = g;
         this.B.value = b;
@@ -1218,22 +1225,14 @@ class LinearColorEntity extends IEntity {
     }
 
     toHSVA() {
-        const r = this.R.value;
-        const g = this.G.value;
-        const b = this.B.value;
-        const a = this.A.value;
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        const d = max - min;
-        const s = (max == 0 ? 0 : d / max);
-        const v = max;
-        return [this.H.value, s, v, a]
+        return [this.H.value, this.S.value, this.V.value, this.A.value]
     }
 
     toNumber() {
         return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
     }
 
+    /** @param {Number} number */
     setFromRGBANumber(number) {
         this.A.value = (number & 0xFF) / 0xff;
         this.B.value = ((number >> 8) & 0xFF) / 0xff;
@@ -1242,6 +1241,7 @@ class LinearColorEntity extends IEntity {
         this.#updateHSV();
     }
 
+    /** @param {Number} number */
     setFromSRGBANumber(number) {
         this.A.value = (number & 0xFF) / 0xff;
         this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xFF) / 0xff);
@@ -3979,7 +3979,6 @@ class IInputPinTemplate extends PinTemplate {
         super.firstUpdated(changedProperties);
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
         if (this.#inputContentElements.length) {
-            this.setInputs(this.getInputs(), false);
             this.#inputContentElements.forEach(element => {
                 element.addEventListener("focusout", this.#onFocusOutHandler);
             });
@@ -4021,6 +4020,7 @@ class IInputPinTemplate extends PinTemplate {
         if (updateDefaultValue) {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
         }
+        this.element.addNextUpdatedCallbacks(() => this.element.nodeElement.dispatchReflowEvent());
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -4472,25 +4472,25 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         this.#rSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
-                this.color.setFromRGBA([x, this.color.G.value, this.color.B.value, this.color.A.value]);
+                this.color.setFromRGBA(x, this.color.G.value, this.color.B.value, this.color.A.value);
                 this.element.requestUpdate();
             };
         this.#gSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
-                this.color.setFromRGBA([this.color.R.value, x, this.color.B.value, this.color.A.value]);
+                this.color.setFromRGBA(this.color.R.value, x, this.color.B.value, this.color.A.value);
                 this.element.requestUpdate();
             };
         this.#bSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
-                this.color.setFromRGBA([this.color.R.value, this.color.G.value, x, this.color.A.value]);
+                this.color.setFromRGBA(this.color.R.value, this.color.G.value, x, this.color.A.value);
                 this.element.requestUpdate();
             };
         this.#aSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
-                this.color.setFromRGBA([this.color.R.value, this.color.G.value, this.color.B.value, x]);
+                this.color.setFromRGBA(this.color.R.value, this.color.G.value, this.color.B.value, x);
                 this.element.requestUpdate();
             };
         this.#hSlider.template.locationChangeCallback =
@@ -4738,8 +4738,8 @@ class WindowElement extends IDraggableElement {
  * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
  */
 
-/** @extends IInputPinTemplate<LinearColorEntity> */
-class LinearColorPinTemplate extends IInputPinTemplate {
+/** @extends PinTemplate<LinearColorEntity> */
+class LinearColorPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement} */
     #input
@@ -4779,14 +4779,6 @@ class LinearColorPinTemplate extends IInputPinTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.#input = this.element.querySelector(".ueb-pin-input");
-    }
-
-    getInputs() {
-        return [this.#input.dataset.linearColor]
-    }
-
-    /** @param {String[]} value */
-    setInputs(value = []) {
     }
 
     renderInput() {
@@ -6035,6 +6027,7 @@ class Blueprint extends IElement {
     /** @type {HTMLElement} */
     headerElement
     focused = false
+    waitingExpandUpdate = false
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect();
         let gridRect = this.nodesContainerElement.getBoundingClientRect();
@@ -6193,11 +6186,11 @@ class Blueprint extends IElement {
                 let relativeScale = this.getScale() / initialScale;
                 let newCenter = [
                     relativeScale * center[0],
-                    relativeScale * center[1]
+                    relativeScale * center[1],
                 ];
                 this.scrollDelta([
                     (newCenter[0] - center[0]) * initialScale,
-                    (newCenter[1] - center[1]) * initialScale
+                    (newCenter[1] - center[1]) * initialScale,
                 ]);
             });
         }

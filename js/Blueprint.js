@@ -96,6 +96,7 @@ export default class Blueprint extends IElement {
     /** @type {HTMLElement} */
     headerElement
     focused = false
+    waitingExpandUpdate = false
     nodeBoundariesSupplier = node => {
         let rect = node.getBoundingClientRect()
         let gridRect = this.nodesContainerElement.getBoundingClientRect()
@@ -254,11 +255,11 @@ export default class Blueprint extends IElement {
                 let relativeScale = this.getScale() / initialScale
                 let newCenter = [
                     relativeScale * center[0],
-                    relativeScale * center[1]
+                    relativeScale * center[1],
                 ]
                 this.scrollDelta([
                     (newCenter[0] - center[0]) * initialScale,
-                    (newCenter[1] - center[1]) * initialScale
+                    (newCenter[1] - center[1]) * initialScale,
                 ])
             })
         }

@@ -159,25 +159,25 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
         this.#rSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
-                this.color.setFromRGBA([x, this.color.G.value, this.color.B.value, this.color.A.value])
+                this.color.setFromRGBA(x, this.color.G.value, this.color.B.value, this.color.A.value)
                 this.element.requestUpdate()
             }
         this.#gSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
-                this.color.setFromRGBA([this.color.R.value, x, this.color.B.value, this.color.A.value])
+                this.color.setFromRGBA(this.color.R.value, x, this.color.B.value, this.color.A.value)
                 this.element.requestUpdate()
             }
         this.#bSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
-                this.color.setFromRGBA([this.color.R.value, this.color.G.value, x, this.color.A.value])
+                this.color.setFromRGBA(this.color.R.value, this.color.G.value, x, this.color.A.value)
                 this.element.requestUpdate()
             }
         this.#aSlider.template.locationChangeCallback =
             /** @param {Number} x in the range [0, 1] */
             (x, y) => {
-                this.color.setFromRGBA([this.color.R.value, this.color.G.value, this.color.B.value, x])
+                this.color.setFromRGBA(this.color.R.value, this.color.G.value, this.color.B.value, x)
                 this.element.requestUpdate()
             }
         this.#hSlider.template.locationChangeCallback =

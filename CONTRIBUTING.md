@@ -29,5 +29,17 @@ Classes used to map input events (generated from a mouse or a keyboard for examp
 ### Selection
 It contains just a few classes related exclusively to the operation of selecting nodes. It is an (arguably useless) attempt to optimize the selection in case of graphs with a very large numbers of nodes (it is not really usefull because in the case of many many nodes, the bootleneck becomes the DOM rendering, not deciding in JavaScript which nodes are selected and which are not even though this happens every frame). Selection has two models: one very simple that checks every frame all the nodes in the graph to see whether or not they are selected by the selector, and the fast model that attemps to optimize the number of nodes that are looked up at, much more complicated and not super usefull as stated before.
 
-## Naming convention
-In general all the names that might collide with other names, like css classes, custom elements names, ...; they all start with `ueb`.
+# Code Style
+
+## Formatting
+Please refer to the following rules, in no particular order:
+* The formatter of reference is the one from Visual Studio Code.
+* Semicolons at the end of the lines must be removed (already set for VS Code).
+* Order of elements in a class is: first variables then constructor, then methods; first static then instance members; first private then public.
+* At the end of the file there must be exactly one empty line (already set for VS Code).
+
+## File organization
+There must be exactly one class in each file and the name of the file is the same as the class it contains.
+
+## Naming conventions
+Classes follow the `PascalCase` naming convention. Variables follow the `camelCase` convention. Static or global constants follow the `ALL_CAPS` naming convention, DOM names (css class, id, html elements) they do follow the `kebab-case` and, because they might collide with other names, they all start with `ueb-`. The files do have the exact same name as the class they contain, otherwise they follow the `camelCase` naming convention.

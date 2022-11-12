@@ -15,6 +15,7 @@ export default class LinearColorEntity extends IEntity {
         V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
     }
 
+    /** @param {Number} x */
     static linearToSRGB(x) {
         if (x <= 0) {
             return 0
@@ -27,6 +28,7 @@ export default class LinearColorEntity extends IEntity {
         }
     }
 
+    /** @param {Number} x */
     static sRGBtoLinear(x) {
         if (x <= 0) {
             return 0
@@ -39,7 +41,7 @@ export default class LinearColorEntity extends IEntity {
         }
     }
 
-    constructor(options = {}) {
+    constructor(options) {
         super(options)
         /** @type {RealUnitEntity} */ this.R
         /** @type {RealUnitEntity} */ this.G
@@ -87,8 +89,13 @@ export default class LinearColorEntity extends IEntity {
         this.V.value = max
     }
 
-    /** @param {Number[]} param0 */
-    setFromRGBA([r, g, b, a = 1]) {
+    /**
+     * @param {Number} r
+     * @param {Number} g
+     * @param {Number} b
+     * @param {Number} a
+     */
+    setFromRGBA(r, g, b, a = 1) {
         this.R.value = r
         this.G.value = g
         this.B.value = b
@@ -157,22 +164,14 @@ export default class LinearColorEntity extends IEntity {
     }
 
     toHSVA() {
-        const r = this.R.value
-        const g = this.G.value
-        const b = this.B.value
-        const a = this.A.value
-        const max = Math.max(r, g, b)
-        const min = Math.min(r, g, b)
-        const d = max - min
-        const s = (max == 0 ? 0 : d / max)
-        const v = max
-        return [this.H.value, s, v, a]
+        return [this.H.value, this.S.value, this.V.value, this.A.value]
     }
 
     toNumber() {
         return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
     }
 
+    /** @param {Number} number */
     setFromRGBANumber(number) {
         this.A.value = (number & 0xFF) / 0xff
         this.B.value = ((number >> 8) & 0xFF) / 0xff
@@ -181,6 +180,7 @@ export default class LinearColorEntity extends IEntity {
         this.#updateHSV()
     }
 
+    /** @param {Number} number */
     setFromSRGBANumber(number) {
         this.A.value = (number & 0xFF) / 0xff
         this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xFF) / 0xff)

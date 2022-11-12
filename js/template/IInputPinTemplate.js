@@ -44,7 +44,6 @@ export default class IInputPinTemplate extends PinTemplate {
         super.firstUpdated(changedProperties)
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
         if (this.#inputContentElements.length) {
-            this.setInputs(this.getInputs(), false)
             this.#inputContentElements.forEach(element => {
                 element.addEventListener("focusout", this.#onFocusOutHandler)
             })
@@ -86,6 +85,7 @@ export default class IInputPinTemplate extends PinTemplate {
         if (updateDefaultValue) {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values)
         }
+        this.element.addNextUpdatedCallbacks(() => this.element.nodeElement.dispatchReflowEvent())
     }
 
     setDefaultValue(values = [], rawValues = values) {
