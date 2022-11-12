@@ -1571,6 +1571,10 @@ class ObjectEntity extends IEntity {
         /** @type {PinEntity[]} */ this.CustomProperties;
     }
 
+    getClass() {
+        return this.Class.path
+    }
+
     getObjectName(dropCounter = false) {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
@@ -4959,6 +4963,11 @@ class PinElement extends IElement {
     }
 
     static properties = {
+        pinType: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
         advancedView: {
             type: String,
             attribute: "data-advanced-view",
@@ -4986,11 +4995,6 @@ class PinElement extends IElement {
             type: Boolean,
             converter: Utility.booleanConverter,
             attribute: "data-linked",
-            reflect: true,
-        },
-        pinType: {
-            type: String,
-            attribute: "data-type",
             reflect: true,
         },
         pinDirection: {
@@ -5021,13 +5025,10 @@ class PinElement extends IElement {
 
     /** @param {PinEntity<T>} entity */
     constructor(entity) {
-        super(
-            entity,
-            new (PinElement.getTypeTemplate(entity))()
-        );
-        this.advancedView = entity.bAdvancedView;
-        this.defaultValue = entity.getDefaultValue();
+        super(entity, new (PinElement.getTypeTemplate(entity))());
         this.pinType = this.entity.getType();
+        this.advancedView = this.entity.bAdvancedView;
+        this.defaultValue = this.entity.getDefaultValue();
         this.color = PinElement.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString());
         this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
@@ -5145,6 +5146,34 @@ class PinElement extends IElement {
 /** @typedef {import("../element/NodeElement").default} NodeElement */
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
+class KnotNodeTemplate extends ISelectableDraggableTemplate {
+
+    render() {
+        return $`
+            <div class="ueb-node-border"></div>
+        `
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        const content = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border"));
+        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent());
+        this.element.getPinElements().forEach(p => content.appendChild(p));
+    }
+
+    /**
+     * @param {NodeElement} node
+     * @returns {NodeListOf<PinElement>}
+     */
+    getPinElements(node) {
+        return node.querySelectorAll("ueb-pin")
+    }
+}
+
+/** @typedef {import("../element/NodeElement").default} NodeElement */
+
+/** @extends {ISelectableDraggableTemplate<NodeElement>} */
 class NodeTemplate extends ISelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler = _ => {
@@ -5162,7 +5191,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path
                                         d="M9.72002 6.0699C9.88111 4.96527 10.299 3.9138 10.94 2.99991C10.94 2.99991 10.94 3.05991 10.94 3.08991C10.94 3.36573 11.0496 3.63026 11.2446 3.8253C11.4397 4.02033 11.7042 4.12991 11.98 4.12991C12.2558 4.12991 12.5204 4.02033 12.7154 3.8253C12.9105 3.63026 13.02 3.36573 13.02 3.08991C13.0204 2.90249 12.9681 2.71873 12.8691 2.5596C12.7701 2.40047 12.6283 2.27237 12.46 2.18991H12.37C11.8725 2.00961 11.3275 2.00961 10.83 2.18991C9.21002 2.63991 8.58002 4.99991 8.58002 4.99991L8.40002 5.1199H5.40002L5.15002 6.1199H8.27002L7.27002 11.4199C7.11348 12.0161 6.79062 12.5555 6.33911 12.9751C5.8876 13.3948 5.32607 13.6773 4.72002 13.7899C4.78153 13.655 4.81227 13.5081 4.81002 13.3599C4.81002 13.0735 4.69624 12.7988 4.4937 12.5962C4.29116 12.3937 4.01646 12.2799 3.73002 12.2799C3.44359 12.2799 3.16889 12.3937 2.96635 12.5962C2.76381 12.7988 2.65002 13.0735 2.65002 13.3599C2.66114 13.605 2.75692 13.8386 2.92104 14.021C3.08517 14.2033 3.30746 14.3231 3.55002 14.3599C7.91002 15.1999 8.55002 11.4499 8.55002 11.4499L9.55002 7.05991H12.55L12.8 6.05991H9.64002L9.72002 6.0699Z"
-                                        fill="currentColor" />
+                                        fill="currentColor"
+                                    />
                                 </svg>
                             </span>
                             <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
@@ -5175,17 +5205,17 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                         <div class="ueb-node-outputs"></div>
                     </div>
                     ${this.element.enabledState?.toString() == "DevelopmentOnly" ? $`
-                    <div class="ueb-node-developmentonly">
-                        <span class="ueb-node-developmentonly-text">Development Only</span>
-                    </div>
+                        <div class="ueb-node-developmentonly">
+                            <span class="ueb-node-developmentonly-text">Development Only</span>
+                        </div>
                     ` : w}
                     ${this.element.advancedPinDisplay ? $`
-                    <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            class="ueb-node-expansion-icon" viewBox="4 4 24 24">
-                            <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
-                        </svg>
-                    </div>
+                        <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="ueb-node-expansion-icon" viewBox="4 4 24 24">
+                                <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
+                            </svg>
+                        </div>
                     ` : w}
                 </div>
             </div>
@@ -5222,8 +5252,17 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 class NodeElement extends ISelectableDraggableElement {
 
+    static #typeTemplateMap = {
+        "/Script/BlueprintGraph.K2Node_Knot": KnotNodeTemplate,
+    }
+
     static properties = {
         ...ISelectableDraggableElement.properties,
+        nodeClass: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
         name: {
             type: String,
             attribute: "data-name",
@@ -5249,7 +5288,7 @@ class NodeElement extends ISelectableDraggableElement {
             converter: Utility.booleanConverter,
             attribute: "data-pure-function",
             reflect: true,
-        }
+        },
     }
     static dragEventName = Configuration.nodeDragEventName
     static dragGeneralEventName = Configuration.nodeDragGeneralEventName
@@ -5275,18 +5314,28 @@ class NodeElement extends ISelectableDraggableElement {
 
     /** @param {ObjectEntity} entity */
     constructor(entity) {
-        super(entity, new NodeTemplate());
+        super(entity, new (NodeElement.getTypeTemplate(entity))());
         this.#pins = this.getPinEntities().filter(v => !v.isHidden()).map(v => new PinElement(v));
         this.#pins.forEach(pin => pin.nodeElement = this);
-        this.name = entity.getObjectName();
-        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
-        this.enabledState = entity.EnabledState;
-        this.nodeDisplayName = entity.getDisplayName();
-        this.pureFunction = entity.bIsPureFunc;
+        this.nodeClass = this.entity.getClass();
+        this.name = this.entity.getObjectName();
+        this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString();
+        this.enabledState = this.entity.EnabledState;
+        this.nodeDisplayName = this.entity.getDisplayName();
+        this.pureFunction = this.entity.bIsPureFunc;
         this.dragLinkObjects = [];
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value);
         this.entity.subscribe("Name", value => this.name = value);
+    }
+
+    /**
+     * @param {ObjectEntity} nodeEntity
+     * @return {new () => NodeTemplate}
+     */
+    static getTypeTemplate(nodeEntity) {
+        let result = NodeElement.#typeTemplateMap[nodeEntity.getClass()];
+        return result ?? NodeTemplate
     }
 
     /** @param {String} str */
@@ -5297,14 +5346,13 @@ class NodeElement extends ISelectableDraggableElement {
         return new NodeElement(entity)
     }
 
-    connectedCallback() {
-        this.getAttribute("type")?.trim();
-        super.connectedCallback();
-    }
-
     disconnectedCallback() {
         super.disconnectedCallback();
         this.dispatchDeleteEvent();
+    }
+
+    getType() {
+        return this.entity.getClass()
     }
 
     getNodeName() {
@@ -5346,11 +5394,11 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     setLocation(value = [0, 0]) {
-        let nodeType = this.entity.NodePosX.constructor;
+        let nodeConstructor = this.entity.NodePosX.constructor;
         // @ts-expect-error
-        this.entity.NodePosX = new nodeType(value[0]);
+        this.entity.NodePosX = new nodeConstructor(value[0]);
         // @ts-expect-error
-        this.entity.NodePosY = new nodeType(value[1]);
+        this.entity.NodePosY = new nodeConstructor(value[1]);
         super.setLocation(value);
     }
 

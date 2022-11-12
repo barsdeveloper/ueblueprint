@@ -50,6 +50,10 @@ export default class ObjectEntity extends IEntity {
         /** @type {PinEntity[]} */ this.CustomProperties
     }
 
+    getClass() {
+        return this.Class.path
+    }
+
     getObjectName(dropCounter = false) {
         if (dropCounter) {
             return this.getNameAndCounter()[0]

@@ -46,6 +46,11 @@ export default class PinElement extends IElement {
     }
 
     static properties = {
+        pinType: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
         advancedView: {
             type: String,
             attribute: "data-advanced-view",
@@ -73,11 +78,6 @@ export default class PinElement extends IElement {
             type: Boolean,
             converter: Utility.booleanConverter,
             attribute: "data-linked",
-            reflect: true,
-        },
-        pinType: {
-            type: String,
-            attribute: "data-type",
             reflect: true,
         },
         pinDirection: {
@@ -108,13 +108,10 @@ export default class PinElement extends IElement {
 
     /** @param {PinEntity<T>} entity */
     constructor(entity) {
-        super(
-            entity,
-            new (PinElement.getTypeTemplate(entity))()
-        )
-        this.advancedView = entity.bAdvancedView
-        this.defaultValue = entity.getDefaultValue()
+        super(entity, new (PinElement.getTypeTemplate(entity))())
         this.pinType = this.entity.getType()
+        this.advancedView = this.entity.bAdvancedView
+        this.defaultValue = this.entity.getDefaultValue()
         this.color = PinElement.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"

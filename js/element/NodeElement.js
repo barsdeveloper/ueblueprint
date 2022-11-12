@@ -1,6 +1,7 @@
 import Configuration from "../Configuration"
 import IdentifierEntity from "../entity/IdentifierEntity"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"
+import KnotNodeTemplate from "../template/KnotNodeTemplate"
 import NodeTemplate from "../template/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"
 import PinElement from "./PinElement"
@@ -14,8 +15,17 @@ import Utility from "../Utility"
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 export default class NodeElement extends ISelectableDraggableElement {
 
+    static #typeTemplateMap = {
+        "/Script/BlueprintGraph.K2Node_Knot": KnotNodeTemplate,
+    }
+
     static properties = {
         ...ISelectableDraggableElement.properties,
+        nodeClass: {
+            type: String,
+            attribute: "data-type",
+            reflect: true,
+        },
         name: {
             type: String,
             attribute: "data-name",
@@ -41,7 +51,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             converter: Utility.booleanConverter,
             attribute: "data-pure-function",
             reflect: true,
-        }
+        },
     }
     static dragEventName = Configuration.nodeDragEventName
     static dragGeneralEventName = Configuration.nodeDragGeneralEventName
@@ -67,18 +77,28 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     /** @param {ObjectEntity} entity */
     constructor(entity) {
-        super(entity, new NodeTemplate())
+        super(entity, new (NodeElement.getTypeTemplate(entity))())
         this.#pins = this.getPinEntities().filter(v => !v.isHidden()).map(v => new PinElement(v))
         this.#pins.forEach(pin => pin.nodeElement = this)
-        this.name = entity.getObjectName()
-        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
-        this.enabledState = entity.EnabledState
-        this.nodeDisplayName = entity.getDisplayName()
-        this.pureFunction = entity.bIsPureFunc
+        this.nodeClass = this.entity.getClass()
+        this.name = this.entity.getObjectName()
+        this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString()
+        this.enabledState = this.entity.EnabledState
+        this.nodeDisplayName = this.entity.getDisplayName()
+        this.pureFunction = this.entity.bIsPureFunc
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value)
         this.entity.subscribe("Name", value => this.name = value)
+    }
+
+    /**
+     * @param {ObjectEntity} nodeEntity
+     * @return {new () => NodeTemplate}
+     */
+    static getTypeTemplate(nodeEntity) {
+        let result = NodeElement.#typeTemplateMap[nodeEntity.getClass()]
+        return result ?? NodeTemplate
     }
 
     /** @param {String} str */
@@ -89,14 +109,13 @@ export default class NodeElement extends ISelectableDraggableElement {
         return new NodeElement(entity)
     }
 
-    connectedCallback() {
-        const type = this.getAttribute("type")?.trim()
-        super.connectedCallback()
-    }
-
     disconnectedCallback() {
         super.disconnectedCallback()
         this.dispatchDeleteEvent()
+    }
+
+    getType() {
+        return this.entity.getClass()
     }
 
     getNodeName() {
@@ -138,11 +157,11 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     setLocation(value = [0, 0]) {
-        let nodeType = this.entity.NodePosX.constructor
+        let nodeConstructor = this.entity.NodePosX.constructor
         // @ts-expect-error
-        this.entity.NodePosX = new nodeType(value[0])
+        this.entity.NodePosX = new nodeConstructor(value[0])
         // @ts-expect-error
-        this.entity.NodePosY = new nodeType(value[1])
+        this.entity.NodePosY = new nodeConstructor(value[1])
         super.setLocation(value)
     }
 
