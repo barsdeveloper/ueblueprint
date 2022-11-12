@@ -53,14 +53,11 @@ export default class LinearColorPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            return html`
-                <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
-                    @click="${this.#launchColorPickerWindow}"
-                    style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
-                </span>
-            `
-        }
-        return super.renderInput()
+        return html`
+            <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
+                @click="${this.#launchColorPickerWindow}"
+                style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
+            </span>
+        `
     }
 }

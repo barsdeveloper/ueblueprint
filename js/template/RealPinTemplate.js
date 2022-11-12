@@ -14,15 +14,12 @@ export default class RealPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            return html`
-                <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
-                    </ueb-input>
-                </div>
-            `
-        }
-        return nothing
+        return html`
+            <div class="ueb-pin-input">
+                <ueb-input .singleLine="${true}"
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
+                </ueb-input>
+            </div>
+        `
     }
 }

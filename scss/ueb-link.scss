@@ -1,6 +1,7 @@
 @use "style.scss";
 
 ueb-link {
+    --ueb-link-color: rgb(var(--ueb-link-color-rgb));
     --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
     /* when from-y > to-y */
     --ueb-y-reflected: clamp(0, var(--ueb-from-y) - var(--ueb-to-y) - 1, 1);

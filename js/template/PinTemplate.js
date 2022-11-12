@@ -1,4 +1,5 @@
 import { html, nothing } from "lit"
+import Configuration from "../Configuration"
 import ITemplate from "./ITemplate"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import Utility from "../Utility"
@@ -47,7 +48,7 @@ export default class PinTemplate extends ITemplate {
         const content = html`
             <div class="ueb-pin-content">
                 <span class="ueb-pin-name ">${this.element.getPinDisplayName()}</span>
-                ${this.renderInput()}
+                ${this.element.isInput() ? this.renderInput() : nothing}
             </div>
         `
         return html`
@@ -70,6 +71,22 @@ export default class PinTemplate extends ITemplate {
     /** @returns {TemplateResult | symbol} */
     renderInput() {
         return nothing
+    }
+
+    /** @param {Map} changedProperties */
+    updated(changedProperties) {
+        if (this.element.isInput() && changedProperties.has("isLinked")) {
+            // When connected, an input may drop its input fields which means the node has to reflow
+            const node = this.element.nodeElement
+            node.addNextUpdatedCallbacks(() => node.dispatchReflowEvent())
+            node.requestUpdate()
+        }
+    }
+
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor[this.element.pinType])
     }
 
     getLinkLocation() {

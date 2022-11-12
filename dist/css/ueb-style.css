@@ -215,6 +215,7 @@ ueb-selector > * {
 }
 
 ueb-link {
+  --ueb-link-color: rgb(var(--ueb-link-color-rgb));
   --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
   /* when from-y > to-y */
   --ueb-y-reflected: clamp(0, var(--ueb-from-y) - var(--ueb-to-y) - 1, 1);
@@ -444,6 +445,20 @@ ueb-node[data-advanced-display=Shown] .ueb-node-expansion-icon {
   transform: scaleY(-1);
 }
 
+ueb-blueprint {
+  --ueb-pin-color-dim: #afafaf;
+}
+
+ueb-pin {
+  --ueb-pin-background: linear-gradient(90deg,
+          rgba(var(--ueb-pin-color-rgb), 0.15),
+          rgba(var(--ueb-pin-color-rgb), 0.8) 15%,
+          rgba(var(--ueb-pin-color-rgb), 0.5) 60%,
+          rgba(var(--ueb-pin-color-rgb), 0.35) 95%,
+          transparent);
+  --ueb-pin-color: rgb(var(--ueb-pin-color-rgb));
+}
+
 ueb-pin {
   display: block;
   min-height: 30px;
@@ -534,6 +549,10 @@ ueb-pin[data-type=exec] .ueb-pin-name {
   outline: none;
 }
 
+ueb-pin[data-linked=true] .ueb-pin-input {
+  display: none;
+}
+
 ueb-pin[data-type=bool] .ueb-pin-input {
   appearance: none;
   padding: 0;
@@ -588,84 +607,6 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
   background: #575757;
   border-radius: 10px;
   margin: 4px;
-}
-
-ueb-blueprint {
-  --ueb-pin-color-dim: #afafaf;
-}
-
-ueb-link {
-  --ueb-link-color: rgb(var(--ueb-link-color-rgb));
-}
-
-ueb-pin {
-  --ueb-pin-background: linear-gradient(90deg,
-          rgba(var(--ueb-pin-color-rgb), 0.15),
-          rgba(var(--ueb-pin-color-rgb), 0.8) 15%,
-          rgba(var(--ueb-pin-color-rgb), 0.5) 60%,
-          rgba(var(--ueb-pin-color-rgb), 0.35) 95%,
-          transparent);
-  --ueb-pin-color: rgb(var(--ueb-pin-color-rgb));
-}
-
-ueb-pin[data-type=bool] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-bool);
-}
-
-ueb-pin[data-type=class] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-class);
-}
-
-ueb-pin[data-type=exec] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-exec);
-}
-
-ueb-pin[data-type=int] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-int);
-}
-
-ueb-pin[data-type=name] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-name);
-}
-
-ueb-pin[data-type=object] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-object);
-}
-
-ueb-pin[data-type=real] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-real);
-}
-
-ueb-pin[data-type=rotator] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-rotator);
-}
-
-ueb-pin[data-type=string] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-string);
-}
-
-ueb-pin[data-type="/Script/Engine.Actor"] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-actor);
-}
-
-ueb-pin[data-type="/Script/Engine.Pawn"] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-actor);
-}
-
-ueb-pin[data-type="/Script/CoreUObject.LinearColor"] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-linear-color);
-}
-
-ueb-pin[data-type="/Script/CoreUObject.Rotator"] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-rotator);
-}
-
-ueb-pin[data-type="/Script/CoreUObject.Transform"] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-transform);
-}
-
-ueb-pin[data-type="/Script/CoreUObject.Vector"] {
-  --ueb-pin-color-rgb: var(--ueb-pin-color-vector);
 }
 
 .ueb-button {

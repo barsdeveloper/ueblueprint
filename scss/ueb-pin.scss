@@ -1,3 +1,17 @@
+ueb-blueprint {
+    --ueb-pin-color-dim: #afafaf;
+}
+
+ueb-pin {
+    --ueb-pin-background: linear-gradient(90deg,
+            rgba(var(--ueb-pin-color-rgb), 0.15),
+            rgba(var(--ueb-pin-color-rgb), 0.8) 15%,
+            rgba(var(--ueb-pin-color-rgb), 0.5) 60%,
+            rgba(var(--ueb-pin-color-rgb), 0.35) 95%,
+            transparent);
+    --ueb-pin-color: rgb(var(--ueb-pin-color-rgb));
+}
+
 ueb-pin {
     display: block;
     min-height: 30px;
@@ -91,6 +105,10 @@ ueb-pin[data-type="exec"] .ueb-pin-name {
         background: #ffffff46;
         outline: none;
     }
+}
+
+ueb-pin[data-linked="true"] .ueb-pin-input {
+    display: none;
 }
 
 ueb-pin[data-type="bool"] .ueb-pin-input {

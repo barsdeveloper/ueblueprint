@@ -3846,7 +3846,7 @@ class PinTemplate extends ITemplate {
         const content = $`
             <div class="ueb-pin-content">
                 <span class="ueb-pin-name ">${this.element.getPinDisplayName()}</span>
-                ${this.renderInput()}
+                ${this.element.isInput() ? this.renderInput() : w}
             </div>
         `;
         return $`
@@ -3869,6 +3869,22 @@ class PinTemplate extends ITemplate {
     /** @returns {TemplateResult | symbol} */
     renderInput() {
         return w
+    }
+
+    /** @param {Map} changedProperties */
+    updated(changedProperties) {
+        if (this.element.isInput() && changedProperties.has("isLinked")) {
+            // When connected, an input may drop its input fields which means the node has to reflow
+            const node = this.element.nodeElement;
+            node.addNextUpdatedCallbacks(() => node.dispatchReflowEvent());
+            node.requestUpdate();
+        }
+    }
+
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor[this.element.pinType]);
     }
 
     getLinkLocation() {
@@ -3915,12 +3931,9 @@ class BoolPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            return $`
-                <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
-            `
-        }
-        return super.renderInput()
+        return $`
+            <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
+        `
     }
 }
 
@@ -4031,20 +4044,17 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            // @ts-expect-error
-            const singleLine = this.constructor.singleLineInput;
-            // @ts-expect-error
-            const selectOnFocus = this.constructor.selectOnFocus;
-            return $`
-                <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
-                    </ueb-input>
-                </div>
-            `
-        }
-        return w
+        // @ts-expect-error
+        const singleLine = this.constructor.singleLineInput;
+        // @ts-expect-error
+        const selectOnFocus = this.constructor.selectOnFocus;
+        return $`
+            <div class="ueb-pin-input">
+                <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
+                </ueb-input>
+            </div>
+        `
     }
 }
 
@@ -4093,15 +4103,12 @@ class IntPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            return $`
-                <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}" .innerText="${this.element.entity.DefaultValue.toString()}">
-                    </ueb-input>
-                </div>
-            `
-        }
-        return w
+        return $`
+            <div class="ueb-pin-input">
+                <ueb-input .singleLine="${true}" .innerText="${this.element.entity.DefaultValue.toString()}">
+                </ueb-input>
+            </div>
+        `
     }
 }
 
@@ -4782,15 +4789,12 @@ class LinearColorPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            return $`
-                <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
-                    @click="${this.#launchColorPickerWindow}"
-                    style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
-                </span>
-            `
-        }
-        return super.renderInput()
+        return $`
+            <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
+                @click="${this.#launchColorPickerWindow}"
+                style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
+            </span>
+        `
     }
 }
 
@@ -4812,16 +4816,13 @@ class RealPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            return $`
-                <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
-                    </ueb-input>
-                </div>
-            `
-        }
-        return w
+        return $`
+            <div class="ueb-pin-input">
+                <ueb-input .singleLine="${true}"
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
+                </ueb-input>
+            </div>
+        `
     }
 }
 
@@ -4852,28 +4853,25 @@ class RotatorPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
-            return $`
-                <div class="ueb-pin-input-wrapper">
-                    <span class="ueb-pin-input-label">X</span>
-                    <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().R.toString())}"></span>
-                    </div>
-                    <span class="ueb-pin-input-label">Y</span>
-                    <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().P.toString())}"></span>
-                    </div>
-                    <span class="ueb-pin-input-label">Z</span>
-                    <div class="ueb-pin-input">
-                        <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().Y.toString())}"></span>
-                    </div>
+        return $`
+            <div class="ueb-pin-input-wrapper">
+                <span class="ueb-pin-input-label">X</span>
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().R.toString())}"></span>
                 </div>
-            `
-        }
-        return $``
+                <span class="ueb-pin-input-label">Y</span>
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().P.toString())}"></span>
+                </div>
+                <span class="ueb-pin-input-label">Z</span>
+                <div class="ueb-pin-input">
+                    <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().Y.toString())}"></span>
+                </div>
+            </div>
+        `
     }
 }
 
@@ -4904,31 +4902,28 @@ class VectorPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput()) {
-            return $`
-                <div class="ueb-pin-input-wrapper">
-                    <span class="ueb-pin-input-label">X</span>
-                    <div class="ueb-pin-input">
-                        <ueb-input .singleLine="${true}"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().X))}">
-                        </ueb-input>
-                    </div>
-                    <span class="ueb-pin-input-label">Y</span>
-                    <div class="ueb-pin-input">
-                        <ueb-input .singleLine="${true}"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Y))}">
-                        </ueb-input>
-                    </div>
-                    <span class="ueb-pin-input-label">Z</span>
-                    <div class="ueb-pin-input">
-                        <ueb-input .singleLine="${true}"
-                            .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Z))}">
-                        </ueb-input>
-                    </div>
+        return $`
+            <div class="ueb-pin-input-wrapper">
+                <span class="ueb-pin-input-label">X</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().X))}">
+                    </ueb-input>
                 </div>
-            `
-        }
-        return $``
+                <span class="ueb-pin-input-label">Y</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Y))}">
+                    </ueb-input>
+                </div>
+                <span class="ueb-pin-input-label">Z</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}"
+                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Z))}">
+                    </ueb-input>
+                </div>
+            </div>
+        `
     }
 }
 
@@ -5832,14 +5827,6 @@ class BlueprintTemplate extends ITemplate {
         "--ueb-grid-size": `${Configuration.gridSize}px`,
         "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
-        ...Object.entries(Configuration.pinColor)
-            .map(([k, v]) => ({
-                [`--ueb-pin-color-${Utility.getIdFromReference(k)}`]: v.toString()
-            }))
-            .reduce((acc, cur) => ({
-                ...acc,
-                ...cur,
-            }), {}),
     }
 
     /** @param {Blueprint} element */

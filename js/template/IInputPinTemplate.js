@@ -1,4 +1,4 @@
-import { html, nothing } from "lit"
+import { html } from "lit"
 import MouseIgnore from "../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 import Utility from "../Utility"
@@ -96,19 +96,16 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        if (this.element.isInput() && !this.element.isLinked) {
-            // @ts-expect-error
-            const singleLine = this.constructor.singleLineInput
-            // @ts-expect-error
-            const selectOnFocus = this.constructor.selectOnFocus
-            return html`
-                <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
-                    </ueb-input>
-                </div>
-            `
-        }
-        return nothing
+        // @ts-expect-error
+        const singleLine = this.constructor.singleLineInput
+        // @ts-expect-error
+        const selectOnFocus = this.constructor.selectOnFocus
+        return html`
+            <div class="ueb-pin-input">
+                <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
+                </ueb-input>
+            </div>
+        `
     }
 }

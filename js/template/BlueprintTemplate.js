@@ -34,14 +34,6 @@ export default class BlueprintTemplate extends ITemplate {
         "--ueb-grid-size": `${Configuration.gridSize}px`,
         "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
-        ...Object.entries(Configuration.pinColor)
-            .map(([k, v]) => ({
-                [`--ueb-pin-color-${Utility.getIdFromReference(k)}`]: v.toString()
-            }))
-            .reduce((acc, cur) => ({
-                ...acc,
-                ...cur,
-            }), {}),
     }
 
     /** @param {Blueprint} element */
