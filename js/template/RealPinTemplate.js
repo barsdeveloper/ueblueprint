@@ -1,4 +1,4 @@
-import { html, nothing } from "lit"
+import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericPinTemplate"
 import Utility from "../Utility"

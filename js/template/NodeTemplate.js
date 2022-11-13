@@ -76,4 +76,14 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     getPinElements(node) {
         return node.querySelectorAll("ueb-pin")
     }
+
+    createPinElements() {
+        return this.element.getPinEntities()
+            .filter(v => !v.isHidden())
+            .map(v => {
+                const pin = new PinElement(v)
+                pin.nodeElement = this.element
+                return pin
+            })
+    }
 }

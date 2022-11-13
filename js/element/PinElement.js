@@ -106,9 +106,12 @@ export default class PinElement extends IElement {
 
     connections = 0
 
-    /** @param {PinEntity<T>} entity */
-    constructor(entity) {
-        super(entity, new (PinElement.getTypeTemplate(entity))())
+    /**
+     * @param {PinEntity<T>} entity
+     * @param {PinTemplate} template
+     */
+    constructor(entity, template = undefined) {
+        super(entity, template ?? new (PinElement.getTypeTemplate(entity))())
         this.pinType = this.entity.getType()
         this.advancedView = this.entity.bAdvancedView
         this.defaultValue = this.entity.getDefaultValue()

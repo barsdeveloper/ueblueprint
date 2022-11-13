@@ -1,9 +1,12 @@
-import { css, html, nothing } from "lit"
+import { html, nothing } from "lit"
 import Configuration from "../Configuration"
 import Utility from "../Utility"
 import IFromToPositionedTemplate from "./IFromToPositionedTemplate"
 
-/** @typedef {import("../element/LinkElement").default} LinkElement */
+/**
+ * @typedef {import("../element/LinkElement").default} LinkElement
+ * @typedef {import("../template/KnotNodeTemplate").default} KnotNodeTemplate
+ */
 
 
 /** @extends {IFromToPositionedTemplate<LinkElement>} */
@@ -61,6 +64,21 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
      */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
+        const sourcePint = this.element.sourcePin
+        if (
+            changedProperties.has("toX")
+            && !this.element.destinationPin
+            && sourcePint?.nodeElement.getType() == "/Script/BlueprintGraph.K2Node_Knot"
+        ) {
+            if (sourcePint.isInput() && this.element.toX > this.element.fromX + 5) {
+                // @ts-expect-error
+                this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePint.nodeElement.template).outputPin
+            }
+            if (sourcePint.isOutput() && this.element.toX < this.element.fromX - 5) {
+                // @ts-expect-error
+                this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePint.nodeElement.template).inputPin
+            }
+        }
         const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1)
         const width = Math.max(dx, Configuration.linkMinWidth)
         // const height = Math.max(Math.abs(link.fromY - link.toY), 1)

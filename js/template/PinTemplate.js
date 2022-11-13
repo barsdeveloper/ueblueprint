@@ -1,13 +1,10 @@
-import { html, nothing } from "lit"
+import { html } from "lit"
 import Configuration from "../Configuration"
 import ITemplate from "./ITemplate"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
 import Utility from "../Utility"
 
-/**
- * @typedef {import("../input/IInput").default} IInput
- * @typedef {import("lit").TemplateResult} TemplateResult
- */
+/** @typedef {import("../input/IInput").default} IInput */
 /**
  * @template T
  * @typedef {import("../element/PinElement").default<T>} PinElement
@@ -19,10 +16,17 @@ import Utility from "../Utility"
  */
 export default class PinTemplate extends ITemplate {
 
+    /** @type {HTMLElement} */
+    #iconElement
+    get iconElement() {
+        return this.#iconElement
+    }
+
     /** @param {PinElement<T>} element */
     constructed(element) {
         super.constructed(element)
         this.element.dataset.id = this.element.GetPinIdValue()
+        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor[this.element.pinType])
     }
 
     connectedCallback() {
@@ -40,14 +44,10 @@ export default class PinTemplate extends ITemplate {
     }
 
     render() {
-        const icon = html`
-            <div class="ueb-pin-icon">
-                ${this.renderIcon()}
-            </div>
-        `
+        const icon = this.renderIcon()
         const content = html`
             <div class="ueb-pin-content">
-                <span class="ueb-pin-name ">${this.element.getPinDisplayName()}</span>
+                ${this.renderName()}
                 ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : html``}
             </div>
         `
@@ -58,17 +58,21 @@ export default class PinTemplate extends ITemplate {
         `
     }
 
-    /** @returns {TemplateResult | symbol} */
     renderIcon() {
         return html`
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="ueb-pin-icon">
                 <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="5" />
                 <path d="M 34 6 L 34 26 L 42 16 Z" fill="currentColor" />
             </svg>
         `
     }
 
-    /** @returns {TemplateResult | symbol} */
+    renderName() {
+        return html`
+            <span class="ueb-pin-name">${this.element.getPinDisplayName()}</span>
+        `
+    }
+
     renderInput() {
         return html``
     }
@@ -86,11 +90,12 @@ export default class PinTemplate extends ITemplate {
 
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
-        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor[this.element.pinType])
+        super.firstUpdated(changedProperties)
+        this.#iconElement = this.element.querySelector(".ueb-pin-icon") ?? this.element
     }
 
     getLinkLocation() {
-        const rect = this.element.querySelector(".ueb-pin-icon").getBoundingClientRect()
+        const rect = this.iconElement.getBoundingClientRect()
         const location = Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
             this.element.blueprint.gridElement

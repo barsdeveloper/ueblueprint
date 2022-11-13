@@ -75,11 +75,13 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     #pins
 
-    /** @param {ObjectEntity} entity */
-    constructor(entity) {
-        super(entity, new (NodeElement.getTypeTemplate(entity))())
-        this.#pins = this.getPinEntities().filter(v => !v.isHidden()).map(v => new PinElement(v))
-        this.#pins.forEach(pin => pin.nodeElement = this)
+    /**
+     * @param {ObjectEntity} entity
+     * @param {NodeTemplate} template
+     */
+    constructor(entity, template = undefined) {
+        super(entity, template ?? new (NodeElement.getTypeTemplate(entity))())
+        this.#pins = this.template.createPinElements()
         this.nodeClass = this.entity.getClass()
         this.name = this.entity.getObjectName()
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString()
