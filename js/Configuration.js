@@ -29,6 +29,7 @@ export default class Configuration {
     static gridSize = 16 // pixel
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = "+"
+    static knotNodeTypeName = "/Script/BlueprintGraph.K2Node_Knot"
     static linkCurveHeight = 15 // pixel
     static linkCurveWidth = 80 // pixel
     static linkMinWidth = 100 // pixel
@@ -65,6 +66,7 @@ export default class Configuration {
         "string": css`213, 0, 176`,
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
+    static distanceThreshold = 5 // in pixel
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",

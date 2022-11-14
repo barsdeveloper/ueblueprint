@@ -47,8 +47,8 @@ export default class KnotNodeTemplate extends ISelectableDraggableTemplate {
         const inputEntity = entities[entities[0].isInput() ? 0 : 1]
         const outputEntity = entities[entities[0].isOutput() ? 0 : 1]
         return [
-            this.#inputPin = new PinElement(inputEntity, new KnotPinTemplate()),
-            this.#outputPin = new PinElement(outputEntity, new KnotPinTemplate()),
+            this.#inputPin = new PinElement(inputEntity, new KnotPinTemplate(), this.element),
+            this.#outputPin = new PinElement(outputEntity, new KnotPinTemplate(), this.element),
         ]
     }
 }

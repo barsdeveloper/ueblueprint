@@ -80,10 +80,6 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
-            .map(v => {
-                const pin = new PinElement(v)
-                pin.nodeElement = this.element
-                return pin
-            })
+            .map(v => new PinElement(v, undefined, this.element))
     }
 }

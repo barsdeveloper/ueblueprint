@@ -109,8 +109,9 @@ export default class PinElement extends IElement {
     /**
      * @param {PinEntity<T>} entity
      * @param {PinTemplate} template
+     * @param {NodeElement} nodeElement
      */
-    constructor(entity, template = undefined) {
+    constructor(entity, template = undefined, nodeElement = undefined) {
         super(entity, template ?? new (PinElement.getTypeTemplate(entity))())
         this.pinType = this.entity.getType()
         this.advancedView = this.entity.bAdvancedView
@@ -118,6 +119,7 @@ export default class PinElement extends IElement {
         this.color = PinElement.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
+        this.nodeElement = nodeElement
 
         // this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
         this.entity.subscribe("PinToolTip", value => {

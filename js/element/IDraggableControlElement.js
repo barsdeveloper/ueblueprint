@@ -33,5 +33,4 @@ export default class IDraggableControlElement extends IDraggableElement {
     setLocation([x, y]) {
         super.setLocation(this.template.adjustLocation([x, y]))
     }
-
 }

@@ -64,19 +64,28 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
      */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
-        const sourcePint = this.element.sourcePin
-        if (
-            changedProperties.has("toX")
-            && !this.element.destinationPin
-            && sourcePint?.nodeElement.getType() == "/Script/BlueprintGraph.K2Node_Knot"
-        ) {
-            if (sourcePint.isInput() && this.element.toX > this.element.fromX + 5) {
-                // @ts-expect-error
-                this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePint.nodeElement.template).outputPin
+        const sourcePin = this.element.sourcePin
+        const destinationPin = this.element.destinationPin
+        if (changedProperties.has("fromX") || changedProperties.has("toX")) {
+            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.knotNodeTypeName
+            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.knotNodeTypeName
+            if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
+                if (sourcePin?.isInput() && this.element.toX > this.element.fromX + Configuration.distanceThreshold) {
+                    // @ts-expect-error
+                    this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin
+                } else if (sourcePin?.isOutput() && this.element.toX < this.element.fromX - Configuration.distanceThreshold) {
+                    // @ts-expect-error
+                    this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin
+                }
             }
-            if (sourcePint.isOutput() && this.element.toX < this.element.fromX - 5) {
-                // @ts-expect-error
-                this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePint.nodeElement.template).inputPin
+            if (isDestinationAKnot && (!isSourceAKnot || isSourceAKnot)) {
+                if (destinationPin?.isInput() && this.element.toX < this.element.fromX + Configuration.distanceThreshold) {
+                    // @ts-expect-error
+                    this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin
+                } else if (destinationPin?.isOutput() && this.element.toX > this.element.fromX - Configuration.distanceThreshold) {
+                    // @ts-expect-error
+                    this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin
+                }
             }
         }
         const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1)

@@ -26,7 +26,6 @@ export default class PinTemplate extends ITemplate {
     constructed(element) {
         super.constructed(element)
         this.element.dataset.id = this.element.GetPinIdValue()
-        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor[this.element.pinType])
     }
 
     connectedCallback() {
@@ -91,6 +90,7 @@ export default class PinTemplate extends ITemplate {
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
+        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor[this.element.pinType])
         this.#iconElement = this.element.querySelector(".ueb-pin-icon") ?? this.element
     }
 

@@ -32,5 +32,4 @@ export default class IFromToPositionedTemplate extends ITemplate {
             this.element.style.height = `${height}px`
         }
     }
-
 }

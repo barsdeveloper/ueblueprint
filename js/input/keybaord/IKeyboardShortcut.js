@@ -90,7 +90,6 @@ export default class IKeyboardShortcut extends IInput {
                 document.addEventListener("keydown", this.keyDownHandler)
             }
         }
-
     }
 
     listenEvents() {
