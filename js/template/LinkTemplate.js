@@ -1,10 +1,14 @@
 import { html, nothing } from "lit"
 import Configuration from "../Configuration"
-import Utility from "../Utility"
+import ElementFactory from "../element/ElementFactory"
 import IFromToPositionedTemplate from "./IFromToPositionedTemplate"
+import KnotEntity from "../entity/objects/KnotEntity"
+import MouseDbClick from "../input/mouse/MouseDbClick"
+import Utility from "../Utility"
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
+ * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../template/KnotNodeTemplate").default} KnotNodeTemplate
  */
 
@@ -13,7 +17,7 @@ import IFromToPositionedTemplate from "./IFromToPositionedTemplate"
 export default class LinkTemplate extends IFromToPositionedTemplate {
 
     /**
-     * Returns a function performing the inverse multiplication y = a / x + q. The value of a and q are calculated using
+     * Returns a function providing the inverse multiplication y = a / x + q. The value of a and q are calculated using
      * the derivative of that function y' = -a / x^2 at the point p (x = p[0] and y = p[1]). This means
      * y'(p[0]) = m => -a / p[0]^2 = m => a = -m * p[0]^2. Now, in order to determine q we can use the starting
      * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
@@ -28,11 +32,9 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     /**
-     * Returns a function performing a clamped line passing through two points. It is clamped after and before the
-     * points. It is easier explained with an example.
-     *            b ______
-     *             /
-     *            /
+     * Returns a function providing a clamped line passing through two points. It is clamped after and before the
+     * points. It is easier explained with the following ascii draw.
+     *          b ______
      *           /
      *          /
      *         /
@@ -58,6 +60,31 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     static c2DecreasingValue = LinkTemplate.decreasingValue(-0.06, [500, 130])
 
     static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
+
+    #createKnot =
+        /** @param {Number[]} location */
+        location => {
+            const knot = /** @type {NodeElement} */(new (ElementFactory.getConstructor("ueb-node"))(new KnotEntity()))
+            knot.setLocation(this.element.blueprint.snapToGrid(location))
+            const link = new (ElementFactory.getConstructor("ueb-link"))(
+                /** @type {KnotNodeTemplate} */(knot.template).outputPin,
+                this.element.destinationPin
+            )
+            this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin
+            this.element.blueprint.addGraphElement(knot, link)
+        }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            new MouseDbClick(
+                this.element.querySelector(".ueb-link-area"),
+                this.element.blueprint,
+                undefined,
+                (location) => this.#createKnot(location)
+            )
+        ]
+    }
 
     /**
      * @param {Map} changedProperties
@@ -112,9 +139,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2)
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {Map} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
         if (changedProperties.has("originatesFromInput")) {
@@ -130,19 +155,19 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     render() {
-        const uniqueId = "ueb-id-" + Math.floor(Math.random() * 1E12)
+        const uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
         return html`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <g>
+                <g class="ueb-link-area">
                     <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
-                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="15" />
+                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="20" />
                 </g>
             </svg>
             ${this.element.linkMessageIcon != "" || this.element.linkMessageText != "" ? html`
-            <div class="ueb-link-message">
-                <span class="${this.element.linkMessageIcon}"></span>
-                <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
-            </div>
+                <div class="ueb-link-message">
+                    <span class="${this.element.linkMessageIcon}"></span>
+                    <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
+                </div>
             ` : nothing}
         `
     }

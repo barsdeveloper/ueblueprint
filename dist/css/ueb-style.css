@@ -266,7 +266,7 @@ ueb-link svg path {
 }
 
 ueb-link[data-dragging=true] svg path,
-ueb-link svg g:hover path {
+ueb-link .ueb-link-area:hover path {
   stroke-width: calc(6px / var(--ueb-scale));
   transition: stroke-width 0.8s;
 }

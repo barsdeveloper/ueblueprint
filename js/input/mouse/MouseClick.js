@@ -6,7 +6,7 @@ import IPointing from "./IPointing"
  * @template {HTMLElement} T
  * @extends {IPointing<T>}
  */
-export default class IMouseClick extends IPointing {
+export default class MouseClick extends IPointing {
 
     #mouseDownHandler =
         /** @param {MouseEvent} e */
@@ -15,7 +15,7 @@ export default class IMouseClick extends IPointing {
             switch (e.button) {
                 case this.options.clickButton:
                     // Either doesn't matter or consider the click only when clicking on the target, not descandants
-                    if (!this.options.strictTarget || e.target == e.currentTarget) {
+                    if (!this.options.strictTarget || e.target === e.currentTarget) {
                         if (this.options.consumeEvent) {
                             e.stopImmediatePropagation() // Captured, don't call anyone else
                         }

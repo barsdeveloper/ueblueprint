@@ -1,9 +1,10 @@
 import Configuration from "../../Configuration"
+import ElementFactory from "../../element/ElementFactory"
 import IMouseClickDrag from "./IMouseClickDrag"
-import LinkElement from "../../element/LinkElement"
 
 /**
  * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/LinkElement").default} LinkElement
  * @typedef {import("../../template/KnotNodeTemplate").default} KnotNodeTemplate
  */
 
@@ -69,7 +70,9 @@ export default class MouseCreateLink extends IMouseClickDrag {
         if (this.target.nodeElement.getType() == Configuration.knotNodeTypeName) {
             this.#knotPin = this.target
         }
-        this.link = new LinkElement(this.target, null)
+        /** @type {LinkElement} */
+        // @ts-expect-error
+        this.link = new (ElementFactory.getConstructor("ueb-link"))(this.target, null)
         this.blueprint.linksContainerElement.prepend(this.link)
         this.link.setMessagePlaceNode()
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin")
@@ -99,8 +102,8 @@ export default class MouseCreateLink extends IMouseClickDrag {
                 // Knot pin direction correction
                 if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
                     const oppositePin = this.#knotPin.isInput()
-                        ?/** @type {KnotNodeTemplate} */(this.#knotPin.nodeElement.template).outputPin
-                        :/** @type {KnotNodeTemplate} */(this.#knotPin.nodeElement.template).inputPin
+                        ? /** @type {KnotNodeTemplate} */(this.#knotPin.nodeElement.template).outputPin
+                        : /** @type {KnotNodeTemplate} */(this.#knotPin.nodeElement.template).inputPin
                     if (this.#knotPin === this.link.sourcePin) {
                         this.link.sourcePin = oppositePin
                     } else {

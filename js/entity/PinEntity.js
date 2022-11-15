@@ -37,7 +37,7 @@ export default class PinEntity extends IEntity {
         PinId: GuidEntity,
         PinName: "",
         PinFriendlyName: new TypeInitialization(LocalizedTextEntity, false, null),
-        PinToolTip: "",
+        PinToolTip: new TypeInitialization(String, false, ""),
         Direction: new TypeInitialization(String, false, ""),
         PinType: {
             PinCategory: "",

@@ -25,7 +25,7 @@ export default class PinTemplate extends ITemplate {
     /** @param {PinElement<T>} element */
     constructed(element) {
         super.constructed(element)
-        this.element.dataset.id = this.element.GetPinIdValue()
+        this.element.dataset.id = this.element.getPinId().toString()
     }
 
     connectedCallback() {

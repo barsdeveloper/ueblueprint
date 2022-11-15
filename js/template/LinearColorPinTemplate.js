@@ -1,11 +1,12 @@
 import { html } from "lit"
 import ColorPickerWindowTemplate from "./ColorPickerWindowTemplate"
 import Configuration from "../Configuration"
+import ElementFactory from "../element/ElementFactory"
 import PinTemplate from "./PinTemplate"
-import WindowElement from "../element/WindowElement"
 
 /**
  * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../element/WindowElement").default} WindowElement
  * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
  */
 
@@ -22,15 +23,17 @@ export default class LinearColorPinTemplate extends PinTemplate {
         /** @param {MouseEvent} e */
         e => {
             //e.preventDefault()
-            this.#window = new WindowElement({
-                type: ColorPickerWindowTemplate,
-                windowOptions: {
-                    // The created window will use the following functions to get and set the color
-                    getPinColor: () => this.element.defaultValue,
-                    /** @param {LinearColorEntity} color */
-                    setPinColor: color => this.element.setDefaultValue(color),
-                },
-            })
+            this.#window = /** @type {WindowElement} */ (
+                new (ElementFactory.getConstructor("ueb-window"))({
+                    type: ColorPickerWindowTemplate,
+                    windowOptions: {
+                        // The created window will use the following functions to get and set the color
+                        getPinColor: () => this.element.defaultValue,
+                        /** @param {LinearColorEntity} color */
+                        setPinColor: color => this.element.setDefaultValue(color),
+                    },
+                })
+            )
             this.element.blueprint.append(this.#window)
             const windowApplyHandler = () => {
                 this.element.setDefaultValue(

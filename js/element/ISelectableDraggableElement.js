@@ -1,5 +1,4 @@
 import Configuration from "../Configuration"
-import IElement from "./IElement"
 import Utility from "../Utility"
 import IDraggableElement from "./IDraggableElement"
 

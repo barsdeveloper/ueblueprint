@@ -298,7 +298,7 @@ export default class Blueprint extends IElement {
         return [... this.nodes
             .find(n => pinReference.objectName.toString() == n.getNodeName())
             ?.getPinElements() ?? []]
-            .find(p => pinReference.pinGuid.toString() == p.GetPinIdValue())
+            .find(p => pinReference.pinGuid.toString() == p.getPinId().toString())
     }
 
     /**

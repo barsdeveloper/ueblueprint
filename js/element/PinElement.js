@@ -1,12 +1,12 @@
 import BoolPinTemplate from "../template/BoolPinTemplate"
 import Configuration from "../Configuration"
+import ElementFactory from "./ElementFactory"
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import IElement from "./IElement"
 import IntPinTemplate from "../template/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
 import LinearColorPinTemplate from "../template/LinearColorPinTemplate"
-import LinkElement from "./LinkElement"
 import NamePinTemplate from "../template/NamePinTemplate"
 import PinTemplate from "../template/PinTemplate"
 import RealPinTemplate from "../template/RealPinTemplate"
@@ -103,7 +103,6 @@ export default class PinElement extends IElement {
     /** @type {NodeElement} */
     nodeElement
 
-
     connections = 0
 
     /**
@@ -116,7 +115,7 @@ export default class PinElement extends IElement {
         this.pinType = this.entity.getType()
         this.advancedView = this.entity.bAdvancedView
         this.defaultValue = this.entity.getDefaultValue()
-        this.color = PinElement.properties.color.converter.fromAttribute(Configuration.pinColor[this.pinType]?.toString())
+        this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString())
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
         this.nodeElement = nodeElement
@@ -132,13 +131,8 @@ export default class PinElement extends IElement {
     }
 
     /** @return {GuidEntity} */
-    GetPinId() {
+    getPinId() {
         return this.entity.PinId
-    }
-
-    /** @return {String} */
-    GetPinIdValue() {
-        return this.GetPinId().value
     }
 
     /** @returns {String} */
@@ -156,6 +150,13 @@ export default class PinElement extends IElement {
             return Utility.formatStringName(matchResult[1])
         }
         return Utility.formatStringName(this.entity.PinName)
+    }
+
+    getColor() {
+        if (!this.pinType) {
+            return Configuration.pinColor["default"]
+        }
+        return Configuration.pinColor[this.pinType]
     }
 
     isInput() {
@@ -195,7 +196,7 @@ export default class PinElement extends IElement {
                 }
                 let link = this.blueprint.getLink(this, pin, true)
                 if (!link) {
-                    this.blueprint.addGraphElement(new LinkElement(this, pin))
+                    this.blueprint.addGraphElement(new (ElementFactory.getConstructor("ueb-link"))(this, pin))
                 }
             }
             return pin

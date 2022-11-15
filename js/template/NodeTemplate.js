@@ -1,8 +1,11 @@
 import { html, nothing } from "lit"
+import ElementFactory from "../element/ElementFactory"
 import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
-import PinElement from "../element/PinElement"
 
-/** @typedef {import("../element/NodeElement").default} NodeElement */
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class NodeTemplate extends ISelectableDraggableTemplate {
@@ -80,6 +83,8 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
-            .map(v => new PinElement(v, undefined, this.element))
+            .map(v => /** @type {PinElement} */(
+                new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
+            ))
     }
 }

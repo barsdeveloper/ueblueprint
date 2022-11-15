@@ -1,9 +1,12 @@
 import { html } from "lit"
+import ElementFactory from "../element/ElementFactory"
 import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
 import KnotPinTemplate from "./KnotPinTemplate"
-import PinElement from "../element/PinElement"
 
-/** @typedef {import("../element/NodeElement").default} NodeElement */
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class KnotNodeTemplate extends ISelectableDraggableTemplate {
@@ -46,9 +49,18 @@ export default class KnotNodeTemplate extends ISelectableDraggableTemplate {
         const entities = this.element.getPinEntities().filter(v => !v.isHidden())
         const inputEntity = entities[entities[0].isInput() ? 0 : 1]
         const outputEntity = entities[entities[0].isOutput() ? 0 : 1]
+        const pinElementConstructor = ElementFactory.getConstructor("ueb-pin")
         return [
-            this.#inputPin = new PinElement(inputEntity, new KnotPinTemplate(), this.element),
-            this.#outputPin = new PinElement(outputEntity, new KnotPinTemplate(), this.element),
+            this.#inputPin = /** @type {PinElement} */(new pinElementConstructor(
+                inputEntity,
+                new KnotPinTemplate(),
+                this.element
+            )),
+            this.#outputPin = /** @type {PinElement} */(new pinElementConstructor(
+                outputEntity,
+                new KnotPinTemplate(),
+                this.element
+            )),
         ]
     }
 }

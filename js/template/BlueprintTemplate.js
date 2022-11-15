@@ -9,7 +9,6 @@ import MouseScrollGraph from "../input/mouse/MouseScrollGraph"
 import MouseTracking from "../input/mouse/MouseTracking"
 import Paste from "../input/common/Paste"
 import Select from "../input/mouse/Select"
-import SelectorElement from "../element/SelectorElement"
 import Unfocus from "../input/mouse/Unfocus"
 import Utility from "../Utility"
 import Zoom from "../input/mouse/Zoom"
@@ -17,6 +16,7 @@ import Zoom from "../input/mouse/Zoom"
 /**
  * @typedef {import("../Blueprint").default} Blueprint
  * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../element/SelectorElement").default} SelectorElement
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  */
 
@@ -78,6 +78,7 @@ export default class BlueprintTemplate extends ITemplate {
                     <div class="ueb-grid-content">
                         <div data-links></div>
                         <div data-nodes></div>
+                        <ueb-selector></ueb-selector>
                     </div>
                 </div>
             </div>
@@ -90,8 +91,7 @@ export default class BlueprintTemplate extends ITemplate {
         this.element.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'))
         this.element.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'))
         this.element.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'))
-        this.element.selectorElement = new SelectorElement()
-        this.element.querySelector(".ueb-grid-content")?.append(this.element.selectorElement)
+        this.element.selectorElement = /** @type {SelectorElement} */(this.element.querySelector('ueb-selector'))
         this.element.gridElement = /** @type {HTMLElement} */(this.element.viewportElement.querySelector(".ueb-grid"))
         this.element.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"))
         this.element.linksContainerElement.append(...this.element.getLinks())

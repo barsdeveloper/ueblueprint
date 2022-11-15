@@ -94,7 +94,7 @@ export default class IEntity extends Observable {
         }
         // @ts-expect-error
         const attributes = this.constructor.attributes
-        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length == 1) {
+        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {
                 [Object.getOwnPropertyNames(attributes)[0]]: values

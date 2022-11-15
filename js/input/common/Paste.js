@@ -1,6 +1,8 @@
+import ElementFactory from "../../element/ElementFactory"
 import IInput from "../IInput"
-import NodeElement from "../../element/NodeElement"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
+
+/** @typedef {import("../../element/NodeElement").default} NodeElement */
 
 export default class Paste extends IInput {
 
@@ -30,7 +32,9 @@ export default class Paste extends IInput {
         let left = 0
         let count = 0
         let nodes = Paste.#serializer.readMultiple(value).map(entity => {
-            let node = new NodeElement(entity)
+            /** @type {NodeElement} */
+            // @ts-expect-error
+            let node = new (ElementFactory.getConstructor("ueb-node"))(entity)
             top += node.locationY
             left += node.locationX
             ++count

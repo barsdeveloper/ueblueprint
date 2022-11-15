@@ -8,6 +8,11 @@ export default class ObjectReferenceEntity extends IEntity {
     }
 
     constructor(options = {}) {
+        if (options.constructor !== Object) {
+            options = {
+                path: options
+            }
+        }
         super(options)
         /** @type {String} */ this.type
         /** @type {String} */ this.path
