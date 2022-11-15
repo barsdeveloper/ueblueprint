@@ -10,9 +10,15 @@ import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class NodeTemplate extends ISelectableDraggableTemplate {
 
-    toggleAdvancedDisplayHandler = _ => {
-        this.element.toggleShowAdvancedPinDisplay()
-        this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true)
+    /** @param {NodeElement} element */
+    constructed(element) {
+        super.constructed(element)
+        if (this.element.advancedPinDisplay) {
+            this.toggleAdvancedDisplayHandler = () => {
+                this.element.toggleShowAdvancedPinDisplay()
+                this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true)
+            }
+        }
     }
 
     render() {
@@ -59,9 +65,14 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
+        this.setupPins()
+        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent())
+    }
+
+    setupPins() {
         const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"))
         const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"))
-        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent())
+        this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"))
         this.element.getPinElements().forEach(p => {
             if (p.isInput()) {
                 inputContainer.appendChild(p)
@@ -69,7 +80,6 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 outputContainer.appendChild(p)
             }
         })
-        this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"))
     }
 
     /**

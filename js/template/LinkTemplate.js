@@ -64,7 +64,10 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     #createKnot =
         /** @param {Number[]} location */
         location => {
-            const knot = /** @type {NodeElement} */(new (ElementFactory.getConstructor("ueb-node"))(new KnotEntity()))
+            const knotEntity = new KnotEntity({
+
+            })
+            const knot = /** @type {NodeElement} */(new (ElementFactory.getConstructor("ueb-node"))(knotEntity))
             knot.setLocation(this.element.blueprint.snapToGrid(location))
             const link = new (ElementFactory.getConstructor("ueb-link"))(
                 /** @type {KnotNodeTemplate} */(knot.template).outputPin,
@@ -98,19 +101,15 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.knotNodeTypeName
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
                 if (sourcePin?.isInput() && this.element.toX > this.element.fromX + Configuration.distanceThreshold) {
-                    // @ts-expect-error
                     this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin
                 } else if (sourcePin?.isOutput() && this.element.toX < this.element.fromX - Configuration.distanceThreshold) {
-                    // @ts-expect-error
                     this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin
                 }
             }
-            if (isDestinationAKnot && (!isSourceAKnot || isSourceAKnot)) {
+            if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
                 if (destinationPin?.isInput() && this.element.toX < this.element.fromX + Configuration.distanceThreshold) {
-                    // @ts-expect-error
                     this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin
                 } else if (destinationPin?.isOutput() && this.element.toX > this.element.fromX - Configuration.distanceThreshold) {
-                    // @ts-expect-error
                     this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin
                 }
             }

@@ -4,7 +4,7 @@ import PinEntity from "../PinEntity"
 
 export default class KnotEntity extends ObjectEntity {
 
-    constructor(options = {}) {
+    constructor(options = {}, pinType = undefined) {
         super(options)
         this.Class = new ObjectReferenceEntity("/Script/BlueprintGraph.K2Node_Knot")
         this.Name = "K2Node_Knot"

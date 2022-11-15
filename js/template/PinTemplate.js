@@ -22,12 +22,6 @@ export default class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
-    /** @param {PinElement<T>} element */
-    constructed(element) {
-        super.constructed(element)
-        this.element.dataset.id = this.element.getPinId().toString()
-    }
-
     connectedCallback() {
         super.connectedCallback()
         this.element.nodeElement = this.element.closest("ueb-node")

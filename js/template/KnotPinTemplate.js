@@ -13,7 +13,6 @@ export default class KnotPinTemplate extends PinTemplate {
     getLinkLocation() {
         const rect = (
             this.element.isInput()
-                // @ts-expect-error
                 ? /** @type {KnotNodeTemplate} */ (this.element.nodeElement.template).outputPin.template
                 : this
         )

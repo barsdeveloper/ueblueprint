@@ -2,6 +2,7 @@ import BoolPinTemplate from "../template/BoolPinTemplate"
 import Configuration from "../Configuration"
 import ElementFactory from "./ElementFactory"
 import ExecPinTemplate from "../template/ExecPinTemplate"
+import GuidEntity from "../entity/GuidEntity"
 import IElement from "./IElement"
 import IntPinTemplate from "../template/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
@@ -17,7 +18,6 @@ import Utility from "../Utility"
 import VectorPinTemplate from "../template/VectorPinTemplate"
 
 /**
- * @typedef {import("../entity/GuidEntity").default} GuidEntity
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./NodeElement").default} NodeElement
  */
@@ -46,6 +46,18 @@ export default class PinElement extends IElement {
     }
 
     static properties = {
+        pinId: {
+            type: GuidEntity,
+            converter: {
+                fromAttribute: (value, type) => value
+                    // @ts-expect-error
+                    ? ISerializer.grammar.Guid.parse(value).value
+                    : null,
+                toAttribute: (value, type) => value?.toString(),
+            },
+            attribute: "data-id",
+            reflect: true,
+        },
         pinType: {
             type: String,
             attribute: "data-type",
@@ -59,13 +71,11 @@ export default class PinElement extends IElement {
         color: {
             type: LinearColorEntity,
             converter: {
-                fromAttribute: (value, type) => {
+                fromAttribute: (value, type) => value
                     // @ts-expect-error
-                    return value ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value : null
-                },
-                toAttribute: (value, type) => {
-                    return value ? Utility.printLinearColor(value) : null
-                },
+                    ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
+                    : null,
+                toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
             },
             attribute: "data-color",
             reflect: true,
@@ -112,6 +122,7 @@ export default class PinElement extends IElement {
      */
     constructor(entity, template = undefined, nodeElement = undefined) {
         super(entity, template ?? new (PinElement.getTypeTemplate(entity))())
+        this.pinId = this.entity.PinId
         this.pinType = this.entity.getType()
         this.advancedView = this.entity.bAdvancedView
         this.defaultValue = this.entity.getDefaultValue()

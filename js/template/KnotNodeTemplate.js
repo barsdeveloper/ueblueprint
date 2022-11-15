@@ -1,15 +1,14 @@
 import { html } from "lit"
 import ElementFactory from "../element/ElementFactory"
-import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
 import KnotPinTemplate from "./KnotPinTemplate"
+import NodeTemplate from "./NodeTemplate"
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
 
-/** @extends {ISelectableDraggableTemplate<NodeElement>} */
-export default class KnotNodeTemplate extends ISelectableDraggableTemplate {
+export default class KnotNodeTemplate extends NodeTemplate {
 
     /** @type {PinElement} */
     #inputPin
@@ -29,12 +28,10 @@ export default class KnotNodeTemplate extends ISelectableDraggableTemplate {
         `
     }
 
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties)
-        const content = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border"))
-        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent())
-        this.element.getPinElements().forEach(p => content.appendChild(p))
+    setupPins() {
+        this.element.getPinElements().forEach(
+            p => /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-border")).appendChild(p)
+        )
     }
 
     /**

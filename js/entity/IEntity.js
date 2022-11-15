@@ -31,6 +31,9 @@ export default class IEntity extends Observable {
                     defaultValue = defaultValue.calculate(this)
                     defaultType = Utility.getType(defaultValue)
                 }
+                if (defaultValue != null && defaultValue === defaultType) {
+                    defaultValue = new defaultType()
+                }
 
                 if (!(attribute in attributes)) {
                     console.warn(
