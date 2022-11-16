@@ -53,7 +53,6 @@ class Configuration {
     static gridSize = 16 // pixel
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = "+"
-    static knotNodeTypeName = "/Script/BlueprintGraph.K2Node_Knot"
     static linkCurveHeight = 15 // pixel
     static linkCurveWidth = 80 // pixel
     static linkMinWidth = 100 // pixel
@@ -75,6 +74,11 @@ class Configuration {
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
+    static nodeType = {
+        function: "/Script/BlueprintGraph.K2Node_CallFunction",
+        knot: "/Script/BlueprintGraph.K2Node_Knot",
+        macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
+    }
     static pinColor = {
         "/Script/CoreUObject.LinearColor": r$2`3, 76, 168`,
         "/Script/CoreUObject.Rotator": r$2`152, 171, 241`,
@@ -806,7 +810,7 @@ class IEntity extends Observable {
 
     static attributes = {}
 
-    constructor(values) {
+    constructor(values = {}) {
         super();
         /**
          * @param {Object} target
@@ -1283,6 +1287,35 @@ class LocalizedTextEntity extends IEntity {
         /** @type {String} */ this.key;
         /** @type {String} */ this.value;
     }
+
+    toString() {
+        if (this.value.length === 0) {
+            return this.value
+        }
+        let result = this.value;
+        return result.charAt(0).toLocaleUpperCase() + result.slice(1).toLocaleLowerCase()
+    }
+}
+
+class MacroGraphReferenceEntity extends IEntity {
+
+    static attributes = {
+        MacroGraph: ObjectReferenceEntity,
+        GraphBlueprint: ObjectReferenceEntity,
+        GraphGuid: GuidEntity,
+    }
+
+    constructor(options = {}) {
+        super(options);
+        /** @type {ObjectReferenceEntity} */ this.MacroGraph;
+        /** @type {ObjectReferenceEntity} */ this.GraphBlueprint;
+        /** @type {GuidEntity} */ this.GuidEntity;
+    }
+
+    getMacroName() {
+        const colonIndex = this.MacroGraph.path.search(":");
+        return this.MacroGraph.path.substring(colonIndex + 1)
+    }
 }
 
 class PathSymbolEntity extends IEntity {
@@ -1468,6 +1501,21 @@ class PinEntity extends IEntity {
         return this.PinType.PinCategory
     }
 
+    /** @param {PinEntity} other */
+    copyTypeFrom(other) {
+        this.PinType.PinCategory = other.PinType.PinCategory;
+        this.PinType.PinSubCategory = other.PinType.PinSubCategory;
+        this.PinType.PinSubCategoryObject = other.PinType.PinSubCategoryObject;
+        this.PinType.PinSubCategoryMemberReference = other.PinType.PinSubCategoryMemberReference;
+        this.PinType.PinValueType = other.PinType.PinValueType;
+        this.PinType.ContainerType = other.PinType.ContainerType;
+        this.PinType.bIsReference = other.PinType.bIsReference;
+        this.PinType.bIsConst = other.PinType.bIsConst;
+        this.PinType.bIsWeakPointer = other.PinType.bIsWeakPointer;
+        this.PinType.bIsUObjectWrapper = other.PinType.bIsUObjectWrapper;
+        this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat;
+    }
+
     getDefaultValue() {
         return this.DefaultValue
     }
@@ -1553,6 +1601,7 @@ class ObjectEntity extends IEntity {
         FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
+        MacroGraphReference: new TypeInitialization(MacroGraphReferenceEntity, false, null),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
         AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
@@ -1563,7 +1612,7 @@ class ObjectEntity extends IEntity {
         CustomProperties: [PinEntity],
     }
 
-    static nameRegex = /(\w+)_(\d+)/
+    static nameRegex = /(\w+)(?:_(\d+))?/
 
     constructor(options = {}) {
         super(options);
@@ -1574,6 +1623,7 @@ class ObjectEntity extends IEntity {
         /** @type {FunctionReferenceEntity?} */ this.FunctionReference;
         /** @type {FunctionReferenceEntity?} */ this.EventReference;
         /** @type {ObjectReferenceEntity?} */ this.TargetType;
+        /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
         /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
@@ -1588,6 +1638,14 @@ class ObjectEntity extends IEntity {
         return this.Class.path
     }
 
+    getType() {
+        let classValue = this.getClass();
+        if (classValue === Configuration.nodeType.macro) {
+            return this.MacroGraphReference.GraphBlueprint.path
+        }
+        return classValue
+    }
+
     getObjectName(dropCounter = false) {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
@@ -1598,20 +1656,34 @@ class ObjectEntity extends IEntity {
     /** @returns {[String, Number]} */
     getNameAndCounter() {
         const result = this.getObjectName(false).match(ObjectEntity.nameRegex);
-        if (result && result.length == 3) {
-            return [result[1], parseInt(result[2])]
+        let name = "";
+        let counter = null;
+        if (result) {
+            if (result.length > 1) {
+                name = result[1];
+            }
+            if (result.length > 2) {
+                counter = parseInt(result[2]);
+            }
+            return [name, counter]
         }
         return ["", 0]
     }
 
     getDisplayName() {
-        let name = this.FunctionReference?.MemberName;
-        if (name) {
-            name = Utility.formatStringName(name);
-            return name
+        let name = "";
+        switch (this.getClass()) {
+            case Configuration.nodeType.function:
+                name = this.FunctionReference.MemberName;
+                break
+            case Configuration.nodeType.macro:
+                name = this.MacroGraphReference.getMacroName();
+                break
+            default:
+                name = this.getNameAndCounter()[0];
+                break
         }
-        name = Utility.formatStringName(this.getNameAndCounter()[0]);
-        return name
+        return Utility.formatStringName(name)
     }
 
     getCounter() {
@@ -1683,10 +1755,12 @@ class Grammar {
                 return r.LinearColor
             case LocalizedTextEntity:
                 return r.LocalizedText
+            case MacroGraphReferenceEntity:
+                return r.MacroGraphReference
             case Number:
                 return r.Number
             case ObjectReferenceEntity:
-                return r.Reference
+                return r.ObjectReference
             case PinEntity:
                 return r.Pin
             case PinReferenceEntity:
@@ -1795,6 +1869,8 @@ class Grammar {
             .map(v => v.toString())
             .sepBy1(P.string("."))
             .tieWith(".")
+            .sepBy1(P.string(":"))
+            .tieWith(":")
     )
         .tie()
         .atLeast(2)
@@ -1822,7 +1898,7 @@ class Grammar {
     PathSymbol = r => P.regex(/[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
-    Reference = r => P.alt(
+    ObjectReference = r => P.alt(
         r.None,
         ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
             .flatMap(referencePath => [
@@ -1875,7 +1951,7 @@ class Grammar {
         r.Guid,
         r.LocalizedText,
         r.InvariantText,
-        r.Reference,
+        r.ObjectReference,
         r.Vector,
         r.LinearColor,
     )
@@ -1930,6 +2006,9 @@ class Grammar {
 
     /** @param {Grammar} r */
     FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
+
+    /** @param {Grammar} r */
+    MacroGraphReference = r => Grammar.createEntityGrammar(r, MacroGraphReferenceEntity)
 
     /** @param {Grammar} r */
     KeyBinding = r => P.alt(
@@ -2109,9 +2188,10 @@ class ISerializer {
      * @param {Boolean} insideString
      */
     writeValue(entity, value, fullKey, insideString) {
-        const serializer = SerializerFactory.getSerializer(Utility.getType(value));
+        const type = Utility.getType(value);
+        const serializer = SerializerFactory.getSerializer(type);
         if (!serializer) {
-            throw new Error("Unknown value type, a serializer must be registered in the SerializerFactory class")
+            throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
         }
         return serializer.write(entity, value, insideString)
     }
@@ -3403,19 +3483,26 @@ class IFromToPositionedTemplate extends ITemplate {
 
 class KnotEntity extends ObjectEntity {
 
-    constructor(options = {}, pinType = undefined) {
+    /**
+     * @param {Object} options
+     * @param {PinEntity} pinReferenceForType
+     */
+    constructor(options = {}, pinReferenceForType = undefined) {
         super(options);
         this.Class = new ObjectReferenceEntity("/Script/BlueprintGraph.K2Node_Knot");
         this.Name = "K2Node_Knot";
-        this.CustomProperties = [
-            new PinEntity({
-                PinName: "InputPin",
-            }),
-            new PinEntity({
-                PinName: "OutputPin",
-                Direction: "EGPD_Output",
-            })
-        ];
+        const inputPinEntity = new PinEntity({
+            PinName: "InputPin",
+        });
+        const outputPinEntity = new PinEntity({
+            PinName: "OutputPin",
+            Direction: "EGPD_Output",
+        });
+        if (pinReferenceForType) {
+            inputPinEntity.copyTypeFrom(pinReferenceForType);
+            outputPinEntity.copyTypeFrom(pinReferenceForType);
+        }
+        this.CustomProperties = [inputPinEntity, outputPinEntity];
     }
 }
 
@@ -3535,17 +3622,16 @@ class LinkTemplate extends IFromToPositionedTemplate {
     #createKnot =
         /** @param {Number[]} location */
         location => {
-            const knotEntity = new KnotEntity({
-
-            });
+            const knotEntity = new KnotEntity({}, this.element.sourcePin.entity);
             const knot = /** @type {NodeElement} */(new (ElementFactory.getConstructor("ueb-node"))(knotEntity));
             knot.setLocation(this.element.blueprint.snapToGrid(location));
+            this.element.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
             const link = new (ElementFactory.getConstructor("ueb-link"))(
                 /** @type {KnotNodeTemplate} */(knot.template).outputPin,
                 this.element.destinationPin
             );
             this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin;
-            this.element.blueprint.addGraphElement(knot, link);
+            this.element.blueprint.addGraphElement(link);
         }
 
     createInputObjects() {
@@ -3568,8 +3654,8 @@ class LinkTemplate extends IFromToPositionedTemplate {
         const sourcePin = this.element.sourcePin;
         const destinationPin = this.element.destinationPin;
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
-            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.knotNodeTypeName;
-            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.knotNodeTypeName;
+            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.nodeType.knot;
+            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.nodeType.knot;
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
                 if (sourcePin?.isInput() && this.element.toX > this.element.fromX + Configuration.distanceThreshold) {
                     this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin;
@@ -3586,6 +3672,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
             }
         }
         const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1);
+        Math.max(Math.abs(this.element.fromY - this.element.toY), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
         // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
         const fillRatio = dx / width;
@@ -3635,12 +3722,64 @@ class LinkTemplate extends IFromToPositionedTemplate {
             </svg>
             ${this.element.linkMessageIcon != "" || this.element.linkMessageText != "" ? $`
                 <div class="ueb-link-message">
-                    <span class="${this.element.linkMessageIcon}"></span>
+                    <span class="ueb-link-message-icon">${this.element.linkMessageIcon}</span>
                     <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
                 </div>
             ` : w}
         `
     }
+}
+
+class SVGIcon {
+
+    static close = $`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
+            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
+        </svg>
+    `
+
+    static correct = $`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#2da800" d="M 2 16 L 14 30 L 30 2 L 13 22 Z" />
+        </svg>
+    `
+
+    static execPin = $`
+        <svg viewBox="-2 0 16 16" class="ueb-pin-icon ueb-pin-icon-exec" xmlns="http://www.w3.org/2000/svg">
+            <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
+                d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
+        </svg>
+    `
+
+    static expandIcon = $`
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+            class="ueb-node-expansion-icon" viewBox="4 4 24 24">
+            <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
+        </svg>
+    `
+
+    static functionSymbol = $`
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M9.72002 6.0699C9.88111 4.96527 10.299 3.9138 10.94 2.99991C10.94 2.99991 10.94 3.05991 10.94 3.08991C10.94 3.36573 11.0496 3.63026 11.2446 3.8253C11.4397 4.02033 11.7042 4.12991 11.98 4.12991C12.2558 4.12991 12.5204 4.02033 12.7154 3.8253C12.9105 3.63026 13.02 3.36573 13.02 3.08991C13.0204 2.90249 12.9681 2.71873 12.8691 2.5596C12.7701 2.40047 12.6283 2.27237 12.46 2.18991H12.37C11.8725 2.00961 11.3275 2.00961 10.83 2.18991C9.21002 2.63991 8.58002 4.99991 8.58002 4.99991L8.40002 5.1199H5.40002L5.15002 6.1199H8.27002L7.27002 11.4199C7.11348 12.0161 6.79062 12.5555 6.33911 12.9751C5.8876 13.3948 5.32607 13.6773 4.72002 13.7899C4.78153 13.655 4.81227 13.5081 4.81002 13.3599C4.81002 13.0735 4.69624 12.7988 4.4937 12.5962C4.29116 12.3937 4.01646 12.2799 3.73002 12.2799C3.44359 12.2799 3.16889 12.3937 2.96635 12.5962C2.76381 12.7988 2.65002 13.0735 2.65002 13.3599C2.66114 13.605 2.75692 13.8386 2.92104 14.021C3.08517 14.2033 3.30746 14.3231 3.55002 14.3599C7.91002 15.1999 8.55002 11.4499 8.55002 11.4499L9.55002 7.05991H12.55L12.8 6.05991H9.64002L9.72002 6.0699Z"
+                fill="currentColor"
+            />
+        </svg>
+    `
+
+    static genericPin = $`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="ueb-pin-icon">
+            <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="5" />
+            <path d="M 34 6 L 34 26 L 42 16 Z" fill="currentColor" />
+        </svg>
+    `
+
+    static referencePin = $`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="ueb-pin-icon">
+            <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
+        </svg>
+    `
 }
 
 /** @typedef {import("./PinElement").default} PinElement */
@@ -3858,8 +3997,13 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     setMessageCorrect() {
-        this.linkMessageIcon = "ueb-icon-correct";
-        this.linkMessageText = "";
+        this.linkMessageIcon = SVGIcon.correct;
+        this.linkMessageText = w;
+    }
+
+    setMessageReplace() {
+        this.linkMessageIcon = SVGIcon.correct;
+        this.linkMessageText = w;
     }
 
     setMessageDirectionsIncompatible() {
@@ -3967,8 +4111,8 @@ class MouseCreateLink extends IMouseClickDrag {
                 const a = this.link.sourcePin ?? this.target; // Remember target might have change
                 const b = this.enteredPin;
                 if (
-                    a.nodeElement.getType() == Configuration.knotNodeTypeName
-                    || b.nodeElement.getType() == Configuration.knotNodeTypeName
+                    a.nodeElement.getType() == Configuration.nodeType.knot
+                    || b.nodeElement.getType() == Configuration.nodeType.knot
                 ) {
                     // A knot can be linked to any pin, it doesn't matter the type or input/output direction
                     this.link.setMessageCorrect();
@@ -4008,7 +4152,7 @@ class MouseCreateLink extends IMouseClickDrag {
     linkValid = false
 
     startDrag(location) {
-        if (this.target.nodeElement.getType() == Configuration.knotNodeTypeName) {
+        if (this.target.nodeElement.getType() == Configuration.nodeType.knot) {
             this.#knotPin = this.target;
         }
         /** @type {LinkElement} */
@@ -4114,12 +4258,7 @@ class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
-        return $`
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="ueb-pin-icon">
-                <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="5" />
-                <path d="M 34 6 L 34 26 L 42 16 Z" fill="currentColor" />
-            </svg>
-        `
+        return SVGIcon.genericPin
     }
 
     renderName() {
@@ -4353,15 +4492,14 @@ class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 class NodeTemplate extends ISelectableDraggableTemplate {
 
+    toggleAdvancedDisplayHandler = () => {
+        this.element.toggleShowAdvancedPinDisplay();
+        this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
+    }
+
     /** @param {NodeElement} element */
     constructed(element) {
         super.constructed(element);
-        if (this.element.advancedPinDisplay) {
-            this.toggleAdvancedDisplayHandler = () => {
-                this.element.toggleShowAdvancedPinDisplay();
-                this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
-            };
-        }
     }
 
     render() {
@@ -4370,16 +4508,9 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
                         <div class="ueb-node-name">
-                            <span class="ueb-node-name-symbol">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M9.72002 6.0699C9.88111 4.96527 10.299 3.9138 10.94 2.99991C10.94 2.99991 10.94 3.05991 10.94 3.08991C10.94 3.36573 11.0496 3.63026 11.2446 3.8253C11.4397 4.02033 11.7042 4.12991 11.98 4.12991C12.2558 4.12991 12.5204 4.02033 12.7154 3.8253C12.9105 3.63026 13.02 3.36573 13.02 3.08991C13.0204 2.90249 12.9681 2.71873 12.8691 2.5596C12.7701 2.40047 12.6283 2.27237 12.46 2.18991H12.37C11.8725 2.00961 11.3275 2.00961 10.83 2.18991C9.21002 2.63991 8.58002 4.99991 8.58002 4.99991L8.40002 5.1199H5.40002L5.15002 6.1199H8.27002L7.27002 11.4199C7.11348 12.0161 6.79062 12.5555 6.33911 12.9751C5.8876 13.3948 5.32607 13.6773 4.72002 13.7899C4.78153 13.655 4.81227 13.5081 4.81002 13.3599C4.81002 13.0735 4.69624 12.7988 4.4937 12.5962C4.29116 12.3937 4.01646 12.2799 3.73002 12.2799C3.44359 12.2799 3.16889 12.3937 2.96635 12.5962C2.76381 12.7988 2.65002 13.0735 2.65002 13.3599C2.66114 13.605 2.75692 13.8386 2.92104 14.021C3.08517 14.2033 3.30746 14.3231 3.55002 14.3599C7.91002 15.1999 8.55002 11.4499 8.55002 11.4499L9.55002 7.05991H12.55L12.8 6.05991H9.64002L9.72002 6.0699Z"
-                                        fill="currentColor"
-                                    />
-                                </svg>
-                            </span>
+                            <span class="ueb-node-name-symbol">${SVGIcon.functionSymbol}</span>
                             <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                                ${this.element.nodeDisplayName}
+                                ${this.renderNodeName()}
                             </span>
                         </div>
                     </div>
@@ -4394,15 +4525,16 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                     ` : w}
                     ${this.element.advancedPinDisplay ? $`
                         <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                class="ueb-node-expansion-icon" viewBox="4 4 24 24">
-                                <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
-                            </svg>
+                            ${SVGIcon.expandIcon}
                         </div>
                     ` : w}
                 </div>
             </div>
         `
+    }
+
+    renderNodeName() {
+        return this.element.getNodeDisplayName()
     }
 
     /** @param {Map} changedProperties */
@@ -4440,6 +4572,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
             ))
     }
+
+    linksChanged() { }
 }
 
 /**
@@ -4448,6 +4582,11 @@ class NodeTemplate extends ISelectableDraggableTemplate {
  */
 
 class KnotNodeTemplate extends NodeTemplate {
+
+    static #traversedPin = new Set()
+
+    /** @type {Boolean?} */
+    #chainDirection = null // The node is part of a chain connected to an input or output pin
 
     /** @type {PinElement} */
     #inputPin
@@ -4459,6 +4598,24 @@ class KnotNodeTemplate extends NodeTemplate {
     #outputPin
     get outputPin() {
         return this.#outputPin
+    }
+
+    /** @param {PinElement} startingPin */
+    findDirectionaPin(startingPin) {
+        if (
+            startingPin.nodeElement.getType() !== Configuration.nodeType.knot
+            || KnotNodeTemplate.#traversedPin.has(startingPin)
+        ) {
+            KnotNodeTemplate.#traversedPin.clear();
+            return true
+        }
+        KnotNodeTemplate.#traversedPin.add(startingPin);
+        for (let pin of startingPin.getLinks().map(l => this.element.blueprint.getPin(l))) {
+            if (this.findDirectionaPin(pin)) {
+                return true
+            }
+        }
+        return false
     }
 
     render() {
@@ -4498,6 +4655,10 @@ class KnotNodeTemplate extends NodeTemplate {
                 this.element
             )),
         ]
+    }
+
+    linksChanged() {
+
     }
 }
 
@@ -4608,7 +4769,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     getType() {
-        return this.entity.getClass()
+        return this.entity.getType()
     }
 
     getNodeName() {
@@ -5690,16 +5851,17 @@ class BoolPinTemplate extends PinTemplate {
 class ExecPinTemplate extends PinTemplate {
 
     renderIcon() {
-        return $`
-            <svg viewBox="-2 0 16 16" class="ueb-pin-icon ueb-pin-icon-exec">
-                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
-                    d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
-            </svg>
-        `
+        return SVGIcon.execPin
     }
 
     renderName() {
-        return $``
+        let pinName = this.element.entity.PinName;
+        if (this.element.entity.PinFriendlyName) {
+            pinName = this.element.entity.PinFriendlyName.toString();
+        } else if (pinName === "execute" || pinName === "then") {
+            return $``
+        }
+        return $`${Utility.formatStringName(pinName)}`
     }
 }
 
@@ -5903,10 +6065,7 @@ class WindowTemplate extends IDraggablePositionedTemplate {
                 <div class="ueb-window-top">
                     <div class="ueb-window-name ueb-ellipsis-nowrap-text">${this.renderWindowName()}</div>
                     <div class="ueb-window-close" @click="${() => this.element.remove()}">
-                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
-                            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
-                        </svg>
+                        ${SVGIcon.close}
                     </div>
                 </div>
                 <div class="ueb-window-content">
@@ -6393,11 +6552,7 @@ class RealPinTemplate extends INumericPinTemplate {
 class ReferencePinTemplate extends PinTemplate {
 
     renderIcon() {
-        return $`
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="ueb-pin-icon">
-                <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
-            </svg>
-        `
+        return SVGIcon.referencePin
     }
 }
 
@@ -6690,14 +6845,18 @@ class PinElement extends IElement {
 
     /** @param {PinElement} targetPinElement */
     linkTo(targetPinElement) {
-        this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity);
-        this.isLinked = this.entity.isLinked();
+        if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
+            this.isLinked = this.entity.isLinked();
+            this.nodeElement?.template.linksChanged();
+        }
     }
 
     /** @param {PinElement} targetPinElement */
     unlinkFrom(targetPinElement) {
-        this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity);
-        this.isLinked = this.entity.isLinked();
+        if (this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
+            this.isLinked = this.entity.isLinked();
+            this.nodeElement?.template.linksChanged();
+        }
     }
 
     /**
@@ -6974,6 +7133,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
         new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
+    );
+
+    SerializerFactory.registerSerializer(
+        MacroGraphReferenceEntity,
+        new GeneralSerializer(bracketsWrapped, MacroGraphReferenceEntity)
     );
 
     SerializerFactory.registerSerializer(

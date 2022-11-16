@@ -13,7 +13,7 @@ export default class IEntity extends Observable {
 
     static attributes = {}
 
-    constructor(values) {
+    constructor(values = {}) {
         super()
         /**
          * @param {Object} target

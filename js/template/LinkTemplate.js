@@ -64,17 +64,16 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     #createKnot =
         /** @param {Number[]} location */
         location => {
-            const knotEntity = new KnotEntity({
-
-            })
+            const knotEntity = new KnotEntity({}, this.element.sourcePin.entity)
             const knot = /** @type {NodeElement} */(new (ElementFactory.getConstructor("ueb-node"))(knotEntity))
             knot.setLocation(this.element.blueprint.snapToGrid(location))
+            this.element.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
             const link = new (ElementFactory.getConstructor("ueb-link"))(
                 /** @type {KnotNodeTemplate} */(knot.template).outputPin,
                 this.element.destinationPin
             )
             this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin
-            this.element.blueprint.addGraphElement(knot, link)
+            this.element.blueprint.addGraphElement(link)
         }
 
     createInputObjects() {
@@ -97,8 +96,8 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         const sourcePin = this.element.sourcePin
         const destinationPin = this.element.destinationPin
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
-            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.knotNodeTypeName
-            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.knotNodeTypeName
+            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.nodeType.knot
+            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.nodeType.knot
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
                 if (sourcePin?.isInput() && this.element.toX > this.element.fromX + Configuration.distanceThreshold) {
                     this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin
@@ -115,6 +114,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             }
         }
         const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1)
+        const dy = Math.max(Math.abs(this.element.fromY - this.element.toY), 1)
         const width = Math.max(dx, Configuration.linkMinWidth)
         // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
         const fillRatio = dx / width
@@ -164,7 +164,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             </svg>
             ${this.element.linkMessageIcon != "" || this.element.linkMessageText != "" ? html`
                 <div class="ueb-link-message">
-                    <span class="${this.element.linkMessageIcon}"></span>
+                    <span class="ueb-link-message-icon">${this.element.linkMessageIcon}</span>
                     <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
                 </div>
             ` : nothing}

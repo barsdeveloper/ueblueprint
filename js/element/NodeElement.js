@@ -116,7 +116,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     getType() {
-        return this.entity.getClass()
+        return this.entity.getType()
     }
 
     getNodeName() {

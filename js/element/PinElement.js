@@ -216,14 +216,18 @@ export default class PinElement extends IElement {
 
     /** @param {PinElement} targetPinElement */
     linkTo(targetPinElement) {
-        this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)
-        this.isLinked = this.entity.isLinked()
+        if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
+            this.isLinked = this.entity.isLinked()
+            this.nodeElement?.template.linksChanged()
+        }
     }
 
     /** @param {PinElement} targetPinElement */
     unlinkFrom(targetPinElement) {
-        this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)
-        this.isLinked = this.entity.isLinked()
+        if (this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
+            this.isLinked = this.entity.isLinked()
+            this.nodeElement?.template.linksChanged()
+        }
     }
 
     /**

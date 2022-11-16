@@ -26,8 +26,8 @@ export default class MouseCreateLink extends IMouseClickDrag {
                 const a = this.link.sourcePin ?? this.target // Remember target might have change
                 const b = this.enteredPin
                 if (
-                    a.nodeElement.getType() == Configuration.knotNodeTypeName
-                    || b.nodeElement.getType() == Configuration.knotNodeTypeName
+                    a.nodeElement.getType() == Configuration.nodeType.knot
+                    || b.nodeElement.getType() == Configuration.nodeType.knot
                 ) {
                     // A knot can be linked to any pin, it doesn't matter the type or input/output direction
                     this.link.setMessageCorrect()
@@ -67,7 +67,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
     linkValid = false
 
     startDrag(location) {
-        if (this.target.nodeElement.getType() == Configuration.knotNodeTypeName) {
+        if (this.target.nodeElement.getType() == Configuration.nodeType.knot) {
             this.#knotPin = this.target
         }
         /** @type {LinkElement} */

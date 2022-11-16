@@ -1,4 +1,5 @@
 import { html } from "lit"
+import Configuration from "../Configuration"
 import ElementFactory from "../element/ElementFactory"
 import KnotPinTemplate from "./KnotPinTemplate"
 import NodeTemplate from "./NodeTemplate"
@@ -10,6 +11,11 @@ import NodeTemplate from "./NodeTemplate"
 
 export default class KnotNodeTemplate extends NodeTemplate {
 
+    static #traversedPin = new Set()
+
+    /** @type {Boolean?} */
+    #chainDirection = null // The node is part of a chain connected to an input or output pin
+
     /** @type {PinElement} */
     #inputPin
     get inputPin() {
@@ -20,6 +26,24 @@ export default class KnotNodeTemplate extends NodeTemplate {
     #outputPin
     get outputPin() {
         return this.#outputPin
+    }
+
+    /** @param {PinElement} startingPin */
+    findDirectionaPin(startingPin) {
+        if (
+            startingPin.nodeElement.getType() !== Configuration.nodeType.knot
+            || KnotNodeTemplate.#traversedPin.has(startingPin)
+        ) {
+            KnotNodeTemplate.#traversedPin.clear()
+            return true
+        }
+        KnotNodeTemplate.#traversedPin.add(startingPin)
+        for (let pin of startingPin.getLinks().map(l => this.element.blueprint.getPin(l))) {
+            if (this.findDirectionaPin(pin)) {
+                return true
+            }
+        }
+        return false
     }
 
     render() {
@@ -59,5 +83,9 @@ export default class KnotNodeTemplate extends NodeTemplate {
                 this.element
             )),
         ]
+    }
+
+    linksChanged() {
+
     }
 }

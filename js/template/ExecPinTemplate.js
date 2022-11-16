@@ -1,20 +1,23 @@
 import { html } from "lit"
 import PinTemplate from "./PinTemplate"
+import SVGIcon from "../SVGIcon"
+import Utility from "../Utility"
 
 /** @typedef {import("../element/PinElement").default} PinElement */
 
 export default class ExecPinTemplate extends PinTemplate {
 
     renderIcon() {
-        return html`
-            <svg viewBox="-2 0 16 16" class="ueb-pin-icon ueb-pin-icon-exec">
-                <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
-                    d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
-            </svg>
-        `
+        return SVGIcon.execPin
     }
 
     renderName() {
-        return html``
+        let pinName = this.element.entity.PinName
+        if (this.element.entity.PinFriendlyName) {
+            pinName = this.element.entity.PinFriendlyName.toString()
+        } else if (pinName === "execute" || pinName === "then") {
+            return html``
+        }
+        return html`${Utility.formatStringName(pinName)}`
     }
 }

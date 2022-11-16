@@ -71,9 +71,10 @@ export default class ISerializer {
      * @param {Boolean} insideString
      */
     writeValue(entity, value, fullKey, insideString) {
-        const serializer = SerializerFactory.getSerializer(Utility.getType(value))
+        const type = Utility.getType(value)
+        const serializer = SerializerFactory.getSerializer(type)
         if (!serializer) {
-            throw new Error("Unknown value type, a serializer must be registered in the SerializerFactory class")
+            throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
         }
         return serializer.write(entity, value, insideString)
     }

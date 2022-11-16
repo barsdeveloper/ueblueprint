@@ -1,9 +1,14 @@
+import { html, nothing } from "lit"
 import Configuration from "../Configuration"
 import IFromToPositionedElement from "./IFromToPositionedElement"
 import LinkTemplate from "../template/LinkTemplate"
+import SVGIcon from "../SVGIcon"
 import Utility from "../Utility"
 
-/** @typedef {import("./PinElement").default} PinElement */
+/**
+ * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("lit").TemplateResult<1>} TemplateResult
+ */
 
 /** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 export default class LinkElement extends IFromToPositionedElement {
@@ -65,6 +70,12 @@ export default class LinkElement extends IFromToPositionedElement {
     #nodeDragDestinatonHandler
     #nodeReflowSourceHandler
     #nodeReflowDestinatonHandler
+
+    /** @type {TemplateResult | nothing} */
+    linkMessageIcon = nothing
+    /** @type {TemplateResult | nothing} */
+    linkMessageText = nothing
+
     /** @type {SVGPathElement} */
     pathElement
 
@@ -87,8 +98,6 @@ export default class LinkElement extends IFromToPositionedElement {
         this.startPercentage = 0
         this.svgPathD = ""
         this.startPixels = 0
-        this.linkMessageIcon = ""
-        this.linkMessageText = ""
         if (source) {
             this.sourcePin = source
             if (!destination) {
@@ -218,32 +227,37 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     setMessageCorrect() {
-        this.linkMessageIcon = "ueb-icon-correct"
-        this.linkMessageText = ""
+        this.linkMessageIcon = SVGIcon.correct
+        this.linkMessageText = nothing
+    }
+
+    setMessageReplace() {
+        this.linkMessageIcon = SVGIcon.correct
+        this.linkMessageText = nothing
     }
 
     setMessageDirectionsIncompatible() {
         this.linkMessageIcon = "ueb-icon-directions-incompatible"
-        this.linkMessageText = "Directions are not compatbile."
+        this.linkMessageText = html`Directions are not compatbile.`
     }
 
     setMessagePlaceNode() {
         this.linkMessageIcon = "ueb-icon-place-node"
-        this.linkMessageText = "Place a new node."
+        this.linkMessageText = html`Place a new node.`
     }
 
     setMessageReplaceLink() {
         this.linkMessageIcon = "ueb-icon-replace-link"
-        this.linkMessageText = "Replace existing input connections."
+        this.linkMessageText = html`Replace existing input connections.`
     }
 
     setMessageSameNode() {
         this.linkMessageIcon = "ueb-icon-same-node"
-        this.linkMessageText = "Both are on the same node."
+        this.linkMessageText = html`Both are on the same node.`
     }
 
     setMEssagetypesIncompatible() {
         this.linkMessageIcon = "ueb-icon-types-incompatible"
-        this.linkMessageText = `${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`
+        this.linkMessageText = html`${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`
     }
 }

@@ -8,6 +8,7 @@ import InvariantTextEntity from "../entity/InvariantTextEntity"
 import KeyBindingEntity from "../entity/KeyBindingEntity"
 import LinearColorEntity from "../entity/LinearColorEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
+import MacroGraphReferenceEntity from "../entity/MacroGraphReferenceEntity"
 import ObjectEntity from "../entity/ObjectEntity"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
 import ObjectSerializer from "./ObjectSerializer"
@@ -103,6 +104,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
         new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
+    )
+
+    SerializerFactory.registerSerializer(
+        MacroGraphReferenceEntity,
+        new GeneralSerializer(bracketsWrapped, MacroGraphReferenceEntity)
     )
 
     SerializerFactory.registerSerializer(

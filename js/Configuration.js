@@ -29,7 +29,6 @@ export default class Configuration {
     static gridSize = 16 // pixel
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = "+"
-    static knotNodeTypeName = "/Script/BlueprintGraph.K2Node_Knot"
     static linkCurveHeight = 15 // pixel
     static linkCurveWidth = 80 // pixel
     static linkMinWidth = 100 // pixel
@@ -51,6 +50,11 @@ export default class Configuration {
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
+    static nodeType = {
+        function: "/Script/BlueprintGraph.K2Node_CallFunction",
+        knot: "/Script/BlueprintGraph.K2Node_Knot",
+        macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
+    }
     static pinColor = {
         "/Script/CoreUObject.LinearColor": css`3, 76, 168`,
         "/Script/CoreUObject.Rotator": css`152, 171, 241`,

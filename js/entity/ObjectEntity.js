@@ -1,8 +1,10 @@
+import Configuration from "../Configuration"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
 import IdentifierEntity from "./IdentifierEntity"
 import IEntity from "./IEntity"
 import IntegerEntity from "./IntegerEntity"
+import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"
 import TypeInitialization from "./TypeInitialization"
@@ -19,6 +21,7 @@ export default class ObjectEntity extends IEntity {
         FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
+        MacroGraphReference: new TypeInitialization(MacroGraphReferenceEntity, false, null),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
         AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
@@ -29,7 +32,7 @@ export default class ObjectEntity extends IEntity {
         CustomProperties: [PinEntity],
     }
 
-    static nameRegex = /(\w+)_(\d+)/
+    static nameRegex = /(\w+)(?:_(\d+))?/
 
     constructor(options = {}) {
         super(options)
@@ -40,6 +43,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {FunctionReferenceEntity?} */ this.FunctionReference
         /** @type {FunctionReferenceEntity?} */ this.EventReference
         /** @type {ObjectReferenceEntity?} */ this.TargetType
+        /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay
@@ -54,6 +58,14 @@ export default class ObjectEntity extends IEntity {
         return this.Class.path
     }
 
+    getType() {
+        let classValue = this.getClass()
+        if (classValue === Configuration.nodeType.macro) {
+            return this.MacroGraphReference.GraphBlueprint.path
+        }
+        return classValue
+    }
+
     getObjectName(dropCounter = false) {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
@@ -64,20 +76,34 @@ export default class ObjectEntity extends IEntity {
     /** @returns {[String, Number]} */
     getNameAndCounter() {
         const result = this.getObjectName(false).match(ObjectEntity.nameRegex)
-        if (result && result.length == 3) {
-            return [result[1], parseInt(result[2])]
+        let name = ""
+        let counter = null
+        if (result) {
+            if (result.length > 1) {
+                name = result[1]
+            }
+            if (result.length > 2) {
+                counter = parseInt(result[2])
+            }
+            return [name, counter]
         }
         return ["", 0]
     }
 
     getDisplayName() {
-        let name = this.FunctionReference?.MemberName
-        if (name) {
-            name = Utility.formatStringName(name)
-            return name
+        let name = ""
+        switch (this.getClass()) {
+            case Configuration.nodeType.function:
+                name = this.FunctionReference.MemberName
+                break
+            case Configuration.nodeType.macro:
+                name = this.MacroGraphReference.getMacroName()
+                break
+            default:
+                name = this.getNameAndCounter()[0]
+                break
         }
-        name = Utility.formatStringName(this.getNameAndCounter()[0])
-        return name
+        return Utility.formatStringName(name)
     }
 
     getCounter() {

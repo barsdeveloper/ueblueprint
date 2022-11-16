@@ -25,13 +25,13 @@ ueb-link svg {
     transform: scaleY(calc(var(--ueb-y-reflected-coefficient) * var(--ueb-from-input-coefficient)));
 }
 
-ueb-link svg path {
+ueb-link .ueb-link-area path {
     visibility: visible;
     stroke: var(--ueb-link-color);
     stroke-width: calc(3px / var(--ueb-scale));
 }
 
-ueb-link[data-dragging="true"] svg path,
+ueb-link[data-dragging="true"] .ueb-link-area path,
 ueb-link .ueb-link-area:hover path {
     stroke-width: calc(6px / var(--ueb-scale));
     transition: stroke-width 0.8s;
@@ -50,10 +50,25 @@ ueb-link .ueb-link-area:hover path {
             /* Fixed offset */
             + 15px);
     border: 1px solid #000;
-    padding: 4px 8px;
     border-radius: 2px;
     background: linear-gradient(to bottom, #2a2a2a 0, #151515 50%, #2a2a2a 100%);
     color: var(--ueb-pin-dim-color);
     white-space: nowrap;
     z-index: 1000000;
+}
+
+.ueb-link-message-icon {
+    display: inline-block;
+    position: relative;
+    width: 20px;
+    height: 20px;
+}
+
+.ueb-link-message-text {
+    padding: 4px 8px;
+}
+
+.ueb-link-message-icon svg {
+    width: 100%;
+    height: 100%;
 }

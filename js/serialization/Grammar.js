@@ -7,6 +7,7 @@ import InvariantTextEntity from "../entity/InvariantTextEntity"
 import KeyBindingEntity from "../entity/KeyBindingEntity"
 import LinearColorEntity from "../entity/LinearColorEntity"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity"
+import MacroGraphReferenceEntity from "../entity/MacroGraphReferenceEntity"
 import ObjectEntity from "../entity/ObjectEntity"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity"
 import Parsimmon from "parsimmon"
@@ -69,10 +70,12 @@ export default class Grammar {
                 return r.LinearColor
             case LocalizedTextEntity:
                 return r.LocalizedText
+            case MacroGraphReferenceEntity:
+                return r.MacroGraphReference
             case Number:
                 return r.Number
             case ObjectReferenceEntity:
-                return r.Reference
+                return r.ObjectReference
             case PinEntity:
                 return r.Pin
             case PinReferenceEntity:
@@ -181,6 +184,8 @@ export default class Grammar {
             .map(v => v.toString())
             .sepBy1(P.string("."))
             .tieWith(".")
+            .sepBy1(P.string(":"))
+            .tieWith(":")
     )
         .tie()
         .atLeast(2)
@@ -208,7 +213,7 @@ export default class Grammar {
     PathSymbol = r => P.regex(/[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
-    Reference = r => P.alt(
+    ObjectReference = r => P.alt(
         r.None,
         ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
             .flatMap(referencePath => [
@@ -261,7 +266,7 @@ export default class Grammar {
         r.Guid,
         r.LocalizedText,
         r.InvariantText,
-        r.Reference,
+        r.ObjectReference,
         r.Vector,
         r.LinearColor,
     )
@@ -316,6 +321,9 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
+
+    /** @param {Grammar} r */
+    MacroGraphReference = r => Grammar.createEntityGrammar(r, MacroGraphReferenceEntity)
 
     /** @param {Grammar} r */
     KeyBinding = r => P.alt(

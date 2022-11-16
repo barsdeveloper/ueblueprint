@@ -2,6 +2,7 @@ import { html } from "lit"
 import Configuration from "../Configuration"
 import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
+import SVGIcon from "../SVGIcon"
 
 /** @typedef {import("../element/WindowElement").default} WindowElement */
 
@@ -29,10 +30,7 @@ export default class WindowTemplate extends IDraggablePositionedTemplate {
                 <div class="ueb-window-top">
                     <div class="ueb-window-name ueb-ellipsis-nowrap-text">${this.renderWindowName()}</div>
                     <div class="ueb-window-close" @click="${() => this.element.remove()}">
-                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
-                            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
-                        </svg>
+                        ${SVGIcon.close}
                     </div>
                 </div>
                 <div class="ueb-window-content">

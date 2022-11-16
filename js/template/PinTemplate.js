@@ -2,6 +2,7 @@ import { html } from "lit"
 import Configuration from "../Configuration"
 import ITemplate from "./ITemplate"
 import MouseCreateLink from "../input/mouse/MouseCreateLink"
+import SVGIcon from "../SVGIcon"
 import Utility from "../Utility"
 
 /** @typedef {import("../input/IInput").default} IInput */
@@ -52,12 +53,7 @@ export default class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
-        return html`
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="ueb-pin-icon">
-                <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="5" />
-                <path d="M 34 6 L 34 26 L 42 16 Z" fill="currentColor" />
-            </svg>
-        `
+        return SVGIcon.genericPin
     }
 
     renderName() {
