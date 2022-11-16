@@ -38,7 +38,7 @@ export default class PinTemplate extends ITemplate {
     }
 
     render() {
-        const icon = this.renderIcon()
+        const icon = html`<div class="ueb-pin-icon">${this.renderIcon()}</div>`
         const content = html`
             <div class="ueb-pin-content">
                 ${this.renderName()}

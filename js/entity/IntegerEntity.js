@@ -3,7 +3,7 @@ import IEntity from "./IEntity"
 export default class IntegerEntity extends IEntity {
 
     static attributes = {
-        value: Number,
+        value: 0,
     }
 
     /** @param {Object | Number | String} options */

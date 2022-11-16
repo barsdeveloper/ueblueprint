@@ -1,4 +1,5 @@
 import { html, nothing } from "lit"
+import Configuration from "../Configuration"
 import ElementFactory from "../element/ElementFactory"
 import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
 import SVGIcon from "../SVGIcon"
@@ -10,6 +11,15 @@ import SVGIcon from "../SVGIcon"
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class NodeTemplate extends ISelectableDraggableTemplate {
+
+    static #nodeIcon = {
+        [Configuration.nodeType.callFunction]: SVGIcon.functionSymbol,
+        [Configuration.nodeType.forEachLoop]: SVGIcon.forEachLoop,
+        [Configuration.nodeType.forLoop]: SVGIcon.loopNode,
+        [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
+        [Configuration.nodeType.whileLoop]: SVGIcon.loopNode,
+        default: SVGIcon.functionSymbol
+    }
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay()
@@ -27,7 +37,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
                         <div class="ueb-node-name">
-                            <span class="ueb-node-name-symbol">${SVGIcon.functionSymbol}</span>
+                            <span class="ueb-node-name-symbol">${this.renderNodeIcon()}</span>
                             <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                                 ${this.renderNodeName()}
                             </span>
@@ -50,6 +60,17 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 </div>
             </div>
         `
+    }
+
+    renderNodeIcon() {
+        let icon = NodeTemplate.#nodeIcon[this.element.getType()]
+        if (icon) {
+            return icon
+        }
+        if (this.element.entity.getClass() === Configuration.nodeType.macro) {
+            return SVGIcon.macro
+        }
+        return NodeTemplate.#nodeIcon.default
     }
 
     renderNodeName() {

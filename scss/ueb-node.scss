@@ -103,9 +103,9 @@ ueb-node[data-pure-function="true"] .ueb-node-top {
 
 .ueb-node-name-symbol {
     color: #74bff2;
-}
-
-.ueb-node-name-symbol svg {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
     vertical-align: middle;
 }
 
@@ -175,12 +175,8 @@ ueb-node[data-enabled-state="DevelopmentOnly"] .ueb-node-developmentonly {
     text-align: center;
 }
 
-.ueb-zoom--8 .ueb-node-expansion {
-    visibility: hidden;
-}
-
-.ueb-node-expansion-icon {
-    vertical-align: middle;
+ueb-node[data-advanced-display] .ueb-node-expansion {
+    display: block;
 }
 
 ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-expansion:hover {
@@ -188,10 +184,16 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-expansio
     cursor: pointer;
 }
 
-ueb-node[data-advanced-display] .ueb-node-expansion {
-    display: block;
+.ueb-zoom--8 .ueb-node-expansion {
+    visibility: hidden;
 }
 
-ueb-node[data-advanced-display="Shown"] .ueb-node-expansion-icon {
+.ueb-node-expansion>svg {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+ueb-node[data-advanced-display="Shown"] .ueb-node-expansion>svg {
     transform: scaleY(-1)
 }

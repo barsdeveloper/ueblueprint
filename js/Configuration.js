@@ -51,9 +51,14 @@ export default class Configuration {
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
-        function: "/Script/BlueprintGraph.K2Node_CallFunction",
+        forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
+        forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
+        callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
+        ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
+        reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
+        whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinColor = {
         "/Script/CoreUObject.LinearColor": css`3, 76, 168`,
@@ -68,6 +73,7 @@ export default class Configuration {
         "name": css`203, 129, 252`,
         "real": css`50, 187, 0`,
         "string": css`213, 0, 176`,
+        "wildcard": css`128, 120, 120`
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static distanceThreshold = 5 // in pixel

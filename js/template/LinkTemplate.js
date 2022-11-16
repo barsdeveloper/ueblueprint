@@ -162,7 +162,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
                     <use href="#${uniqueId}" pointer-events="stroke" stroke-width="20" />
                 </g>
             </svg>
-            ${this.element.linkMessageIcon != "" || this.element.linkMessageText != "" ? html`
+            ${this.element.linkMessageIcon || this.element.linkMessageText ? html`
                 <div class="ueb-link-message">
                     <span class="ueb-link-message-icon">${this.element.linkMessageIcon}</span>
                     <span class="ueb-link-message-text">${this.element.linkMessageText}</span>

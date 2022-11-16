@@ -61,7 +61,7 @@ export default class ObjectEntity extends IEntity {
     getType() {
         let classValue = this.getClass()
         if (classValue === Configuration.nodeType.macro) {
-            return this.MacroGraphReference.GraphBlueprint.path
+            return this.MacroGraphReference.MacroGraph.path
         }
         return classValue
     }
@@ -92,15 +92,25 @@ export default class ObjectEntity extends IEntity {
 
     getDisplayName() {
         let name = ""
-        switch (this.getClass()) {
-            case Configuration.nodeType.function:
+        switch (this.getType()) {
+            case Configuration.nodeType.callFunction:
                 name = this.FunctionReference.MemberName
                 break
-            case Configuration.nodeType.macro:
-                name = this.MacroGraphReference.getMacroName()
+            case Configuration.nodeType.ifThenElse:
+                name = "Branch"
+                break
+            case Configuration.nodeType.forEachLoop:
+                name = "For Each Loop with Break"
+                break
+            case Configuration.nodeType.reverseForEachLoop:
+                name = "Reverse for Each Loop"
                 break
             default:
-                name = this.getNameAndCounter()[0]
+                if (this.getClass() === Configuration.nodeType.macro) {
+                    name = this.MacroGraphReference.getMacroName()
+                } else {
+                    name = this.getNameAndCounter()[0]
+                }
                 break
         }
         return Utility.formatStringName(name)

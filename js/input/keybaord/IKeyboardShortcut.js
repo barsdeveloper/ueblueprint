@@ -22,6 +22,7 @@ export default class IKeyboardShortcut extends IInput {
     constructor(target, blueprint, options = {}) {
         options.activateAnyKey ??= false
         options.activationKeys ??= []
+        options.consumeEvent ??= true
         options.listenOnFocus ??= true
         options.unlistenOnTextEdit ??= true // No shortcuts when inside of a text field
         if (!(options.activationKeys instanceof Array)) {
@@ -62,6 +63,7 @@ export default class IKeyboardShortcut extends IInput {
                 )
             ) {
                 if (options.consumeEvent) {
+                    e.preventDefault()
                     e.stopImmediatePropagation()
                 }
                 self.fire()

@@ -164,10 +164,7 @@ export default class PinElement extends IElement {
     }
 
     getColor() {
-        if (!this.pinType) {
-            return Configuration.pinColor["default"]
-        }
-        return Configuration.pinColor[this.pinType]
+        return Configuration.pinColor[this.pinType] ?? Configuration.pinColor["default"]
     }
 
     isInput() {

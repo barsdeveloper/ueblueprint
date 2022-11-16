@@ -22,7 +22,8 @@ export default class LinearColorPinTemplate extends PinTemplate {
     #launchColorPickerWindow =
         /** @param {MouseEvent} e */
         e => {
-            //e.preventDefault()
+            e.preventDefault()
+            this.element.blueprint.setFocused(true)
             this.#window = /** @type {WindowElement} */ (
                 new (ElementFactory.getConstructor("ueb-window"))({
                     type: ColorPickerWindowTemplate,

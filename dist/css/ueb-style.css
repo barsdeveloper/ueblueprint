@@ -271,9 +271,13 @@ ueb-link .ueb-link-area:hover path {
   transition: stroke-width 0.8s;
 }
 
-.ueb-link-message {
+ueb-link[data-dragging=true] .ueb-link-message {
   display: block;
   visibility: visible;
+}
+
+.ueb-link-message {
+  display: none;
   position: absolute;
   top: calc(100% * (1 - var(--ueb-y-reflected)) + 22px);
   left: calc((1 - var(--ueb-from-input)) * 100% + (var(--ueb-from-input-coefficient)) * var(--ueb-start-percentage) + 15px);
@@ -398,9 +402,9 @@ ueb-node[data-pure-function=true] .ueb-node-top {
 
 .ueb-node-name-symbol {
   color: #74bff2;
-}
-
-.ueb-node-name-symbol svg {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
   vertical-align: middle;
 }
 
@@ -460,12 +464,8 @@ ueb-node[data-enabled-state=DevelopmentOnly] .ueb-node-developmentonly {
   text-align: center;
 }
 
-.ueb-zoom--8 .ueb-node-expansion {
-  visibility: hidden;
-}
-
-.ueb-node-expansion-icon {
-  vertical-align: middle;
+ueb-node[data-advanced-display] .ueb-node-expansion {
+  display: block;
 }
 
 ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-expansion:hover {
@@ -473,11 +473,17 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-expansion:ho
   cursor: pointer;
 }
 
-ueb-node[data-advanced-display] .ueb-node-expansion {
-  display: block;
+.ueb-zoom--8 .ueb-node-expansion {
+  visibility: hidden;
 }
 
-ueb-node[data-advanced-display=Shown] .ueb-node-expansion-icon {
+.ueb-node-expansion > svg {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+ueb-node[data-advanced-display=Shown] .ueb-node-expansion > svg {
   transform: scaleY(-1);
 }
 
@@ -531,17 +537,30 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover
   text-align: right;
 }
 
-ueb-pin[data-type=exec] .ueb-pin-icon-exec {
+.ueb-pin-icon {
+  min-width: 15px;
+  text-align: left;
+}
+
+.ueb-node-inputs .ueb-pin-icon {
+  margin-right: 4px;
+}
+
+.ueb-node-outputs .ueb-pin-icon {
+  margin-left: 4px;
+}
+
+.ueb-pin-icon > svg {
+  width: 11px;
+  height: 11px;
+  color: var(--ueb-pin-color);
+}
+
+ueb-pin[data-type=exec] .ueb-pin-icon > svg {
   --ueb-pin-color: white;
   width: 15px;
   height: 15px;
-}
-
-.ueb-pin-icon {
-  width: 11px;
-  height: 11px;
-  margin-right: 0.5em;
-  color: var(--ueb-pin-color);
+  vertical-align: middle;
 }
 
 ueb-pin[data-linked=true] .ueb-pin-tofill {
@@ -550,7 +569,6 @@ ueb-pin[data-linked=true] .ueb-pin-tofill {
 
 .ueb-pin-name {
   display: inline-block;
-  vertical-align: middle;
 }
 
 .ueb-zoom--6 .ueb-pin-content {

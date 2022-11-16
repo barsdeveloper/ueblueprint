@@ -37,9 +37,13 @@ ueb-link .ueb-link-area:hover path {
     transition: stroke-width 0.8s;
 }
 
-.ueb-link-message {
+ueb-link[data-dragging="true"] .ueb-link-message {
     display: block;
     visibility: visible;
+}
+
+.ueb-link-message {
+    display: none;
     position: absolute;
     top: calc(100% * (1 - var(--ueb-y-reflected)) + 22px);
     left: calc(

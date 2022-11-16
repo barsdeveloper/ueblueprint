@@ -1,13 +1,13 @@
 import { html } from "lit"
-import Utility from "../Utility"
 import PinTemplate from "./PinTemplate"
+import Utility from "../Utility"
 
 /** @typedef {import("./KnotNodeTemplate").default} KnotNodeTemplate */
 
 export default class KnotPinTemplate extends PinTemplate {
 
     render() {
-        return this.element.isOutput() ? this.renderIcon() : html``
+        return this.element.isOutput() ? html`<div class="ueb-pin-icon">${this.renderIcon()}</div>` : html``
     }
 
     getLinkLocation() {
