@@ -22,6 +22,7 @@ export default class ObjectEntity extends IEntity {
         EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         MacroGraphReference: new TypeInitialization(MacroGraphReferenceEntity, false, null),
+        Enum: new TypeInitialization(ObjectReferenceEntity, false),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
         AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
@@ -44,6 +45,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {FunctionReferenceEntity?} */ this.EventReference
         /** @type {ObjectReferenceEntity?} */ this.TargetType
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference
+        /** @type {ObjectReferenceEntity?} */ this.Enum
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay
@@ -94,26 +96,22 @@ export default class ObjectEntity extends IEntity {
         let name = ""
         switch (this.getType()) {
             case Configuration.nodeType.callFunction:
-                name = this.FunctionReference.MemberName
-                break
+                return Utility.formatStringName(this.FunctionReference.MemberName)
+            case Configuration.nodeType.dynamicCast:
+                return `Cast To ${this.TargetType.getName()}`
             case Configuration.nodeType.ifThenElse:
-                name = "Branch"
-                break
-            case Configuration.nodeType.forEachLoop:
-                name = "For Each Loop with Break"
-                break
-            case Configuration.nodeType.reverseForEachLoop:
-                name = "Reverse for Each Loop"
-                break
+                return "Branch"
+            case Configuration.nodeType.forEachElementInEnum:
+                return `For Each ${this.Enum.getName()}`
+            case Configuration.nodeType.forEachLoopWithBreak:
+                return "For Each Loop with Break"
             default:
                 if (this.getClass() === Configuration.nodeType.macro) {
-                    name = this.MacroGraphReference.getMacroName()
+                    return Utility.formatStringName(this.MacroGraphReference.getMacroName())
                 } else {
-                    name = this.getNameAndCounter()[0]
+                    return Utility.formatStringName(this.getNameAndCounter()[0])
                 }
-                break
         }
-        return Utility.formatStringName(name)
     }
 
     getCounter() {

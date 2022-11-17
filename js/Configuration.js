@@ -1,6 +1,26 @@
 import { css } from "lit"
 
+/** @typedef {import("./element/PinElement").default} PinElement */
+
 export default class Configuration {
+    static #pinColor = {
+        "/Script/CoreUObject.LinearColor": css`3, 76, 168`,
+        "/Script/CoreUObject.Rotator": css`152, 171, 241`,
+        "/Script/CoreUObject.Transform": css`241, 110, 1`,
+        "/Script/CoreUObject.Vector": css`215, 202, 11`,
+        "/Script/Engine.Actor": css`0, 168, 242`,
+        "/Script/Engine.Pawn": css`0, 168, 242`,
+        "bool": css`117, 0, 0`,
+        "byte": css`0, 110, 98`,
+        "class": css`88, 0, 186`,
+        "default": css`167, 167, 167`,
+        "exec": css`240, 240, 240`,
+        "int": css`32, 224, 173`,
+        "name": css`203, 129, 252`,
+        "real": css`50, 187, 0`,
+        "string": css`213, 0, 176`,
+        "wildcard": css`128, 120, 120`,
+    }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
@@ -19,6 +39,26 @@ export default class Configuration {
         end: "blueprint-unfocus",
     }
     static fontSize = css`12.5px`
+    /** @param {PinElement} pin */
+    static getPinColor(pin) {
+        if (!pin) {
+            return Configuration.#pinColor["default"]
+        }
+        if (Configuration.#pinColor[pin.pinType]) {
+            return Configuration.#pinColor[pin.pinType]
+        }
+        if (pin.entity.PinType.PinCategory == "struct" || pin.entity.PinType.PinCategory == "object") {
+            switch (pin.entity.PinType.PinSubCategoryObject.type) {
+                case "ScriptStruct":
+                    return css`0, 88, 200`
+                default:
+                    if (pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")) {
+                        return Configuration.#pinColor["/Script/Engine.Actor"]
+                    }
+            }
+        }
+        return Configuration.#pinColor["default"]
+    }
     static gridAxisLineColor = css`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = css`#353535`
@@ -51,29 +91,20 @@ export default class Configuration {
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
-        forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
-        forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
+        doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
+        dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
+        forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",
+        forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
+        forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
+        forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
+        pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
-    }
-    static pinColor = {
-        "/Script/CoreUObject.LinearColor": css`3, 76, 168`,
-        "/Script/CoreUObject.Rotator": css`152, 171, 241`,
-        "/Script/CoreUObject.Transform": css`241, 110, 1`,
-        "/Script/CoreUObject.Vector": css`215, 202, 11`,
-        "/Script/Engine.Actor": css`0, 168, 240`,
-        "bool": css`117, 0, 0`,
-        "default": css`167, 167, 167`,
-        "exec": css`240, 240, 240`,
-        "int": css`32, 224, 173`,
-        "name": css`203, 129, 252`,
-        "real": css`50, 187, 0`,
-        "string": css`213, 0, 176`,
-        "wildcard": css`128, 120, 120`
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static distanceThreshold = 5 // in pixel

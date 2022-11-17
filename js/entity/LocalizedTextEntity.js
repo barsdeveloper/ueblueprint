@@ -1,4 +1,5 @@
 import IEntity from "./IEntity"
+import Utility from "../Utility"
 
 export default class LocalizedTextEntity extends IEntity {
 
@@ -17,10 +18,6 @@ export default class LocalizedTextEntity extends IEntity {
     }
 
     toString() {
-        if (this.value.length === 0) {
-            return this.value
-        }
-        let result = this.value
-        return result.charAt(0).toLocaleUpperCase() + result.slice(1).toLocaleLowerCase()
+        return Utility.capitalFirstLetter(this.value)
     }
 }

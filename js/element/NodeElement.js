@@ -20,12 +20,12 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     static properties = {
         ...ISelectableDraggableElement.properties,
-        nodeClass: {
+        typePath: {
             type: String,
             attribute: "data-type",
             reflect: true,
         },
-        name: {
+        nodeName: {
             type: String,
             attribute: "data-name",
             reflect: true,
@@ -81,8 +81,8 @@ export default class NodeElement extends ISelectableDraggableElement {
     constructor(entity, template = undefined) {
         super(entity, template ?? new (NodeElement.getTypeTemplate(entity))())
         this.#pins = this.template.createPinElements()
-        this.nodeClass = this.entity.getType()
-        this.name = this.entity.getObjectName()
+        this.typePath = this.entity.getType()
+        this.nodeName = this.entity.getObjectName()
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString()
         this.enabledState = this.entity.EnabledState
         this.nodeDisplayName = this.entity.getDisplayName()
@@ -90,7 +90,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value)
-        this.entity.subscribe("Name", value => this.name = value)
+        this.entity.subscribe("Name", value => this.nodeName = value)
     }
 
     /**

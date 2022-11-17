@@ -11,6 +11,17 @@ export default class SVGIcon {
         </svg>
     `
 
+    static cast = html`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 12L16 7.5L12 3V12Z" fill="white"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 11L4 7.5L0 4V11Z" fill="white"/>
+            <rect opacity="0.5" x="5" y="6" width="1" height="3" fill="white"/>
+            <rect opacity="0.5" x="7" y="6" width="1" height="3" fill="white"/>
+            <rect opacity="0.5" x="9" y="6" width="1" height="3" fill="white"/>
+            <rect x="9" y="6" width="3" height="3" fill="white"/>
+        </svg>
+    `
+
     static close = html`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
@@ -21,6 +32,13 @@ export default class SVGIcon {
     static correct = html`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <path fill="#2da800" d="M 2 16 L 14 30 L 30 2 L 13 22 Z" />
+        </svg>
+    `
+
+    static doN = html`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white"/>
+            <path d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" fill="white"/>
         </svg>
     `
 
@@ -64,7 +82,7 @@ export default class SVGIcon {
         </svg>
     `
 
-    static loopNode = html`
+    static loop = html`
         <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <style>
@@ -90,6 +108,14 @@ export default class SVGIcon {
     static macro = html`
         <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 2.92L10 12.29L14.55 2.61C14.662 2.4259 14.8189 2.27332 15.0061 2.16661C15.1933 2.05989 15.4045 2.00256 15.62 2H19L18.66 2.89C18.66 2.89 17.17 3.04 17.11 3.63C17.05 4.22 16 15.34 15.93 16.13C15.86 16.92 17.33 17.13 17.33 17.13L17.17 17.99H13.84C13.7241 17.9764 13.612 17.9399 13.5103 17.8826C13.4086 17.8253 13.3194 17.7484 13.2477 17.6562C13.176 17.5641 13.1234 17.4586 13.0929 17.346C13.0624 17.2333 13.0546 17.1157 13.07 17L14.43 5.52L10 14.57C9.8 15.03 9.07 15.72 8.63 15.71H7.75L6.05 4.86L3.54 17.39C3.51941 17.5514 3.44327 17.7005 3.32465 17.8118C3.20603 17.9232 3.05235 17.9897 2.89 18H1L1.11 17.09C1.11 17.09 2.21 17.09 2.3 16.69C2.39 16.29 5.3 3.76 5.41 3.32C5.52 2.88 4.19 2.81 4.19 2.81L4.46 2H6.62C7.09 2 7.92 2.38 8 2.92Z" fill="white"/>
+        </svg>
+    `
+
+    static makeStruct = html`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
+            <path d="M12.975 6H8.025C6.90662 6 6 6.90662 6 8.025V8.475C6 9.59338 6.90662 10.5 8.025 10.5H12.975C14.0934 10.5 15 9.59338 15 8.475V8.025C15 6.90662 14.0934 6 12.975 6Z" fill="white"/>
         </svg>
     `
 

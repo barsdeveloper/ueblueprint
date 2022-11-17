@@ -1,6 +1,7 @@
 ueb-node {
     display: block;
     position: absolute;
+    min-width: 130px;
     border-radius: var(--ueb-node-radius);
     box-shadow: 0 0 1px 0 black, 1px 4px 6px 0 rgba(0, 0, 0, 0.3);
     font-weight: lighter;
@@ -63,11 +64,10 @@ ueb-node[data-selected="true"]>.ueb-node-border {
 .ueb-node-top {
     padding: 0.2em 0.7em;
     box-shadow:
-        inset 5px 1px 5px -3px #7ba1b3,
-        inset 0 1px 0 0 #111213,
-        inset 0 2px 0 0 #7b9eb3;
+        inset 5px 1px 5px -3px #ffffff40,
+        inset 0 1px 2px 0 #ffffff40;
     border-radius: var(--ueb-node-radius) var(--ueb-node-radius) 0 0;
-    background: linear-gradient(170deg, #5ca1dd 0%, #466980 50%, transparent 100%);
+    background: linear-gradient(170deg, var(--ueb-node-color) 0%, var(--ueb-node-color) 50%, transparent 100%);
     color: #c0c0c0;
     font-weight: 900;
     white-space: nowrap;
@@ -79,16 +79,12 @@ ueb-node[data-selected="true"]>.ueb-node-border {
 }
 
 .ueb-zoom--2 ueb-node[data-pure-function="true"] .ueb-node-top {
-    background: #5f815a;
-}
-
-ueb-node[data-pure-function="true"] .ueb-node-top {
-    background: linear-gradient(170deg, #5f815a 0%, #5f815a 50%, transparent 100%);
+    background: var(--ueb-node-color);
 }
 
 
 .ueb-node-name {
-    background: radial-gradient(ellipse 100% 100% at 35% 50%, rgba(0, 0, 0, 0.35) 20%, transparent 50%);
+    background: radial-gradient(ellipse 100% 100% at 35% 50%, rgba(0, 0, 0, 0.5) 12%, transparent 50%);
     margin: -0.1em -1.6em;
     padding: 0.1em 1.6em;
 }

@@ -242,11 +242,22 @@ export default class Utility {
     }
 
     /** @param {String} value */
+    static capitalFirstLetter(value) {
+        if (value.length === 0) {
+            return value
+        }
+        return value.charAt(0).toLocaleUpperCase() + value.slice(1).toLocaleLowerCase()
+    }
+
+    /** @param {String} value */
     static formatStringName(value) {
         return value
             .trim()
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
+            .split(" ")
+            .map(v => Utility.capitalFirstLetter(v))
+            .join(" ")
     }
 
     /** @param {String} value */
@@ -254,7 +265,7 @@ export default class Utility {
         return value
             .replace(/(?:.+\.)?([^\.]+)$/, "$1")
             .replaceAll(/(?<=[a-z\d])(?=[A-Z])|(?<=[a-zA-Z])(?=\d)|(?<=[A-Z]{2})(?=[A-Z][a-z])/g, "-")
-            .toLocaleLowerCase()
+            .toLowerCase()
     }
 
     /** @param {LinearColorEntity} value */

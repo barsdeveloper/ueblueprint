@@ -24,7 +24,27 @@ var t$1;const i$2=globalThis.trustedTypes,s$1=i$2?i$2.createPolicy("lit-html",{c
  * SPDX-License-Identifier: BSD-3-Clause
  */var l,o;class s extends a$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=T(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return b}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
+/** @typedef {import("./element/PinElement").default} PinElement */
+
 class Configuration {
+    static #pinColor = {
+        "/Script/CoreUObject.LinearColor": r$2`3, 76, 168`,
+        "/Script/CoreUObject.Rotator": r$2`152, 171, 241`,
+        "/Script/CoreUObject.Transform": r$2`241, 110, 1`,
+        "/Script/CoreUObject.Vector": r$2`215, 202, 11`,
+        "/Script/Engine.Actor": r$2`0, 168, 242`,
+        "/Script/Engine.Pawn": r$2`0, 168, 242`,
+        "bool": r$2`117, 0, 0`,
+        "byte": r$2`0, 110, 98`,
+        "class": r$2`88, 0, 186`,
+        "default": r$2`167, 167, 167`,
+        "exec": r$2`240, 240, 240`,
+        "int": r$2`32, 224, 173`,
+        "name": r$2`203, 129, 252`,
+        "real": r$2`50, 187, 0`,
+        "string": r$2`213, 0, 176`,
+        "wildcard": r$2`128, 120, 120`,
+    }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
@@ -43,6 +63,26 @@ class Configuration {
         end: "blueprint-unfocus",
     }
     static fontSize = r$2`12.5px`
+    /** @param {PinElement} pin */
+    static getPinColor(pin) {
+        if (!pin) {
+            return Configuration.#pinColor["default"]
+        }
+        if (Configuration.#pinColor[pin.pinType]) {
+            return Configuration.#pinColor[pin.pinType]
+        }
+        if (pin.entity.PinType.PinCategory == "struct" || pin.entity.PinType.PinCategory == "object") {
+            switch (pin.entity.PinType.PinSubCategoryObject.type) {
+                case "ScriptStruct":
+                    return r$2`0, 88, 200`
+                default:
+                    if (pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")) {
+                        return Configuration.#pinColor["/Script/Engine.Actor"]
+                    }
+            }
+        }
+        return Configuration.#pinColor["default"]
+    }
     static gridAxisLineColor = r$2`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = r$2`#353535`
@@ -75,29 +115,20 @@ class Configuration {
     static nodeRadius = 8 // in pixel
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
-        forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
-        forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
+        doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
+        dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
+        forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",
+        forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
+        forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
+        forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
+        pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
-    }
-    static pinColor = {
-        "/Script/CoreUObject.LinearColor": r$2`3, 76, 168`,
-        "/Script/CoreUObject.Rotator": r$2`152, 171, 241`,
-        "/Script/CoreUObject.Transform": r$2`241, 110, 1`,
-        "/Script/CoreUObject.Vector": r$2`215, 202, 11`,
-        "/Script/Engine.Actor": r$2`0, 168, 240`,
-        "bool": r$2`117, 0, 0`,
-        "default": r$2`167, 167, 167`,
-        "exec": r$2`240, 240, 240`,
-        "int": r$2`32, 224, 173`,
-        "name": r$2`203, 129, 252`,
-        "real": r$2`50, 187, 0`,
-        "string": r$2`213, 0, 176`,
-        "wildcard": r$2`128, 120, 120`
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static distanceThreshold = 5 // in pixel
@@ -762,11 +793,22 @@ class Utility {
     }
 
     /** @param {String} value */
+    static capitalFirstLetter(value) {
+        if (value.length === 0) {
+            return value
+        }
+        return value.charAt(0).toLocaleUpperCase() + value.slice(1).toLocaleLowerCase()
+    }
+
+    /** @param {String} value */
     static formatStringName(value) {
         return value
             .trim()
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
             .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
+            .split(" ")
+            .map(v => Utility.capitalFirstLetter(v))
+            .join(" ")
     }
 
     /** @param {String} value */
@@ -774,7 +816,7 @@ class Utility {
         return value
             .replace(/(?:.+\.)?([^\.]+)$/, "$1")
             .replaceAll(/(?<=[a-z\d])(?=[A-Z])|(?<=[a-zA-Z])(?=\d)|(?<=[A-Z]{2})(?=[A-Z][a-z])/g, "-")
-            .toLocaleLowerCase()
+            .toLowerCase()
     }
 
     /** @param {LinearColorEntity} value */
@@ -926,6 +968,10 @@ class ObjectReferenceEntity extends IEntity {
         super(options);
         /** @type {String} */ this.type;
         /** @type {String} */ this.path;
+    }
+
+    getName() {
+        return this.path.match(/[^\.\/]+$/)[0]
     }
 }
 
@@ -1295,11 +1341,7 @@ class LocalizedTextEntity extends IEntity {
     }
 
     toString() {
-        if (this.value.length === 0) {
-            return this.value
-        }
-        let result = this.value;
-        return result.charAt(0).toLocaleUpperCase() + result.slice(1).toLocaleLowerCase()
+        return Utility.capitalFirstLetter(this.value)
     }
 }
 
@@ -1608,6 +1650,7 @@ class ObjectEntity extends IEntity {
         EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         MacroGraphReference: new TypeInitialization(MacroGraphReferenceEntity, false, null),
+        Enum: new TypeInitialization(ObjectReferenceEntity, false),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
         AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
@@ -1630,6 +1673,7 @@ class ObjectEntity extends IEntity {
         /** @type {FunctionReferenceEntity?} */ this.EventReference;
         /** @type {ObjectReferenceEntity?} */ this.TargetType;
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference;
+        /** @type {ObjectReferenceEntity?} */ this.Enum;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
         /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
@@ -1677,29 +1721,24 @@ class ObjectEntity extends IEntity {
     }
 
     getDisplayName() {
-        let name = "";
         switch (this.getType()) {
             case Configuration.nodeType.callFunction:
-                name = this.FunctionReference.MemberName;
-                break
+                return Utility.formatStringName(this.FunctionReference.MemberName)
+            case Configuration.nodeType.dynamicCast:
+                return `Cast To ${this.TargetType.getName()}`
             case Configuration.nodeType.ifThenElse:
-                name = "Branch";
-                break
-            case Configuration.nodeType.forEachLoop:
-                name = "For Each Loop with Break";
-                break
-            case Configuration.nodeType.reverseForEachLoop:
-                name = "Reverse for Each Loop";
-                break
+                return "Branch"
+            case Configuration.nodeType.forEachElementInEnum:
+                return `For Each ${this.Enum.getName()}`
+            case Configuration.nodeType.forEachLoopWithBreak:
+                return "For Each Loop with Break"
             default:
                 if (this.getClass() === Configuration.nodeType.macro) {
-                    name = this.MacroGraphReference.getMacroName();
+                    return Utility.formatStringName(this.MacroGraphReference.getMacroName())
                 } else {
-                    name = this.getNameAndCounter()[0];
+                    return Utility.formatStringName(this.getNameAndCounter()[0])
                 }
-                break
         }
-        return Utility.formatStringName(name)
     }
 
     getCounter() {
@@ -1799,6 +1838,24 @@ class Grammar {
     }
 
     /** @param {Grammar} r */
+    static ReferencePath = (r, referencePathGrammar) =>
+        P.alt(
+            referencePathGrammar,
+            P.seq(
+                P.string("/"),
+                referencePathGrammar
+                    .map(v => v.toString())
+                    .sepBy1(P.string("."))
+                    .tieWith(".")
+                    .sepBy1(P.string(":"))
+                    .tieWith(":")
+            )
+                .tie()
+                .atLeast(2)
+                .tie()
+        )
+
+    /** @param {Grammar} r */
     static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
@@ -1879,21 +1936,6 @@ class Grammar {
         .desc('string (with possibility to escape the quote using \")')
 
     /** @param {Grammar} r */
-    ReferencePath = r => P.seq(
-        P.string("/"),
-        r.PathSymbol
-            .map(v => v.toString())
-            .sepBy1(P.string("."))
-            .tieWith(".")
-            .sepBy1(P.string(":"))
-            .tieWith(":")
-    )
-        .tie()
-        .atLeast(2)
-        .tie()
-        .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
-
-    /** @param {Grammar} r */
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
 
     /*   ---   Entity   ---   */
@@ -1914,22 +1956,28 @@ class Grammar {
     PathSymbol = r => P.regex(/[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
+    PathSymbolOptSpaces = r => P.regex(/[0-9\w]+(?: [0-9\w]+)+|[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
+
+    /** @param {Grammar} r */
     ObjectReference = r => P.alt(
         r.None,
-        ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
-            .flatMap(referencePath => [
-                referencePath, // Version having just path
-                referencePath.trim(P.string('"')) // Version having path surround with double quotes
-            ]),
+        ...[
+            Grammar.ReferencePath(r, r.PathSymbolOptSpaces)
+                .map(path => new ObjectReferenceEntity({ type: "", path: path }))
+        ].flatMap(referencePath => [
+            referencePath.wrap(P.string(`"`), P.string(`"`)),
+            referencePath.wrap(P.string(`'"`), P.string(`"'`)),
+        ]),
         P.seqMap(
             r.Word, // Goes into referenceType
             P.optWhitespace, // Goes into _1 (ignored)
-            P.alt(...[r.ReferencePath].flatMap(referencePath => [
+            P.alt(...[Grammar.ReferencePath(r, r.PathSymbolOptSpaces)].flatMap(referencePath => [
                 referencePath.wrap(P.string(`"`), P.string(`"`)),
                 referencePath.wrap(P.string(`'"`), P.string(`"'`))
             ])), // Goes into referencePath
             (referenceType, _1, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
         ),
+        Grammar.ReferencePath(r, r.PathSymbol).map(path => new ObjectReferenceEntity({ type: "", path: path })),
         r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
     )
 
@@ -3759,6 +3807,17 @@ class SVGIcon {
         </svg>
     `
 
+    static cast = $`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 12L16 7.5L12 3V12Z" fill="white"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 11L4 7.5L0 4V11Z" fill="white"/>
+            <rect opacity="0.5" x="5" y="6" width="1" height="3" fill="white"/>
+            <rect opacity="0.5" x="7" y="6" width="1" height="3" fill="white"/>
+            <rect opacity="0.5" x="9" y="6" width="1" height="3" fill="white"/>
+            <rect x="9" y="6" width="3" height="3" fill="white"/>
+        </svg>
+    `
+
     static close = $`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
@@ -3769,6 +3828,13 @@ class SVGIcon {
     static correct = $`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <path fill="#2da800" d="M 2 16 L 14 30 L 30 2 L 13 22 Z" />
+        </svg>
+    `
+
+    static doN = $`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white"/>
+            <path d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" fill="white"/>
         </svg>
     `
 
@@ -3812,7 +3878,7 @@ class SVGIcon {
         </svg>
     `
 
-    static loopNode = $`
+    static loop = $`
         <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <style>
@@ -3838,6 +3904,14 @@ class SVGIcon {
     static macro = $`
         <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 2.92L10 12.29L14.55 2.61C14.662 2.4259 14.8189 2.27332 15.0061 2.16661C15.1933 2.05989 15.4045 2.00256 15.62 2H19L18.66 2.89C18.66 2.89 17.17 3.04 17.11 3.63C17.05 4.22 16 15.34 15.93 16.13C15.86 16.92 17.33 17.13 17.33 17.13L17.17 17.99H13.84C13.7241 17.9764 13.612 17.9399 13.5103 17.8826C13.4086 17.8253 13.3194 17.7484 13.2477 17.6562C13.176 17.5641 13.1234 17.4586 13.0929 17.346C13.0624 17.2333 13.0546 17.1157 13.07 17L14.43 5.52L10 14.57C9.8 15.03 9.07 15.72 8.63 15.71H7.75L6.05 4.86L3.54 17.39C3.51941 17.5514 3.44327 17.7005 3.32465 17.8118C3.20603 17.9232 3.05235 17.9897 2.89 18H1L1.11 17.09C1.11 17.09 2.21 17.09 2.3 16.69C2.39 16.29 5.3 3.76 5.41 3.32C5.52 2.88 4.19 2.81 4.19 2.81L4.46 2H6.62C7.09 2 7.92 2.38 8 2.92Z" fill="white"/>
+        </svg>
+    `
+
+    static makeStruct = $`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
+            <path d="M12.975 6H8.025C6.90662 6 6 6.90662 6 8.025V8.475C6 9.59338 6.90662 10.5 8.025 10.5H12.975C14.0934 10.5 15 9.59338 15 8.475V8.025C15 6.90662 14.0934 6 12.975 6Z" fill="white"/>
         </svg>
     `
 
@@ -4358,7 +4432,7 @@ class PinTemplate extends ITemplate {
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor[this.element.pinType]);
+        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.getPinColor(this.element));
         this.#iconElement = this.element.querySelector(".ueb-pin-icon") ?? this.element;
     }
 
@@ -4567,10 +4641,15 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     static #nodeIcon = {
         [Configuration.nodeType.callFunction]: SVGIcon.functionSymbol,
+        [Configuration.nodeType.doN]: SVGIcon.doN,
+        [Configuration.nodeType.dynamicCast]: SVGIcon.cast,
+        [Configuration.nodeType.forEachElementInEnum]: SVGIcon.loop,
         [Configuration.nodeType.forEachLoop]: SVGIcon.forEachLoop,
-        [Configuration.nodeType.forLoop]: SVGIcon.loopNode,
+        [Configuration.nodeType.forEachLoopWithBreak]: SVGIcon.forEachLoop,
+        [Configuration.nodeType.forLoop]: SVGIcon.loop,
+        [Configuration.nodeType.forLoopWithBreak]: SVGIcon.loop,
         [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
-        [Configuration.nodeType.whileLoop]: SVGIcon.loopNode,
+        [Configuration.nodeType.whileLoop]: SVGIcon.loop,
         default: SVGIcon.functionSymbol
     }
 
@@ -4579,9 +4658,28 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
     }
 
+    getColor() {
+        const functionColor = r$2`#557b9b`;
+        if (this.element.entity.getClass() === Configuration.nodeType.callFunction) {
+            if (this.element.entity.bIsPureFunc) {
+                return r$2`#5f815a`
+            } else {
+                return functionColor
+            }
+        }
+        if (this.element.entity.getClass() === Configuration.nodeType.macro) {
+            return r$2`#979797`
+        }
+        if (this.element.entity.getClass() === Configuration.nodeType.dynamicCast) {
+            return r$2`#2d686a`
+        }
+        return functionColor
+    }
+
     /** @param {NodeElement} element */
     constructed(element) {
         super.constructed(element);
+        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
     }
 
     render() {
@@ -4766,12 +4864,12 @@ class NodeElement extends ISelectableDraggableElement {
 
     static properties = {
         ...ISelectableDraggableElement.properties,
-        nodeClass: {
+        typePath: {
             type: String,
             attribute: "data-type",
             reflect: true,
         },
-        name: {
+        nodeName: {
             type: String,
             attribute: "data-name",
             reflect: true,
@@ -4827,8 +4925,8 @@ class NodeElement extends ISelectableDraggableElement {
     constructor(entity, template = undefined) {
         super(entity, template ?? new (NodeElement.getTypeTemplate(entity))());
         this.#pins = this.template.createPinElements();
-        this.nodeClass = this.entity.getType();
-        this.name = this.entity.getObjectName();
+        this.typePath = this.entity.getType();
+        this.nodeName = this.entity.getObjectName();
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString();
         this.enabledState = this.entity.EnabledState;
         this.nodeDisplayName = this.entity.getDisplayName();
@@ -4836,7 +4934,7 @@ class NodeElement extends ISelectableDraggableElement {
         this.dragLinkObjects = [];
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value);
-        this.entity.subscribe("Name", value => this.name = value);
+        this.entity.subscribe("Name", value => this.nodeName = value);
     }
 
     /**
@@ -6887,7 +6985,7 @@ class PinElement extends IElement {
     }
 
     getColor() {
-        return Configuration.pinColor[this.pinType] ?? Configuration.pinColor["default"]
+        return Configuration.getPinColor(this)
     }
 
     isInput() {

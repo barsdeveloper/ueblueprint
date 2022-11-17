@@ -98,6 +98,24 @@ export default class Grammar {
     }
 
     /** @param {Grammar} r */
+    static ReferencePath = (r, referencePathGrammar) =>
+        P.alt(
+            referencePathGrammar,
+            P.seq(
+                P.string("/"),
+                referencePathGrammar
+                    .map(v => v.toString())
+                    .sepBy1(P.string("."))
+                    .tieWith(".")
+                    .sepBy1(P.string(":"))
+                    .tieWith(":")
+            )
+                .tie()
+                .atLeast(2)
+                .tie()
+        )
+
+    /** @param {Grammar} r */
     static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
         r.AttributeName.skip(valueSeparator)
             .chain(attributeName => {
@@ -178,21 +196,6 @@ export default class Grammar {
         .desc('string (with possibility to escape the quote using \")')
 
     /** @param {Grammar} r */
-    ReferencePath = r => P.seq(
-        P.string("/"),
-        r.PathSymbol
-            .map(v => v.toString())
-            .sepBy1(P.string("."))
-            .tieWith(".")
-            .sepBy1(P.string(":"))
-            .tieWith(":")
-    )
-        .tie()
-        .atLeast(2)
-        .tie()
-        .desc('a path (words with possibly underscore, separated by ".", separated by "/")')
-
-    /** @param {Grammar} r */
     AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
 
     /*   ---   Entity   ---   */
@@ -213,22 +216,28 @@ export default class Grammar {
     PathSymbol = r => P.regex(/[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
+    PathSymbolOptSpaces = r => P.regex(/[0-9\w]+(?: [0-9\w]+)+|[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
+
+    /** @param {Grammar} r */
     ObjectReference = r => P.alt(
         r.None,
-        ...[r.ReferencePath.map(path => new ObjectReferenceEntity({ type: "", path: path }))]
-            .flatMap(referencePath => [
-                referencePath, // Version having just path
-                referencePath.trim(P.string('"')) // Version having path surround with double quotes
-            ]),
+        ...[
+            Grammar.ReferencePath(r, r.PathSymbolOptSpaces)
+                .map(path => new ObjectReferenceEntity({ type: "", path: path }))
+        ].flatMap(referencePath => [
+            referencePath.wrap(P.string(`"`), P.string(`"`)),
+            referencePath.wrap(P.string(`'"`), P.string(`"'`)),
+        ]),
         P.seqMap(
             r.Word, // Goes into referenceType
             P.optWhitespace, // Goes into _1 (ignored)
-            P.alt(...[r.ReferencePath].flatMap(referencePath => [
+            P.alt(...[Grammar.ReferencePath(r, r.PathSymbolOptSpaces)].flatMap(referencePath => [
                 referencePath.wrap(P.string(`"`), P.string(`"`)),
                 referencePath.wrap(P.string(`'"`), P.string(`"'`))
             ])), // Goes into referencePath
             (referenceType, _1, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
         ),
+        Grammar.ReferencePath(r, r.PathSymbol).map(path => new ObjectReferenceEntity({ type: "", path: path })),
         r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
     )
 

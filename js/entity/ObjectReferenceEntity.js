@@ -17,4 +17,8 @@ export default class ObjectReferenceEntity extends IEntity {
         /** @type {String} */ this.type
         /** @type {String} */ this.path
     }
+
+    getName() {
+        return this.path.match(/[^\.\/]+$/)[0]
+    }
 }

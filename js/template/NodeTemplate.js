@@ -1,4 +1,4 @@
-import { html, nothing } from "lit"
+import { css, html, nothing } from "lit"
 import Configuration from "../Configuration"
 import ElementFactory from "../element/ElementFactory"
 import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
@@ -14,10 +14,15 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     static #nodeIcon = {
         [Configuration.nodeType.callFunction]: SVGIcon.functionSymbol,
+        [Configuration.nodeType.doN]: SVGIcon.doN,
+        [Configuration.nodeType.dynamicCast]: SVGIcon.cast,
+        [Configuration.nodeType.forEachElementInEnum]: SVGIcon.loop,
         [Configuration.nodeType.forEachLoop]: SVGIcon.forEachLoop,
-        [Configuration.nodeType.forLoop]: SVGIcon.loopNode,
+        [Configuration.nodeType.forEachLoopWithBreak]: SVGIcon.forEachLoop,
+        [Configuration.nodeType.forLoop]: SVGIcon.loop,
+        [Configuration.nodeType.forLoopWithBreak]: SVGIcon.loop,
         [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
-        [Configuration.nodeType.whileLoop]: SVGIcon.loopNode,
+        [Configuration.nodeType.whileLoop]: SVGIcon.loop,
         default: SVGIcon.functionSymbol
     }
 
@@ -26,9 +31,28 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true)
     }
 
+    getColor() {
+        const functionColor = css`#557b9b`
+        if (this.element.entity.getClass() === Configuration.nodeType.callFunction) {
+            if (this.element.entity.bIsPureFunc) {
+                return css`#5f815a`
+            } else {
+                return functionColor
+            }
+        }
+        if (this.element.entity.getClass() === Configuration.nodeType.macro) {
+            return css`#979797`
+        }
+        if (this.element.entity.getClass() === Configuration.nodeType.dynamicCast) {
+            return css`#2d686a`
+        }
+        return functionColor
+    }
+
     /** @param {NodeElement} element */
     constructed(element) {
         super.constructed(element)
+        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
     }
 
     render() {
