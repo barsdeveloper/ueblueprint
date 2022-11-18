@@ -33,7 +33,9 @@ class Configuration {
         "/Script/CoreUObject.Transform": r$2`241, 110, 1`,
         "/Script/CoreUObject.Vector": r$2`215, 202, 11`,
         "/Script/Engine.Actor": r$2`0, 168, 242`,
+        "/Script/Engine.GameStateBase": r$2`0, 168, 242`,
         "/Script/Engine.Pawn": r$2`0, 168, 242`,
+        "/Script/Engine.PlayerState": r$2`0, 168, 242`,
         "bool": r$2`117, 0, 0`,
         "byte": r$2`0, 110, 98`,
         "class": r$2`88, 0, 186`,
@@ -118,6 +120,7 @@ class Configuration {
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
         forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",
         forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
@@ -805,7 +808,7 @@ class Utility {
         return value
             .trim()
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
-            .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
+            .replaceAll(/^K2_|(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
@@ -978,7 +981,7 @@ class ObjectReferenceEntity extends IEntity {
 class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
-        MemberParent: ObjectReferenceEntity,
+        MemberParent: new TypeInitialization(ObjectReferenceEntity, false),
         MemberName: "",
     }
 
@@ -1726,6 +1729,8 @@ class ObjectEntity extends IEntity {
                 return Utility.formatStringName(this.FunctionReference.MemberName)
             case Configuration.nodeType.dynamicCast:
                 return `Cast To ${this.TargetType.getName()}`
+            case Configuration.nodeType.executionSequence:
+                return "Sequence"
             case Configuration.nodeType.ifThenElse:
                 return "Branch"
             case Configuration.nodeType.forEachElementInEnum:
@@ -3920,6 +3925,18 @@ class SVGIcon {
             <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
         </svg>
     `
+
+    static sequence = $`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="2" width="5" height="2" fill="white"/>
+            <rect y="7" width="8" height="2" fill="white"/>
+            <rect x="3" y="4" width="2" height="9" fill="white"/>
+            <rect x="3" y="12" width="5" height="2" fill="white"/>
+            <rect x="10" y="2" width="6" height="2" fill="white"/>
+            <rect x="10" y="7" width="4" height="2" fill="white"/>
+            <rect x="10" y="12" width="2" height="2" fill="white"/>
+        </svg>
+    `
 }
 
 /**
@@ -4643,6 +4660,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         [Configuration.nodeType.callFunction]: SVGIcon.functionSymbol,
         [Configuration.nodeType.doN]: SVGIcon.doN,
         [Configuration.nodeType.dynamicCast]: SVGIcon.cast,
+        [Configuration.nodeType.executionSequence]: SVGIcon.sequence,
         [Configuration.nodeType.forEachElementInEnum]: SVGIcon.loop,
         [Configuration.nodeType.forEachLoop]: SVGIcon.forEachLoop,
         [Configuration.nodeType.forEachLoopWithBreak]: SVGIcon.forEachLoop,
@@ -4660,18 +4678,18 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     getColor() {
         const functionColor = r$2`#557b9b`;
-        if (this.element.entity.getClass() === Configuration.nodeType.callFunction) {
-            if (this.element.entity.bIsPureFunc) {
-                return r$2`#5f815a`
-            } else {
+        switch (this.element.entity.getClass()) {
+            case Configuration.nodeType.callFunction:
+                if (this.element.entity.bIsPureFunc) {
+                    return r$2`#5f815a`
+                }
                 return functionColor
-            }
-        }
-        if (this.element.entity.getClass() === Configuration.nodeType.macro) {
-            return r$2`#979797`
-        }
-        if (this.element.entity.getClass() === Configuration.nodeType.dynamicCast) {
-            return r$2`#2d686a`
+            case Configuration.nodeType.macro:
+            case Configuration.nodeType.executionSequence:
+                return r$2`#979797`
+            case Configuration.nodeType.dynamicCast:
+                return r$2`#2d686a`
+
         }
         return functionColor
     }
@@ -4683,15 +4701,21 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     render() {
+        const icon = this.renderNodeIcon();
+        const name = this.renderNodeName();
         return $`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
                         <div class="ueb-node-name">
-                            <span class="ueb-node-name-symbol">${this.renderNodeIcon()}</span>
-                            <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                                ${this.renderNodeName()}
-                            </span>
+                            ${icon ? $`
+                                <span class="ueb-node-name-symbol">${icon}</span>
+                            ` : w}
+                            ${name ? $`
+                                <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
+                                    ${name}
+                                </span>
+                            ` : w}
                         </div>
                     </div>
                     <div class="ueb-node-content">

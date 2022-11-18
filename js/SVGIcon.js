@@ -124,4 +124,16 @@ export default class SVGIcon {
             <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
         </svg>
     `
+
+    static sequence = html`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="2" width="5" height="2" fill="white"/>
+            <rect y="7" width="8" height="2" fill="white"/>
+            <rect x="3" y="4" width="2" height="9" fill="white"/>
+            <rect x="3" y="12" width="5" height="2" fill="white"/>
+            <rect x="10" y="2" width="6" height="2" fill="white"/>
+            <rect x="10" y="7" width="4" height="2" fill="white"/>
+            <rect x="10" y="12" width="2" height="2" fill="white"/>
+        </svg>
+    `
 }

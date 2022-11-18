@@ -16,6 +16,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         [Configuration.nodeType.callFunction]: SVGIcon.functionSymbol,
         [Configuration.nodeType.doN]: SVGIcon.doN,
         [Configuration.nodeType.dynamicCast]: SVGIcon.cast,
+        [Configuration.nodeType.executionSequence]: SVGIcon.sequence,
         [Configuration.nodeType.forEachElementInEnum]: SVGIcon.loop,
         [Configuration.nodeType.forEachLoop]: SVGIcon.forEachLoop,
         [Configuration.nodeType.forEachLoopWithBreak]: SVGIcon.forEachLoop,
@@ -33,18 +34,18 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     getColor() {
         const functionColor = css`#557b9b`
-        if (this.element.entity.getClass() === Configuration.nodeType.callFunction) {
-            if (this.element.entity.bIsPureFunc) {
-                return css`#5f815a`
-            } else {
+        switch (this.element.entity.getClass()) {
+            case Configuration.nodeType.callFunction:
+                if (this.element.entity.bIsPureFunc) {
+                    return css`#5f815a`
+                }
                 return functionColor
-            }
-        }
-        if (this.element.entity.getClass() === Configuration.nodeType.macro) {
-            return css`#979797`
-        }
-        if (this.element.entity.getClass() === Configuration.nodeType.dynamicCast) {
-            return css`#2d686a`
+            case Configuration.nodeType.macro:
+            case Configuration.nodeType.executionSequence:
+                return css`#979797`
+            case Configuration.nodeType.dynamicCast:
+                return css`#2d686a`
+
         }
         return functionColor
     }
@@ -56,15 +57,21 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     render() {
+        const icon = this.renderNodeIcon()
+        const name = this.renderNodeName()
         return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
                         <div class="ueb-node-name">
-                            <span class="ueb-node-name-symbol">${this.renderNodeIcon()}</span>
-                            <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                                ${this.renderNodeName()}
-                            </span>
+                            ${icon ? html`
+                                <span class="ueb-node-name-symbol">${icon}</span>
+                            ` : nothing}
+                            ${name ? html`
+                                <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
+                                    ${name}
+                                </span>
+                            ` : nothing}
                         </div>
                     </div>
                     <div class="ueb-node-content">

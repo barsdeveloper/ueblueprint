@@ -254,7 +254,7 @@ export default class Utility {
         return value
             .trim()
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
-            .replaceAll(/(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
+            .replaceAll(/^K2_|(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")

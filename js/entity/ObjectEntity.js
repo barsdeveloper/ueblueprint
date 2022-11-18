@@ -99,6 +99,8 @@ export default class ObjectEntity extends IEntity {
                 return Utility.formatStringName(this.FunctionReference.MemberName)
             case Configuration.nodeType.dynamicCast:
                 return `Cast To ${this.TargetType.getName()}`
+            case Configuration.nodeType.executionSequence:
+                return "Sequence"
             case Configuration.nodeType.ifThenElse:
                 return "Branch"
             case Configuration.nodeType.forEachElementInEnum:

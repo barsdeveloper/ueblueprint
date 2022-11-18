@@ -1,10 +1,11 @@
 import IEntity from "./IEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
+import TypeInitialization from "./TypeInitialization"
 
 export default class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
-        MemberParent: ObjectReferenceEntity,
+        MemberParent: new TypeInitialization(ObjectReferenceEntity, false),
         MemberName: "",
     }
 
