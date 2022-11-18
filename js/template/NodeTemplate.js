@@ -33,18 +33,18 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     getColor() {
-        const functionColor = css`#557b9b`
+        const functionColor = css`84, 122, 156`
         switch (this.element.entity.getClass()) {
             case Configuration.nodeType.callFunction:
                 if (this.element.entity.bIsPureFunc) {
-                    return css`#5f815a`
+                    return css`95, 129, 90`
                 }
                 return functionColor
             case Configuration.nodeType.macro:
             case Configuration.nodeType.executionSequence:
-                return css`#979797`
+                return css`150,150,150`
             case Configuration.nodeType.dynamicCast:
-                return css`#2d686a`
+                return css`46, 104, 106`
 
         }
         return functionColor

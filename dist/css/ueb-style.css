@@ -368,7 +368,7 @@ ueb-node[data-selected=true] > .ueb-node-border {
   padding: 0.2em 0.7em;
   box-shadow: inset 5px 1px 5px -3px rgba(255, 255, 255, 0.2509803922), inset 0 1px 2px 0 rgba(255, 255, 255, 0.2509803922);
   border-radius: var(--ueb-node-radius) var(--ueb-node-radius) 0 0;
-  background: linear-gradient(170deg, var(--ueb-node-color) 0%, var(--ueb-node-color) 50%, transparent 100%);
+  background: linear-gradient(170deg, rgb(var(--ueb-node-color)) 0%, rgb(var(--ueb-node-color)) 50%, transparent 100%);
   color: #c0c0c0;
   font-weight: 900;
   white-space: nowrap;
@@ -380,7 +380,7 @@ ueb-node[data-selected=true] > .ueb-node-border {
 }
 
 .ueb-zoom--2 ueb-node[data-pure-function=true] .ueb-node-top {
-  background: var(--ueb-node-color);
+  background: rgb(var(--ueb-node-color));
 }
 
 .ueb-node-name {
@@ -482,6 +482,26 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-expansion:ho
 
 ueb-node[data-advanced-display=Shown] .ueb-node-expansion > svg {
   transform: scaleY(-1);
+}
+
+ueb-node.ueb-node-type-variable .ueb-node-wrapper,
+ueb-node.ueb-node-type-variable .ueb-node-border,
+ueb-node.ueb-node-type-variable {
+  border-radius: 15px;
+  box-shadow: none;
+}
+
+ueb-node.ueb-node-type-variable .ueb-node-wrapper {
+  border: 1px solid black;
+  box-shadow: 1px 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 -2px 2px 1px rgba(0, 0, 0, 0.5) inset;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.188) 0%, rgba(255, 255, 255, 0.063) 49%, rgba(0, 0, 0, 0.251) 49%), linear-gradient(to right, transparent 10%, rgba(var(--ueb-node-color), 0.3) 50%, transparent 90%);
+  background-size: 100%, 100% 82%;
+  background-repeat: repeat, no-repeat;
+}
+
+ueb-node[data-selected=true] .ueb-node-border {
+  box-shadow: inset 0 0 0px 6px #ce8700;
+  background: none;
 }
 
 ueb-blueprint {
@@ -653,6 +673,7 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
 .ueb-button {
   min-width: 60px;
   border: 1px solid #0f0f0f;
+  border-radius: 4px;
   padding: 2px 10px;
   background: #383838;
   text-align: center;
@@ -740,7 +761,7 @@ ueb-window .ueb-pin-input-content {
 ueb-window {
   display: block;
   position: absolute;
-  border: 2px solid black;
+  border: 2px solid #101010;
   top: 0;
   left: 0;
   transform: translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));

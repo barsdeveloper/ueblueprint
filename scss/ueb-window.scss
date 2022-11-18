@@ -3,7 +3,7 @@
 ueb-window {
     display: block;
     position: absolute;
-    border: 2px solid black;
+    border: 2px solid #101010;
     top: 0;
     left: 0;
     transform: translateX(calc(var(--ueb-position-x) * 1px)) translateY(calc(var(--ueb-position-y) * 1px));

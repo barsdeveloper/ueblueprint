@@ -24,7 +24,10 @@ var t$1;const i$2=globalThis.trustedTypes,s$1=i$2?i$2.createPolicy("lit-html",{c
  * SPDX-License-Identifier: BSD-3-Clause
  */var l,o;class s extends a$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=T(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return b}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
-/** @typedef {import("./element/PinElement").default} PinElement */
+/**
+ * @typedef {import("./element/PinElement").default} PinElement
+ * @typedef {import("lit").CSSResult} CSSResult
+ */
 
 class Configuration {
     static #pinColor = {
@@ -65,7 +68,11 @@ class Configuration {
         end: "blueprint-unfocus",
     }
     static fontSize = r$2`12.5px`
-    /** @param {PinElement} pin */
+
+    /**
+     * @param {PinElement} pin
+     * @return {CSSResult}
+     */
     static getPinColor(pin) {
         if (!pin) {
             return Configuration.#pinColor["default"]
@@ -131,6 +138,7 @@ class Configuration {
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
+        variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
@@ -3878,7 +3886,7 @@ class SVGIcon {
 
     static genericPin = $`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="5" />
+            <circle class="ueb-pin-tofill" cx="16" cy="16" r="14" fill="black" stroke="currentColor" stroke-width="5" />
             <path d="M 34 6 L 34 26 L 42 16 Z" fill="currentColor" />
         </svg>
     `
@@ -4677,18 +4685,18 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     getColor() {
-        const functionColor = r$2`#557b9b`;
+        const functionColor = r$2`84, 122, 156`;
         switch (this.element.entity.getClass()) {
             case Configuration.nodeType.callFunction:
                 if (this.element.entity.bIsPureFunc) {
-                    return r$2`#5f815a`
+                    return r$2`95, 129, 90`
                 }
                 return functionColor
             case Configuration.nodeType.macro:
             case Configuration.nodeType.executionSequence:
-                return r$2`#979797`
+                return r$2`150,150,150`
             case Configuration.nodeType.dynamicCast:
-                return r$2`#2d686a`
+                return r$2`46, 104, 106`
 
         }
         return functionColor
@@ -4877,13 +4885,44 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 }
 
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class VariableNodeTemplate extends NodeTemplate {
+
+    /** @param {NodeElement} element */
+    constructed(element) {
+        super.constructed(element);
+        this.element.classList.add("ueb-node-type-variable");
+    }
+
+    render() {
+        return $`
+            <div class="ueb-node-border">
+                <div class="ueb-node-wrapper">
+                    <div class="ueb-node-outputs"></div>
+                </div>
+            </div>
+        `
+    }
+
+    setupPins() {
+        super.setupPins();
+        let outputPin = this.element.getPinElements().find(p => p.isOutput());
+        this.element.style.setProperty("--ueb-node-color", outputPin.getColor().cssText);
+    }
+}
+
 /** @typedef {import("./IElement").default} IElement */
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 class NodeElement extends ISelectableDraggableElement {
 
     static #typeTemplateMap = {
-        "/Script/BlueprintGraph.K2Node_Knot": KnotNodeTemplate,
+        [Configuration.nodeType.knot]: KnotNodeTemplate,
+        [Configuration.nodeType.variableGet]: VariableNodeTemplate,
     }
 
     static properties = {
@@ -6865,6 +6904,7 @@ class VectorPinTemplate extends INumericPinTemplate {
 /**
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./NodeElement").default} NodeElement
+ * @typedef {import("lit").CSSResult} CSSResult
  */
 /**
  * @template T
@@ -7008,6 +7048,7 @@ class PinElement extends IElement {
         return Utility.formatStringName(this.entity.PinName)
     }
 
+    /** @return {CSSResult} */
     getColor() {
         return Configuration.getPinColor(this)
     }

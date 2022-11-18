@@ -8,6 +8,7 @@ import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
+import VariableNodeTemplate from "../template/VariableNodeTemplate"
 
 /** @typedef {import("./IElement").default} IElement */
 
@@ -15,7 +16,8 @@ import Utility from "../Utility"
 export default class NodeElement extends ISelectableDraggableElement {
 
     static #typeTemplateMap = {
-        "/Script/BlueprintGraph.K2Node_Knot": KnotNodeTemplate,
+        [Configuration.nodeType.knot]: KnotNodeTemplate,
+        [Configuration.nodeType.variableGet]: VariableNodeTemplate,
     }
 
     static properties = {

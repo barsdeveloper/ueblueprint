@@ -1,6 +1,9 @@
 import { css } from "lit"
 
-/** @typedef {import("./element/PinElement").default} PinElement */
+/**
+ * @typedef {import("./element/PinElement").default} PinElement
+ * @typedef {import("lit").CSSResult} CSSResult
+ */
 
 export default class Configuration {
     static #pinColor = {
@@ -41,7 +44,11 @@ export default class Configuration {
         end: "blueprint-unfocus",
     }
     static fontSize = css`12.5px`
-    /** @param {PinElement} pin */
+
+    /**
+     * @param {PinElement} pin
+     * @return {CSSResult}
+     */
     static getPinColor(pin) {
         if (!pin) {
             return Configuration.#pinColor["default"]
@@ -107,6 +114,7 @@ export default class Configuration {
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
+        variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"

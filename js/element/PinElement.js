@@ -20,6 +20,7 @@ import VectorPinTemplate from "../template/VectorPinTemplate"
 /**
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./NodeElement").default} NodeElement
+ * @typedef {import("lit").CSSResult} CSSResult
  */
 /**
  * @template T
@@ -163,6 +164,7 @@ export default class PinElement extends IElement {
         return Utility.formatStringName(this.entity.PinName)
     }
 
+    /** @return {CSSResult} */
     getColor() {
         return Configuration.getPinColor(this)
     }
