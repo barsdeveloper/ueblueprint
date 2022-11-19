@@ -19,8 +19,10 @@ import RotatorEntity from "../entity/RotatorEntity"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import TypeInitialization from "../entity/TypeInitialization"
+import UnionType from "../entity/UnionType"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
+import VariableReferenceEntity from "../entity/VariableReferenceEntity"
 
 let P = Parsimmon
 
@@ -43,10 +45,9 @@ export default class Grammar {
                     P.string("("),
                     attributeType
                         .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
-                        .reduce((accum, cur) =>
-                            !cur || accum === r.AttributeAnyValue
-                                ? r.AttributeAnyValue
-                                : accum.or(cur)
+                        .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
+                            ? r.AttributeAnyValue
+                            : accum.or(cur)
                         )
                         .trim(P.optWhitespace)
                         .sepBy(P.string(","))
@@ -90,6 +91,14 @@ export default class Grammar {
                 return r.SimpleSerializationVector
             case String:
                 return r.String
+            case UnionType:
+                return attributeType.types
+                    .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
+                    .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
+                        ? r.AttributeAnyValue
+                        : accum.or(cur))
+            case VariableReferenceEntity:
+                return r.VariableReference
             case VectorEntity:
                 return r.Vector
             default:
@@ -139,7 +148,7 @@ export default class Grammar {
                 .trim(P.optWhitespace) // Drop spaces around a attribute assignment
                 .sepBy(P.string(",")) // Assignments are separated by comma
                 .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
-            P.string(')'),
+            P.string(")"),
             (_0, attributes, _2) => {
                 let values = {}
                 attributes.forEach(attributeSetter => attributeSetter(values))
@@ -196,7 +205,7 @@ export default class Grammar {
         .desc('string (with possibility to escape the quote using \")')
 
     /** @param {Grammar} r */
-    AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc('words separated by ""')
+    AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc("dot-separated words")
 
     /*   ---   Entity   ---   */
 
@@ -330,6 +339,9 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
+
+    /** @param {Grammar} r */
+    VariableReference = r => Grammar.createEntityGrammar(r, VariableReferenceEntity)
 
     /** @param {Grammar} r */
     MacroGraphReference = r => Grammar.createEntityGrammar(r, MacroGraphReferenceEntity)

@@ -87,6 +87,10 @@ ueb-pin[data-linked="true"] .ueb-pin-tofill {
     visibility: hidden;
 }
 
+ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-direction="output"] .ueb-pin-content {
+    display: none;
+}
+
 .ueb-pin-input-wrapper {
     padding-left: 8px;
 }

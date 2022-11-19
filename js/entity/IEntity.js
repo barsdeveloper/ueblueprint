@@ -3,6 +3,7 @@ import Observable from "../Observable"
 import SerializerFactory from "../serialization/SerializerFactory"
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
+import UnionType from "./UnionType"
 
 /**
  * @template {IEntity} T
@@ -81,13 +82,16 @@ export default class IEntity extends Observable {
                     if (defaultValue.serialized) {
                         defaultValue = ""
                     } else {
-                        // @ts-expect-error
                         defaultType = defaultValue.type
                         defaultValue = defaultValue.value
                         if (defaultValue instanceof Function) {
                             defaultValue = defaultValue()
                         }
                     }
+                }
+                if (defaultValue instanceof UnionType) {
+                    defaultType = defaultValue.getFirstType()
+                    defaultValue = TypeInitialization.sanitize(null, defaultType)
                 }
                 if (defaultValue instanceof Array) {
                     defaultValue = []

@@ -22,6 +22,7 @@ import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotat
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import ToStringSerializer from "./ToStringSerializer"
 import Utility from "../Utility"
+import VariableReferenceEntity from "../entity/VariableReferenceEntity"
 import VectorEntity from "../entity/VectorEntity"
 
 export default function initializeSerializerFactory() {
@@ -43,6 +44,7 @@ export default function initializeSerializerFactory() {
             (array, insideString) =>
                 `(${array
                     .map(v =>
+                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
                     )
                     .join("")
@@ -188,6 +190,11 @@ export default function initializeSerializerFactory() {
             (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
             SimpleSerializationVectorEntity
         )
+    )
+
+    SerializerFactory.registerSerializer(
+        VariableReferenceEntity,
+        new GeneralSerializer(bracketsWrapped, VariableReferenceEntity)
     )
 
     SerializerFactory.registerSerializer(

@@ -5,9 +5,9 @@ import PinTemplate from "./PinTemplate"
 /**
  * @extends PinTemplate<Boolean>
  */
-export default class BoolPinTemplate extends PinTemplate {
+export default class BoolInputPinTemplate extends PinTemplate {
 
-    /** @type {HTMLInputElement} */
+    /** @type {HTMLInputElement?} */
     #input
 
     #onChangeHandler = _ => this.element.setDefaultValue(this.#input.checked)
@@ -16,12 +16,12 @@ export default class BoolPinTemplate extends PinTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.#input = this.element.querySelector(".ueb-pin-input")
-        this.#input.addEventListener("change", this.#onChangeHandler)
+        this.#input?.addEventListener("change", this.#onChangeHandler)
     }
 
     cleanup() {
         super.cleanup()
-        this.#input.removeEventListener("change", this.#onChangeHandler)
+        this.#input?.removeEventListener("change", this.#onChangeHandler)
     }
 
     createInputObjects() {

@@ -11,6 +11,14 @@ export default class SVGIcon {
         </svg>
     `
 
+    static breakStruct = html`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14L10 12L11 11L13 13L14 12L14 15L11 15L12 14Z" fill="white"/>
+            <path d="M13 3L11 5L10 4L12 2L11 1L14 1L14 4L13 3Z" fill="white"/>
+            <path d="M7.975 6H3.025C1.90662 6 1 6.90662 1 8.025V8.475C1 9.59338 1.90662 10.5 3.025 10.5H7.975C9.09338 10.5 10 9.59338 10 8.475V8.025C10 6.90662 9.09338 6 7.975 6Z" fill="white"/>
+        </svg>
+    `
+
     static cast = html`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 12L16 7.5L12 3V12Z" fill="white"/>
@@ -108,6 +116,22 @@ export default class SVGIcon {
     static macro = html`
         <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 2.92L10 12.29L14.55 2.61C14.662 2.4259 14.8189 2.27332 15.0061 2.16661C15.1933 2.05989 15.4045 2.00256 15.62 2H19L18.66 2.89C18.66 2.89 17.17 3.04 17.11 3.63C17.05 4.22 16 15.34 15.93 16.13C15.86 16.92 17.33 17.13 17.33 17.13L17.17 17.99H13.84C13.7241 17.9764 13.612 17.9399 13.5103 17.8826C13.4086 17.8253 13.3194 17.7484 13.2477 17.6562C13.176 17.5641 13.1234 17.4586 13.0929 17.346C13.0624 17.2333 13.0546 17.1157 13.07 17L14.43 5.52L10 14.57C9.8 15.03 9.07 15.72 8.63 15.71H7.75L6.05 4.86L3.54 17.39C3.51941 17.5514 3.44327 17.7005 3.32465 17.8118C3.20603 17.9232 3.05235 17.9897 2.89 18H1L1.11 17.09C1.11 17.09 2.21 17.09 2.3 16.69C2.39 16.29 5.3 3.76 5.41 3.32C5.52 2.88 4.19 2.81 4.19 2.81L4.46 2H6.62C7.09 2 7.92 2.38 8 2.92Z" fill="white"/>
+        </svg>
+    `
+
+    static makeArray = html`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 4H13V6H15V4Z" fill="white"/>
+            <path d="M15 7H13V9H15V7Z" fill="white"/>
+            <path d="M15 10H13V12H15V10Z" fill="white"/>
+            <path d="M12 4H10V6H12V4Z" fill="white"/>
+            <path d="M12 7H10V9H12V7Z" fill="white"/>
+            <path d="M12 10H10V12H12V10Z" fill="white"/>
+            <path d="M9 4H7V6H9V4Z" fill="white"/>
+            <path d="M9 7H7V9H9V7Z" fill="white"/>
+            <path d="M9 10H7V12H9V10Z" fill="white"/>
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
         </svg>
     `
 

@@ -80,7 +80,7 @@ export default class PinTemplate extends ITemplate {
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.getPinColor(this.element))
+        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.getPinColor(this.element).cssText)
         this.#iconElement = this.element.querySelector(".ueb-pin-icon") ?? this.element
     }
 

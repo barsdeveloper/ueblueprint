@@ -1,5 +1,6 @@
 import CalculatedType from "./entity/CalculatedType"
 import TypeInitialization from "./entity/TypeInitialization"
+import UnionType from "./entity/UnionType"
 
 /**
  * @typedef {import("./element/IElement").default} IElement
@@ -158,7 +159,7 @@ export default class Utility {
 
     /**
      * @param {AnyValue | AnyValueConstructor<IEntity>} value
-     * @returns {AnyValueConstructor<IEntity>} 
+     * @returns {AnyValueConstructor<IEntity> | AnyValueConstructor<IEntity>[]} 
      */
     static getType(value) {
         if (value === null) {
@@ -166,6 +167,9 @@ export default class Utility {
         }
         if (value instanceof TypeInitialization) {
             return Utility.getType(value.type)
+        }
+        if (value instanceof UnionType) {
+            return value.types
         }
         if (value instanceof Function) {
             // value is already a constructor
@@ -254,7 +258,7 @@ export default class Utility {
         return value
             .trim()
             .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
-            .replaceAll(/^K2_|(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
+            .replaceAll(/^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")

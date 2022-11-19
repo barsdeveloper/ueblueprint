@@ -8,7 +8,7 @@ import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
-import VariableNodeTemplate from "../template/VariableNodeTemplate"
+import VariableAccessNodeTemplate from "../template/VariableAccessNodeTemplate"
 
 /** @typedef {import("./IElement").default} IElement */
 
@@ -17,7 +17,8 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     static #typeTemplateMap = {
         [Configuration.nodeType.knot]: KnotNodeTemplate,
-        [Configuration.nodeType.variableGet]: VariableNodeTemplate,
+        [Configuration.nodeType.variableGet]: VariableAccessNodeTemplate,
+        [Configuration.nodeType.variableSet]: VariableAccessNodeTemplate,
     }
 
     static properties = {

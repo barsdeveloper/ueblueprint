@@ -112,9 +112,11 @@ export default class Configuration {
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
+        makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
+        variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"

@@ -1,12 +1,12 @@
 import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
-import INumericPinTemplate from "./INumericPinTemplate"
+import INumericPinTemplate from "./INumericInputPinTemplate"
 import RotatorEntity from "../entity/RotatorEntity"
 
 /** @typedef {import("../entity/RotatorEntity").default} Rotator */
 
 /** @extends INumericPinTemplate<Rotator> */
-export default class RotatorPinTemplate extends INumericPinTemplate {
+export default class RotatorInputPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         if (!(this.element.entity.DefaultValue instanceof RotatorEntity)) {

@@ -33,7 +33,7 @@ export default class ObjectEntity extends IEntity {
         CustomProperties: [PinEntity],
     }
 
-    static nameRegex = /(\w+)(?:_(\d+))?/
+    static nameRegex = /^(\w+?)(?:_(\d+))?$/
 
     constructor(options = {}) {
         super(options)
@@ -107,6 +107,10 @@ export default class ObjectEntity extends IEntity {
                 return `For Each ${this.Enum.getName()}`
             case Configuration.nodeType.forEachLoopWithBreak:
                 return "For Each Loop with Break"
+            case Configuration.nodeType.variableGet:
+                return ""
+            case Configuration.nodeType.variableSet:
+                return "SET"
             default:
                 if (this.getClass() === Configuration.nodeType.macro) {
                     return Utility.formatStringName(this.MacroGraphReference.getMacroName())

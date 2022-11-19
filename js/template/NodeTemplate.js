@@ -13,7 +13,6 @@ import SVGIcon from "../SVGIcon"
 export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     static #nodeIcon = {
-        [Configuration.nodeType.callFunction]: SVGIcon.functionSymbol,
         [Configuration.nodeType.doN]: SVGIcon.doN,
         [Configuration.nodeType.dynamicCast]: SVGIcon.cast,
         [Configuration.nodeType.executionSequence]: SVGIcon.sequence,
@@ -23,6 +22,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         [Configuration.nodeType.forLoop]: SVGIcon.loop,
         [Configuration.nodeType.forLoopWithBreak]: SVGIcon.loop,
         [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
+        [Configuration.nodeType.makeArray]: SVGIcon.makeArray,
         [Configuration.nodeType.whileLoop]: SVGIcon.loop,
         default: SVGIcon.functionSymbol
     }
@@ -34,12 +34,15 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     getColor() {
         const functionColor = css`84, 122, 156`
+        const pureFunctionColor = css`95, 129, 90`
         switch (this.element.entity.getClass()) {
             case Configuration.nodeType.callFunction:
                 if (this.element.entity.bIsPureFunc) {
-                    return css`95, 129, 90`
+                    return pureFunctionColor
                 }
                 return functionColor
+            case Configuration.nodeType.makeArray:
+                return pureFunctionColor
             case Configuration.nodeType.macro:
             case Configuration.nodeType.executionSequence:
                 return css`150,150,150`
@@ -97,6 +100,9 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         let icon = NodeTemplate.#nodeIcon[this.element.getType()]
         if (icon) {
             return icon
+        }
+        if (this.element.getNodeDisplayName().startsWith("Break")) {
+            return SVGIcon.breakStruct
         }
         if (this.element.entity.getClass() === Configuration.nodeType.macro) {
             return SVGIcon.macro

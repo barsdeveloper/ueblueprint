@@ -10,6 +10,7 @@ import RotatorEntity from "./RotatorEntity"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity"
 import TypeInitialization from "./TypeInitialization"
+import UnionType from "./UnionType"
 import VectorEntity from "./VectorEntity"
 
 /** @typedef {import("./TypeInitialization").AnyValue} AnyValue */
@@ -36,7 +37,7 @@ export default class PinEntity extends IEntity {
     static attributes = {
         PinId: GuidEntity,
         PinName: "",
-        PinFriendlyName: new TypeInitialization(LocalizedTextEntity, false, null),
+        PinFriendlyName: new TypeInitialization(new UnionType(LocalizedTextEntity, String), false, null),
         PinToolTip: new TypeInitialization(String, false, ""),
         Direction: new TypeInitialization(String, false, ""),
         PinType: {
@@ -85,7 +86,7 @@ export default class PinEntity extends IEntity {
         super(options)
         /** @type {GuidEntity} */ this.PinId
         /** @type {String} */ this.PinName
-        /** @type {LocalizedTextEntity} */ this.PinFriendlyName
+        /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName
         /** @type {String} */ this.PinToolTip
         /** @type {String} */ this.Direction
         /**
@@ -140,6 +141,10 @@ export default class PinEntity extends IEntity {
 
     getDefaultValue() {
         return this.DefaultValue
+    }
+
+    isExecution() {
+        return this.PinType.PinCategory === "exec"
     }
 
     isHidden() {

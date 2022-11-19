@@ -1,7 +1,8 @@
+import UnionType from "./UnionType"
 
 /**
- * @typedef {import("./IEntity").default} IEntity
  * @typedef {IEntity | String | Number | Boolean | Array} AnyValue
+ * @typedef {import("./IEntity").default} IEntity
  */
 /**
  * @template {AnyValue} T
@@ -9,7 +10,7 @@
  */
 /**
  * @template {AnyValue} T
- * @typedef {IEntityConstructor<T> | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ * @typedef {IEntityConstructor<T> | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor | UnionType} AnyValueConstructor
  */
 
 /** @template {AnyValue} T */
@@ -58,15 +59,22 @@ export default class TypeInitialization {
         this.#ignored = v
     }
 
+    static isValueOfType(value, type) {
+        return value != null && (value instanceof type || value.constructor === type)
+    }
+
     static sanitize(value, targetType) {
         if (targetType === undefined) {
             targetType = value?.constructor
         }
-        if (
-            targetType
-            // value is not of type targetType
-            && !(value?.constructor === targetType || value instanceof targetType)
-        ) {
+        if (targetType instanceof Array) {
+            let type = targetType.find(t => TypeInitialization.isValueOfType(value, t))
+            if (!type) {
+                type = targetType[0]
+            }
+            targetType = type
+        }
+        if (targetType && !TypeInitialization.isValueOfType(value, targetType)) {
             value = new targetType(value)
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {

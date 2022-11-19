@@ -1,13 +1,13 @@
 import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
-import INumericPinTemplate from "./INumericPinTemplate"
+import INumericPinTemplate from "./INumericInputPinTemplate"
 import Utility from "../Utility"
 
 /**
  * @template {Number} T
  * @extends INumericPinTemplate<T>
  */
-export default class RealPinTemplate extends INumericPinTemplate {
+export default class RealInputPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         this.element.setDefaultValue(values[0])

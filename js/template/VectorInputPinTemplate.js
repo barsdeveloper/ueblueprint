@@ -1,6 +1,6 @@
 import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
-import INumericPinTemplate from "./INumericPinTemplate"
+import INumericPinTemplate from "./INumericInputPinTemplate"
 import Utility from "../Utility"
 import VectorEntity from "../entity/VectorEntity"
 
@@ -10,7 +10,7 @@ import VectorEntity from "../entity/VectorEntity"
  * @template {VectorEntity} T
  * @extends INumericPinTemplate<T>
  */
-export default class VectorPinTemplate extends INumericPinTemplate {
+export default class VectorInputPinTemplate extends INumericPinTemplate {
 
     /**
      * @param {Number[]} values

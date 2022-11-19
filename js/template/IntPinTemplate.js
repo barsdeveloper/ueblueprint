@@ -1,11 +1,11 @@
 import { html } from "lit"
 import IntegerEntity from "../entity/IntegerEntity"
-import INumericPinTemplate from "./INumericPinTemplate"
+import INumericInputPinTemplate from "./INumericInputPinTemplate"
 
 /** @typedef {import("../entity/IntegerEntity").default} IntEntity */
 
-/** @extends INumericPinTemplate<IntEntity> */
-export default class IntPinTemplate extends INumericPinTemplate {
+/** @extends INumericInputPinTemplate<IntEntity> */
+export default class IntInputPinTemplate extends INumericInputPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         this.element.setDefaultValue(new IntegerEntity(values[0]))

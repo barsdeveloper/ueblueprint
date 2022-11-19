@@ -1,21 +1,21 @@
-import BoolPinTemplate from "../template/BoolPinTemplate"
+import BoolInputPinTemplate from "../template/BoolPinTemplate"
 import Configuration from "../Configuration"
 import ElementFactory from "./ElementFactory"
 import ExecPinTemplate from "../template/ExecPinTemplate"
 import GuidEntity from "../entity/GuidEntity"
 import IElement from "./IElement"
-import IntPinTemplate from "../template/IntPinTemplate"
+import IntInputPinTemplate from "../template/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
-import LinearColorPinTemplate from "../template/LinearColorPinTemplate"
-import NamePinTemplate from "../template/NamePinTemplate"
+import LinearColorInputPinTemplate from "../template/LinearColorPinTemplate"
+import NameInputPinTemplate from "../template/NamePinTemplate"
 import PinTemplate from "../template/PinTemplate"
-import RealPinTemplate from "../template/RealPinTemplate"
+import RealInputPinTemplate from "../template/RealInputPinTemplate"
 import ReferencePinTemplate from "../template/ReferencePinTemplate"
-import RotatorPinTemplate from "../template/RotatorPinTemplate"
-import StringPinTemplate from "../template/StringPinTemplate"
+import RotatorInputPinTemplate from "../template/RotatorInputPinTemplate"
+import StringInputPinTemplate from "../template/StringInputPinTemplate"
 import Utility from "../Utility"
-import VectorPinTemplate from "../template/VectorPinTemplate"
+import VectorInputPinTemplate from "../template/VectorInputPinTemplate"
 
 /**
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
@@ -33,17 +33,16 @@ import VectorPinTemplate from "../template/VectorPinTemplate"
  */
 export default class PinElement extends IElement {
 
-    static #typeTemplateMap = {
-        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
-        "/Script/CoreUObject.Rotator": RotatorPinTemplate,
-        "/Script/CoreUObject.Vector": VectorPinTemplate,
-        "bool": BoolPinTemplate,
-        "exec": ExecPinTemplate,
-        "int": IntPinTemplate,
+    static #inputPinTemplates = {
+        "/Script/CoreUObject.LinearColor": LinearColorInputPinTemplate,
+        "/Script/CoreUObject.Rotator": RotatorInputPinTemplate,
+        "/Script/CoreUObject.Vector": VectorInputPinTemplate,
+        "bool": BoolInputPinTemplate,
+        "int": IntInputPinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
-        "name": NamePinTemplate,
-        "real": RealPinTemplate,
-        "string": StringPinTemplate,
+        "name": NameInputPinTemplate,
+        "real": RealInputPinTemplate,
+        "string": StringInputPinTemplate,
     }
 
     static properties = {
@@ -103,11 +102,16 @@ export default class PinElement extends IElement {
      * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
-        let result = PinElement.#typeTemplateMap[
-            pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst
-                ? "MUTABLE_REFERENCE"
-                : pinEntity.getType()
-        ]
+        if (pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst) {
+            return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
+        }
+        if (pinEntity.getType() === "exec") {
+            return ExecPinTemplate
+        }
+        let result
+        if (pinEntity.isInput()) {
+            result = PinElement.#inputPinTemplates[pinEntity.getType()]
+        }
         return result ?? PinTemplate
     }
 
