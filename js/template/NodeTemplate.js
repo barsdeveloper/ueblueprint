@@ -3,6 +3,7 @@ import Configuration from "../Configuration"
 import ElementFactory from "../element/ElementFactory"
 import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
 import SVGIcon from "../SVGIcon"
+import Utility from "../Utility"
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
@@ -26,6 +27,8 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         [Configuration.nodeType.whileLoop]: SVGIcon.loop,
         default: SVGIcon.functionSymbol
     }
+
+    #hasTargetInputNode = false
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay()
@@ -68,12 +71,17 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                     <div class="ueb-node-top">
                         <div class="ueb-node-name">
                             ${icon ? html`
-                                <span class="ueb-node-name-symbol">${icon}</span>
+                                <div class="ueb-node-name-symbol">${icon}</div>
                             ` : nothing}
                             ${name ? html`
-                                <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
+                                <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                                     ${name}
-                                </span>
+                                    ${this.#hasTargetInputNode ? html`
+                                        <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
+                                            Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
+                                    </div>
+                                    `: nothing}
+                                </div>
                             ` : nothing}
                         </div>
                     </div>
@@ -134,20 +142,25 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         })
     }
 
+    createPinElements() {
+        return this.element.getPinEntities()
+            .filter(v => !v.isHidden())
+            .map(v => {
+                if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
+                    this.#hasTargetInputNode = true
+                }
+                return/** @type {PinElement} */(
+                    new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
+                )
+            })
+    }
+
     /**
      * @param {NodeElement} node
      * @returns {NodeListOf<PinElement>}
      */
     getPinElements(node) {
         return node.querySelectorAll("ueb-pin")
-    }
-
-    createPinElements() {
-        return this.element.getPinEntities()
-            .filter(v => !v.isHidden())
-            .map(v => /** @type {PinElement} */(
-                new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
-            ))
     }
 
     linksChanged() { }

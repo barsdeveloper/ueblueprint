@@ -11,6 +11,7 @@ import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity"
 import TypeInitialization from "./TypeInitialization"
 import UnionType from "./UnionType"
+import Utility from "../Utility"
 import VectorEntity from "./VectorEntity"
 
 /** @typedef {import("./TypeInitialization").AnyValue} AnyValue */
@@ -122,6 +123,18 @@ export default class PinEntity extends IEntity {
             return this.PinType.PinSubCategoryObject.path
         }
         return this.PinType.PinCategory
+    }
+
+    getDisplayName() {
+        let matchResult = null
+        if (
+            this.PinToolTip
+            // Match up until the first \n excluded or last character
+            && (matchResult = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+        ) {
+            return Utility.formatStringName(matchResult[1])
+        }
+        return Utility.formatStringName(this.PinName)
     }
 
     /** @param {PinEntity} other */

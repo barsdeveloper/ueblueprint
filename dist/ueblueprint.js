@@ -1597,6 +1597,18 @@ class PinEntity extends IEntity {
         return this.PinType.PinCategory
     }
 
+    getDisplayName() {
+        let matchResult = null;
+        if (
+            this.PinToolTip
+            // Match up until the first \n excluded or last character
+            && (matchResult = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+        ) {
+            return Utility.formatStringName(matchResult[1])
+        }
+        return Utility.formatStringName(this.PinName)
+    }
+
     /** @param {PinEntity} other */
     copyTypeFrom(other) {
         this.PinType.PinCategory = other.PinType.PinCategory;
@@ -4758,6 +4770,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         default: SVGIcon.functionSymbol
     }
 
+    #hasTargetInputNode = false
+
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay();
         this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
@@ -4799,12 +4813,17 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                     <div class="ueb-node-top">
                         <div class="ueb-node-name">
                             ${icon ? $`
-                                <span class="ueb-node-name-symbol">${icon}</span>
+                                <div class="ueb-node-name-symbol">${icon}</div>
                             ` : w}
                             ${name ? $`
-                                <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
+                                <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                                     ${name}
-                                </span>
+                                    ${this.#hasTargetInputNode ? $`
+                                        <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
+                                            Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
+                                    </div>
+                                    `: w}
+                                </div>
                             ` : w}
                         </div>
                     </div>
@@ -4865,20 +4884,25 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         });
     }
 
+    createPinElements() {
+        return this.element.getPinEntities()
+            .filter(v => !v.isHidden())
+            .map(v => {
+                if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
+                    this.#hasTargetInputNode = true;
+                }
+                return/** @type {PinElement} */(
+                    new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
+                )
+            })
+    }
+
     /**
      * @param {NodeElement} node
      * @returns {NodeListOf<PinElement>}
      */
     getPinElements(node) {
         return node.querySelectorAll("ueb-pin")
-    }
-
-    createPinElements() {
-        return this.element.getPinEntities()
-            .filter(v => !v.isHidden())
-            .map(v => /** @type {PinElement} */(
-                new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
-            ))
     }
 
     linksChanged() { }
@@ -7149,15 +7173,7 @@ class PinElement extends IElement {
     }
 
     getPinDisplayName() {
-        let matchResult = null;
-        if (
-            this.entity.PinToolTip
-            // Match up until the first \n excluded or last character
-            && (matchResult = this.entity.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
-        ) {
-            return Utility.formatStringName(matchResult[1])
-        }
-        return Utility.formatStringName(this.entity.PinName)
+        return this.entity.getDisplayName()
     }
 
     /** @return {CSSResult} */
