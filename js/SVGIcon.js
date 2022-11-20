@@ -135,6 +135,19 @@ export default class SVGIcon {
         </svg>
     `
 
+    static makeMap = html`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 4H10V6H15V4Z" fill="white"/>
+            <path d="M15 7H10V9H15V7Z" fill="white"/>
+            <path d="M15 10H10V12H15V10Z" fill="white"/>
+            <path d="M9 4H7V6H9V4Z" fill="white"/>
+            <path d="M9 7H7V9H9V7Z" fill="white"/>
+            <path d="M9 10H7V12H9V10Z" fill="white"/>
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
+        </svg>
+    `
+
     static makeStruct = html`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
@@ -146,6 +159,17 @@ export default class SVGIcon {
     static referencePin = html`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
+        </svg>
+    `
+
+    static select = html`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="2" width="6" height="2" fill="white"/>
+            <rect x="10" y="7" width="3" height="2" fill="white"/>
+            <path d="M12 5L15 8L12 11V5Z" fill="white"/>
+            <rect x="1" y="7" width="8" height="2" fill="white"/>
+            <rect x="5" y="4" width="2" height="9" fill="white"/>
+            <rect x="1" y="12" width="6" height="2" fill="white"/>
         </svg>
     `
 

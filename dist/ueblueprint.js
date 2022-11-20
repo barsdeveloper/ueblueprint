@@ -137,8 +137,10 @@ class Configuration {
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
+        makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
+        select: "/Script/BlueprintGraph.K2Node_Select",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
@@ -998,6 +1000,11 @@ class IEntity extends Observable {
         }
         defineAllAttributes(this, attributes, values);
     }
+
+    unexpectedKeys() {
+        // @ts-expect-error
+        return Object.getOwnPropertyNames(this).length - Object.getOwnPropertyNames(this.constructor.attributes).length
+    }
 }
 
 class ObjectReferenceEntity extends IEntity {
@@ -1697,9 +1704,17 @@ class PinEntity extends IEntity {
 class VariableReferenceEntity extends IEntity {
 
     static attributes = {
+        MemberScope: new TypeInitialization(String, false),
         MemberName: String,
         MemberGuid: GuidEntity,
-        bSelfContext: false,
+        bSelfContext: new TypeInitialization(Boolean, false, false)
+    }
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {String} */ this.MemberName;
+        /** @type {GuidEntity} */ this.GuidEntity;
+        /** @type {Boolean} */ this.bSelfContext;
     }
 }
 
@@ -1726,6 +1741,7 @@ class ObjectEntity extends IEntity {
     }
 
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
 
     constructor(options = {}) {
         super(options);
@@ -1787,6 +1803,12 @@ class ObjectEntity extends IEntity {
     getDisplayName() {
         switch (this.getType()) {
             case Configuration.nodeType.callFunction:
+                if (this.FunctionReference.MemberName === "AddKey") {
+                    let result = this.FunctionReference.MemberParent.path.match(ObjectEntity.sequencerScriptingNameRegex);
+                    if (result) {
+                        return `Add Key (${Utility.formatStringName(result[1])})`
+                    }
+                }
                 return Utility.formatStringName(this.FunctionReference.MemberName)
             case Configuration.nodeType.dynamicCast:
                 return `Cast To ${this.TargetType.getName()}`
@@ -1829,6 +1851,18 @@ var parsimmon_umd_min = {exports: {}};
 }(parsimmon_umd_min));
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
+
+class UnknownKeysEntity extends IEntity {
+
+    static attributes = {
+        lookbehind: new TypeInitialization(String, false, "", false, true)
+    }
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {String} */ this.lookbehind;
+    }
+}
 
 // @ts-nocheck
 
@@ -1934,7 +1968,8 @@ class Grammar {
 
     /** @param {Grammar} r */
     static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
-        r.AttributeName.skip(valueSeparator)
+        r.AttributeName
+            .skip(valueSeparator)
             .chain(attributeName => {
                 // Once the attribute name is known, look into entityType.attributes to get its type 
                 const attributeKey = attributeName.split(".");
@@ -1960,17 +1995,30 @@ class Grammar {
             (_0, attributes, _2) => {
                 let values = {};
                 attributes.forEach(attributeSetter => attributeSetter(values));
-                return new entityType(values)
+                return values
             }
         )
+            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
+            .chain(values => {
+                let unexpectedKeysCount = 0;
+                let totalKeys = 0;
+                for (const key in values) {
+                    unexpectedKeysCount += key in entityType.attributes ? 0 : 1;
+                    ++totalKeys;
+                }
+                if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
+                    return P.fail()
+                }
+                return P.succeed().map(() => new entityType(values))
+            })
 
     /*   ---   General   ---   */
 
     /** @param {Grammar} r */
-    InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("inline whitespace")
+    InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("single line whitespace")
 
     /** @param {Grammar} r */
-    InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
+    InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("single line optional whitespace")
 
     /** @param {Grammar} r */
     MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
@@ -2083,18 +2131,20 @@ class Grammar {
 
     /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(
-        r.Null,
-        r.None,
+        // Remember to keep the order, otherwise parsing might fail
         r.Boolean,
-        r.Number,
-        r.Integer,
-        r.String,
         r.Guid,
+        r.None,
+        r.Null,
+        r.Integer,
+        r.Number,
+        r.String,
         r.LocalizedText,
         r.InvariantText,
-        r.ObjectReference,
         r.Vector,
         r.LinearColor,
+        r.UnknownKeys,
+        r.ObjectReference,
     )
 
     /** @param {Grammar} r */
@@ -2262,6 +2312,31 @@ class Grammar {
         r.LinearColorFromHex,
         r.LinearColorFromRGB,
         r.LinearColorFromRGBA,
+    )
+
+    /** @param {Grammar} r */
+    UnknownKeys = r => P.seqMap(
+        P.regex(/\w*\s*/).skip(P.string("(")),
+        P.seqMap(
+            r.AttributeName,
+            P.string("=").trim(P.optWhitespace),
+            r.AttributeAnyValue,
+            (attributeName, separator, attributeValue) =>
+                entity => Utility.objectSet(entity, attributeName.split("."), attributeValue, true)
+        )
+            .trim(P.optWhitespace)
+            .sepBy(P.string(",")) // Assignments are separated by comma
+            .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
+        P.string(")"),
+        (lookbehind, attributes, _2) => {
+            let values = {};
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            let result = new UnknownKeysEntity(values);
+            if (lookbehind) {
+                result.lookbehind = lookbehind;
+            }
+            return result
+        }
     )
 }
 
@@ -4011,6 +4086,19 @@ class SVGIcon {
         </svg>
     `
 
+    static makeMap = $`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 4H10V6H15V4Z" fill="white"/>
+            <path d="M15 7H10V9H15V7Z" fill="white"/>
+            <path d="M15 10H10V12H15V10Z" fill="white"/>
+            <path d="M9 4H7V6H9V4Z" fill="white"/>
+            <path d="M9 7H7V9H9V7Z" fill="white"/>
+            <path d="M9 10H7V12H9V10Z" fill="white"/>
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
+        </svg>
+    `
+
     static makeStruct = $`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
@@ -4022,6 +4110,17 @@ class SVGIcon {
     static referencePin = $`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
+        </svg>
+    `
+
+    static select = $`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="2" width="6" height="2" fill="white"/>
+            <rect x="10" y="7" width="3" height="2" fill="white"/>
+            <path d="M12 5L15 8L12 11V5Z" fill="white"/>
+            <rect x="1" y="7" width="8" height="2" fill="white"/>
+            <rect x="5" y="4" width="2" height="9" fill="white"/>
+            <rect x="1" y="12" width="6" height="2" fill="white"/>
         </svg>
     `
 
@@ -4766,6 +4865,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         [Configuration.nodeType.forLoopWithBreak]: SVGIcon.loop,
         [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
         [Configuration.nodeType.makeArray]: SVGIcon.makeArray,
+        [Configuration.nodeType.makeMap]: SVGIcon.makeMap,
+        [Configuration.nodeType.select]: SVGIcon.select,
         [Configuration.nodeType.whileLoop]: SVGIcon.loop,
         default: SVGIcon.functionSymbol
     }
@@ -4787,6 +4888,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 }
                 return functionColor
             case Configuration.nodeType.makeArray:
+            case Configuration.nodeType.makeMap:
+            case Configuration.nodeType.select:
                 return pureFunctionColor
             case Configuration.nodeType.macro:
             case Configuration.nodeType.executionSequence:
@@ -7339,7 +7442,10 @@ function defineElements() {
  */
 class GeneralSerializer extends ISerializer {
 
-    /** @param {AnyValueConstructor<T>} entityType */
+    /**
+     * @param {(value: String, entity: T) => String} wrap
+     * @param {AnyValueConstructor<T>} entityType 
+     */
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`);
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter);
@@ -7366,7 +7472,7 @@ class GeneralSerializer extends ISerializer {
      * @returns {String}
      */
     write(entity, object, insideString = false) {
-        let result = this.wrap(this.subWrite(entity, [], object, insideString));
+        let result = this.wrap(this.subWrite(entity, [], object, insideString), object);
         return result
     }
 }
@@ -7600,6 +7706,11 @@ function initializeSerializerFactory() {
             (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
             SimpleSerializationVectorEntity
         )
+    );
+
+    SerializerFactory.registerSerializer(
+        UnknownKeysEntity,
+        new GeneralSerializer((string, entity) => `${entity.lookbehind ?? ""}(${string})`, UnknownKeysEntity)
     );
 
     SerializerFactory.registerSerializer(

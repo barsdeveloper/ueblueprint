@@ -109,4 +109,9 @@ export default class IEntity extends Observable {
         }
         defineAllAttributes(this, attributes, values)
     }
+
+    unexpectedKeys() {
+        // @ts-expect-error
+        return Object.getOwnPropertyNames(this).length - Object.getOwnPropertyNames(this.constructor.attributes).length
+    }
 }

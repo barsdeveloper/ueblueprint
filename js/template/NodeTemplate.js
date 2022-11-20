@@ -24,6 +24,8 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         [Configuration.nodeType.forLoopWithBreak]: SVGIcon.loop,
         [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
         [Configuration.nodeType.makeArray]: SVGIcon.makeArray,
+        [Configuration.nodeType.makeMap]: SVGIcon.makeMap,
+        [Configuration.nodeType.select]: SVGIcon.select,
         [Configuration.nodeType.whileLoop]: SVGIcon.loop,
         default: SVGIcon.functionSymbol
     }
@@ -45,6 +47,8 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 }
                 return functionColor
             case Configuration.nodeType.makeArray:
+            case Configuration.nodeType.makeMap:
+            case Configuration.nodeType.select:
                 return pureFunctionColor
             case Configuration.nodeType.macro:
             case Configuration.nodeType.executionSequence:

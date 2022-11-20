@@ -34,6 +34,7 @@ export default class ObjectEntity extends IEntity {
     }
 
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
 
     constructor(options = {}) {
         super(options)
@@ -96,6 +97,12 @@ export default class ObjectEntity extends IEntity {
         let name = ""
         switch (this.getType()) {
             case Configuration.nodeType.callFunction:
+                if (this.FunctionReference.MemberName === "AddKey") {
+                    let result = this.FunctionReference.MemberParent.path.match(ObjectEntity.sequencerScriptingNameRegex)
+                    if (result) {
+                        return `Add Key (${Utility.formatStringName(result[1])})`
+                    }
+                }
                 return Utility.formatStringName(this.FunctionReference.MemberName)
             case Configuration.nodeType.dynamicCast:
                 return `Cast To ${this.TargetType.getName()}`

@@ -20,9 +20,10 @@ import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotat
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import TypeInitialization from "../entity/TypeInitialization"
 import UnionType from "../entity/UnionType"
+import UnknownKeysEntity from "../entity/UnknownKeysEntity"
 import Utility from "../Utility"
-import VectorEntity from "../entity/VectorEntity"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity"
+import VectorEntity from "../entity/VectorEntity"
 
 let P = Parsimmon
 
@@ -126,7 +127,8 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
-        r.AttributeName.skip(valueSeparator)
+        r.AttributeName
+            .skip(valueSeparator)
             .chain(attributeName => {
                 // Once the attribute name is known, look into entityType.attributes to get its type 
                 const attributeKey = attributeName.split(".")
@@ -152,17 +154,30 @@ export default class Grammar {
             (_0, attributes, _2) => {
                 let values = {}
                 attributes.forEach(attributeSetter => attributeSetter(values))
-                return new entityType(values)
+                return values
             }
         )
+            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
+            .chain(values => {
+                let unexpectedKeysCount = 0
+                let totalKeys = 0
+                for (const key in values) {
+                    unexpectedKeysCount += key in entityType.attributes ? 0 : 1
+                    ++totalKeys
+                }
+                if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
+                    return P.fail()
+                }
+                return P.succeed().map(() => new entityType(values))
+            })
 
     /*   ---   General   ---   */
 
     /** @param {Grammar} r */
-    InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("inline whitespace")
+    InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("single line whitespace")
 
     /** @param {Grammar} r */
-    InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("inline optional whitespace")
+    InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("single line optional whitespace")
 
     /** @param {Grammar} r */
     MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
@@ -275,18 +290,20 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(
-        r.Null,
-        r.None,
+        // Remember to keep the order, otherwise parsing might fail
         r.Boolean,
-        r.Number,
-        r.Integer,
-        r.String,
         r.Guid,
+        r.None,
+        r.Null,
+        r.Integer,
+        r.Number,
+        r.String,
         r.LocalizedText,
         r.InvariantText,
-        r.ObjectReference,
         r.Vector,
         r.LinearColor,
+        r.UnknownKeys,
+        r.ObjectReference,
     )
 
     /** @param {Grammar} r */
@@ -454,5 +471,30 @@ export default class Grammar {
         r.LinearColorFromHex,
         r.LinearColorFromRGB,
         r.LinearColorFromRGBA,
+    )
+
+    /** @param {Grammar} r */
+    UnknownKeys = r => P.seqMap(
+        P.regex(/\w*\s*/).skip(P.string("(")),
+        P.seqMap(
+            r.AttributeName,
+            P.string("=").trim(P.optWhitespace),
+            r.AttributeAnyValue,
+            (attributeName, separator, attributeValue) =>
+                entity => Utility.objectSet(entity, attributeName.split("."), attributeValue, true)
+        )
+            .trim(P.optWhitespace)
+            .sepBy(P.string(",")) // Assignments are separated by comma
+            .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
+        P.string(")"),
+        (lookbehind, attributes, _2) => {
+            let values = {}
+            attributes.forEach(attributeSetter => attributeSetter(values))
+            let result = new UnknownKeysEntity(values)
+            if (lookbehind) {
+                result.lookbehind = lookbehind
+            }
+            return result
+        }
     )
 }

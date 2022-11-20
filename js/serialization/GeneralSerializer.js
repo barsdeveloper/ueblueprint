@@ -16,7 +16,10 @@ import ISerializer from "./ISerializer"
  */
 export default class GeneralSerializer extends ISerializer {
 
-    /** @param {AnyValueConstructor<T>} entityType */
+    /**
+     * @param {(value: String, entity: T) => String} wrap
+     * @param {AnyValueConstructor<T>} entityType 
+     */
     constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`)
         super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter)
@@ -43,7 +46,7 @@ export default class GeneralSerializer extends ISerializer {
      * @returns {String}
      */
     write(entity, object, insideString = false) {
-        let result = this.wrap(this.subWrite(entity, [], object, insideString))
+        let result = this.wrap(this.subWrite(entity, [], object, insideString), object)
         return result
     }
 }
