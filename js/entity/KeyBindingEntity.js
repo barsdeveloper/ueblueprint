@@ -12,13 +12,13 @@ export default class KeyBindingEntity extends IEntity {
         Key: IdentifierEntity,
     }
 
-    constructor(options = {}) {
-        options.ActionName = options.ActionName ?? ""
-        options.bShift = options.bShift ?? false
-        options.bCtrl = options.bCtrl ?? false
-        options.bAlt = options.bAlt ?? false
-        options.bCmd = options.bCmd ?? false
-        super(options)
+    constructor(values = {}) {
+        values.ActionName = values.ActionName ?? ""
+        values.bShift = values.bShift ?? false
+        values.bCtrl = values.bCtrl ?? false
+        values.bAlt = values.bAlt ?? false
+        values.bCmd = values.bCmd ?? false
+        super(values)
         /** @type {String} */ this.ActionName
         /** @type {Boolean} */ this.bShift
         /** @type {Boolean} */ this.bCtrl

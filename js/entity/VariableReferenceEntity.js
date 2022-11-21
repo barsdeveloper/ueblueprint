@@ -11,7 +11,7 @@ export default class VariableReferenceEntity extends IEntity {
         bSelfContext: new TypeInitialization(Boolean, false, false)
     }
 
-    constructor(values = {}) {
+    constructor(values) {
         super(values)
         /** @type {String} */ this.MemberName
         /** @type {GuidEntity} */ this.GuidEntity

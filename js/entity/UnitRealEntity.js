@@ -7,10 +7,9 @@ export default class RealUnitEntity extends IEntity {
         value: 0,
     }
 
-    /** @param {Object | Number | String} options */
-    constructor(options = 0) {
-        super(options)
-        /** @type {Number} */
+    /** @param {Object | Number | String} values */
+    constructor(values = 0) {
+        super(values)
         this.value = Utility.clamp(this.value, 0, 1)
     }
 

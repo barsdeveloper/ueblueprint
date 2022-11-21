@@ -8,7 +8,7 @@ export default class RotatorEntity extends IEntity {
         Y: Number,
     }
 
-    constructor(values = {}) {
+    constructor(values) {
         super(values)
         /** @type {Number} */ this.R
         /** @type {Number} */ this.P

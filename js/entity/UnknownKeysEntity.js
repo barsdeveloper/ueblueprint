@@ -7,7 +7,7 @@ export default class UnknownKeysEntity extends IEntity {
         lookbehind: new TypeInitialization(String, false, "", false, true)
     }
 
-    constructor(values = {}) {
+    constructor(values) {
         super(values)
         /** @type {String} */ this.lookbehind
     }

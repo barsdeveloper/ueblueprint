@@ -7,6 +7,7 @@ import IntegerEntity from "./IntegerEntity"
 import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"
+import SymbolEntity from "./SymbolEntity"
 import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 import VariableReferenceEntity from "./VariableReferenceEntity"
@@ -18,6 +19,7 @@ export default class ObjectEntity extends IEntity {
         Name: "",
         bIsPureFunc: new TypeInitialization(Boolean, false, false),
         VariableReference: new TypeInitialization(VariableReferenceEntity, false, null),
+        SelfContextInfo: new TypeInitialization(SymbolEntity, false, null),
         FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
@@ -36,8 +38,8 @@ export default class ObjectEntity extends IEntity {
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
 
-    constructor(options = {}) {
-        super(options)
+    constructor(values) {
+        super(values)
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
         /** @type {Boolean?} */ this.bIsPureFunc

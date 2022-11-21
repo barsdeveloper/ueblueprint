@@ -1,10 +1,9 @@
 import IEntity from "./IEntity"
 
-export default class InvariantTextEntity extends IEntity {
+export default class SymbolEntity extends IEntity {
 
-    static lookbehind = "INVTEXT"
     static attributes = {
-        value: String,
+        value: String
     }
 
     constructor(values) {

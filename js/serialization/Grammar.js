@@ -18,6 +18,7 @@ import RealUnitEntity from "../entity/UnitRealEntity"
 import RotatorEntity from "../entity/RotatorEntity"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
+import SymbolEntity from "../entity/SymbolEntity"
 import TypeInitialization from "../entity/TypeInitialization"
 import UnionType from "../entity/UnionType"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity"
@@ -92,6 +93,8 @@ export default class Grammar {
                 return r.SimpleSerializationVector
             case String:
                 return r.String
+            case SymbolEntity:
+                return r.Symbol
             case UnionType:
                 return attributeType.types
                     .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
@@ -243,6 +246,9 @@ export default class Grammar {
     PathSymbolOptSpaces = r => P.regex(/[0-9\w]+(?: [0-9\w]+)+|[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
+    Symbol = r => P.regex(/\w+/).map(v => new SymbolEntity({ value: v }))
+
+    /** @param {Grammar} r */
     ObjectReference = r => P.alt(
         r.None,
         ...[
@@ -304,6 +310,7 @@ export default class Grammar {
         r.LinearColor,
         r.UnknownKeys,
         r.ObjectReference,
+        r.Symbol,
     )
 
     /** @param {Grammar} r */

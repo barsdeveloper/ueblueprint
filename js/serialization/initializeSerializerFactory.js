@@ -20,6 +20,7 @@ import RotatorEntity from "../entity/RotatorEntity"
 import SerializerFactory from "./SerializerFactory"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
+import SymbolEntity from "../entity/SymbolEntity"
 import ToStringSerializer from "./ToStringSerializer"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity"
 import Utility from "../Utility"
@@ -191,6 +192,11 @@ export default function initializeSerializerFactory() {
             (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
             SimpleSerializationVectorEntity
         )
+    )
+
+    SerializerFactory.registerSerializer(
+        SymbolEntity,
+        new ToStringSerializer(SymbolEntity)
     )
 
     SerializerFactory.registerSerializer(

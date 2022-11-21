@@ -237,7 +237,7 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     setMessageDirectionsIncompatible() {
-        this.linkMessageIcon = "ueb-icon-directions-incompatible"
+        this.linkMessageIcon = SVGIcon.reject
         this.linkMessageText = html`Directions are not compatbile.`
     }
 
@@ -247,17 +247,17 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     setMessageReplaceLink() {
-        this.linkMessageIcon = "ueb-icon-replace-link"
+        this.linkMessageIcon = SVGIcon.correct
         this.linkMessageText = html`Replace existing input connections.`
     }
 
     setMessageSameNode() {
-        this.linkMessageIcon = "ueb-icon-same-node"
+        this.linkMessageIcon = SVGIcon.reject
         this.linkMessageText = html`Both are on the same node.`
     }
 
     setMEssagetypesIncompatible() {
-        this.linkMessageIcon = "ueb-icon-types-incompatible"
+        this.linkMessageIcon = SVGIcon.reject
         this.linkMessageText = html`${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`
     }
 }

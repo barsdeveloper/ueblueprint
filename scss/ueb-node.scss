@@ -232,3 +232,7 @@ ueb-node.ueb-node-style-glass .ueb-node-top {
     left: 50%;
     translate: -50%;
 }
+
+ueb-node.ueb-node-style-glass .ueb-node-outputs:first-child {
+    padding-left: 8px;
+}

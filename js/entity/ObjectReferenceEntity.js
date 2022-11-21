@@ -7,13 +7,13 @@ export default class ObjectReferenceEntity extends IEntity {
         path: String,
     }
 
-    constructor(options = {}) {
-        if (options.constructor !== Object) {
-            options = {
-                path: options
+    constructor(values = {}) {
+        if (values.constructor !== Object) {
+            values = {
+                path: values
             }
         }
-        super(options)
+        super(values)
         /** @type {String} */ this.type
         /** @type {String} */ this.path
     }

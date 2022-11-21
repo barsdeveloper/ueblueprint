@@ -47,8 +47,8 @@ export default class ObjectSerializer extends ISerializer {
 ${this.subWrite(entity, [], object, insideString)
             + object
                 .CustomProperties.map(pin =>
-                    this.separator
-                    + this.prefix
+                    this.attributeSeparator
+                    + this.attributePrefix
                     + "CustomProperties "
                     + SerializerFactory.getSerializer(PinEntity).serialize(pin)
                 )

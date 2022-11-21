@@ -164,8 +164,12 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             </svg>
             ${this.element.linkMessageIcon || this.element.linkMessageText ? html`
                 <div class="ueb-link-message">
-                    <span class="ueb-link-message-icon">${this.element.linkMessageIcon}</span>
-                    <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
+                    ${this.element.linkMessageIcon !== nothing ? html`
+                        <span class="ueb-link-message-icon">${this.element.linkMessageIcon}</span>
+                    ` : nothing}
+                    ${this.element.linkMessageText !== nothing ? html`
+                        <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
+                    ` : nothing}
                 </div>
             ` : nothing}
         `

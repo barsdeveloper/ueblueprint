@@ -11,8 +11,8 @@ export default class IdentifierEntity extends IEntity {
         toAttribute: (value, type) => value.toString()
     }
 
-    constructor(options = {}) {
-        super(options)
+    constructor(values) {
+        super(values)
         /** @type {String} */ this.value
     }
 

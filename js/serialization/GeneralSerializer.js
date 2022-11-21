@@ -20,9 +20,9 @@ export default class GeneralSerializer extends ISerializer {
      * @param {(value: String, entity: T) => String} wrap
      * @param {AnyValueConstructor<T>} entityType 
      */
-    constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
+    constructor(wrap, entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`)
-        super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter)
+        super(entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter)
         this.wrap = wrap
     }
 
@@ -35,6 +35,7 @@ export default class GeneralSerializer extends ISerializer {
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType)
         const parseResult = grammar.parse(value)
         if (!parseResult.status) {
+            // @ts-expect-error
             throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
         }
         return parseResult.value

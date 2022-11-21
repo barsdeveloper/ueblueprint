@@ -8,8 +8,8 @@ export default class VectorEntity extends IEntity {
         Z: Number,
     }
 
-    constructor(options = {}) {
-        super(options)
+    constructor(values) {
+        super(values)
         /** @type {Number} */ this.X
         /** @type {Number} */ this.Y
         /** @type {Number} */ this.Z

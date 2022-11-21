@@ -21,15 +21,15 @@ export default class ISerializer {
     /** @param {AnyValueConstructor<T>} entityType */
     constructor(
         entityType,
-        prefix = "",
-        separator = ",",
+        attributePrefix = "",
+        attributeSeparator = ",",
         trailingSeparator = false,
         attributeValueConjunctionSign = "=",
         attributeKeyPrinter = k => k.join(".")
     ) {
         this.entityType = entityType
-        this.prefix = prefix
-        this.separator = separator
+        this.attributePrefix = attributePrefix
+        this.attributeSeparator = attributeSeparator
         this.trailingSeparator = trailingSeparator
         this.attributeValueConjunctionSign = attributeValueConjunctionSign
         this.attributeKeyPrinter = attributeKeyPrinter
@@ -94,12 +94,12 @@ export default class ISerializer {
             const value = object[property]
             if (value?.constructor === Object) {
                 // Recursive call when finding an object
-                result += (result.length ? this.separator : "")
+                result += (result.length ? this.attributeSeparator : "")
                     + this.subWrite(entity, fullKey, value, insideString)
             } else if (value !== undefined && this.showProperty(entity, object, fullKey, value)) {
                 const isSerialized = Utility.isSerialized(entity, fullKey)
-                result += (result.length ? this.separator : "")
-                    + this.prefix
+                result += (result.length ? this.attributeSeparator : "")
+                    + this.attributePrefix
                     + this.attributeKeyPrinter(fullKey)
                     + this.attributeValueConjunctionSign
                     + (
@@ -111,7 +111,7 @@ export default class ISerializer {
         }
         if (this.trailingSeparator && result.length && fullKey.length === 1) {
             // append separator at the end if asked and there was printed content
-            result += this.separator
+            result += this.attributeSeparator
         }
         return result
     }

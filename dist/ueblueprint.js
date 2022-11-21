@@ -1014,13 +1014,13 @@ class ObjectReferenceEntity extends IEntity {
         path: String,
     }
 
-    constructor(options = {}) {
-        if (options.constructor !== Object) {
-            options = {
-                path: options
+    constructor(values = {}) {
+        if (values.constructor !== Object) {
+            values = {
+                path: values
             };
         }
-        super(options);
+        super(values);
         /** @type {String} */ this.type;
         /** @type {String} */ this.path;
     }
@@ -1037,8 +1037,8 @@ class FunctionReferenceEntity extends IEntity {
         MemberName: "",
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {ObjectReferenceEntity} */ this.MemberParent;
         /** @type {String} */ this.MemberName;
     }
@@ -1062,11 +1062,11 @@ class GuidEntity extends IEntity {
         return new GuidEntity({ value: guid })
     }
 
-    constructor(options) {
-        if (!options) {
-            options = GuidEntity.generateGuid().value;
+    constructor(values) {
+        if (!values) {
+            values = GuidEntity.generateGuid().value;
         }
-        super(options);
+        super(values);
         /** @type {String} */ this.value;
     }
 
@@ -1090,8 +1090,8 @@ class IdentifierEntity extends IEntity {
         toAttribute: (value, type) => value.toString()
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {String} */ this.value;
     }
 
@@ -1110,9 +1110,9 @@ class IntegerEntity extends IEntity {
         value: 0,
     }
 
-    /** @param {Object | Number | String} options */
-    constructor(options = 0) {
-        super(options);
+    /** @param {Object | Number | String} values */
+    constructor(values = 0) {
+        super(values);
         /** @type {Number} */
         this.value = Math.round(this.value);
     }
@@ -1133,8 +1133,8 @@ class InvariantTextEntity extends IEntity {
         value: String,
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {String} */ this.value;
     }
 }
@@ -1150,13 +1150,13 @@ class KeyBindingEntity extends IEntity {
         Key: IdentifierEntity,
     }
 
-    constructor(options = {}) {
-        options.ActionName = options.ActionName ?? "";
-        options.bShift = options.bShift ?? false;
-        options.bCtrl = options.bCtrl ?? false;
-        options.bAlt = options.bAlt ?? false;
-        options.bCmd = options.bCmd ?? false;
-        super(options);
+    constructor(values = {}) {
+        values.ActionName = values.ActionName ?? "";
+        values.bShift = values.bShift ?? false;
+        values.bCtrl = values.bCtrl ?? false;
+        values.bAlt = values.bAlt ?? false;
+        values.bCmd = values.bCmd ?? false;
+        super(values);
         /** @type {String} */ this.ActionName;
         /** @type {Boolean} */ this.bShift;
         /** @type {Boolean} */ this.bCtrl;
@@ -1172,10 +1172,9 @@ class RealUnitEntity extends IEntity {
         value: 0,
     }
 
-    /** @param {Object | Number | String} options */
-    constructor(options = 0) {
-        super(options);
-        /** @type {Number} */
+    /** @param {Object | Number | String} values */
+    constructor(values = 0) {
+        super(values);
         this.value = Utility.clamp(this.value, 0, 1);
     }
 
@@ -1226,8 +1225,8 @@ class LinearColorEntity extends IEntity {
         }
     }
 
-    constructor(options) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {RealUnitEntity} */ this.R;
         /** @type {RealUnitEntity} */ this.G;
         /** @type {RealUnitEntity} */ this.B;
@@ -1388,8 +1387,8 @@ class LocalizedTextEntity extends IEntity {
         value: String,
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {String} */ this.namespace;
         /** @type {String} */ this.key;
         /** @type {String} */ this.value;
@@ -1408,8 +1407,8 @@ class MacroGraphReferenceEntity extends IEntity {
         GraphGuid: GuidEntity,
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {ObjectReferenceEntity} */ this.MacroGraph;
         /** @type {ObjectReferenceEntity} */ this.GraphBlueprint;
         /** @type {GuidEntity} */ this.GuidEntity;
@@ -1427,8 +1426,8 @@ class PathSymbolEntity extends IEntity {
         value: String,
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {String} */ this.value;
     }
 
@@ -1448,8 +1447,8 @@ class PinReferenceEntity extends IEntity {
         pinGuid: GuidEntity,
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {PathSymbolEntity} */ this.objectName;
         /** @type {GuidEntity} */ this.pinGuid;
     }
@@ -1463,7 +1462,7 @@ class RotatorEntity extends IEntity {
         Y: Number,
     }
 
-    constructor(values = {}) {
+    constructor(values) {
         super(values);
         /** @type {Number} */ this.R;
         /** @type {Number} */ this.P;
@@ -1482,8 +1481,8 @@ class VectorEntity extends IEntity {
         Z: Number,
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {Number} */ this.X;
         /** @type {Number} */ this.Y;
         /** @type {Number} */ this.Z;
@@ -1562,8 +1561,8 @@ class PinEntity extends IEntity {
             : entity
     }
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values = {}) {
+        super(values);
         /** @type {GuidEntity} */ this.PinId;
         /** @type {String} */ this.PinName;
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName;
@@ -1710,11 +1709,23 @@ class VariableReferenceEntity extends IEntity {
         bSelfContext: new TypeInitialization(Boolean, false, false)
     }
 
-    constructor(values = {}) {
+    constructor(values) {
         super(values);
         /** @type {String} */ this.MemberName;
         /** @type {GuidEntity} */ this.GuidEntity;
         /** @type {Boolean} */ this.bSelfContext;
+    }
+}
+
+class SymbolEntity extends IEntity {
+
+    static attributes = {
+        value: String
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.value;
     }
 }
 
@@ -1725,6 +1736,7 @@ class ObjectEntity extends IEntity {
         Name: "",
         bIsPureFunc: new TypeInitialization(Boolean, false, false),
         VariableReference: new TypeInitialization(VariableReferenceEntity, false, null),
+        SelfContextInfo: new TypeInitialization(SymbolEntity, false, null),
         FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
@@ -1743,8 +1755,8 @@ class ObjectEntity extends IEntity {
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
 
-    constructor(options = {}) {
-        super(options);
+    constructor(values) {
+        super(values);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
         /** @type {Boolean?} */ this.bIsPureFunc;
@@ -1858,7 +1870,7 @@ class UnknownKeysEntity extends IEntity {
         lookbehind: new TypeInitialization(String, false, "", false, true)
     }
 
-    constructor(values = {}) {
+    constructor(values) {
         super(values);
         /** @type {String} */ this.lookbehind;
     }
@@ -1933,6 +1945,8 @@ class Grammar {
                 return r.SimpleSerializationVector
             case String:
                 return r.String
+            case SymbolEntity:
+                return r.Symbol
             case UnionType:
                 return attributeType.types
                     .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
@@ -2084,6 +2098,9 @@ class Grammar {
     PathSymbolOptSpaces = r => P.regex(/[0-9\w]+(?: [0-9\w]+)+|[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
+    Symbol = r => P.regex(/\w+/).map(v => new SymbolEntity({ value: v }))
+
+    /** @param {Grammar} r */
     ObjectReference = r => P.alt(
         r.None,
         ...[
@@ -2145,6 +2162,7 @@ class Grammar {
         r.LinearColor,
         r.UnknownKeys,
         r.ObjectReference,
+        r.Symbol,
     )
 
     /** @param {Grammar} r */
@@ -2357,15 +2375,15 @@ class ISerializer {
     /** @param {AnyValueConstructor<T>} entityType */
     constructor(
         entityType,
-        prefix = "",
-        separator = ",",
+        attributePrefix = "",
+        attributeSeparator = ",",
         trailingSeparator = false,
         attributeValueConjunctionSign = "=",
         attributeKeyPrinter = k => k.join(".")
     ) {
         this.entityType = entityType;
-        this.prefix = prefix;
-        this.separator = separator;
+        this.attributePrefix = attributePrefix;
+        this.attributeSeparator = attributeSeparator;
         this.trailingSeparator = trailingSeparator;
         this.attributeValueConjunctionSign = attributeValueConjunctionSign;
         this.attributeKeyPrinter = attributeKeyPrinter;
@@ -2430,12 +2448,12 @@ class ISerializer {
             const value = object[property];
             if (value?.constructor === Object) {
                 // Recursive call when finding an object
-                result += (result.length ? this.separator : "")
+                result += (result.length ? this.attributeSeparator : "")
                     + this.subWrite(entity, fullKey, value, insideString);
             } else if (value !== undefined && this.showProperty(entity, object, fullKey, value)) {
                 const isSerialized = Utility.isSerialized(entity, fullKey);
-                result += (result.length ? this.separator : "")
-                    + this.prefix
+                result += (result.length ? this.attributeSeparator : "")
+                    + this.attributePrefix
                     + this.attributeKeyPrinter(fullKey)
                     + this.attributeValueConjunctionSign
                     + (
@@ -2447,7 +2465,7 @@ class ISerializer {
         }
         if (this.trailingSeparator && result.length && fullKey.length === 1) {
             // append separator at the end if asked and there was printed content
-            result += this.separator;
+            result += this.attributeSeparator;
         }
         return result
     }
@@ -2510,8 +2528,8 @@ class ObjectSerializer extends ISerializer {
 ${this.subWrite(entity, [], object, insideString)
             + object
                 .CustomProperties.map(pin =>
-                    this.separator
-                    + this.prefix
+                    this.attributeSeparator
+                    + this.attributePrefix
                     + "CustomProperties "
                     + SerializerFactory.getSerializer(PinEntity).serialize(pin)
                 )
@@ -3943,8 +3961,12 @@ class LinkTemplate extends IFromToPositionedTemplate {
             </svg>
             ${this.element.linkMessageIcon || this.element.linkMessageText ? $`
                 <div class="ueb-link-message">
-                    <span class="ueb-link-message-icon">${this.element.linkMessageIcon}</span>
-                    <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
+                    ${this.element.linkMessageIcon !== w ? $`
+                        <span class="ueb-link-message-icon">${this.element.linkMessageIcon}</span>
+                    ` : w}
+                    ${this.element.linkMessageText !== w ? $`
+                        <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
+                    ` : w}
                 </div>
             ` : w}
         `
@@ -4111,6 +4133,13 @@ class SVGIcon {
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
         </svg>
+    `
+
+    static reject = $`
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path stroke="red" stroke-width="2" stroke-miterlimit="10" d="M12.5 3.5L3.5 12.5" />
+        <path fill="red" d="M8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2ZM8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5Z" />
+    </svg>
     `
 
     static select = $`
@@ -4369,7 +4398,7 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     setMessageDirectionsIncompatible() {
-        this.linkMessageIcon = "ueb-icon-directions-incompatible";
+        this.linkMessageIcon = SVGIcon.reject;
         this.linkMessageText = $`Directions are not compatbile.`;
     }
 
@@ -4379,17 +4408,17 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     setMessageReplaceLink() {
-        this.linkMessageIcon = "ueb-icon-replace-link";
+        this.linkMessageIcon = SVGIcon.correct;
         this.linkMessageText = $`Replace existing input connections.`;
     }
 
     setMessageSameNode() {
-        this.linkMessageIcon = "ueb-icon-same-node";
+        this.linkMessageIcon = SVGIcon.reject;
         this.linkMessageText = $`Both are on the same node.`;
     }
 
     setMEssagetypesIncompatible() {
-        this.linkMessageIcon = "ueb-icon-types-incompatible";
+        this.linkMessageIcon = SVGIcon.reject;
         this.linkMessageText = $`${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`;
     }
 }
@@ -7446,9 +7475,9 @@ class GeneralSerializer extends ISerializer {
      * @param {(value: String, entity: T) => String} wrap
      * @param {AnyValueConstructor<T>} entityType 
      */
-    constructor(wrap, entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
+    constructor(wrap, entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`);
-        super(entityType, prefix, separator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter);
+        super(entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter);
         this.wrap = wrap;
     }
 
@@ -7461,6 +7490,7 @@ class GeneralSerializer extends ISerializer {
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType);
         const parseResult = grammar.parse(value);
         if (!parseResult.status) {
+            // @ts-expect-error
             throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
         }
         return parseResult.value
@@ -7706,6 +7736,11 @@ function initializeSerializerFactory() {
             (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
             SimpleSerializationVectorEntity
         )
+    );
+
+    SerializerFactory.registerSerializer(
+        SymbolEntity,
+        new ToStringSerializer(SymbolEntity)
     );
 
     SerializerFactory.registerSerializer(

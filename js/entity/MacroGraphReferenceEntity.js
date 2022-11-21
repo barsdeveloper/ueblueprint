@@ -10,8 +10,8 @@ export default class MacroGraphReferenceEntity extends IEntity {
         GraphGuid: GuidEntity,
     }
 
-    constructor(options = {}) {
-        super(options)
+    constructor(values) {
+        super(values)
         /** @type {ObjectReferenceEntity} */ this.MacroGraph
         /** @type {ObjectReferenceEntity} */ this.GraphBlueprint
         /** @type {GuidEntity} */ this.GuidEntity

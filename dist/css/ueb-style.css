@@ -250,7 +250,7 @@ ueb-link {
   visibility: hidden;
 }
 
-ueb-link svg {
+ueb-link > svg {
   --ueb-y-reflected-coefficient: calc(2 * var(--ueb-y-reflected) - 1);
   position: absolute;
   width: 100%;
@@ -291,13 +291,16 @@ ueb-link[data-dragging=true] .ueb-link-message {
 
 .ueb-link-message-icon {
   display: inline-block;
-  position: relative;
-  width: 20px;
-  height: 20px;
+  padding: 4px;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
 
 .ueb-link-message-text {
-  padding: 4px 8px;
+  padding: 4px;
+  padding-left: 0;
+  vertical-align: middle;
 }
 
 .ueb-link-message-icon svg {
@@ -519,6 +522,10 @@ ueb-node.ueb-node-style-glass .ueb-node-top {
   position: absolute;
   left: 50%;
   translate: -50%;
+}
+
+ueb-node.ueb-node-style-glass .ueb-node-outputs:first-child {
+  padding-left: 8px;
 }
 
 ueb-blueprint {

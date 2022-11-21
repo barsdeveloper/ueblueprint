@@ -41,8 +41,8 @@ export default class LinearColorEntity extends IEntity {
         }
     }
 
-    constructor(options) {
-        super(options)
+    constructor(values) {
+        super(values)
         /** @type {RealUnitEntity} */ this.R
         /** @type {RealUnitEntity} */ this.G
         /** @type {RealUnitEntity} */ this.B
