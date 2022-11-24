@@ -30,6 +30,8 @@ export default class Configuration {
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
     static colorWindowEventName = "ueb-color-window"
+    static defaultCommentHeight = 96
+    static defaultCommentWidth = 400
     static deleteNodesKeyboardKey = "Delete"
     static dragGeneralEventName = "ueb-drag-general"
     static dragEventName = "ueb-drag"
@@ -101,6 +103,7 @@ export default class Configuration {
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
+        comment: "/Script/UnrealEd.EdGraphNode_Comment",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",

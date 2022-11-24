@@ -54,6 +54,8 @@ class Configuration {
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
     static colorWindowEventName = "ueb-color-window"
+    static defaultCommentHeight = 96
+    static defaultCommentWidth = 400
     static deleteNodesKeyboardKey = "Delete"
     static dragGeneralEventName = "ueb-drag-general"
     static dragEventName = "ueb-drag"
@@ -125,6 +127,7 @@ class Configuration {
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
+        comment: "/Script/UnrealEd.EdGraphNode_Comment",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
@@ -1225,7 +1228,23 @@ class LinearColorEntity extends IEntity {
         }
     }
 
+    static getWhite() {
+        return new LinearColorEntity({
+            R: 1,
+            G: 1,
+            B: 1,
+        })
+    }
+
     constructor(values) {
+        if (values instanceof Array) {
+            values = {
+                R: values[0] ?? 0,
+                G: values[1] ?? 0,
+                B: values[2] ?? 0,
+                A: values[3] ?? 1,
+            };
+        }
         super(values);
         /** @type {RealUnitEntity} */ this.R;
         /** @type {RealUnitEntity} */ this.G;
@@ -1700,6 +1719,18 @@ class PinEntity extends IEntity {
     }
 }
 
+class SymbolEntity extends IEntity {
+
+    static attributes = {
+        value: String
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.value;
+    }
+}
+
 class VariableReferenceEntity extends IEntity {
 
     static attributes = {
@@ -1717,18 +1748,6 @@ class VariableReferenceEntity extends IEntity {
     }
 }
 
-class SymbolEntity extends IEntity {
-
-    static attributes = {
-        value: String
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.value;
-    }
-}
-
 class ObjectEntity extends IEntity {
 
     static attributes = {
@@ -1742,8 +1761,17 @@ class ObjectEntity extends IEntity {
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         MacroGraphReference: new TypeInitialization(MacroGraphReferenceEntity, false, null),
         Enum: new TypeInitialization(ObjectReferenceEntity, false),
+        CommentColor: new TypeInitialization(LinearColorEntity, false),
+        bCommentBubbleVisible_InDetailsPanel: new TypeInitialization(Boolean, false),
+        bColorCommentBubble: new TypeInitialization(Boolean, false, false),
+        MoveMode: new TypeInitialization(SymbolEntity, false),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
+        NodeWidth: new TypeInitialization(IntegerEntity, false),
+        NodeHeight: new TypeInitialization(IntegerEntity, false),
+        bCommentBubblePinned: new TypeInitialization(Boolean, false),
+        bCommentBubbleVisible: new TypeInitialization(Boolean, false),
+        NodeComment: new TypeInitialization(String, false),
         AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
         EnabledState: new TypeInitialization(IdentifierEntity, false, null),
         NodeGuid: GuidEntity,
@@ -1766,8 +1794,15 @@ class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity?} */ this.TargetType;
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference;
         /** @type {ObjectReferenceEntity?} */ this.Enum;
+        /** @type {LinearColorEntity?} */ this.CommentColor;
+        /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
+        /** @type {IntegerEntity?} */ this.NodeWidth;
+        /** @type {IntegerEntity?} */ this.NodeHeight;
+        /** @type {Boolean?} */ this.bCommentBubblePinned;
+        /** @type {Boolean?} */ this.bCommentBubbleVisible;
+        /** @type {String?} */ this.NodeComment;
         /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
         /** @type {IdentifierEntity?} */ this.EnabledState;
         /** @type {GuidEntity} */ this.NodeGuid;
@@ -1848,6 +1883,16 @@ class ObjectEntity extends IEntity {
     getCounter() {
         return this.getNameAndCounter()[1]
     }
+
+    getNodeWidth() {
+        return this.NodeWidth ??
+            this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentWidth : undefined
+    }
+
+    getNodeHeight() {
+        return this.NodeHeight ??
+            this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentHeight : undefined
+    }
 }
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -1907,7 +1952,7 @@ class Grammar {
                         .sepBy(P.string(","))
                         .skip(P.regex(/,?\s*/)),
                     P.string(")"),
-                    (_, grammar, __) => grammar
+                    (_0, grammar, _2) => grammar
                 )
             case Boolean:
                 return r.Boolean
@@ -1996,7 +2041,7 @@ class Grammar {
             })
 
     /** @param {Grammar} r */
-    static createEntityGrammar = (r, entityType) =>
+    static createEntityGrammar = (r, entityType, limitUnknownKeys = false) =>
         P.seqMap(
             entityType.lookbehind
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
@@ -2014,14 +2059,16 @@ class Grammar {
         )
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
             .chain(values => {
-                let unexpectedKeysCount = 0;
-                let totalKeys = 0;
-                for (const key in values) {
-                    unexpectedKeysCount += key in entityType.attributes ? 0 : 1;
-                    ++totalKeys;
-                }
-                if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
-                    return P.fail()
+                if (limitUnknownKeys) {
+                    let unexpectedKeysCount = 0;
+                    let totalKeys = 0;
+                    for (const key in values) {
+                        unexpectedKeysCount += key in entityType.attributes ? 0 : 1;
+                        ++totalKeys;
+                    }
+                    if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
+                        return P.fail()
+                    }
                 }
                 return P.succeed().map(() => new entityType(values))
             })
@@ -2038,7 +2085,7 @@ class Grammar {
     MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
 
     /** @param {Grammar} r */
-    Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
+    Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(() => null).desc("null: ()")
 
     /** @param {Grammar} r */
     Boolean = r => P.alt(
@@ -2068,7 +2115,7 @@ class Grammar {
     ColorNumber = r => r.NaturalNumber.assert(n => 0 <= n && n < 256, "the color must be between 0 and 256 excluded")
 
     /** @param {Grammar} r */
-    Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
+    Word = r => P.regex(/[a-zA-Z_]+/).desc("a word")
 
     /** @param {Grammar} r */
     String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.unescapeString)
@@ -2080,7 +2127,7 @@ class Grammar {
     /*   ---   Entity   ---   */
 
     /** @param {Grammar} r */
-    None = r => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
+    None = r => P.string("None").map(() => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
 
     /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
@@ -2153,13 +2200,12 @@ class Grammar {
         r.Guid,
         r.None,
         r.Null,
-        r.Integer,
         r.Number,
         r.String,
         r.LocalizedText,
         r.InvariantText,
-        r.Vector,
-        r.LinearColor,
+        Grammar.createEntityGrammar(r, VectorEntity, true),
+        Grammar.createEntityGrammar(r, LinearColorEntity, true),
         r.UnknownKeys,
         r.ObjectReference,
         r.Symbol,
@@ -2168,9 +2214,9 @@ class Grammar {
     /** @param {Grammar} r */
     PinReference = r => P.seqMap(
         r.PathSymbol, // Goes into objectNAme
-        P.whitespace, // Goes into _ (ignored)
+        P.whitespace, // Goes into _1 (ignored)
         r.Guid, // Goes into pinGuid
-        (objectName, _, pinGuid) => new PinReferenceEntity({
+        (objectName, _1, pinGuid) => new PinReferenceEntity({
             objectName: objectName,
             pinGuid: pinGuid,
         })
@@ -2255,7 +2301,7 @@ class Grammar {
             )
             .sepBy1(P.whitespace),
         P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
-        (_, attributes, __) => {
+        (_0, attributes, _2) => {
             let values = {};
             attributes.forEach(attributeSetter => attributeSetter(values));
             return new ObjectEntity(values)
@@ -2286,7 +2332,7 @@ class Grammar {
         r.ColorNumber,
         P.string(",").skip(P.optWhitespace),
         r.ColorNumber.map(Number),
-        (R, _, G, __, B) => new LinearColorEntity({
+        (R, _1, G, _3, B) => new LinearColorEntity({
             R: R / 255,
             G: G / 255,
             B: B / 255,
@@ -2312,7 +2358,7 @@ class Grammar {
             r.ColorNumber.map(Number),
             P.string(",").skip(P.optWhitespace),
             P.regex(/0?\.\d+|[01]/).map(Number),
-            (R, _, G, __, B, ___, A) => new LinearColorEntity({
+            (R, _1, G, _3, B, _4, A) => new LinearColorEntity({
                 R: R / 255,
                 G: G / 255,
                 B: B / 255,
@@ -2566,7 +2612,7 @@ class Copy extends IInput {
         const value = this.blueprint
             .getNodes(true)
             .map(node => Copy.#serializer.serialize(node.entity, false))
-            .join("\n\n");
+            .join("");
         navigator.clipboard.writeText(value);
     }
 }
@@ -4136,10 +4182,10 @@ class SVGIcon {
     `
 
     static reject = $`
-    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path stroke="red" stroke-width="2" stroke-miterlimit="10" d="M12.5 3.5L3.5 12.5" />
-        <path fill="red" d="M8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2ZM8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5Z" />
-    </svg>
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="red" stroke-width="2" stroke-miterlimit="10" d="M12.5 3.5L3.5 12.5" />
+            <path fill="red" d="M8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2ZM8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5Z" />
+        </svg>
     `
 
     static select = $`
@@ -4781,7 +4827,7 @@ class MouseMoveDraggable extends IMouseClickDrag {
 class IDraggableTemplate extends ITemplate {
 
     getDraggableElement() {
-        return this.element
+        return /** @type {Element} */(this.element)
     }
 
     createDraggableObject() {
@@ -4857,7 +4903,7 @@ class MouseMoveNodes extends MouseMoveDraggable {
 class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
     getDraggableElement() {
-        return this.element
+        return /** @type {Element} */ (this.element)
     }
 
     createDraggableObject() {
@@ -4907,6 +4953,12 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
     }
 
+    /** @param {NodeElement} element */
+    constructed(element) {
+        super.constructed(element);
+        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
+    }
+
     getColor() {
         const functionColor = r$2`84, 122, 156`;
         const pureFunctionColor = r$2`95, 129, 90`;
@@ -4928,12 +4980,6 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
         }
         return functionColor
-    }
-
-    /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element);
-        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
     }
 
     render() {
@@ -5189,12 +5235,70 @@ class VariableAccessNodeTemplate extends NodeTemplate {
     }
 }
 
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class CommentNodeTemplate extends NodeTemplate {
+
+    #color = LinearColorEntity.getWhite()
+
+    /** @param {NodeElement} element */
+    constructed(element) {
+        if (element.entity.CommentColor) {
+            this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber());
+        }
+        // Dimming the colors to 2/3
+        const factor = 2 / 3;
+        this.#color.setFromRGBA(
+            this.#color.R.value * factor,
+            this.#color.G.value * factor,
+            this.#color.B.value * factor,
+        );
+        element.classList.add("ueb-node-style-comment");
+        super.constructed(element); // Keep it at the end
+    }
+
+    getColor() {
+        return r$2`${Math.round(this.#color.R.value * 255)}, ${Math.round(this.#color.G.value * 255)}, ${Math.round(this.#color.B.value * 255)}`
+    }
+
+    getDraggableElement() {
+        return this.element.querySelector(".ueb-node-top")
+    }
+
+    render() {
+        const width = this.element.entity.getNodeWidth();
+        const height = this.element.entity.getNodeHeight();
+        return $`
+            <div class="ueb-node-border">
+                <div class="ueb-node-handler-top"></div>
+                <div class="ueb-node-handler-right"></div>
+                <div class="ueb-node-handler-bottom"></div>
+                <div class="ueb-node-handler-left"></div>
+                <div class="ueb-node-wrapper">
+                    <div class="ueb-node-top">
+                        ${this.element.entity.NodeComment}
+                    </div>
+                    <div class="ueb-node-content"
+                        style="${`width: ${width}px; height: ${height}px;`}">
+                    </div>
+                </div>
+            </div>
+        `
+    }
+
+
+}
+
 /** @typedef {import("./IElement").default} IElement */
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 class NodeElement extends ISelectableDraggableElement {
 
     static #typeTemplateMap = {
+        [Configuration.nodeType.comment]: CommentNodeTemplate,
         [Configuration.nodeType.knot]: KnotNodeTemplate,
         [Configuration.nodeType.variableGet]: VariableAccessNodeTemplate,
         [Configuration.nodeType.variableSet]: VariableAccessNodeTemplate,

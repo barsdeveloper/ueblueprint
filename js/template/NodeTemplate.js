@@ -37,6 +37,12 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true)
     }
 
+    /** @param {NodeElement} element */
+    constructed(element) {
+        super.constructed(element)
+        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
+    }
+
     getColor() {
         const functionColor = css`84, 122, 156`
         const pureFunctionColor = css`95, 129, 90`
@@ -58,12 +64,6 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
         }
         return functionColor
-    }
-
-    /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element)
-        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
     }
 
     render() {

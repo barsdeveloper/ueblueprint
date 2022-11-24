@@ -41,7 +41,23 @@ export default class LinearColorEntity extends IEntity {
         }
     }
 
+    static getWhite() {
+        return new LinearColorEntity({
+            R: 1,
+            G: 1,
+            B: 1,
+        })
+    }
+
     constructor(values) {
+        if (values instanceof Array) {
+            values = {
+                R: values[0] ?? 0,
+                G: values[1] ?? 0,
+                B: values[2] ?? 0,
+                A: values[3] ?? 1,
+            }
+        }
         super(values)
         /** @type {RealUnitEntity} */ this.R
         /** @type {RealUnitEntity} */ this.G

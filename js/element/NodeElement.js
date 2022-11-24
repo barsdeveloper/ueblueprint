@@ -9,6 +9,7 @@ import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
 import VariableAccessNodeTemplate from "../template/VariableAccessNodeTemplate"
+import CommentNodeTemplate from "../template/CommentNodeTemplate"
 
 /** @typedef {import("./IElement").default} IElement */
 
@@ -16,6 +17,7 @@ import VariableAccessNodeTemplate from "../template/VariableAccessNodeTemplate"
 export default class NodeElement extends ISelectableDraggableElement {
 
     static #typeTemplateMap = {
+        [Configuration.nodeType.comment]: CommentNodeTemplate,
         [Configuration.nodeType.knot]: KnotNodeTemplate,
         [Configuration.nodeType.variableGet]: VariableAccessNodeTemplate,
         [Configuration.nodeType.variableSet]: VariableAccessNodeTemplate,
