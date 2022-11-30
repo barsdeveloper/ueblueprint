@@ -29,6 +29,44 @@ Classes used to map input events (generated from a mouse or a keyboard for examp
 ### Selection
 It contains just a few classes related exclusively to the operation of selecting nodes. It is an (arguably useless) attempt to optimize the selection in case of graphs with a very large numbers of nodes (it is not really usefull because in the case of many many nodes, the bootleneck becomes the DOM rendering, not deciding in JavaScript which nodes are selected and which are not even though this happens every frame). Selection has two models: one very simple that checks every frame all the nodes in the graph to see whether or not they are selected by the selector, and the fast model that attemps to optimize the number of nodes that are looked up at, much more complicated and not super usefull as stated before.
 
+# Getting Started
+
+Clone the repository then run the command:
+
+```
+npm install
+```
+
+In order to download the dependencies of the project.
+
+An http server is also needed to test the changes, one option is `http-server`:
+
+```
+npm install -g http-server
+```
+
+In case of linux and permission error then:
+
+```
+npm config set prefix ~/.local
+```
+
+And try again the previous command. The path `~/.local/bin` should be added to the `$PATH` environment variable, therefor the following command will be available in the command line:
+
+```
+http-server
+```
+
+The example page will be available at the addreess `http://127.0.0.1:8080/`
+
+Now the iteration steps simply are: make a change to the code, then run:
+
+```
+npm run build
+```
+
+And refresh the HTML page possibly holding `Shift`.
+
 # Code Style
 
 ## Formatting

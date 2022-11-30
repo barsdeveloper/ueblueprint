@@ -1,8 +1,8 @@
-import { terser } from "rollup-plugin-terser"
 import commonjs from "@rollup/plugin-commonjs"
 import copy from "rollup-plugin-copy"
 import minifyHTML from "rollup-plugin-minify-html-literals"
 import resolve from "@rollup/plugin-node-resolve"
+import terser from "@rollup/plugin-terser"
 
 export default [
     {
