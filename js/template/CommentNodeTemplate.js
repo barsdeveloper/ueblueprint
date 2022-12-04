@@ -1,13 +1,14 @@
 import { css, html } from "lit"
+import Configuration from "../Configuration"
+import IResizeableTemplate from "./IResizeableTemplate"
 import LinearColorEntity from "../entity/LinearColorEntity"
-import NodeTemplate from "./NodeTemplate"
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
 
-export default class CommentNodeTemplate extends NodeTemplate {
+export default class CommentNodeTemplate extends IResizeableTemplate {
 
     #color = LinearColorEntity.getWhite()
 
@@ -19,12 +20,12 @@ export default class CommentNodeTemplate extends NodeTemplate {
         // Dimming the colors to 2/3
         const factor = 2 / 3
         this.#color.setFromRGBA(
-            this.#color.R.value * factor,
-            this.#color.G.value * factor,
-            this.#color.B.value * factor,
+            this.#color.R.value,
+            this.#color.G.value,
+            this.#color.B.value,
         )
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable")
-        super.constructed(element) // Keep it at the end
+        super.constructed(element) // Keep it at the end because it calls this.getColor() where this.#color must be initialized
     }
 
     getColor() {
@@ -36,25 +37,32 @@ export default class CommentNodeTemplate extends NodeTemplate {
     }
 
     render() {
-        const width = this.element.entity.getNodeWidth()
-        const height = this.element.entity.getNodeHeight()
         return html`
             <div class="ueb-node-border">
-                <div class="ueb-node-handler-top"></div>
-                <div class="ueb-node-handler-right"></div>
-                <div class="ueb-node-handler-bottom"></div>
-                <div class="ueb-node-handler-left"></div>
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">
                         ${this.element.entity.NodeComment}
-                    </div>
-                    <div class="ueb-node-content"
-                        style="${`width: ${width}px; height: ${height}px;`}">
                     </div>
                 </div>
             </div>
         `
     }
 
+    /** @param {Number} value */
+    setSizeX(value) {
+        if (value >= Configuration.gridSet * Configuration.gridSize) {
+            this.element.sizeX = value
+            return true
+        }
+        return false
+    }
 
+    /** @param {Number} value */
+    setSizeY(value) {
+        if (value >= 3 * Configuration.gridSize) {
+            this.element.sizeY = Math.max(value, 3 * Configuration.gridSize)
+            return true
+        }
+        return false
+    }
 }

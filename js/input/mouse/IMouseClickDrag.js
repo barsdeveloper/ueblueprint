@@ -62,7 +62,7 @@ export default class IMouseClickDrag extends IPointing {
             this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
             const location = this.locationFromEvent(e)
             // Do actual actions
-            this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize)
+            this.lastLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize)
             this.startDrag(location)
             this.started = true
         }
@@ -111,15 +111,14 @@ export default class IMouseClickDrag extends IPointing {
 
     clickedOffset = [0, 0]
     clickedPosition = [0, 0]
-    mouseLocation = [0, 0]
+    lastLocation = [0, 0]
     started = false
     stepSize = 1
 
     /**
-     * 
-     * @param {T} target 
-     * @param {Blueprint} blueprint 
-     * @param {Object} options 
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= 0
@@ -133,12 +132,13 @@ export default class IMouseClickDrag extends IPointing {
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize)
         this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace
-        this.#draggableElement = this.options.draggableElement
+        this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement)
 
         this.listenEvents()
     }
 
     listenEvents() {
+        super.listenEvents()
         this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler)
         if (this.options.clickButton == 2) {
             this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault())
@@ -146,6 +146,7 @@ export default class IMouseClickDrag extends IPointing {
     }
 
     unlistenEvents() {
+        super.unlistenEvents()
         this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler)
     }
 

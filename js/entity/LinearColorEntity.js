@@ -184,7 +184,11 @@ export default class LinearColorEntity extends IEntity {
     }
 
     toNumber() {
-        return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
+        return (
+            Math.round(this.R.value * 0xff) << 24)
+            + (Math.round(this.G.value * 0xff) << 16)
+            + (Math.round(this.B.value * 0xff) << 8)
+            + Math.round(this.A.value * 0xff)
     }
 
     /** @param {Number} number */

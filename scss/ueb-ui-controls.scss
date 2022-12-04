@@ -95,3 +95,73 @@ ueb-window .ueb-pin-input-content {
         cursor: pointer;
     }
 }
+
+.ueb-resizeable-top,
+.ueb-resizeable-top-right,
+.ueb-resizeable-top-left {
+    position: absolute;
+    top: 0;
+    height: 10px;
+}
+
+.ueb-resizeable-top {
+    right: 0;
+    left: 0;
+    cursor: ns-resize;
+}
+
+.ueb-resizeable-top-right {
+    right: 0;
+    width: 10px;
+    cursor: nesw-resize;
+}
+
+.ueb-resizeable-top-left {
+    left: 0;
+    width: 10px;
+    cursor: nwse-resize;
+}
+
+.ueb-resizeable-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: ew-resize;
+}
+
+.ueb-resizeable-bottom,
+.ueb-resizeable-bottom-right,
+.ueb-resizeable-bottom-left {
+    position: absolute;
+    bottom: -3px;
+    height: 10px;
+    cursor: ns-resize;
+}
+
+.ueb-resizeable-bottom {
+    right: 0;
+    left: 0;
+}
+
+.ueb-resizeable-bottom-right {
+    right: 0;
+    width: 10px;
+    cursor: nwse-resize;
+}
+
+.ueb-resizeable-bottom-left {
+    left: 0;
+    width: 10px;
+    cursor: nesw-resize;
+}
+
+.ueb-resizeable-left {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 10px;
+    cursor: ew-resize;
+}

@@ -1371,7 +1371,11 @@ class LinearColorEntity extends IEntity {
     }
 
     toNumber() {
-        return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
+        return (
+            Math.round(this.R.value * 0xff) << 24)
+            + (Math.round(this.G.value * 0xff) << 16)
+            + (Math.round(this.B.value * 0xff) << 8)
+            + Math.round(this.A.value * 0xff)
     }
 
     /** @param {Number} number */
@@ -3089,6 +3093,14 @@ class IDraggableElement extends IElement {
             type: Number,
             attribute: false,
         },
+        sizeX: {
+            type: Number,
+            attribute: false,
+        },
+        sizeY: {
+            type: Number,
+            attribute: false,
+        },
     }
     static dragEventName = Configuration.dragEventName
     static dragGeneralEventName = Configuration.dragGeneralEventName
@@ -3101,6 +3113,16 @@ class IDraggableElement extends IElement {
         super(entity, template);
         this.locationX = 0;
         this.locationY = 0;
+        this.sizeX = -1;
+        this.sizeY = -1;
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        const boundaries = this.getBoundingClientRect();
+        this.sizeX = boundaries.width;
+        this.sizeY = boundaries.height;
     }
 
     /** @param {Number[]} param0 */
@@ -3144,6 +3166,22 @@ class IDraggableElement extends IElement {
         if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
             this.setLocation(snappedLocation);
         }
+    }
+
+    topBoundary() {
+        return this.locationY
+    }
+
+    rightBoundary() {
+        return this.locationX + this.sizeX
+    }
+
+    bottomBoundary() {
+        return this.locationY + this.sizeY
+    }
+
+    leftBoundary() {
+        return this.locationX
     }
 }
 
@@ -3206,7 +3244,7 @@ class IMouseClickDrag extends IPointing {
             this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
             const location = this.locationFromEvent(e);
             // Do actual actions
-            this.mouseLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
+            this.lastLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
             this.startDrag(location);
             this.started = true;
         }
@@ -3255,15 +3293,14 @@ class IMouseClickDrag extends IPointing {
 
     clickedOffset = [0, 0]
     clickedPosition = [0, 0]
-    mouseLocation = [0, 0]
+    lastLocation = [0, 0]
     started = false
     stepSize = 1
 
     /**
-     * 
-     * @param {T} target 
-     * @param {Blueprint} blueprint 
-     * @param {Object} options 
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= 0;
@@ -3277,12 +3314,13 @@ class IMouseClickDrag extends IPointing {
         super(target, blueprint, options);
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
         this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
-        this.#draggableElement = this.options.draggableElement;
+        this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement);
 
         this.listenEvents();
     }
 
     listenEvents() {
+        super.listenEvents();
         this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler);
         if (this.options.clickButton == 2) {
             this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault());
@@ -3290,6 +3328,7 @@ class IMouseClickDrag extends IPointing {
     }
 
     unlistenEvents() {
+        super.unlistenEvents();
         this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler);
     }
 
@@ -4470,6 +4509,581 @@ class LinkElement extends IFromToPositionedElement {
 }
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {IMouseClickDrag<T>}
+ */
+class MouseMoveDraggable extends IMouseClickDrag {
+
+    clicked(location) {
+        if (this.options.repositionOnClick) {
+            this.target.setLocation(this.stepSize > 1
+                ? Utility.snapToGrid(location, this.stepSize)
+                : location
+            );
+            this.clickedOffset = [0, 0];
+        }
+    }
+
+    dragTo(location, offset) {
+        const targetLocation = [
+            this.target.locationX ?? this.lastLocation[0],
+            this.target.locationY ?? this.lastLocation[1],
+        ];
+        const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
+            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
+            : [location, targetLocation];
+        offset = [
+            adjustedLocation[0] - this.lastLocation[0],
+            adjustedLocation[1] - this.lastLocation[1],
+        ];
+        if (offset[0] == 0 && offset[1] == 0) {
+            return
+        }
+        // Make sure it snaps on the grid
+        offset[0] += adjustedTargetLocation[0] - targetLocation[0];
+        offset[1] += adjustedTargetLocation[1] - targetLocation[1];
+        this.dragAction(adjustedLocation, offset);
+        // Reassign the position of mouse
+        this.lastLocation = adjustedLocation;
+    }
+
+    dragAction(location, offset) {
+        this.target.setLocation([
+            location[0] - this.clickedOffset[0],
+            location[1] - this.clickedOffset[1],
+        ]);
+    }
+}
+
+/** @typedef {import("../../Blueprint").default} Blueprint */
+
+class MouseClickDrag extends MouseMoveDraggable {
+
+    #onClicked
+    #onStartDrag
+    #onDrag
+    #onEndDrag
+
+    /**
+     * @param {HTMLElement} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
+    constructor(target, blueprint, options = {}) {
+        super(target, blueprint, options);
+        if (options.onClicked) {
+            this.#onClicked = options.onClicked;
+        }
+        if (options.onStartDrag) {
+            this.#onStartDrag = options.onStartDrag;
+        }
+        if (options.onDrag) {
+            this.#onDrag = options.onDrag;
+        }
+        if (options.onEndDrag) {
+            this.#onEndDrag = options.onEndDrag;
+        }
+    }
+
+    clicked() {
+        super.clicked();
+        this.#onClicked?.();
+    }
+
+    startDrag() {
+        super.startDrag();
+        this.#onStartDrag?.();
+    }
+
+    dragAction(location, movement) {
+        this.#onDrag?.(location, movement);
+    }
+
+    endDrag() {
+        super.endDrag();
+        this.#onEndDrag?.();
+    }
+}
+
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {ITemplate<T>}
+ */
+class IDraggableTemplate extends ITemplate {
+
+    getDraggableElement() {
+        return /** @type {Element} */(this.element)
+    }
+
+    createDraggableObject() {
+        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
+        })
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            this.createDraggableObject(),
+        ]
+    }
+}
+
+/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
+
+/**
+ * @template {IDraggableElement} T
+ * @extends {IDraggableTemplate<T>}
+ */
+class IDraggablePositionedTemplate extends IDraggableTemplate {
+
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
+        if (changedProperties.has("locationX")) {
+            this.element.style.left = `${this.element.locationX}px`;
+        }
+        if (changedProperties.has("locationY")) {
+            this.element.style.top = `${this.element.locationY}px`;
+        }
+    }
+}
+
+/**
+ * @typedef {import("../../Blueprint").default} Blueprint
+ * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ */
+
+/** @extends {MouseMoveDraggable<ISelectableDraggableElement>} */
+class MouseMoveNodes extends MouseMoveDraggable {
+
+    startDrag() {
+        if (!this.target.selected) {
+            this.blueprint.unselectAll();
+            this.target.setSelected(true);
+        }
+    }
+
+    dragAction(location, offset) {
+        this.target.dispatchDragEvent(offset);
+    }
+
+    unclicked() {
+        if (!this.started) {
+            this.blueprint.unselectAll();
+            this.target.setSelected(true);
+        }
+    }
+}
+
+/**
+ * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
+ */
+
+/**
+ * @template {ISelectableDraggableElement} T
+ * @extends {IDraggablePositionedTemplate<T>}
+ */
+class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
+
+    getDraggableElement() {
+        return /** @type {Element} */ (this.element)
+    }
+
+    createDraggableObject() {
+        return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
+            draggableElement: this.getDraggableElement(),
+        }))
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        if (this.element.selected && !this.element.listeningDrag) {
+            this.element.setSelected(true);
+        }
+    }
+}
+
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+/** @extends {ISelectableDraggableTemplate<NodeElement>} */
+class NodeTemplate extends ISelectableDraggableTemplate {
+
+    static #nodeIcon = {
+        [Configuration.nodeType.doN]: SVGIcon.doN,
+        [Configuration.nodeType.dynamicCast]: SVGIcon.cast,
+        [Configuration.nodeType.executionSequence]: SVGIcon.sequence,
+        [Configuration.nodeType.forEachElementInEnum]: SVGIcon.loop,
+        [Configuration.nodeType.forEachLoop]: SVGIcon.forEachLoop,
+        [Configuration.nodeType.forEachLoopWithBreak]: SVGIcon.forEachLoop,
+        [Configuration.nodeType.forLoop]: SVGIcon.loop,
+        [Configuration.nodeType.forLoopWithBreak]: SVGIcon.loop,
+        [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
+        [Configuration.nodeType.makeArray]: SVGIcon.makeArray,
+        [Configuration.nodeType.makeMap]: SVGIcon.makeMap,
+        [Configuration.nodeType.select]: SVGIcon.select,
+        [Configuration.nodeType.whileLoop]: SVGIcon.loop,
+        default: SVGIcon.functionSymbol
+    }
+
+    #hasTargetInputNode = false
+
+    toggleAdvancedDisplayHandler = () => {
+        this.element.toggleShowAdvancedPinDisplay();
+        this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
+    }
+
+    /** @param {NodeElement} element */
+    constructed(element) {
+        super.constructed(element);
+        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
+    }
+
+    getColor() {
+        const functionColor = i$3`84, 122, 156`;
+        const pureFunctionColor = i$3`95, 129, 90`;
+        switch (this.element.entity.getClass()) {
+            case Configuration.nodeType.callFunction:
+                if (this.element.entity.bIsPureFunc) {
+                    return pureFunctionColor
+                }
+                return functionColor
+            case Configuration.nodeType.makeArray:
+            case Configuration.nodeType.makeMap:
+            case Configuration.nodeType.select:
+                return pureFunctionColor
+            case Configuration.nodeType.macro:
+            case Configuration.nodeType.executionSequence:
+                return i$3`150,150,150`
+            case Configuration.nodeType.dynamicCast:
+                return i$3`46, 104, 106`
+
+        }
+        return functionColor
+    }
+
+    render() {
+        const icon = this.renderNodeIcon();
+        const name = this.renderNodeName();
+        return y`
+            <div class="ueb-node-border">
+                <div class="ueb-node-wrapper">
+                    <div class="ueb-node-top">
+                        <div class="ueb-node-name">
+                            ${icon ? y`
+                                <div class="ueb-node-name-symbol">${icon}</div>
+                            ` : b}
+                            ${name ? y`
+                                <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
+                                    ${name}
+                                    ${this.#hasTargetInputNode ? y`
+                                        <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
+                                            Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
+                                    </div>
+                                    `: b}
+                                </div>
+                            ` : b}
+                        </div>
+                    </div>
+                    <div class="ueb-node-content">
+                        <div class="ueb-node-inputs"></div>
+                        <div class="ueb-node-outputs"></div>
+                    </div>
+                    ${this.element.enabledState?.toString() == "DevelopmentOnly" ? y`
+                        <div class="ueb-node-developmentonly">
+                            <span class="ueb-node-developmentonly-text">Development Only</span>
+                        </div>
+                    ` : b}
+                    ${this.element.advancedPinDisplay ? y`
+                        <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
+                            ${SVGIcon.expandIcon}
+                        </div>
+                    ` : b}
+                </div>
+            </div>
+        `
+    }
+
+    renderNodeIcon() {
+        let icon = NodeTemplate.#nodeIcon[this.element.getType()];
+        if (icon) {
+            return icon
+        }
+        if (this.element.getNodeDisplayName().startsWith("Break")) {
+            return SVGIcon.breakStruct
+        }
+        if (this.element.entity.getClass() === Configuration.nodeType.macro) {
+            return SVGIcon.macro
+        }
+        return NodeTemplate.#nodeIcon.default
+    }
+
+    renderNodeName() {
+        return this.element.getNodeDisplayName()
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.setupPins();
+        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent());
+    }
+
+    setupPins() {
+        const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"));
+        const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"));
+        this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
+        this.element.getPinElements().forEach(p => {
+            if (p.isInput()) {
+                inputContainer.appendChild(p);
+            } else if (p.isOutput()) {
+                outputContainer.appendChild(p);
+            }
+        });
+    }
+
+    createPinElements() {
+        return this.element.getPinEntities()
+            .filter(v => !v.isHidden())
+            .map(v => {
+                if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
+                    this.#hasTargetInputNode = true;
+                }
+                return/** @type {PinElement} */(
+                    new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
+                )
+            })
+    }
+
+    /**
+     * @param {NodeElement} node
+     * @returns {NodeListOf<PinElement>}
+     */
+    getPinElements(node) {
+        return node.querySelectorAll("ueb-pin")
+    }
+
+    linksChanged() { }
+}
+
+/** @typedef {import("../element/NodeElement").default} NodeElement */
+
+class IResizeableTemplate extends NodeTemplate {
+
+    #THandler = document.createElement("div")
+    #RHandler = document.createElement("div")
+    #BHandler = document.createElement("div")
+    #LHandler = document.createElement("div")
+    #TRHandler = document.createElement("div")
+    #BRHandler = document.createElement("div")
+    #BLHandler = document.createElement("div")
+    #TLHandler = document.createElement("div")
+
+    /** @param {NodeElement} element */
+    constructed(element) {
+        super.constructed(element);
+        this.element.classList.add("ueb-resizeable");
+    }
+
+    /** @param {Map} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
+        if (this.element.sizeX >= 0 && changedProperties.has("sizeX")) {
+            this.element.style.width = `${this.element.sizeX}px`;
+        }
+        if (this.element.sizeY >= 0 && changedProperties.has("sizeY")) {
+            this.element.style.height = `${this.element.sizeY}px`;
+        }
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.#THandler.classList.add("ueb-resizeable-top");
+        this.#RHandler.classList.add("ueb-resizeable-right");
+        this.#BHandler.classList.add("ueb-resizeable-bottom");
+        this.#LHandler.classList.add("ueb-resizeable-left");
+        this.#TRHandler.classList.add("ueb-resizeable-top-right");
+        this.#BRHandler.classList.add("ueb-resizeable-bottom-right");
+        this.#BLHandler.classList.add("ueb-resizeable-bottom-left");
+        this.#TLHandler.classList.add("ueb-resizeable-top-left");
+        this.element.append(
+            this.#THandler,
+            this.#RHandler,
+            this.#BHandler,
+            this.#LHandler,
+            this.#TRHandler,
+            this.#BRHandler,
+            this.#BLHandler,
+            this.#TLHandler
+        );
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            new MouseClickDrag(this.#THandler, this.element.blueprint, {
+                onDrag: (location, movement) => {
+                    movement[1] = location[1] - this.element.topBoundary();
+                    if (this.setSizeY(this.element.sizeY - movement[1])) {
+                        this.element.addLocation([0, movement[1]]);
+                    }
+                }
+            }),
+            new MouseClickDrag(this.#RHandler, this.element.blueprint, {
+                onDrag: (location, movement) => {
+                    movement[0] = location[0] - this.element.rightBoundary();
+                    this.setSizeX(this.element.sizeX + movement[0]);
+                }
+            }),
+            new MouseClickDrag(this.#BHandler, this.element.blueprint, {
+                onDrag: (location, movement) => {
+                    movement[1] = location[1] - this.element.bottomBoundary();
+                    this.setSizeY(this.element.sizeY + movement[1]);
+                }
+            }),
+            new MouseClickDrag(this.#LHandler, this.element.blueprint, {
+                onDrag: (location, movement) => {
+                    movement[0] = location[0] - this.element.leftBoundary();
+                    if (this.setSizeX(this.element.sizeX - movement[0])) {
+                        this.element.addLocation([movement[0], 0]);
+                    }
+                }
+            }),
+            new MouseClickDrag(this.#TRHandler, this.element.blueprint, {
+                onDrag: (location, movement) => {
+                    movement[0] = location[0] - this.element.rightBoundary();
+                    movement[1] = location[1] - this.element.topBoundary();
+                    this.setSizeX(this.element.sizeX + movement[0]);
+                    if (this.setSizeY(this.element.sizeY - movement[1])) {
+                        this.element.addLocation([0, movement[1]]);
+                    }
+                }
+            }),
+            new MouseClickDrag(this.#BRHandler, this.element.blueprint, {
+                onDrag: (location, movement) => {
+                    movement[0] = location[0] - this.element.rightBoundary();
+                    movement[1] = location[1] - this.element.bottomBoundary();
+                    this.setSizeX(this.element.sizeX + movement[0]);
+                    this.setSizeY(this.element.sizeY + movement[1]);
+                }
+            }),
+            new MouseClickDrag(this.#BLHandler, this.element.blueprint, {
+                onDrag: (location, movement) => {
+                    movement[0] = location[0] - this.element.leftBoundary();
+                    movement[1] = location[1] - this.element.bottomBoundary();
+                    if (this.setSizeX(this.element.sizeX - movement[0])) {
+                        this.element.addLocation([movement[0], 0]);
+                    }
+                    this.setSizeY(this.element.sizeY + movement[1]);
+                }
+            }),
+            new MouseClickDrag(this.#TLHandler, this.element.blueprint, {
+                onDrag: (location, movement) => {
+                    movement[0] = location[0] - this.element.leftBoundary();
+                    movement[1] = location[1] - this.element.topBoundary();
+                    if (this.setSizeX(this.element.sizeX - movement[0])) {
+                        this.element.addLocation([movement[0], 0]);
+                    }
+                    if (this.setSizeY(this.element.sizeY - movement[1])) {
+                        this.element.addLocation([0, movement[1]]);
+                    }
+                }
+            }),
+        ]
+    }
+
+    /** @param {Number} value */
+    setSizeX(value) {
+        this.element.sizeX = value;
+        return true
+    }
+
+    /** @param {Number} value */
+    setSizeY(value) {
+        this.element.sizeY = value;
+        return true
+    }
+}
+
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/PinElement").default} PinElement
+ */
+
+class CommentNodeTemplate extends IResizeableTemplate {
+
+    #color = LinearColorEntity.getWhite()
+
+    /** @param {NodeElement} element */
+    constructed(element) {
+        if (element.entity.CommentColor) {
+            this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber());
+        }
+        this.#color.setFromRGBA(
+            this.#color.R.value,
+            this.#color.G.value,
+            this.#color.B.value,
+        );
+        element.classList.add("ueb-node-style-comment", "ueb-node-resizeable");
+        super.constructed(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
+    }
+
+    getColor() {
+        return i$3`${Math.round(this.#color.R.value * 255)}, ${Math.round(this.#color.G.value * 255)}, ${Math.round(this.#color.B.value * 255)}`
+    }
+
+    getDraggableElement() {
+        return this.element.querySelector(".ueb-node-top")
+    }
+
+    render() {
+        return y`
+            <div class="ueb-node-border">
+                <div class="ueb-node-wrapper">
+                    <div class="ueb-node-top">
+                        ${this.element.entity.NodeComment}
+                    </div>
+                </div>
+            </div>
+        `
+    }
+
+    /** @param {Number} value */
+    setSizeX(value) {
+        if (value >= Configuration.gridSet * Configuration.gridSize) {
+            this.element.sizeX = value;
+            return true
+        }
+        return false
+    }
+
+    /** @param {Number} value */
+    setSizeY(value) {
+        if (value >= 3 * Configuration.gridSize) {
+            this.element.sizeY = Math.max(value, 3 * Configuration.gridSize);
+            return true
+        }
+        return false
+    }
+}
+
+/**
  * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
  */
@@ -4767,326 +5381,6 @@ class KnotPinTemplate extends PinTemplate {
 }
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
- */
-
-/**
- * @template {IDraggableElement} T
- * @extends {IMouseClickDrag<T>}
- */
-class MouseMoveDraggable extends IMouseClickDrag {
-
-    clicked(location) {
-        if (this.options.repositionOnClick) {
-            this.target.setLocation(this.stepSize > 1
-                ? Utility.snapToGrid(location, this.stepSize)
-                : location
-            );
-            this.clickedOffset = [0, 0];
-        }
-    }
-
-    dragTo(location, offset) {
-        const targetLocation = [this.target.locationX, this.target.locationY];
-        const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
-            : [location, targetLocation];
-        offset = [
-            adjustedLocation[0] - this.mouseLocation[0],
-            adjustedLocation[1] - this.mouseLocation[1]
-        ];
-        if (offset[0] == 0 && offset[1] == 0) {
-            return
-        }
-        // Make sure it snaps on the grid
-        offset[0] += adjustedTargetLocation[0] - this.target.locationX;
-        offset[1] += adjustedTargetLocation[1] - this.target.locationY;
-        this.dragAction(adjustedLocation, offset);
-        // Reassign the position of mouse
-        this.mouseLocation = adjustedLocation;
-    }
-
-    dragAction(location, offset) {
-        this.target.setLocation([
-            location[0] - this.clickedOffset[0],
-            location[1] - this.clickedOffset[1]
-        ]);
-    }
-}
-
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../element/IDraggableElement").default} IDraggableElement
- */
-
-/**
- * @template {IDraggableElement} T
- * @extends {ITemplate<T>}
- */
-class IDraggableTemplate extends ITemplate {
-
-    getDraggableElement() {
-        return /** @type {Element} */(this.element)
-    }
-
-    createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
-            draggableElement: this.getDraggableElement(),
-        })
-    }
-
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            this.createDraggableObject(),
-        ]
-    }
-}
-
-/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
-
-/**
- * @template {IDraggableElement} T
- * @extends {IDraggableTemplate<T>}
- */
-class IDraggablePositionedTemplate extends IDraggableTemplate {
-
-    /** @param {Map} changedProperties */
-    update(changedProperties) {
-        super.update(changedProperties);
-        if (changedProperties.has("locationX")) {
-            this.element.style.left = `${this.element.locationX}px`;
-        }
-        if (changedProperties.has("locationY")) {
-            this.element.style.top = `${this.element.locationY}px`;
-        }
-    }
-}
-
-/**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
- */
-
-/** @extends {MouseMoveDraggable<ISelectableDraggableElement>} */
-class MouseMoveNodes extends MouseMoveDraggable {
-
-    startDrag() {
-        if (!this.target.selected) {
-            this.blueprint.unselectAll();
-            this.target.setSelected(true);
-        }
-    }
-
-    dragAction(location, offset) {
-        this.target.dispatchDragEvent(offset);
-    }
-
-    unclicked() {
-        if (!this.started) {
-            this.blueprint.unselectAll();
-            this.target.setSelected(true);
-        }
-    }
-}
-
-/**
- * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
- * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
- */
-
-/**
- * @template {ISelectableDraggableElement} T
- * @extends {IDraggablePositionedTemplate<T>}
- */
-class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
-
-    getDraggableElement() {
-        return /** @type {Element} */ (this.element)
-    }
-
-    createDraggableObject() {
-        return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
-            draggableElement: this.getDraggableElement(),
-        }))
-    }
-
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        if (this.element.selected && !this.element.listeningDrag) {
-            this.element.setSelected(true);
-        }
-    }
-}
-
-/**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
- */
-
-/** @extends {ISelectableDraggableTemplate<NodeElement>} */
-class NodeTemplate extends ISelectableDraggableTemplate {
-
-    static #nodeIcon = {
-        [Configuration.nodeType.doN]: SVGIcon.doN,
-        [Configuration.nodeType.dynamicCast]: SVGIcon.cast,
-        [Configuration.nodeType.executionSequence]: SVGIcon.sequence,
-        [Configuration.nodeType.forEachElementInEnum]: SVGIcon.loop,
-        [Configuration.nodeType.forEachLoop]: SVGIcon.forEachLoop,
-        [Configuration.nodeType.forEachLoopWithBreak]: SVGIcon.forEachLoop,
-        [Configuration.nodeType.forLoop]: SVGIcon.loop,
-        [Configuration.nodeType.forLoopWithBreak]: SVGIcon.loop,
-        [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
-        [Configuration.nodeType.makeArray]: SVGIcon.makeArray,
-        [Configuration.nodeType.makeMap]: SVGIcon.makeMap,
-        [Configuration.nodeType.select]: SVGIcon.select,
-        [Configuration.nodeType.whileLoop]: SVGIcon.loop,
-        default: SVGIcon.functionSymbol
-    }
-
-    #hasTargetInputNode = false
-
-    toggleAdvancedDisplayHandler = () => {
-        this.element.toggleShowAdvancedPinDisplay();
-        this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
-    }
-
-    /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element);
-        this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
-    }
-
-    getColor() {
-        const functionColor = i$3`84, 122, 156`;
-        const pureFunctionColor = i$3`95, 129, 90`;
-        switch (this.element.entity.getClass()) {
-            case Configuration.nodeType.callFunction:
-                if (this.element.entity.bIsPureFunc) {
-                    return pureFunctionColor
-                }
-                return functionColor
-            case Configuration.nodeType.makeArray:
-            case Configuration.nodeType.makeMap:
-            case Configuration.nodeType.select:
-                return pureFunctionColor
-            case Configuration.nodeType.macro:
-            case Configuration.nodeType.executionSequence:
-                return i$3`150,150,150`
-            case Configuration.nodeType.dynamicCast:
-                return i$3`46, 104, 106`
-
-        }
-        return functionColor
-    }
-
-    render() {
-        const icon = this.renderNodeIcon();
-        const name = this.renderNodeName();
-        return y`
-            <div class="ueb-node-border">
-                <div class="ueb-node-wrapper">
-                    <div class="ueb-node-top">
-                        <div class="ueb-node-name">
-                            ${icon ? y`
-                                <div class="ueb-node-name-symbol">${icon}</div>
-                            ` : b}
-                            ${name ? y`
-                                <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                                    ${name}
-                                    ${this.#hasTargetInputNode ? y`
-                                        <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
-                                            Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
-                                    </div>
-                                    `: b}
-                                </div>
-                            ` : b}
-                        </div>
-                    </div>
-                    <div class="ueb-node-content">
-                        <div class="ueb-node-inputs"></div>
-                        <div class="ueb-node-outputs"></div>
-                    </div>
-                    ${this.element.enabledState?.toString() == "DevelopmentOnly" ? y`
-                        <div class="ueb-node-developmentonly">
-                            <span class="ueb-node-developmentonly-text">Development Only</span>
-                        </div>
-                    ` : b}
-                    ${this.element.advancedPinDisplay ? y`
-                        <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
-                            ${SVGIcon.expandIcon}
-                        </div>
-                    ` : b}
-                </div>
-            </div>
-        `
-    }
-
-    renderNodeIcon() {
-        let icon = NodeTemplate.#nodeIcon[this.element.getType()];
-        if (icon) {
-            return icon
-        }
-        if (this.element.getNodeDisplayName().startsWith("Break")) {
-            return SVGIcon.breakStruct
-        }
-        if (this.element.entity.getClass() === Configuration.nodeType.macro) {
-            return SVGIcon.macro
-        }
-        return NodeTemplate.#nodeIcon.default
-    }
-
-    renderNodeName() {
-        return this.element.getNodeDisplayName()
-    }
-
-    /** @param {Map} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.setupPins();
-        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent());
-    }
-
-    setupPins() {
-        const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"));
-        const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"));
-        this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
-        this.element.getPinElements().forEach(p => {
-            if (p.isInput()) {
-                inputContainer.appendChild(p);
-            } else if (p.isOutput()) {
-                outputContainer.appendChild(p);
-            }
-        });
-    }
-
-    createPinElements() {
-        return this.element.getPinEntities()
-            .filter(v => !v.isHidden())
-            .map(v => {
-                if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
-                    this.#hasTargetInputNode = true;
-                }
-                return/** @type {PinElement} */(
-                    new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
-                )
-            })
-    }
-
-    /**
-     * @param {NodeElement} node
-     * @returns {NodeListOf<PinElement>}
-     */
-    getPinElements(node) {
-        return node.querySelectorAll("ueb-pin")
-    }
-
-    linksChanged() { }
-}
-
-/**
  * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../element/PinElement").default} PinElement
  */
@@ -5235,63 +5529,6 @@ class VariableAccessNodeTemplate extends NodeTemplate {
     }
 }
 
-/**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
- */
-
-class CommentNodeTemplate extends NodeTemplate {
-
-    #color = LinearColorEntity.getWhite()
-
-    /** @param {NodeElement} element */
-    constructed(element) {
-        if (element.entity.CommentColor) {
-            this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber());
-        }
-        // Dimming the colors to 2/3
-        const factor = 2 / 3;
-        this.#color.setFromRGBA(
-            this.#color.R.value * factor,
-            this.#color.G.value * factor,
-            this.#color.B.value * factor,
-        );
-        element.classList.add("ueb-node-style-comment", "ueb-node-resizeable");
-        super.constructed(element); // Keep it at the end
-    }
-
-    getColor() {
-        return i$3`${Math.round(this.#color.R.value * 255)}, ${Math.round(this.#color.G.value * 255)}, ${Math.round(this.#color.B.value * 255)}`
-    }
-
-    getDraggableElement() {
-        return this.element.querySelector(".ueb-node-top")
-    }
-
-    render() {
-        const width = this.element.entity.getNodeWidth();
-        const height = this.element.entity.getNodeHeight();
-        return y`
-            <div class="ueb-node-border">
-                <div class="ueb-node-handler-top"></div>
-                <div class="ueb-node-handler-right"></div>
-                <div class="ueb-node-handler-bottom"></div>
-                <div class="ueb-node-handler-left"></div>
-                <div class="ueb-node-wrapper">
-                    <div class="ueb-node-top">
-                        ${this.element.entity.NodeComment}
-                    </div>
-                    <div class="ueb-node-content"
-                        style="${`width: ${width}px; height: ${height}px;`}">
-                    </div>
-                </div>
-            </div>
-        `
-    }
-
-
-}
-
 /** @typedef {import("./IElement").default} IElement */
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
@@ -5377,6 +5614,12 @@ class NodeElement extends ISelectableDraggableElement {
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value);
         this.entity.subscribe("Name", value => this.nodeName = value);
+        if (this.entity.NodeWidth) {
+            this.sizeX = this.entity.NodeWidth;
+        }
+        if (this.entity.NodeHeight) {
+            this.sizeY = this.entity.NodeHeight;
+        }
     }
 
     /**

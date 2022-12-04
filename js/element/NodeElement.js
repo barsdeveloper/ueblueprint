@@ -1,3 +1,4 @@
+import CommentNodeTemplate from "../template/CommentNodeTemplate"
 import Configuration from "../Configuration"
 import IdentifierEntity from "../entity/IdentifierEntity"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"
@@ -9,7 +10,6 @@ import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
 import VariableAccessNodeTemplate from "../template/VariableAccessNodeTemplate"
-import CommentNodeTemplate from "../template/CommentNodeTemplate"
 
 /** @typedef {import("./IElement").default} IElement */
 
@@ -96,6 +96,12 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value)
         this.entity.subscribe("Name", value => this.nodeName = value)
+        if (this.entity.NodeWidth) {
+            this.sizeX = this.entity.NodeWidth
+        }
+        if (this.entity.NodeHeight) {
+            this.sizeY = this.entity.NodeHeight
+        }
     }
 
     /**
