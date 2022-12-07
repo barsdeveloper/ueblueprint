@@ -48,12 +48,16 @@ export default class IDraggableElement extends IElement {
         this.sizeY = -1
     }
 
+    computeSizes() {
+        const bounding = this.getBoundingClientRect()
+        this.sizeX = bounding.width
+        this.sizeY = bounding.height
+    }
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        const boundaries = this.getBoundingClientRect()
-        this.sizeX = boundaries.width
-        this.sizeY = boundaries.height
+        this.computeSizes()
     }
 
     /** @param {Number[]} param0 */

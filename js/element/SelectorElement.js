@@ -7,6 +7,7 @@ export default class SelectorElement extends IFromToPositionedElement {
 
     constructor() {
         super({}, new SelectorTemplate())
+        /** @type {FastSelectionModel} */
         this.selectionModel = null
     }
 
@@ -24,8 +25,7 @@ export default class SelectorElement extends IFromToPositionedElement {
 
     /** @param {Number[]} finalPosition */
     selectTo(finalPosition) {
-        /** @type {FastSelectionModel} */ (this.selectionModel)
-            .selectTo(finalPosition)
+        this.selectionModel.selectTo(finalPosition)
         this.toX = finalPosition[0]
         this.toY = finalPosition[1]
     }

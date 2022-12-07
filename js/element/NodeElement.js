@@ -96,11 +96,11 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value)
         this.entity.subscribe("Name", value => this.nodeName = value)
-        if (this.entity.NodeWidth) {
-            this.sizeX = this.entity.NodeWidth
-        }
-        if (this.entity.NodeHeight) {
-            this.sizeY = this.entity.NodeHeight
+        if (this.entity.NodeWidth && this.entity.NodeHeight) {
+            this.sizeX = this.entity.NodeWidth.value
+            this.sizeY = this.entity.NodeHeight.value
+        } else {
+            Promise.all([this.updateComplete, ...this.#pins.map(p => p.updateComplete)]).then(() => this.computeSizes())
         }
     }
 
@@ -183,6 +183,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     dispatchReflowEvent() {
+        this.addNextUpdatedCallbacks(() => this.computeSizes(), true)
         let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName)
         this.dispatchEvent(reflowEvent)
     }

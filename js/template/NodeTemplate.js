@@ -153,7 +153,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
                     this.#hasTargetInputNode = true
                 }
-                return/** @type {PinElement} */(
+                return /** @type {PinElement} */(
                     new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
                 )
             })

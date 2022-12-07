@@ -3041,7 +3041,10 @@ class IElement extends s {
     updated(changedProperties) {
         super.updated(changedProperties);
         this.template.updated(changedProperties);
-        this.#nextUpdatedCallbacks.forEach(f => f(changedProperties));
+        // Remember the array might change while iterating
+        for (const f of this.#nextUpdatedCallbacks) {
+            f(changedProperties);
+        }
         this.#nextUpdatedCallbacks = [];
     }
 
@@ -3117,12 +3120,16 @@ class IDraggableElement extends IElement {
         this.sizeY = -1;
     }
 
+    computeSizes() {
+        const bounding = this.getBoundingClientRect();
+        this.sizeX = bounding.width;
+        this.sizeY = bounding.height;
+    }
+
     /** @param {Map} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        const boundaries = this.getBoundingClientRect();
-        this.sizeX = boundaries.width;
-        this.sizeY = boundaries.height;
+        this.computeSizes();
     }
 
     /** @param {Number[]} param0 */
@@ -4864,7 +4871,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
                     this.#hasTargetInputNode = true;
                 }
-                return/** @type {PinElement} */(
+                return /** @type {PinElement} */(
                     new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
                 )
             })
@@ -5324,6 +5331,7 @@ class PinTemplate extends ITemplate {
 
     /** @param {Map} changedProperties */
     updated(changedProperties) {
+        super.updated(changedProperties);
         if (this.element.isInput() && changedProperties.has("isLinked")) {
             // When connected, an input may drop its input fields which means the node has to reflow
             const node = this.element.nodeElement;
@@ -5614,11 +5622,11 @@ class NodeElement extends ISelectableDraggableElement {
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
         this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value);
         this.entity.subscribe("Name", value => this.nodeName = value);
-        if (this.entity.NodeWidth) {
-            this.sizeX = this.entity.NodeWidth;
-        }
-        if (this.entity.NodeHeight) {
-            this.sizeY = this.entity.NodeHeight;
+        if (this.entity.NodeWidth && this.entity.NodeHeight) {
+            this.sizeX = this.entity.NodeWidth.value;
+            this.sizeY = this.entity.NodeHeight.value;
+        } else {
+            Promise.all([this.updateComplete, ...this.#pins.map(p => p.updateComplete)]).then(() => this.computeSizes());
         }
     }
 
@@ -5701,6 +5709,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     dispatchReflowEvent() {
+        this.addNextUpdatedCallbacks(() => this.computeSizes(), true);
         let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName);
         this.dispatchEvent(reflowEvent);
     }
@@ -6002,6 +6011,7 @@ class SelectorElement extends IFromToPositionedElement {
 
     constructor() {
         super({}, new SelectorTemplate());
+        /** @type {FastSelectionModel} */
         this.selectionModel = null;
     }
 
@@ -6019,8 +6029,7 @@ class SelectorElement extends IFromToPositionedElement {
 
     /** @param {Number[]} finalPosition */
     selectTo(finalPosition) {
-        /** @type {FastSelectionModel} */ (this.selectionModel)
-            .selectTo(finalPosition);
+        this.selectionModel.selectTo(finalPosition);
         this.toX = finalPosition[0];
         this.toY = finalPosition[1];
     }
@@ -6126,16 +6135,16 @@ class Blueprint extends IElement {
     headerElement
     focused = false
     waitingExpandUpdate = false
+    /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
-        let rect = node.getBoundingClientRect();
         let gridRect = this.nodesContainerElement.getBoundingClientRect();
         const scaleCorrection = 1 / this.getScale();
         return /** @type {BoundariesInfo} */ {
-            primaryInf: (rect.left - gridRect.left) * scaleCorrection,
-            primarySup: (rect.right - gridRect.right) * scaleCorrection,
+            primaryInf: (node.leftBoundary() - gridRect.left) * scaleCorrection,
+            primarySup: (node.rightBoundary() - gridRect.right) * scaleCorrection,
             // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-            secondaryInf: (rect.top - gridRect.top) * scaleCorrection,
-            secondarySup: (rect.bottom - gridRect.bottom) * scaleCorrection
+            secondaryInf: (node.topBoundary() - gridRect.top) * scaleCorrection,
+            secondarySup: (node.bottomBoundary() - gridRect.bottom) * scaleCorrection
         }
     }
     /** @type {(node: NodeElement, selected: Boolean) => void}} */
