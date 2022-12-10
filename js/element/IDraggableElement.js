@@ -84,7 +84,7 @@ export default class IDraggableElement extends IElement {
     }
 
     /** @param {Number[]} value */
-    dispatchDragEvent(value) {
+    acknowledgeDrag(value) {
         // @ts-expect-error
         const dragEvent = new CustomEvent(this.constructor.dragGeneralEventName, {
             detail: {

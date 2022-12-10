@@ -78,6 +78,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     #pins
+    #boundComments
 
     /**
      * @param {ObjectEntity} entity
@@ -123,7 +124,7 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     disconnectedCallback() {
         super.disconnectedCallback()
-        this.dispatchDeleteEvent()
+        this.acknowledgeDelete()
     }
 
     getType() {
@@ -136,6 +137,20 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     getNodeDisplayName() {
         return this.entity.getDisplayName()
+    }
+
+    /** @param {Number} value */
+    setNodeWidth(value) {
+        this.entity.setNodeWidth(value)
+        this.sizeX = value
+        this.acknowledgeReflow()
+    }
+
+    /** @param {Number} value */
+    setNodeHeight(value) {
+        this.entity.setNodeHeight(value)
+        this.sizeY = value
+        this.acknowledgeReflow()
     }
 
     /** @param  {IElement[]} nodesWhitelist */
@@ -177,12 +192,12 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.setLocation(value)
     }
 
-    dispatchDeleteEvent() {
+    acknowledgeDelete() {
         let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName)
         this.dispatchEvent(deleteEvent)
     }
 
-    dispatchReflowEvent() {
+    acknowledgeReflow() {
         this.addNextUpdatedCallbacks(() => this.computeSizes(), true)
         let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName)
         this.dispatchEvent(reflowEvent)

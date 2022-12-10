@@ -133,7 +133,7 @@ export default class Grammar {
         r.AttributeName
             .skip(valueSeparator)
             .chain(attributeName => {
-                // Once the attribute name is known, look into entityType.attributes to get its type 
+                // Once the attribute name is known, look into entityType.attributes to get its type
                 const attributeKey = attributeName.split(".")
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey)
                 let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)

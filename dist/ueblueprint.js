@@ -604,11 +604,11 @@ class TypeInitialization {
  * @typedef {import("./element/IElement").default} IElement
  * @typedef {import("./entity/IEntity").default} IEntity
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
- * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue 
+ * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue
  */
 /**
  * @template T
- * @typedef {import("./entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor 
+ * @typedef {import("./entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
  */
 
 class Utility {
@@ -764,7 +764,7 @@ class Utility {
 
     /**
      * @param {AnyValue | AnyValueConstructor<IEntity>} value
-     * @returns {AnyValueConstructor<IEntity> | AnyValueConstructor<IEntity>[]} 
+     * @returns {AnyValueConstructor<IEntity> | AnyValueConstructor<IEntity>[]}
      */
     static getType(value) {
         if (value === null) {
@@ -2055,7 +2055,7 @@ class Grammar {
         r.AttributeName
             .skip(valueSeparator)
             .chain(attributeName => {
-                // Once the attribute name is known, look into entityType.attributes to get its type 
+                // Once the attribute name is known, look into entityType.attributes to get its type
                 const attributeKey = attributeName.split(".");
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey);
                 let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue);
@@ -3177,7 +3177,7 @@ class IDraggableElement extends IElement {
     }
 
     /** @param {Number[]} value */
-    dispatchDragEvent(value) {
+    acknowledgeDrag(value) {
         // @ts-expect-error
         const dragEvent = new CustomEvent(this.constructor.dragGeneralEventName, {
             detail: {
@@ -3727,6 +3727,10 @@ class BlueprintTemplate extends ITemplate {
                 this.element.classList.add(...classes.filter(v => v < 0).map(getClassName));
             }
         }
+    }
+
+    getComments() {
+        return this.element.querySelectorAll(`ueb-node[data-type="${Configuration.nodeType.comment}"]`)
     }
 
     /** @param {PinReferenceEntity} pinReference */
@@ -4703,7 +4707,7 @@ class MouseMoveNodes extends MouseMoveDraggable {
     }
 
     dragAction(location, offset) {
-        this.target.dispatchDragEvent(offset);
+        this.target.acknowledgeDrag(offset);
     }
 
     unclicked() {
@@ -4773,7 +4777,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay();
-        this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true);
+        this.element.addNextUpdatedCallbacks(() => this.element.acknowledgeReflow(), true);
     }
 
     /** @param {NodeElement} element */
@@ -4869,7 +4873,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.setupPins();
-        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent());
+        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.acknowledgeReflow());
     }
 
     setupPins() {
@@ -5038,13 +5042,13 @@ class IResizeableTemplate extends NodeTemplate {
 
     /** @param {Number} value */
     setSizeX(value) {
-        this.element.sizeX = value;
+        this.element.setNodeWidth(value);
         return true
     }
 
     /** @param {Number} value */
     setSizeY(value) {
-        this.element.sizeY = value;
+        this.element.setNodeHeight(value);
         return true
     }
 }
@@ -5094,8 +5098,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
     setSizeX(value) {
         value = Math.round(value);
         if (value >= Configuration.gridSet * Configuration.gridSize) {
-            this.element.sizeX = value;
-            this.element.entity.setNodeWidth(this.element.sizeX);
+            this.element.setNodeWidth(value);
             return true
         }
         return false
@@ -5105,8 +5108,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
     setSizeY(value) {
         value = Math.round(value);
         if (value >= 3 * Configuration.gridSize) {
-            this.element.sizeY = Math.max(value, 3 * Configuration.gridSize);
-            this.element.entity.setNodeHeight(this.element.sizeY);
+            this.element.setNodeHeight(value);
             return true
         }
         return false
@@ -5358,7 +5360,7 @@ class PinTemplate extends ITemplate {
         if (this.element.isInput() && changedProperties.has("isLinked")) {
             // When connected, an input may drop its input fields which means the node has to reflow
             const node = this.element.nodeElement;
-            node.addNextUpdatedCallbacks(() => node.dispatchReflowEvent());
+            node.addNextUpdatedCallbacks(() => node.acknowledgeReflow());
             node.requestUpdate();
         }
     }
@@ -5627,6 +5629,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     #pins
+    #boundComments
 
     /**
      * @param {ObjectEntity} entity
@@ -5672,7 +5675,7 @@ class NodeElement extends ISelectableDraggableElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.dispatchDeleteEvent();
+        this.acknowledgeDelete();
     }
 
     getType() {
@@ -5685,6 +5688,20 @@ class NodeElement extends ISelectableDraggableElement {
 
     getNodeDisplayName() {
         return this.entity.getDisplayName()
+    }
+
+    /** @param {Number} value */
+    setNodeWidth(value) {
+        this.entity.setNodeWidth(value);
+        this.sizeX = value;
+        this.acknowledgeReflow();
+    }
+
+    /** @param {Number} value */
+    setNodeHeight(value) {
+        this.entity.setNodeHeight(value);
+        this.sizeY = value;
+        this.acknowledgeReflow();
     }
 
     /** @param  {IElement[]} nodesWhitelist */
@@ -5726,12 +5743,12 @@ class NodeElement extends ISelectableDraggableElement {
         super.setLocation(value);
     }
 
-    dispatchDeleteEvent() {
+    acknowledgeDelete() {
         let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName);
         this.dispatchEvent(deleteEvent);
     }
 
-    dispatchReflowEvent() {
+    acknowledgeReflow() {
         this.addNextUpdatedCallbacks(() => this.computeSizes(), true);
         let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName);
         this.dispatchEvent(reflowEvent);
@@ -6337,29 +6354,47 @@ class Blueprint extends IElement {
         return [x, y]
     }
 
-    getNodes(selected = false) {
+    getNodes(
+        selected = false,
+        [t, r, b, l] = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]
+    ) {
+        let result = this.nodes;
         if (selected) {
-            return this.nodes.filter(
-                node => node.selected
-            )
-        } else {
-            return this.nodes
+            result = result.filter(n => n.selected);
         }
+        if (
+            t > Number.MIN_SAFE_INTEGER
+            || r < Number.MAX_SAFE_INTEGER
+            || b < Number.MAX_SAFE_INTEGER
+            || l > Number.MIN_SAFE_INTEGER
+        ) {
+            result = result.filter(n => {
+                return n.topBoundary() > t && n.rightBoundary() < r && n.bottomBoundary() < b && n.leftBoundary() > l
+            });
+        }
+        return result
+    }
+
+    getComments() {
+        let result = /** @type {NodeElement[]} */ ([...this.template.getComments()]);
+        if (result.length === 0) {
+            result = this.nodes.filter(n => n.getType() === Configuration.nodeType.comment);
+        }
+        return result
     }
 
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
         let result = this.template.getPin(pinReference);
-        if (result
-            // Make sure it wasn't renamed in the meantime
-            && result.nodeElement.getNodeName() == pinReference.objectName.toString()) {
-            return result
+        // Remember could be renamed in the meantime and DOM not yet updated
+        if (!result || result.nodeElement.getNodeName() != pinReference.objectName.toString()) {
+            // Slower fallback
+            result = [... this.nodes
+                .find(n => pinReference.objectName.toString() == n.getNodeName())
+                ?.getPinElements() ?? []]
+                .find(p => pinReference.pinGuid.toString() == p.getPinId().toString());
         }
-        // Slower fallback
-        return [... this.nodes
-            .find(n => pinReference.objectName.toString() == n.getNodeName())
-            ?.getPinElements() ?? []]
-            .find(p => pinReference.pinGuid.toString() == p.getPinId().toString())
+        return result
     }
 
     /**
@@ -6462,7 +6497,7 @@ class Blueprint extends IElement {
     }
 
     /** @param {Boolean} begin */
-    dispatchEditTextEvent(begin) {
+    acknowledgeEditText(begin) {
         const event = new CustomEvent(
             begin
                 ? Configuration.editTextEventName.begin
@@ -6619,13 +6654,13 @@ class ColorSliderElement extends IDraggableControlElement {
 class InputTemplate extends ITemplate {
 
     #focusHandler = () => {
-        this.element.blueprint.dispatchEditTextEvent(true);
+        this.element.blueprint.acknowledgeEditText(true);
         if (this.element.selectOnFocus) {
             getSelection().selectAllChildren(this.element);
         }
     }
     #focusoutHandler = () => {
-        this.element.blueprint.dispatchEditTextEvent(false);
+        this.element.blueprint.acknowledgeEditText(false);
         document.getSelection()?.removeAllRanges(); // Deselect eventually selected text inside the input
     }
     #inputSingleLineHandler =
@@ -6847,7 +6882,7 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @param {String[]?} values */
     setInputs(values = [], updateDefaultValue = true) {
-        // @ts-expect-error 
+        // @ts-expect-error
         this.#inputContentElements.forEach(this.constructor.singleLineInput
             ? (elem, i) => elem.innerText = values[i]
             : (elem, i) => elem.innerText = values[i].replaceAll("\n", "")
@@ -6855,7 +6890,7 @@ class IInputPinTemplate extends PinTemplate {
         if (updateDefaultValue) {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
         }
-        this.element.addNextUpdatedCallbacks(() => this.element.nodeElement.dispatchReflowEvent());
+        this.element.addNextUpdatedCallbacks(() => this.element.nodeElement.acknowledgeReflow());
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -7807,10 +7842,10 @@ class WindowElement extends IDraggableElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.dispatchCloseEvent();
+        this.acknowledgeClose();
     }
 
-    dispatchCloseEvent() {
+    acknowledgeClose() {
         let deleteEvent = new CustomEvent(Configuration.windowCloseEventName);
         this.dispatchEvent(deleteEvent);
     }
@@ -7852,7 +7887,7 @@ class GeneralSerializer extends ISerializer {
 
     /**
      * @param {(value: String, entity: T) => String} wrap
-     * @param {AnyValueConstructor<T>} entityType 
+     * @param {AnyValueConstructor<T>} entityType
      */
     constructor(wrap, entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`);
@@ -7897,7 +7932,7 @@ class GeneralSerializer extends ISerializer {
 
 /**
  * @template {AnyValue} T
- * @extends {GeneralSerializer<T>} 
+ * @extends {GeneralSerializer<T>}
  */
 class CustomSerializer extends GeneralSerializer {
 

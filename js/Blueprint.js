@@ -276,29 +276,47 @@ export default class Blueprint extends IElement {
         return [x, y]
     }
 
-    getNodes(selected = false) {
+    getNodes(
+        selected = false,
+        [t, r, b, l] = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]
+    ) {
+        let result = this.nodes
         if (selected) {
-            return this.nodes.filter(
-                node => node.selected
-            )
-        } else {
-            return this.nodes
+            result = result.filter(n => n.selected)
         }
+        if (
+            t > Number.MIN_SAFE_INTEGER
+            || r < Number.MAX_SAFE_INTEGER
+            || b < Number.MAX_SAFE_INTEGER
+            || l > Number.MIN_SAFE_INTEGER
+        ) {
+            result = result.filter(n => {
+                return n.topBoundary() > t && n.rightBoundary() < r && n.bottomBoundary() < b && n.leftBoundary() > l
+            })
+        }
+        return result
+    }
+
+    getComments() {
+        let result = /** @type {NodeElement[]} */ ([...this.template.getComments()])
+        if (result.length === 0) {
+            result = this.nodes.filter(n => n.getType() === Configuration.nodeType.comment)
+        }
+        return result
     }
 
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
         let result = this.template.getPin(pinReference)
-        if (result
-            // Make sure it wasn't renamed in the meantime
-            && result.nodeElement.getNodeName() == pinReference.objectName.toString()) {
-            return result
+        // Remember could be renamed in the meantime and DOM not yet updated
+        if (!result || result.nodeElement.getNodeName() != pinReference.objectName.toString()) {
+            // Slower fallback
+            result = [... this.nodes
+                .find(n => pinReference.objectName.toString() == n.getNodeName())
+                ?.getPinElements() ?? []]
+                .find(p => pinReference.pinGuid.toString() == p.getPinId().toString())
         }
-        // Slower fallback
-        return [... this.nodes
-            .find(n => pinReference.objectName.toString() == n.getNodeName())
-            ?.getPinElements() ?? []]
-            .find(p => pinReference.pinGuid.toString() == p.getPinId().toString())
+        return result
     }
 
     /**
@@ -403,7 +421,7 @@ export default class Blueprint extends IElement {
     }
 
     /** @param {Boolean} begin */
-    dispatchEditTextEvent(begin) {
+    acknowledgeEditText(begin) {
         const event = new CustomEvent(
             begin
                 ? Configuration.editTextEventName.begin

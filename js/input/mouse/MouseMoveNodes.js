@@ -16,7 +16,7 @@ export default class MouseMoveNodes extends MouseMoveDraggable {
     }
 
     dragAction(location, offset) {
-        this.target.dispatchDragEvent(offset)
+        this.target.acknowledgeDrag(offset)
     }
 
     unclicked() {

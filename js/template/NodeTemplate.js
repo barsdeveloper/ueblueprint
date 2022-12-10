@@ -34,7 +34,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay()
-        this.element.addNextUpdatedCallbacks(() => this.element.dispatchReflowEvent(), true)
+        this.element.addNextUpdatedCallbacks(() => this.element.acknowledgeReflow(), true)
     }
 
     /** @param {NodeElement} element */
@@ -130,7 +130,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.setupPins()
-        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.dispatchReflowEvent())
+        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.acknowledgeReflow())
     }
 
     setupPins() {

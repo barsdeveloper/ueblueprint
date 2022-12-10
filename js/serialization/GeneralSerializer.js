@@ -18,7 +18,7 @@ export default class GeneralSerializer extends ISerializer {
 
     /**
      * @param {(value: String, entity: T) => String} wrap
-     * @param {AnyValueConstructor<T>} entityType 
+     * @param {AnyValueConstructor<T>} entityType
      */
     constructor(wrap, entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`)

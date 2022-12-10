@@ -123,6 +123,10 @@ export default class BlueprintTemplate extends ITemplate {
         }
     }
 
+    getComments() {
+        return this.element.querySelectorAll(`ueb-node[data-type="${Configuration.nodeType.comment}"]`)
+    }
+
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
         return /** @type {PinElement} */(this.element.querySelector(

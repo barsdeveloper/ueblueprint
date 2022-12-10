@@ -130,13 +130,13 @@ export default class IResizeableTemplate extends NodeTemplate {
 
     /** @param {Number} value */
     setSizeX(value) {
-        this.element.sizeX = value
+        this.element.setNodeWidth(value)
         return true
     }
 
     /** @param {Number} value */
     setSizeY(value) {
-        this.element.sizeY = value
+        this.element.setNodeHeight(value)
         return true
     }
 }

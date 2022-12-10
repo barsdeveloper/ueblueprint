@@ -6,11 +6,11 @@ import UnionType from "./entity/UnionType"
  * @typedef {import("./element/IElement").default} IElement
  * @typedef {import("./entity/IEntity").default} IEntity
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
- * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue 
+ * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue
  */
 /**
  * @template T
- * @typedef {import("./entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor 
+ * @typedef {import("./entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
  */
 
 export default class Utility {
@@ -167,7 +167,7 @@ export default class Utility {
 
     /**
      * @param {AnyValue | AnyValueConstructor<IEntity>} value
-     * @returns {AnyValueConstructor<IEntity> | AnyValueConstructor<IEntity>[]} 
+     * @returns {AnyValueConstructor<IEntity> | AnyValueConstructor<IEntity>[]}
      */
     static getType(value) {
         if (value === null) {

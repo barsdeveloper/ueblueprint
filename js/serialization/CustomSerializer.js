@@ -11,7 +11,7 @@ import GeneralSerializer from "./GeneralSerializer"
 
 /**
  * @template {AnyValue} T
- * @extends {GeneralSerializer<T>} 
+ * @extends {GeneralSerializer<T>}
  */
 export default class CustomSerializer extends GeneralSerializer {
 

@@ -77,7 +77,7 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /** @param {String[]?} values */
     setInputs(values = [], updateDefaultValue = true) {
-        // @ts-expect-error 
+        // @ts-expect-error
         this.#inputContentElements.forEach(this.constructor.singleLineInput
             ? (elem, i) => elem.innerText = values[i]
             : (elem, i) => elem.innerText = values[i].replaceAll("\n", "")
@@ -85,7 +85,7 @@ export default class IInputPinTemplate extends PinTemplate {
         if (updateDefaultValue) {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values)
         }
-        this.element.addNextUpdatedCallbacks(() => this.element.nodeElement.dispatchReflowEvent())
+        this.element.addNextUpdatedCallbacks(() => this.element.nodeElement.acknowledgeReflow())
     }
 
     setDefaultValue(values = [], rawValues = values) {

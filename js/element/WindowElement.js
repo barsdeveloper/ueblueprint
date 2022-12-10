@@ -41,10 +41,10 @@ export default class WindowElement extends IDraggableElement {
 
     disconnectedCallback() {
         super.disconnectedCallback()
-        this.dispatchCloseEvent()
+        this.acknowledgeClose()
     }
 
-    dispatchCloseEvent() {
+    acknowledgeClose() {
         let deleteEvent = new CustomEvent(Configuration.windowCloseEventName)
         this.dispatchEvent(deleteEvent)
     }
