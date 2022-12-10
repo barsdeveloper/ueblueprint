@@ -55,7 +55,7 @@ export default class Grammar {
                         .sepBy(P.string(","))
                         .skip(P.regex(/,?\s*/)),
                     P.string(")"),
-                    (_, grammar, __) => grammar
+                    (_0, grammar, _2) => grammar
                 )
             case Boolean:
                 return r.Boolean
@@ -144,7 +144,7 @@ export default class Grammar {
             })
 
     /** @param {Grammar} r */
-    static createEntityGrammar = (r, entityType) =>
+    static createEntityGrammar = (r, entityType, limitUnknownKeys = false) =>
         P.seqMap(
             entityType.lookbehind
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
@@ -162,14 +162,16 @@ export default class Grammar {
         )
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
             .chain(values => {
-                let unexpectedKeysCount = 0
-                let totalKeys = 0
-                for (const key in values) {
-                    unexpectedKeysCount += key in entityType.attributes ? 0 : 1
-                    ++totalKeys
-                }
-                if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
-                    return P.fail()
+                if (limitUnknownKeys) {
+                    let unexpectedKeysCount = 0
+                    let totalKeys = 0
+                    for (const key in values) {
+                        unexpectedKeysCount += key in entityType.attributes ? 0 : 1
+                        ++totalKeys
+                    }
+                    if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
+                        return P.fail()
+                    }
                 }
                 return P.succeed().map(() => new entityType(values))
             })
@@ -186,7 +188,7 @@ export default class Grammar {
     MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
 
     /** @param {Grammar} r */
-    Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(_ => null).desc("null: ()")
+    Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(() => null).desc("null: ()")
 
     /** @param {Grammar} r */
     Boolean = r => P.alt(
@@ -216,7 +218,7 @@ export default class Grammar {
     ColorNumber = r => r.NaturalNumber.assert(n => 0 <= n && n < 256, "the color must be between 0 and 256 excluded")
 
     /** @param {Grammar} r */
-    Word = r => P.regex(/[a-zA-Z]+/).desc("a word")
+    Word = r => P.regex(/[a-zA-Z_]+/).desc("a word")
 
     /** @param {Grammar} r */
     String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.unescapeString)
@@ -228,7 +230,7 @@ export default class Grammar {
     /*   ---   Entity   ---   */
 
     /** @param {Grammar} r */
-    None = r => P.string("None").map(_ => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
+    None = r => P.string("None").map(() => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
 
     /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
@@ -301,13 +303,12 @@ export default class Grammar {
         r.Guid,
         r.None,
         r.Null,
-        r.Integer,
         r.Number,
         r.String,
         r.LocalizedText,
         r.InvariantText,
-        r.Vector,
-        r.LinearColor,
+        Grammar.createEntityGrammar(r, VectorEntity, true),
+        Grammar.createEntityGrammar(r, LinearColorEntity, true),
         r.UnknownKeys,
         r.ObjectReference,
         r.Symbol,
@@ -316,9 +317,9 @@ export default class Grammar {
     /** @param {Grammar} r */
     PinReference = r => P.seqMap(
         r.PathSymbol, // Goes into objectNAme
-        P.whitespace, // Goes into _ (ignored)
+        P.whitespace, // Goes into _1 (ignored)
         r.Guid, // Goes into pinGuid
-        (objectName, _, pinGuid) => new PinReferenceEntity({
+        (objectName, _1, pinGuid) => new PinReferenceEntity({
             objectName: objectName,
             pinGuid: pinGuid,
         })
@@ -403,7 +404,7 @@ export default class Grammar {
             )
             .sepBy1(P.whitespace),
         P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
-        (_, attributes, __) => {
+        (_0, attributes, _2) => {
             let values = {}
             attributes.forEach(attributeSetter => attributeSetter(values))
             return new ObjectEntity(values)
@@ -434,7 +435,7 @@ export default class Grammar {
         r.ColorNumber,
         P.string(",").skip(P.optWhitespace),
         r.ColorNumber.map(Number),
-        (R, _, G, __, B) => new LinearColorEntity({
+        (R, _1, G, _3, B) => new LinearColorEntity({
             R: R / 255,
             G: G / 255,
             B: B / 255,
@@ -460,7 +461,7 @@ export default class Grammar {
             r.ColorNumber.map(Number),
             P.string(",").skip(P.optWhitespace),
             P.regex(/0?\.\d+|[01]/).map(Number),
-            (R, _, G, __, B, ___, A) => new LinearColorEntity({
+            (R, _1, G, _3, B, _4, A) => new LinearColorEntity({
                 R: R / 255,
                 G: G / 255,
                 B: B / 255,

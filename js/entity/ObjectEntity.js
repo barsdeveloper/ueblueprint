@@ -4,6 +4,7 @@ import GuidEntity from "./GuidEntity"
 import IdentifierEntity from "./IdentifierEntity"
 import IEntity from "./IEntity"
 import IntegerEntity from "./IntegerEntity"
+import LinearColorEntity from "./LinearColorEntity"
 import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"
@@ -25,8 +26,17 @@ export default class ObjectEntity extends IEntity {
         TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
         MacroGraphReference: new TypeInitialization(MacroGraphReferenceEntity, false, null),
         Enum: new TypeInitialization(ObjectReferenceEntity, false),
+        CommentColor: new TypeInitialization(LinearColorEntity, false),
+        bCommentBubbleVisible_InDetailsPanel: new TypeInitialization(Boolean, false),
+        bColorCommentBubble: new TypeInitialization(Boolean, false, false),
+        MoveMode: new TypeInitialization(SymbolEntity, false),
         NodePosX: IntegerEntity,
         NodePosY: IntegerEntity,
+        NodeWidth: new TypeInitialization(IntegerEntity, false),
+        NodeHeight: new TypeInitialization(IntegerEntity, false),
+        bCommentBubblePinned: new TypeInitialization(Boolean, false),
+        bCommentBubbleVisible: new TypeInitialization(Boolean, false),
+        NodeComment: new TypeInitialization(String, false),
         AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
         EnabledState: new TypeInitialization(IdentifierEntity, false, null),
         NodeGuid: GuidEntity,
@@ -49,8 +59,15 @@ export default class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity?} */ this.TargetType
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference
         /** @type {ObjectReferenceEntity?} */ this.Enum
+        /** @type {LinearColorEntity?} */ this.CommentColor
+        /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
+        /** @type {IntegerEntity?} */ this.NodeWidth
+        /** @type {IntegerEntity?} */ this.NodeHeight
+        /** @type {Boolean?} */ this.bCommentBubblePinned
+        /** @type {Boolean?} */ this.bCommentBubbleVisible
+        /** @type {String?} */ this.NodeComment
         /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay
         /** @type {IdentifierEntity?} */ this.EnabledState
         /** @type {GuidEntity} */ this.NodeGuid
@@ -131,5 +148,31 @@ export default class ObjectEntity extends IEntity {
 
     getCounter() {
         return this.getNameAndCounter()[1]
+    }
+
+    getNodeWidth() {
+        return this.NodeWidth ??
+            this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentWidth : undefined
+    }
+
+    /** @param {Number} value */
+    setNodeWidth(value) {
+        if (!this.NodeWidth) {
+            this.NodeWidth = new IntegerEntity()
+        }
+        this.NodeWidth.value = value
+    }
+
+    getNodeHeight() {
+        return this.NodeHeight ??
+            this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentHeight : undefined
+    }
+
+    /** @param {Number} value */
+    setNodeHeight(value) {
+        if (!this.NodeHeight) {
+            this.NodeHeight = new IntegerEntity()
+        }
+        this.NodeHeight.value = value
     }
 }

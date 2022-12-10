@@ -321,10 +321,6 @@ ueb-node {
   box-shadow: none;
 }
 
-ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node {
-  cursor: move;
-}
-
 .ueb-node-border {
   margin: -3px;
   padding: 3px;
@@ -359,6 +355,10 @@ ueb-node[data-selected=true] > .ueb-node-border {
   border-radius: var(--ueb-node-radius);
   background: rgba(14, 16, 10, 0.8);
   overflow: hidden;
+}
+
+ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-wrapper {
+  cursor: move;
 }
 
 .ueb-zoom--2 .ueb-node-wrapper {
@@ -499,7 +499,7 @@ ueb-node.ueb-node-style-glass {
 
 ueb-node.ueb-node-style-glass .ueb-node-wrapper {
   border: 1px solid black;
-  box-shadow: 1px 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 -2px 2px 1px rgba(0, 0, 0, 0.5) inset;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 -2px 2px 1px rgba(0, 0, 0, 0.5) inset;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.188) 0%, rgba(255, 255, 255, 0.063) 14px, rgba(0, 0, 0, 0.251) 14px), linear-gradient(to right, transparent 10%, rgba(var(--ueb-node-color), 0.3) 50%, transparent 90%);
   background-size: 100%, 100% 28px;
   background-repeat: repeat, no-repeat;
@@ -526,6 +526,44 @@ ueb-node.ueb-node-style-glass .ueb-node-top {
 
 ueb-node.ueb-node-style-glass .ueb-node-outputs:first-child {
   padding-left: 8px;
+}
+
+ueb-node.ueb-node-style-comment {
+  z-index: -1;
+}
+
+ueb-node.ueb-node-style-comment .ueb-node-border {
+  height: 100%;
+}
+
+ueb-node.ueb-node-style-comment .ueb-node-wrapper {
+  position: relative;
+  padding: 0;
+  height: 100%;
+  border-radius: 0;
+  background: rgba(var(--ueb-node-color), 0.5);
+  box-shadow: none;
+}
+ueb-node.ueb-node-style-comment .ueb-node-wrapper::after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, transparent 50%, #fff 50%, #fff calc(50% + 2px), transparent calc(50% + 2px), transparent calc(50% + 3px), #fff calc(50% + 3px), #fff calc(50% + 5px), transparent calc(50% + 5px), transparent calc(50% + 7px), #fff calc(50% + 7px), #fff calc(50% + 9px), transparent calc(50% + 9px));
+}
+
+ueb-node.ueb-node-style-comment .ueb-node-top {
+  margin: 3px;
+  padding: 3px 10px;
+  box-shadow: none;
+  border-radius: 0;
+  background: rgb(var(--ueb-node-color));
+  color: white;
+  font-size: 24px;
+  text-shadow: 2px 1px 1px #444, 0 0 2px #bbb;
 }
 
 ueb-blueprint {
@@ -685,7 +723,6 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
   line-height: calc(1em + 1px);
   background: none;
   color: inherit;
-  cursor: text;
   overflow: auto;
 }
 .ueb-pin-input-content::-webkit-scrollbar {
@@ -696,6 +733,10 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
   background: #575757;
   border-radius: 10px;
   margin: 4px;
+}
+
+ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-wrapper {
+  cursor: move;
 }
 
 .ueb-button {
@@ -784,6 +825,76 @@ ueb-window .ueb-pin-input-content {
 }
 .ueb-toggle-control:hover {
   cursor: pointer;
+}
+
+.ueb-resizeable-top,
+.ueb-resizeable-top-right,
+.ueb-resizeable-top-left {
+  position: absolute;
+  top: 0;
+  height: 10px;
+}
+
+.ueb-resizeable-top {
+  right: 0;
+  left: 0;
+  cursor: ns-resize;
+}
+
+.ueb-resizeable-top-right {
+  right: 0;
+  width: 10px;
+  cursor: nesw-resize;
+}
+
+.ueb-resizeable-top-left {
+  left: 0;
+  width: 10px;
+  cursor: nwse-resize;
+}
+
+.ueb-resizeable-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: ew-resize;
+}
+
+.ueb-resizeable-bottom,
+.ueb-resizeable-bottom-right,
+.ueb-resizeable-bottom-left {
+  position: absolute;
+  bottom: -3px;
+  height: 10px;
+  cursor: ns-resize;
+}
+
+.ueb-resizeable-bottom {
+  right: 0;
+  left: 0;
+}
+
+.ueb-resizeable-bottom-right {
+  right: 0;
+  width: 10px;
+  cursor: nwse-resize;
+}
+
+.ueb-resizeable-bottom-left {
+  left: 0;
+  width: 10px;
+  cursor: nesw-resize;
+}
+
+.ueb-resizeable-left {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 10px;
+  cursor: ew-resize;
 }
 
 ueb-window {

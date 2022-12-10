@@ -96,7 +96,10 @@ export default class IElement extends LitElement {
     updated(changedProperties) {
         super.updated(changedProperties)
         this.template.updated(changedProperties)
-        this.#nextUpdatedCallbacks.forEach(f => f(changedProperties))
+        // Remember the array might change while iterating
+        for (const f of this.#nextUpdatedCallbacks) {
+            f(changedProperties)
+        }
         this.#nextUpdatedCallbacks = []
     }
 

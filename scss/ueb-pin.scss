@@ -160,7 +160,6 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     line-height: calc(1em + 1px);
     background: none;
     color: inherit;
-    cursor: text;
     overflow: auto;
 
     &::-webkit-scrollbar {
@@ -173,4 +172,8 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
         border-radius: 10px;
         margin: 4px;
     }
+}
+
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-wrapper {
+    cursor: move;
 }

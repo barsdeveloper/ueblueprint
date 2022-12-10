@@ -69,6 +69,14 @@ export default class Utility {
     }
 
     /**
+     * @param {Number} a
+     * @param {Number} b
+     */
+    static approximatelyEqual(a, b) {
+        return !(Math.abs(a - b) > Number.EPSILON)
+    }
+
+    /**
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
      */

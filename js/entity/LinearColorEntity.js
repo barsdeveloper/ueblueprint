@@ -41,7 +41,23 @@ export default class LinearColorEntity extends IEntity {
         }
     }
 
+    static getWhite() {
+        return new LinearColorEntity({
+            R: 1,
+            G: 1,
+            B: 1,
+        })
+    }
+
     constructor(values) {
+        if (values instanceof Array) {
+            values = {
+                R: values[0] ?? 0,
+                G: values[1] ?? 0,
+                B: values[2] ?? 0,
+                A: values[3] ?? 1,
+            }
+        }
         super(values)
         /** @type {RealUnitEntity} */ this.R
         /** @type {RealUnitEntity} */ this.G
@@ -57,12 +73,9 @@ export default class LinearColorEntity extends IEntity {
         const r = this.R.value
         const g = this.G.value
         const b = this.B.value
-        if (
-            !(Math.abs(r - g) > Number.EPSILON)
-            && !(Math.abs(r - b) > Number.EPSILON)
-            && !(Math.abs(g - b) > Number.EPSILON)
-        ) {
-            this.V.value = 0
+        if (Utility.approximatelyEqual(r, g) && Utility.approximatelyEqual(r, b) && Utility.approximatelyEqual(g, b)) {
+            this.S.value = 0
+            this.V.value = r
             return
         }
         const max = Math.max(r, g, b)
@@ -168,7 +181,11 @@ export default class LinearColorEntity extends IEntity {
     }
 
     toNumber() {
-        return (this.R.value << 24) + (this.G.value << 16) + (this.B.value << 8) + this.A.value
+        return (
+            Math.round(this.R.value * 0xff) << 24)
+            + (Math.round(this.G.value * 0xff) << 16)
+            + (Math.round(this.B.value * 0xff) << 8)
+            + Math.round(this.A.value * 0xff)
     }
 
     /** @param {Number} number */

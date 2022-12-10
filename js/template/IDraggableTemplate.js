@@ -13,7 +13,7 @@ import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
 export default class IDraggableTemplate extends ITemplate {
 
     getDraggableElement() {
-        return this.element
+        return /** @type {Element} */(this.element)
     }
 
     createDraggableObject() {

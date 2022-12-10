@@ -24,6 +24,14 @@ export default class IDraggableElement extends IElement {
             type: Number,
             attribute: false,
         },
+        sizeX: {
+            type: Number,
+            attribute: false,
+        },
+        sizeY: {
+            type: Number,
+            attribute: false,
+        },
     }
     static dragEventName = Configuration.dragEventName
     static dragGeneralEventName = Configuration.dragGeneralEventName
@@ -36,6 +44,20 @@ export default class IDraggableElement extends IElement {
         super(entity, template)
         this.locationX = 0
         this.locationY = 0
+        this.sizeX ??= 0 // It may be set in the template already
+        this.sizeY ??= 0 // It may be set in the template already
+    }
+
+    computeSizes() {
+        const bounding = this.getBoundingClientRect()
+        this.sizeX = bounding.width
+        this.sizeY = bounding.height
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        this.computeSizes()
     }
 
     /** @param {Number[]} param0 */
@@ -79,5 +101,21 @@ export default class IDraggableElement extends IElement {
         if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
             this.setLocation(snappedLocation)
         }
+    }
+
+    topBoundary() {
+        return this.locationY
+    }
+
+    rightBoundary() {
+        return this.locationX + this.sizeX
+    }
+
+    bottomBoundary() {
+        return this.locationY + this.sizeY
+    }
+
+    leftBoundary() {
+        return this.locationX
     }
 }

@@ -68,6 +68,7 @@ export default class PinTemplate extends ITemplate {
 
     /** @param {Map} changedProperties */
     updated(changedProperties) {
+        super.updated(changedProperties)
         if (this.element.isInput() && changedProperties.has("isLinked")) {
             // When connected, an input may drop its input fields which means the node has to reflow
             const node = this.element.nodeElement
