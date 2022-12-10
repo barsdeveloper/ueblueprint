@@ -155,8 +155,24 @@ export default class ObjectEntity extends IEntity {
             this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentWidth : undefined
     }
 
+    /** @param {Number} value */
+    setNodeWidth(value) {
+        if (!this.NodeWidth) {
+            this.NodeWidth = new IntegerEntity()
+        }
+        this.NodeWidth.value = value
+    }
+
     getNodeHeight() {
         return this.NodeHeight ??
             this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentHeight : undefined
+    }
+
+    /** @param {Number} value */
+    setNodeHeight(value) {
+        if (!this.NodeHeight) {
+            this.NodeHeight = new IntegerEntity()
+        }
+        this.NodeHeight.value = value
     }
 }

@@ -666,6 +666,14 @@ class Utility {
     }
 
     /**
+     * @param {Number} a
+     * @param {Number} b
+     */
+    static approximatelyEqual(a, b) {
+        return !(Math.abs(a - b) > Number.EPSILON)
+    }
+
+    /**
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
      */
@@ -1260,12 +1268,9 @@ class LinearColorEntity extends IEntity {
         const r = this.R.value;
         const g = this.G.value;
         const b = this.B.value;
-        if (
-            !(Math.abs(r - g) > Number.EPSILON)
-            && !(Math.abs(r - b) > Number.EPSILON)
-            && !(Math.abs(g - b) > Number.EPSILON)
-        ) {
-            this.V.value = 0;
+        if (Utility.approximatelyEqual(r, g) && Utility.approximatelyEqual(r, b) && Utility.approximatelyEqual(g, b)) {
+            this.S.value = 0;
+            this.V.value = r;
             return
         }
         const max = Math.max(r, g, b);
@@ -1893,9 +1898,25 @@ class ObjectEntity extends IEntity {
             this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentWidth : undefined
     }
 
+    /** @param {Number} value */
+    setNodeWidth(value) {
+        if (!this.NodeWidth) {
+            this.NodeWidth = new IntegerEntity();
+        }
+        this.NodeWidth.value = value;
+    }
+
     getNodeHeight() {
         return this.NodeHeight ??
             this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentHeight : undefined
+    }
+
+    /** @param {Number} value */
+    setNodeHeight(value) {
+        if (!this.NodeHeight) {
+            this.NodeHeight = new IntegerEntity();
+        }
+        this.NodeHeight.value = value;
     }
 }
 
@@ -3116,8 +3137,8 @@ class IDraggableElement extends IElement {
         super(entity, template);
         this.locationX = 0;
         this.locationY = 0;
-        this.sizeX = -1;
-        this.sizeY = -1;
+        this.sizeX ??= 0; // It may be set in the template already
+        this.sizeY ??= 0; // It may be set in the template already
     }
 
     computeSizes() {
@@ -5041,13 +5062,11 @@ class CommentNodeTemplate extends IResizeableTemplate {
     constructed(element) {
         if (element.entity.CommentColor) {
             this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber());
+            this.#color.setFromHSVA(this.#color.H.value, this.#color.S.value, Math.pow(this.#color.V.value, 0.45) * 0.67);
         }
-        this.#color.setFromRGBA(
-            this.#color.R.value,
-            this.#color.G.value,
-            this.#color.B.value,
-        );
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable");
+        element.sizeX ??= 25 * Configuration.gridSize;
+        element.sizeY ??= 6 * Configuration.gridSize;
         super.constructed(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
     }
 
@@ -5073,8 +5092,10 @@ class CommentNodeTemplate extends IResizeableTemplate {
 
     /** @param {Number} value */
     setSizeX(value) {
+        value = Math.round(value);
         if (value >= Configuration.gridSet * Configuration.gridSize) {
             this.element.sizeX = value;
+            this.element.entity.setNodeWidth(this.element.sizeX);
             return true
         }
         return false
@@ -5082,8 +5103,10 @@ class CommentNodeTemplate extends IResizeableTemplate {
 
     /** @param {Number} value */
     setSizeY(value) {
+        value = Math.round(value);
         if (value >= 3 * Configuration.gridSize) {
             this.element.sizeY = Math.max(value, 3 * Configuration.gridSize);
+            this.element.entity.setNodeHeight(this.element.sizeY);
             return true
         }
         return false

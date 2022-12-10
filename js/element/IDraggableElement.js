@@ -44,8 +44,8 @@ export default class IDraggableElement extends IElement {
         super(entity, template)
         this.locationX = 0
         this.locationY = 0
-        this.sizeX = -1
-        this.sizeY = -1
+        this.sizeX ??= 0 // It may be set in the template already
+        this.sizeY ??= 0 // It may be set in the template already
     }
 
     computeSizes() {

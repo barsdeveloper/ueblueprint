@@ -16,15 +16,11 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
     constructed(element) {
         if (element.entity.CommentColor) {
             this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber())
+            this.#color.setFromHSVA(this.#color.H.value, this.#color.S.value, Math.pow(this.#color.V.value, 0.45) * 0.67)
         }
-        // Dimming the colors to 2/3
-        const factor = 2 / 3
-        this.#color.setFromRGBA(
-            this.#color.R.value,
-            this.#color.G.value,
-            this.#color.B.value,
-        )
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable")
+        element.sizeX ??= 25 * Configuration.gridSize
+        element.sizeY ??= 6 * Configuration.gridSize
         super.constructed(element) // Keep it at the end because it calls this.getColor() where this.#color must be initialized
     }
 
@@ -50,8 +46,10 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
 
     /** @param {Number} value */
     setSizeX(value) {
+        value = Math.round(value)
         if (value >= Configuration.gridSet * Configuration.gridSize) {
             this.element.sizeX = value
+            this.element.entity.setNodeWidth(this.element.sizeX)
             return true
         }
         return false
@@ -59,8 +57,10 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
 
     /** @param {Number} value */
     setSizeY(value) {
+        value = Math.round(value)
         if (value >= 3 * Configuration.gridSize) {
             this.element.sizeY = Math.max(value, 3 * Configuration.gridSize)
+            this.element.entity.setNodeHeight(this.element.sizeY)
             return true
         }
         return false

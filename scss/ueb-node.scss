@@ -246,11 +246,35 @@ ueb-node.ueb-node-style-comment .ueb-node-border {
 }
 
 ueb-node.ueb-node-style-comment .ueb-node-wrapper {
+    position: relative;
     padding: 0;
     height: 100%;
     border-radius: 0;
     background: rgba(var(--ueb-node-color), 0.5);
     box-shadow: none;
+
+    &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        right: 3px;
+        bottom: 3px;
+        width: 16px;
+        height: 16px;
+        background: linear-gradient(135deg,
+                transparent 50%,
+                #fff 50%,
+                #fff calc(50% + 2px),
+                transparent calc(50% + 2px),
+                transparent calc(50% + 3px),
+                #fff calc(50% + 3px),
+                #fff calc(50% + 5px),
+                transparent calc(50% + 5px),
+                transparent calc(50% + 7px),
+                #fff calc(50% + 7px),
+                #fff calc(50% + 9px),
+                transparent calc(50% + 9px));
+    }
 }
 
 ueb-node.ueb-node-style-comment .ueb-node-top {
@@ -261,5 +285,5 @@ ueb-node.ueb-node-style-comment .ueb-node-top {
     background: rgb(var(--ueb-node-color));
     color: white;
     font-size: 24px;
-    text-shadow: 2px 1px 1px black, 0 0 2px #808080;
+    text-shadow: 2px 1px 1px #444, 0 0 2px #bbb;
 }

@@ -73,12 +73,9 @@ export default class LinearColorEntity extends IEntity {
         const r = this.R.value
         const g = this.G.value
         const b = this.B.value
-        if (
-            !(Math.abs(r - g) > Number.EPSILON)
-            && !(Math.abs(r - b) > Number.EPSILON)
-            && !(Math.abs(g - b) > Number.EPSILON)
-        ) {
-            this.V.value = 0
+        if (Utility.approximatelyEqual(r, g) && Utility.approximatelyEqual(r, b) && Utility.approximatelyEqual(g, b)) {
+            this.S.value = 0
+            this.V.value = r
             return
         }
         const max = Math.max(r, g, b)
