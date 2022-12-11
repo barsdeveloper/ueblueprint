@@ -7,6 +7,10 @@ ueb-node {
     font-weight: lighter;
 }
 
+ueb-node.ueb-node-style-minimal {
+    min-width: 0;
+}
+
 .ueb-zoom--2 ueb-node {
     box-shadow: none;
 }

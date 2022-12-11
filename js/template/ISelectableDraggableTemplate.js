@@ -2,12 +2,12 @@ import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
 /**
- * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
  */
 
 /**
- * @template {ISelectableDraggableElement} T
+ * @template {NodeElement} T
  * @extends {IDraggablePositionedTemplate<T>}
  */
 export default class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {

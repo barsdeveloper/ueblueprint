@@ -2183,7 +2183,7 @@ class Grammar {
             referencePath.wrap(P.string(`'"`), P.string(`"'`)),
         ]),
         P.seqMap(
-            r.Word, // Goes into referenceType
+            Grammar.ReferencePath(r, r.PathSymbolOptSpaces), // Goes into referenceType
             P.optWhitespace, // Goes into _1 (ignored)
             P.alt(...[Grammar.ReferencePath(r, r.PathSymbolOptSpaces)].flatMap(referencePath => [
                 referencePath.wrap(P.string(`"`), P.string(`"`)),
@@ -3543,6 +3543,7 @@ class Paste extends IInput {
         if (nodes.length > 0) {
             this.blueprint.unselectAll();
         }
+        this.blueprint.addGraphElement(...nodes);
         let mousePosition = this.blueprint.mousePosition;
         nodes.forEach(node => {
             const locationOffset = [
@@ -3553,7 +3554,6 @@ class Paste extends IInput {
             node.snapToGrid();
             node.setSelected(true);
         });
-        this.blueprint.addGraphElement(...nodes);
         return true
     }
 }
@@ -3729,8 +3729,10 @@ class BlueprintTemplate extends ITemplate {
         }
     }
 
-    getComments() {
-        return this.element.querySelectorAll(`ueb-node[data-type="${Configuration.nodeType.comment}"]`)
+    getCommentNodes(justSelected = false) {
+        return this.element.querySelectorAll(
+            `ueb-node[data-type="${Configuration.nodeType.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
+        )
     }
 
     /** @param {PinReferenceEntity} pinReference */
@@ -4693,10 +4695,11 @@ class IDraggablePositionedTemplate extends IDraggableTemplate {
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../template/CommentNodeTemplate").default} CommentNodeTemplate
  */
 
-/** @extends {MouseMoveDraggable<ISelectableDraggableElement>} */
+/** @extends {MouseMoveDraggable<NodeElement>} */
 class MouseMoveNodes extends MouseMoveDraggable {
 
     startDrag() {
@@ -4714,17 +4717,26 @@ class MouseMoveNodes extends MouseMoveDraggable {
         if (!this.started) {
             this.blueprint.unselectAll();
             this.target.setSelected(true);
+        } else {
+            this.blueprint.getNodes(true).forEach(node =>
+                node.boundComments
+                    .filter(comment => !node.isInsideComment(comment))
+                    .forEach(comment => node.unbindFromComment(comment))
+            );
+            this.blueprint.getCommentNodes(true).forEach(comment =>
+                /** @type {CommentNodeTemplate} */(comment.template).manageNodesBind()
+            );
         }
     }
 }
 
 /**
- * @typedef {import("../element/ISelectableDraggableElement").default} ISelectableDraggableElement
+ * @typedef {import("../element/NodeElement").default} NodeElement
  * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
  */
 
 /**
- * @template {ISelectableDraggableElement} T
+ * @template {NodeElement} T
  * @extends {IDraggablePositionedTemplate<T>}
  */
 class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
@@ -4791,10 +4803,9 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         const pureFunctionColor = i$3`95, 129, 90`;
         switch (this.element.entity.getClass()) {
             case Configuration.nodeType.callFunction:
-                if (this.element.entity.bIsPureFunc) {
-                    return pureFunctionColor
-                }
-                return functionColor
+                return this.element.entity.bIsPureFunc
+                    ? pureFunctionColor
+                    : functionColor
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
@@ -5082,6 +5093,14 @@ class CommentNodeTemplate extends IResizeableTemplate {
         return this.element.querySelector(".ueb-node-top")
     }
 
+    /** @param {Map} changedProperties */
+    willUpdate(changedProperties) {
+        super.willUpdate(changedProperties);
+        if (changedProperties.has("sizeX") || changedProperties.has("sizeY")) {
+            this.manageNodesBind();
+        }
+    }
+
     render() {
         return y`
             <div class="ueb-node-border">
@@ -5092,6 +5111,18 @@ class CommentNodeTemplate extends IResizeableTemplate {
                 </div>
             </div>
         `
+    }
+
+    manageNodesBind() {
+        this.element.blueprint
+            .getNodes(false, [
+                this.element.topBoundary(),
+                this.element.rightBoundary(),
+                this.element.bottomBoundary(),
+                this.element.leftBoundary(),
+            ])
+            .filter(node => !node.boundComments.includes(this.element))
+            .forEach(node => node.bindToComment(this.element));
     }
 
     /** @param {Number} value */
@@ -5437,6 +5468,12 @@ class KnotNodeTemplate extends NodeTemplate {
         return this.#outputPin
     }
 
+    /** @param {NodeElement} element */
+    constructed(element) {
+        super.constructed(element);
+        this.element.classList.add("ueb-node-style-minimal");
+    }
+
     /** @param {PinElement} startingPin */
     findDirectionaPin(startingPin) {
         if (
@@ -5629,7 +5666,16 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     #pins
-    #boundComments
+    /** @type {NodeElement[]} */
+    boundComments = []
+    #commentDragged = false
+    #commentDragHandler = e => {
+        if (!this.selected && !this.#commentDragged) {
+            this.addLocation(e.detail.value); // if selected it will already move
+            this.#commentDragged = true;
+            this.addNextUpdatedCallbacks(() => this.#commentDragged = false);
+        }
+    }
 
     /**
      * @param {ObjectEntity} entity
@@ -5671,6 +5717,32 @@ class NodeElement extends ISelectableDraggableElement {
         let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str);
         // @ts-expect-error
         return new NodeElement(entity)
+    }
+
+    /** @param {NodeElement} commentNode */
+    bindToComment(commentNode) {
+        if (!this.boundComments.includes(commentNode)) {
+            commentNode.addEventListener(Configuration.nodeDragEventName, this.#commentDragHandler);
+            this.boundComments.push(commentNode);
+        }
+    }
+
+    /** @param {NodeElement} commentNode */
+    unbindFromComment(commentNode) {
+        const commentIndex = this.boundComments.indexOf(commentNode);
+        if (commentIndex >= 0) {
+            commentNode.removeEventListener(Configuration.nodeDragEventName, this.#commentDragHandler);
+            this.boundComments[commentIndex] = this.boundComments[this.boundComments.length - 1];
+            this.boundComments.pop();
+        }
+    }
+
+    /** @param {NodeElement} commentNode */
+    isInsideComment(commentNode) {
+        return this.topBoundary() >= commentNode.topBoundary()
+            && this.rightBoundary() <= commentNode.rightBoundary()
+            && this.bottomBoundary() <= commentNode.bottomBoundary()
+            && this.leftBoundary() >= commentNode.leftBoundary()
     }
 
     disconnectedCallback() {
@@ -6088,6 +6160,7 @@ class SelectorElement extends IFromToPositionedElement {
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {import("./template/CommentNodeTemplate").default} CommentNodeTemplate
  * @typedef {{
  *     primaryInf: Number,
  *     primarySup: Number,
@@ -6375,10 +6448,12 @@ class Blueprint extends IElement {
         return result
     }
 
-    getComments() {
-        let result = /** @type {NodeElement[]} */ ([...this.template.getComments()]);
+    getCommentNodes(justSelected = false) {
+        let result = /** @type {NodeElement[]} */ ([...this.template.getCommentNodes(justSelected)]);
         if (result.length === 0) {
-            result = this.nodes.filter(n => n.getType() === Configuration.nodeType.comment);
+            result = this.nodes.filter(n =>
+                n.getType() === Configuration.nodeType.comment && (!justSelected || n.selected)
+            );
         }
         return result
     }
@@ -6454,6 +6529,11 @@ class Blueprint extends IElement {
                 }
                 this.nodes.push(element);
                 this.nodesContainerElement?.appendChild(element);
+                if (element.getType() == Configuration.nodeType.comment) {
+                    element.addNextUpdatedCallbacks(() =>
+                        /** @type {CommentNodeTemplate} */(element.template).manageNodesBind()
+                    );
+                }
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
                 if (this.linksContainerElement && !this.linksContainerElement.contains(element)) {

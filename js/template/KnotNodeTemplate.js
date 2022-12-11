@@ -28,6 +28,12 @@ export default class KnotNodeTemplate extends NodeTemplate {
         return this.#outputPin
     }
 
+    /** @param {NodeElement} element */
+    constructed(element) {
+        super.constructed(element)
+        this.element.classList.add("ueb-node-style-minimal")
+    }
+
     /** @param {PinElement} startingPin */
     findDirectionaPin(startingPin) {
         if (

@@ -45,6 +45,7 @@ export default class Paste extends IInput {
         if (nodes.length > 0) {
             this.blueprint.unselectAll()
         }
+        this.blueprint.addGraphElement(...nodes)
         let mousePosition = this.blueprint.mousePosition
         nodes.forEach(node => {
             const locationOffset = [
@@ -55,7 +56,6 @@ export default class Paste extends IInput {
             node.snapToGrid()
             node.setSelected(true)
         })
-        this.blueprint.addGraphElement(...nodes)
         return true
     }
 }

@@ -261,7 +261,7 @@ export default class Grammar {
             referencePath.wrap(P.string(`'"`), P.string(`"'`)),
         ]),
         P.seqMap(
-            r.Word, // Goes into referenceType
+            Grammar.ReferencePath(r, r.PathSymbolOptSpaces), // Goes into referenceType
             P.optWhitespace, // Goes into _1 (ignored)
             P.alt(...[Grammar.ReferencePath(r, r.PathSymbolOptSpaces)].flatMap(referencePath => [
                 referencePath.wrap(P.string(`"`), P.string(`"`)),

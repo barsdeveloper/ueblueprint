@@ -78,7 +78,16 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     #pins
-    #boundComments
+    /** @type {NodeElement[]} */
+    boundComments = []
+    #commentDragged = false
+    #commentDragHandler = e => {
+        if (!this.selected && !this.#commentDragged) {
+            this.addLocation(e.detail.value) // if selected it will already move
+            this.#commentDragged = true
+            this.addNextUpdatedCallbacks(() => this.#commentDragged = false)
+        }
+    }
 
     /**
      * @param {ObjectEntity} entity
@@ -120,6 +129,32 @@ export default class NodeElement extends ISelectableDraggableElement {
         let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str)
         // @ts-expect-error
         return new NodeElement(entity)
+    }
+
+    /** @param {NodeElement} commentNode */
+    bindToComment(commentNode) {
+        if (!this.boundComments.includes(commentNode)) {
+            commentNode.addEventListener(Configuration.nodeDragEventName, this.#commentDragHandler)
+            this.boundComments.push(commentNode)
+        }
+    }
+
+    /** @param {NodeElement} commentNode */
+    unbindFromComment(commentNode) {
+        const commentIndex = this.boundComments.indexOf(commentNode)
+        if (commentIndex >= 0) {
+            commentNode.removeEventListener(Configuration.nodeDragEventName, this.#commentDragHandler)
+            this.boundComments[commentIndex] = this.boundComments[this.boundComments.length - 1]
+            this.boundComments.pop()
+        }
+    }
+
+    /** @param {NodeElement} commentNode */
+    isInsideComment(commentNode) {
+        return this.topBoundary() >= commentNode.topBoundary()
+            && this.rightBoundary() <= commentNode.rightBoundary()
+            && this.bottomBoundary() <= commentNode.bottomBoundary()
+            && this.leftBoundary() >= commentNode.leftBoundary()
     }
 
     disconnectedCallback() {

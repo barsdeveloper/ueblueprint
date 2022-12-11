@@ -48,10 +48,9 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         const pureFunctionColor = css`95, 129, 90`
         switch (this.element.entity.getClass()) {
             case Configuration.nodeType.callFunction:
-                if (this.element.entity.bIsPureFunc) {
-                    return pureFunctionColor
-                }
-                return functionColor
+                return this.element.entity.bIsPureFunc
+                    ? pureFunctionColor
+                    : functionColor
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:

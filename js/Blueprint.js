@@ -10,6 +10,7 @@ import Utility from "./Utility"
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {import("./template/CommentNodeTemplate").default} CommentNodeTemplate
  * @typedef {{
  *     primaryInf: Number,
  *     primarySup: Number,
@@ -297,10 +298,12 @@ export default class Blueprint extends IElement {
         return result
     }
 
-    getComments() {
-        let result = /** @type {NodeElement[]} */ ([...this.template.getComments()])
+    getCommentNodes(justSelected = false) {
+        let result = /** @type {NodeElement[]} */ ([...this.template.getCommentNodes(justSelected)])
         if (result.length === 0) {
-            result = this.nodes.filter(n => n.getType() === Configuration.nodeType.comment)
+            result = this.nodes.filter(n =>
+                n.getType() === Configuration.nodeType.comment && (!justSelected || n.selected)
+            )
         }
         return result
     }
@@ -378,6 +381,11 @@ export default class Blueprint extends IElement {
                 this.nodes.push(element)
                 nodeElements.push(element)
                 this.nodesContainerElement?.appendChild(element)
+                if (element.getType() == Configuration.nodeType.comment) {
+                    element.addNextUpdatedCallbacks(() =>
+                        /** @type {CommentNodeTemplate} */(element.template).manageNodesBind()
+                    )
+                }
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
                 if (this.linksContainerElement && !this.linksContainerElement.contains(element)) {
