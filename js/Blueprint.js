@@ -100,7 +100,6 @@ export default class Blueprint extends IElement {
     waitingExpandUpdate = false
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
-        let gridRect = this.nodesContainerElement.getBoundingClientRect()
         return /** @type {BoundariesInfo} */ {
             primaryInf: node.leftBoundary(),
             primarySup: node.rightBoundary(),

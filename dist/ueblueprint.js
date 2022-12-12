@@ -3142,9 +3142,10 @@ class IDraggableElement extends IElement {
     }
 
     computeSizes() {
+        const scaleCorrection = 1 / this.blueprint.getScale();
         const bounding = this.getBoundingClientRect();
-        this.sizeX = bounding.width;
-        this.sizeY = bounding.height;
+        this.sizeX = bounding.width * scaleCorrection;
+        this.sizeY = bounding.height * scaleCorrection;
     }
 
     /** @param {Map} changedProperties */
@@ -6251,7 +6252,6 @@ class Blueprint extends IElement {
     waitingExpandUpdate = false
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
-        this.nodesContainerElement.getBoundingClientRect();
         return /** @type {BoundariesInfo} */ {
             primaryInf: node.leftBoundary(),
             primarySup: node.rightBoundary(),
