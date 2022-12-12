@@ -101,13 +101,12 @@ export default class Blueprint extends IElement {
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
         let gridRect = this.nodesContainerElement.getBoundingClientRect()
-        const scaleCorrection = 1 / this.getScale()
         return /** @type {BoundariesInfo} */ {
-            primaryInf: (node.leftBoundary() - gridRect.left) * scaleCorrection,
-            primarySup: (node.rightBoundary() - gridRect.right) * scaleCorrection,
+            primaryInf: node.leftBoundary(),
+            primarySup: node.rightBoundary(),
             // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-            secondaryInf: (node.topBoundary() - gridRect.top) * scaleCorrection,
-            secondarySup: (node.bottomBoundary() - gridRect.bottom) * scaleCorrection
+            secondaryInf: node.topBoundary(),
+            secondarySup: node.bottomBoundary(),
         }
     }
     /** @type {(node: NodeElement, selected: Boolean) => void}} */

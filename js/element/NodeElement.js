@@ -82,10 +82,11 @@ export default class NodeElement extends ISelectableDraggableElement {
     boundComments = []
     #commentDragged = false
     #commentDragHandler = e => {
+        // If selected, it will already drag, also must check if under nested comments, it must drag just once
         if (!this.selected && !this.#commentDragged) {
-            this.addLocation(e.detail.value) // if selected it will already move
             this.#commentDragged = true
             this.addNextUpdatedCallbacks(() => this.#commentDragged = false)
+            this.addLocation(e.detail.value)
         }
     }
 

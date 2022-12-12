@@ -5670,10 +5670,11 @@ class NodeElement extends ISelectableDraggableElement {
     boundComments = []
     #commentDragged = false
     #commentDragHandler = e => {
+        // If selected, it will already drag, also must check if under nested comments, it must drag just once
         if (!this.selected && !this.#commentDragged) {
-            this.addLocation(e.detail.value); // if selected it will already move
             this.#commentDragged = true;
             this.addNextUpdatedCallbacks(() => this.#commentDragged = false);
+            this.addLocation(e.detail.value);
         }
     }
 
@@ -6250,14 +6251,13 @@ class Blueprint extends IElement {
     waitingExpandUpdate = false
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
-        let gridRect = this.nodesContainerElement.getBoundingClientRect();
-        const scaleCorrection = 1 / this.getScale();
+        this.nodesContainerElement.getBoundingClientRect();
         return /** @type {BoundariesInfo} */ {
-            primaryInf: (node.leftBoundary() - gridRect.left) * scaleCorrection,
-            primarySup: (node.rightBoundary() - gridRect.right) * scaleCorrection,
+            primaryInf: node.leftBoundary(),
+            primarySup: node.rightBoundary(),
             // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-            secondaryInf: (node.topBoundary() - gridRect.top) * scaleCorrection,
-            secondarySup: (node.bottomBoundary() - gridRect.bottom) * scaleCorrection
+            secondaryInf: node.topBoundary(),
+            secondarySup: node.bottomBoundary(),
         }
     }
     /** @type {(node: NodeElement, selected: Boolean) => void}} */
