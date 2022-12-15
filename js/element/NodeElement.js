@@ -111,7 +111,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             this.sizeX = this.entity.NodeWidth.value
             this.sizeY = this.entity.NodeHeight.value
         } else {
-            Promise.all([this.updateComplete, ...this.#pins.map(p => p.updateComplete)]).then(() => this.computeSizes())
+            this.updateComplete.then(() => this.computeSizes())
         }
     }
 
@@ -132,9 +132,13 @@ export default class NodeElement extends ISelectableDraggableElement {
         return new NodeElement(entity)
     }
 
+    getUpdateComplete() {
+        return Promise.all([super.getUpdateComplete(), ...this.#pins.map(pin => pin.updateComplete)]).then(() => true)
+    }
+
     /** @param {NodeElement} commentNode */
     bindToComment(commentNode) {
-        if (!this.boundComments.includes(commentNode)) {
+        if (commentNode != this && !this.boundComments.includes(commentNode)) {
             commentNode.addEventListener(Configuration.nodeDragEventName, this.#commentDragHandler)
             this.boundComments.push(commentNode)
         }
@@ -219,13 +223,13 @@ export default class NodeElement extends ISelectableDraggableElement {
         return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
-    setLocation(value = [0, 0]) {
+    setLocation(value = [0, 0], acknowledge = true) {
         let nodeConstructor = this.entity.NodePosX.constructor
         // @ts-expect-error
         this.entity.NodePosX = new nodeConstructor(value[0])
         // @ts-expect-error
         this.entity.NodePosY = new nodeConstructor(value[1])
-        super.setLocation(value)
+        super.setLocation(value, acknowledge)
     }
 
     acknowledgeDelete() {

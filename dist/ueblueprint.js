@@ -1204,7 +1204,7 @@ class LinearColorEntity extends IEntity {
         R: RealUnitEntity,
         G: RealUnitEntity,
         B: RealUnitEntity,
-        A: new TypeInitialization(RealUnitEntity, true, () => new RealUnitEntity(1), false, true),
+        A: new TypeInitialization(RealUnitEntity, true, () => new RealUnitEntity(1), false, false),
         H: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
         S: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
         V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
@@ -3155,26 +3155,26 @@ class IDraggableElement extends IElement {
     }
 
     /** @param {Number[]} param0 */
-    setLocation([x, y]) {
+    setLocation([x, y], acknowledge = true) {
         const d = [x - this.locationX, y - this.locationY];
         this.locationX = x;
         this.locationY = y;
-        if (this.blueprint) {
+        if (this.blueprint && acknowledge) {
             // @ts-expect-error
             const dragLocalEvent = new CustomEvent(this.constructor.dragEventName, {
                 detail: {
                     value: d,
                 },
                 bubbles: false,
-                cancelable: true
+                cancelable: true,
             });
             this.dispatchEvent(dragLocalEvent);
         }
     }
 
     /** @param {Number[]} param0 */
-    addLocation([x, y]) {
-        this.setLocation([this.locationX + x, this.locationY + y]);
+    addLocation([x, y], acknowledge = true) {
+        this.setLocation([this.locationX + x, this.locationY + y], acknowledge);
     }
 
     /** @param {Number[]} value */
@@ -3544,7 +3544,6 @@ class Paste extends IInput {
         if (nodes.length > 0) {
             this.blueprint.unselectAll();
         }
-        this.blueprint.addGraphElement(...nodes);
         let mousePosition = this.blueprint.mousePosition;
         nodes.forEach(node => {
             const locationOffset = [
@@ -3555,6 +3554,7 @@ class Paste extends IInput {
             node.snapToGrid();
             node.setSelected(true);
         });
+        this.blueprint.addGraphElement(...nodes);
         return true
     }
 }
@@ -4480,7 +4480,8 @@ class LinkElement extends IFromToPositionedElement {
         if (location == null) {
             const self = this;
             if (!this.hasUpdated || !this.destinationPin.hasUpdated) {
-                Promise.all([this.updateComplete, this.destinationPin.updateComplete]).then(() => self.setDestinationLocation());
+                Promise.all([this.updateComplete, this.destinationPin.updateComplete])
+                    .then(() => self.setDestinationLocation());
                 return
             }
             location = this.destinationPin.template.getLinkLocation();
@@ -4724,7 +4725,7 @@ class MouseMoveNodes extends MouseMoveDraggable {
                     .filter(comment => !node.isInsideComment(comment))
                     .forEach(comment => node.unbindFromComment(comment))
             );
-            this.blueprint.getCommentNodes(true).forEach(comment =>
+            this.blueprint.getCommentNodes().forEach(comment =>
                 /** @type {CommentNodeTemplate} */(comment.template).manageNodesBind()
             );
         }
@@ -4885,7 +4886,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.setupPins();
-        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.acknowledgeReflow());
+        this.element.updateComplete.then(() => this.element.acknowledgeReflow());
     }
 
     setupPins() {
@@ -4985,29 +4986,33 @@ class IResizeableTemplate extends NodeTemplate {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.topBoundary();
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]]);
+                        this.element.addLocation([0, movement[1]], false);
                     }
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#RHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary();
                     this.setSizeX(this.element.sizeX + movement[0]);
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#BHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.bottomBoundary();
                     this.setSizeY(this.element.sizeY + movement[1]);
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#LHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary();
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0]);
+                        this.element.addLocation([movement[0], 0], false);
                     }
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#TRHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -5015,9 +5020,10 @@ class IResizeableTemplate extends NodeTemplate {
                     movement[1] = location[1] - this.element.topBoundary();
                     this.setSizeX(this.element.sizeX + movement[0]);
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]]);
+                        this.element.addLocation([0, movement[1]], false);
                     }
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#BRHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -5025,29 +5031,32 @@ class IResizeableTemplate extends NodeTemplate {
                     movement[1] = location[1] - this.element.bottomBoundary();
                     this.setSizeX(this.element.sizeX + movement[0]);
                     this.setSizeY(this.element.sizeY + movement[1]);
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#BLHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary();
                     movement[1] = location[1] - this.element.bottomBoundary();
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0]);
+                        this.element.addLocation([movement[0], 0], false);
                     }
                     this.setSizeY(this.element.sizeY + movement[1]);
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#TLHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary();
                     movement[1] = location[1] - this.element.topBoundary();
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0]);
+                        this.element.addLocation([movement[0], 0], false);
                     }
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]]);
+                        this.element.addLocation([0, movement[1]], false);
                     }
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
         ]
     }
@@ -5063,6 +5072,8 @@ class IResizeableTemplate extends NodeTemplate {
         this.element.setNodeHeight(value);
         return true
     }
+
+    endResize() {}
 }
 
 /**
@@ -5094,14 +5105,6 @@ class CommentNodeTemplate extends IResizeableTemplate {
         return this.element.querySelector(".ueb-node-top")
     }
 
-    /** @param {Map} changedProperties */
-    willUpdate(changedProperties) {
-        super.willUpdate(changedProperties);
-        if (changedProperties.has("sizeX") || changedProperties.has("sizeY")) {
-            this.manageNodesBind();
-        }
-    }
-
     render() {
         return y`
             <div class="ueb-node-border">
@@ -5115,15 +5118,19 @@ class CommentNodeTemplate extends IResizeableTemplate {
     }
 
     manageNodesBind() {
-        this.element.blueprint
-            .getNodes(false, [
-                this.element.topBoundary(),
-                this.element.rightBoundary(),
-                this.element.bottomBoundary(),
-                this.element.leftBoundary(),
-            ])
-            .filter(node => !node.boundComments.includes(this.element))
-            .forEach(node => node.bindToComment(this.element));
+        let nodes = this.element.blueprint.getNodes();
+        for (let node of nodes) {
+            if (
+                node.topBoundary() >= this.element.topBoundary()
+                && node.rightBoundary() <= this.element.rightBoundary()
+                && node.bottomBoundary() <= this.element.bottomBoundary()
+                && node.leftBoundary() >= this.element.leftBoundary()
+            ) {
+                node.bindToComment(this.element);
+            } else {
+                node.unbindFromComment(this.element);
+            }
+        }
     }
 
     /** @param {Number} value */
@@ -5144,6 +5151,10 @@ class CommentNodeTemplate extends IResizeableTemplate {
             return true
         }
         return false
+    }
+
+    endResize() {
+        this.manageNodesBind();
     }
 }
 
@@ -5700,7 +5711,7 @@ class NodeElement extends ISelectableDraggableElement {
             this.sizeX = this.entity.NodeWidth.value;
             this.sizeY = this.entity.NodeHeight.value;
         } else {
-            Promise.all([this.updateComplete, ...this.#pins.map(p => p.updateComplete)]).then(() => this.computeSizes());
+            this.updateComplete.then(() => this.computeSizes());
         }
     }
 
@@ -5721,9 +5732,13 @@ class NodeElement extends ISelectableDraggableElement {
         return new NodeElement(entity)
     }
 
+    getUpdateComplete() {
+        return Promise.all([super.getUpdateComplete(), ...this.#pins.map(pin => pin.updateComplete)]).then(() => true)
+    }
+
     /** @param {NodeElement} commentNode */
     bindToComment(commentNode) {
-        if (!this.boundComments.includes(commentNode)) {
+        if (commentNode != this && !this.boundComments.includes(commentNode)) {
             commentNode.addEventListener(Configuration.nodeDragEventName, this.#commentDragHandler);
             this.boundComments.push(commentNode);
         }
@@ -5808,13 +5823,13 @@ class NodeElement extends ISelectableDraggableElement {
         return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
-    setLocation(value = [0, 0]) {
+    setLocation(value = [0, 0], acknowledge = true) {
         let nodeConstructor = this.entity.NodePosX.constructor;
         // @ts-expect-error
         this.entity.NodePosX = new nodeConstructor(value[0]);
         // @ts-expect-error
         this.entity.NodePosY = new nodeConstructor(value[1]);
-        super.setLocation(value);
+        super.setLocation(value, acknowledge);
     }
 
     acknowledgeDelete() {
@@ -6442,7 +6457,7 @@ class Blueprint extends IElement {
             || l > Number.MIN_SAFE_INTEGER
         ) {
             result = result.filter(n => {
-                return n.topBoundary() > t && n.rightBoundary() < r && n.bottomBoundary() < b && n.leftBoundary() > l
+                return n.topBoundary() >= t && n.rightBoundary() <= r && n.bottomBoundary() <= b && n.leftBoundary() >= l
             });
         }
         return result
@@ -6529,11 +6544,6 @@ class Blueprint extends IElement {
                 }
                 this.nodes.push(element);
                 this.nodesContainerElement?.appendChild(element);
-                if (element.getType() == Configuration.nodeType.comment) {
-                    element.addNextUpdatedCallbacks(() =>
-                        /** @type {CommentNodeTemplate} */(element.template).manageNodesBind()
-                    );
-                }
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
                 if (this.linksContainerElement && !this.linksContainerElement.contains(element)) {
@@ -6544,6 +6554,11 @@ class Blueprint extends IElement {
         graphElements.filter(element => element instanceof NodeElement).forEach(
             node => /** @type {NodeElement} */(node).sanitizeLinks(graphElements)
         );
+        graphElements
+            .filter(element => element instanceof NodeElement && element.getType() == Configuration.nodeType.comment)
+            .forEach(element => element.updateComplete.then(() =>
+                /** @type {CommentNodeTemplate} */(element.template).manageNodesBind()
+            ));
     }
 
     /** @param  {...IElement} graphElements */

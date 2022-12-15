@@ -32,14 +32,6 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
         return this.element.querySelector(".ueb-node-top")
     }
 
-    /** @param {Map} changedProperties */
-    willUpdate(changedProperties) {
-        super.willUpdate(changedProperties)
-        if (changedProperties.has("sizeX") || changedProperties.has("sizeY")) {
-            this.manageNodesBind()
-        }
-    }
-
     render() {
         return html`
             <div class="ueb-node-border">
@@ -53,15 +45,19 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
     }
 
     manageNodesBind() {
-        this.element.blueprint
-            .getNodes(false, [
-                this.element.topBoundary(),
-                this.element.rightBoundary(),
-                this.element.bottomBoundary(),
-                this.element.leftBoundary(),
-            ])
-            .filter(node => !node.boundComments.includes(this.element))
-            .forEach(node => node.bindToComment(this.element))
+        let nodes = this.element.blueprint.getNodes()
+        for (let node of nodes) {
+            if (
+                node.topBoundary() >= this.element.topBoundary()
+                && node.rightBoundary() <= this.element.rightBoundary()
+                && node.bottomBoundary() <= this.element.bottomBoundary()
+                && node.leftBoundary() >= this.element.leftBoundary()
+            ) {
+                node.bindToComment(this.element)
+            } else {
+                node.unbindFromComment(this.element)
+            }
+        }
     }
 
     /** @param {Number} value */
@@ -82,5 +78,9 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
             return true
         }
         return false
+    }
+
+    endResize() {
+        this.manageNodesBind()
     }
 }

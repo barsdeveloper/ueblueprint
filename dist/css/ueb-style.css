@@ -182,7 +182,7 @@ ueb-blueprint[data-zoom="-12"] {
   height: 0;
 }
 
-.ueb-positioned, ueb-link, ueb-blueprint[data-selecting=true] ueb-selector {
+.ueb-positioned, ueb-blueprint[data-selecting=true] ueb-selector {
   position: absolute;
 }
 
@@ -236,6 +236,7 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_Knot"][data-selected=true] .ue
 }
 
 ueb-link {
+  position: absolute;
   --ueb-link-color: rgb(var(--ueb-link-color-rgb));
   --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
   /* when from-y > to-y */
@@ -248,6 +249,7 @@ ueb-link {
    * their hover behavior correctly firing.
    */
   visibility: hidden;
+  z-index: 2;
 }
 
 ueb-link > svg {
@@ -532,8 +534,8 @@ ueb-node.ueb-node-style-glass .ueb-node-outputs:first-child {
   padding-left: 8px;
 }
 
-ueb-node.ueb-node-style-comment {
-  z-index: -1;
+ueb-node:not(.ueb-node-style-comment) {
+  z-index: 10;
 }
 
 ueb-node.ueb-node-style-comment .ueb-node-border {
@@ -560,6 +562,7 @@ ueb-node.ueb-node-style-comment .ueb-node-wrapper::after {
 }
 
 ueb-node.ueb-node-style-comment .ueb-node-top {
+  position: relative;
   margin: 3px;
   padding: 3px 10px;
   box-shadow: none;
@@ -568,6 +571,7 @@ ueb-node.ueb-node-style-comment .ueb-node-top {
   color: white;
   font-size: 24px;
   text-shadow: 2px 1px 1px #444, 0 0 2px #bbb;
+  z-index: 1;
 }
 
 ueb-blueprint {

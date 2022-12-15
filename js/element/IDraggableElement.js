@@ -62,26 +62,26 @@ export default class IDraggableElement extends IElement {
     }
 
     /** @param {Number[]} param0 */
-    setLocation([x, y]) {
+    setLocation([x, y], acknowledge = true) {
         const d = [x - this.locationX, y - this.locationY]
         this.locationX = x
         this.locationY = y
-        if (this.blueprint) {
+        if (this.blueprint && acknowledge) {
             // @ts-expect-error
             const dragLocalEvent = new CustomEvent(this.constructor.dragEventName, {
                 detail: {
                     value: d,
                 },
                 bubbles: false,
-                cancelable: true
+                cancelable: true,
             })
             this.dispatchEvent(dragLocalEvent)
         }
     }
 
     /** @param {Number[]} param0 */
-    addLocation([x, y]) {
-        this.setLocation([this.locationX + x, this.locationY + y])
+    addLocation([x, y], acknowledge = true) {
+        this.setLocation([this.locationX + x, this.locationY + y], acknowledge)
     }
 
     /** @param {Number[]} value */

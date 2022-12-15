@@ -129,7 +129,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.setupPins()
-        Promise.all(this.element.getPinElements().map(n => n.updateComplete)).then(() => this.element.acknowledgeReflow())
+        this.element.updateComplete.then(() => this.element.acknowledgeReflow())
     }
 
     setupPins() {

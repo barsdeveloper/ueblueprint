@@ -30,7 +30,7 @@ export default class MouseMoveNodes extends MouseMoveDraggable {
                     .filter(comment => !node.isInsideComment(comment))
                     .forEach(comment => node.unbindFromComment(comment))
             )
-            this.blueprint.getCommentNodes(true).forEach(comment =>
+            this.blueprint.getCommentNodes().forEach(comment =>
                 /** @type {CommentNodeTemplate} */(comment.template).manageNodesBind()
             )
         }

@@ -9,7 +9,7 @@ export default class LinearColorEntity extends IEntity {
         R: RealUnitEntity,
         G: RealUnitEntity,
         B: RealUnitEntity,
-        A: new TypeInitialization(RealUnitEntity, true, () => new RealUnitEntity(1), false, true),
+        A: new TypeInitialization(RealUnitEntity, true, () => new RealUnitEntity(1), false, false),
         H: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
         S: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
         V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),

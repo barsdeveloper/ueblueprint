@@ -290,7 +290,7 @@ export default class Blueprint extends IElement {
             || l > Number.MIN_SAFE_INTEGER
         ) {
             result = result.filter(n => {
-                return n.topBoundary() > t && n.rightBoundary() < r && n.bottomBoundary() < b && n.leftBoundary() > l
+                return n.topBoundary() >= t && n.rightBoundary() <= r && n.bottomBoundary() <= b && n.leftBoundary() >= l
             })
         }
         return result
@@ -379,11 +379,6 @@ export default class Blueprint extends IElement {
                 this.nodes.push(element)
                 nodeElements.push(element)
                 this.nodesContainerElement?.appendChild(element)
-                if (element.getType() == Configuration.nodeType.comment) {
-                    element.addNextUpdatedCallbacks(() =>
-                        /** @type {CommentNodeTemplate} */(element.template).manageNodesBind()
-                    )
-                }
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
                 if (this.linksContainerElement && !this.linksContainerElement.contains(element)) {
@@ -394,6 +389,11 @@ export default class Blueprint extends IElement {
         graphElements.filter(element => element instanceof NodeElement).forEach(
             node => /** @type {NodeElement} */(node).sanitizeLinks(graphElements)
         )
+        graphElements
+            .filter(element => element instanceof NodeElement && element.getType() == Configuration.nodeType.comment)
+            .forEach(element => element.updateComplete.then(() =>
+                /** @type {CommentNodeTemplate} */(element.template).manageNodesBind()
+            ))
     }
 
     /** @param  {...IElement} graphElements */

@@ -199,7 +199,8 @@ export default class LinkElement extends IFromToPositionedElement {
         if (location == null) {
             const self = this
             if (!this.hasUpdated || !this.destinationPin.hasUpdated) {
-                Promise.all([this.updateComplete, this.destinationPin.updateComplete]).then(() => self.setDestinationLocation())
+                Promise.all([this.updateComplete, this.destinationPin.updateComplete])
+                    .then(() => self.setDestinationLocation())
                 return
             }
             location = this.destinationPin.template.getLinkLocation()

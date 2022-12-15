@@ -61,29 +61,33 @@ export default class IResizeableTemplate extends NodeTemplate {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.topBoundary()
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]])
+                        this.element.addLocation([0, movement[1]], false)
                     }
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#RHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary()
                     this.setSizeX(this.element.sizeX + movement[0])
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#BHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.bottomBoundary()
                     this.setSizeY(this.element.sizeY + movement[1])
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#LHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary()
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0])
+                        this.element.addLocation([movement[0], 0], false)
                     }
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#TRHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -91,9 +95,10 @@ export default class IResizeableTemplate extends NodeTemplate {
                     movement[1] = location[1] - this.element.topBoundary()
                     this.setSizeX(this.element.sizeX + movement[0])
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]])
+                        this.element.addLocation([0, movement[1]], false)
                     }
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#BRHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -101,29 +106,32 @@ export default class IResizeableTemplate extends NodeTemplate {
                     movement[1] = location[1] - this.element.bottomBoundary()
                     this.setSizeX(this.element.sizeX + movement[0])
                     this.setSizeY(this.element.sizeY + movement[1])
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#BLHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary()
                     movement[1] = location[1] - this.element.bottomBoundary()
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0])
+                        this.element.addLocation([movement[0], 0], false)
                     }
                     this.setSizeY(this.element.sizeY + movement[1])
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
             new MouseClickDrag(this.#TLHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary()
                     movement[1] = location[1] - this.element.topBoundary()
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0])
+                        this.element.addLocation([movement[0], 0], false)
                     }
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]])
+                        this.element.addLocation([0, movement[1]], false)
                     }
-                }
+                },
+                onEndDrag : () => this.endResize(),
             }),
         ]
     }
@@ -139,4 +147,6 @@ export default class IResizeableTemplate extends NodeTemplate {
         this.element.setNodeHeight(value)
         return true
     }
+
+    endResize() {}
 }

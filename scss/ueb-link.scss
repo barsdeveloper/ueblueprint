@@ -1,6 +1,7 @@
 @use "style.scss";
 
 ueb-link {
+    position: absolute;
     --ueb-link-color: rgb(var(--ueb-link-color-rgb));
     --ueb-from-input-coefficient: calc(2 * var(--ueb-from-input) - 1);
     /* when from-y > to-y */
@@ -13,7 +14,7 @@ ueb-link {
      * their hover behavior correctly firing.
      */
     visibility: hidden;
-    @extend .ueb-positioned;
+    z-index: 2;
 }
 
 ueb-link>svg {
