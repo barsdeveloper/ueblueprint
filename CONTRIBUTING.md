@@ -54,6 +54,8 @@ A class which is related to entities but not one of them is `TypeInitialization`
 ### Grammar and Serializer
 In the `serialization/` folder the gentle reader will find all the classes responsible for transforming entities from and to text that the UE Blueprint Enditor can understand. One important class here is `Grammar` that contains similar formal grammar rules that use the [Parsimmon library](https://github.com/jneen/parsimmon) to create entities from Blueprint text. `ISerializer` is at the top of the serializer classes hierarchy and it uses a factory design pattern to register serializers for the various entities types (check `js/serialization/initializeSerializerFactory.js`). It does both read and write of entities: to read it will use the Grammar after creating a language using a function from Parsimmon, to write it will use methods from the class itself.
 
+Grammar is usually the first place to look when pasting valid Blueprint code does fail. Most likely newer version of Unreal Engine did add some new data type that was not implemented yet (or this library never managed to handle it in the first place). In that case the approach should be trying to fix the existing grammar and entities to accept it, then implement the new entities and attributes.
+
 ### Element
 Each element is just a custom HTML element type and its tag name is defined in the class file. The top level of the hierarchy is `IElement` and it inherits from `LitElement`. This class can be thought as an association between an entity and a template (and those are the arguments of the constructor). The top class `IElement` does propagate the lifecycle provided by `LitElement` to the template so that a template can hook into it.
 

@@ -11,6 +11,7 @@ import LinearColorEntity from "../entity/LinearColorEntity"
 export default class CommentNodeTemplate extends IResizeableTemplate {
 
     #color = LinearColorEntity.getWhite()
+    #selectableAreaHeight = 0
 
     /** @param {NodeElement} element */
     constructed(element) {
@@ -42,6 +43,13 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
                 </div>
             </div>
         `
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        const bounding = this.getDraggableElement().getBoundingClientRect()
+        this.#selectableAreaHeight = bounding.height
     }
 
     manageNodesBind() {
@@ -82,5 +90,23 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
 
     endResize() {
         this.manageNodesBind()
+    }
+
+    topBoundary(justSelectableArea = false) {
+        return this.element.locationY
+    }
+
+    rightBoundary(justSelectableArea = false) {
+        return this.element.locationX + this.element.sizeX
+    }
+
+    bottomBoundary(justSelectableArea = false) {
+        return justSelectableArea
+            ? this.element.locationY + this.#selectableAreaHeight
+            : super.bottomBoundary()
+    }
+
+    leftBoundary(justSelectableArea = false) {
+        return this.element.locationX
     }
 }

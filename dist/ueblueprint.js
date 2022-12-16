@@ -2229,6 +2229,7 @@ class Grammar {
         r.String,
         r.LocalizedText,
         r.InvariantText,
+        r.PinReference,
         Grammar.createEntityGrammar(r, VectorEntity, true),
         Grammar.createEntityGrammar(r, LinearColorEntity, true),
         r.UnknownKeys,
@@ -3197,20 +3198,20 @@ class IDraggableElement extends IElement {
         }
     }
 
-    topBoundary() {
-        return this.locationY
+    topBoundary(justSelectableArea = false) {
+        return this.template.topBoundary(justSelectableArea)
     }
 
-    rightBoundary() {
-        return this.locationX + this.sizeX
+    rightBoundary(justSelectableArea = false) {
+        return this.template.rightBoundary(justSelectableArea)
     }
 
-    bottomBoundary() {
-        return this.locationY + this.sizeY
+    bottomBoundary(justSelectableArea = false) {
+        return this.template.bottomBoundary(justSelectableArea)
     }
 
-    leftBoundary() {
-        return this.locationX
+    leftBoundary(justSelectableArea = false) {
+        return this.template.leftBoundary(justSelectableArea)
     }
 }
 
@@ -4673,6 +4674,22 @@ class IDraggableTemplate extends ITemplate {
             this.createDraggableObject(),
         ]
     }
+
+    topBoundary(justSelectableArea = false) {
+        return this.element.locationY
+    }
+
+    rightBoundary(justSelectableArea = false) {
+        return this.element.locationX + this.element.sizeX
+    }
+
+    bottomBoundary(justSelectableArea = false) {
+        return this.element.locationY + this.element.sizeY
+    }
+
+    leftBoundary(justSelectableArea = false) {
+        return this.element.locationX
+    }
 }
 
 /** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
@@ -5084,6 +5101,7 @@ class IResizeableTemplate extends NodeTemplate {
 class CommentNodeTemplate extends IResizeableTemplate {
 
     #color = LinearColorEntity.getWhite()
+    #selectableAreaHeight = 0
 
     /** @param {NodeElement} element */
     constructed(element) {
@@ -5115,6 +5133,13 @@ class CommentNodeTemplate extends IResizeableTemplate {
                 </div>
             </div>
         `
+    }
+
+    /** @param {Map} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        const bounding = this.getDraggableElement().getBoundingClientRect();
+        this.#selectableAreaHeight = bounding.height;
     }
 
     manageNodesBind() {
@@ -5155,6 +5180,24 @@ class CommentNodeTemplate extends IResizeableTemplate {
 
     endResize() {
         this.manageNodesBind();
+    }
+
+    topBoundary(justSelectableArea = false) {
+        return this.element.locationY
+    }
+
+    rightBoundary(justSelectableArea = false) {
+        return this.element.locationX + this.element.sizeX
+    }
+
+    bottomBoundary(justSelectableArea = false) {
+        return justSelectableArea
+            ? this.element.locationY + this.#selectableAreaHeight
+            : super.bottomBoundary()
+    }
+
+    leftBoundary(justSelectableArea = false) {
+        return this.element.locationX
     }
 }
 
@@ -5733,7 +5776,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     getUpdateComplete() {
-        return Promise.all([super.getUpdateComplete(), ...this.#pins.map(pin => pin.updateComplete)]).then(() => true)
+        return Promise.all([super.getUpdateComplete(), ...this.getPinElements().map(pin => pin.updateComplete)]).then(() => true)
     }
 
     /** @param {NodeElement} commentNode */
@@ -6268,11 +6311,11 @@ class Blueprint extends IElement {
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
         return /** @type {BoundariesInfo} */ {
-            primaryInf: node.leftBoundary(),
-            primarySup: node.rightBoundary(),
+            primaryInf: node.leftBoundary(true),
+            primarySup: node.rightBoundary(true),
             // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-            secondaryInf: node.topBoundary(),
-            secondarySup: node.bottomBoundary(),
+            secondaryInf: node.topBoundary(true),
+            secondarySup: node.bottomBoundary(true),
         }
     }
     /** @type {(node: NodeElement, selected: Boolean) => void}} */
@@ -7864,6 +7907,7 @@ class PinElement extends IElement {
             }
             return pin
         });
+        this.isLinked = this.entity.isLinked();
     }
 
     /** @param {PinElement} targetPinElement */

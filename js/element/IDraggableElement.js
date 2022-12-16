@@ -104,19 +104,19 @@ export default class IDraggableElement extends IElement {
         }
     }
 
-    topBoundary() {
-        return this.locationY
+    topBoundary(justSelectableArea = false) {
+        return this.template.topBoundary(justSelectableArea)
     }
 
-    rightBoundary() {
-        return this.locationX + this.sizeX
+    rightBoundary(justSelectableArea = false) {
+        return this.template.rightBoundary(justSelectableArea)
     }
 
-    bottomBoundary() {
-        return this.locationY + this.sizeY
+    bottomBoundary(justSelectableArea = false) {
+        return this.template.bottomBoundary(justSelectableArea)
     }
 
-    leftBoundary() {
-        return this.locationX
+    leftBoundary(justSelectableArea = false) {
+        return this.template.leftBoundary(justSelectableArea)
     }
 }

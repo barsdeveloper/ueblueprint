@@ -133,7 +133,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     getUpdateComplete() {
-        return Promise.all([super.getUpdateComplete(), ...this.#pins.map(pin => pin.updateComplete)]).then(() => true)
+        return Promise.all([super.getUpdateComplete(), ...this.getPinElements().map(pin => pin.updateComplete)]).then(() => true)
     }
 
     /** @param {NodeElement} commentNode */

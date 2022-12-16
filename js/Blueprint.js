@@ -101,11 +101,11 @@ export default class Blueprint extends IElement {
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
         return /** @type {BoundariesInfo} */ {
-            primaryInf: node.leftBoundary(),
-            primarySup: node.rightBoundary(),
+            primaryInf: node.leftBoundary(true),
+            primarySup: node.rightBoundary(true),
             // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-            secondaryInf: node.topBoundary(),
-            secondarySup: node.bottomBoundary(),
+            secondaryInf: node.topBoundary(true),
+            secondarySup: node.bottomBoundary(true),
         }
     }
     /** @type {(node: NodeElement, selected: Boolean) => void}} */

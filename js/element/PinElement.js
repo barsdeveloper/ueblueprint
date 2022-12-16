@@ -207,6 +207,7 @@ export default class PinElement extends IElement {
             }
             return pin
         })
+        this.isLinked = this.entity.isLinked()
     }
 
     /** @param {PinElement} targetPinElement */

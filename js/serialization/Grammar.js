@@ -307,6 +307,7 @@ export default class Grammar {
         r.String,
         r.LocalizedText,
         r.InvariantText,
+        r.PinReference,
         Grammar.createEntityGrammar(r, VectorEntity, true),
         Grammar.createEntityGrammar(r, LinearColorEntity, true),
         r.UnknownKeys,

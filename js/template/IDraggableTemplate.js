@@ -28,4 +28,20 @@ export default class IDraggableTemplate extends ITemplate {
             this.createDraggableObject(),
         ]
     }
+
+    topBoundary(justSelectableArea = false) {
+        return this.element.locationY
+    }
+
+    rightBoundary(justSelectableArea = false) {
+        return this.element.locationX + this.element.sizeX
+    }
+
+    bottomBoundary(justSelectableArea = false) {
+        return this.element.locationY + this.element.sizeY
+    }
+
+    leftBoundary(justSelectableArea = false) {
+        return this.element.locationX
+    }
 }
