@@ -6,4 +6,6 @@
     "editor.rulers": [
         120
     ],
+    "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+    "js/ts.implicitProjectConfig.target": "ES2022",
 }
