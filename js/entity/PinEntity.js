@@ -83,8 +83,8 @@ export default class PinEntity extends IEntity {
             : entity
     }
 
-    constructor(values = {}) {
-        super(values)
+    constructor(values = {}, suppressWarns = false) {
+        super(values, suppressWarns)
         /** @type {GuidEntity} */ this.PinId
         /** @type {String} */ this.PinName
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName

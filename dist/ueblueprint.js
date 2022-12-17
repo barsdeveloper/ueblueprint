@@ -916,7 +916,7 @@ class IEntity extends Observable {
 
     static attributes = {}
 
-    constructor(values = {}) {
+    constructor(values = {}, suppressWarns = false) {
         super();
         /**
          * @param {Object} target
@@ -938,19 +938,21 @@ class IEntity extends Observable {
                     defaultValue = new defaultType();
                 }
 
-                if (!(attribute in attributes)) {
-                    console.warn(
-                        `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
-                    );
-                } else if (
-                    valuesPropertyNames.length > 0
-                    && !(attribute in values)
-                    && defaultValue !== undefined
-                    && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
-                ) {
-                    console.warn(
-                        `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
-                    );
+                if (!suppressWarns) {
+                    if (!(attribute in attributes)) {
+                        console.warn(
+                            `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
+                        );
+                    } else if (
+                        valuesPropertyNames.length > 0
+                        && !(attribute in values)
+                        && defaultValue !== undefined
+                        && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
+                    ) {
+                        console.warn(
+                            `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
+                        );
+                    }
                 }
 
                 // Not instanceof because all objects are instenceof Object, exact match needed
@@ -1589,8 +1591,8 @@ class PinEntity extends IEntity {
             : entity
     }
 
-    constructor(values = {}) {
-        super(values);
+    constructor(values = {}, suppressWarns = false) {
+        super(values, suppressWarns);
         /** @type {GuidEntity} */ this.PinId;
         /** @type {String} */ this.PinName;
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName;
@@ -1792,8 +1794,8 @@ class ObjectEntity extends IEntity {
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
 
-    constructor(values) {
-        super(values);
+    constructor(values, suppressWarns = false) {
+        super(values, suppressWarns);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
         /** @type {Boolean?} */ this.bIsPureFunc;
@@ -3848,16 +3850,22 @@ class KnotEntity extends ObjectEntity {
      * @param {PinEntity} pinReferenceForType
      */
     constructor(options = {}, pinReferenceForType = undefined) {
-        super(options);
+        super(options, true);
         this.Class = new ObjectReferenceEntity("/Script/BlueprintGraph.K2Node_Knot");
         this.Name = "K2Node_Knot";
-        const inputPinEntity = new PinEntity({
-            PinName: "InputPin",
-        });
-        const outputPinEntity = new PinEntity({
-            PinName: "OutputPin",
-            Direction: "EGPD_Output",
-        });
+        const inputPinEntity = new PinEntity(
+            {
+                PinName: "InputPin",
+            },
+            true
+        );
+        const outputPinEntity = new PinEntity(
+            {
+                PinName: "OutputPin",
+                Direction: "EGPD_Output",
+            },
+            true
+        );
         if (pinReferenceForType) {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);

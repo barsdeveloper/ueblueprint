@@ -48,8 +48,8 @@ export default class ObjectEntity extends IEntity {
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
 
-    constructor(values) {
-        super(values)
+    constructor(values, suppressWarns = false) {
+        super(values, suppressWarns)
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
         /** @type {Boolean?} */ this.bIsPureFunc

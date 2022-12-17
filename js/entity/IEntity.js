@@ -14,7 +14,7 @@ export default class IEntity extends Observable {
 
     static attributes = {}
 
-    constructor(values = {}) {
+    constructor(values = {}, suppressWarns = false) {
         super()
         /**
          * @param {Object} target
@@ -36,19 +36,21 @@ export default class IEntity extends Observable {
                     defaultValue = new defaultType()
                 }
 
-                if (!(attribute in attributes)) {
-                    console.warn(
-                        `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
-                    )
-                } else if (
-                    valuesPropertyNames.length > 0
-                    && !(attribute in values)
-                    && defaultValue !== undefined
-                    && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
-                ) {
-                    console.warn(
-                        `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
-                    )
+                if (!suppressWarns) {
+                    if (!(attribute in attributes)) {
+                        console.warn(
+                            `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
+                        )
+                    } else if (
+                        valuesPropertyNames.length > 0
+                        && !(attribute in values)
+                        && defaultValue !== undefined
+                        && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
+                    ) {
+                        console.warn(
+                            `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
+                        )
+                    }
                 }
 
                 // Not instanceof because all objects are instenceof Object, exact match needed
