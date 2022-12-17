@@ -1,8 +1,8 @@
 import { html } from "lit"
-import IntegerEntity from "../entity/IntegerEntity"
+import IntegerEntity from "../../entity/IntegerEntity"
 import INumericInputPinTemplate from "./INumericInputPinTemplate"
 
-/** @typedef {import("../entity/IntegerEntity").default} IntEntity */
+/** @typedef {import("../../entity/IntegerEntity").default} IntEntity */
 
 /** @extends INumericInputPinTemplate<IntEntity> */
 export default class IntInputPinTemplate extends INumericInputPinTemplate {

@@ -1,12 +1,12 @@
 import { html } from "lit"
-import ColorPickerWindowTemplate from "./ColorPickerWindowTemplate"
-import Configuration from "../Configuration"
-import ElementFactory from "../element/ElementFactory"
+import ColorPickerWindowTemplate from "../ColorPickerWindowTemplate"
+import Configuration from "../../Configuration"
+import ElementFactory from "../../element/ElementFactory"
 import PinTemplate from "./PinTemplate"
 
 /**
- * @typedef {import("../element/WindowElement").default} WindowElement
- * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("../../element/WindowElement").default} WindowElement
+ * @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity
  */
 
 /** @extends PinTemplate<LinearColorEntity> */

@@ -1,10 +1,10 @@
 import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericInputPinTemplate"
-import Utility from "../Utility"
-import VectorEntity from "../entity/VectorEntity"
+import Utility from "../../Utility"
+import VectorEntity from "../../entity/VectorEntity"
 
-/** @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity */
+/** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
 
 /**
  * @template {VectorEntity} T

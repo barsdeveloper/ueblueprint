@@ -1,7 +1,7 @@
 import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericInputPinTemplate"
-import Utility from "../Utility"
+import Utility from "../../Utility"
 
 /**
  * @template {Number} T

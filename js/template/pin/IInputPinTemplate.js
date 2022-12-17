@@ -1,11 +1,11 @@
 import { html } from "lit"
-import MouseIgnore from "../input/mouse/MouseIgnore"
+import MouseIgnore from "../../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
-import Utility from "../Utility"
+import Utility from "../../Utility"
 
 /**
  * @template T
- * @typedef {import("../element/PinElement").default<T>} PinElement
+ * @typedef {import("../../element/PinElement").default<T>} PinElement
  */
 
 /**

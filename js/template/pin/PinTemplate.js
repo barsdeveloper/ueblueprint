@@ -1,14 +1,14 @@
 import { html } from "lit"
-import Configuration from "../Configuration"
-import ITemplate from "./ITemplate"
-import MouseCreateLink from "../input/mouse/MouseCreateLink"
-import SVGIcon from "../SVGIcon"
-import Utility from "../Utility"
+import Configuration from "../../Configuration"
+import ITemplate from "../ITemplate"
+import MouseCreateLink from "../../input/mouse/MouseCreateLink"
+import SVGIcon from "../../SVGIcon"
+import Utility from "../../Utility"
 
-/** @typedef {import("../input/IInput").default} IInput */
+/** @typedef {import("../../input/IInput").default} IInput */
 /**
  * @template T
- * @typedef {import("../element/PinElement").default<T>} PinElement
+ * @typedef {import("../../element/PinElement").default<T>} PinElement
  */
 
 /**

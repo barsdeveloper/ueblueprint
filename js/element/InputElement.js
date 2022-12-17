@@ -1,4 +1,4 @@
-import InputTemplate from "../template/InputTemplate"
+import InputTemplate from "../template/pin/InputTemplate"
 import Utility from "../Utility"
 import IElement from "./IElement"
 

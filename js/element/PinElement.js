@@ -1,21 +1,21 @@
-import BoolInputPinTemplate from "../template/BoolPinTemplate"
+import BoolInputPinTemplate from "../template/pin/BoolPinTemplate"
 import Configuration from "../Configuration"
 import ElementFactory from "./ElementFactory"
-import ExecPinTemplate from "../template/ExecPinTemplate"
+import ExecPinTemplate from "../template/pin/ExecPinTemplate"
 import GuidEntity from "../entity/GuidEntity"
 import IElement from "./IElement"
-import IntInputPinTemplate from "../template/IntPinTemplate"
+import IntInputPinTemplate from "../template/pin/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
-import LinearColorInputPinTemplate from "../template/LinearColorPinTemplate"
-import NameInputPinTemplate from "../template/NamePinTemplate"
-import PinTemplate from "../template/PinTemplate"
-import RealInputPinTemplate from "../template/RealInputPinTemplate"
-import ReferencePinTemplate from "../template/ReferencePinTemplate"
-import RotatorInputPinTemplate from "../template/RotatorInputPinTemplate"
-import StringInputPinTemplate from "../template/StringInputPinTemplate"
+import LinearColorInputPinTemplate from "../template/pin/LinearColorPinTemplate"
+import NameInputPinTemplate from "../template/pin/NamePinTemplate"
+import PinTemplate from "../template/pin/PinTemplate"
+import RealInputPinTemplate from "../template/pin/RealInputPinTemplate"
+import ReferencePinTemplate from "../template/pin/ReferencePinTemplate"
+import RotatorInputPinTemplate from "../template/pin/RotatorInputPinTemplate"
+import StringInputPinTemplate from "../template/pin/StringInputPinTemplate"
 import Utility from "../Utility"
-import VectorInputPinTemplate from "../template/VectorInputPinTemplate"
+import VectorInputPinTemplate from "../template/pin/VectorInputPinTemplate"
 
 /**
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
@@ -50,7 +50,6 @@ export default class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    // @ts-expect-error
                     ? ISerializer.grammar.Guid.parse(value).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
@@ -72,7 +71,6 @@ export default class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    // @ts-expect-error
                     ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,

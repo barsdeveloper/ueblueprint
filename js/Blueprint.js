@@ -10,7 +10,7 @@ import Utility from "./Utility"
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
- * @typedef {import("./template/CommentNodeTemplate").default} CommentNodeTemplate
+ * @typedef {import("./template/node/CommentNodeTemplate").default} CommentNodeTemplate
  * @typedef {{
  *     primaryInf: Number,
  *     primarySup: Number,

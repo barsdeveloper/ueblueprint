@@ -1,9 +1,9 @@
 import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericInputPinTemplate"
-import RotatorEntity from "../entity/RotatorEntity"
+import RotatorEntity from "../../entity/RotatorEntity"
 
-/** @typedef {import("../entity/RotatorEntity").default} Rotator */
+/** @typedef {import("../../entity/RotatorEntity").default} Rotator */
 
 /** @extends INumericPinTemplate<Rotator> */
 export default class RotatorInputPinTemplate extends INumericPinTemplate {

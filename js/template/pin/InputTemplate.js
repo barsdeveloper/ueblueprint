@@ -1,6 +1,6 @@
-import ITemplate from "./ITemplate"
+import ITemplate from "../ITemplate"
 
-/** @typedef {import ("../element/InputElement").default} InputElement */
+/** @typedef {import ("../../element/InputElement").default} InputElement */
 
 /** @extends {ITemplate<InputElement>} */
 export default class InputTemplate extends ITemplate {

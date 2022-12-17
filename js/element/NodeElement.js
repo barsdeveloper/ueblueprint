@@ -1,4 +1,4 @@
-import CommentNodeTemplate from "../template/CommentNodeTemplate"
+import CommentNodeTemplate from "../template/node/CommentNodeTemplate"
 import Configuration from "../Configuration"
 import IdentifierEntity from "../entity/IdentifierEntity"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"

@@ -4723,7 +4723,7 @@ class IDraggablePositionedTemplate extends IDraggableTemplate {
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
  * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../template/CommentNodeTemplate").default} CommentNodeTemplate
+ * @typedef {import("../../template/node/CommentNodeTemplate").default} CommentNodeTemplate
  */
 
 /** @extends {MouseMoveDraggable<NodeElement>} */
@@ -5102,8 +5102,8 @@ class IResizeableTemplate extends NodeTemplate {
 }
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").default} PinElement
  */
 
 class CommentNodeTemplate extends IResizeableTemplate {
@@ -5387,10 +5387,10 @@ class MouseCreateLink extends IMouseClickDrag {
     }
 }
 
-/** @typedef {import("../input/IInput").default} IInput */
+/** @typedef {import("../../input/IInput").default} IInput */
 /**
  * @template T
- * @typedef {import("../element/PinElement").default<T>} PinElement
+ * @typedef {import("../../element/PinElement").default<T>} PinElement
  */
 
 /**
@@ -5481,7 +5481,7 @@ class PinTemplate extends ITemplate {
     }
 }
 
-/** @typedef {import("./KnotNodeTemplate").default} KnotNodeTemplate */
+/** @typedef {import("./../KnotNodeTemplate").default} KnotNodeTemplate */
 
 class KnotPinTemplate extends PinTemplate {
 
@@ -6228,7 +6228,7 @@ class SelectorElement extends IFromToPositionedElement {
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
- * @typedef {import("./template/CommentNodeTemplate").default} CommentNodeTemplate
+ * @typedef {import("./template/node/CommentNodeTemplate").default} CommentNodeTemplate
  * @typedef {{
  *     primaryInf: Number,
  *     primarySup: Number,
@@ -6794,7 +6794,7 @@ class ColorSliderElement extends IDraggableControlElement {
     }
 }
 
-/** @typedef {import ("../element/InputElement").default} InputElement */
+/** @typedef {import ("../../element/InputElement").default} InputElement */
 
 /** @extends {ITemplate<InputElement>} */
 class InputTemplate extends ITemplate {
@@ -6935,7 +6935,7 @@ class BoolInputPinTemplate extends PinTemplate {
     }
 }
 
-/** @typedef {import("../element/PinElement").default} PinElement */
+/** @typedef {import("../../element/PinElement").default} PinElement */
 
 class ExecPinTemplate extends PinTemplate {
 
@@ -6956,7 +6956,7 @@ class ExecPinTemplate extends PinTemplate {
 
 /**
  * @template T
- * @typedef {import("../element/PinElement").default<T>} PinElement
+ * @typedef {import("../../element/PinElement").default<T>} PinElement
  */
 
 /**
@@ -7096,7 +7096,7 @@ class INumericPinTemplate extends IInputPinTemplate {
     }
 }
 
-/** @typedef {import("../entity/IntegerEntity").default} IntEntity */
+/** @typedef {import("../../entity/IntegerEntity").default} IntEntity */
 
 /** @extends INumericInputPinTemplate<IntEntity> */
 class IntInputPinTemplate extends INumericPinTemplate {
@@ -7550,8 +7550,8 @@ class ColorPickerWindowTemplate extends WindowTemplate {
 }
 
 /**
- * @typedef {import("../element/WindowElement").default} WindowElement
- * @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("../../element/WindowElement").default} WindowElement
+ * @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity
  */
 
 /** @extends PinTemplate<LinearColorEntity> */
@@ -7600,7 +7600,7 @@ class LinearColorInputPinTemplate extends PinTemplate {
     }
 }
 
-/** @typedef {import("../element/PinElement").default} PinElement */
+/** @typedef {import("../../element/PinElement").default} PinElement */
 
 class NameInputPinTemplate extends IInputPinTemplate {
 
@@ -7635,7 +7635,7 @@ class ReferencePinTemplate extends PinTemplate {
     }
 }
 
-/** @typedef {import("../entity/RotatorEntity").default} Rotator */
+/** @typedef {import("../../entity/RotatorEntity").default} Rotator */
 
 /** @extends INumericPinTemplate<Rotator> */
 class RotatorInputPinTemplate extends INumericPinTemplate {
@@ -7677,7 +7677,7 @@ class RotatorInputPinTemplate extends INumericPinTemplate {
 class StringInputPinTemplate extends IInputPinTemplate {
 }
 
-/** @typedef {import("../entity/LinearColorEntity").default} LinearColorEntity */
+/** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
 
 /**
  * @template {VectorEntity} T

@@ -1,5 +1,5 @@
 import { html } from "lit"
-import MouseIgnore from "../input/mouse/MouseIgnore"
+import MouseIgnore from "../../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 
 /**

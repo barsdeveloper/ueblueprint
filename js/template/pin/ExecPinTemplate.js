@@ -1,9 +1,9 @@
 import { html } from "lit"
 import PinTemplate from "./PinTemplate"
-import SVGIcon from "../SVGIcon"
-import Utility from "../Utility"
+import SVGIcon from "../../SVGIcon"
+import Utility from "../../Utility"
 
-/** @typedef {import("../element/PinElement").default} PinElement */
+/** @typedef {import("../../element/PinElement").default} PinElement */
 
 export default class ExecPinTemplate extends PinTemplate {
 

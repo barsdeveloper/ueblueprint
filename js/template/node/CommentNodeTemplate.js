@@ -1,11 +1,11 @@
 import { css, html } from "lit"
-import Configuration from "../Configuration"
-import IResizeableTemplate from "./IResizeableTemplate"
-import LinearColorEntity from "../entity/LinearColorEntity"
+import Configuration from "../../Configuration"
+import IResizeableTemplate from "../IResizeableTemplate"
+import LinearColorEntity from "../../entity/LinearColorEntity"
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").default} PinElement
  */
 
 export default class CommentNodeTemplate extends IResizeableTemplate {

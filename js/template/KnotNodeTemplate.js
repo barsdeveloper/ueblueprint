@@ -1,7 +1,7 @@
 import { html } from "lit"
 import Configuration from "../Configuration"
 import ElementFactory from "../element/ElementFactory"
-import KnotPinTemplate from "./KnotPinTemplate"
+import KnotPinTemplate from "./pin/KnotPinTemplate"
 import NodeTemplate from "./NodeTemplate"
 
 /**

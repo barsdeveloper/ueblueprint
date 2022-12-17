@@ -33,7 +33,6 @@ export default class IKeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
-                // @ts-expect-error
                 const parsed = ISerializer.grammar.KeyBinding.parse(v)
                 if (parsed.status) {
                     return parsed.value

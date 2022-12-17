@@ -3,7 +3,7 @@ import MouseMoveDraggable from "./MouseMoveDraggable"
 /**
  * @typedef {import("../../Blueprint").default} Blueprint
  * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../template/CommentNodeTemplate").default} CommentNodeTemplate
+ * @typedef {import("../../template/node/CommentNodeTemplate").default} CommentNodeTemplate
  */
 
 /** @extends {MouseMoveDraggable<NodeElement>} */
