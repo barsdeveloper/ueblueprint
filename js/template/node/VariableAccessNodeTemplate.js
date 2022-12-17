@@ -1,10 +1,10 @@
 import { html, nothing } from "lit"
-import ElementFactory from "../element/ElementFactory"
+import ElementFactory from "../../element/ElementFactory"
 import NodeTemplate from "./NodeTemplate"
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").default} PinElement
  */
 
 export default class VariableAccessNodeTemplate extends NodeTemplate {

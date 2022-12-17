@@ -15,7 +15,6 @@ import Utility from "../Utility"
 /** @template {AnyValue} T */
 export default class ISerializer {
 
-    // @ts-expect-error
     static grammar = Parsimmon.createLanguage(new Grammar())
 
     /** @param {AnyValueConstructor<T>} entityType */

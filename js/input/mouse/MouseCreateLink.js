@@ -5,7 +5,7 @@ import IMouseClickDrag from "./IMouseClickDrag"
 /**
  * @typedef {import("../../element/PinElement").default} PinElement
  * @typedef {import("../../element/LinkElement").default} LinkElement
- * @typedef {import("../../template/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("../../template/node/KnotNodeTemplate").default} KnotNodeTemplate
  */
 
 /** @extends IMouseClickDrag<PinElement> */

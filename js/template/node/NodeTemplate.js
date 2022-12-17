@@ -1,13 +1,13 @@
 import { css, html, nothing } from "lit"
-import Configuration from "../Configuration"
-import ElementFactory from "../element/ElementFactory"
-import ISelectableDraggableTemplate from "./ISelectableDraggableTemplate"
-import SVGIcon from "../SVGIcon"
-import Utility from "../Utility"
+import Configuration from "../../Configuration"
+import ElementFactory from "../../element/ElementFactory"
+import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate"
+import SVGIcon from "../../SVGIcon"
+import Utility from "../../Utility"
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").default} PinElement
  */
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */

@@ -1,12 +1,12 @@
 import { html } from "lit"
-import Configuration from "../Configuration"
-import ElementFactory from "../element/ElementFactory"
-import KnotPinTemplate from "./pin/KnotPinTemplate"
+import Configuration from "../../Configuration"
+import ElementFactory from "../../element/ElementFactory"
+import KnotPinTemplate from "../pin/KnotPinTemplate"
 import NodeTemplate from "./NodeTemplate"
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").default} PinElement
  */
 
 export default class KnotNodeTemplate extends NodeTemplate {

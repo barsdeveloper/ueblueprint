@@ -9,7 +9,7 @@ import Utility from "../Utility"
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
  * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../template/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("./node/KnotNodeTemplate").default} KnotNodeTemplate
  */
 
 

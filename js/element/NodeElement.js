@@ -2,14 +2,14 @@ import CommentNodeTemplate from "../template/node/CommentNodeTemplate"
 import Configuration from "../Configuration"
 import IdentifierEntity from "../entity/IdentifierEntity"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"
-import KnotNodeTemplate from "../template/KnotNodeTemplate"
-import NodeTemplate from "../template/NodeTemplate"
+import KnotNodeTemplate from "../template/node/KnotNodeTemplate"
+import NodeTemplate from "../template/node/NodeTemplate"
 import ObjectEntity from "../entity/ObjectEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
-import VariableAccessNodeTemplate from "../template/VariableAccessNodeTemplate"
+import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTemplate"
 
 /** @typedef {import("./IElement").default} IElement */
 

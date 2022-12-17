@@ -1,5 +1,5 @@
 import MouseClickDrag from "../input/mouse/MouseClickDrag"
-import NodeTemplate from "./NodeTemplate"
+import NodeTemplate from "./node/NodeTemplate"
 
 /** @typedef {import("../element/NodeElement").default} NodeElement */
 

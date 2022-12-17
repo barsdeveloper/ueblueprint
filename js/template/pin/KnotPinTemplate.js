@@ -2,7 +2,7 @@ import { html } from "lit"
 import PinTemplate from "./PinTemplate"
 import Utility from "../../Utility"
 
-/** @typedef {import("./../KnotNodeTemplate").default} KnotNodeTemplate */
+/** @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate */
 
 export default class KnotPinTemplate extends PinTemplate {
 

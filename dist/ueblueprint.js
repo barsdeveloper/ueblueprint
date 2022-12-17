@@ -2443,7 +2443,6 @@ class Grammar {
 /** @template {AnyValue} T */
 class ISerializer {
 
-    // @ts-expect-error
     static grammar = Parsimmon.createLanguage(new Grammar())
 
     /** @param {AnyValueConstructor<T>} entityType */
@@ -2736,7 +2735,6 @@ class IKeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
-                // @ts-expect-error
                 const parsed = ISerializer.grammar.KeyBinding.parse(v);
                 if (parsed.status) {
                     return parsed.value
@@ -3935,7 +3933,7 @@ class MouseDbClick extends IPointing {
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
  * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../template/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("./node/KnotNodeTemplate").default} KnotNodeTemplate
  */
 
 
@@ -4788,8 +4786,8 @@ class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 }
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").default} PinElement
  */
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
@@ -5267,7 +5265,7 @@ class ISelectableDraggableElement extends IDraggableElement {
 /**
  * @typedef {import("../../element/PinElement").default} PinElement
  * @typedef {import("../../element/LinkElement").default} LinkElement
- * @typedef {import("../../template/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("../../template/node/KnotNodeTemplate").default} KnotNodeTemplate
  */
 
 /** @extends IMouseClickDrag<PinElement> */
@@ -5481,7 +5479,7 @@ class PinTemplate extends ITemplate {
     }
 }
 
-/** @typedef {import("./../KnotNodeTemplate").default} KnotNodeTemplate */
+/** @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate */
 
 class KnotPinTemplate extends PinTemplate {
 
@@ -5508,8 +5506,8 @@ class KnotPinTemplate extends PinTemplate {
 }
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").default} PinElement
  */
 
 class KnotNodeTemplate extends NodeTemplate {
@@ -5600,8 +5598,8 @@ class KnotNodeTemplate extends NodeTemplate {
 }
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").default} PinElement
  */
 
 class VariableAccessNodeTemplate extends NodeTemplate {
@@ -7758,7 +7756,6 @@ class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    // @ts-expect-error
                     ? ISerializer.grammar.Guid.parse(value).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
@@ -7780,7 +7777,6 @@ class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    // @ts-expect-error
                     ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
