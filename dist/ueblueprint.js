@@ -31,7 +31,6 @@ var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html
 
 class Configuration {
     static #pinColor = {
-        "/Script/CoreUObject.LinearColor": i$3`3, 76, 168`,
         "/Script/CoreUObject.Rotator": i$3`152, 171, 241`,
         "/Script/CoreUObject.Transform": i$3`241, 110, 1`,
         "/Script/CoreUObject.Vector": i$3`215, 202, 11`,
@@ -85,9 +84,13 @@ class Configuration {
         if (pin.entity.PinType.PinCategory == "struct" || pin.entity.PinType.PinCategory == "object") {
             switch (pin.entity.PinType.PinSubCategoryObject.type) {
                 case "ScriptStruct":
+                case "/Script/CoreUObject.ScriptStruct":
                     return i$3`0, 88, 200`
                 default:
-                    if (pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")) {
+                    if (
+                        pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")
+                        || pin.entity.getDisplayName() === "Target"
+                    ) {
                         return Configuration.#pinColor["/Script/Engine.Actor"]
                     }
             }

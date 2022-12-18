@@ -7,7 +7,6 @@ import { css } from "lit"
 
 export default class Configuration {
     static #pinColor = {
-        "/Script/CoreUObject.LinearColor": css`3, 76, 168`,
         "/Script/CoreUObject.Rotator": css`152, 171, 241`,
         "/Script/CoreUObject.Transform": css`241, 110, 1`,
         "/Script/CoreUObject.Vector": css`215, 202, 11`,
@@ -61,9 +60,13 @@ export default class Configuration {
         if (pin.entity.PinType.PinCategory == "struct" || pin.entity.PinType.PinCategory == "object") {
             switch (pin.entity.PinType.PinSubCategoryObject.type) {
                 case "ScriptStruct":
+                case "/Script/CoreUObject.ScriptStruct":
                     return css`0, 88, 200`
                 default:
-                    if (pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")) {
+                    if (
+                        pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")
+                        || pin.entity.getDisplayName() === "Target"
+                    ) {
                         return Configuration.#pinColor["/Script/Engine.Actor"]
                     }
             }
