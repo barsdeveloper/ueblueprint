@@ -93,8 +93,6 @@ export default class TypeInitialization {
         if (value === undefined) {
             if (type instanceof Array) {
                 value = []
-            } else if (serialized) {
-                value = ""
             } else {
                 value = () => TypeInitialization.sanitize(new type())
             }

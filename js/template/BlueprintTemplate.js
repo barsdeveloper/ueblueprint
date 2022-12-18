@@ -69,7 +69,9 @@ export default class BlueprintTemplate extends ITemplate {
     render() {
         return html`
             <div class="ueb-viewport-header">
-                <div class="ueb-viewport-zoom">${this.element.zoom == 0 ? "1:1" : this.element.zoom}</div>
+                <div class="ueb-viewport-zoom">
+                    Zoom ${this.element.zoom == 0 ? "1:1" : (this.element.zoom > 0 ? "+" : "") + this.element.zoom}
+                </div>
             </div>
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
@@ -100,6 +102,17 @@ export default class BlueprintTemplate extends ITemplate {
         this.element.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
     }
 
+    /** @param {Map} changedProperties */
+    willUpdate(changedProperties) {
+        super.willUpdate(changedProperties)
+        if (this.element.headerElement && changedProperties.has("zoom")) {
+            this.element.headerElement.classList.add("ueb-zoom-changed")
+            this.element.headerElement.addEventListener(
+                "animationend",
+                () => this.element.headerElement.classList.remove("ueb-zoom-changed")
+            )
+        }
+    }
 
     /** @param {Map} changedProperties */
     updated(changedProperties) {

@@ -43,15 +43,31 @@ ueb-blueprint svg {
     top: 0;
     right: 0;
     left: 0;
-    height: 1.5em;
     background: rgba(0, 0, 0, 0.5);
     z-index: 1;
 }
 
+@keyframes ueb-zoom-animation {
+    0% {
+        color: #7f7f7f;
+    }
+
+    100% {
+        color: #2b2b2b;
+    }
+}
+
+.ueb-zoom-changed .ueb-viewport-zoom {
+    animation: 600ms ueb-zoom-animation;
+}
+
 .ueb-viewport-zoom {
     margin-left: auto;
-    color: #4d4d4db7;
+    padding: 5px;
+    color: #2b2b2b;
     font-size: 20px;
+    font-weight: bold;
+    letter-spacing: -1px;
 }
 
 .ueb-viewport-body {

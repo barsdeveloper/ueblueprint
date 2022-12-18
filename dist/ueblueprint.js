@@ -586,8 +586,6 @@ class TypeInitialization {
         if (value === undefined) {
             if (type instanceof Array) {
                 value = [];
-            } else if (serialized) {
-                value = "";
             } else {
                 value = () => TypeInitialization.sanitize(new type());
             }
@@ -1567,7 +1565,7 @@ class PinEntity extends IEntity {
             new CalculatedType(
                 /** @param {PinEntity} pinEntity */
                 pinEntity => new TypeInitialization(
-                    PinEntity.getEntityType(pinEntity.getType(), true) ?? String,
+                    pinEntity.getEntityType(true) ?? String,
                     false,
                     undefined,
                     true
@@ -1582,13 +1580,6 @@ class PinEntity extends IEntity {
         bDefaultValueIsIgnored: false,
         bAdvancedView: false,
         bOrphanedPin: false,
-    }
-
-    static getEntityType(typeString, alternative = false) {
-        const [entity, alternativeEntity] = [this.#typeEntityMap[typeString], this.#alternativeTypeEntityMap[typeString]];
-        return alternative && alternativeEntity !== undefined
-            ? alternativeEntity
-            : entity
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -1633,6 +1624,15 @@ class PinEntity extends IEntity {
         return this.PinType.PinCategory
     }
 
+    getEntityType(alternative = false) {
+        const typeString = this.getType();
+        const entity = PinEntity.#typeEntityMap[typeString];
+        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[typeString];
+        return alternative && alternativeEntity !== undefined
+            ? alternativeEntity
+            : entity
+    }
+
     getDisplayName() {
         let matchResult = null;
         if (
@@ -1660,7 +1660,10 @@ class PinEntity extends IEntity {
         this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat;
     }
 
-    getDefaultValue() {
+    getDefaultValue(maybeCreate = false) {
+        if (this.DefaultValue === undefined && maybeCreate) {
+            this.DefaultValue = new (this.getEntityType(true))();
+        }
         return this.DefaultValue
     }
 
@@ -3677,7 +3680,9 @@ class BlueprintTemplate extends ITemplate {
     render() {
         return y`
             <div class="ueb-viewport-header">
-                <div class="ueb-viewport-zoom">${this.element.zoom == 0 ? "1:1" : this.element.zoom}</div>
+                <div class="ueb-viewport-zoom">
+                    Zoom ${this.element.zoom == 0 ? "1:1" : (this.element.zoom > 0 ? "+" : "") + this.element.zoom}
+                </div>
             </div>
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
@@ -3708,6 +3713,17 @@ class BlueprintTemplate extends ITemplate {
         this.element.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
     }
 
+    /** @param {Map} changedProperties */
+    willUpdate(changedProperties) {
+        super.willUpdate(changedProperties);
+        if (this.element.headerElement && changedProperties.has("zoom")) {
+            this.element.headerElement.classList.add("ueb-zoom-changed");
+            this.element.headerElement.addEventListener(
+                "animationend",
+                () => this.element.headerElement.classList.remove("ueb-zoom-changed")
+            );
+        }
+    }
 
     /** @param {Map} changedProperties */
     updated(changedProperties) {
@@ -4859,10 +4875,10 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                             ${name ? y`
                                 <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                                     ${name}
-                                    ${this.#hasTargetInputNode ? y`
+                                    ${this.#hasTargetInputNode && this.element.entity.FunctionReference.MemberParent ? y`
                                         <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
                                             Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
-                                    </div>
+                                        </div>
                                     `: b}
                                 </div>
                             ` : b}
@@ -7100,13 +7116,18 @@ class INumericPinTemplate extends IInputPinTemplate {
 class IntInputPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(new IntegerEntity(values[0]));
+        const integer = this.element.getDefaultValue(true);
+        if (!(integer instanceof IntegerEntity)) {
+            throw new TypeError("Expected DefaultValue to be a IntegerEntity")
+        }
+        integer.value = values[0];
+        this.element.requestUpdate("DefaultValue", integer);
     }
 
     renderInput() {
         return y`
             <div class="ueb-pin-input">
-                <ueb-input .singleLine="${true}" .innerText="${this.element.entity.DefaultValue?.toString() ?? "0"}">
+                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
                 </ueb-input>
             </div>
         `
@@ -7619,7 +7640,7 @@ class RealInputPinTemplate extends INumericPinTemplate {
         return y`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${true}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue))}">
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue ?? 0))}">
                 </ueb-input>
             </div>
         `
@@ -7638,14 +7659,27 @@ class ReferencePinTemplate extends PinTemplate {
 /** @extends INumericPinTemplate<Rotator> */
 class RotatorInputPinTemplate extends INumericPinTemplate {
 
+    #getR() {
+        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0))
+    }
+
+    #getP() {
+        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.P ?? 0))
+    }
+
+    #getY() {
+        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
+    }
+
     setDefaultValue(values = [], rawValues = values) {
-        if (!(this.element.entity.DefaultValue instanceof RotatorEntity)) {
-            throw new TypeError("Expected DefaultValue to be a VectorEntity")
+        const rotator = this.element.getDefaultValue(true);
+        if (!(rotator instanceof RotatorEntity)) {
+            throw new TypeError("Expected DefaultValue to be a RotatorEntity")
         }
-        let rotator = this.element.entity.DefaultValue;
         rotator.R = values[0]; // Roll
         rotator.P = values[1]; // Pitch
         rotator.Y = values[2]; // Yaw
+        this.element.requestUpdate("DefaultValue", rotator);
     }
 
     renderInput() {
@@ -7653,18 +7687,15 @@ class RotatorInputPinTemplate extends INumericPinTemplate {
             <div class="ueb-pin-input-wrapper">
                 <span class="ueb-pin-input-label">X</span>
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-x" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().R.toString())}"></span>
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getR()}"></ueb-input>
                 </div>
                 <span class="ueb-pin-input-label">Y</span>
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-y" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().P.toString())}"></span>
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getP()}"></ueb-input>
                 </div>
                 <span class="ueb-pin-input-label">Z</span>
                 <div class="ueb-pin-input">
-                    <span class="ueb-pin-input-content ueb-pin-input-z" role="textbox" contenteditable="true"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.getDefaultValue().Y.toString())}"></span>
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getY()}"></ueb-input>
                 </div>
             </div>
         `
@@ -7678,23 +7709,35 @@ class StringInputPinTemplate extends IInputPinTemplate {
 /** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
 
 /**
- * @template {VectorEntity} T
- * @extends INumericPinTemplate<T>
+ * @extends INumericPinTemplate<VectorEntity>
  */
 class VectorInputPinTemplate extends INumericPinTemplate {
+
+    #getX() {
+        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0))
+    }
+
+    #getY() {
+        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
+    }
+
+    #getZ() {
+        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Z ?? 0))
+    }
 
     /**
      * @param {Number[]} values
      * @param {String[]} rawValues
      */
     setDefaultValue(values, rawValues) {
-        if (!(this.element.entity.DefaultValue instanceof VectorEntity)) {
+        const vector = this.element.getDefaultValue(true);
+        if (!(vector instanceof VectorEntity)) {
             throw new TypeError("Expected DefaultValue to be a VectorEntity")
         }
-        let vector = this.element.entity.DefaultValue;
         vector.X = values[0];
         vector.Y = values[1];
         vector.Z = values[2];
+        this.element.requestUpdate("DefaultValue", vector);
     }
 
     renderInput() {
@@ -7702,21 +7745,15 @@ class VectorInputPinTemplate extends INumericPinTemplate {
             <div class="ueb-pin-input-wrapper">
                 <span class="ueb-pin-input-label">X</span>
                 <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().X))}">
-                    </ueb-input>
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getX()}"></ueb-input>
                 </div>
                 <span class="ueb-pin-input-label">Y</span>
                 <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Y))}">
-                    </ueb-input>
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getY()}"></ueb-input>
                 </div>
                 <span class="ueb-pin-input-label">Z</span>
                 <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}"
-                        .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.getDefaultValue().Z))}">
-                    </ueb-input>
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getZ()}"></ueb-input>
                 </div>
             </div>
         `
@@ -7888,6 +7925,10 @@ class PinElement extends IElement {
 
     getLinks() {
         return this.entity.LinkedTo ?? []
+    }
+
+    getDefaultValue(maybeCreate = false) {
+        return this.defaultValue = this.entity.getDefaultValue(maybeCreate)
     }
 
     /** @param {T} value */

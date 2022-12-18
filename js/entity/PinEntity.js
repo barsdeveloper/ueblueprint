@@ -59,7 +59,7 @@ export default class PinEntity extends IEntity {
             new CalculatedType(
                 /** @param {PinEntity} pinEntity */
                 pinEntity => new TypeInitialization(
-                    PinEntity.getEntityType(pinEntity.getType(), true) ?? String,
+                    pinEntity.getEntityType(true) ?? String,
                     false,
                     undefined,
                     true
@@ -74,13 +74,6 @@ export default class PinEntity extends IEntity {
         bDefaultValueIsIgnored: false,
         bAdvancedView: false,
         bOrphanedPin: false,
-    }
-
-    static getEntityType(typeString, alternative = false) {
-        const [entity, alternativeEntity] = [this.#typeEntityMap[typeString], this.#alternativeTypeEntityMap[typeString]]
-        return alternative && alternativeEntity !== undefined
-            ? alternativeEntity
-            : entity
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -125,6 +118,15 @@ export default class PinEntity extends IEntity {
         return this.PinType.PinCategory
     }
 
+    getEntityType(alternative = false) {
+        const typeString = this.getType()
+        const entity = PinEntity.#typeEntityMap[typeString]
+        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[typeString]
+        return alternative && alternativeEntity !== undefined
+            ? alternativeEntity
+            : entity
+    }
+
     getDisplayName() {
         let matchResult = null
         if (
@@ -152,7 +154,10 @@ export default class PinEntity extends IEntity {
         this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat
     }
 
-    getDefaultValue() {
+    getDefaultValue(maybeCreate = false) {
+        if (this.DefaultValue === undefined && maybeCreate) {
+            this.DefaultValue = new (this.getEntityType(true))()
+        }
         return this.DefaultValue
     }
 

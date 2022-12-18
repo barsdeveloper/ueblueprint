@@ -184,6 +184,10 @@ export default class PinElement extends IElement {
         return this.entity.LinkedTo ?? []
     }
 
+    getDefaultValue(maybeCreate = false) {
+        return this.defaultValue = this.entity.getDefaultValue(maybeCreate)
+    }
+
     /** @param {T} value */
     setDefaultValue(value) {
         this.entity.DefaultValue = value

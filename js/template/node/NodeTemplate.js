@@ -79,10 +79,10 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                             ${name ? html`
                                 <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                                     ${name}
-                                    ${this.#hasTargetInputNode ? html`
+                                    ${this.#hasTargetInputNode && this.element.entity.FunctionReference.MemberParent ? html`
                                         <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
                                             Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
-                                    </div>
+                                        </div>
                                     `: nothing}
                                 </div>
                             ` : nothing}
