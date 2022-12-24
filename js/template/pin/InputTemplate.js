@@ -22,19 +22,20 @@ export default class InputTemplate extends ITemplate {
         /** @param {KeyboardEvent} e */
         e => {
             if (e.code == "Enter" && !e.shiftKey) {
-                    /** @type {HTMLElement} */(e.target).blur()
+                /** @type {HTMLElement} */(e.target).blur()
             }
         }
 
     /** @param {InputElement} element */
-    constructed(element) {
-        super.constructed(element)
+    initialize(element) {
+        super.initialize(element)
         this.element.classList.add("ueb-pin-input-content")
         this.element.setAttribute("role", "textbox")
         this.element.contentEditable = "true"
     }
 
-    connectedCallback() {
+    setup() {
+        super.setup()
         this.element.addEventListener("focus", this.#focusHandler)
         this.element.addEventListener("focusout", this.#focusoutHandler)
         if (this.element.singleLine) {
@@ -46,13 +47,10 @@ export default class InputTemplate extends ITemplate {
     }
 
     cleanup() {
+        super.cleanup()
         this.element.removeEventListener("focus", this.#focusHandler)
         this.element.removeEventListener("focusout", this.#focusoutHandler)
-        if (this.element.singleLine) {
-            this.element.removeEventListener("input", this.#inputSingleLineHandler)
-        }
-        if (this.element.blurOnEnter) {
-            this.element.removeEventListener("keydown", this.#onKeydownBlurOnEnterHandler)
-        }
+        this.element.removeEventListener("input", this.#inputSingleLineHandler)
+        this.element.removeEventListener("keydown", this.#onKeydownBlurOnEnterHandler)
     }
 }

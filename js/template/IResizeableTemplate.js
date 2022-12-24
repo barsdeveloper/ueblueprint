@@ -1,7 +1,10 @@
 import MouseClickDrag from "../input/mouse/MouseClickDrag"
 import NodeTemplate from "./node/NodeTemplate"
 
-/** @typedef {import("../element/NodeElement").default} NodeElement */
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 
 export default class IResizeableTemplate extends NodeTemplate {
 
@@ -15,12 +18,20 @@ export default class IResizeableTemplate extends NodeTemplate {
     #TLHandler = document.createElement("div")
 
     /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element)
+    initialize(element) {
+        super.initialize(element)
         this.element.classList.add("ueb-resizeable")
+        this.#THandler.classList.add("ueb-resizeable-top")
+        this.#RHandler.classList.add("ueb-resizeable-right")
+        this.#BHandler.classList.add("ueb-resizeable-bottom")
+        this.#LHandler.classList.add("ueb-resizeable-left")
+        this.#TRHandler.classList.add("ueb-resizeable-top-right")
+        this.#BRHandler.classList.add("ueb-resizeable-bottom-right")
+        this.#BLHandler.classList.add("ueb-resizeable-bottom-left")
+        this.#TLHandler.classList.add("ueb-resizeable-top-left")
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
         if (this.element.sizeX >= 0 && changedProperties.has("sizeX")) {
@@ -31,17 +42,9 @@ export default class IResizeableTemplate extends NodeTemplate {
         }
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.#THandler.classList.add("ueb-resizeable-top")
-        this.#RHandler.classList.add("ueb-resizeable-right")
-        this.#BHandler.classList.add("ueb-resizeable-bottom")
-        this.#LHandler.classList.add("ueb-resizeable-left")
-        this.#TRHandler.classList.add("ueb-resizeable-top-right")
-        this.#BRHandler.classList.add("ueb-resizeable-bottom-right")
-        this.#BLHandler.classList.add("ueb-resizeable-bottom-left")
-        this.#TLHandler.classList.add("ueb-resizeable-top-left")
         this.element.append(
             this.#THandler,
             this.#RHandler,
@@ -64,21 +67,21 @@ export default class IResizeableTemplate extends NodeTemplate {
                         this.element.addLocation([0, movement[1]], false)
                     }
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#RHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary()
                     this.setSizeX(this.element.sizeX + movement[0])
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#BHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.bottomBoundary()
                     this.setSizeY(this.element.sizeY + movement[1])
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#LHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -87,7 +90,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                         this.element.addLocation([movement[0], 0], false)
                     }
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#TRHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -98,7 +101,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                         this.element.addLocation([0, movement[1]], false)
                     }
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#BRHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -107,7 +110,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                     this.setSizeX(this.element.sizeX + movement[0])
                     this.setSizeY(this.element.sizeY + movement[1])
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#BLHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -118,7 +121,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                     }
                     this.setSizeY(this.element.sizeY + movement[1])
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#TLHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -131,7 +134,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                         this.element.addLocation([0, movement[1]], false)
                     }
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
         ]
     }
@@ -148,5 +151,6 @@ export default class IResizeableTemplate extends NodeTemplate {
         return true
     }
 
-    endResize() {}
+    endResize() {
+    }
 }

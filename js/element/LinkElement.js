@@ -8,6 +8,7 @@ import Utility from "../Utility"
 /**
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("lit").TemplateResult<1>} TemplateResult
+ * @typedef {typeof LinkElement} LinkElementConstructor
  */
 
 /** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
@@ -65,11 +66,11 @@ export default class LinkElement extends IFromToPositionedElement {
         this.#setPin(pin, true)
     }
 
-    #nodeDeleteHandler
-    #nodeDragSourceHandler
-    #nodeDragDestinatonHandler
-    #nodeReflowSourceHandler
-    #nodeReflowDestinatonHandler
+    #nodeDeleteHandler = () => this.remove()
+    #nodeDragSourceHandler = e => this.addSourceLocation(e.detail.value)
+    #nodeDragDestinatonHandler = e => this.addDestinationLocation(e.detail.value)
+    #nodeReflowSourceHandler = e => this.setSourceLocation()
+    #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
 
     /** @type {TemplateResult | nothing} */
     linkMessageIcon = nothing
@@ -79,18 +80,8 @@ export default class LinkElement extends IFromToPositionedElement {
     /** @type {SVGPathElement} */
     pathElement
 
-    /**
-     * @param {PinElement} source
-     * @param {PinElement?} destination
-     */
-    constructor(source, destination) {
-        super({}, new LinkTemplate())
-        const self = this
-        this.#nodeDeleteHandler = () => self.remove()
-        this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value)
-        this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value)
-        this.#nodeReflowSourceHandler = e => self.setSourceLocation()
-        this.#nodeReflowDestinatonHandler = e => self.setDestinationLocation()
+    constructor() {
+        super()
         this.source = null
         this.destination = null
         this.dragging = false
@@ -98,6 +89,24 @@ export default class LinkElement extends IFromToPositionedElement {
         this.startPercentage = 0
         this.svgPathD = ""
         this.startPixels = 0
+    }
+
+    /**
+     * @param {PinElement} source
+     * @param {PinElement?} destination
+     */
+    static newObject(source, destination) {
+        const result = new LinkElement()
+        result.initialize(source, destination)
+        return result
+    }
+
+    /**
+     * @param {PinElement} source
+     * @param {PinElement?} destination
+     */
+    initialize(source, destination) {
+        super.initialize({}, new LinkTemplate())
         if (source) {
             this.sourcePin = source
             if (!destination) {
@@ -172,8 +181,8 @@ export default class LinkElement extends IFromToPositionedElement {
         }
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback()
+    cleanup() {
+        super.cleanup()
         this.#unlinkPins()
         this.sourcePin = null
         this.destinationPin = null

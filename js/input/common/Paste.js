@@ -2,7 +2,10 @@ import ElementFactory from "../../element/ElementFactory"
 import IInput from "../IInput"
 import ObjectSerializer from "../../serialization/ObjectSerializer"
 
-/** @typedef {import("../../element/NodeElement").default} NodeElement */
+/**
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/NodeElement").NodeElementConstructor} NodeElementConstructor
+ */
 
 export default class Paste extends IInput {
 
@@ -20,11 +23,11 @@ export default class Paste extends IInput {
     }
 
     listenEvents() {
-        document.body.addEventListener("paste", this.#pasteHandle)
+        window.addEventListener("paste", this.#pasteHandle)
     }
 
     unlistenEvents() {
-        document.body.removeEventListener("paste", this.#pasteHandle)
+        window.removeEventListener("paste", this.#pasteHandle)
     }
 
     pasted(value) {
@@ -33,8 +36,8 @@ export default class Paste extends IInput {
         let count = 0
         let nodes = Paste.#serializer.readMultiple(value).map(entity => {
             /** @type {NodeElement} */
-            // @ts-expect-error
-            let node = new (ElementFactory.getConstructor("ueb-node"))(entity)
+            let node = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
+                .newObject(entity)
             top += node.locationY
             left += node.locationX
             ++count

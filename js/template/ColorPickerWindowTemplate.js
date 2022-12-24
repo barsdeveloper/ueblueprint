@@ -7,39 +7,23 @@ import LinearColorEntity from "../entity/LinearColorEntity"
 import Utility from "../Utility"
 import WindowTemplate from "./WindowTemplate"
 
-/** @typedef {import("../element/WindowElement").default} WindowElement */
+/**
+ * @typedef {import("../element/WindowElement").default} WindowElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 
 export default class ColorPickerWindowTemplate extends WindowTemplate {
 
-    /** @type {ColorHandlerElement} */
-    #wheelHandler
-
-    /** @type {ColorSliderElement} */
-    #saturationSlider
-
-    /** @type {ColorSliderElement} */
-    #valueSlider
-
-    /** @type {ColorSliderElement} */
-    #rSlider
-
-    /** @type {ColorSliderElement} */
-    #gSlider
-
-    /** @type {ColorSliderElement} */
-    #bSlider
-
-    /** @type {ColorSliderElement} */
-    #aSlider
-
-    /** @type {ColorSliderElement} */
-    #hSlider
-
-    /** @type {ColorSliderElement} */
-    #sSlider
-
-    /** @type {ColorSliderElement} */
-    #vSlider
+    /** @type {ColorHandlerElement} */ #wheelHandler
+    /** @type {ColorSliderElement} */ #saturationSlider
+    /** @type {ColorSliderElement} */ #valueSlider
+    /** @type {ColorSliderElement} */ #rSlider
+    /** @type {ColorSliderElement} */ #gSlider
+    /** @type {ColorSliderElement} */ #bSlider
+    /** @type {ColorSliderElement} */ #aSlider
+    /** @type {ColorSliderElement} */ #hSlider
+    /** @type {ColorSliderElement} */ #sSlider
+    /** @type {ColorSliderElement} */ #vSlider
 
     #hexRGBHandler =
         /** @param {UIEvent} v */
@@ -82,7 +66,6 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
     get color() {
         return this.#color
     }
-    /** @param {LinearColorEntity} value */
     set color(value) {
         if (value.toNumber() == this.color?.toNumber()) {
             return
@@ -110,8 +93,10 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
         return opaque ? `${result.substring(0, 6)}FF` : result
     }
 
-    connectedCallback() {
-        super.connectedCallback()
+
+    /** @param {WindowElement} element */
+    initialize(element) {
+        super.initialize(element)
         this.#initialColor = this.element.windowOptions.getPinColor()
         this.color.setFromHSVA(
             this.initialColor.H.value,
@@ -122,7 +107,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
         this.fullColor.setFromHSVA(this.color.H.value, 1, 1, 1)
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         this.#wheelHandler = this.element.querySelector(".ueb-color-picker-wheel ueb-color-handler")
         this.#saturationSlider = this.element.querySelector(".ueb-color-picker-saturation ueb-ui-slider")

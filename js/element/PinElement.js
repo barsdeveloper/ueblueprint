@@ -9,6 +9,7 @@ import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
 import LinearColorInputPinTemplate from "../template/pin/LinearColorPinTemplate"
 import NameInputPinTemplate from "../template/pin/NamePinTemplate"
+import PinEntity from "../entity/PinEntity"
 import PinTemplate from "../template/pin/PinTemplate"
 import RealInputPinTemplate from "../template/pin/RealInputPinTemplate"
 import ReferencePinTemplate from "../template/pin/ReferencePinTemplate"
@@ -19,16 +20,15 @@ import VectorInputPinTemplate from "../template/pin/VectorInputPinTemplate"
 
 /**
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ * @typedef {import("./LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("lit").CSSResult} CSSResult
- */
-/**
- * @template T
- * @typedef {import("../entity/PinEntity").default<T>} PinEntity
+ * @typedef {typeof PinElement} PinElementConstructor
  */
 
 /**
- * @template T
+ * @template {AnyValue} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 export default class PinElement extends IElement {
@@ -95,6 +95,9 @@ export default class PinElement extends IElement {
         },
     }
 
+    /** @type {NodeElement} */
+    nodeElement
+
     /**
      * @param {PinEntity<any>} pinEntity
      * @return {new () => PinTemplate}
@@ -113,18 +116,22 @@ export default class PinElement extends IElement {
         return result ?? PinTemplate
     }
 
-    /** @type {NodeElement} */
-    nodeElement
+    static newObject(
+        entity = new PinEntity(),
+        template = new (PinElement.getTypeTemplate(entity))(),
+        nodeElement = undefined
+    ) {
+        const result = new PinElement()
+        result.initialize(entity, template, nodeElement)
+        return result
+    }
 
-    connections = 0
-
-    /**
-     * @param {PinEntity<T>} entity
-     * @param {PinTemplate} template
-     * @param {NodeElement} nodeElement
-     */
-    constructor(entity, template = undefined, nodeElement = undefined) {
-        super(entity, template ?? new (PinElement.getTypeTemplate(entity))())
+    initialize(
+        entity = /** @type {PinEntity<T>} */(new PinEntity()),
+        template = new (PinElement.getTypeTemplate(entity))(),
+        nodeElement = undefined
+    ) {
+        super.initialize(entity, template)
         this.pinId = this.entity.PinId
         this.pinType = this.entity.getType()
         this.advancedView = this.entity.bAdvancedView
@@ -132,7 +139,7 @@ export default class PinElement extends IElement {
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString())
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
-        this.nodeElement = nodeElement
+        this.nodeElement = /** @type {NodeElement} */(nodeElement)
 
         // this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
         this.entity.subscribe("PinToolTip", value => {
@@ -142,6 +149,11 @@ export default class PinElement extends IElement {
             }
             return Utility.formatStringName(this.entity.PinName)
         })
+    }
+
+    setup() {
+        super.setup()
+        this.nodeElement = this.closest("ueb-node")
     }
 
     /** @return {GuidEntity} */
@@ -175,7 +187,6 @@ export default class PinElement extends IElement {
         return this.template.getLinkLocation()
     }
 
-    /** @returns {NodeElement} */
     getNodeElement() {
         return this.nodeElement
     }
@@ -204,7 +215,9 @@ export default class PinElement extends IElement {
                 }
                 let link = this.blueprint.getLink(this, pin, true)
                 if (!link) {
-                    this.blueprint.addGraphElement(new (ElementFactory.getConstructor("ueb-link"))(this, pin))
+                    link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+                        .newObject(this, pin)
+                    this.blueprint.addGraphElement(link)
                 }
             }
             return pin

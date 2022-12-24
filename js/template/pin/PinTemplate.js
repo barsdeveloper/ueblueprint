@@ -5,7 +5,10 @@ import MouseCreateLink from "../../input/mouse/MouseCreateLink"
 import SVGIcon from "../../SVGIcon"
 import Utility from "../../Utility"
 
-/** @typedef {import("../../input/IInput").default} IInput */
+/**
+ * @typedef {import("../../input/IInput").default} IInput
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 /**
  * @template T
  * @typedef {import("../../element/PinElement").default<T>} PinElement
@@ -23,8 +26,8 @@ export default class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
-    connectedCallback() {
-        super.connectedCallback()
+    setup() {
+        super.setup()
         this.element.nodeElement = this.element.closest("ueb-node")
     }
 
@@ -66,7 +69,7 @@ export default class PinTemplate extends ITemplate {
         return html``
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     updated(changedProperties) {
         super.updated(changedProperties)
         if (this.element.isInput() && changedProperties.has("isLinked")) {
@@ -77,8 +80,7 @@ export default class PinTemplate extends ITemplate {
         }
     }
 
-
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.getPinColor(this.element).cssText)

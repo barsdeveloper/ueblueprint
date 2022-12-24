@@ -5,6 +5,7 @@ import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 import UnionType from "./UnionType"
 
+/** @typedef {typeof IEntity} EntityConstructor */
 /**
  * @template {IEntity} T
  * @typedef {new (Object) => T} IEntityConstructor
@@ -101,8 +102,7 @@ export default class IEntity extends Observable {
                 target[attribute] = TypeInitialization.sanitize(defaultValue, defaultType)
             }
         }
-        // @ts-expect-error
-        const attributes = this.constructor.attributes
+        const attributes = /** @type {typeof IEntity} */(this.constructor).attributes
         if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {

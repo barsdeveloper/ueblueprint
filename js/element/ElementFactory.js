@@ -1,6 +1,6 @@
 /**
- * @typedef {new (...args) => IElement} ElementConstructor
  * @typedef {import("./IElement").default} IElement
+ * @typedef {new (...args) => IElement} ElementConstructor
  */
 
 export default class ElementFactory {
@@ -16,9 +16,7 @@ export default class ElementFactory {
         ElementFactory.#elementConstructors.set(tagName, entityConstructor)
     }
 
-    /**
-     * @param {String} tagName
-     */
+    /** @param {String} tagName */
     static getConstructor(tagName) {
         return ElementFactory.#elementConstructors.get(tagName)
     }

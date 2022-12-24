@@ -2,9 +2,9 @@ import { html } from "lit"
 import MouseIgnore from "../../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 
-/**
- * @extends PinTemplate<Boolean>
- */
+/** @typedef {import("lit").PropertyValues} PropertyValues */
+
+/** @extends PinTemplate<Boolean> */
 export default class BoolInputPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement?} */
@@ -12,10 +12,14 @@ export default class BoolInputPinTemplate extends PinTemplate {
 
     #onChangeHandler = _ => this.element.setDefaultValue(this.#input.checked)
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.#input = this.element.querySelector(".ueb-pin-input")
+    }
+
+    setup() {
+        super.setup()
         this.#input?.addEventListener("change", this.#onChangeHandler)
     }
 

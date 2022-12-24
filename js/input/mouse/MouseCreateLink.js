@@ -3,8 +3,9 @@ import ElementFactory from "../../element/ElementFactory"
 import IMouseClickDrag from "./IMouseClickDrag"
 
 /**
- * @typedef {import("../../element/PinElement").default} PinElement
  * @typedef {import("../../element/LinkElement").default} LinkElement
+ * @typedef {import("../../element/LinkElement").LinkElementConstructor} LinkElementConstructor
+ * @typedef {import("../../element/PinElement").default} PinElement
  * @typedef {import("../../template/node/KnotNodeTemplate").default} KnotNodeTemplate
  */
 
@@ -71,8 +72,8 @@ export default class MouseCreateLink extends IMouseClickDrag {
             this.#knotPin = this.target
         }
         /** @type {LinkElement} */
-        // @ts-expect-error
-        this.link = new (ElementFactory.getConstructor("ueb-link"))(this.target, null)
+        this.link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+            .newObject(this.target, null)
         this.blueprint.linksContainerElement.prepend(this.link)
         this.link.setMessagePlaceNode()
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin")

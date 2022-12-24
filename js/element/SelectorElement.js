@@ -5,10 +5,20 @@ import SelectorTemplate from "../template/SelectorTemplate"
 /** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
 export default class SelectorElement extends IFromToPositionedElement {
 
+    /** @type {FastSelectionModel} */
+    selectionModel = null
+
     constructor() {
-        super({}, new SelectorTemplate())
-        /** @type {FastSelectionModel} */
-        this.selectionModel = null
+        super()
+        super.initialize({}, new SelectorTemplate())
+    }
+
+    static newObject() {
+        return new SelectorElement()
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
     }
 
     /** @param {Number[]} initialPosition */

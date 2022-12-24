@@ -8,8 +8,10 @@ import Utility from "../Utility"
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
- * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/LinkElement").LinkElementConstructor} LinkElementConstructor
+ * @typedef {import("../element/NodeElement").NodeElementConstructor} NodeElementConstructor
  * @typedef {import("./node/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 
@@ -65,13 +67,15 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         /** @param {Number[]} location */
         location => {
             const knotEntity = new KnotEntity({}, this.element.sourcePin.entity)
-            const knot = /** @type {NodeElement} */(new (ElementFactory.getConstructor("ueb-node"))(knotEntity))
+            const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
+                .newObject(knotEntity)
             knot.setLocation(this.element.blueprint.snapToGrid(location))
             this.element.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
-            const link = new (ElementFactory.getConstructor("ueb-link"))(
+            const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+                .newObject(
                 /** @type {KnotNodeTemplate} */(knot.template).outputPin,
-                this.element.destinationPin
-            )
+                    this.element.destinationPin
+                )
             this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin
             this.element.blueprint.addGraphElement(link)
         }
@@ -88,9 +92,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         ]
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
         const sourcePin = this.element.sourcePin
@@ -138,7 +140,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2)
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
         if (changedProperties.has("originatesFromInput")) {

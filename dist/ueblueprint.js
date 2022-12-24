@@ -604,6 +604,7 @@ class TypeInitialization {
 /**
  * @typedef {import("./element/IElement").default} IElement
  * @typedef {import("./entity/IEntity").default} IEntity
+ * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
  * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue
  */
@@ -697,8 +698,7 @@ class Utility {
     static isSerialized(
         entity,
         keys,
-        // @ts-expect-error
-        propertyDefinition = Utility.objectGet(entity.constructor.attributes, keys)
+        propertyDefinition = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
     ) {
         if (propertyDefinition instanceof CalculatedType) {
             return Utility.isSerialized(entity, keys, propertyDefinition.calculate(entity))
@@ -781,8 +781,7 @@ class Utility {
             // value is already a constructor
             return value
         }
-        /** @ts-expect-error */
-        return value?.constructor
+        return /** @type {AnyValueConstructor<IEntity>} */(value?.constructor)
     }
 
     /**
@@ -908,6 +907,7 @@ class Utility {
     }
 }
 
+/** @typedef {typeof IEntity} EntityConstructor */
 /**
  * @template {IEntity} T
  * @typedef {new (Object) => T} IEntityConstructor
@@ -1004,8 +1004,7 @@ class IEntity extends Observable {
                 target[attribute] = TypeInitialization.sanitize(defaultValue, defaultType);
             }
         };
-        // @ts-expect-error
-        const attributes = this.constructor.attributes;
+        const attributes = /** @type {typeof IEntity} */(this.constructor).attributes;
         if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {
@@ -2439,6 +2438,7 @@ class Grammar {
 }
 
 /**
+ * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
  */
 /**
@@ -2551,7 +2551,7 @@ class ISerializer {
 
     showProperty(entity, object, attributeKey, attributeValue) {
         // @ts-expect-error
-        const attributes = this.entityType.attributes;
+        const attributes = /** @type {EntityConstructor} */(this.entityType).attributes;
         const attribute = Utility.objectGet(attributes, attributeKey);
         if (attribute instanceof TypeInitialization) {
             if (attribute.ignored) {
@@ -2634,11 +2634,11 @@ class Copy extends IInput {
     }
 
     listenEvents() {
-        document.body.addEventListener("copy", this.#copyHandler);
+        window.addEventListener("copy", this.#copyHandler);
     }
 
     unlistenEvents() {
-        document.body.removeEventListener("copy", this.#copyHandler);
+        window.removeEventListener("copy", this.#copyHandler);
     }
 
     copied() {
@@ -2653,12 +2653,11 @@ class Copy extends IInput {
 /**
  * @typedef {import("../element/IElement").default} IElement
  * @typedef {import("../input/IInput").default} IInput
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /** @template {IElement} T */
 class ITemplate {
-
-    static styles = i$3``
 
     /** @type {T} */
     element
@@ -2670,23 +2669,26 @@ class ITemplate {
     }
 
     /** @param {T} element */
-    constructed(element) {
+    initialize(element) {
         this.element = element;
     }
 
-    /** @returns {IInput[]} */
     createInputObjects() {
-        return []
+        return /** @type {IInput[]} */([])
     }
 
-    connectedCallback() {
+    setup() {
     }
 
-    /** @param {Map} changedProperties */
+    cleanup() {
+        this.#inputObjects.forEach(v => v.unlistenDOMElement());
+    }
+
+    /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
     }
 
@@ -2694,20 +2696,16 @@ class ITemplate {
         return y``
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     updated(changedProperties) {
     }
 
     inputSetup() {
         this.#inputObjects = this.createInputObjects();
-    }
-
-    cleanup() {
-        this.#inputObjects.forEach(v => v.unlistenDOMElement());
     }
 }
 
@@ -2979,6 +2977,7 @@ class KeyboardSelectAll extends IKeyboardShortcut {
  * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../template/ITemplate").default} ITemplate
  * @typedef {import("lit").PropertyDeclarations} PropertyDeclarations
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /**
@@ -3017,6 +3016,9 @@ class IElement extends s {
         return this.#template
     }
 
+    isInitialized = false
+    isSetup = false
+
     /** @type {IInput[]} */
     inputObjects = []
 
@@ -3024,31 +3026,60 @@ class IElement extends s {
      * @param {T} entity
      * @param {U} template
      */
-    constructor(entity, template) {
-        super();
+    initialize(entity, template) {
+        this.requestUpdate();
         this.#entity = entity;
         this.#template = template;
-        this.inputObjects = [];
-        this.#template.constructed(this);
+        this.#template.initialize(this);
+        if (this.isConnected) {
+            this.updateComplete.then(() => this.setup());
+        }
+        this.isInitialized = true;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.blueprint = /** @type {Blueprint} */(this.closest("ueb-blueprint"));
+        if (this.isInitialized) {
+            this.requestUpdate();
+            this.updateComplete.then(() => this.setup());
+        }
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (this.isSetup) {
+            this.updateComplete.then(() => this.cleanup());
+        }
     }
 
     createRenderRoot() {
         return this
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-        this.blueprint = /** @type {Blueprint} */ this.closest("ueb-blueprint");
-        this.template.connectedCallback();
+    /** @param {PropertyValues} changedProperties */
+    shouldUpdate(changedProperties) {
+        return this.isInitialized && this.isConnected
     }
 
-    /** @param {Map} changedProperties */
+    setup() {
+        this.template.setup();
+        this.template.inputSetup();
+        this.isSetup = true;
+    }
+
+    cleanup() {
+        this.template.cleanup();
+        this.isSetup = false;
+    }
+
+    /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
         this.template.willUpdate(changedProperties);
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
         this.template.update(changedProperties);
@@ -3058,14 +3089,13 @@ class IElement extends s {
         return this.template.render()
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.template.firstUpdated(changedProperties);
-        this.template.inputSetup();
     }
 
-    /** @param {Map<String, String>} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     updated(changedProperties) {
         super.updated(changedProperties);
         this.template.updated(changedProperties);
@@ -3074,11 +3104,6 @@ class IElement extends s {
             f(changedProperties);
         }
         this.#nextUpdatedCallbacks = [];
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this.template.cleanup();
     }
 
     addNextUpdatedCallbacks(callback, requestUpdate = false) {
@@ -3098,13 +3123,14 @@ class IElement extends s {
      * @param {new (...args: any[]) => V} type
      */
     getInputObject(type) {
-        return /** @type {V} */ (this.template.inputObjects.find(object => object.constructor == type))
+        return /** @type {V} */(this.template.inputObjects.find(object => object.constructor == type))
     }
 }
 
 /**
- * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /**
@@ -3136,16 +3162,12 @@ class IDraggableElement extends IElement {
     static dragEventName = Configuration.dragEventName
     static dragGeneralEventName = Configuration.dragGeneralEventName
 
-    /**
-     * @param {T} entity
-     * @param {U} template
-     */
-    constructor(entity, template) {
-        super(entity, template);
+    constructor() {
+        super();
         this.locationX = 0;
         this.locationY = 0;
-        this.sizeX ??= 0; // It may be set in the template already
-        this.sizeY ??= 0; // It may be set in the template already
+        this.sizeX = 0;
+        this.sizeY = 0;
     }
 
     computeSizes() {
@@ -3155,7 +3177,7 @@ class IDraggableElement extends IElement {
         this.sizeY = bounding.height * scaleCorrection;
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.computeSizes();
@@ -3167,14 +3189,16 @@ class IDraggableElement extends IElement {
         this.locationX = x;
         this.locationY = y;
         if (this.blueprint && acknowledge) {
-            // @ts-expect-error
-            const dragLocalEvent = new CustomEvent(this.constructor.dragEventName, {
-                detail: {
-                    value: d,
-                },
-                bubbles: false,
-                cancelable: true,
-            });
+            const dragLocalEvent = new CustomEvent(
+                /** @type {typeof IDraggableElement} */(this.constructor).dragEventName,
+                {
+                    detail: {
+                        value: d,
+                    },
+                    bubbles: false,
+                    cancelable: true,
+                }
+            );
             this.dispatchEvent(dragLocalEvent);
         }
     }
@@ -3186,14 +3210,16 @@ class IDraggableElement extends IElement {
 
     /** @param {Number[]} value */
     acknowledgeDrag(value) {
-        // @ts-expect-error
-        const dragEvent = new CustomEvent(this.constructor.dragGeneralEventName, {
-            detail: {
-                value: value
-            },
-            bubbles: true,
-            cancelable: true
-        });
+        const dragEvent = new CustomEvent(
+            /** @type {typeof IDraggableElement} */(this.constructor).dragGeneralEventName,
+            {
+                detail: {
+                    value: value
+                },
+                bubbles: true,
+                cancelable: true
+            }
+        );
         this.dispatchEvent(dragEvent);
     }
 
@@ -3483,8 +3509,8 @@ class MouseTracking extends IPointing {
 }
 
 /**
- * @typedef {new (...args) => IElement} ElementConstructor
  * @typedef {import("./IElement").default} IElement
+ * @typedef {new (...args) => IElement} ElementConstructor
  */
 
 class ElementFactory {
@@ -3500,15 +3526,16 @@ class ElementFactory {
         ElementFactory.#elementConstructors.set(tagName, entityConstructor);
     }
 
-    /**
-     * @param {String} tagName
-     */
+    /** @param {String} tagName */
     static getConstructor(tagName) {
         return ElementFactory.#elementConstructors.get(tagName)
     }
 }
 
-/** @typedef {import("../../element/NodeElement").default} NodeElement */
+/**
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/NodeElement").NodeElementConstructor} NodeElementConstructor
+ */
 
 class Paste extends IInput {
 
@@ -3526,11 +3553,11 @@ class Paste extends IInput {
     }
 
     listenEvents() {
-        document.body.addEventListener("paste", this.#pasteHandle);
+        window.addEventListener("paste", this.#pasteHandle);
     }
 
     unlistenEvents() {
-        document.body.removeEventListener("paste", this.#pasteHandle);
+        window.removeEventListener("paste", this.#pasteHandle);
     }
 
     pasted(value) {
@@ -3539,8 +3566,8 @@ class Paste extends IInput {
         let count = 0;
         let nodes = Paste.#serializer.readMultiple(value).map(entity => {
             /** @type {NodeElement} */
-            // @ts-expect-error
-            let node = new (ElementFactory.getConstructor("ueb-node"))(entity);
+            let node = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
+                .newObject(entity);
             top += node.locationY;
             left += node.locationX;
             ++count;
@@ -3632,6 +3659,7 @@ class Unfocus extends IInput {
  * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../element/SelectorElement").default} SelectorElement
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /** @extends ITemplate<Blueprint> */
@@ -3651,8 +3679,8 @@ class BlueprintTemplate extends ITemplate {
     }
 
     /** @param {Blueprint} element */
-    constructed(element) {
-        super.constructed(element);
+    initialize(element) {
+        super.initialize(element);
         this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("");
     }
 
@@ -3701,7 +3729,7 @@ class BlueprintTemplate extends ITemplate {
         `
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.element.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'));
@@ -3716,7 +3744,7 @@ class BlueprintTemplate extends ITemplate {
         this.element.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
         if (this.element.headerElement && changedProperties.has("zoom")) {
@@ -3728,7 +3756,7 @@ class BlueprintTemplate extends ITemplate {
         }
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     updated(changedProperties) {
         super.updated(changedProperties);
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
@@ -3796,9 +3824,8 @@ class IFromToPositionedElement extends IElement {
         },
     }
 
-    constructor(...args) {
-        // @ts-expect-error
-        super(...args);
+    constructor() {
+        super();
         this.fromX = 0;
         this.fromY = 0;
         this.toX = 0;
@@ -3826,7 +3853,10 @@ class IFromToPositionedElement extends IElement {
     }
 }
 
-/** @typedef {import("../element/IFromToPositionedElement").default} IFromToPositionedElement */
+/**
+ * @typedef {import("../element/IFromToPositionedElement").default} IFromToPositionedElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 
 /**
  * @template {IFromToPositionedElement} T
@@ -3834,7 +3864,7 @@ class IFromToPositionedElement extends IElement {
  */
 class IFromToPositionedTemplate extends ITemplate {
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
         const [fromX, fromY, toX, toY] = [
@@ -3951,8 +3981,10 @@ class MouseDbClick extends IPointing {
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement
- * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/LinkElement").LinkElementConstructor} LinkElementConstructor
+ * @typedef {import("../element/NodeElement").NodeElementConstructor} NodeElementConstructor
  * @typedef {import("./node/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 
@@ -4008,13 +4040,15 @@ class LinkTemplate extends IFromToPositionedTemplate {
         /** @param {Number[]} location */
         location => {
             const knotEntity = new KnotEntity({}, this.element.sourcePin.entity);
-            const knot = /** @type {NodeElement} */(new (ElementFactory.getConstructor("ueb-node"))(knotEntity));
+            const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
+                .newObject(knotEntity);
             knot.setLocation(this.element.blueprint.snapToGrid(location));
             this.element.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
-            const link = new (ElementFactory.getConstructor("ueb-link"))(
+            const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+                .newObject(
                 /** @type {KnotNodeTemplate} */(knot.template).outputPin,
-                this.element.destinationPin
-            );
+                    this.element.destinationPin
+                );
             this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin;
             this.element.blueprint.addGraphElement(link);
         }
@@ -4031,9 +4065,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
         ]
     }
 
-    /**
-     * @param {Map} changedProperties
-     */
+    /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
         const sourcePin = this.element.sourcePin;
@@ -4081,7 +4113,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
         this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2);
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
         if (changedProperties.has("originatesFromInput")) {
@@ -4315,6 +4347,7 @@ class SVGIcon {
 /**
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("lit").TemplateResult<1>} TemplateResult
+ * @typedef {typeof LinkElement} LinkElementConstructor
  */
 
 /** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
@@ -4372,11 +4405,11 @@ class LinkElement extends IFromToPositionedElement {
         this.#setPin(pin, true);
     }
 
-    #nodeDeleteHandler
-    #nodeDragSourceHandler
-    #nodeDragDestinatonHandler
-    #nodeReflowSourceHandler
-    #nodeReflowDestinatonHandler
+    #nodeDeleteHandler = () => this.remove()
+    #nodeDragSourceHandler = e => this.addSourceLocation(e.detail.value)
+    #nodeDragDestinatonHandler = e => this.addDestinationLocation(e.detail.value)
+    #nodeReflowSourceHandler = e => this.setSourceLocation()
+    #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
 
     /** @type {TemplateResult | nothing} */
     linkMessageIcon = b
@@ -4386,18 +4419,8 @@ class LinkElement extends IFromToPositionedElement {
     /** @type {SVGPathElement} */
     pathElement
 
-    /**
-     * @param {PinElement} source
-     * @param {PinElement?} destination
-     */
-    constructor(source, destination) {
-        super({}, new LinkTemplate());
-        const self = this;
-        this.#nodeDeleteHandler = () => self.remove();
-        this.#nodeDragSourceHandler = e => self.addSourceLocation(e.detail.value);
-        this.#nodeDragDestinatonHandler = e => self.addDestinationLocation(e.detail.value);
-        this.#nodeReflowSourceHandler = e => self.setSourceLocation();
-        this.#nodeReflowDestinatonHandler = e => self.setDestinationLocation();
+    constructor() {
+        super();
         this.source = null;
         this.destination = null;
         this.dragging = false;
@@ -4405,6 +4428,24 @@ class LinkElement extends IFromToPositionedElement {
         this.startPercentage = 0;
         this.svgPathD = "";
         this.startPixels = 0;
+    }
+
+    /**
+     * @param {PinElement} source
+     * @param {PinElement?} destination
+     */
+    static newObject(source, destination) {
+        const result = new LinkElement();
+        result.initialize(source, destination);
+        return result
+    }
+
+    /**
+     * @param {PinElement} source
+     * @param {PinElement?} destination
+     */
+    initialize(source, destination) {
+        super.initialize({}, new LinkTemplate());
         if (source) {
             this.sourcePin = source;
             if (!destination) {
@@ -4479,8 +4520,8 @@ class LinkElement extends IFromToPositionedElement {
         }
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback();
+    cleanup() {
+        super.cleanup();
         this.#unlinkPins();
         this.sourcePin = null;
         this.destinationPin = null;
@@ -4717,7 +4758,10 @@ class IDraggableTemplate extends ITemplate {
     }
 }
 
-/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
+/**
+ * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 
 /**
  * @template {IDraggableElement} T
@@ -4725,7 +4769,7 @@ class IDraggableTemplate extends ITemplate {
  */
 class IDraggablePositionedTemplate extends IDraggableTemplate {
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
         if (changedProperties.has("locationX")) {
@@ -4776,6 +4820,7 @@ class MouseMoveNodes extends MouseMoveDraggable {
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
  */
 
@@ -4795,7 +4840,7 @@ class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
         }))
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         if (this.element.selected && !this.element.listeningDrag) {
@@ -4807,6 +4852,8 @@ class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
@@ -4837,8 +4884,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element);
+    initialize(element) {
+        super.initialize(element);
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
     }
 
@@ -4924,7 +4971,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getNodeDisplayName()
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.setupPins();
@@ -4951,9 +4998,9 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
                     this.#hasTargetInputNode = true;
                 }
-                return /** @type {PinElement} */(
-                    new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
-                )
+                let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                    .newObject(v, undefined, this.element);
+                return pinElement
             })
     }
 
@@ -4968,7 +5015,10 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     linksChanged() { }
 }
 
-/** @typedef {import("../element/NodeElement").default} NodeElement */
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 
 class IResizeableTemplate extends NodeTemplate {
 
@@ -4982,12 +5032,20 @@ class IResizeableTemplate extends NodeTemplate {
     #TLHandler = document.createElement("div")
 
     /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element);
+    initialize(element) {
+        super.initialize(element);
         this.element.classList.add("ueb-resizeable");
+        this.#THandler.classList.add("ueb-resizeable-top");
+        this.#RHandler.classList.add("ueb-resizeable-right");
+        this.#BHandler.classList.add("ueb-resizeable-bottom");
+        this.#LHandler.classList.add("ueb-resizeable-left");
+        this.#TRHandler.classList.add("ueb-resizeable-top-right");
+        this.#BRHandler.classList.add("ueb-resizeable-bottom-right");
+        this.#BLHandler.classList.add("ueb-resizeable-bottom-left");
+        this.#TLHandler.classList.add("ueb-resizeable-top-left");
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties);
         if (this.element.sizeX >= 0 && changedProperties.has("sizeX")) {
@@ -4998,17 +5056,9 @@ class IResizeableTemplate extends NodeTemplate {
         }
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.#THandler.classList.add("ueb-resizeable-top");
-        this.#RHandler.classList.add("ueb-resizeable-right");
-        this.#BHandler.classList.add("ueb-resizeable-bottom");
-        this.#LHandler.classList.add("ueb-resizeable-left");
-        this.#TRHandler.classList.add("ueb-resizeable-top-right");
-        this.#BRHandler.classList.add("ueb-resizeable-bottom-right");
-        this.#BLHandler.classList.add("ueb-resizeable-bottom-left");
-        this.#TLHandler.classList.add("ueb-resizeable-top-left");
         this.element.append(
             this.#THandler,
             this.#RHandler,
@@ -5031,21 +5081,21 @@ class IResizeableTemplate extends NodeTemplate {
                         this.element.addLocation([0, movement[1]], false);
                     }
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#RHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary();
                     this.setSizeX(this.element.sizeX + movement[0]);
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#BHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.bottomBoundary();
                     this.setSizeY(this.element.sizeY + movement[1]);
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#LHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -5054,7 +5104,7 @@ class IResizeableTemplate extends NodeTemplate {
                         this.element.addLocation([movement[0], 0], false);
                     }
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#TRHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -5065,7 +5115,7 @@ class IResizeableTemplate extends NodeTemplate {
                         this.element.addLocation([0, movement[1]], false);
                     }
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#BRHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -5074,7 +5124,7 @@ class IResizeableTemplate extends NodeTemplate {
                     this.setSizeX(this.element.sizeX + movement[0]);
                     this.setSizeY(this.element.sizeY + movement[1]);
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#BLHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -5085,7 +5135,7 @@ class IResizeableTemplate extends NodeTemplate {
                     }
                     this.setSizeY(this.element.sizeY + movement[1]);
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
             new MouseClickDrag(this.#TLHandler, this.element.blueprint, {
                 onDrag: (location, movement) => {
@@ -5098,7 +5148,7 @@ class IResizeableTemplate extends NodeTemplate {
                         this.element.addLocation([0, movement[1]], false);
                     }
                 },
-                onEndDrag : () => this.endResize(),
+                onEndDrag: () => this.endResize(),
             }),
         ]
     }
@@ -5115,12 +5165,14 @@ class IResizeableTemplate extends NodeTemplate {
         return true
     }
 
-    endResize() {}
+    endResize() {
+    }
 }
 
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 class CommentNodeTemplate extends IResizeableTemplate {
@@ -5129,15 +5181,19 @@ class CommentNodeTemplate extends IResizeableTemplate {
     #selectableAreaHeight = 0
 
     /** @param {NodeElement} element */
-    constructed(element) {
+    initialize(element) {
         if (element.entity.CommentColor) {
             this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber());
-            this.#color.setFromHSVA(this.#color.H.value, this.#color.S.value, Math.pow(this.#color.V.value, 0.45) * 0.67);
+            this.#color.setFromHSVA(
+                this.#color.H.value,
+                this.#color.S.value,
+                Math.pow(this.#color.V.value, 0.45) * 0.67
+            );
         }
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable");
         element.sizeX ??= 25 * Configuration.gridSize;
         element.sizeY ??= 6 * Configuration.gridSize;
-        super.constructed(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
+        super.initialize(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
     }
 
     getColor() {
@@ -5160,7 +5216,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
         `
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         const bounding = this.getDraggableElement().getBoundingClientRect();
@@ -5248,22 +5304,21 @@ class ISelectableDraggableElement extends IDraggableElement {
         },
     }
 
-    constructor(...args) {
-        // @ts-expect-error
-        super(...args);
+    dragHandler = e => this.addLocation(e.detail.value)
+
+    constructor() {
+        super();
         this.selected = false;
         this.listeningDrag = false;
-        let self = this;
-        this.dragHandler = e => self.addLocation(e.detail.value);
     }
 
-    connectedCallback() {
-        super.connectedCallback();
+    setup() {
+        super.setup();
         this.setSelected(this.selected);
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback();
+    cleanup() {
+        super.cleanup();
         this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
     }
 
@@ -5282,8 +5337,9 @@ class ISelectableDraggableElement extends IDraggableElement {
 }
 
 /**
- * @typedef {import("../../element/PinElement").default} PinElement
  * @typedef {import("../../element/LinkElement").default} LinkElement
+ * @typedef {import("../../element/LinkElement").LinkElementConstructor} LinkElementConstructor
+ * @typedef {import("../../element/PinElement").default} PinElement
  * @typedef {import("../../template/node/KnotNodeTemplate").default} KnotNodeTemplate
  */
 
@@ -5350,8 +5406,8 @@ class MouseCreateLink extends IMouseClickDrag {
             this.#knotPin = this.target;
         }
         /** @type {LinkElement} */
-        // @ts-expect-error
-        this.link = new (ElementFactory.getConstructor("ueb-link"))(this.target, null);
+        this.link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+            .newObject(this.target, null);
         this.blueprint.linksContainerElement.prepend(this.link);
         this.link.setMessagePlaceNode();
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin");
@@ -5404,7 +5460,10 @@ class MouseCreateLink extends IMouseClickDrag {
     }
 }
 
-/** @typedef {import("../../input/IInput").default} IInput */
+/**
+ * @typedef {import("../../input/IInput").default} IInput
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 /**
  * @template T
  * @typedef {import("../../element/PinElement").default<T>} PinElement
@@ -5422,8 +5481,8 @@ class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
-    connectedCallback() {
-        super.connectedCallback();
+    setup() {
+        super.setup();
         this.element.nodeElement = this.element.closest("ueb-node");
     }
 
@@ -5465,7 +5524,7 @@ class PinTemplate extends ITemplate {
         return y``
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     updated(changedProperties) {
         super.updated(changedProperties);
         if (this.element.isInput() && changedProperties.has("isLinked")) {
@@ -5476,8 +5535,7 @@ class PinTemplate extends ITemplate {
         }
     }
 
-
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.getPinColor(this.element).cssText);
@@ -5527,6 +5585,7 @@ class KnotPinTemplate extends PinTemplate {
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
  */
 
 class KnotNodeTemplate extends NodeTemplate {
@@ -5549,8 +5608,8 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 
     /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element);
+    initialize(element) {
+        super.initialize(element);
         this.element.classList.add("ueb-node-style-minimal");
     }
 
@@ -5596,19 +5655,12 @@ class KnotNodeTemplate extends NodeTemplate {
         const entities = this.element.getPinEntities().filter(v => !v.isHidden());
         const inputEntity = entities[entities[0].isInput() ? 0 : 1];
         const outputEntity = entities[entities[0].isOutput() ? 0 : 1];
-        const pinElementConstructor = ElementFactory.getConstructor("ueb-pin");
-        return [
-            this.#inputPin = /** @type {PinElement} */(new pinElementConstructor(
-                inputEntity,
-                new KnotPinTemplate(),
-                this.element
-            )),
-            this.#outputPin = /** @type {PinElement} */(new pinElementConstructor(
-                outputEntity,
-                new KnotPinTemplate(),
-                this.element
-            )),
-        ]
+        const pinElementConstructor = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"));
+        let result = [
+            this.#inputPin = pinElementConstructor.newObject(inputEntity, new KnotPinTemplate(), this.element),
+            this.#outputPin = pinElementConstructor.newObject(outputEntity, new KnotPinTemplate(), this.element),
+        ];
+        return result
     }
 
     linksChanged() {
@@ -5619,6 +5671,7 @@ class KnotNodeTemplate extends NodeTemplate {
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
  */
 
 class VariableAccessNodeTemplate extends NodeTemplate {
@@ -5628,8 +5681,8 @@ class VariableAccessNodeTemplate extends NodeTemplate {
     #displayName = ""
 
     /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element);
+    initialize(element) {
+        super.initialize(element);
         this.element.classList.add("ueb-node-style-glass");
         this.#displayName = this.element.getNodeDisplayName();
     }
@@ -5666,9 +5719,9 @@ class VariableAccessNodeTemplate extends NodeTemplate {
             .map(v => {
                 this.#hasInput ||= v.isInput();
                 this.#hasOutput ||= v.isOutput();
-                return /** @type {PinElement} */(
-                    new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
-                )
+                const result = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                    .newObject(v, undefined, this.element);
+                return result
             })
     }
 
@@ -5679,7 +5732,11 @@ class VariableAccessNodeTemplate extends NodeTemplate {
     }
 }
 
-/** @typedef {import("./IElement").default} IElement */
+/**
+ * @typedef {import("./IElement").default} IElement
+ * @typedef {import("./PinElement").default} PinElement
+ * @typedef {typeof NodeElement} NodeElementConstructor
+ */
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 class NodeElement extends ISelectableDraggableElement {
@@ -5745,7 +5802,8 @@ class NodeElement extends ISelectableDraggableElement {
         this.#nodeNameElement = value;
     }
 
-    #pins
+    /** @type {PinElement[]} */
+    #pins = []
     /** @type {NodeElement[]} */
     boundComments = []
     #commentDragged = false
@@ -5759,11 +5817,33 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     /**
+     * @param {ObjectEntity} nodeEntity
+     * @return {new () => NodeTemplate}
+     */
+    static getTypeTemplate(nodeEntity) {
+        let result = NodeElement.#typeTemplateMap[nodeEntity.getClass()];
+        return result ?? NodeTemplate
+    }
+
+    /** @param {String} str */
+    static fromSerializedObject(str) {
+        str = str.trim();
+        let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str);
+        return NodeElement.newObject(/** @type {ObjectEntity} */(entity))
+    }
+
+    /**
      * @param {ObjectEntity} entity
      * @param {NodeTemplate} template
      */
-    constructor(entity, template = undefined) {
-        super(entity, template ?? new (NodeElement.getTypeTemplate(entity))());
+    static newObject(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+        const result = new NodeElement();
+        result.initialize(entity, template);
+        return result
+    }
+
+    initialize(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+        super.initialize(entity, template);
         this.#pins = this.template.createPinElements();
         this.typePath = this.entity.getType();
         this.nodeName = this.entity.getObjectName();
@@ -5783,25 +5863,11 @@ class NodeElement extends ISelectableDraggableElement {
         }
     }
 
-    /**
-     * @param {ObjectEntity} nodeEntity
-     * @return {new () => NodeTemplate}
-     */
-    static getTypeTemplate(nodeEntity) {
-        let result = NodeElement.#typeTemplateMap[nodeEntity.getClass()];
-        return result ?? NodeTemplate
-    }
-
-    /** @param {String} str */
-    static fromSerializedObject(str) {
-        str = str.trim();
-        let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str);
-        // @ts-expect-error
-        return new NodeElement(entity)
-    }
-
     getUpdateComplete() {
-        return Promise.all([super.getUpdateComplete(), ...this.getPinElements().map(pin => pin.updateComplete)]).then(() => true)
+        return Promise.all([
+            super.getUpdateComplete(),
+            ...this.getPinElements().map(pin => pin.updateComplete)
+        ]).then(() => true)
     }
 
     /** @param {NodeElement} commentNode */
@@ -5830,8 +5896,8 @@ class NodeElement extends ISelectableDraggableElement {
             && this.leftBoundary() >= commentNode.leftBoundary()
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback();
+    cleanup() {
+        super.cleanup();
         this.acknowledgeDelete();
     }
 
@@ -5892,11 +5958,8 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     setLocation(value = [0, 0], acknowledge = true) {
-        let nodeConstructor = this.entity.NodePosX.constructor;
-        // @ts-expect-error
-        this.entity.NodePosX = new nodeConstructor(value[0]);
-        // @ts-expect-error
-        this.entity.NodePosY = new nodeConstructor(value[1]);
+        this.entity.NodePosX.value = value[0];
+        this.entity.NodePosY.value = value[1];
         super.setLocation(value, acknowledge);
     }
 
@@ -6206,10 +6269,20 @@ class SelectorTemplate extends IFromToPositionedTemplate {
 /** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
 class SelectorElement extends IFromToPositionedElement {
 
+    /** @type {FastSelectionModel} */
+    selectionModel = null
+
     constructor() {
-        super({}, new SelectorTemplate());
-        /** @type {FastSelectionModel} */
-        this.selectionModel = null;
+        super();
+        super.initialize({}, new SelectorTemplate());
+    }
+
+    static newObject() {
+        return new SelectorElement()
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
     }
 
     /** @param {Number[]} initialPosition */
@@ -6307,8 +6380,6 @@ class Blueprint extends IElement {
         },
     }
 
-    static styles = BlueprintTemplate.styles
-
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
     /** @type {NodeElement[]}" */
@@ -6331,7 +6402,6 @@ class Blueprint extends IElement {
     nodesContainerElement
     /** @type {HTMLElement} */
     headerElement
-    focused = false
     waitingExpandUpdate = false
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
@@ -6348,9 +6418,8 @@ class Blueprint extends IElement {
         node.setSelected(selected);
     }
 
-    /** @param {Configuration} settings */
-    constructor(settings = new Configuration()) {
-        super({}, new BlueprintTemplate());
+    constructor() {
+        super();
         this.selecting = false;
         this.scrolling = false;
         this.focused = false;
@@ -6359,14 +6428,15 @@ class Blueprint extends IElement {
         this.scrollY = Configuration.expandGridSize;
         this.translateX = Configuration.expandGridSize;
         this.translateY = Configuration.expandGridSize;
+        super.initialize({}, new BlueprintTemplate());
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
     }
 
     getGridDOMElement() {
         return this.gridElement
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
     }
 
     getScroll() {
@@ -6651,7 +6721,7 @@ class Blueprint extends IElement {
         if (this.focused == value) {
             return
         }
-        let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus");
+        let event = new CustomEvent(value ? Configuration.focusEventName.begin : Configuration.focusEventName.end);
         this.focused = value;
         if (!this.focused) {
             this.unselectAll();
@@ -6694,8 +6764,8 @@ class IDraggableControlTemplate extends IDraggableTemplate {
     movementSpace
     movementSpaceSize = [0, 0]
 
-    connectedCallback() {
-        super.connectedCallback();
+    setup() {
+        super.setup();
         this.movementSpace = this.element.parentElement;
         const bounding = this.movementSpace.getBoundingClientRect();
         this.movementSpaceSize = [bounding.width, bounding.height];
@@ -6754,16 +6824,8 @@ class IDraggableControlElement extends IDraggableElement {
     /** @type {WindowElement} */
     windowElement
 
-    /**
-     * @param {T} entity
-     * @param {U} template
-     */
-    constructor(entity, template) {
-        super(entity, template);
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
+    setup() {
+        super.setup();
         this.windowElement = this.closest("ueb-window");
     }
 
@@ -6773,17 +6835,20 @@ class IDraggableControlElement extends IDraggableElement {
     }
 }
 
-/** @typedef {import("../template/ColorPickerWindowTemplate").default} ColorPickerWindowTemplate */
-/**
- * @template T
- * @typedef {import("./WindowElement").default<T>} WindowElement
- */
-
 /** @extends {IDraggableControlElement<Object, ColorHandlerTemplate>} */
 class ColorHandlerElement extends IDraggableControlElement {
 
     constructor() {
-        super({}, new ColorHandlerTemplate());
+        super();
+        super.initialize({}, new ColorHandlerTemplate());
+    }
+
+    static newObject() {
+        return new ColorHandlerElement()
+    }
+
+    initialize() {
+        // It is initialized in the constructor
     }
 }
 
@@ -6801,13 +6866,20 @@ class ColorSliderTemplate extends IDraggableControlTemplate {
     }
 }
 
-/** @typedef {import("../template/IDraggableControlTemplate").default} IDraggableControlTemplate */
-
 /** @extends {IDraggableControlElement<Object, ColorSliderTemplate>} */
 class ColorSliderElement extends IDraggableControlElement {
 
     constructor() {
-        super({}, new ColorSliderTemplate());
+        super();
+        super.initialize({}, new ColorSliderTemplate());
+    }
+
+    static newObject() {
+        return new ColorSliderElement()
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
     }
 }
 
@@ -6833,19 +6905,20 @@ class InputTemplate extends ITemplate {
         /** @param {KeyboardEvent} e */
         e => {
             if (e.code == "Enter" && !e.shiftKey) {
-                    /** @type {HTMLElement} */(e.target).blur();
+                /** @type {HTMLElement} */(e.target).blur();
             }
         }
 
     /** @param {InputElement} element */
-    constructed(element) {
-        super.constructed(element);
+    initialize(element) {
+        super.initialize(element);
         this.element.classList.add("ueb-pin-input-content");
         this.element.setAttribute("role", "textbox");
         this.element.contentEditable = "true";
     }
 
-    connectedCallback() {
+    setup() {
+        super.setup();
         this.element.addEventListener("focus", this.#focusHandler);
         this.element.addEventListener("focusout", this.#focusoutHandler);
         if (this.element.singleLine) {
@@ -6857,14 +6930,11 @@ class InputTemplate extends ITemplate {
     }
 
     cleanup() {
+        super.cleanup();
         this.element.removeEventListener("focus", this.#focusHandler);
         this.element.removeEventListener("focusout", this.#focusoutHandler);
-        if (this.element.singleLine) {
-            this.element.removeEventListener("input", this.#inputSingleLineHandler);
-        }
-        if (this.element.blurOnEnter) {
-            this.element.removeEventListener("keydown", this.#onKeydownBlurOnEnterHandler);
-        }
+        this.element.removeEventListener("input", this.#inputSingleLineHandler);
+        this.element.removeEventListener("keydown", this.#onKeydownBlurOnEnterHandler);
     }
 }
 
@@ -6893,10 +6963,19 @@ class InputElement extends IElement {
     }
 
     constructor() {
-        super({}, new InputTemplate());
+        super();
         this.singleLine = false;
         this.selectOnFocus = true;
         this.blurOnEnter = true;
+        super.initialize({}, new InputTemplate());
+    }
+
+    static newObject() {
+        return new InputElement()
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
     }
 }
 
@@ -6916,9 +6995,9 @@ class MouseIgnore extends IMouseClickDrag {
     }
 }
 
-/**
- * @extends PinTemplate<Boolean>
- */
+/** @typedef {import("lit").PropertyValues} PropertyValues */
+
+/** @extends PinTemplate<Boolean> */
 class BoolInputPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement?} */
@@ -6926,10 +7005,14 @@ class BoolInputPinTemplate extends PinTemplate {
 
     #onChangeHandler = _ => this.element.setDefaultValue(this.#input.checked)
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.#input = this.element.querySelector(".ueb-pin-input");
+    }
+
+    setup() {
+        super.setup();
         this.#input?.addEventListener("change", this.#onChangeHandler);
     }
 
@@ -6971,6 +7054,8 @@ class ExecPinTemplate extends PinTemplate {
     }
 }
 
+/** @typedef {import("lit").PropertyValues} PropertyValues */
+
 /**
  * @template T
  * @typedef {import("../../element/PinElement").default<T>} PinElement
@@ -7007,15 +7092,17 @@ class IInputPinTemplate extends PinTemplate {
 
     #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
-        if (this.#inputContentElements.length) {
-            this.#inputContentElements.forEach(element => {
-                element.addEventListener("focusout", this.#onFocusOutHandler);
-            });
-        }
+    }
+
+    setup() {
+        super.setup();
+        this.#inputContentElements.forEach(element => {
+            element.addEventListener("focusout", this.#onFocusOutHandler);
+        });
     }
 
     cleanup() {
@@ -7043,10 +7130,9 @@ class IInputPinTemplate extends PinTemplate {
         )
     }
 
-    /** @param {String[]?} values */
+    /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = true) {
-        // @ts-expect-error
-        this.#inputContentElements.forEach(this.constructor.singleLineInput
+        this.#inputContentElements.forEach(/** @type {typeof IInputPinTemplate } */(this.constructor).singleLineInput
             ? (elem, i) => elem.innerText = values[i]
             : (elem, i) => elem.innerText = values[i].replaceAll("\n", "")
         );
@@ -7064,10 +7150,8 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        // @ts-expect-error
-        const singleLine = this.constructor.singleLineInput;
-        // @ts-expect-error
-        const selectOnFocus = this.constructor.selectOnFocus;
+        const singleLine = /** @type {typeof IInputPinTemplate} */(this.constructor).singleLineInput;
+        const selectOnFocus = /** @type {typeof IInputPinTemplate} */(this.constructor).selectOnFocus;
         return y`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
@@ -7205,39 +7289,23 @@ class WindowTemplate extends IDraggablePositionedTemplate {
     }
 }
 
-/** @typedef {import("../element/WindowElement").default} WindowElement */
+/**
+ * @typedef {import("../element/WindowElement").default} WindowElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 
 class ColorPickerWindowTemplate extends WindowTemplate {
 
-    /** @type {ColorHandlerElement} */
-    #wheelHandler
-
-    /** @type {ColorSliderElement} */
-    #saturationSlider
-
-    /** @type {ColorSliderElement} */
-    #valueSlider
-
-    /** @type {ColorSliderElement} */
-    #rSlider
-
-    /** @type {ColorSliderElement} */
-    #gSlider
-
-    /** @type {ColorSliderElement} */
-    #bSlider
-
-    /** @type {ColorSliderElement} */
-    #aSlider
-
-    /** @type {ColorSliderElement} */
-    #hSlider
-
-    /** @type {ColorSliderElement} */
-    #sSlider
-
-    /** @type {ColorSliderElement} */
-    #vSlider
+    /** @type {ColorHandlerElement} */ #wheelHandler
+    /** @type {ColorSliderElement} */ #saturationSlider
+    /** @type {ColorSliderElement} */ #valueSlider
+    /** @type {ColorSliderElement} */ #rSlider
+    /** @type {ColorSliderElement} */ #gSlider
+    /** @type {ColorSliderElement} */ #bSlider
+    /** @type {ColorSliderElement} */ #aSlider
+    /** @type {ColorSliderElement} */ #hSlider
+    /** @type {ColorSliderElement} */ #sSlider
+    /** @type {ColorSliderElement} */ #vSlider
 
     #hexRGBHandler =
         /** @param {UIEvent} v */
@@ -7280,7 +7348,6 @@ class ColorPickerWindowTemplate extends WindowTemplate {
     get color() {
         return this.#color
     }
-    /** @param {LinearColorEntity} value */
     set color(value) {
         if (value.toNumber() == this.color?.toNumber()) {
             return
@@ -7308,8 +7375,10 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         return opaque ? `${result.substring(0, 6)}FF` : result
     }
 
-    connectedCallback() {
-        super.connectedCallback();
+
+    /** @param {WindowElement} element */
+    initialize(element) {
+        super.initialize(element);
         this.#initialColor = this.element.windowOptions.getPinColor();
         this.color.setFromHSVA(
             this.initialColor.H.value,
@@ -7320,7 +7389,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         this.fullColor.setFromHSVA(this.color.H.value, 1, 1, 1);
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         this.#wheelHandler = this.element.querySelector(".ueb-color-picker-wheel ueb-color-handler");
         this.#saturationSlider = this.element.querySelector(".ueb-color-picker-saturation ueb-ui-slider");
@@ -7573,6 +7642,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
 
 /**
  * @typedef {import("../../element/WindowElement").default} WindowElement
+ * @typedef {import("../../element/WindowElement").WindowElementConstructor} WindowElementConstructor
  * @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity
  */
 
@@ -7586,17 +7656,17 @@ class LinearColorInputPinTemplate extends PinTemplate {
     #launchColorPickerWindow = e => {
         e.preventDefault();
         this.element.blueprint.setFocused(true);
-        this.#window = /** @type {WindowElement} */ (
-            new (ElementFactory.getConstructor("ueb-window"))({
-                type: ColorPickerWindowTemplate,
+        /** @type {WindowElement} */
+        this.#window = /** @type {WindowElementConstructor} */(ElementFactory.getConstructor("ueb-window"))
+            .newObject({
+                type: new ColorPickerWindowTemplate(),
                 windowOptions: {
                     // The created window will use the following functions to get and set the color
                     getPinColor: () => this.element.defaultValue,
                     /** @param {LinearColorEntity} color */
                     setPinColor: color => this.element.setDefaultValue(color),
                 },
-            })
-        );
+            });
         this.element.blueprint.append(this.#window);
         const windowApplyHandler = () => {
             this.element.setDefaultValue(
@@ -7765,16 +7835,15 @@ class VectorInputPinTemplate extends INumericPinTemplate {
 
 /**
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ * @typedef {import("./LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("lit").CSSResult} CSSResult
- */
-/**
- * @template T
- * @typedef {import("../entity/PinEntity").default<T>} PinEntity
+ * @typedef {typeof PinElement} PinElementConstructor
  */
 
 /**
- * @template T
+ * @template {AnyValue} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 class PinElement extends IElement {
@@ -7841,6 +7910,9 @@ class PinElement extends IElement {
         },
     }
 
+    /** @type {NodeElement} */
+    nodeElement
+
     /**
      * @param {PinEntity<any>} pinEntity
      * @return {new () => PinTemplate}
@@ -7859,18 +7931,22 @@ class PinElement extends IElement {
         return result ?? PinTemplate
     }
 
-    /** @type {NodeElement} */
-    nodeElement
+    static newObject(
+        entity = new PinEntity(),
+        template = new (PinElement.getTypeTemplate(entity))(),
+        nodeElement = undefined
+    ) {
+        const result = new PinElement();
+        result.initialize(entity, template, nodeElement);
+        return result
+    }
 
-    connections = 0
-
-    /**
-     * @param {PinEntity<T>} entity
-     * @param {PinTemplate} template
-     * @param {NodeElement} nodeElement
-     */
-    constructor(entity, template = undefined, nodeElement = undefined) {
-        super(entity, template ?? new (PinElement.getTypeTemplate(entity))());
+    initialize(
+        entity = /** @type {PinEntity<T>} */(new PinEntity()),
+        template = new (PinElement.getTypeTemplate(entity))(),
+        nodeElement = undefined
+    ) {
+        super.initialize(entity, template);
         this.pinId = this.entity.PinId;
         this.pinType = this.entity.getType();
         this.advancedView = this.entity.bAdvancedView;
@@ -7878,7 +7954,7 @@ class PinElement extends IElement {
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString());
         this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
-        this.nodeElement = nodeElement;
+        this.nodeElement = /** @type {NodeElement} */(nodeElement);
 
         // this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
         this.entity.subscribe("PinToolTip", value => {
@@ -7888,6 +7964,11 @@ class PinElement extends IElement {
             }
             return Utility.formatStringName(this.entity.PinName)
         });
+    }
+
+    setup() {
+        super.setup();
+        this.nodeElement = this.closest("ueb-node");
     }
 
     /** @return {GuidEntity} */
@@ -7921,7 +8002,6 @@ class PinElement extends IElement {
         return this.template.getLinkLocation()
     }
 
-    /** @returns {NodeElement} */
     getNodeElement() {
         return this.nodeElement
     }
@@ -7950,7 +8030,9 @@ class PinElement extends IElement {
                 }
                 let link = this.blueprint.getLink(this, pin, true);
                 if (!link) {
-                    this.blueprint.addGraphElement(new (ElementFactory.getConstructor("ueb-link"))(this, pin));
+                    link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+                        .newObject(this, pin);
+                    this.blueprint.addGraphElement(link);
                 }
             }
             return pin
@@ -7991,6 +8073,8 @@ class PinElement extends IElement {
     }
 }
 
+/** @typedef {typeof WindowElement} WindowElementConstructor */
+
 /**
  * @template {WindowTemplate} T
  * @extends {IDraggableElement<Object, T>}
@@ -8011,24 +8095,26 @@ class WindowElement extends IDraggableElement {
             converter: {
                 fromAttribute: (value, type) => WindowElement.#typeTemplateMap[value],
                 toAttribute: (value, type) =>
-                    Object.entries(WindowElement.#typeTemplateMap).find(([k, v]) => value == v)[0]
+                    Object.entries(WindowElement.#typeTemplateMap).find(([k, v]) => value.constructor === v)?.[0],
             },
         },
     }
 
-    constructor(options = {}) {
-        if (options.type.constructor == String) {
-            options.type = WindowElement.#typeTemplateMap[options.type];
-        }
-        options.type ??= WindowTemplate;
-        options.windowOptions ??= {};
-        super({}, new options.type());
-        this.type = options.type;
-        this.windowOptions = options.windowOptions;
+    static newObject(entity = {}, template = entity.type ?? new WindowTemplate()) {
+        const result = new WindowElement();
+        result.initialize(entity, template);
+        return result
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback();
+    initialize(entity = {}, template = entity.type ?? new WindowTemplate()) {
+        entity.windowOptions ??= {};
+        this.type = entity.type;
+        this.windowOptions = entity.windowOptions;
+        super.initialize(entity, template);
+    }
+
+    cleanup() {
+        super.cleanup();
         this.acknowledgeClose();
     }
 

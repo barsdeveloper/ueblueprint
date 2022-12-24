@@ -1,6 +1,9 @@
 import ITemplate from "./ITemplate"
 
-/** @typedef {import("../element/IFromToPositionedElement").default} IFromToPositionedElement */
+/**
+ * @typedef {import("../element/IFromToPositionedElement").default} IFromToPositionedElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 
 /**
  * @template {IFromToPositionedElement} T
@@ -8,7 +11,7 @@ import ITemplate from "./ITemplate"
  */
 export default class IFromToPositionedTemplate extends ITemplate {
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
         const [fromX, fromY, toX, toY] = [

@@ -24,22 +24,21 @@ export default class ISelectableDraggableElement extends IDraggableElement {
         },
     }
 
-    constructor(...args) {
-        // @ts-expect-error
-        super(...args)
+    dragHandler = e => this.addLocation(e.detail.value)
+
+    constructor() {
+        super()
         this.selected = false
         this.listeningDrag = false
-        let self = this
-        this.dragHandler = e => self.addLocation(e.detail.value)
     }
 
-    connectedCallback() {
-        super.connectedCallback()
+    setup() {
+        super.setup()
         this.setSelected(this.selected)
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback()
+    cleanup() {
+        super.cleanup()
         this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler)
     }
 

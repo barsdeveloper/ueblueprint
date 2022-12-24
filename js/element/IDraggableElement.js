@@ -3,8 +3,9 @@ import IElement from "./IElement"
 import Utility from "../Utility"
 
 /**
- * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
  * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /**
@@ -36,16 +37,12 @@ export default class IDraggableElement extends IElement {
     static dragEventName = Configuration.dragEventName
     static dragGeneralEventName = Configuration.dragGeneralEventName
 
-    /**
-     * @param {T} entity
-     * @param {U} template
-     */
-    constructor(entity, template) {
-        super(entity, template)
+    constructor() {
+        super()
         this.locationX = 0
         this.locationY = 0
-        this.sizeX ??= 0 // It may be set in the template already
-        this.sizeY ??= 0 // It may be set in the template already
+        this.sizeX = 0
+        this.sizeY = 0
     }
 
     computeSizes() {
@@ -55,7 +52,7 @@ export default class IDraggableElement extends IElement {
         this.sizeY = bounding.height * scaleCorrection
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.computeSizes()
@@ -67,14 +64,16 @@ export default class IDraggableElement extends IElement {
         this.locationX = x
         this.locationY = y
         if (this.blueprint && acknowledge) {
-            // @ts-expect-error
-            const dragLocalEvent = new CustomEvent(this.constructor.dragEventName, {
-                detail: {
-                    value: d,
-                },
-                bubbles: false,
-                cancelable: true,
-            })
+            const dragLocalEvent = new CustomEvent(
+                /** @type {typeof IDraggableElement} */(this.constructor).dragEventName,
+                {
+                    detail: {
+                        value: d,
+                    },
+                    bubbles: false,
+                    cancelable: true,
+                }
+            )
             this.dispatchEvent(dragLocalEvent)
         }
     }
@@ -86,14 +85,16 @@ export default class IDraggableElement extends IElement {
 
     /** @param {Number[]} value */
     acknowledgeDrag(value) {
-        // @ts-expect-error
-        const dragEvent = new CustomEvent(this.constructor.dragGeneralEventName, {
-            detail: {
-                value: value
-            },
-            bubbles: true,
-            cancelable: true
-        })
+        const dragEvent = new CustomEvent(
+            /** @type {typeof IDraggableElement} */(this.constructor).dragGeneralEventName,
+            {
+                detail: {
+                    value: value
+                },
+                bubbles: true,
+                cancelable: true
+            }
+        )
         this.dispatchEvent(dragEvent)
     }
 

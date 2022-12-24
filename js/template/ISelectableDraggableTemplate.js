@@ -3,6 +3,7 @@ import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
  */
 
@@ -22,7 +23,7 @@ export default class ISelectableDraggableTemplate extends IDraggablePositionedTe
         }))
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         if (this.element.selected && !this.element.listeningDrag) {

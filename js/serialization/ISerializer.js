@@ -5,6 +5,7 @@ import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
 
 /**
+ * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
  */
 /**
@@ -117,7 +118,7 @@ export default class ISerializer {
 
     showProperty(entity, object, attributeKey, attributeValue) {
         // @ts-expect-error
-        const attributes = this.entityType.attributes
+        const attributes = /** @type {EntityConstructor} */(this.entityType).attributes
         const attribute = Utility.objectGet(attributes, attributeKey)
         if (attribute instanceof TypeInitialization) {
             if (attribute.ignored) {

@@ -27,9 +27,18 @@ export default class InputElement extends IElement {
     }
 
     constructor() {
-        super({}, new InputTemplate())
+        super()
         this.singleLine = false
         this.selectOnFocus = true
         this.blurOnEnter = true
+        super.initialize({}, new InputTemplate())
+    }
+
+    static newObject() {
+        return new InputElement()
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
     }
 }

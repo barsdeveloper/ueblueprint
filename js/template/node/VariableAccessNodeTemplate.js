@@ -5,6 +5,7 @@ import NodeTemplate from "./NodeTemplate"
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
  */
 
 export default class VariableAccessNodeTemplate extends NodeTemplate {
@@ -14,8 +15,8 @@ export default class VariableAccessNodeTemplate extends NodeTemplate {
     #displayName = ""
 
     /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element)
+    initialize(element) {
+        super.initialize(element)
         this.element.classList.add("ueb-node-style-glass")
         this.#displayName = this.element.getNodeDisplayName()
     }
@@ -52,9 +53,9 @@ export default class VariableAccessNodeTemplate extends NodeTemplate {
             .map(v => {
                 this.#hasInput ||= v.isInput()
                 this.#hasOutput ||= v.isOutput()
-                return /** @type {PinElement} */(
-                    new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
-                )
+                const result = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                    .newObject(v, undefined, this.element)
+                return result
             })
     }
 

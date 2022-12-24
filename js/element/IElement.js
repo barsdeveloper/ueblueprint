@@ -6,6 +6,7 @@ import { LitElement } from "lit"
  * @typedef {import("../input/IInput").default} IInput
  * @typedef {import("../template/ITemplate").default} ITemplate
  * @typedef {import("lit").PropertyDeclarations} PropertyDeclarations
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /**
@@ -44,6 +45,9 @@ export default class IElement extends LitElement {
         return this.#template
     }
 
+    isInitialized = false
+    isSetup = false
+
     /** @type {IInput[]} */
     inputObjects = []
 
@@ -51,31 +55,60 @@ export default class IElement extends LitElement {
      * @param {T} entity
      * @param {U} template
      */
-    constructor(entity, template) {
-        super()
+    initialize(entity, template) {
+        this.requestUpdate()
         this.#entity = entity
         this.#template = template
-        this.inputObjects = []
-        this.#template.constructed(this)
+        this.#template.initialize(this)
+        if (this.isConnected) {
+            this.updateComplete.then(() => this.setup())
+        }
+        this.isInitialized = true
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.blueprint = /** @type {Blueprint} */(this.closest("ueb-blueprint"))
+        if (this.isInitialized) {
+            this.requestUpdate()
+            this.updateComplete.then(() => this.setup())
+        }
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        if (this.isSetup) {
+            this.updateComplete.then(() => this.cleanup())
+        }
     }
 
     createRenderRoot() {
         return this
     }
 
-    connectedCallback() {
-        super.connectedCallback()
-        this.blueprint = /** @type {Blueprint} */ this.closest("ueb-blueprint")
-        this.template.connectedCallback()
+    /** @param {PropertyValues} changedProperties */
+    shouldUpdate(changedProperties) {
+        return this.isInitialized && this.isConnected
     }
 
-    /** @param {Map} changedProperties */
+    setup() {
+        this.template.setup()
+        this.template.inputSetup()
+        this.isSetup = true
+    }
+
+    cleanup() {
+        this.template.cleanup()
+        this.isSetup = false
+    }
+
+    /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
         this.template.willUpdate(changedProperties)
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
         this.template.update(changedProperties)
@@ -85,14 +118,13 @@ export default class IElement extends LitElement {
         return this.template.render()
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.template.firstUpdated(changedProperties)
-        this.template.inputSetup()
     }
 
-    /** @param {Map<String, String>} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     updated(changedProperties) {
         super.updated(changedProperties)
         this.template.updated(changedProperties)
@@ -101,11 +133,6 @@ export default class IElement extends LitElement {
             f(changedProperties)
         }
         this.#nextUpdatedCallbacks = []
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback()
-        this.template.cleanup()
     }
 
     addNextUpdatedCallbacks(callback, requestUpdate = false) {
@@ -125,6 +152,6 @@ export default class IElement extends LitElement {
      * @param {new (...args: any[]) => V} type
      */
     getInputObject(type) {
-        return /** @type {V} */ (this.template.inputObjects.find(object => object.constructor == type))
+        return /** @type {V} */(this.template.inputObjects.find(object => object.constructor == type))
     }
 }

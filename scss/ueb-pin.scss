@@ -168,9 +168,13 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     }
 
     &::-webkit-scrollbar-thumb {
-        background: #575757;
+        background: transparent;
         border-radius: 10px;
         margin: 4px;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+        background: #575757;
     }
 }
 

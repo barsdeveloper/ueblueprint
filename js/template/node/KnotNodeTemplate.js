@@ -7,6 +7,7 @@ import NodeTemplate from "./NodeTemplate"
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
  */
 
 export default class KnotNodeTemplate extends NodeTemplate {
@@ -29,8 +30,8 @@ export default class KnotNodeTemplate extends NodeTemplate {
     }
 
     /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element)
+    initialize(element) {
+        super.initialize(element)
         this.element.classList.add("ueb-node-style-minimal")
     }
 
@@ -76,19 +77,12 @@ export default class KnotNodeTemplate extends NodeTemplate {
         const entities = this.element.getPinEntities().filter(v => !v.isHidden())
         const inputEntity = entities[entities[0].isInput() ? 0 : 1]
         const outputEntity = entities[entities[0].isOutput() ? 0 : 1]
-        const pinElementConstructor = ElementFactory.getConstructor("ueb-pin")
-        return [
-            this.#inputPin = /** @type {PinElement} */(new pinElementConstructor(
-                inputEntity,
-                new KnotPinTemplate(),
-                this.element
-            )),
-            this.#outputPin = /** @type {PinElement} */(new pinElementConstructor(
-                outputEntity,
-                new KnotPinTemplate(),
-                this.element
-            )),
+        const pinElementConstructor = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+        let result = [
+            this.#inputPin = pinElementConstructor.newObject(inputEntity, new KnotPinTemplate(), this.element),
+            this.#outputPin = pinElementConstructor.newObject(outputEntity, new KnotPinTemplate(), this.element),
         ]
+        return result
     }
 
     linksChanged() {

@@ -8,6 +8,8 @@ import Utility from "../../Utility"
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
  * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
@@ -38,8 +40,8 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     /** @param {NodeElement} element */
-    constructed(element) {
-        super.constructed(element)
+    initialize(element) {
+        super.initialize(element)
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
     }
 
@@ -125,7 +127,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getNodeDisplayName()
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.setupPins()
@@ -152,9 +154,9 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
                     this.#hasTargetInputNode = true
                 }
-                return /** @type {PinElement} */(
-                    new (ElementFactory.getConstructor("ueb-pin"))(v, undefined, this.element)
-                )
+                let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                    .newObject(v, undefined, this.element)
+                return pinElement
             })
     }
 

@@ -18,6 +18,7 @@ import Zoom from "../input/mouse/Zoom"
  * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("../element/SelectorElement").default} SelectorElement
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /** @extends ITemplate<Blueprint> */
@@ -37,8 +38,8 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     /** @param {Blueprint} element */
-    constructed(element) {
-        super.constructed(element)
+    initialize(element) {
+        super.initialize(element)
         this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("")
     }
 
@@ -87,7 +88,7 @@ export default class BlueprintTemplate extends ITemplate {
         `
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.element.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'))
@@ -102,7 +103,7 @@ export default class BlueprintTemplate extends ITemplate {
         this.element.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
         if (this.element.headerElement && changedProperties.has("zoom")) {
@@ -114,7 +115,7 @@ export default class BlueprintTemplate extends ITemplate {
         }
     }
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     updated(changedProperties) {
         super.updated(changedProperties)
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {

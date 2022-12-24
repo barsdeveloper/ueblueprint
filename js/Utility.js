@@ -5,6 +5,7 @@ import UnionType from "./entity/UnionType"
 /**
  * @typedef {import("./element/IElement").default} IElement
  * @typedef {import("./entity/IEntity").default} IEntity
+ * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
  * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue
  */
@@ -99,8 +100,7 @@ export default class Utility {
     static isSerialized(
         entity,
         keys,
-        // @ts-expect-error
-        propertyDefinition = Utility.objectGet(entity.constructor.attributes, keys)
+        propertyDefinition = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
     ) {
         if (propertyDefinition instanceof CalculatedType) {
             return Utility.isSerialized(entity, keys, propertyDefinition.calculate(entity))
@@ -183,8 +183,7 @@ export default class Utility {
             // value is already a constructor
             return value
         }
-        /** @ts-expect-error */
-        return value?.constructor
+        return /** @type {AnyValueConstructor<IEntity>} */(value?.constructor)
     }
 
     /**

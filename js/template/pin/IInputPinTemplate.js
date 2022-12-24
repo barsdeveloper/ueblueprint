@@ -3,6 +3,8 @@ import MouseIgnore from "../../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 import Utility from "../../Utility"
 
+/** @typedef {import("lit").PropertyValues} PropertyValues */
+
 /**
  * @template T
  * @typedef {import("../../element/PinElement").default<T>} PinElement
@@ -39,15 +41,17 @@ export default class IInputPinTemplate extends PinTemplate {
 
     #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
-        if (this.#inputContentElements.length) {
-            this.#inputContentElements.forEach(element => {
-                element.addEventListener("focusout", this.#onFocusOutHandler)
-            })
-        }
+    }
+
+    setup() {
+        super.setup()
+        this.#inputContentElements.forEach(element => {
+            element.addEventListener("focusout", this.#onFocusOutHandler)
+        })
     }
 
     cleanup() {
@@ -75,10 +79,9 @@ export default class IInputPinTemplate extends PinTemplate {
         )
     }
 
-    /** @param {String[]?} values */
+    /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = true) {
-        // @ts-expect-error
-        this.#inputContentElements.forEach(this.constructor.singleLineInput
+        this.#inputContentElements.forEach(/** @type {typeof IInputPinTemplate } */(this.constructor).singleLineInput
             ? (elem, i) => elem.innerText = values[i]
             : (elem, i) => elem.innerText = values[i].replaceAll("\n", "")
         )
@@ -96,10 +99,8 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        // @ts-expect-error
-        const singleLine = this.constructor.singleLineInput
-        // @ts-expect-error
-        const selectOnFocus = this.constructor.selectOnFocus
+        const singleLine = /** @type {typeof IInputPinTemplate} */(this.constructor).singleLineInput
+        const selectOnFocus = /** @type {typeof IInputPinTemplate} */(this.constructor).selectOnFocus
         return html`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"

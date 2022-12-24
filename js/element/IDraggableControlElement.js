@@ -16,16 +16,8 @@ export default class IDraggableControlElement extends IDraggableElement {
     /** @type {WindowElement} */
     windowElement
 
-    /**
-     * @param {T} entity
-     * @param {U} template
-     */
-    constructor(entity, template) {
-        super(entity, template)
-    }
-
-    connectedCallback() {
-        super.connectedCallback()
+    setup() {
+        super.setup()
         this.windowElement = this.closest("ueb-window")
     }
 

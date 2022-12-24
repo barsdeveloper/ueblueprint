@@ -17,11 +17,11 @@ export default class Copy extends IInput {
     }
 
     listenEvents() {
-        document.body.addEventListener("copy", this.#copyHandler)
+        window.addEventListener("copy", this.#copyHandler)
     }
 
     unlistenEvents() {
-        document.body.removeEventListener("copy", this.#copyHandler)
+        window.removeEventListener("copy", this.#copyHandler)
     }
 
     copied() {

@@ -1,6 +1,9 @@
 import IDraggableTemplate from "./IDraggableTemplate"
 
-/** @typedef {import("../element/IDraggableElement").default} IDraggableElement */
+/**
+ * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
 
 /**
  * @template {IDraggableElement} T
@@ -8,7 +11,7 @@ import IDraggableTemplate from "./IDraggableTemplate"
  */
 export default class IDraggablePositionedTemplate extends IDraggableTemplate {
 
-    /** @param {Map} changedProperties */
+    /** @param {PropertyValues} changedProperties */
     update(changedProperties) {
         super.update(changedProperties)
         if (changedProperties.has("locationX")) {

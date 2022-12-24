@@ -3,6 +3,8 @@ import Configuration from "../Configuration"
 import IDraggableElement from "./IDraggableElement"
 import WindowTemplate from "../template/WindowTemplate"
 
+/** @typedef {typeof WindowElement} WindowElementConstructor */
+
 /**
  * @template {WindowTemplate} T
  * @extends {IDraggableElement<Object, T>}
@@ -23,24 +25,26 @@ export default class WindowElement extends IDraggableElement {
             converter: {
                 fromAttribute: (value, type) => WindowElement.#typeTemplateMap[value],
                 toAttribute: (value, type) =>
-                    Object.entries(WindowElement.#typeTemplateMap).find(([k, v]) => value == v)[0]
+                    Object.entries(WindowElement.#typeTemplateMap).find(([k, v]) => value.constructor === v)?.[0],
             },
         },
     }
 
-    constructor(options = {}) {
-        if (options.type.constructor == String) {
-            options.type = WindowElement.#typeTemplateMap[options.type]
-        }
-        options.type ??= WindowTemplate
-        options.windowOptions ??= {}
-        super({}, new options.type())
-        this.type = options.type
-        this.windowOptions = options.windowOptions
+    static newObject(entity = {}, template = entity.type ?? new WindowTemplate()) {
+        const result = new WindowElement()
+        result.initialize(entity, template)
+        return result
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback()
+    initialize(entity = {}, template = entity.type ?? new WindowTemplate()) {
+        entity.windowOptions ??= {}
+        this.type = entity.type
+        this.windowOptions = entity.windowOptions
+        super.initialize(entity, template)
+    }
+
+    cleanup() {
+        super.cleanup()
         this.acknowledgeClose()
     }
 

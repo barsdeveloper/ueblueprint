@@ -11,7 +11,11 @@ import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
 import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTemplate"
 
-/** @typedef {import("./IElement").default} IElement */
+/**
+ * @typedef {import("./IElement").default} IElement
+ * @typedef {import("./PinElement").default} PinElement
+ * @typedef {typeof NodeElement} NodeElementConstructor
+ */
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 export default class NodeElement extends ISelectableDraggableElement {
@@ -77,7 +81,8 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.#nodeNameElement = value
     }
 
-    #pins
+    /** @type {PinElement[]} */
+    #pins = []
     /** @type {NodeElement[]} */
     boundComments = []
     #commentDragged = false
@@ -91,11 +96,33 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     /**
+     * @param {ObjectEntity} nodeEntity
+     * @return {new () => NodeTemplate}
+     */
+    static getTypeTemplate(nodeEntity) {
+        let result = NodeElement.#typeTemplateMap[nodeEntity.getClass()]
+        return result ?? NodeTemplate
+    }
+
+    /** @param {String} str */
+    static fromSerializedObject(str) {
+        str = str.trim()
+        let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str)
+        return NodeElement.newObject(/** @type {ObjectEntity} */(entity))
+    }
+
+    /**
      * @param {ObjectEntity} entity
      * @param {NodeTemplate} template
      */
-    constructor(entity, template = undefined) {
-        super(entity, template ?? new (NodeElement.getTypeTemplate(entity))())
+    static newObject(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+        const result = new NodeElement()
+        result.initialize(entity, template)
+        return result
+    }
+
+    initialize(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+        super.initialize(entity, template)
         this.#pins = this.template.createPinElements()
         this.typePath = this.entity.getType()
         this.nodeName = this.entity.getObjectName()
@@ -115,25 +142,11 @@ export default class NodeElement extends ISelectableDraggableElement {
         }
     }
 
-    /**
-     * @param {ObjectEntity} nodeEntity
-     * @return {new () => NodeTemplate}
-     */
-    static getTypeTemplate(nodeEntity) {
-        let result = NodeElement.#typeTemplateMap[nodeEntity.getClass()]
-        return result ?? NodeTemplate
-    }
-
-    /** @param {String} str */
-    static fromSerializedObject(str) {
-        str = str.trim()
-        let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str)
-        // @ts-expect-error
-        return new NodeElement(entity)
-    }
-
     getUpdateComplete() {
-        return Promise.all([super.getUpdateComplete(), ...this.getPinElements().map(pin => pin.updateComplete)]).then(() => true)
+        return Promise.all([
+            super.getUpdateComplete(),
+            ...this.getPinElements().map(pin => pin.updateComplete)
+        ]).then(() => true)
     }
 
     /** @param {NodeElement} commentNode */
@@ -162,8 +175,8 @@ export default class NodeElement extends ISelectableDraggableElement {
             && this.leftBoundary() >= commentNode.leftBoundary()
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback()
+    cleanup() {
+        super.cleanup()
         this.acknowledgeDelete()
     }
 
@@ -224,11 +237,8 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     setLocation(value = [0, 0], acknowledge = true) {
-        let nodeConstructor = this.entity.NodePosX.constructor
-        // @ts-expect-error
-        this.entity.NodePosX = new nodeConstructor(value[0])
-        // @ts-expect-error
-        this.entity.NodePosY = new nodeConstructor(value[1])
+        this.entity.NodePosX.value = value[0]
+        this.entity.NodePosY.value = value[1]
         super.setLocation(value, acknowledge)
     }
 

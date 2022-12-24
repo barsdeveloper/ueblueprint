@@ -23,8 +23,8 @@ export default class IDraggableControlTemplate extends IDraggableTemplate {
     movementSpace
     movementSpaceSize = [0, 0]
 
-    connectedCallback() {
-        super.connectedCallback()
+    setup() {
+        super.setup()
         this.movementSpace = this.element.parentElement
         const bounding = this.movementSpace.getBoundingClientRect()
         this.movementSpaceSize = [bounding.width, bounding.height]

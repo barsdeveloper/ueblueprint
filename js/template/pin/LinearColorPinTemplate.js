@@ -6,6 +6,7 @@ import PinTemplate from "./PinTemplate"
 
 /**
  * @typedef {import("../../element/WindowElement").default} WindowElement
+ * @typedef {import("../../element/WindowElement").WindowElementConstructor} WindowElementConstructor
  * @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity
  */
 
@@ -19,9 +20,10 @@ export default class LinearColorInputPinTemplate extends PinTemplate {
     #launchColorPickerWindow = e => {
         e.preventDefault()
         this.element.blueprint.setFocused(true)
-        this.#window = /** @type {WindowElement} */ (
-            new (ElementFactory.getConstructor("ueb-window"))({
-                type: ColorPickerWindowTemplate,
+        /** @type {WindowElement} */
+        this.#window = /** @type {WindowElementConstructor} */(ElementFactory.getConstructor("ueb-window"))
+            .newObject({
+                type: new ColorPickerWindowTemplate(),
                 windowOptions: {
                     // The created window will use the following functions to get and set the color
                     getPinColor: () => this.element.defaultValue,
@@ -29,7 +31,6 @@ export default class LinearColorInputPinTemplate extends PinTemplate {
                     setPinColor: color => this.element.setDefaultValue(color),
                 },
             })
-        )
         this.element.blueprint.append(this.#window)
         const windowApplyHandler = () => {
             this.element.setDefaultValue(

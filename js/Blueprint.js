@@ -72,8 +72,6 @@ export default class Blueprint extends IElement {
         },
     }
 
-    static styles = BlueprintTemplate.styles
-
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
     /** @type {NodeElement[]}" */
@@ -96,7 +94,6 @@ export default class Blueprint extends IElement {
     nodesContainerElement
     /** @type {HTMLElement} */
     headerElement
-    focused = false
     waitingExpandUpdate = false
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
@@ -113,9 +110,8 @@ export default class Blueprint extends IElement {
         node.setSelected(selected)
     }
 
-    /** @param {Configuration} settings */
-    constructor(settings = new Configuration()) {
-        super({}, new BlueprintTemplate())
+    constructor() {
+        super()
         this.selecting = false
         this.scrolling = false
         this.focused = false
@@ -124,14 +120,15 @@ export default class Blueprint extends IElement {
         this.scrollY = Configuration.expandGridSize
         this.translateX = Configuration.expandGridSize
         this.translateY = Configuration.expandGridSize
+        super.initialize({}, new BlueprintTemplate())
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
     }
 
     getGridDOMElement() {
         return this.gridElement
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback()
     }
 
     getScroll() {
@@ -418,7 +415,7 @@ export default class Blueprint extends IElement {
         if (this.focused == value) {
             return
         }
-        let event = new CustomEvent(value ? "blueprint-focus" : "blueprint-unfocus")
+        let event = new CustomEvent(value ? Configuration.focusEventName.begin : Configuration.focusEventName.end)
         this.focused = value
         if (!this.focused) {
             this.unselectAll()
