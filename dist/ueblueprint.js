@@ -1503,6 +1503,23 @@ class RotatorEntity extends IEntity {
 class SimpleSerializationRotatorEntity extends RotatorEntity {
 }
 
+class Vector2DEntity extends IEntity {
+
+    static attributes = {
+        X: Number,
+        Y: Number,
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {Number} */ this.X;
+        /** @type {Number} */ this.Y;
+    }
+}
+
+class SimpleSerializationVector2DEntity extends Vector2DEntity {
+}
+
 class VectorEntity extends IEntity {
 
     static attributes = {
@@ -1530,6 +1547,7 @@ class PinEntity extends IEntity {
     static #typeEntityMap = {
         "/Script/CoreUObject.LinearColor": LinearColorEntity,
         "/Script/CoreUObject.Rotator": RotatorEntity,
+        "/Script/CoreUObject.Vector2D": Vector2DEntity,
         "/Script/CoreUObject.Vector": VectorEntity,
         "bool": Boolean,
         "exec": String,
@@ -1539,6 +1557,7 @@ class PinEntity extends IEntity {
         "string": String,
     }
     static #alternativeTypeEntityMap = {
+        "/Script/CoreUObject.Vector2D": SimpleSerializationVector2DEntity,
         "/Script/CoreUObject.Vector": SimpleSerializationVectorEntity,
         "/Script/CoreUObject.Rotator": SimpleSerializationRotatorEntity,
     }
@@ -2018,6 +2037,8 @@ class Grammar {
                 return r.Rotator
             case SimpleSerializationRotatorEntity:
                 return r.SimpleSerializationRotator
+            case SimpleSerializationVector2DEntity:
+                return r.SimpleSerializationVector2D
             case SimpleSerializationVectorEntity:
                 return r.SimpleSerializationVector
             case String:
@@ -2032,6 +2053,8 @@ class Grammar {
                         : accum.or(cur))
             case VariableReferenceEntity:
                 return r.VariableReference
+            case Vector2DEntity:
+                return r.Vector2D
             case VectorEntity:
                 return r.Vector
             default:
@@ -2237,6 +2260,7 @@ class Grammar {
         r.LocalizedText,
         r.InvariantText,
         r.PinReference,
+        Grammar.createEntityGrammar(r, Vector2DEntity, true),
         Grammar.createEntityGrammar(r, VectorEntity, true),
         Grammar.createEntityGrammar(r, LinearColorEntity, true),
         r.UnknownKeys,
@@ -2256,6 +2280,9 @@ class Grammar {
     )
 
     /** @param {Grammar} r */
+    Vector2D = r => Grammar.createEntityGrammar(r, Vector2DEntity)
+
+    /** @param {Grammar} r */
     Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
 
     /** @param {Grammar} r */
@@ -2271,6 +2298,17 @@ class Grammar {
         (p, _1, y, _3, r) => new SimpleSerializationRotatorEntity({
             R: r,
             P: p,
+            Y: y,
+        })
+    )
+
+    /** @param {Grammar} r */
+    SimpleSerializationVector2D = r => P.seqMap(
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        (x, _1, y) => new SimpleSerializationVector2DEntity({
+            X: x,
             Y: y,
         })
     )
@@ -5191,8 +5229,8 @@ class CommentNodeTemplate extends IResizeableTemplate {
             );
         }
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable");
-        element.sizeX ??= 25 * Configuration.gridSize;
-        element.sizeY ??= 6 * Configuration.gridSize;
+        element.sizeX = 25 * Configuration.gridSize;
+        element.sizeY = 6 * Configuration.gridSize;
         super.initialize(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
     }
 
@@ -5539,7 +5577,7 @@ class PinTemplate extends ITemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.getPinColor(this.element).cssText);
-        this.#iconElement = this.element.querySelector(".ueb-pin-icon") ?? this.element;
+        this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element;
     }
 
     getLinkLocation() {
@@ -6848,7 +6886,7 @@ class ColorHandlerElement extends IDraggableControlElement {
     }
 
     initialize() {
-        // It is initialized in the constructor
+        // Initialized in the constructor, this method does nothing
     }
 }
 
@@ -7782,9 +7820,54 @@ class StringInputPinTemplate extends IInputPinTemplate {
 /** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
 
 /**
- * @extends INumericPinTemplate<VectorEntity>
+ * @extends INumericPinTemplate<Vector2DEntity>
  */
 class VectorInputPinTemplate extends INumericPinTemplate {
+
+    #getX() {
+        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0))
+    }
+
+    #getY() {
+        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
+    }
+
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values, rawValues) {
+        const vector = this.element.getDefaultValue(true);
+        if (!(vector instanceof Vector2DEntity)) {
+            throw new TypeError("Expected DefaultValue to be a Vector2DEntity")
+        }
+        vector.X = values[0];
+        vector.Y = values[1];
+        this.element.requestUpdate("DefaultValue", vector);
+    }
+
+    renderInput() {
+        return y`
+            <div class="ueb-pin-input-wrapper">
+                <span class="ueb-pin-input-label">X</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getX()}"></ueb-input>
+                </div>
+                <span class="ueb-pin-input-label">Y</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getY()}"></ueb-input>
+                </div>
+            </div>
+        `
+    }
+}
+
+/** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
+
+/**
+ * @extends INumericPinTemplate<VectorEntity>
+ */
+class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {
         return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0))
@@ -7851,7 +7934,8 @@ class PinElement extends IElement {
     static #inputPinTemplates = {
         "/Script/CoreUObject.LinearColor": LinearColorInputPinTemplate,
         "/Script/CoreUObject.Rotator": RotatorInputPinTemplate,
-        "/Script/CoreUObject.Vector": VectorInputPinTemplate,
+        "/Script/CoreUObject.Vector2D": VectorInputPinTemplate,
+        "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolInputPinTemplate,
         "int": IntInputPinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
@@ -8418,6 +8502,14 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        SimpleSerializationVector2DEntity,
+        new CustomSerializer(
+            (value, insideString) => `${value.X}, ${value.Y}`,
+            SimpleSerializationVector2DEntity
+        )
+    );
+
+    SerializerFactory.registerSerializer(
         SimpleSerializationVectorEntity,
         new CustomSerializer(
             (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
@@ -8438,6 +8530,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         VariableReferenceEntity,
         new GeneralSerializer(bracketsWrapped, VariableReferenceEntity)
+    );
+
+    SerializerFactory.registerSerializer(
+        Vector2DEntity,
+        new GeneralSerializer(bracketsWrapped, Vector2DEntity)
     );
 
     SerializerFactory.registerSerializer(

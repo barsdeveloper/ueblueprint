@@ -16,7 +16,8 @@ import ReferencePinTemplate from "../template/pin/ReferencePinTemplate"
 import RotatorInputPinTemplate from "../template/pin/RotatorInputPinTemplate"
 import StringInputPinTemplate from "../template/pin/StringInputPinTemplate"
 import Utility from "../Utility"
-import VectorInputPinTemplate from "../template/pin/VectorInputPinTemplate"
+import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate"
+import VectorPinTemplate from "../template/pin/VectorPinTemplate"
 
 /**
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
@@ -36,7 +37,8 @@ export default class PinElement extends IElement {
     static #inputPinTemplates = {
         "/Script/CoreUObject.LinearColor": LinearColorInputPinTemplate,
         "/Script/CoreUObject.Rotator": RotatorInputPinTemplate,
-        "/Script/CoreUObject.Vector": VectorInputPinTemplate,
+        "/Script/CoreUObject.Vector2D": Vector2DPinTemplate,
+        "/Script/CoreUObject.Vector": VectorPinTemplate,
         "bool": BoolInputPinTemplate,
         "int": IntInputPinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,

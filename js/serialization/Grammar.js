@@ -24,7 +24,9 @@ import UnionType from "../entity/UnionType"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity"
 import Utility from "../Utility"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity"
+import Vector2DEntity from "../entity/Vector2DEntity"
 import VectorEntity from "../entity/VectorEntity"
+import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity"
 
 let P = Parsimmon
 
@@ -89,6 +91,8 @@ export default class Grammar {
                 return r.Rotator
             case SimpleSerializationRotatorEntity:
                 return r.SimpleSerializationRotator
+            case SimpleSerializationVector2DEntity:
+                return r.SimpleSerializationVector2D
             case SimpleSerializationVectorEntity:
                 return r.SimpleSerializationVector
             case String:
@@ -103,6 +107,8 @@ export default class Grammar {
                         : accum.or(cur))
             case VariableReferenceEntity:
                 return r.VariableReference
+            case Vector2DEntity:
+                return r.Vector2D
             case VectorEntity:
                 return r.Vector
             default:
@@ -308,6 +314,7 @@ export default class Grammar {
         r.LocalizedText,
         r.InvariantText,
         r.PinReference,
+        Grammar.createEntityGrammar(r, Vector2DEntity, true),
         Grammar.createEntityGrammar(r, VectorEntity, true),
         Grammar.createEntityGrammar(r, LinearColorEntity, true),
         r.UnknownKeys,
@@ -327,6 +334,9 @@ export default class Grammar {
     )
 
     /** @param {Grammar} r */
+    Vector2D = r => Grammar.createEntityGrammar(r, Vector2DEntity)
+
+    /** @param {Grammar} r */
     Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
 
     /** @param {Grammar} r */
@@ -342,6 +352,17 @@ export default class Grammar {
         (p, _1, y, _3, r) => new SimpleSerializationRotatorEntity({
             R: r,
             P: p,
+            Y: y,
+        })
+    )
+
+    /** @param {Grammar} r */
+    SimpleSerializationVector2D = r => P.seqMap(
+        r.Number,
+        P.string(",").trim(P.optWhitespace),
+        r.Number,
+        (x, _1, y) => new SimpleSerializationVector2DEntity({
+            X: x,
             Y: y,
         })
     )

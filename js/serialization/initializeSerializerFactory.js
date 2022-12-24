@@ -25,7 +25,9 @@ import ToStringSerializer from "./ToStringSerializer"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity"
 import Utility from "../Utility"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity"
+import Vector2DEntity from "../entity/Vector2DEntity"
 import VectorEntity from "../entity/VectorEntity"
+import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity"
 
 export default function initializeSerializerFactory() {
 
@@ -187,6 +189,14 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        SimpleSerializationVector2DEntity,
+        new CustomSerializer(
+            (value, insideString) => `${value.X}, ${value.Y}`,
+            SimpleSerializationVector2DEntity
+        )
+    )
+
+    SerializerFactory.registerSerializer(
         SimpleSerializationVectorEntity,
         new CustomSerializer(
             (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
@@ -207,6 +217,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         VariableReferenceEntity,
         new GeneralSerializer(bracketsWrapped, VariableReferenceEntity)
+    )
+
+    SerializerFactory.registerSerializer(
+        Vector2DEntity,
+        new GeneralSerializer(bracketsWrapped, Vector2DEntity)
     )
 
     SerializerFactory.registerSerializer(

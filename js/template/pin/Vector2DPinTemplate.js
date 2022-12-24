@@ -2,12 +2,12 @@ import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericInputPinTemplate"
 import Utility from "../../Utility"
-import VectorEntity from "../../entity/VectorEntity"
+import Vector2DEntity from "../../entity/Vector2DEntity"
 
 /** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
 
 /**
- * @extends INumericPinTemplate<VectorEntity>
+ * @extends INumericPinTemplate<Vector2DEntity>
  */
 export default class VectorInputPinTemplate extends INumericPinTemplate {
 
@@ -19,22 +19,17 @@ export default class VectorInputPinTemplate extends INumericPinTemplate {
         return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
     }
 
-    #getZ() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Z ?? 0))
-    }
-
     /**
      * @param {Number[]} values
      * @param {String[]} rawValues
      */
     setDefaultValue(values, rawValues) {
         const vector = this.element.getDefaultValue(true)
-        if (!(vector instanceof VectorEntity)) {
-            throw new TypeError("Expected DefaultValue to be a VectorEntity")
+        if (!(vector instanceof Vector2DEntity)) {
+            throw new TypeError("Expected DefaultValue to be a Vector2DEntity")
         }
         vector.X = values[0]
         vector.Y = values[1]
-        vector.Z = values[2]
         this.element.requestUpdate("DefaultValue", vector)
     }
 
@@ -48,10 +43,6 @@ export default class VectorInputPinTemplate extends INumericPinTemplate {
                 <span class="ueb-pin-input-label">Y</span>
                 <div class="ueb-pin-input">
                     <ueb-input .singleLine="${true}" .innerText="${this.#getY()}"></ueb-input>
-                </div>
-                <span class="ueb-pin-input-label">Z</span>
-                <div class="ueb-pin-input">
-                    <ueb-input .singleLine="${true}" .innerText="${this.#getZ()}"></ueb-input>
                 </div>
             </div>
         `

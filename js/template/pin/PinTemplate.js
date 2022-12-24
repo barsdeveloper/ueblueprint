@@ -84,7 +84,7 @@ export default class PinTemplate extends ITemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.getPinColor(this.element).cssText)
-        this.#iconElement = this.element.querySelector(".ueb-pin-icon") ?? this.element
+        this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element
     }
 
     getLinkLocation() {

@@ -8,10 +8,12 @@ import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinReferenceEntity from "./PinReferenceEntity"
 import RotatorEntity from "./RotatorEntity"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity"
+import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEntity"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity"
 import TypeInitialization from "./TypeInitialization"
 import UnionType from "./UnionType"
 import Utility from "../Utility"
+import Vector2DEntity from "./Vector2DEntity"
 import VectorEntity from "./VectorEntity"
 
 /** @typedef {import("./TypeInitialization").AnyValue} AnyValue */
@@ -22,6 +24,7 @@ export default class PinEntity extends IEntity {
     static #typeEntityMap = {
         "/Script/CoreUObject.LinearColor": LinearColorEntity,
         "/Script/CoreUObject.Rotator": RotatorEntity,
+        "/Script/CoreUObject.Vector2D": Vector2DEntity,
         "/Script/CoreUObject.Vector": VectorEntity,
         "bool": Boolean,
         "exec": String,
@@ -31,6 +34,7 @@ export default class PinEntity extends IEntity {
         "string": String,
     }
     static #alternativeTypeEntityMap = {
+        "/Script/CoreUObject.Vector2D": SimpleSerializationVector2DEntity,
         "/Script/CoreUObject.Vector": SimpleSerializationVectorEntity,
         "/Script/CoreUObject.Rotator": SimpleSerializationRotatorEntity,
     }
