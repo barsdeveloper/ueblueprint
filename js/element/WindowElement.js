@@ -43,6 +43,12 @@ export default class WindowElement extends IDraggableElement {
         super.initialize(entity, template)
     }
 
+    setup() {
+        super.setup()
+        this.locationX = this.blueprint.mousePosition[0]
+        this.locationY = this.blueprint.mousePosition[1]
+    }
+
     cleanup() {
         super.cleanup()
         this.acknowledgeClose()

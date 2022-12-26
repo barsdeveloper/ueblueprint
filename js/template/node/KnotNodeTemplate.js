@@ -45,7 +45,7 @@ export default class KnotNodeTemplate extends NodeTemplate {
             return true
         }
         KnotNodeTemplate.#traversedPin.add(startingPin)
-        for (let pin of startingPin.getLinks().map(l => this.element.blueprint.getPin(l))) {
+        for (let pin of startingPin.getLinks().map(l => this.blueprint.getPin(l))) {
             if (this.findDirectionaPin(pin)) {
                 return true
             }

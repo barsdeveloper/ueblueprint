@@ -1,8 +1,6 @@
 import IInput from "../IInput"
 import Utility from "../../Utility"
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
-
 /**
  * @template {HTMLElement} T
  * @extends {IInput<T>}
@@ -13,6 +11,7 @@ export default class IPointing extends IInput {
         options.ignoreTranslateCompensate ??= false
         options.movementSpace ??= blueprint.getGridDOMElement() ?? document.documentElement
         super(target, blueprint, options)
+        /** @type {HTMLElement} */
         this.movementSpace = options.movementSpace
     }
 

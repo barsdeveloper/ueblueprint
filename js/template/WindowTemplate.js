@@ -16,10 +16,10 @@ export default class WindowTemplate extends IDraggablePositionedTemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+        return new MouseMoveDraggable(this.element, this.blueprint, {
             draggableElement: this.getDraggableElement(),
             ignoreTranslateCompensate: true,
-            movementSpace: this.element.blueprint,
+            movementSpace: this.blueprint,
             stepSize: 1,
         })
     }

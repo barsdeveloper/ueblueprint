@@ -25,11 +25,11 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
      * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
      * @param {Number} m slope
      * @param {Number[]} p reference point
-     * @returns Maximum value
      */
     static decreasingValue(m, p) {
         const a = -m * p[0] ** 2
         const q = p[1] - a / p[0]
+        /** @param {Number} x */
         return x => a / x + q
     }
 
@@ -63,29 +63,28 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
 
     static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
-    #createKnot =
-        /** @param {Number[]} location */
-        location => {
-            const knotEntity = new KnotEntity({}, this.element.sourcePin.entity)
-            const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
-                .newObject(knotEntity)
-            knot.setLocation(this.element.blueprint.snapToGrid(location))
-            this.element.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
-            const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
-                .newObject(
+    /** @type {(location: Number[]) => void} */
+    #createKnot = location => {
+        const knotEntity = new KnotEntity({}, this.element.sourcePin.entity)
+        const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
+            .newObject(knotEntity)
+        knot.setLocation(this.blueprint.snapToGrid(location))
+        this.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
+        const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+            .newObject(
                 /** @type {KnotNodeTemplate} */(knot.template).outputPin,
-                    this.element.destinationPin
-                )
-            this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin
-            this.element.blueprint.addGraphElement(link)
-        }
+                this.element.destinationPin
+            )
+        this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin
+        this.blueprint.addGraphElement(link)
+    }
 
     createInputObjects() {
         return [
             ...super.createInputObjects(),
             new MouseDbClick(
                 this.element.querySelector(".ueb-link-area"),
-                this.element.blueprint,
+                this.blueprint,
                 undefined,
                 (location) => this.#createKnot(location)
             )

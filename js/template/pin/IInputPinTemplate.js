@@ -64,7 +64,7 @@ export default class IInputPinTemplate extends PinTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.element.blueprint)),
+            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.blueprint)),
         ]
     }
 

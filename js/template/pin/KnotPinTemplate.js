@@ -13,7 +13,7 @@ export default class KnotPinTemplate extends PinTemplate {
     getLinkLocation() {
         const rect = (
             this.element.isInput()
-                ? /** @type {KnotNodeTemplate} */ (this.element.nodeElement.template).outputPin.template
+                ? /** @type {KnotNodeTemplate} */(this.element.nodeElement.template).outputPin.template
                 : this
         )
             .iconElement.getBoundingClientRect()
@@ -22,8 +22,8 @@ export default class KnotPinTemplate extends PinTemplate {
                 this.element.isInput() ? rect.left + 1 : rect.right + 2,
                 (rect.top + rect.bottom) / 2,
             ],
-            this.element.blueprint.gridElement
+            this.blueprint.template.gridElement
         )
-        return this.element.blueprint.compensateTranslation(location)
+        return this.blueprint.compensateTranslation(location)
     }
 }

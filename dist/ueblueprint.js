@@ -279,6 +279,10 @@ class IInput {
     /** @type {Object} */
     options
 
+
+    listenHandler = () => this.listenEvents()
+    unlistenHandler = () => this.unlistenEvents()
+
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
@@ -291,9 +295,9 @@ class IInput {
         this.#target = target;
         this.#blueprint = blueprint;
         this.options = options;
-        let self = this;
-        this.listenHandler = _ => self.listenEvents();
-        this.unlistenHandler = _ => self.unlistenEvents();
+    }
+
+    setup() {
         if (this.options.listenOnFocus) {
             this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler);
             this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler);
@@ -302,9 +306,12 @@ class IInput {
             this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
             this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler);
         }
+        if (this.blueprint.focused) {
+            this.listenEvents();
+        }
     }
 
-    unlistenDOMElement() {
+    cleanup() {
         this.unlistenEvents();
         this.blueprint.removeEventListener(Configuration.focusEventName.begin, this.listenHandler);
         this.blueprint.removeEventListener(Configuration.focusEventName.end, this.unlistenHandler);
@@ -902,8 +909,25 @@ class Utility {
         ]
     }
 
+    /**
+     * @param {Number} begin
+     * @param {Number} end
+     */
     static range(begin, end, step = 1) {
         return Array.from({ length: Math.ceil((end - begin) / step) }, (_, i) => begin + (i * step))
+    }
+
+    /**
+     * @param {HTMLElement} element
+     * @param {String} value
+     */
+    static paste(element, value) {
+        const event = new ClipboardEvent("paste", {
+            bubbles: true,
+            cancelable: true,
+        });
+        event.clipboardData.setData("text", value);
+        element.dispatchEvent(event);
     }
 }
 
@@ -2679,11 +2703,15 @@ class Copy extends IInput {
         window.removeEventListener("copy", this.#copyHandler);
     }
 
-    copied() {
-        const value = this.blueprint
+    getSerializedText() {
+        return this.blueprint
             .getNodes(true)
             .map(node => Copy.#serializer.serialize(node.entity, false))
-            .join("");
+            .join("")
+    }
+
+    copied() {
+        const value = this.getSerializedText();
         navigator.clipboard.writeText(value);
     }
 }
@@ -2699,6 +2727,10 @@ class ITemplate {
 
     /** @type {T} */
     element
+
+    get blueprint() {
+        return this.element.blueprint
+    }
 
     /** @type {IInput[]} */
     #inputObjects = []
@@ -2716,10 +2748,11 @@ class ITemplate {
     }
 
     setup() {
+        this.#inputObjects.forEach(v => v.setup());
     }
 
     cleanup() {
-        this.#inputObjects.forEach(v => v.unlistenDOMElement());
+        this.#inputObjects.forEach(v => v.cleanup());
     }
 
     /** @param {PropertyValues} changedProperties */
@@ -2871,8 +2904,6 @@ class KeyboardCanc extends IKeyboardShortcut {
     }
 }
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
-
 /**
  * @template {HTMLElement} T
  * @extends {IInput<T>}
@@ -2883,6 +2914,7 @@ class IPointing extends IInput {
         options.ignoreTranslateCompensate ??= false;
         options.movementSpace ??= blueprint.getGridDOMElement() ?? document.documentElement;
         super(target, blueprint, options);
+        /** @type {HTMLElement} */
         this.movementSpace = options.movementSpace;
     }
 
@@ -3102,7 +3134,6 @@ class IElement extends s {
 
     setup() {
         this.template.setup();
-        this.template.inputSetup();
         this.isSetup = true;
     }
 
@@ -3131,6 +3162,7 @@ class IElement extends s {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.template.firstUpdated(changedProperties);
+        this.template.inputSetup();
     }
 
     /** @param {PropertyValues} changedProperties */
@@ -3635,7 +3667,7 @@ class Select extends IMouseClickDrag {
 
     constructor(target, blueprint, options) {
         super(target, blueprint, options);
-        this.selectorElement = this.blueprint.selectorElement;
+        this.selectorElement = this.blueprint.template.selectorElement;
     }
 
     startDrag() {
@@ -3716,6 +3748,14 @@ class BlueprintTemplate extends ITemplate {
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
     }
 
+    /** @type {HTMLElement} */ headerElement
+    /** @type {HTMLElement} */ overlayElement
+    /** @type {HTMLElement} */ viewportElement
+    /** @type {SelectorElement} */ selectorElement
+    /** @type {HTMLElement} */ gridElement
+    /** @type {HTMLElement} */ linksContainerElement
+    /** @type {HTMLElement} */ nodesContainerElement
+
     /** @param {Blueprint} element */
     initialize(element) {
         super.initialize(element);
@@ -3770,26 +3810,26 @@ class BlueprintTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.element.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'));
-        this.element.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'));
-        this.element.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'));
-        this.element.selectorElement = /** @type {SelectorElement} */(this.element.querySelector('ueb-selector'));
-        this.element.gridElement = /** @type {HTMLElement} */(this.element.viewportElement.querySelector(".ueb-grid"));
-        this.element.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"));
-        this.element.linksContainerElement.append(...this.element.getLinks());
-        this.element.nodesContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-nodes]"));
-        this.element.nodesContainerElement.append(...this.element.getNodes());
-        this.element.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
+        this.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'));
+        this.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'));
+        this.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'));
+        this.selectorElement = /** @type {SelectorElement} */(this.element.querySelector('ueb-selector'));
+        this.gridElement = /** @type {HTMLElement} */(this.viewportElement.querySelector(".ueb-grid"));
+        this.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"));
+        this.linksContainerElement.append(...this.element.getLinks());
+        this.nodesContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-nodes]"));
+        this.nodesContainerElement.append(...this.element.getNodes());
+        this.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
     }
 
     /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
-        if (this.element.headerElement && changedProperties.has("zoom")) {
-            this.element.headerElement.classList.add("ueb-zoom-changed");
-            this.element.headerElement.addEventListener(
+        if (this.headerElement && changedProperties.has("zoom")) {
+            this.headerElement.classList.add("ueb-zoom-changed");
+            this.headerElement.addEventListener(
                 "animationend",
-                () => this.element.headerElement.classList.remove("ueb-zoom-changed")
+                () => this.headerElement.classList.remove("ueb-zoom-changed")
             );
         }
     }
@@ -3798,7 +3838,7 @@ class BlueprintTemplate extends ITemplate {
     updated(changedProperties) {
         super.updated(changedProperties);
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
-            this.element.viewportElement.scroll(this.element.scrollX, this.element.scrollY);
+            this.viewportElement.scroll(this.element.scrollX, this.element.scrollY);
         }
         if (changedProperties.has("zoom")) {
             const previousZoom = changedProperties.get("zoom");
@@ -3827,6 +3867,14 @@ class BlueprintTemplate extends ITemplate {
         return /** @type {PinElement} */(this.element.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    isPointVisible(x, y) {
+        return false
     }
 }
 
@@ -4080,15 +4128,15 @@ class LinkTemplate extends IFromToPositionedTemplate {
             const knotEntity = new KnotEntity({}, this.element.sourcePin.entity);
             const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
                 .newObject(knotEntity);
-            knot.setLocation(this.element.blueprint.snapToGrid(location));
-            this.element.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
+            knot.setLocation(this.blueprint.snapToGrid(location));
+            this.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
             const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
                 .newObject(
                 /** @type {KnotNodeTemplate} */(knot.template).outputPin,
                     this.element.destinationPin
                 );
             this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin;
-            this.element.blueprint.addGraphElement(link);
+            this.blueprint.addGraphElement(link);
         }
 
     createInputObjects() {
@@ -4096,7 +4144,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
             ...super.createInputObjects(),
             new MouseDbClick(
                 this.element.querySelector(".ueb-link-area"),
-                this.element.blueprint,
+                this.blueprint,
                 undefined,
                 (location) => this.#createKnot(location)
             )
@@ -4767,7 +4815,7 @@ class IDraggableTemplate extends ITemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+        return new MouseMoveDraggable(this.element, this.blueprint, {
             draggableElement: this.getDraggableElement(),
         })
     }
@@ -4869,11 +4917,11 @@ class MouseMoveNodes extends MouseMoveDraggable {
 class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
     getDraggableElement() {
-        return /** @type {Element} */ (this.element)
+        return /** @type {Element} */(this.element)
     }
 
     createDraggableObject() {
-        return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
+        return /** @type {MouseMoveDraggable} */(new MouseMoveNodes(this.element, this.blueprint, {
             draggableElement: this.getDraggableElement(),
         }))
     }
@@ -5112,7 +5160,7 @@ class IResizeableTemplate extends NodeTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            new MouseClickDrag(this.#THandler, this.element.blueprint, {
+            new MouseClickDrag(this.#THandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.topBoundary();
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
@@ -5121,21 +5169,21 @@ class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#RHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#RHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary();
                     this.setSizeX(this.element.sizeX + movement[0]);
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#BHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#BHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.bottomBoundary();
                     this.setSizeY(this.element.sizeY + movement[1]);
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#LHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#LHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary();
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
@@ -5144,7 +5192,7 @@ class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#TRHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#TRHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary();
                     movement[1] = location[1] - this.element.topBoundary();
@@ -5155,7 +5203,7 @@ class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#BRHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#BRHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary();
                     movement[1] = location[1] - this.element.bottomBoundary();
@@ -5164,7 +5212,7 @@ class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#BLHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#BLHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary();
                     movement[1] = location[1] - this.element.bottomBoundary();
@@ -5175,7 +5223,7 @@ class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#TLHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#TLHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary();
                     movement[1] = location[1] - this.element.topBoundary();
@@ -5262,7 +5310,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
     }
 
     manageNodesBind() {
-        let nodes = this.element.blueprint.getNodes();
+        let nodes = this.blueprint.getNodes();
         for (let node of nodes) {
             if (
                 node.topBoundary() >= this.element.topBoundary()
@@ -5395,7 +5443,7 @@ class MouseCreateLink extends IMouseClickDrag {
         e => {
             if (!this.enteredPin) {
                 this.linkValid = false;
-                this.enteredPin = /** @type {PinElement} */ (e.target);
+                this.enteredPin = /** @type {PinElement} */(e.target);
                 const a = this.link.sourcePin ?? this.target; // Remember target might have change
                 const b = this.enteredPin;
                 if (
@@ -5446,7 +5494,7 @@ class MouseCreateLink extends IMouseClickDrag {
         /** @type {LinkElement} */
         this.link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(this.target, null);
-        this.blueprint.linksContainerElement.prepend(this.link);
+        this.blueprint.template.linksContainerElement.prepend(this.link);
         this.link.setMessagePlaceNode();
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin");
         this.#listenedPins.forEach(pin => {
@@ -5527,7 +5575,7 @@ class PinTemplate extends ITemplate {
     /** @returns {IInput[]} */
     createInputObjects() {
         return [
-            new MouseCreateLink(this.getClickableElement(), this.element.blueprint, {
+            new MouseCreateLink(this.getClickableElement(), this.blueprint, {
                 moveEverywhere: true,
             })
         ]
@@ -5584,9 +5632,9 @@ class PinTemplate extends ITemplate {
         const rect = this.iconElement.getBoundingClientRect();
         const location = Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            this.element.blueprint.gridElement
+            this.blueprint.template.gridElement
         );
-        return this.element.blueprint.compensateTranslation(location)
+        return this.blueprint.compensateTranslation(location)
     }
 
     getClickableElement() {
@@ -5605,7 +5653,7 @@ class KnotPinTemplate extends PinTemplate {
     getLinkLocation() {
         const rect = (
             this.element.isInput()
-                ? /** @type {KnotNodeTemplate} */ (this.element.nodeElement.template).outputPin.template
+                ? /** @type {KnotNodeTemplate} */(this.element.nodeElement.template).outputPin.template
                 : this
         )
             .iconElement.getBoundingClientRect();
@@ -5614,9 +5662,9 @@ class KnotPinTemplate extends PinTemplate {
                 this.element.isInput() ? rect.left + 1 : rect.right + 2,
                 (rect.top + rect.bottom) / 2,
             ],
-            this.element.blueprint.gridElement
+            this.blueprint.template.gridElement
         );
-        return this.element.blueprint.compensateTranslation(location)
+        return this.blueprint.compensateTranslation(location)
     }
 }
 
@@ -5661,7 +5709,7 @@ class KnotNodeTemplate extends NodeTemplate {
             return true
         }
         KnotNodeTemplate.#traversedPin.add(startingPin);
-        for (let pin of startingPin.getLinks().map(l => this.element.blueprint.getPin(l))) {
+        for (let pin of startingPin.getLinks().map(l => this.blueprint.getPin(l))) {
             if (this.findDirectionaPin(pin)) {
                 return true
             }
@@ -6021,337 +6069,6 @@ class NodeElement extends ISelectableDraggableElement {
     }
 }
 
-class OrderedIndexArray {
-
-    /**
-     * @param {(arrayElement: number) => number} comparisonValueSupplier
-     * @param {number} value
-     */
-    constructor(comparisonValueSupplier = v => v, value = null) {
-        this.array = new Uint32Array(value);
-        this.comparisonValueSupplier = comparisonValueSupplier;
-        this.length = 0;
-        this.currentPosition = 0;
-    }
-
-    /** @param {number} index */
-    get(index) {
-        if (index >= 0 && index < this.length) {
-            return this.array[index]
-        }
-        return null
-    }
-
-    getArray() {
-        return this.array
-    }
-
-    /** @param {number} value */
-    getPosition(value) {
-        let l = 0;
-        let r = this.length;
-        while (l < r) {
-            let m = Math.floor((l + r) / 2);
-            if (this.comparisonValueSupplier(this.array[m]) < value) {
-                l = m + 1;
-            } else {
-                r = m;
-            }
-        }
-        return l
-    }
-
-    reserve(length) {
-        if (this.array.length < length) {
-            let newArray = new Uint32Array(length);
-            newArray.set(this.array);
-            this.array = newArray;
-        }
-    }
-
-    /** @param {number} element */
-    insert(element, comparisonValue = null) {
-        let position = this.getPosition(this.comparisonValueSupplier(element));
-        if (
-            position < this.currentPosition
-            || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
-            ++this.currentPosition;
-        }
-        this.shiftRight(position);
-        this.array[position] = element;
-        ++this.length;
-        return position
-    }
-
-    /** @param {number} element */
-    remove(element) {
-        let position = this.getPosition(this.comparisonValueSupplier(element));
-        if (this.array[position] == element) {
-            this.removeAt(position);
-        }
-    }
-
-    /** @param {number} position */
-    removeAt(position) {
-        if (position < this.currentPosition) {
-            --this.currentPosition;
-        }
-        this.shiftLeft(position);
-        --this.length;
-        return position
-    }
-
-    getNext() {
-        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
-            return this.get(this.currentPosition)
-        }
-        return null
-    }
-
-    getNextValue() {
-        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
-            return this.comparisonValueSupplier(this.get(this.currentPosition))
-        } else {
-            return Number.MAX_SAFE_INTEGER
-        }
-    }
-
-    getPrev() {
-        if (this.currentPosition > 0) {
-            return this.get(this.currentPosition - 1)
-        }
-        return null
-    }
-
-    getPrevValue() {
-        if (this.currentPosition > 0) {
-            return this.comparisonValueSupplier(this.get(this.currentPosition - 1))
-        } else {
-            return Number.MIN_SAFE_INTEGER
-        }
-    }
-
-    shiftLeft(leftLimit, steps = 1) {
-        this.array.set(this.array.subarray(leftLimit + steps), leftLimit);
-    }
-
-    shiftRight(leftLimit, steps = 1) {
-        this.array.set(this.array.subarray(leftLimit, -steps), leftLimit + steps);
-    }
-}
-
-/**
- * @typedef {import("../Blueprint").BoundariesInfo} BoundariesInfo
- * @typedef {{
- *     primaryBoundary: Number,
- *     secondaryBoundary: Number,
- *     insertionPosition?: Number,
- *     rectangle: Number
- *     onSecondaryAxis: Boolean
- * }} Metadata
- * @typedef {any} Rectangle
- */
-class FastSelectionModel {
-
-    /**
-     * @param {Number[]} initialPosition
-     * @param {Rectangle[]} rectangles
-     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc
-     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc
-     */
-    constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
-        this.initialPosition = initialPosition;
-        this.finalPosition = initialPosition;
-        /** @type {Metadata[]} */
-        this.metadata = new Array(rectangles.length);
-        this.primaryOrder = new OrderedIndexArray((element) => this.metadata[element].primaryBoundary);
-        this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary);
-        this.selectFunc = selectFunc;
-        this.rectangles = rectangles;
-        this.primaryOrder.reserve(this.rectangles.length);
-        this.secondaryOrder.reserve(this.rectangles.length);
-        rectangles.forEach((rect, index) => {
-            /** @type {Metadata} */
-            let rectangleMetadata = {
-                primaryBoundary: this.initialPosition[0],
-                secondaryBoundary: this.initialPosition[1],
-                rectangle: index, // used to move both expandings inside the this.metadata array
-                onSecondaryAxis: false
-            };
-            this.metadata[index] = rectangleMetadata;
-            selectFunc(rect, false); // Initially deselected (Eventually)
-            const rectangleBoundaries = boundariesFunc(rect);
-
-            // Secondary axis first because it may be inserted in this.secondaryOrder during the primary axis check
-            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf;
-            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
-                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup;
-            } else {
-                rectangleMetadata.onSecondaryAxis = true;
-            }
-
-            if (this.initialPosition[0] < rectangleBoundaries.primaryInf) { // Initial position is before the rectangle
-                rectangleMetadata.primaryBoundary = rectangleBoundaries.primaryInf;
-                this.primaryOrder.insert(index);
-            } else if (rectangleBoundaries.primarySup < this.initialPosition[0]) { // Initial position is after the rectangle
-                rectangleMetadata.primaryBoundary = rectangleBoundaries.primarySup;
-                this.primaryOrder.insert(index);
-            } else { // Initial lays inside the rectangle (considering just this axis)
-                // Secondary order depends on primary order, if primary boundaries are not satisfied, the element is not watched for secondary ones
-                if (rectangleBoundaries.secondarySup < this.initialPosition[1] || this.initialPosition[1] < rectangleBoundaries.secondaryInf) {
-                    this.secondaryOrder.insert(index);
-                } else {
-                    selectFunc(rect, true);
-                }
-            }
-        });
-        this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0]);
-        this.secondaryOrder.currentPosition = this.secondaryOrder.getPosition(this.initialPosition[1]);
-        this.computeBoundaries();
-    }
-
-    computeBoundaries() {
-        this.boundaries = {
-            // Primary axis negative expanding
-            primaryN: {
-                v: this.primaryOrder.getPrevValue(),
-                i: this.primaryOrder.getPrev()
-            },
-            primaryP: {
-                v: this.primaryOrder.getNextValue(),
-                i: this.primaryOrder.getNext()
-            },
-            // Secondary axis negative expanding
-            secondaryN: {
-                v: this.secondaryOrder.getPrevValue(),
-                i: this.secondaryOrder.getPrev()
-            },
-            // Secondary axis positive expanding
-            secondaryP: {
-                v: this.secondaryOrder.getNextValue(),
-                i: this.secondaryOrder.getNext()
-            }
-        };
-    }
-
-    selectTo(finalPosition) {
-        const direction = [
-            Math.sign(finalPosition[0] - this.initialPosition[0]),
-            Math.sign(finalPosition[1] - this.initialPosition[1])
-        ];
-        const primaryBoundaryCrossed = (index, added) => {
-            if (this.metadata[index].onSecondaryAxis) {
-                this.selectFunc(this.rectangles[index], added);
-            } else {
-                if (added) {
-                    this.secondaryOrder.insert(index, finalPosition[1]);
-                    const secondaryBoundary = this.metadata[index].secondaryBoundary;
-                    if (
-                        // If inserted before the current position
-                        Math.sign(finalPosition[1] - secondaryBoundary) == direction[1]
-                        // And after initial position
-                        && Math.sign(secondaryBoundary - this.initialPosition[1]) == direction[1]
-                    ) {
-                        // Secondary axis is already satisfied then
-                        this.selectFunc(this.rectangles[index], true);
-                    }
-                } else {
-                    this.selectFunc(this.rectangles[index], false);
-                    this.secondaryOrder.remove(index);
-                }
-            }
-            this.computeBoundaries();
-            this.selectTo(finalPosition);
-        };
-
-        if (finalPosition[0] < this.boundaries.primaryN.v) {
-            --this.primaryOrder.currentPosition;
-            primaryBoundaryCrossed(
-                this.boundaries.primaryN.i,
-                this.initialPosition[0] > this.boundaries.primaryN.v && finalPosition[0] < this.initialPosition[0]);
-        } else if (finalPosition[0] > this.boundaries.primaryP.v) {
-            ++this.primaryOrder.currentPosition;
-            primaryBoundaryCrossed(
-                this.boundaries.primaryP.i,
-                this.initialPosition[0] < this.boundaries.primaryP.v && this.initialPosition[0] < finalPosition[0]);
-        }
-
-        const secondaryBoundaryCrossed = (index, added) => {
-            this.selectFunc(this.rectangles[index], added);
-            this.computeBoundaries();
-            this.selectTo(finalPosition);
-        };
-
-        if (finalPosition[1] < this.boundaries.secondaryN.v) {
-            --this.secondaryOrder.currentPosition;
-            secondaryBoundaryCrossed(
-                this.boundaries.secondaryN.i,
-                this.initialPosition[1] > this.boundaries.secondaryN.v && finalPosition[1] < this.initialPosition[1]);
-        } else if (finalPosition[1] > this.boundaries.secondaryP.v) {
-            ++this.secondaryOrder.currentPosition;
-            secondaryBoundaryCrossed(
-                this.boundaries.secondaryP.i,
-                this.initialPosition[1] < this.boundaries.secondaryP.v && this.initialPosition[1] < finalPosition[1]);
-        }
-        this.finalPosition = finalPosition;
-    }
-}
-
-/** @typedef {import("../element/SelectorElement").default} SelectorElement */
-
-/** @extends IFromToPositionedTemplate<SelectorElement> */
-class SelectorTemplate extends IFromToPositionedTemplate {
-}
-
-/** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
-class SelectorElement extends IFromToPositionedElement {
-
-    /** @type {FastSelectionModel} */
-    selectionModel = null
-
-    constructor() {
-        super();
-        super.initialize({}, new SelectorTemplate());
-    }
-
-    static newObject() {
-        return new SelectorElement()
-    }
-
-    initialize() {
-        // Initialized in the constructor, this method does nothing
-    }
-
-    /** @param {Number[]} initialPosition */
-    beginSelect(initialPosition) {
-        this.blueprint.selecting = true;
-        this.setBothLocations(initialPosition);
-        this.selectionModel = new FastSelectionModel(
-            initialPosition,
-            this.blueprint.getNodes(),
-            this.blueprint.nodeBoundariesSupplier,
-            this.blueprint.nodeSelectToggleFunction
-        );
-    }
-
-    /** @param {Number[]} finalPosition */
-    selectTo(finalPosition) {
-        this.selectionModel.selectTo(finalPosition);
-        this.toX = finalPosition[0];
-        this.toY = finalPosition[1];
-    }
-
-    endSelect() {
-        this.blueprint.selecting = false;
-        this.selectionModel = null;
-        this.fromX = 0;
-        this.fromY = 0;
-        this.toX = 0;
-        this.toY = 0;
-    }
-}
-
 /**
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
@@ -6426,20 +6143,6 @@ class Blueprint extends IElement {
     links = []
     /** @type {Number[]} */
     mousePosition = [0, 0]
-    /** @type {HTMLElement} */
-    gridElement
-    /** @type {HTMLElement} */
-    viewportElement
-    /** @type {HTMLElement} */
-    overlayElement
-    /** @type {SelectorElement} */
-    selectorElement
-    /** @type {HTMLElement} */
-    linksContainerElement
-    /** @type {HTMLElement} */
-    nodesContainerElement
-    /** @type {HTMLElement} */
-    headerElement
     waitingExpandUpdate = false
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
@@ -6474,7 +6177,7 @@ class Blueprint extends IElement {
     }
 
     getGridDOMElement() {
-        return this.gridElement
+        return this.template.gridElement
     }
 
     getScroll() {
@@ -6533,19 +6236,15 @@ class Blueprint extends IElement {
 
     getViewportSize() {
         return [
-            this.viewportElement.clientWidth,
-            this.viewportElement.clientHeight
+            this.template.viewportElement.clientWidth,
+            this.template.viewportElement.clientHeight
         ]
     }
 
-    /**
-     * Get the scroll limits
-     * @return {Array} The horizonal and vertical maximum scroll limits
-     */
     getScrollMax() {
         return [
-            this.viewportElement.scrollWidth - this.viewportElement.clientWidth,
-            this.viewportElement.scrollHeight - this.viewportElement.clientHeight
+            this.template.viewportElement.scrollWidth - this.template.viewportElement.clientWidth,
+            this.template.viewportElement.scrollHeight - this.template.viewportElement.clientHeight
         ]
     }
 
@@ -6608,7 +6307,7 @@ class Blueprint extends IElement {
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue("--ueb-scale"))
+        return parseFloat(getComputedStyle(this.template.gridElement).getPropertyValue("--ueb-scale"))
     }
 
     /** @param {Number[]} param0 */
@@ -6640,7 +6339,7 @@ class Blueprint extends IElement {
     }
 
     getCommentNodes(justSelected = false) {
-        let result = /** @type {NodeElement[]} */ ([...this.template.getCommentNodes(justSelected)]);
+        let result = /** @type {NodeElement[]} */([...this.template.getCommentNodes(justSelected)]);
         if (result.length === 0) {
             result = this.nodes.filter(n =>
                 n.getType() === Configuration.nodeType.comment && (!justSelected || n.selected)
@@ -6719,11 +6418,11 @@ class Blueprint extends IElement {
                     homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]));
                 }
                 this.nodes.push(element);
-                this.nodesContainerElement?.appendChild(element);
+                this.template.nodesContainerElement?.appendChild(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
-                if (this.linksContainerElement && !this.linksContainerElement.contains(element)) {
-                    this.linksContainerElement.appendChild(element);
+                if (this.template.linksContainerElement && !this.template.linksContainerElement.contains(element)) {
+                    this.template.linksContainerElement.appendChild(element);
                 }
             }
         }
@@ -6810,7 +6509,7 @@ class IDraggableControlTemplate extends IDraggableTemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+        return new MouseMoveDraggable(this.element, this.blueprint, {
             draggableElement: this.movementSpace,
             ignoreTranslateCompensate: true,
             moveEverywhere: true,
@@ -6927,13 +6626,13 @@ class ColorSliderElement extends IDraggableControlElement {
 class InputTemplate extends ITemplate {
 
     #focusHandler = () => {
-        this.element.blueprint.acknowledgeEditText(true);
+        this.blueprint.acknowledgeEditText(true);
         if (this.element.selectOnFocus) {
             getSelection().selectAllChildren(this.element);
         }
     }
     #focusoutHandler = () => {
-        this.element.blueprint.acknowledgeEditText(false);
+        this.blueprint.acknowledgeEditText(false);
         document.getSelection()?.removeAllRanges(); // Deselect eventually selected text inside the input
     }
     #inputSingleLineHandler =
@@ -7062,7 +6761,7 @@ class BoolInputPinTemplate extends PinTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            new MouseIgnore(this.#input, this.element.blueprint),
+            new MouseIgnore(this.#input, this.blueprint),
         ]
     }
 
@@ -7153,7 +6852,7 @@ class IInputPinTemplate extends PinTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.element.blueprint)),
+            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.blueprint)),
         ]
     }
 
@@ -7284,10 +6983,10 @@ class WindowTemplate extends IDraggablePositionedTemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+        return new MouseMoveDraggable(this.element, this.blueprint, {
             draggableElement: this.getDraggableElement(),
             ignoreTranslateCompensate: true,
-            movementSpace: this.element.blueprint,
+            movementSpace: this.blueprint,
             stepSize: 1,
         })
     }
@@ -7693,7 +7392,7 @@ class LinearColorInputPinTemplate extends PinTemplate {
     /** @param {MouseEvent} e */
     #launchColorPickerWindow = e => {
         e.preventDefault();
-        this.element.blueprint.setFocused(true);
+        this.blueprint.setFocused(true);
         /** @type {WindowElement} */
         this.#window = /** @type {WindowElementConstructor} */(ElementFactory.getConstructor("ueb-window"))
             .newObject({
@@ -7705,7 +7404,7 @@ class LinearColorInputPinTemplate extends PinTemplate {
                     setPinColor: color => this.element.setDefaultValue(color),
                 },
             });
-        this.element.blueprint.append(this.#window);
+        this.blueprint.append(this.#window);
         const windowApplyHandler = () => {
             this.element.setDefaultValue(
                 /** @type {ColorPickerWindowTemplate} */(this.#window.template).color
@@ -8157,6 +7856,337 @@ class PinElement extends IElement {
     }
 }
 
+class OrderedIndexArray {
+
+    /**
+     * @param {(arrayElement: number) => number} comparisonValueSupplier
+     * @param {number} value
+     */
+    constructor(comparisonValueSupplier = v => v, value = null) {
+        this.array = new Uint32Array(value);
+        this.comparisonValueSupplier = comparisonValueSupplier;
+        this.length = 0;
+        this.currentPosition = 0;
+    }
+
+    /** @param {number} index */
+    get(index) {
+        if (index >= 0 && index < this.length) {
+            return this.array[index]
+        }
+        return null
+    }
+
+    getArray() {
+        return this.array
+    }
+
+    /** @param {number} value */
+    getPosition(value) {
+        let l = 0;
+        let r = this.length;
+        while (l < r) {
+            let m = Math.floor((l + r) / 2);
+            if (this.comparisonValueSupplier(this.array[m]) < value) {
+                l = m + 1;
+            } else {
+                r = m;
+            }
+        }
+        return l
+    }
+
+    reserve(length) {
+        if (this.array.length < length) {
+            let newArray = new Uint32Array(length);
+            newArray.set(this.array);
+            this.array = newArray;
+        }
+    }
+
+    /** @param {number} element */
+    insert(element, comparisonValue = null) {
+        let position = this.getPosition(this.comparisonValueSupplier(element));
+        if (
+            position < this.currentPosition
+            || comparisonValue != null && position == this.currentPosition && this.comparisonValueSupplier(element) < comparisonValue) {
+            ++this.currentPosition;
+        }
+        this.shiftRight(position);
+        this.array[position] = element;
+        ++this.length;
+        return position
+    }
+
+    /** @param {number} element */
+    remove(element) {
+        let position = this.getPosition(this.comparisonValueSupplier(element));
+        if (this.array[position] == element) {
+            this.removeAt(position);
+        }
+    }
+
+    /** @param {number} position */
+    removeAt(position) {
+        if (position < this.currentPosition) {
+            --this.currentPosition;
+        }
+        this.shiftLeft(position);
+        --this.length;
+        return position
+    }
+
+    getNext() {
+        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
+            return this.get(this.currentPosition)
+        }
+        return null
+    }
+
+    getNextValue() {
+        if (this.currentPosition >= 0 && this.currentPosition < this.length) {
+            return this.comparisonValueSupplier(this.get(this.currentPosition))
+        } else {
+            return Number.MAX_SAFE_INTEGER
+        }
+    }
+
+    getPrev() {
+        if (this.currentPosition > 0) {
+            return this.get(this.currentPosition - 1)
+        }
+        return null
+    }
+
+    getPrevValue() {
+        if (this.currentPosition > 0) {
+            return this.comparisonValueSupplier(this.get(this.currentPosition - 1))
+        } else {
+            return Number.MIN_SAFE_INTEGER
+        }
+    }
+
+    shiftLeft(leftLimit, steps = 1) {
+        this.array.set(this.array.subarray(leftLimit + steps), leftLimit);
+    }
+
+    shiftRight(leftLimit, steps = 1) {
+        this.array.set(this.array.subarray(leftLimit, -steps), leftLimit + steps);
+    }
+}
+
+/**
+ * @typedef {import("../Blueprint").BoundariesInfo} BoundariesInfo
+ * @typedef {{
+ *     primaryBoundary: Number,
+ *     secondaryBoundary: Number,
+ *     insertionPosition?: Number,
+ *     rectangle: Number
+ *     onSecondaryAxis: Boolean
+ * }} Metadata
+ * @typedef {any} Rectangle
+ */
+class FastSelectionModel {
+
+    /**
+     * @param {Number[]} initialPosition
+     * @param {Rectangle[]} rectangles
+     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc
+     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc
+     */
+    constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
+        this.initialPosition = initialPosition;
+        this.finalPosition = initialPosition;
+        /** @type {Metadata[]} */
+        this.metadata = new Array(rectangles.length);
+        this.primaryOrder = new OrderedIndexArray((element) => this.metadata[element].primaryBoundary);
+        this.secondaryOrder = new OrderedIndexArray((element) => this.metadata[element].secondaryBoundary);
+        this.selectFunc = selectFunc;
+        this.rectangles = rectangles;
+        this.primaryOrder.reserve(this.rectangles.length);
+        this.secondaryOrder.reserve(this.rectangles.length);
+        rectangles.forEach((rect, index) => {
+            /** @type {Metadata} */
+            let rectangleMetadata = {
+                primaryBoundary: this.initialPosition[0],
+                secondaryBoundary: this.initialPosition[1],
+                rectangle: index, // used to move both expandings inside the this.metadata array
+                onSecondaryAxis: false
+            };
+            this.metadata[index] = rectangleMetadata;
+            selectFunc(rect, false); // Initially deselected (Eventually)
+            const rectangleBoundaries = boundariesFunc(rect);
+
+            // Secondary axis first because it may be inserted in this.secondaryOrder during the primary axis check
+            if (this.initialPosition[1] < rectangleBoundaries.secondaryInf) { // Initial position is before the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondaryInf;
+            } else if (rectangleBoundaries.secondarySup < this.initialPosition[1]) { // Initial position is after the rectangle
+                rectangleMetadata.secondaryBoundary = rectangleBoundaries.secondarySup;
+            } else {
+                rectangleMetadata.onSecondaryAxis = true;
+            }
+
+            if (this.initialPosition[0] < rectangleBoundaries.primaryInf) { // Initial position is before the rectangle
+                rectangleMetadata.primaryBoundary = rectangleBoundaries.primaryInf;
+                this.primaryOrder.insert(index);
+            } else if (rectangleBoundaries.primarySup < this.initialPosition[0]) { // Initial position is after the rectangle
+                rectangleMetadata.primaryBoundary = rectangleBoundaries.primarySup;
+                this.primaryOrder.insert(index);
+            } else { // Initial lays inside the rectangle (considering just this axis)
+                // Secondary order depends on primary order, if primary boundaries are not satisfied, the element is not watched for secondary ones
+                if (rectangleBoundaries.secondarySup < this.initialPosition[1] || this.initialPosition[1] < rectangleBoundaries.secondaryInf) {
+                    this.secondaryOrder.insert(index);
+                } else {
+                    selectFunc(rect, true);
+                }
+            }
+        });
+        this.primaryOrder.currentPosition = this.primaryOrder.getPosition(this.initialPosition[0]);
+        this.secondaryOrder.currentPosition = this.secondaryOrder.getPosition(this.initialPosition[1]);
+        this.computeBoundaries();
+    }
+
+    computeBoundaries() {
+        this.boundaries = {
+            // Primary axis negative expanding
+            primaryN: {
+                v: this.primaryOrder.getPrevValue(),
+                i: this.primaryOrder.getPrev()
+            },
+            primaryP: {
+                v: this.primaryOrder.getNextValue(),
+                i: this.primaryOrder.getNext()
+            },
+            // Secondary axis negative expanding
+            secondaryN: {
+                v: this.secondaryOrder.getPrevValue(),
+                i: this.secondaryOrder.getPrev()
+            },
+            // Secondary axis positive expanding
+            secondaryP: {
+                v: this.secondaryOrder.getNextValue(),
+                i: this.secondaryOrder.getNext()
+            }
+        };
+    }
+
+    selectTo(finalPosition) {
+        const direction = [
+            Math.sign(finalPosition[0] - this.initialPosition[0]),
+            Math.sign(finalPosition[1] - this.initialPosition[1])
+        ];
+        const primaryBoundaryCrossed = (index, added) => {
+            if (this.metadata[index].onSecondaryAxis) {
+                this.selectFunc(this.rectangles[index], added);
+            } else {
+                if (added) {
+                    this.secondaryOrder.insert(index, finalPosition[1]);
+                    const secondaryBoundary = this.metadata[index].secondaryBoundary;
+                    if (
+                        // If inserted before the current position
+                        Math.sign(finalPosition[1] - secondaryBoundary) == direction[1]
+                        // And after initial position
+                        && Math.sign(secondaryBoundary - this.initialPosition[1]) == direction[1]
+                    ) {
+                        // Secondary axis is already satisfied then
+                        this.selectFunc(this.rectangles[index], true);
+                    }
+                } else {
+                    this.selectFunc(this.rectangles[index], false);
+                    this.secondaryOrder.remove(index);
+                }
+            }
+            this.computeBoundaries();
+            this.selectTo(finalPosition);
+        };
+
+        if (finalPosition[0] < this.boundaries.primaryN.v) {
+            --this.primaryOrder.currentPosition;
+            primaryBoundaryCrossed(
+                this.boundaries.primaryN.i,
+                this.initialPosition[0] > this.boundaries.primaryN.v && finalPosition[0] < this.initialPosition[0]);
+        } else if (finalPosition[0] > this.boundaries.primaryP.v) {
+            ++this.primaryOrder.currentPosition;
+            primaryBoundaryCrossed(
+                this.boundaries.primaryP.i,
+                this.initialPosition[0] < this.boundaries.primaryP.v && this.initialPosition[0] < finalPosition[0]);
+        }
+
+        const secondaryBoundaryCrossed = (index, added) => {
+            this.selectFunc(this.rectangles[index], added);
+            this.computeBoundaries();
+            this.selectTo(finalPosition);
+        };
+
+        if (finalPosition[1] < this.boundaries.secondaryN.v) {
+            --this.secondaryOrder.currentPosition;
+            secondaryBoundaryCrossed(
+                this.boundaries.secondaryN.i,
+                this.initialPosition[1] > this.boundaries.secondaryN.v && finalPosition[1] < this.initialPosition[1]);
+        } else if (finalPosition[1] > this.boundaries.secondaryP.v) {
+            ++this.secondaryOrder.currentPosition;
+            secondaryBoundaryCrossed(
+                this.boundaries.secondaryP.i,
+                this.initialPosition[1] < this.boundaries.secondaryP.v && this.initialPosition[1] < finalPosition[1]);
+        }
+        this.finalPosition = finalPosition;
+    }
+}
+
+/** @typedef {import("../element/SelectorElement").default} SelectorElement */
+
+/** @extends IFromToPositionedTemplate<SelectorElement> */
+class SelectorTemplate extends IFromToPositionedTemplate {
+}
+
+/** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
+class SelectorElement extends IFromToPositionedElement {
+
+    /** @type {FastSelectionModel} */
+    selectionModel = null
+
+    constructor() {
+        super();
+        super.initialize({}, new SelectorTemplate());
+    }
+
+    static newObject() {
+        return new SelectorElement()
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
+    }
+
+    /** @param {Number[]} initialPosition */
+    beginSelect(initialPosition) {
+        this.blueprint.selecting = true;
+        this.setBothLocations(initialPosition);
+        this.selectionModel = new FastSelectionModel(
+            initialPosition,
+            this.blueprint.getNodes(),
+            this.blueprint.nodeBoundariesSupplier,
+            this.blueprint.nodeSelectToggleFunction
+        );
+    }
+
+    /** @param {Number[]} finalPosition */
+    selectTo(finalPosition) {
+        this.selectionModel.selectTo(finalPosition);
+        this.toX = finalPosition[0];
+        this.toY = finalPosition[1];
+    }
+
+    endSelect() {
+        this.blueprint.selecting = false;
+        this.selectionModel = null;
+        this.fromX = 0;
+        this.fromY = 0;
+        this.toX = 0;
+        this.toY = 0;
+    }
+}
+
 /** @typedef {typeof WindowElement} WindowElementConstructor */
 
 /**
@@ -8195,6 +8225,12 @@ class WindowElement extends IDraggableElement {
         this.type = entity.type;
         this.windowOptions = entity.windowOptions;
         super.initialize(entity, template);
+    }
+
+    setup() {
+        super.setup();
+        this.locationX = this.blueprint.mousePosition[0];
+        this.locationY = this.blueprint.mousePosition[1];
     }
 
     cleanup() {

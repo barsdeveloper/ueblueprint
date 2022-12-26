@@ -58,7 +58,7 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
     }
 
     manageNodesBind() {
-        let nodes = this.element.blueprint.getNodes()
+        let nodes = this.blueprint.getNodes()
         for (let node of nodes) {
             if (
                 node.topBoundary() >= this.element.topBoundary()

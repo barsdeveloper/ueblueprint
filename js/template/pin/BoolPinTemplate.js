@@ -31,7 +31,7 @@ export default class BoolInputPinTemplate extends PinTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            new MouseIgnore(this.#input, this.element.blueprint),
+            new MouseIgnore(this.#input, this.blueprint),
         ]
     }
 

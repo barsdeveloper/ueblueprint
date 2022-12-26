@@ -14,11 +14,11 @@ import MouseMoveNodes from "../input/mouse/MouseMoveNodes"
 export default class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
     getDraggableElement() {
-        return /** @type {Element} */ (this.element)
+        return /** @type {Element} */(this.element)
     }
 
     createDraggableObject() {
-        return /** @type {MouseMoveDraggable} */ (new MouseMoveNodes(this.element, this.element.blueprint, {
+        return /** @type {MouseMoveDraggable} */(new MouseMoveNodes(this.element, this.blueprint, {
             draggableElement: this.getDraggableElement(),
         }))
     }

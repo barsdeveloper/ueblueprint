@@ -34,7 +34,7 @@ export default class PinTemplate extends ITemplate {
     /** @returns {IInput[]} */
     createInputObjects() {
         return [
-            new MouseCreateLink(this.getClickableElement(), this.element.blueprint, {
+            new MouseCreateLink(this.getClickableElement(), this.blueprint, {
                 moveEverywhere: true,
             })
         ]
@@ -91,9 +91,9 @@ export default class PinTemplate extends ITemplate {
         const rect = this.iconElement.getBoundingClientRect()
         const location = Utility.convertLocation(
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            this.element.blueprint.gridElement
+            this.blueprint.template.gridElement
         )
-        return this.element.blueprint.compensateTranslation(location)
+        return this.blueprint.compensateTranslation(location)
     }
 
     getClickableElement() {

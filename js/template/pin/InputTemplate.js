@@ -6,13 +6,13 @@ import ITemplate from "../ITemplate"
 export default class InputTemplate extends ITemplate {
 
     #focusHandler = () => {
-        this.element.blueprint.acknowledgeEditText(true)
+        this.blueprint.acknowledgeEditText(true)
         if (this.element.selectOnFocus) {
             getSelection().selectAllChildren(this.element)
         }
     }
     #focusoutHandler = () => {
-        this.element.blueprint.acknowledgeEditText(false)
+        this.blueprint.acknowledgeEditText(false)
         document.getSelection()?.removeAllRanges() // Deselect eventually selected text inside the input
     }
     #inputSingleLineHandler =

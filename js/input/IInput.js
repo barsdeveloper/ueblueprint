@@ -20,6 +20,10 @@ export default class IInput {
     /** @type {Object} */
     options
 
+
+    listenHandler = () => this.listenEvents()
+    unlistenHandler = () => this.unlistenEvents()
+
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
@@ -32,9 +36,9 @@ export default class IInput {
         this.#target = target
         this.#blueprint = blueprint
         this.options = options
-        let self = this
-        this.listenHandler = _ => self.listenEvents()
-        this.unlistenHandler = _ => self.unlistenEvents()
+    }
+
+    setup() {
         if (this.options.listenOnFocus) {
             this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler)
             this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler)
@@ -43,9 +47,12 @@ export default class IInput {
             this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler)
             this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler)
         }
+        if (this.blueprint.focused) {
+            this.listenEvents()
+        }
     }
 
-    unlistenDOMElement() {
+    cleanup() {
         this.unlistenEvents()
         this.blueprint.removeEventListener(Configuration.focusEventName.begin, this.listenHandler)
         this.blueprint.removeEventListener(Configuration.focusEventName.end, this.unlistenHandler)

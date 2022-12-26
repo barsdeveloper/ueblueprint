@@ -31,7 +31,7 @@ export default class IDraggableControlTemplate extends IDraggableTemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+        return new MouseMoveDraggable(this.element, this.blueprint, {
             draggableElement: this.movementSpace,
             ignoreTranslateCompensate: true,
             moveEverywhere: true,

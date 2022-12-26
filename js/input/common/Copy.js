@@ -24,11 +24,15 @@ export default class Copy extends IInput {
         window.removeEventListener("copy", this.#copyHandler)
     }
 
-    copied() {
-        const value = this.blueprint
+    getSerializedText() {
+        return this.blueprint
             .getNodes(true)
             .map(node => Copy.#serializer.serialize(node.entity, false))
             .join("")
+    }
+
+    copied() {
+        const value = this.getSerializedText()
         navigator.clipboard.writeText(value)
     }
 }

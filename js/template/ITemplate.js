@@ -12,6 +12,10 @@ export default class ITemplate {
     /** @type {T} */
     element
 
+    get blueprint() {
+        return this.element.blueprint
+    }
+
     /** @type {IInput[]} */
     #inputObjects = []
     get inputObjects() {
@@ -28,10 +32,11 @@ export default class ITemplate {
     }
 
     setup() {
+        this.#inputObjects.forEach(v => v.setup())
     }
 
     cleanup() {
-        this.#inputObjects.forEach(v => v.unlistenDOMElement())
+        this.#inputObjects.forEach(v => v.cleanup())
     }
 
     /** @param {PropertyValues} changedProperties */

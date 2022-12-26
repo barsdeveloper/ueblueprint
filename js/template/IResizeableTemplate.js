@@ -60,7 +60,7 @@ export default class IResizeableTemplate extends NodeTemplate {
     createInputObjects() {
         return [
             ...super.createInputObjects(),
-            new MouseClickDrag(this.#THandler, this.element.blueprint, {
+            new MouseClickDrag(this.#THandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.topBoundary()
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
@@ -69,21 +69,21 @@ export default class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#RHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#RHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary()
                     this.setSizeX(this.element.sizeX + movement[0])
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#BHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#BHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.bottomBoundary()
                     this.setSizeY(this.element.sizeY + movement[1])
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#LHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#LHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary()
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
@@ -92,7 +92,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#TRHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#TRHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary()
                     movement[1] = location[1] - this.element.topBoundary()
@@ -103,7 +103,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#BRHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#BRHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.rightBoundary()
                     movement[1] = location[1] - this.element.bottomBoundary()
@@ -112,7 +112,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#BLHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#BLHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary()
                     movement[1] = location[1] - this.element.bottomBoundary()
@@ -123,7 +123,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                 },
                 onEndDrag: () => this.endResize(),
             }),
-            new MouseClickDrag(this.#TLHandler, this.element.blueprint, {
+            new MouseClickDrag(this.#TLHandler, this.blueprint, {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary()
                     movement[1] = location[1] - this.element.topBoundary()

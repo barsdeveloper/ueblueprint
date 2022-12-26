@@ -3,7 +3,6 @@ import Configuration from "./Configuration"
 import IElement from "./element/IElement"
 import LinkElement from "./element/LinkElement"
 import NodeElement from "./element/NodeElement"
-import SelectorElement from "./element/SelectorElement"
 import Utility from "./Utility"
 
 /**
@@ -80,20 +79,6 @@ export default class Blueprint extends IElement {
     links = []
     /** @type {Number[]} */
     mousePosition = [0, 0]
-    /** @type {HTMLElement} */
-    gridElement
-    /** @type {HTMLElement} */
-    viewportElement
-    /** @type {HTMLElement} */
-    overlayElement
-    /** @type {SelectorElement} */
-    selectorElement
-    /** @type {HTMLElement} */
-    linksContainerElement
-    /** @type {HTMLElement} */
-    nodesContainerElement
-    /** @type {HTMLElement} */
-    headerElement
     waitingExpandUpdate = false
     /** @param {NodeElement} node */
     nodeBoundariesSupplier = node => {
@@ -128,7 +113,7 @@ export default class Blueprint extends IElement {
     }
 
     getGridDOMElement() {
-        return this.gridElement
+        return this.template.gridElement
     }
 
     getScroll() {
@@ -187,19 +172,15 @@ export default class Blueprint extends IElement {
 
     getViewportSize() {
         return [
-            this.viewportElement.clientWidth,
-            this.viewportElement.clientHeight
+            this.template.viewportElement.clientWidth,
+            this.template.viewportElement.clientHeight
         ]
     }
 
-    /**
-     * Get the scroll limits
-     * @return {Array} The horizonal and vertical maximum scroll limits
-     */
     getScrollMax() {
         return [
-            this.viewportElement.scrollWidth - this.viewportElement.clientWidth,
-            this.viewportElement.scrollHeight - this.viewportElement.clientHeight
+            this.template.viewportElement.scrollWidth - this.template.viewportElement.clientWidth,
+            this.template.viewportElement.scrollHeight - this.template.viewportElement.clientHeight
         ]
     }
 
@@ -262,7 +243,7 @@ export default class Blueprint extends IElement {
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.gridElement).getPropertyValue("--ueb-scale"))
+        return parseFloat(getComputedStyle(this.template.gridElement).getPropertyValue("--ueb-scale"))
     }
 
     /** @param {Number[]} param0 */
@@ -294,7 +275,7 @@ export default class Blueprint extends IElement {
     }
 
     getCommentNodes(justSelected = false) {
-        let result = /** @type {NodeElement[]} */ ([...this.template.getCommentNodes(justSelected)])
+        let result = /** @type {NodeElement[]} */([...this.template.getCommentNodes(justSelected)])
         if (result.length === 0) {
             result = this.nodes.filter(n =>
                 n.getType() === Configuration.nodeType.comment && (!justSelected || n.selected)
@@ -375,11 +356,11 @@ export default class Blueprint extends IElement {
                 }
                 this.nodes.push(element)
                 nodeElements.push(element)
-                this.nodesContainerElement?.appendChild(element)
+                this.template.nodesContainerElement?.appendChild(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
-                if (this.linksContainerElement && !this.linksContainerElement.contains(element)) {
-                    this.linksContainerElement.appendChild(element)
+                if (this.template.linksContainerElement && !this.template.linksContainerElement.contains(element)) {
+                    this.template.linksContainerElement.appendChild(element)
                 }
             }
         }

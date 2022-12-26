@@ -304,7 +304,24 @@ export default class Utility {
         ]
     }
 
+    /**
+     * @param {Number} begin
+     * @param {Number} end
+     */
     static range(begin, end, step = 1) {
         return Array.from({ length: Math.ceil((end - begin) / step) }, (_, i) => begin + (i * step))
+    }
+
+    /**
+     * @param {HTMLElement} element
+     * @param {String} value
+     */
+    static paste(element, value) {
+        const event = new ClipboardEvent("paste", {
+            bubbles: true,
+            cancelable: true,
+        })
+        event.clipboardData.setData("text", value)
+        element.dispatchEvent(event)
     }
 }

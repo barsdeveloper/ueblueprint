@@ -37,6 +37,14 @@ export default class BlueprintTemplate extends ITemplate {
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
     }
 
+    /** @type {HTMLElement} */ headerElement
+    /** @type {HTMLElement} */ overlayElement
+    /** @type {HTMLElement} */ viewportElement
+    /** @type {SelectorElement} */ selectorElement
+    /** @type {HTMLElement} */ gridElement
+    /** @type {HTMLElement} */ linksContainerElement
+    /** @type {HTMLElement} */ nodesContainerElement
+
     /** @param {Blueprint} element */
     initialize(element) {
         super.initialize(element)
@@ -91,26 +99,26 @@ export default class BlueprintTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.element.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'))
-        this.element.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'))
-        this.element.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'))
-        this.element.selectorElement = /** @type {SelectorElement} */(this.element.querySelector('ueb-selector'))
-        this.element.gridElement = /** @type {HTMLElement} */(this.element.viewportElement.querySelector(".ueb-grid"))
-        this.element.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"))
-        this.element.linksContainerElement.append(...this.element.getLinks())
-        this.element.nodesContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-nodes]"))
-        this.element.nodesContainerElement.append(...this.element.getNodes())
-        this.element.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
+        this.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'))
+        this.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'))
+        this.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'))
+        this.selectorElement = /** @type {SelectorElement} */(this.element.querySelector('ueb-selector'))
+        this.gridElement = /** @type {HTMLElement} */(this.viewportElement.querySelector(".ueb-grid"))
+        this.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"))
+        this.linksContainerElement.append(...this.element.getLinks())
+        this.nodesContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-nodes]"))
+        this.nodesContainerElement.append(...this.element.getNodes())
+        this.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
     }
 
     /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
-        if (this.element.headerElement && changedProperties.has("zoom")) {
-            this.element.headerElement.classList.add("ueb-zoom-changed")
-            this.element.headerElement.addEventListener(
+        if (this.headerElement && changedProperties.has("zoom")) {
+            this.headerElement.classList.add("ueb-zoom-changed")
+            this.headerElement.addEventListener(
                 "animationend",
-                () => this.element.headerElement.classList.remove("ueb-zoom-changed")
+                () => this.headerElement.classList.remove("ueb-zoom-changed")
             )
         }
     }
@@ -119,7 +127,7 @@ export default class BlueprintTemplate extends ITemplate {
     updated(changedProperties) {
         super.updated(changedProperties)
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
-            this.element.viewportElement.scroll(this.element.scrollX, this.element.scrollY)
+            this.viewportElement.scroll(this.element.scrollX, this.element.scrollY)
         }
         if (changedProperties.has("zoom")) {
             const previousZoom = changedProperties.get("zoom")
@@ -148,5 +156,13 @@ export default class BlueprintTemplate extends ITemplate {
         return /** @type {PinElement} */(this.element.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    isPointVisible(x, y) {
+        return false
     }
 }

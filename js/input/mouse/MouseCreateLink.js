@@ -23,7 +23,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         e => {
             if (!this.enteredPin) {
                 this.linkValid = false
-                this.enteredPin = /** @type {PinElement} */ (e.target)
+                this.enteredPin = /** @type {PinElement} */(e.target)
                 const a = this.link.sourcePin ?? this.target // Remember target might have change
                 const b = this.enteredPin
                 if (
@@ -74,7 +74,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         /** @type {LinkElement} */
         this.link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(this.target, null)
-        this.blueprint.linksContainerElement.prepend(this.link)
+        this.blueprint.template.linksContainerElement.prepend(this.link)
         this.link.setMessagePlaceNode()
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin")
         this.#listenedPins.forEach(pin => {

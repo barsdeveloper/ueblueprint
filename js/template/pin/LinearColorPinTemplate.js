@@ -19,7 +19,7 @@ export default class LinearColorInputPinTemplate extends PinTemplate {
     /** @param {MouseEvent} e */
     #launchColorPickerWindow = e => {
         e.preventDefault()
-        this.element.blueprint.setFocused(true)
+        this.blueprint.setFocused(true)
         /** @type {WindowElement} */
         this.#window = /** @type {WindowElementConstructor} */(ElementFactory.getConstructor("ueb-window"))
             .newObject({
@@ -31,7 +31,7 @@ export default class LinearColorInputPinTemplate extends PinTemplate {
                     setPinColor: color => this.element.setDefaultValue(color),
                 },
             })
-        this.element.blueprint.append(this.#window)
+        this.blueprint.append(this.#window)
         const windowApplyHandler = () => {
             this.element.setDefaultValue(
                 /** @type {ColorPickerWindowTemplate} */(this.#window.template).color

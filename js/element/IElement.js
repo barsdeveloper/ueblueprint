@@ -93,7 +93,6 @@ export default class IElement extends LitElement {
 
     setup() {
         this.template.setup()
-        this.template.inputSetup()
         this.isSetup = true
     }
 
@@ -122,6 +121,7 @@ export default class IElement extends LitElement {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.template.firstUpdated(changedProperties)
+        this.template.inputSetup()
     }
 
     /** @param {PropertyValues} changedProperties */

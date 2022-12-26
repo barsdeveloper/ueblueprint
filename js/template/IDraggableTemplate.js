@@ -17,7 +17,7 @@ export default class IDraggableTemplate extends ITemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.element.blueprint, {
+        return new MouseMoveDraggable(this.element, this.blueprint, {
             draggableElement: this.getDraggableElement(),
         })
     }
