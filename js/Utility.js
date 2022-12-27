@@ -324,4 +324,22 @@ export default class Utility {
         event.clipboardData.setData("text", value)
         element.dispatchEvent(event)
     }
+
+    static animate(from, to, intervalSeconds, callback, timingFunction = x => {
+        const v = x ** 3.5
+        return v / (v + ((1 - x) ** 3.5))
+    }) {
+        const startTimestamp = performance.now()
+        const doAnimation = currentTimestamp => {
+            let delta = (currentTimestamp - startTimestamp) / intervalSeconds
+            if (Utility.approximatelyEqual(delta, 1) || delta > 1) {
+                delta = 1
+            } else {
+                requestAnimationFrame(doAnimation)
+            }
+            const currentValue = from + (to - from) * timingFunction(delta)
+            callback(currentValue)
+        }
+        requestAnimationFrame(doAnimation)
+    }
 }

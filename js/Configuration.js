@@ -32,8 +32,9 @@ export default class Configuration {
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
     static deleteNodesKeyboardKey = "Delete"
-    static dragGeneralEventName = "ueb-drag-general"
+    static distanceThreshold = 5 // px
     static dragEventName = "ueb-drag"
+    static dragGeneralEventName = "ueb-drag-general"
     static editTextEventName = {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
@@ -76,16 +77,16 @@ export default class Configuration {
     static gridAxisLineColor = css`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = css`#353535`
-    static gridLineWidth = 1 // pixel
+    static gridLineWidth = 1 // px
     static gridSet = 8
     static gridSetLineColor = css`#161616`
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
-    static gridSize = 16 // pixel
+    static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = "+"
-    static linkCurveHeight = 15 // pixel
-    static linkCurveWidth = 80 // pixel
-    static linkMinWidth = 100 // pixel
+    static linkCurveHeight = 15 // px
+    static linkCurveWidth = 80 // px
+    static linkMinWidth = 100 // px
     /**
      * @param {Number} start
      * @param {Number} c1
@@ -102,7 +103,7 @@ export default class Configuration {
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
     static nodeName = (name, counter) => `${name}_${counter}`
-    static nodeRadius = 8 // in pixel
+    static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
@@ -128,7 +129,7 @@ export default class Configuration {
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
-    static distanceThreshold = 5 // in pixel
+    static smoothScrollTime = 1000 // ms
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",

@@ -10,6 +10,7 @@ import Utility from "./Utility"
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./template/node/CommentNodeTemplate").default} CommentNodeTemplate
+ * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {{
  *     primaryInf: Number,
  *     primarySup: Number,
@@ -71,6 +72,7 @@ export default class Blueprint extends IElement {
         },
     }
 
+    #avoidScrolling = false
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
     /** @type {NodeElement[]}" */
@@ -121,39 +123,53 @@ export default class Blueprint extends IElement {
     }
 
     /** @param {Number[]} param0 */
-    setScroll([x, y], smooth = false) {
+    setScroll([x, y]) {
         this.scrollX = x
         this.scrollY = y
     }
 
     /** @param {Number[]} delta */
     scrollDelta(delta, smooth = false) {
-        const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
-        let currentScroll = this.getScroll()
-        let finalScroll = [
-            currentScroll[0] + delta[0],
-            currentScroll[1] + delta[1]
-        ]
-        let expand = [0, 0]
-        for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
-                // Expand left/top
-                expand[i] = -1
-            } else if (delta[i] > 0 && finalScroll[i]
-                > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize) {
-                // Expand right/bottom
-                expand[i] = 1
+        if (smooth) {
+            let previousScrollDelta = [0, 0]
+            Utility.animate(0, delta[0], Configuration.smoothScrollTime, x => {
+                this.scrollDelta([x - previousScrollDelta[0], 0], false)
+                previousScrollDelta[0] = x
+            })
+            Utility.animate(0, delta[1], Configuration.smoothScrollTime, y => {
+                this.scrollDelta([0, y - previousScrollDelta[1]], false)
+                previousScrollDelta[1] = y
+            })
+        } else {
+            const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
+            let currentScroll = this.getScroll()
+            let finalScroll = [
+                currentScroll[0] + delta[0],
+                currentScroll[1] + delta[1]
+            ]
+            let expand = [0, 0]
+            for (let i = 0; i < 2; ++i) {
+                if (finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
+                    // Expand left/top
+                    expand[i] = -1
+                } else if (
+                    finalScroll[i]
+                    > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize
+                ) {
+                    // Expand right/bottom
+                    expand[i] = 1
+                }
             }
+            if (expand[0] != 0 || expand[1] != 0) {
+                this.seamlessExpand(expand)
+            }
+            currentScroll = this.getScroll()
+            finalScroll = [
+                currentScroll[0] + delta[0],
+                currentScroll[1] + delta[1]
+            ]
+            this.setScroll(finalScroll)
         }
-        if (expand[0] != 0 || expand[1] != 0) {
-            this.seamlessExpand(expand)
-        }
-        currentScroll = this.getScroll()
-        finalScroll = [
-            currentScroll[0] + delta[0],
-            currentScroll[1] + delta[1]
-        ]
-        this.setScroll(finalScroll, smooth)
     }
 
     scrollCenter() {

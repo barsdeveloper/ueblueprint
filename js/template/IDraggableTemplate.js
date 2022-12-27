@@ -44,4 +44,19 @@ export default class IDraggableTemplate extends ITemplate {
     leftBoundary(justSelectableArea = false) {
         return this.element.locationX
     }
+
+    centerInViewport() {
+        const minMargin = Math.min(
+            this.blueprint.template.viewportSize[0] / 10,
+            this.blueprint.template.viewportSize[1] / 10
+        )
+        const dl = this.leftBoundary() - this.blueprint.template.gridLeftVisibilityBoundary()
+        const dr = this.blueprint.template.gridRightVisibilityBoundary() - this.rightBoundary()
+        let avgX = Math.max((dl + dr) / 2, minMargin)
+        const dt = this.topBoundary() - this.blueprint.template.gridTopVisibilityBoundary()
+        const db = this.blueprint.template.gridBottomVisibilityBoundary() - this.bottomBoundary()
+        let avgY = Math.max((dt + db) / 2, minMargin)
+        const delta = [dl - avgX, dt - avgY]
+        this.blueprint.scrollDelta(delta, true)
+    }
 }

@@ -37,6 +37,14 @@ export default class BlueprintTemplate extends ITemplate {
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
     }
 
+    #resizeObserver = new ResizeObserver(entries => {
+        const size = entries.find(entry => entry.target === this.viewportElement)?.devicePixelContentBoxSize?.[0]
+        if (size) {
+            this.viewportSize[0] = size.inlineSize
+            this.viewportSize[1] = size.blockSize
+        }
+    })
+
     /** @type {HTMLElement} */ headerElement
     /** @type {HTMLElement} */ overlayElement
     /** @type {HTMLElement} */ viewportElement
@@ -44,11 +52,28 @@ export default class BlueprintTemplate extends ITemplate {
     /** @type {HTMLElement} */ gridElement
     /** @type {HTMLElement} */ linksContainerElement
     /** @type {HTMLElement} */ nodesContainerElement
+    viewportSize = [0, 0]
 
     /** @param {Blueprint} element */
     initialize(element) {
         super.initialize(element)
-        this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("")
+        this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables)
+            .map(([k, v]) => `${k}:${v};`).join("")
+    }
+
+    setup() {
+        super.setup()
+        this.#resizeObserver.observe(this.viewportElement, {
+            box: "device-pixel-content-box",
+        })
+        const bounding = this.viewportElement.getBoundingClientRect()
+        this.viewportSize[0] = bounding.width
+        this.viewportSize[1] = bounding.height
+    }
+
+    cleanup() {
+        super.cleanup()
+        this.#resizeObserver.unobserve(this.viewportElement)
     }
 
     createInputObjects() {
@@ -99,14 +124,14 @@ export default class BlueprintTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'))
-        this.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'))
-        this.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'))
-        this.selectorElement = /** @type {SelectorElement} */(this.element.querySelector('ueb-selector'))
-        this.gridElement = /** @type {HTMLElement} */(this.viewportElement.querySelector(".ueb-grid"))
-        this.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"))
+        this.headerElement = this.element.querySelector('.ueb-viewport-header')
+        this.overlayElement = this.element.querySelector('.ueb-viewport-overlay')
+        this.viewportElement = this.element.querySelector('.ueb-viewport-body')
+        this.selectorElement = this.element.querySelector('ueb-selector')
+        this.gridElement = this.viewportElement.querySelector(".ueb-grid")
+        this.linksContainerElement = this.element.querySelector("[data-links]")
         this.linksContainerElement.append(...this.element.getLinks())
-        this.nodesContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-nodes]"))
+        this.nodesContainerElement = this.element.querySelector("[data-nodes]")
         this.nodesContainerElement.append(...this.element.getNodes())
         this.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
     }
@@ -164,5 +189,21 @@ export default class BlueprintTemplate extends ITemplate {
      */
     isPointVisible(x, y) {
         return false
+    }
+
+    gridTopVisibilityBoundary() {
+        return this.blueprint.scrollY - this.blueprint.translateY
+    }
+
+    gridRightVisibilityBoundary() {
+        return this.gridLeftVisibilityBoundary() + this.viewportSize[0]
+    }
+
+    gridBottomVisibilityBoundary() {
+        return this.gridTopVisibilityBoundary() + this.viewportSize[1]
+    }
+
+    gridLeftVisibilityBoundary() {
+        return this.blueprint.scrollX - this.blueprint.translateX
     }
 }

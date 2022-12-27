@@ -56,8 +56,9 @@ class Configuration {
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
     static deleteNodesKeyboardKey = "Delete"
-    static dragGeneralEventName = "ueb-drag-general"
+    static distanceThreshold = 5 // px
     static dragEventName = "ueb-drag"
+    static dragGeneralEventName = "ueb-drag-general"
     static editTextEventName = {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
@@ -100,16 +101,16 @@ class Configuration {
     static gridAxisLineColor = i$3`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = i$3`#353535`
-    static gridLineWidth = 1 // pixel
+    static gridLineWidth = 1 // px
     static gridSet = 8
     static gridSetLineColor = i$3`#161616`
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
-    static gridSize = 16 // pixel
+    static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = "+"
-    static linkCurveHeight = 15 // pixel
-    static linkCurveWidth = 80 // pixel
-    static linkMinWidth = 100 // pixel
+    static linkCurveHeight = 15 // px
+    static linkCurveWidth = 80 // px
+    static linkMinWidth = 100 // px
     /**
      * @param {Number} start
      * @param {Number} c1
@@ -126,7 +127,7 @@ class Configuration {
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
     static nodeName = (name, counter) => `${name}_${counter}`
-    static nodeRadius = 8 // in pixel
+    static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
@@ -152,7 +153,7 @@ class Configuration {
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
-    static distanceThreshold = 5 // in pixel
+    static smoothScrollTime = 1000 // ms
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
@@ -928,6 +929,24 @@ class Utility {
         });
         event.clipboardData.setData("text", value);
         element.dispatchEvent(event);
+    }
+
+    static animate(from, to, intervalSeconds, callback, timingFunction = x => {
+        const v = x ** 3.5;
+        return v / (v + ((1 - x) ** 3.5))
+    }) {
+        const startTimestamp = performance.now();
+        const doAnimation = currentTimestamp => {
+            let delta = (currentTimestamp - startTimestamp) / intervalSeconds;
+            if (Utility.approximatelyEqual(delta, 1) || delta > 1) {
+                delta = 1;
+            } else {
+                requestAnimationFrame(doAnimation);
+            }
+            const currentValue = from + (to - from) * timingFunction(delta);
+            callback(currentValue);
+        };
+        requestAnimationFrame(doAnimation);
     }
 }
 
@@ -3748,6 +3767,14 @@ class BlueprintTemplate extends ITemplate {
         "--ueb-node-radius": `${Configuration.nodeRadius}px`,
     }
 
+    #resizeObserver = new ResizeObserver(entries => {
+        const size = entries.find(entry => entry.target === this.viewportElement)?.devicePixelContentBoxSize?.[0];
+        if (size) {
+            this.viewportSize[0] = size.inlineSize;
+            this.viewportSize[1] = size.blockSize;
+        }
+    })
+
     /** @type {HTMLElement} */ headerElement
     /** @type {HTMLElement} */ overlayElement
     /** @type {HTMLElement} */ viewportElement
@@ -3755,11 +3782,28 @@ class BlueprintTemplate extends ITemplate {
     /** @type {HTMLElement} */ gridElement
     /** @type {HTMLElement} */ linksContainerElement
     /** @type {HTMLElement} */ nodesContainerElement
+    viewportSize = [0, 0]
 
     /** @param {Blueprint} element */
     initialize(element) {
         super.initialize(element);
-        this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables).map(([k, v]) => `${k}:${v};`).join("");
+        this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables)
+            .map(([k, v]) => `${k}:${v};`).join("");
+    }
+
+    setup() {
+        super.setup();
+        this.#resizeObserver.observe(this.viewportElement, {
+            box: "device-pixel-content-box",
+        });
+        const bounding = this.viewportElement.getBoundingClientRect();
+        this.viewportSize[0] = bounding.width;
+        this.viewportSize[1] = bounding.height;
+    }
+
+    cleanup() {
+        super.cleanup();
+        this.#resizeObserver.unobserve(this.viewportElement);
     }
 
     createInputObjects() {
@@ -3810,14 +3854,14 @@ class BlueprintTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.headerElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-header'));
-        this.overlayElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-overlay'));
-        this.viewportElement = /** @type {HTMLElement} */(this.element.querySelector('.ueb-viewport-body'));
-        this.selectorElement = /** @type {SelectorElement} */(this.element.querySelector('ueb-selector'));
-        this.gridElement = /** @type {HTMLElement} */(this.viewportElement.querySelector(".ueb-grid"));
-        this.linksContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-links]"));
+        this.headerElement = this.element.querySelector('.ueb-viewport-header');
+        this.overlayElement = this.element.querySelector('.ueb-viewport-overlay');
+        this.viewportElement = this.element.querySelector('.ueb-viewport-body');
+        this.selectorElement = this.element.querySelector('ueb-selector');
+        this.gridElement = this.viewportElement.querySelector(".ueb-grid");
+        this.linksContainerElement = this.element.querySelector("[data-links]");
         this.linksContainerElement.append(...this.element.getLinks());
-        this.nodesContainerElement = /** @type {HTMLElement} */(this.element.querySelector("[data-nodes]"));
+        this.nodesContainerElement = this.element.querySelector("[data-nodes]");
         this.nodesContainerElement.append(...this.element.getNodes());
         this.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
     }
@@ -3875,6 +3919,22 @@ class BlueprintTemplate extends ITemplate {
      */
     isPointVisible(x, y) {
         return false
+    }
+
+    gridTopVisibilityBoundary() {
+        return this.blueprint.scrollY - this.blueprint.translateY
+    }
+
+    gridRightVisibilityBoundary() {
+        return this.gridLeftVisibilityBoundary() + this.viewportSize[0]
+    }
+
+    gridBottomVisibilityBoundary() {
+        return this.gridTopVisibilityBoundary() + this.viewportSize[1]
+    }
+
+    gridLeftVisibilityBoundary() {
+        return this.blueprint.scrollX - this.blueprint.translateX
     }
 }
 
@@ -4084,11 +4144,11 @@ class LinkTemplate extends IFromToPositionedTemplate {
      * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
      * @param {Number} m slope
      * @param {Number[]} p reference point
-     * @returns Maximum value
      */
     static decreasingValue(m, p) {
         const a = -m * p[0] ** 2;
         const q = p[1] - a / p[0];
+        /** @param {Number} x */
         return x => a / x + q
     }
 
@@ -4122,22 +4182,21 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
     static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
-    #createKnot =
-        /** @param {Number[]} location */
-        location => {
-            const knotEntity = new KnotEntity({}, this.element.sourcePin.entity);
-            const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
-                .newObject(knotEntity);
-            knot.setLocation(this.blueprint.snapToGrid(location));
-            this.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
-            const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
-                .newObject(
+    /** @type {(location: Number[]) => void} */
+    #createKnot = location => {
+        const knotEntity = new KnotEntity({}, this.element.sourcePin.entity);
+        const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
+            .newObject(knotEntity);
+        knot.setLocation(this.blueprint.snapToGrid(location));
+        this.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
+        const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+            .newObject(
                 /** @type {KnotNodeTemplate} */(knot.template).outputPin,
-                    this.element.destinationPin
-                );
-            this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin;
-            this.blueprint.addGraphElement(link);
-        }
+                this.element.destinationPin
+            );
+        this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin;
+        this.blueprint.addGraphElement(link);
+    }
 
     createInputObjects() {
         return [
@@ -4841,6 +4900,21 @@ class IDraggableTemplate extends ITemplate {
 
     leftBoundary(justSelectableArea = false) {
         return this.element.locationX
+    }
+
+    centerInViewport() {
+        const minMargin = Math.min(
+            this.blueprint.template.viewportSize[0] / 10,
+            this.blueprint.template.viewportSize[1] / 10
+        );
+        const dl = this.leftBoundary() - this.blueprint.template.gridLeftVisibilityBoundary();
+        const dr = this.blueprint.template.gridRightVisibilityBoundary() - this.rightBoundary();
+        let avgX = Math.max((dl + dr) / 2, minMargin);
+        const dt = this.topBoundary() - this.blueprint.template.gridTopVisibilityBoundary();
+        const db = this.blueprint.template.gridBottomVisibilityBoundary() - this.bottomBoundary();
+        let avgY = Math.max((dt + db) / 2, minMargin);
+        const delta = [dl - avgX, dt - avgY];
+        this.blueprint.scrollDelta(delta, true);
     }
 }
 
@@ -6074,6 +6148,7 @@ class NodeElement extends ISelectableDraggableElement {
  * @typedef {import("./entity/GuidEntity").default} GuidEntity
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./template/node/CommentNodeTemplate").default} CommentNodeTemplate
+ * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {{
  *     primaryInf: Number,
  *     primarySup: Number,
@@ -6135,6 +6210,7 @@ class Blueprint extends IElement {
         },
     }
 
+    #avoidScrolling = false
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
     /** @type {NodeElement[]}" */
@@ -6185,39 +6261,53 @@ class Blueprint extends IElement {
     }
 
     /** @param {Number[]} param0 */
-    setScroll([x, y], smooth = false) {
+    setScroll([x, y]) {
         this.scrollX = x;
         this.scrollY = y;
     }
 
     /** @param {Number[]} delta */
     scrollDelta(delta, smooth = false) {
-        const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
-        let currentScroll = this.getScroll();
-        let finalScroll = [
-            currentScroll[0] + delta[0],
-            currentScroll[1] + delta[1]
-        ];
-        let expand = [0, 0];
-        for (let i = 0; i < 2; ++i) {
-            if (delta[i] < 0 && finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
-                // Expand left/top
-                expand[i] = -1;
-            } else if (delta[i] > 0 && finalScroll[i]
-                > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize) {
-                // Expand right/bottom
-                expand[i] = 1;
+        if (smooth) {
+            let previousScrollDelta = [0, 0];
+            Utility.animate(0, delta[0], Configuration.smoothScrollTime, x => {
+                this.scrollDelta([x - previousScrollDelta[0], 0], false);
+                previousScrollDelta[0] = x;
+            });
+            Utility.animate(0, delta[1], Configuration.smoothScrollTime, y => {
+                this.scrollDelta([0, y - previousScrollDelta[1]], false);
+                previousScrollDelta[1] = y;
+            });
+        } else {
+            const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
+            let currentScroll = this.getScroll();
+            let finalScroll = [
+                currentScroll[0] + delta[0],
+                currentScroll[1] + delta[1]
+            ];
+            let expand = [0, 0];
+            for (let i = 0; i < 2; ++i) {
+                if (finalScroll[i] < Configuration.gridExpandThreshold * Configuration.expandGridSize) {
+                    // Expand left/top
+                    expand[i] = -1;
+                } else if (
+                    finalScroll[i]
+                    > maxScroll[i] - Configuration.gridExpandThreshold * Configuration.expandGridSize
+                ) {
+                    // Expand right/bottom
+                    expand[i] = 1;
+                }
             }
+            if (expand[0] != 0 || expand[1] != 0) {
+                this.seamlessExpand(expand);
+            }
+            currentScroll = this.getScroll();
+            finalScroll = [
+                currentScroll[0] + delta[0],
+                currentScroll[1] + delta[1]
+            ];
+            this.setScroll(finalScroll);
         }
-        if (expand[0] != 0 || expand[1] != 0) {
-            this.seamlessExpand(expand);
-        }
-        currentScroll = this.getScroll();
-        finalScroll = [
-            currentScroll[0] + delta[0],
-            currentScroll[1] + delta[1]
-        ];
-        this.setScroll(finalScroll, smooth);
     }
 
     scrollCenter() {
