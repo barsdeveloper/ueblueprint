@@ -150,12 +150,12 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
-            .map(v => {
-                if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
+            .map(pinEntity => {
+                if (!this.#hasTargetInputNode && pinEntity.getDisplayName() == "Target") {
                     this.#hasTargetInputNode = true
                 }
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                    .newObject(v, undefined, this.element)
+                    .newObject(pinEntity, undefined, this.element)
                 return pinElement
             })
     }

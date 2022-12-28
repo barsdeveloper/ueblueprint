@@ -129,7 +129,7 @@ ueb-blueprint[data-focused="true"] .ueb-viewport-body {
         var(--ueb-grid-actual-size) var(--ueb-grid-actual-size);
     background-position: calc(var(--ueb-translate-x) * 1px) calc(var(--ueb-translate-y) * 1px);
     background-repeat: repeat-x, repeat-y, repeat, repeat, repeat, repeat;
-    transform: scale(var(--ueb-scale), var(--ueb-scale));
+    scale: var(--ueb-scale) var(--ueb-scale);
     transform-origin: 0 0;
     overflow: hidden;
 }

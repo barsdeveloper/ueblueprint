@@ -132,6 +132,7 @@ class Configuration {
     static nodeType = {
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
+        commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
@@ -649,7 +650,11 @@ class Utility {
 
     /** @param {HTMLElement} element */
     static getScale(element) {
-        const scale = getComputedStyle(element).getPropertyValue("--ueb-scale");
+        // @ts-expect-error
+        const scale = element.blueprint
+            // @ts-expect-error
+            ? element.blueprint.getScale()
+            : getComputedStyle(element).getPropertyValue("--ueb-scale");
         return scale != "" ? parseFloat(scale) : 1
     }
 
@@ -687,8 +692,8 @@ class Utility {
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
      */
-    static convertLocation(viewportLocation, movementElement) {
-        const scaleCorrection = 1 / Utility.getScale(movementElement);
+    static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
+        const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement);
         const targetOffset = movementElement.getBoundingClientRect();
         let location = [
             Math.round((viewportLocation[0] - targetOffset.x) * scaleCorrection),
@@ -1082,7 +1087,7 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     getName() {
-        return this.path.match(/[^\.\/]+$/)[0]
+        return this.path.match(/[^\.\/]+$/)?.[0] ?? ""
     }
 }
 
@@ -1923,39 +1928,6 @@ class ObjectEntity extends IEntity {
             return [name, counter]
         }
         return ["", 0]
-    }
-
-    getDisplayName() {
-        switch (this.getType()) {
-            case Configuration.nodeType.callFunction:
-                if (this.FunctionReference.MemberName === "AddKey") {
-                    let result = this.FunctionReference.MemberParent.path.match(ObjectEntity.sequencerScriptingNameRegex);
-                    if (result) {
-                        return `Add Key (${Utility.formatStringName(result[1])})`
-                    }
-                }
-                return Utility.formatStringName(this.FunctionReference.MemberName)
-            case Configuration.nodeType.dynamicCast:
-                return `Cast To ${this.TargetType.getName()}`
-            case Configuration.nodeType.executionSequence:
-                return "Sequence"
-            case Configuration.nodeType.ifThenElse:
-                return "Branch"
-            case Configuration.nodeType.forEachElementInEnum:
-                return `For Each ${this.Enum.getName()}`
-            case Configuration.nodeType.forEachLoopWithBreak:
-                return "For Each Loop with Break"
-            case Configuration.nodeType.variableGet:
-                return ""
-            case Configuration.nodeType.variableSet:
-                return "SET"
-            default:
-                if (this.getClass() === Configuration.nodeType.macro) {
-                    return Utility.formatStringName(this.MacroGraphReference.getMacroName())
-                } else {
-                    return Utility.formatStringName(this.getNameAndCounter()[0])
-                }
-        }
     }
 
     getCounter() {
@@ -2931,6 +2903,7 @@ class IPointing extends IInput {
 
     constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false;
+        options.ignoreScale ??= false;
         options.movementSpace ??= blueprint.getGridDOMElement() ?? document.documentElement;
         super(target, blueprint, options);
         /** @type {HTMLElement} */
@@ -2941,7 +2914,8 @@ class IPointing extends IInput {
     locationFromEvent(mouseEvent) {
         const location = Utility.convertLocation(
             [mouseEvent.clientX, mouseEvent.clientY],
-            this.movementSpace
+            this.movementSpace,
+            this.options.ignoreScale
         );
         return this.options.ignoreTranslateCompensate
             ? location
@@ -5154,12 +5128,12 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     createPinElements() {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
-            .map(v => {
-                if (!this.#hasTargetInputNode && v.getDisplayName() === "Target") {
+            .map(pinEntity => {
+                if (!this.#hasTargetInputNode && pinEntity.getDisplayName() == "Target") {
                     this.#hasTargetInputNode = true;
                 }
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                    .newObject(v, undefined, this.element);
+                    .newObject(pinEntity, undefined, this.element);
                 return pinElement
             })
     }
@@ -5621,6 +5595,87 @@ class MouseCreateLink extends IMouseClickDrag {
 }
 
 /**
+ * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ */
+
+class VariableManagementNodeTemplate extends NodeTemplate {
+
+    #hasInput = false
+    #hasOutput = false
+    #displayName = ""
+
+    /** @param {NodeElement} element */
+    initialize(element) {
+        super.initialize(element);
+        this.element.classList.add("ueb-node-style-glass");
+        this.#displayName = this.element.getNodeDisplayName();
+    }
+
+    render() {
+        return y`
+            <div class="ueb-node-border">
+                <div class="ueb-node-wrapper">
+                    ${this.#displayName ? y`
+                        <div class="ueb-node-top">
+                            <div class="ueb-node-name">
+                                <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
+                                    ${this.#displayName}
+                                </span>
+                            </div>
+                        </div>
+                    ` : b}
+                    <div class="ueb-node-content">
+                        ${this.#hasInput ? y`
+                            <div class="ueb-node-inputs"></div>
+                        ` : b}
+                        ${this.#hasOutput ? y`
+                            <div class="ueb-node-outputs"></div>
+                        ` : b}
+                    </div>
+                </div>
+            </div>
+        `
+    }
+
+    createPinElements() {
+        return this.element.getPinEntities()
+            .filter(v => !v.isHidden())
+            .map(v => {
+                this.#hasInput ||= v.isInput();
+                this.#hasOutput ||= v.isOutput();
+                const result = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                    .newObject(v, undefined, this.element);
+                return result
+            })
+    }
+}
+
+/** @typedef {import("../../element/NodeElement").default} NodeElement */
+
+class VariableConversionNodeTemplate extends VariableManagementNodeTemplate {
+
+
+    /** @param {NodeElement} element */
+    initialize(element) {
+        super.initialize(element);
+        this.element.classList.add("ueb-node-style-conversion");
+    }
+}
+
+/** @typedef {import("../../element/NodeElement").default} NodeElement */
+
+class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
+
+
+    /** @param {NodeElement} element */
+    initialize(element) {
+        super.initialize(element);
+        this.element.classList.add("ueb-node-style-operation");
+    }
+}
+
+/**
  * @typedef {import("../../input/IInput").default} IInput
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
@@ -5641,9 +5696,19 @@ class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
+    isNameRendered = true
+
     setup() {
         super.setup();
         this.element.nodeElement = this.element.closest("ueb-node");
+        const nodeTemplate = this.element.nodeElement.template;
+        if (
+            nodeTemplate instanceof VariableConversionNodeTemplate
+            || nodeTemplate instanceof VariableOperationNodeTemplate
+        ) {
+            this.isNameRendered = false;
+            this.element.requestUpdate();
+        }
     }
 
     /** @returns {IInput[]} */
@@ -5659,7 +5724,7 @@ class PinTemplate extends ITemplate {
         const icon = y`<div class="ueb-pin-icon">${this.renderIcon()}</div>`;
         const content = y`
             <div class="ueb-pin-content">
-                ${this.renderName()}
+                ${this.isNameRendered ? this.renderName() : b}
                 ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : y``}
             </div>
         `;
@@ -5828,61 +5893,18 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 }
 
-/**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").default} PinElement
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
- */
+/** @typedef {import("../../element/NodeElement").default} NodeElement */
 
-class VariableAccessNodeTemplate extends NodeTemplate {
-
-    #hasInput = false
-    #hasOutput = false
-    #displayName = ""
+class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
-        this.element.classList.add("ueb-node-style-glass");
-        this.#displayName = this.element.getNodeDisplayName();
-    }
-
-    render() {
-        return y`
-            <div class="ueb-node-border">
-                <div class="ueb-node-wrapper">
-                    ${this.#displayName ? y`
-                        <div class="ueb-node-top">
-                            <div class="ueb-node-name">
-                                <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                                    ${this.#displayName}
-                                </span>
-                            </div>
-                        </div>
-                    ` : b}
-                    <div class="ueb-node-content">
-                        ${this.#hasInput ? y`
-                            <div class="ueb-node-inputs"></div>
-                        ` : b}
-                        ${this.#hasOutput ? y`
-                            <div class="ueb-node-outputs"></div>
-                        ` : b}
-                    </div>
-                </div>
-            </div>
-        `
-    }
-
-    createPinElements() {
-        return this.element.getPinEntities()
-            .filter(v => !v.isHidden())
-            .map(v => {
-                this.#hasInput ||= v.isInput();
-                this.#hasOutput ||= v.isOutput();
-                const result = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                    .newObject(v, undefined, this.element);
-                return result
-            })
+        if (element.getType() === Configuration.nodeType.variableGet) {
+            this.element.classList.add("ueb-node-style-getter");
+        } else if (element.getType() === Configuration.nodeType.variableSet) {
+            this.element.classList.add("ueb-node-style-setter");
+        }
     }
 
     setupPins() {
@@ -5902,10 +5924,6 @@ class VariableAccessNodeTemplate extends NodeTemplate {
 class NodeElement extends ISelectableDraggableElement {
 
     static #typeTemplateMap = {
-        [Configuration.nodeType.comment]: CommentNodeTemplate,
-        [Configuration.nodeType.knot]: KnotNodeTemplate,
-        [Configuration.nodeType.variableGet]: VariableAccessNodeTemplate,
-        [Configuration.nodeType.variableSet]: VariableAccessNodeTemplate,
     }
 
     static properties = {
@@ -5981,8 +5999,39 @@ class NodeElement extends ISelectableDraggableElement {
      * @return {new () => NodeTemplate}
      */
     static getTypeTemplate(nodeEntity) {
-        let result = NodeElement.#typeTemplateMap[nodeEntity.getClass()];
-        return result ?? NodeTemplate
+        if (
+            nodeEntity.getClass() === Configuration.nodeType.callFunction
+            || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
+        ) {
+            if (nodeEntity.FunctionReference.MemberParent.path === "/Script/Engine.KismetMathLibrary") {
+                if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
+                    return VariableConversionNodeTemplate
+                }
+                if (nodeEntity.FunctionReference.MemberName?.startsWith("Percent_")) {
+                    return VariableOperationNodeTemplate
+                }
+                switch (nodeEntity.FunctionReference.MemberName) {
+                    case "Abs":
+                    case "BMax":
+                    case "BMin":
+                    case "Exp":
+                    case "FMax":
+                    case "FMin":
+                    case "Max":
+                    case "MaxInt64":
+                    case "Min":
+                    case "MinInt64":
+                        return VariableOperationNodeTemplate
+                }
+            }
+        }
+        switch (nodeEntity.getClass()) {
+            case Configuration.nodeType.comment: return CommentNodeTemplate
+            case Configuration.nodeType.knot: return KnotNodeTemplate
+            case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
+            case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
+        }
+        return NodeTemplate
     }
 
     /** @param {String} str */
@@ -6009,7 +6058,7 @@ class NodeElement extends ISelectableDraggableElement {
         this.nodeName = this.entity.getObjectName();
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString();
         this.enabledState = this.entity.EnabledState;
-        this.nodeDisplayName = this.entity.getDisplayName();
+        this.nodeDisplayName = this.getNodeDisplayName();
         this.pureFunction = this.entity.bIsPureFunc;
         this.dragLinkObjects = [];
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
@@ -6070,7 +6119,61 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     getNodeDisplayName() {
-        return this.entity.getDisplayName()
+        switch (this.getType()) {
+            case Configuration.nodeType.callFunction:
+            case Configuration.nodeType.commutativeAssociativeBinaryOperator:
+                if (this.entity.FunctionReference.MemberName == "AddKey") {
+                    let result = this.entity.FunctionReference.MemberParent.path.match(
+                        ObjectEntity.sequencerScriptingNameRegex
+                    );
+                    if (result) {
+                        return `Add Key (${Utility.formatStringName(result[1])})`
+                    }
+                }
+                let memberName = this.entity.FunctionReference.MemberName;
+                if (this.entity.FunctionReference.MemberParent.path == "/Script/Engine.KismetMathLibrary") {
+                    if (memberName.startsWith("Conv_")) {
+                        return "" // Conversio  nodes do not have visible names
+                    }
+                    if (memberName.startsWith("Percent_")) {
+                        return "%"
+                    }
+                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
+                    if (leadingLetter) {
+                        // Some functions start with B or F (Like FCeil, FMax, BMin)
+                        memberName = leadingLetter[1];
+                    }
+                    switch (memberName) {
+                        case "Abs": return "ABS"
+                        case "Exp": return "e"
+                        case "Max": return "MAX"
+                        case "MaxInt64": return "MAX"
+                        case "Min": return "MIN"
+                        case "MinInt64": return "MIN"
+                    }
+                }
+                return Utility.formatStringName(memberName)
+            case Configuration.nodeType.dynamicCast:
+                return `Cast To ${this.entity.TargetType.getName()}`
+            case Configuration.nodeType.executionSequence:
+                return "Sequence"
+            case Configuration.nodeType.ifThenElse:
+                return "Branch"
+            case Configuration.nodeType.forEachElementInEnum:
+                return `For Each ${this.entity.Enum.getName()}`
+            case Configuration.nodeType.forEachLoopWithBreak:
+                return "For Each Loop with Break"
+            case Configuration.nodeType.variableGet:
+                return ""
+            case Configuration.nodeType.variableSet:
+                return "SET"
+            default:
+                if (this.entity.getClass() === Configuration.nodeType.macro) {
+                    return Utility.formatStringName(this.entity.MacroGraphReference.getMacroName())
+                } else {
+                    return Utility.formatStringName(this.entity.getNameAndCounter()[0])
+                }
+        }
     }
 
     /** @param {Number} value */
@@ -6409,7 +6512,12 @@ class Blueprint extends IElement {
 
     getNodes(
         selected = false,
-        [t, r, b, l] = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]
+        [t, r, b, l] = [
+            Number.MIN_SAFE_INTEGER,
+            Number.MAX_SAFE_INTEGER,
+            Number.MAX_SAFE_INTEGER,
+            Number.MIN_SAFE_INTEGER,
+        ]
     ) {
         let result = this.nodes;
         if (selected) {
@@ -6571,6 +6679,7 @@ customElements.define("ueb-blueprint", Blueprint);
 
 /**
  * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /**
@@ -6591,9 +6700,14 @@ class IDraggableControlTemplate extends IDraggableTemplate {
     movementSpace
     movementSpaceSize = [0, 0]
 
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.movementSpace = this.element.parentElement;
+    }
+
     setup() {
         super.setup();
-        this.movementSpace = this.element.parentElement;
         const bounding = this.movementSpace.getBoundingClientRect();
         this.movementSpaceSize = [bounding.width, bounding.height];
     }
@@ -7075,7 +7189,8 @@ class WindowTemplate extends IDraggablePositionedTemplate {
     createDraggableObject() {
         return new MouseMoveDraggable(this.element, this.blueprint, {
             draggableElement: this.getDraggableElement(),
-            ignoreTranslateCompensate: true,
+            ignoreScale: true,
+            ignoreTranslateCompensate: false,
             movementSpace: this.blueprint,
             stepSize: 1,
         })
@@ -8672,4 +8787,4 @@ function initializeSerializerFactory() {
 initializeSerializerFactory();
 defineElements();
 
-export { Blueprint, Configuration, LinkElement, NodeElement };
+export { Blueprint, Configuration, LinkElement, NodeElement, Utility };

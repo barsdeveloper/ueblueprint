@@ -10,6 +10,8 @@ import PinReferenceEntity from "../entity/PinReferenceEntity"
 import SerializerFactory from "../serialization/SerializerFactory"
 import Utility from "../Utility"
 import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTemplate"
+import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate"
+import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate"
 
 /**
  * @typedef {import("./IElement").default} IElement
@@ -21,10 +23,6 @@ import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTempl
 export default class NodeElement extends ISelectableDraggableElement {
 
     static #typeTemplateMap = {
-        [Configuration.nodeType.comment]: CommentNodeTemplate,
-        [Configuration.nodeType.knot]: KnotNodeTemplate,
-        [Configuration.nodeType.variableGet]: VariableAccessNodeTemplate,
-        [Configuration.nodeType.variableSet]: VariableAccessNodeTemplate,
     }
 
     static properties = {
@@ -100,8 +98,39 @@ export default class NodeElement extends ISelectableDraggableElement {
      * @return {new () => NodeTemplate}
      */
     static getTypeTemplate(nodeEntity) {
-        let result = NodeElement.#typeTemplateMap[nodeEntity.getClass()]
-        return result ?? NodeTemplate
+        if (
+            nodeEntity.getClass() === Configuration.nodeType.callFunction
+            || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
+        ) {
+            if (nodeEntity.FunctionReference.MemberParent.path === "/Script/Engine.KismetMathLibrary") {
+                if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
+                    return VariableConversionNodeTemplate
+                }
+                if (nodeEntity.FunctionReference.MemberName?.startsWith("Percent_")) {
+                    return VariableOperationNodeTemplate
+                }
+                switch (nodeEntity.FunctionReference.MemberName) {
+                    case "Abs":
+                    case "BMax":
+                    case "BMin":
+                    case "Exp":
+                    case "FMax":
+                    case "FMin":
+                    case "Max":
+                    case "MaxInt64":
+                    case "Min":
+                    case "MinInt64":
+                        return VariableOperationNodeTemplate
+                }
+            }
+        }
+        switch (nodeEntity.getClass()) {
+            case Configuration.nodeType.comment: return CommentNodeTemplate
+            case Configuration.nodeType.knot: return KnotNodeTemplate
+            case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
+            case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
+        }
+        return NodeTemplate
     }
 
     /** @param {String} str */
@@ -128,7 +157,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.nodeName = this.entity.getObjectName()
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString()
         this.enabledState = this.entity.EnabledState
-        this.nodeDisplayName = this.entity.getDisplayName()
+        this.nodeDisplayName = this.getNodeDisplayName()
         this.pureFunction = this.entity.bIsPureFunc
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
@@ -189,7 +218,61 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     getNodeDisplayName() {
-        return this.entity.getDisplayName()
+        switch (this.getType()) {
+            case Configuration.nodeType.callFunction:
+            case Configuration.nodeType.commutativeAssociativeBinaryOperator:
+                if (this.entity.FunctionReference.MemberName == "AddKey") {
+                    let result = this.entity.FunctionReference.MemberParent.path.match(
+                        ObjectEntity.sequencerScriptingNameRegex
+                    )
+                    if (result) {
+                        return `Add Key (${Utility.formatStringName(result[1])})`
+                    }
+                }
+                let memberName = this.entity.FunctionReference.MemberName
+                if (this.entity.FunctionReference.MemberParent.path == "/Script/Engine.KismetMathLibrary") {
+                    if (memberName.startsWith("Conv_")) {
+                        return "" // Conversio  nodes do not have visible names
+                    }
+                    if (memberName.startsWith("Percent_")) {
+                        return "%"
+                    }
+                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
+                    if (leadingLetter) {
+                        // Some functions start with B or F (Like FCeil, FMax, BMin)
+                        memberName = leadingLetter[1]
+                    }
+                    switch (memberName) {
+                        case "Abs": return "ABS"
+                        case "Exp": return "e"
+                        case "Max": return "MAX"
+                        case "MaxInt64": return "MAX"
+                        case "Min": return "MIN"
+                        case "MinInt64": return "MIN"
+                    }
+                }
+                return Utility.formatStringName(memberName)
+            case Configuration.nodeType.dynamicCast:
+                return `Cast To ${this.entity.TargetType.getName()}`
+            case Configuration.nodeType.executionSequence:
+                return "Sequence"
+            case Configuration.nodeType.ifThenElse:
+                return "Branch"
+            case Configuration.nodeType.forEachElementInEnum:
+                return `For Each ${this.entity.Enum.getName()}`
+            case Configuration.nodeType.forEachLoopWithBreak:
+                return "For Each Loop with Break"
+            case Configuration.nodeType.variableGet:
+                return ""
+            case Configuration.nodeType.variableSet:
+                return "SET"
+            default:
+                if (this.entity.getClass() === Configuration.nodeType.macro) {
+                    return Utility.formatStringName(this.entity.MacroGraphReference.getMacroName())
+                } else {
+                    return Utility.formatStringName(this.entity.getNameAndCounter()[0])
+                }
+        }
     }
 
     /** @param {Number} value */

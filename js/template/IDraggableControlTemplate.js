@@ -3,6 +3,7 @@ import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
 
 /**
  * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
 /**
@@ -23,9 +24,14 @@ export default class IDraggableControlTemplate extends IDraggableTemplate {
     movementSpace
     movementSpaceSize = [0, 0]
 
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        this.movementSpace = this.element.parentElement
+    }
+
     setup() {
         super.setup()
-        this.movementSpace = this.element.parentElement
         const bounding = this.movementSpace.getBoundingClientRect()
         this.movementSpaceSize = [bounding.width, bounding.height]
     }

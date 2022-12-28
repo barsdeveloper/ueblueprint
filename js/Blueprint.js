@@ -271,7 +271,12 @@ export default class Blueprint extends IElement {
 
     getNodes(
         selected = false,
-        [t, r, b, l] = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]
+        [t, r, b, l] = [
+            Number.MIN_SAFE_INTEGER,
+            Number.MAX_SAFE_INTEGER,
+            Number.MAX_SAFE_INTEGER,
+            Number.MIN_SAFE_INTEGER,
+        ]
     ) {
         let result = this.nodes
         if (selected) {

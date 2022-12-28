@@ -112,40 +112,6 @@ export default class ObjectEntity extends IEntity {
         return ["", 0]
     }
 
-    getDisplayName() {
-        let name = ""
-        switch (this.getType()) {
-            case Configuration.nodeType.callFunction:
-                if (this.FunctionReference.MemberName === "AddKey") {
-                    let result = this.FunctionReference.MemberParent.path.match(ObjectEntity.sequencerScriptingNameRegex)
-                    if (result) {
-                        return `Add Key (${Utility.formatStringName(result[1])})`
-                    }
-                }
-                return Utility.formatStringName(this.FunctionReference.MemberName)
-            case Configuration.nodeType.dynamicCast:
-                return `Cast To ${this.TargetType.getName()}`
-            case Configuration.nodeType.executionSequence:
-                return "Sequence"
-            case Configuration.nodeType.ifThenElse:
-                return "Branch"
-            case Configuration.nodeType.forEachElementInEnum:
-                return `For Each ${this.Enum.getName()}`
-            case Configuration.nodeType.forEachLoopWithBreak:
-                return "For Each Loop with Break"
-            case Configuration.nodeType.variableGet:
-                return ""
-            case Configuration.nodeType.variableSet:
-                return "SET"
-            default:
-                if (this.getClass() === Configuration.nodeType.macro) {
-                    return Utility.formatStringName(this.MacroGraphReference.getMacroName())
-                } else {
-                    return Utility.formatStringName(this.getNameAndCounter()[0])
-                }
-        }
-    }
-
     getCounter() {
         return this.getNameAndCounter()[1]
     }

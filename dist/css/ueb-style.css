@@ -82,7 +82,7 @@ ueb-blueprint[data-focused=true] .ueb-viewport-body {
   background-size: 100% var(--ueb-grid-line-actual-width), var(--ueb-grid-line-actual-width) 100%, calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)) calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)), calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)) calc(var(--ueb-grid-set) * var(--ueb-grid-actual-size)), var(--ueb-grid-actual-size) var(--ueb-grid-actual-size), var(--ueb-grid-actual-size) var(--ueb-grid-actual-size);
   background-position: calc(var(--ueb-translate-x) * 1px) calc(var(--ueb-translate-y) * 1px);
   background-repeat: repeat-x, repeat-y, repeat, repeat, repeat, repeat;
-  transform: scale(var(--ueb-scale), var(--ueb-scale));
+  scale: var(--ueb-scale) var(--ueb-scale);
   transform-origin: 0 0;
   overflow: hidden;
 }
@@ -514,12 +514,12 @@ ueb-node.ueb-node-style-glass .ueb-node-wrapper,
 ueb-node.ueb-node-style-glass .ueb-node-border,
 ueb-node.ueb-node-style-glass {
   border-radius: 15px;
-  box-shadow: none;
 }
 
 ueb-node.ueb-node-style-glass .ueb-node-wrapper {
   border: 1px solid black;
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 -2px 2px 1px rgba(0, 0, 0, 0.5) inset;
+  padding: 3px;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.188) 0%, rgba(255, 255, 255, 0.063) 14px, rgba(0, 0, 0, 0.251) 14px), linear-gradient(to right, transparent 10%, rgba(var(--ueb-node-color), 0.3) 50%, transparent 90%);
   background-size: 100%, 100% 28px;
   background-repeat: repeat, no-repeat;
@@ -542,10 +542,23 @@ ueb-node.ueb-node-style-glass .ueb-node-top {
   position: absolute;
   left: 50%;
   translate: -50%;
+  padding: 3px;
 }
 
 ueb-node.ueb-node-style-glass .ueb-node-outputs:first-child {
   padding-left: 8px;
+}
+
+ueb-node.ueb-node-style-operation .ueb-node-top {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  font-size: 28px;
+}
+
+ueb-node.ueb-node-style-operation .ueb-node-inputs {
+  margin-right: 100px;
 }
 
 ueb-node:not(.ueb-node-style-comment) {
@@ -586,6 +599,18 @@ ueb-node.ueb-node-style-comment .ueb-node-top {
   font-size: 24px;
   text-shadow: 2px 1px 1px #444, 0 0 2px #bbb;
   z-index: 1;
+}
+
+ueb-node.ueb-node-style-conversion .ueb-node-content::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: calc(50% - 3px);
+  left: calc(50% - 3px);
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: #8f8f8f;
 }
 
 ueb-blueprint {
@@ -654,6 +679,7 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover
 .ueb-pin-icon > svg {
   width: 11px;
   height: 11px;
+  vertical-align: middle;
   color: var(--ueb-pin-color);
 }
 
@@ -670,6 +696,7 @@ ueb-pin[data-linked=true] .ueb-pin-tofill {
 
 .ueb-pin-name {
   display: inline-block;
+  vertical-align: middle;
 }
 
 .ueb-zoom--6 .ueb-pin-content {
@@ -742,7 +769,6 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
   min-width: 10px;
   max-width: 400px;
   max-height: 16em;
-  line-height: calc(1em + 1px);
   background: none;
   color: inherit;
   overflow: auto;

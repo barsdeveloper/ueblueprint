@@ -43,7 +43,11 @@ export default class Utility {
 
     /** @param {HTMLElement} element */
     static getScale(element) {
-        const scale = getComputedStyle(element).getPropertyValue("--ueb-scale")
+        // @ts-expect-error
+        const scale = element.blueprint
+            // @ts-expect-error
+            ? element.blueprint.getScale()
+            : getComputedStyle(element).getPropertyValue("--ueb-scale")
         return scale != "" ? parseFloat(scale) : 1
     }
 
@@ -81,8 +85,8 @@ export default class Utility {
      * @param {Number[]} viewportLocation
      * @param {HTMLElement} movementElement
      */
-    static convertLocation(viewportLocation, movementElement) {
-        const scaleCorrection = 1 / Utility.getScale(movementElement)
+    static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
+        const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement)
         const targetOffset = movementElement.getBoundingClientRect()
         let location = [
             Math.round((viewportLocation[0] - targetOffset.x) * scaleCorrection),

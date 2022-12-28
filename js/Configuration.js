@@ -66,7 +66,7 @@ export default class Configuration {
                 default:
                     if (
                         pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")
-                        || pin.entity.getDisplayName() === "Target"
+                        || pin.getPinDisplayName() == "Target"
                     ) {
                         return Configuration.#pinColor["/Script/Engine.Actor"]
                     }
@@ -108,6 +108,7 @@ export default class Configuration {
     static nodeType = {
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
+        commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",

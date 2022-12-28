@@ -1,9 +1,11 @@
-import { html } from "lit"
+import { html, nothing } from "lit"
 import Configuration from "../../Configuration"
 import ITemplate from "../ITemplate"
 import MouseCreateLink from "../../input/mouse/MouseCreateLink"
 import SVGIcon from "../../SVGIcon"
 import Utility from "../../Utility"
+import VariableConversionNodeTemplate from "../node/VariableConversionNodeTemplate"
+import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate"
 
 /**
  * @typedef {import("../../input/IInput").default} IInput
@@ -26,9 +28,19 @@ export default class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
+    isNameRendered = true
+
     setup() {
         super.setup()
         this.element.nodeElement = this.element.closest("ueb-node")
+        const nodeTemplate = this.element.nodeElement.template
+        if (
+            nodeTemplate instanceof VariableConversionNodeTemplate
+            || nodeTemplate instanceof VariableOperationNodeTemplate
+        ) {
+            this.isNameRendered = false
+            this.element.requestUpdate()
+        }
     }
 
     /** @returns {IInput[]} */
@@ -44,7 +56,7 @@ export default class PinTemplate extends ITemplate {
         const icon = html`<div class="ueb-pin-icon">${this.renderIcon()}</div>`
         const content = html`
             <div class="ueb-pin-content">
-                ${this.renderName()}
+                ${this.isNameRendered ? this.renderName() : nothing}
                 ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : html``}
             </div>
         `
