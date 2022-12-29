@@ -44,6 +44,7 @@ class Configuration {
         "default": i$3`167, 167, 167`,
         "exec": i$3`240, 240, 240`,
         "int": i$3`32, 224, 173`,
+        "int64": i$3`170, 224, 172`,
         "name": i$3`203, 129, 252`,
         "real": i$3`50, 187, 0`,
         "string": i$3`213, 0, 176`,
@@ -90,7 +91,7 @@ class Configuration {
                 default:
                     if (
                         pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")
-                        || pin.entity.getDisplayName() === "Target"
+                        || pin.getPinDisplayName() == "Target"
                     ) {
                         return Configuration.#pinColor["/Script/Engine.Actor"]
                     }
@@ -1987,6 +1988,29 @@ class UnknownKeysEntity extends IEntity {
     }
 }
 
+class ByteEntity extends IntegerEntity {
+
+    static attributes = {
+        value: 0,
+    }
+
+    /** @param {Object | Number | String} values */
+    constructor(values = 0) {
+        super(values);
+        /** @type {Number} */
+        const value = Math.round(this.value);
+        this.value = value >= 0 && value < 1 << 8 ? value : 0;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
 // @ts-nocheck
 
 let P = Parsimmon;
@@ -2022,6 +2046,8 @@ class Grammar {
                 )
             case Boolean:
                 return r.Boolean
+            case ByteEntity:
+                return r.Byte
             case FunctionReferenceEntity:
                 return r.FunctionReference
             case GuidEntity:
@@ -2201,6 +2227,13 @@ class Grammar {
 
     /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
+
+    /** @param {Grammar} r */
+    Byte = r => P.regex(/\+?[0-9]+/)
+        .map(v => parseInt(v))
+        .assert(v => v >= 0 && v < 1 << 8)
+        .map(v => new ByteEntity(v))
+        .desc("a Byte")
 
     /** @param {Grammar} r */
     Guid = r => r.HexDigit.times(32).tie().map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal value")
@@ -6976,25 +7009,6 @@ class BoolInputPinTemplate extends PinTemplate {
     }
 }
 
-/** @typedef {import("../../element/PinElement").default} PinElement */
-
-class ExecPinTemplate extends PinTemplate {
-
-    renderIcon() {
-        return SVGIcon.execPin
-    }
-
-    renderName() {
-        let pinName = this.element.entity.PinName;
-        if (this.element.entity.PinFriendlyName) {
-            pinName = this.element.entity.PinFriendlyName.toString();
-        } else if (pinName === "execute" || pinName === "then") {
-            return y``
-        }
-        return y`${Utility.formatStringName(pinName)}`
-    }
-}
-
 /** @typedef {import("lit").PropertyValues} PropertyValues */
 
 /**
@@ -7135,6 +7149,50 @@ class INumericPinTemplate extends IInputPinTemplate {
      */
     setDefaultValue(values = [], rawValues) {
         this.element.setDefaultValue(/** @type {T} */(values[0]));
+    }
+}
+
+/** @typedef {import("../../entity/IntegerEntity").default} IntEntity */
+
+/** @extends INumericInputPinTemplate<ByteEntity> */
+class IntInputPinTemplate$1 extends INumericPinTemplate {
+
+    setDefaultValue(values = [], rawValues = values) {
+        const integer = this.element.getDefaultValue(true);
+        if (!(integer instanceof ByteEntity)) {
+            throw new TypeError("Expected DefaultValue to be a ByteEntity")
+        }
+        integer.value = values[0];
+        this.element.requestUpdate("DefaultValue", integer);
+    }
+
+    renderInput() {
+        return y`
+            <div class="ueb-pin-input">
+                <ueb-input .singleLine="${true}"
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "0")}">
+                </ueb-input>
+            </div>
+        `
+    }
+}
+
+/** @typedef {import("../../element/PinElement").default} PinElement */
+
+class ExecPinTemplate extends PinTemplate {
+
+    renderIcon() {
+        return SVGIcon.execPin
+    }
+
+    renderName() {
+        let pinName = this.element.entity.PinName;
+        if (this.element.entity.PinFriendlyName) {
+            pinName = this.element.entity.PinFriendlyName.toString();
+        } else if (pinName === "execute" || pinName === "then") {
+            return y``
+        }
+        return y`${Utility.formatStringName(pinName)}`
     }
 }
 
@@ -7655,7 +7713,7 @@ class RealInputPinTemplate extends INumericPinTemplate {
         return y`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${true}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.entity.DefaultValue ?? 0))}">
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue() ?? 0))}">
                 </ueb-input>
             </div>
         `
@@ -7838,10 +7896,12 @@ class PinElement extends IElement {
     static #inputPinTemplates = {
         "/Script/CoreUObject.LinearColor": LinearColorInputPinTemplate,
         "/Script/CoreUObject.Rotator": RotatorInputPinTemplate,
-        "/Script/CoreUObject.Vector2D": VectorInputPinTemplate,
         "/Script/CoreUObject.Vector": VectorPinTemplate,
+        "/Script/CoreUObject.Vector2D": VectorInputPinTemplate,
         "bool": BoolInputPinTemplate,
+        "byte": IntInputPinTemplate$1,
         "int": IntInputPinTemplate,
+        "int64": IntInputPinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NameInputPinTemplate,
         "real": RealInputPinTemplate,

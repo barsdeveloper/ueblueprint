@@ -20,6 +20,7 @@ export default class Configuration {
         "default": css`167, 167, 167`,
         "exec": css`240, 240, 240`,
         "int": css`32, 224, 173`,
+        "int64": css`170, 224, 172`,
         "name": css`203, 129, 252`,
         "real": css`50, 187, 0`,
         "string": css`213, 0, 176`,

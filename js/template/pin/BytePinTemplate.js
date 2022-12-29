@@ -1,15 +1,18 @@
 import { html } from "lit"
-import IntegerEntity from "../../entity/IntegerEntity"
+import ByteEntity from "../../entity/ByteEntity"
+import IInputPinTemplate from "./IInputPinTemplate"
 import INumericInputPinTemplate from "./INumericInputPinTemplate"
 
 /** @typedef {import("../../entity/IntegerEntity").default} IntEntity */
 
-/** @extends INumericInputPinTemplate<IntEntity> */
+/** @extends INumericInputPinTemplate<ByteEntity> */
 export default class IntInputPinTemplate extends INumericInputPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
-        let value = parseInt(values[0])
         const integer = this.element.getDefaultValue(true)
+        if (!(integer instanceof ByteEntity)) {
+            throw new TypeError("Expected DefaultValue to be a ByteEntity")
+        }
         integer.value = values[0]
         this.element.requestUpdate("DefaultValue", integer)
     }
@@ -17,7 +20,8 @@ export default class IntInputPinTemplate extends INumericInputPinTemplate {
     renderInput() {
         return html`
             <div class="ueb-pin-input">
-                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
+                <ueb-input .singleLine="${true}"
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "0")}">
                 </ueb-input>
             </div>
         `

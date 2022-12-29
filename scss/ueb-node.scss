@@ -218,6 +218,11 @@ ueb-node.ueb-node-style-glass .ueb-node-wrapper {
     background-repeat: repeat, no-repeat;
 }
 
+ueb-node.ueb-node-style-glass .ueb-node-name {
+    padding-right: 0;
+    padding-left: 0;
+}
+
 ueb-node[data-selected="true"] .ueb-node-border {
     box-shadow: inset 0 0 0px 6px #ce8700;
     background: none;

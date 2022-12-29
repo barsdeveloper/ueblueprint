@@ -27,6 +27,7 @@ import VariableReferenceEntity from "../entity/VariableReferenceEntity"
 import Vector2DEntity from "../entity/Vector2DEntity"
 import VectorEntity from "../entity/VectorEntity"
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity"
+import ByteEntity from "../entity/ByteEntity"
 
 let P = Parsimmon
 
@@ -61,6 +62,8 @@ export default class Grammar {
                 )
             case Boolean:
                 return r.Boolean
+            case ByteEntity:
+                return r.Byte
             case FunctionReferenceEntity:
                 return r.FunctionReference
             case GuidEntity:
@@ -240,6 +243,13 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
+
+    /** @param {Grammar} r */
+    Byte = r => P.regex(/\+?[0-9]+/)
+        .map(v => parseInt(v))
+        .assert(v => v >= 0 && v < 1 << 8)
+        .map(v => new ByteEntity(v))
+        .desc("a Byte")
 
     /** @param {Grammar} r */
     Guid = r => r.HexDigit.times(32).tie().map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal value")
