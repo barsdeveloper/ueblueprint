@@ -1,17 +1,23 @@
+/**
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {typeof import("../Blueprint").default.nodeBoundariesSupplier} BoundariesFunction
+ * @typedef {typeof import("../Blueprint").default.nodeSelectToggleFunction} SelectionFunction
+ * @typedef {{
+*     primaryBoundary: Number,
+*     secondaryBoundary: Number,
+*     insertionPosition?: Number,
+*     rectangle: Number
+*     onSecondaryAxis: Boolean
+* }} Metadata
+*/
+
 export default class SimpleSelectionModel {
 
     /**
-     * @typedef {{
-     *      primaryInf: number,
-     *      primarySup: number,
-     *      secondaryInf: number,
-     *      secondarySup: number
-     * }} BoundariesInfo
-     * @typedef {Number} Rectangle
-     * @param {number[]} initialPosition Coordinates of the starting point of selection [primaryAxisValue, secondaryAxisValue].
-     * @param {Rectangle[]} rectangles Rectangles that can be selected by this object.
-     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc A function that, given a rectangle, it provides the boundaries of such rectangle.
-     * @param {(rect: Rectangle, selected: Boolean) => void} selectToggleFunction A function that selects or deselects individual rectangles.
+     * @param {Number[]} initialPosition
+     * @param {NodeElement[]} rectangles
+     * @param {BoundariesFunction} boundariesFunc
+     * @param {SelectionFunction} selectToggleFunction
      */
     constructor(initialPosition, rectangles, boundariesFunc, selectToggleFunction) {
         this.initialPosition = initialPosition

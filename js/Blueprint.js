@@ -11,12 +11,7 @@ import Utility from "./Utility"
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./template/node/CommentNodeTemplate").default} CommentNodeTemplate
  * @typedef {import("lit").PropertyValues} PropertyValues
- * @typedef {{
- *     primaryInf: Number,
- *     primarySup: Number,
- *     secondaryInf: Number,
- *     secondarySup: Number,
- * }} BoundariesInfo
+ * @typedef {typeof Blueprint} BlueprintConstructor
  */
 
 /** @extends {IElement<Object, BlueprintTemplate>} */
@@ -71,6 +66,20 @@ export default class Blueprint extends IElement {
             attribute: false,
         },
     }
+    /** @param {NodeElement} node */
+    static nodeBoundariesSupplier = node => {
+        return {
+            primaryInf: node.leftBoundary(true),
+            primarySup: node.rightBoundary(true),
+            // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
+            secondaryInf: node.topBoundary(true),
+            secondarySup: node.bottomBoundary(true),
+        }
+    }
+    /** @type {(node: NodeElement, selected: Boolean) => void}} */
+    static nodeSelectToggleFunction = (node, selected) => {
+        node.setSelected(selected)
+    }
 
     #avoidScrolling = false
     /** @type {Map<String, Number>} */
@@ -82,20 +91,6 @@ export default class Blueprint extends IElement {
     /** @type {Number[]} */
     mousePosition = [0, 0]
     waitingExpandUpdate = false
-    /** @param {NodeElement} node */
-    nodeBoundariesSupplier = node => {
-        return /** @type {BoundariesInfo} */ {
-            primaryInf: node.leftBoundary(true),
-            primarySup: node.rightBoundary(true),
-            // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-            secondaryInf: node.topBoundary(true),
-            secondarySup: node.bottomBoundary(true),
-        }
-    }
-    /** @type {(node: NodeElement, selected: Boolean) => void}} */
-    nodeSelectToggleFunction = (node, selected) => {
-        node.setSelected(selected)
-    }
 
     constructor() {
         super()
@@ -349,11 +344,11 @@ export default class Blueprint extends IElement {
     }
 
     selectAll() {
-        this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, true))
+        this.getNodes().forEach(node => Blueprint.nodeSelectToggleFunction(node, true))
     }
 
     unselectAll() {
-        this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, false))
+        this.getNodes().forEach(node => Blueprint.nodeSelectToggleFunction(node, false))
     }
 
     /** @param  {...IElement} graphElements */

@@ -2,6 +2,8 @@ import FastSelectionModel from "../selection/FastSelectionModel"
 import IFromToPositionedElement from "./IFromToPositionedElement"
 import SelectorTemplate from "../template/SelectorTemplate"
 
+/** @typedef {import("../Blueprint").BlueprintConstructor} BlueprintConstructor */
+
 /** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
 export default class SelectorElement extends IFromToPositionedElement {
 
@@ -23,13 +25,14 @@ export default class SelectorElement extends IFromToPositionedElement {
 
     /** @param {Number[]} initialPosition */
     beginSelect(initialPosition) {
+        const blueprintConstructor = /** @type {BlueprintConstructor} */(this.blueprint.constructor)
         this.blueprint.selecting = true
         this.setBothLocations(initialPosition)
         this.selectionModel = new FastSelectionModel(
             initialPosition,
             this.blueprint.getNodes(),
-            this.blueprint.nodeBoundariesSupplier,
-            this.blueprint.nodeSelectToggleFunction
+            blueprintConstructor.nodeBoundariesSupplier,
+            blueprintConstructor.nodeSelectToggleFunction
         )
     }
 

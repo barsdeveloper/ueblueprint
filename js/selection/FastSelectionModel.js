@@ -1,7 +1,9 @@
 import OrderedIndexArray from "./OrderedIndexArray"
 
 /**
- * @typedef {import("../Blueprint").BoundariesInfo} BoundariesInfo
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {typeof import("../Blueprint").default.nodeBoundariesSupplier} BoundariesFunction
+ * @typedef {typeof import("../Blueprint").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{
  *     primaryBoundary: Number,
  *     secondaryBoundary: Number,
@@ -9,15 +11,14 @@ import OrderedIndexArray from "./OrderedIndexArray"
  *     rectangle: Number
  *     onSecondaryAxis: Boolean
  * }} Metadata
- * @typedef {any} Rectangle
  */
 export default class FastSelectionModel {
 
     /**
      * @param {Number[]} initialPosition
-     * @param {Rectangle[]} rectangles
-     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc
-     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc
+     * @param {NodeElement[]} rectangles
+     * @param {BoundariesFunction} boundariesFunc
+     * @param {SelectionFunction} selectFunc
      */
     constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
         this.initialPosition = initialPosition
@@ -30,13 +31,14 @@ export default class FastSelectionModel {
         this.rectangles = rectangles
         this.primaryOrder.reserve(this.rectangles.length)
         this.secondaryOrder.reserve(this.rectangles.length)
+
         rectangles.forEach((rect, index) => {
             /** @type {Metadata} */
             let rectangleMetadata = {
                 primaryBoundary: this.initialPosition[0],
                 secondaryBoundary: this.initialPosition[1],
-                rectangle: index, // used to move both expandings inside the this.metadata array
-                onSecondaryAxis: false
+                rectangle: index,
+                onSecondaryAxis: false,
             }
             this.metadata[index] = rectangleMetadata
             selectFunc(rect, false) // Initially deselected (Eventually)

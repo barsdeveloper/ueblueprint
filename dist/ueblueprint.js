@@ -819,11 +819,13 @@ class Utility {
      */
     static mergeArrays(a = [], b = []) {
         let result = [];
+        a = [...a];
+        b = [...b];
         restart:
         for (let j = 0; j < b.length; ++j) {
             for (let i = 0; i < a.length; ++i) {
                 if (a[i] == b[j]) {
-                    // Found a corresponding element in the two arrays
+                    // Found an element in common in the two arrays
                     result.push(
                         // Take and append all the elements skipped from a
                         ...a.splice(0, i),
@@ -832,7 +834,7 @@ class Utility {
                         // Take and append the element in common
                         ...a.splice(0, 1)
                     );
-                    b.shift();
+                    b.shift(); // Remove the same element from b
                     break restart
                 }
             }
@@ -2308,8 +2310,8 @@ class Grammar {
         r.InvariantText,
         r.PinReference,
         Grammar.createEntityGrammar(r, VectorEntity, true),
-        Grammar.createEntityGrammar(r, Vector2DEntity, true),
         Grammar.createEntityGrammar(r, LinearColorEntity, true),
+        Grammar.createEntityGrammar(r, Vector2DEntity, true),
         r.UnknownKeys,
         r.ObjectReference,
         r.Symbol,
@@ -6292,12 +6294,7 @@ class NodeElement extends ISelectableDraggableElement {
  * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./template/node/CommentNodeTemplate").default} CommentNodeTemplate
  * @typedef {import("lit").PropertyValues} PropertyValues
- * @typedef {{
- *     primaryInf: Number,
- *     primarySup: Number,
- *     secondaryInf: Number,
- *     secondarySup: Number,
- * }} BoundariesInfo
+ * @typedef {typeof Blueprint} BlueprintConstructor
  */
 
 /** @extends {IElement<Object, BlueprintTemplate>} */
@@ -6352,6 +6349,20 @@ class Blueprint extends IElement {
             attribute: false,
         },
     }
+    /** @param {NodeElement} node */
+    static nodeBoundariesSupplier = node => {
+        return {
+            primaryInf: node.leftBoundary(true),
+            primarySup: node.rightBoundary(true),
+            // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
+            secondaryInf: node.topBoundary(true),
+            secondarySup: node.bottomBoundary(true),
+        }
+    }
+    /** @type {(node: NodeElement, selected: Boolean) => void}} */
+    static nodeSelectToggleFunction = (node, selected) => {
+        node.setSelected(selected);
+    }
 
     #avoidScrolling = false
     /** @type {Map<String, Number>} */
@@ -6363,20 +6374,6 @@ class Blueprint extends IElement {
     /** @type {Number[]} */
     mousePosition = [0, 0]
     waitingExpandUpdate = false
-    /** @param {NodeElement} node */
-    nodeBoundariesSupplier = node => {
-        return /** @type {BoundariesInfo} */ {
-            primaryInf: node.leftBoundary(true),
-            primarySup: node.rightBoundary(true),
-            // Counter intuitive here: the y (secondary axis is positive towards the bottom, therefore upper bound "sup" is bottom)
-            secondaryInf: node.topBoundary(true),
-            secondarySup: node.bottomBoundary(true),
-        }
-    }
-    /** @type {(node: NodeElement, selected: Boolean) => void}} */
-    nodeSelectToggleFunction = (node, selected) => {
-        node.setSelected(selected);
-    }
 
     constructor() {
         super();
@@ -6630,11 +6627,11 @@ class Blueprint extends IElement {
     }
 
     selectAll() {
-        this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, true));
+        this.getNodes().forEach(node => Blueprint.nodeSelectToggleFunction(node, true));
     }
 
     unselectAll() {
-        this.getNodes().forEach(node => this.nodeSelectToggleFunction(node, false));
+        this.getNodes().forEach(node => Blueprint.nodeSelectToggleFunction(node, false));
     }
 
     /** @param  {...IElement} graphElements */
@@ -8246,7 +8243,9 @@ class OrderedIndexArray {
 }
 
 /**
- * @typedef {import("../Blueprint").BoundariesInfo} BoundariesInfo
+ * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {typeof import("../Blueprint").default.nodeBoundariesSupplier} BoundariesFunction
+ * @typedef {typeof import("../Blueprint").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{
  *     primaryBoundary: Number,
  *     secondaryBoundary: Number,
@@ -8254,15 +8253,14 @@ class OrderedIndexArray {
  *     rectangle: Number
  *     onSecondaryAxis: Boolean
  * }} Metadata
- * @typedef {any} Rectangle
  */
 class FastSelectionModel {
 
     /**
      * @param {Number[]} initialPosition
-     * @param {Rectangle[]} rectangles
-     * @param {(rect: Rectangle) => BoundariesInfo} boundariesFunc
-     * @param {(rect: Rectangle, selected: Boolean) => void} selectFunc
+     * @param {NodeElement[]} rectangles
+     * @param {BoundariesFunction} boundariesFunc
+     * @param {SelectionFunction} selectFunc
      */
     constructor(initialPosition, rectangles, boundariesFunc, selectFunc) {
         this.initialPosition = initialPosition;
@@ -8275,13 +8273,14 @@ class FastSelectionModel {
         this.rectangles = rectangles;
         this.primaryOrder.reserve(this.rectangles.length);
         this.secondaryOrder.reserve(this.rectangles.length);
+
         rectangles.forEach((rect, index) => {
             /** @type {Metadata} */
             let rectangleMetadata = {
                 primaryBoundary: this.initialPosition[0],
                 secondaryBoundary: this.initialPosition[1],
-                rectangle: index, // used to move both expandings inside the this.metadata array
-                onSecondaryAxis: false
+                rectangle: index,
+                onSecondaryAxis: false,
             };
             this.metadata[index] = rectangleMetadata;
             selectFunc(rect, false); // Initially deselected (Eventually)
@@ -8409,6 +8408,8 @@ class FastSelectionModel {
 class SelectorTemplate extends IFromToPositionedTemplate {
 }
 
+/** @typedef {import("../Blueprint").BlueprintConstructor} BlueprintConstructor */
+
 /** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
 class SelectorElement extends IFromToPositionedElement {
 
@@ -8430,13 +8431,14 @@ class SelectorElement extends IFromToPositionedElement {
 
     /** @param {Number[]} initialPosition */
     beginSelect(initialPosition) {
+        const blueprintConstructor = /** @type {BlueprintConstructor} */(this.blueprint.constructor);
         this.blueprint.selecting = true;
         this.setBothLocations(initialPosition);
         this.selectionModel = new FastSelectionModel(
             initialPosition,
             this.blueprint.getNodes(),
-            this.blueprint.nodeBoundariesSupplier,
-            this.blueprint.nodeSelectToggleFunction
+            blueprintConstructor.nodeBoundariesSupplier,
+            blueprintConstructor.nodeSelectToggleFunction
         );
     }
 
