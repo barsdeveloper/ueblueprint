@@ -89,7 +89,15 @@ export default class ISerializer {
         let result = ""
         let fullKey = key.concat("")
         const last = fullKey.length - 1
-        for (const property of Object.getOwnPropertyNames(object)) {
+        const attributes = /** @type {EntityConstructor} */(object.constructor).attributes
+        const keys =
+            attributes ?
+                Utility.mergeArrays(
+                    Object.getOwnPropertyNames(attributes),
+                    Object.getOwnPropertyNames(object)
+                )
+                : Object.getOwnPropertyNames(object)
+        for (const property of keys) {
             fullKey[last] = property
             const value = object[property]
             if (value?.constructor === Object) {

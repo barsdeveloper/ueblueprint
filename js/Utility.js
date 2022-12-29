@@ -211,10 +211,13 @@ export default class Utility {
      */
     static mergeArrays(a = [], b = []) {
         let result = []
+        a = [...a]
+        b = [...b]
+        restart:
         for (let j = 0; j < b.length; ++j) {
             for (let i = 0; i < a.length; ++i) {
                 if (a[i] == b[j]) {
-                    // Found a corresponding element in the two arrays
+                    // Found an element in common in the two arrays
                     result.push(
                         // Take and append all the elements skipped from a
                         ...a.splice(0, i),
@@ -223,10 +226,8 @@ export default class Utility {
                         // Take and append the element in common
                         ...a.splice(0, 1)
                     )
-                    j = 0
-                    i = 0
-                    b.shift()
-                    break
+                    b.shift() // Remove the same element from b
+                    break restart
                 }
             }
         }

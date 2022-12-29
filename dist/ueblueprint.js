@@ -819,6 +819,7 @@ class Utility {
      */
     static mergeArrays(a = [], b = []) {
         let result = [];
+        restart:
         for (let j = 0; j < b.length; ++j) {
             for (let i = 0; i < a.length; ++i) {
                 if (a[i] == b[j]) {
@@ -831,10 +832,8 @@ class Utility {
                         // Take and append the element in common
                         ...a.splice(0, 1)
                     );
-                    j = 0;
-                    i = 0;
                     b.shift();
-                    break
+                    break restart
                 }
             }
         }
@@ -2308,8 +2307,8 @@ class Grammar {
         r.LocalizedText,
         r.InvariantText,
         r.PinReference,
-        Grammar.createEntityGrammar(r, Vector2DEntity, true),
         Grammar.createEntityGrammar(r, VectorEntity, true),
+        Grammar.createEntityGrammar(r, Vector2DEntity, true),
         Grammar.createEntityGrammar(r, LinearColorEntity, true),
         r.UnknownKeys,
         r.ObjectReference,
@@ -2608,7 +2607,15 @@ class ISerializer {
         let result = "";
         let fullKey = key.concat("");
         const last = fullKey.length - 1;
-        for (const property of Object.getOwnPropertyNames(object)) {
+        const attributes = /** @type {EntityConstructor} */(object.constructor).attributes;
+        const keys =
+            attributes ?
+                Utility.mergeArrays(
+                    Object.getOwnPropertyNames(attributes),
+                    Object.getOwnPropertyNames(object)
+                )
+                : Object.getOwnPropertyNames(object);
+        for (const property of keys) {
             fullKey[last] = property;
             const value = object[property];
             if (value?.constructor === Object) {
@@ -7202,10 +7209,8 @@ class ExecPinTemplate extends PinTemplate {
 class IntInputPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
+        parseInt(values[0]);
         const integer = this.element.getDefaultValue(true);
-        if (!(integer instanceof IntegerEntity)) {
-            throw new TypeError("Expected DefaultValue to be a IntegerEntity")
-        }
         integer.value = values[0];
         this.element.requestUpdate("DefaultValue", integer);
     }
