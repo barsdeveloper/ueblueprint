@@ -1,4 +1,3 @@
-import Observable from "../Observable"
 import SerializerFactory from "../serialization/SerializerFactory"
 import SubAttributesDeclaration from "./SubObject"
 import UnionType from "./UnionType"
@@ -28,7 +27,7 @@ import Utility from "../Utility"
  * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
-export default class IEntity extends Observable {
+export default class IEntity {
 
     /** @type {AttributeDeclarations} */
     static attributes = {}
@@ -40,7 +39,6 @@ export default class IEntity extends Observable {
     }
 
     constructor(values = {}, suppressWarns = false) {
-        super()
         /**
          * @param {Object} target
          * @param {Object} attributes

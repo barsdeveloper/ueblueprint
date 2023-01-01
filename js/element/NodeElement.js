@@ -161,8 +161,6 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.pureFunction = this.entity.bIsPureFunc
         this.dragLinkObjects = []
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
-        this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value)
-        this.entity.subscribe("Name", value => this.nodeName = value)
         if (this.entity.NodeWidth && this.entity.NodeHeight) {
             this.sizeX = this.entity.NodeWidth.value
             this.sizeY = this.entity.NodeHeight.value
@@ -308,6 +306,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             }
         }
         this.entity.Name = name
+        this.nodeName = this.entity.Name
     }
 
     getPinElements() {
@@ -338,6 +337,7 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     setShowAdvancedPinDisplay(value) {
         this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden")
+        this.advancedPinDisplay = this.entity.AdvancedPinDisplay
     }
 
     toggleShowAdvancedPinDisplay() {

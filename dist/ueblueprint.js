@@ -330,118 +330,15 @@ class IInput {
     }
 }
 
-class Observable {
-
-    /** @type {Map<String, Object[]>} */
-    #observers = new Map()
-
-    /**
-     * @param {String} property
-     * @param {(value: any) => {}} observer
-     */
-    subscribe(property, observer) {
-        let observers = this.#observers;
-        if (observers.has(property)) {
-            let propertyObservers = observers.get(property);
-            if (propertyObservers.includes(observer)) {
-                return false
-            } else {
-                propertyObservers.push(observer);
-            }
-        } else {
-            let fromPrototype = false;
-            let propertyDescriptor = Object.getOwnPropertyDescriptor(this, property);
-            if (!propertyDescriptor) {
-                fromPrototype = true;
-                propertyDescriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), property) ?? {};
-                if (!propertyDescriptor) {
-                    return false
-                }
-            }
-            observers.set(property, [observer]);
-            const isValue = "value" in propertyDescriptor;
-            const hasSetter = "set" in propertyDescriptor;
-            if (!(isValue || hasSetter)) {
-                throw new Error(`Property ${property} is not a value or a setter`)
-            }
-            // A Symbol so it does not show up in Object.getOwnPropertyNames()
-            const storageKey = Symbol.for(property + "Storage");
-            const valInfoKey = Symbol.for(property + "ValInfo");
-            Object.defineProperties(
-                fromPrototype ? Object.getPrototypeOf(this) : this,
-                {
-                    [storageKey]: {
-                        configurable: true,
-                        enumerable: false, // Non enumerable so it does not show up in for...in or Object.keys()
-                        ...(isValue
-                            ? {
-                                value: this[property],
-                                writable: true,
-                            }
-                            : {
-                                get: propertyDescriptor.get,
-                                set: propertyDescriptor.set,
-                            }
-                        )
-                    },
-                    [valInfoKey]: {
-                        configurable: true,
-                        enumerable: false,
-                        value: [fromPrototype, isValue]
-                    },
-                    [property]: {
-                        configurable: true,
-                        ...(isValue && {
-                            get() {
-                                return this[storageKey]
-                            }
-                        }),
-                        set(v) {
-                            this[storageKey] = v;
-                            observers.get(property).forEach(observer => {
-                                observer(this[property]);
-                            });
-                        },
-                    }
-                }
-            );
-        }
-        return true
-    }
-
-    /**
-     * @param {String} property
-     * @param {Object} observer
-     */
-    unsubscribe(property, observer) {
-        let observers = this.#observers.get(property);
-        if (!observers?.includes(observer)) {
-            return false
-        }
-        observers.splice(observers.indexOf(observer), 1);
-        if (observers.length == 0) {
-            const storageKey = Symbol.for(property + "Storage");
-            const valInfoKey = Symbol.for(property + "ValInfo");
-            const fromPrototype = this[valInfoKey][0];
-            this[valInfoKey][1];
-            Object.defineProperty(
-                fromPrototype ? Object.getPrototypeOf(this) : this,
-                property,
-                Object.getOwnPropertyDescriptor(fromPrototype ? Object.getPrototypeOf(this) : this, storageKey),
-            );
-            delete this[valInfoKey];
-            delete this[storageKey];
-        }
-        return true
-    }
-}
-
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
  */
 
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
+ */
 /**
  * @template {AnyValue} T
  * @typedef {import("./ISerializer").default<T>} ISerializer
@@ -449,14 +346,22 @@ class Observable {
 
 class SerializerFactory {
 
-    /** @type {Map<AnyValueConstructor, ISerializer<AnyValue>>} */
+    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
     static #serializers = new Map()
 
+    /**
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entity
+     * @param {ISerializer<T>} object
+     */
     static registerSerializer(entity, object) {
         SerializerFactory.#serializers.set(entity, object);
     }
 
-    /** @param {AnyValueConstructor} entity */
+    /**
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entity
+     */
     static getSerializer(entity) {
         return SerializerFactory.#serializers.get(entity)
     }
@@ -472,10 +377,29 @@ class SubAttributesDeclaration {
     }
 }
 
+/** @typedef {import("./IEntity").AnyValueConstructor<*>} AnyValueConstructor */
+
+class UnionType {
+
+    #types
+    get types() {
+        return this.#types
+    }
+
+    /** @param  {...AnyValueConstructor} types */
+    constructor(...types) {
+        this.#types = types;
+    }
+
+    getFirstType() {
+        return this.#types[0]
+    }
+}
+
 /**
  * @typedef {import("./element/IElement").default} IElement
  * @typedef {import("./entity/IEntity").AnyValue} AnyValue
- * @typedef {import("./entity/IEntity").AnyValueConstructor} AnyValueConstructor
+ * @typedef {import("./entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  * @typedef {import("./entity/IEntity").AttributeInformation} TypeInformation
  * @typedef {import("./entity/IEntity").default} IEntity
  * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
@@ -565,7 +489,6 @@ class Utility {
     /**
      * @param {IEntity} entity
      * @param {String[]} keys
-     * @param {any} attribute
      * @returns {Boolean}
      */
     static isSerialized(
@@ -645,7 +568,6 @@ class Utility {
         if (value === null) {
             return null
         }
-        // @ts-expect-error
         if (value.constructor === Object && value.type instanceof Function) {
             // @ts-expect-error
             return value.type
@@ -843,36 +765,17 @@ class Utility {
     }
 }
 
-/** @typedef {import("./IEntity").AnyValueConstructor} AnyValueConstructor */
-
-class UnionType {
-
-    #types
-    get types() {
-        return this.#types
-    }
-
-    /** @param  {...AnyValueConstructor} types */
-    constructor(...types) {
-        this.#types = types;
-    }
-
-    getFirstType() {
-        return this.#types[0]
-    }
-}
-
 /**
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {(entity: IEntity) => AnyValueConstructor} TypeSupplier
- * @typedef {EntityConstructor | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
- * @typedef {IEntity | String | Number | Boolean} AnyValue
+ * @typedef {(entity: IEntity) => AnyValueConstructor<AnyValue>} TypeSupplier
+ * @typedef {IEntity | String | Number | Boolean} AnySimpleValue
+ * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
  *     [key: String]: AttributeInformation | AnyValue | SubAttributesDeclaration
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  * @typedef {{
- *     type?: AnyValueConstructor | AnyValueConstructor[] | UnionType | TypeSupplier,
+ *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | TypeSupplier,
  *     value?: AnyValue | ValueSupplier,
  *     showDefault?: Boolean,
  *     nullable?: Boolean,
@@ -881,7 +784,12 @@ class UnionType {
  * }} AttributeInformation
  */
 
-class IEntity extends Observable {
+/**
+ * @template {AnyValue} T
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ */
+
+class IEntity {
 
     /** @type {AttributeDeclarations} */
     static attributes = {}
@@ -893,7 +801,6 @@ class IEntity extends Observable {
     }
 
     constructor(values = {}, suppressWarns = false) {
-        super();
         /**
          * @param {Object} target
          * @param {Object} attributes
@@ -965,27 +872,29 @@ class IEntity extends Observable {
                     // Remember value can still be null
                     if (value?.constructor === String && attribute.serialized && defaultType !== String) {
                         value = SerializerFactory
-                            .getSerializer(defaultType)
+                            .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
                             .deserialize(/** @type {String} */(value));
                     }
-                    target[attributeName] = Utility.sanitize(value, defaultType);
+                    target[attributeName] = Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType));
                     continue // We have a value, need nothing more
                 }
                 if (defaultValue === undefined) {
-                    defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor} */(defaultType)());
+                    defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)());
                 }
                 if (!attribute.showDefault) {
                     target[attributeName] = undefined; // Declare undefined to preserve the order of attributes
                     continue
                 }
                 if (attribute.serialized) {
-                    if (defaultValue.constructor !== String) {
-                        defaultValue = SerializerFactory.getSerializer(defaultType).deserialize(defaultValue);
+                    if (defaultType !== String && defaultValue.constructor === String) {
+                        defaultValue = SerializerFactory
+                            .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
+                            .deserialize(defaultValue);
                     }
                 }
                 target[attributeName] = Utility.sanitize(
                     /** @type {AnyValue} */(defaultValue),
-                    /** @type {AnyValueConstructor} */(defaultType)
+                    /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
                 );
             }
         };
@@ -2755,7 +2664,7 @@ class Grammar {
 /**
  * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /** @template {AnyValue} T */
@@ -6327,8 +6236,6 @@ class NodeElement extends ISelectableDraggableElement {
         this.pureFunction = this.entity.bIsPureFunc;
         this.dragLinkObjects = [];
         super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
-        this.entity.subscribe("AdvancedPinDisplay", value => this.advancedPinDisplay = value);
-        this.entity.subscribe("Name", value => this.nodeName = value);
         if (this.entity.NodeWidth && this.entity.NodeHeight) {
             this.sizeX = this.entity.NodeWidth.value;
             this.sizeY = this.entity.NodeHeight.value;
@@ -6474,6 +6381,7 @@ class NodeElement extends ISelectableDraggableElement {
             }
         }
         this.entity.Name = name;
+        this.nodeName = this.entity.Name;
     }
 
     getPinElements() {
@@ -6504,6 +6412,7 @@ class NodeElement extends ISelectableDraggableElement {
 
     setShowAdvancedPinDisplay(value) {
         this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden");
+        this.advancedPinDisplay = this.entity.AdvancedPinDisplay;
     }
 
     toggleShowAdvancedPinDisplay() {
@@ -8228,15 +8137,6 @@ class PinElement extends IElement {
         this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
         this.nodeElement = /** @type {NodeElement} */(nodeElement);
-
-        // this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
-        this.entity.subscribe("PinToolTip", value => {
-            let matchResult = value.match(/\s*(.+?(?=\n)|.+\S)\s*/);
-            if (matchResult) {
-                return Utility.formatStringName(matchResult[1])
-            }
-            return Utility.formatStringName(this.entity.PinName)
-        });
     }
 
     setup() {
@@ -8761,7 +8661,7 @@ function defineElements() {
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /**
@@ -8808,7 +8708,7 @@ class GeneralSerializer extends ISerializer {
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /**
@@ -8841,7 +8741,7 @@ class CustomSerializer extends GeneralSerializer {
 
 /** 
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue 
- * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /**
@@ -8866,6 +8766,11 @@ class ToStringSerializer extends GeneralSerializer {
     }
 }
 
+/**
+ * @typedef {import("../entity/IEntity").AnySimpleValue} AnySimpleValue
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ */
+
 function initializeSerializerFactory() {
 
     const bracketsWrapped = v => `(${v})`;
@@ -8881,11 +8786,10 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         Array,
         new CustomSerializer(
-            /** @param {Array} array */
+            /** @param {AnySimpleValue[]} array */
             (array, insideString) =>
                 `(${array
                     .map(v =>
-                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
                     )
                     .join("")

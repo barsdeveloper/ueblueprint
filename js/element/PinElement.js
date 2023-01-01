@@ -145,15 +145,6 @@ export default class PinElement extends IElement {
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
         this.nodeElement = /** @type {NodeElement} */(nodeElement)
-
-        // this.entity.subscribe("DefaultValue", value => this.defaultValue = value.toString())
-        this.entity.subscribe("PinToolTip", value => {
-            let matchResult = value.match(/\s*(.+?(?=\n)|.+\S)\s*/)
-            if (matchResult) {
-                return Utility.formatStringName(matchResult[1])
-            }
-            return Utility.formatStringName(this.entity.PinName)
-        })
     }
 
     setup() {
