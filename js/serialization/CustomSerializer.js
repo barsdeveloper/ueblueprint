@@ -2,11 +2,8 @@ import GeneralSerializer from "./GeneralSerializer"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /**
@@ -19,7 +16,7 @@ export default class CustomSerializer extends GeneralSerializer {
 
     /**
      * @param {(v: T, insideString: Boolean) => String} objectWriter
-     * @param {AnyValueConstructor<T>} entityType
+     * @param {AnyValueConstructor} entityType
      */
     constructor(objectWriter, entityType) {
         super(undefined, entityType)

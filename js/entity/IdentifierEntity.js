@@ -3,7 +3,11 @@ import IEntity from "./IEntity"
 export default class IdentifierEntity extends IEntity {
 
     static attributes = {
-        value: String,
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     static attributeConverter = {

@@ -7,6 +7,10 @@ export default class RealUnitEntity extends IEntity {
         value: 0,
     }
 
+    static {
+        this.cleanupAttributes(this.attributes)
+    }
+
     /** @param {Object | Number | String} values */
     constructor(values = 0) {
         super(values)

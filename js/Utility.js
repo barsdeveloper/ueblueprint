@@ -1,17 +1,13 @@
-import CalculatedType from "./entity/CalculatedType"
-import TypeInitialization from "./entity/TypeInitialization"
-import UnionType from "./entity/UnionType"
+import SubAttributesDeclaration from "./entity/SubObject"
 
 /**
  * @typedef {import("./element/IElement").default} IElement
+ * @typedef {import("./entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("./entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("./entity/IEntity").AttributeInformation} TypeInformation
  * @typedef {import("./entity/IEntity").default} IEntity
  * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
- * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template T
- * @typedef {import("./entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
  */
 
 export default class Utility {
@@ -98,22 +94,15 @@ export default class Utility {
     /**
      * @param {IEntity} entity
      * @param {String[]} keys
-     * @param {any} propertyDefinition
      * @returns {Boolean}
      */
     static isSerialized(
         entity,
         keys,
-        propertyDefinition = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
+        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
     ) {
-        if (propertyDefinition instanceof CalculatedType) {
-            return Utility.isSerialized(entity, keys, propertyDefinition.calculate(entity))
-        }
-        if (propertyDefinition instanceof TypeInitialization) {
-            if (propertyDefinition.serialized) {
-                return true
-            }
-            return Utility.isSerialized(entity, keys, propertyDefinition.type)
+        if (attribute.constructor === Object) {
+            return /** @type {TypeInformation} */(attribute).serialized
         }
         return false
     }
@@ -124,7 +113,10 @@ export default class Utility {
             return undefined
         }
         if (!(keys instanceof Array)) {
-            throw new TypeError("Expected keys to be an array.")
+            throw new TypeError("UEBlueprint: Expected keys to be an array")
+        }
+        if (target instanceof SubAttributesDeclaration) {
+            target = target.attributes
         }
         if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
             return defaultValue
@@ -158,9 +150,13 @@ export default class Utility {
         return false
     }
 
+    /**
+     * @param {AnyValue} a
+     * @param {AnyValue} b
+     */
     static equals(a, b) {
-        a = TypeInitialization.sanitize(a)
-        b = TypeInitialization.sanitize(b)
+        a = Utility.sanitize(a)
+        b = Utility.sanitize(b)
         if (a === b) {
             return true
         }
@@ -169,25 +165,45 @@ export default class Utility {
         }
     }
 
-    /**
-     * @param {AnyValue | AnyValueConstructor<IEntity>} value
-     * @returns {AnyValueConstructor<IEntity> | AnyValueConstructor<IEntity>[]}
+    /** 
+     * @param {null | AnyValue | TypeInformation} value
+     * @returns {AnyValueConstructor}
      */
     static getType(value) {
         if (value === null) {
             return null
         }
-        if (value instanceof TypeInitialization) {
-            return Utility.getType(value.type)
+        if (value.constructor === Object && value.type instanceof Function) {
+            // @ts-expect-error
+            return value.type
         }
-        if (value instanceof UnionType) {
-            return value.types
+        return /** @type {AnyValueConstructor} */(value?.constructor)
+    }
+
+    /**
+     * @param {AnyValue} value
+     * @param {AnyValueConstructor} type
+     */
+    static isValueOfType(value, type) {
+        return value === null || (value instanceof type || value.constructor === type)
+    }
+
+    /** @param {AnyValue} value */
+    static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
+        if (targetType instanceof Array) {
+            let type = targetType.find(t => Utility.isValueOfType(value, t))
+            if (!type) {
+                type = targetType[0]
+            }
+            targetType = type
         }
-        if (value instanceof Function) {
-            // value is already a constructor
-            return value
+        if (targetType && !Utility.isValueOfType(value, targetType)) {
+            value = new targetType(value)
         }
-        return /** @type {AnyValueConstructor<IEntity>} */(value?.constructor)
+        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
+            value = value.valueOf() // Get the relative primitive value
+        }
+        return value
     }
 
     /**
@@ -346,5 +362,10 @@ export default class Utility {
             callback(currentValue)
         }
         requestAnimationFrame(doAnimation)
+    }
+
+    /** @param {String} value */
+    static warn(value) {
+        console.warn("UEBlueprint: " + value)
     }
 }

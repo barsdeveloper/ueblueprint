@@ -4,7 +4,11 @@ export default class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
     static attributes = {
-        value: String,
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     constructor(values) {

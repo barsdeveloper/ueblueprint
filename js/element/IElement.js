@@ -15,10 +15,6 @@ import { LitElement } from "lit"
  */
 export default class IElement extends LitElement {
 
-    /** @type {PropertyDeclarations} */
-    static properties = {
-    }
-
     #nextUpdatedCallbacks = []
 
     /** @type {Blueprint} */

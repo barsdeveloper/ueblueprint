@@ -5,9 +5,13 @@ export default class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
     static attributes = {
-        namespace: String,
-        key: String,
-        value: String,
+        namespace: "",
+        key: "",
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     constructor(values) {

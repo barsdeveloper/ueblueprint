@@ -1,19 +1,43 @@
-import CalculatedType from "./CalculatedType"
 import Observable from "../Observable"
 import SerializerFactory from "../serialization/SerializerFactory"
-import TypeInitialization from "./TypeInitialization"
-import Utility from "../Utility"
+import SubAttributesDeclaration from "./SubObject"
 import UnionType from "./UnionType"
+import Utility from "../Utility"
 
-/** @typedef {typeof IEntity} EntityConstructor */
 /**
- * @template {IEntity} T
- * @typedef {new (Object) => T} IEntityConstructor
+ * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
+ * @typedef {(entity: IEntity) => AnyValueConstructor<AnyValue>} TypeSupplier
+ * @typedef {IEntity | String | Number | Boolean} AnySimpleValue
+ * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
+ * @typedef {{
+ *     [key: String]: AttributeInformation | AnyValue | SubAttributesDeclaration
+ * }} AttributeDeclarations
+ * @typedef {typeof IEntity} EntityConstructor
+ * @typedef {{
+ *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | TypeSupplier,
+ *     value?: AnyValue | ValueSupplier,
+ *     showDefault?: Boolean,
+ *     nullable?: Boolean,
+ *     ignored?: Boolean,
+ *     serialized?: Boolean,
+ * }} AttributeInformation
+ */
+
+/**
+ * @template {AnyValue} T
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
 export default class IEntity extends Observable {
 
+    /** @type {AttributeDeclarations} */
     static attributes = {}
+    static defaultAttribute = {
+        showDefault: true,
+        nullable: false,
+        ignored: false,
+        serialized: false,
+    }
 
     constructor(values = {}, suppressWarns = false) {
         super()
@@ -24,82 +48,94 @@ export default class IEntity extends Observable {
          * @param {String} prefix
          */
         const defineAllAttributes = (target, attributes, values = {}, prefix = "") => {
-            const valuesPropertyNames = Object.getOwnPropertyNames(values)
-            for (let attribute of Utility.mergeArrays(Object.getOwnPropertyNames(attributes), valuesPropertyNames)) {
-                let value = Utility.objectGet(values, [attribute])
-                let defaultValue = attributes[attribute]
-                let defaultType = Utility.getType(defaultValue)
-                if (defaultValue instanceof CalculatedType) {
-                    defaultValue = defaultValue.calculate(this)
-                    defaultType = Utility.getType(defaultValue)
-                }
-                if (defaultValue != null && defaultValue === defaultType) {
-                    defaultValue = new defaultType()
+            const valuesNames = Object.getOwnPropertyNames(values)
+            for (let attributeName of Utility.mergeArrays(Object.getOwnPropertyNames(attributes), valuesNames)) {
+                let value = Utility.objectGet(values, [attributeName])
+                /** @type {AttributeInformation} */
+                let attribute = attributes[attributeName]
+
+                if (attribute instanceof SubAttributesDeclaration) {
+                    target[attributeName] = {}
+                    defineAllAttributes(
+                        target[attributeName],
+                        attribute.attributes,
+                        values[attributeName],
+                        attributeName + "."
+                    )
+                    continue
                 }
 
                 if (!suppressWarns) {
-                    if (!(attribute in attributes)) {
-                        console.warn(
-                            `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
+                    if (!(attributeName in attributes)) {
+                        Utility.warn(
+                            `Attribute ${prefix}${attributeName} in the serialized data is not defined in `
+                            + `${this.constructor.name}.attributes`
                         )
                     } else if (
-                        valuesPropertyNames.length > 0
-                        && !(attribute in values)
-                        && defaultValue !== undefined
-                        && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
+                        valuesNames.length > 0
+                        && !(attributeName in values)
+                        && !(!attribute.showDefault || attribute.ignored)
                     ) {
-                        console.warn(
-                            `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
+                        Utility.warn(
+                            `${this.constructor.name} will add attribute ${prefix}${attributeName} not defined in the `
+                            + "serialized data"
                         )
                     }
                 }
 
-                // Not instanceof because all objects are instenceof Object, exact match needed
-                // @ts-expect-error
-                if (defaultType === Object) {
-                    target[attribute] = {}
-                    defineAllAttributes(target[attribute], attributes[attribute], values[attribute], attribute + ".")
-                    continue
+                let defaultValue = attribute.value
+                let defaultType = attribute.type
+                if (attribute.serialized && defaultType instanceof Function) {
+                    // If the attribute is serialized, the type must contain a function providing the type
+                    defaultType = /** @type {TypeSupplier} */(defaultType)(this)
+                }
+                if (defaultType instanceof Array) {
+                    defaultType = Array
+                }
+                if (defaultValue instanceof Function) {
+                    defaultValue = defaultValue(this)
+                }
+                if (defaultType instanceof UnionType) {
+                    if (defaultValue != undefined) {
+                        defaultType = defaultType.types.find(
+                            type => defaultValue instanceof type || defaultValue.constructor == type
+                        ) ?? defaultType.getFirstType()
+                    } else {
+                        defaultType = defaultType.getFirstType()
+                    }
+                }
+                if (defaultType === undefined) {
+                    defaultType = Utility.getType(defaultValue)
                 }
 
                 if (value !== undefined) {
                     // Remember value can still be null
-                    if (
-                        value?.constructor === String
-                        && defaultValue instanceof TypeInitialization
-                        && defaultValue.serialized
-                        && defaultValue.type !== String
-                    ) {
-                        // @ts-expect-error
-                        value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value)
+                    if (value?.constructor === String && attribute.serialized && defaultType !== String) {
+                        value = SerializerFactory
+                            .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
+                            .deserialize(/** @type {String} */(value))
                     }
-                    target[attribute] = TypeInitialization.sanitize(value, Utility.getType(defaultValue))
+                    target[attributeName] = Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType))
                     continue // We have a value, need nothing more
                 }
-
-                if (defaultValue instanceof TypeInitialization) {
-                    if (!defaultValue.showDefault) {
-                        target[attribute] = undefined // Declare undefined to preserve the order of attributes
-                        continue
-                    }
-                    if (defaultValue.serialized) {
-                        defaultValue = ""
-                    } else {
-                        defaultType = defaultValue.type
-                        defaultValue = defaultValue.value
-                        if (defaultValue instanceof Function) {
-                            defaultValue = defaultValue()
-                        }
+                if (defaultValue === undefined) {
+                    defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())
+                }
+                if (!attribute.showDefault) {
+                    target[attributeName] = undefined // Declare undefined to preserve the order of attributes
+                    continue
+                }
+                if (attribute.serialized) {
+                    if (defaultType !== String && defaultValue.constructor === String) {
+                        defaultValue = SerializerFactory
+                            .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
+                            .deserialize(defaultValue)
                     }
                 }
-                if (defaultValue instanceof UnionType) {
-                    defaultType = defaultValue.getFirstType()
-                    defaultValue = TypeInitialization.sanitize(null, defaultType)
-                }
-                if (defaultValue instanceof Array) {
-                    defaultValue = []
-                }
-                target[attribute] = TypeInitialization.sanitize(defaultValue, defaultType)
+                target[attributeName] = Utility.sanitize(
+                    /** @type {AnyValue} */(defaultValue),
+                    /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
+                )
             }
         }
         const attributes = /** @type {typeof IEntity} */(this.constructor).attributes
@@ -110,6 +146,45 @@ export default class IEntity extends Observable {
             }
         }
         defineAllAttributes(this, attributes, values)
+    }
+
+    /** @param {AttributeDeclarations} attributes */
+    static cleanupAttributes(attributes, prefix = "") {
+        for (const attributeName in attributes) {
+            if (attributes[attributeName] instanceof SubAttributesDeclaration) {
+                this.cleanupAttributes(
+                    /** @type {SubAttributesDeclaration} */(attributes[attributeName]).attributes,
+                    prefix + "." + attributeName
+                )
+                continue
+            }
+            if (attributes[attributeName].constructor !== Object) {
+                attributes[attributeName] = {
+                    value: attributes[attributeName],
+                }
+            }
+            const attribute = /** @type {AttributeInformation} */(attributes[attributeName])
+            if (attribute.type === undefined && !(attribute.value instanceof Function)) {
+                attribute.type = Utility.getType(attribute.value)
+            }
+            attributes[attributeName] = {
+                ...IEntity.defaultAttribute,
+                ...attribute,
+            }
+            if (attribute.value === undefined && attribute.type === undefined) {
+                throw new Error(
+                    `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
+                    + attributeName
+                )
+            }
+            if (attribute.value === null) {
+                attributes[attributeName].nullable = true
+            }
+        }
+    }
+
+    static isValueOfType(value, type) {
+        return value != null && (value instanceof type || value.constructor === type)
     }
 
     unexpectedKeys() {

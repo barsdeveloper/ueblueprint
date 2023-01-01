@@ -3,7 +3,11 @@ import IEntity from "./IEntity"
 export default class GuidEntity extends IEntity {
 
     static attributes = {
-        value: String,
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     static generateGuid(random = true) {

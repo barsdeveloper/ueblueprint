@@ -3,12 +3,16 @@ import IEntity from "./IEntity"
 export default class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
-        type: String,
-        path: String,
+        type: "",
+        path: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     constructor(values = {}) {
-        if (values.constructor !== Object) {
+        if (values.constructor === String) {
             values = {
                 path: values
             }

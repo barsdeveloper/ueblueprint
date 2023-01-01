@@ -3,9 +3,9 @@ import IEntity from "./IEntity"
 export default class VectorEntity extends IEntity {
 
     static attributes = {
-        X: Number,
-        Y: Number,
-        Z: Number,
+        X: 0,
+        Y: 0,
+        Z: 0,
     }
 
     constructor(values) {

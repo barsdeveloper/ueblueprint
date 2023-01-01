@@ -9,44 +9,129 @@ import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PinEntity from "./PinEntity"
 import SymbolEntity from "./SymbolEntity"
-import TypeInitialization from "./TypeInitialization"
-import Utility from "../Utility"
 import VariableReferenceEntity from "./VariableReferenceEntity"
 
 export default class ObjectEntity extends IEntity {
 
     static attributes = {
-        Class: ObjectReferenceEntity,
+        Class: {
+            type: ObjectReferenceEntity,
+        },
         Name: "",
-        bIsPureFunc: new TypeInitialization(Boolean, false, false),
-        VariableReference: new TypeInitialization(VariableReferenceEntity, false, null),
-        SelfContextInfo: new TypeInitialization(SymbolEntity, false, null),
-        FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
-        EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
-        TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
-        MacroGraphReference: new TypeInitialization(MacroGraphReferenceEntity, false, null),
-        Enum: new TypeInitialization(ObjectReferenceEntity, false),
-        CommentColor: new TypeInitialization(LinearColorEntity, false),
-        bCommentBubbleVisible_InDetailsPanel: new TypeInitialization(Boolean, false),
-        bColorCommentBubble: new TypeInitialization(Boolean, false, false),
-        MoveMode: new TypeInitialization(SymbolEntity, false),
-        NodePosX: IntegerEntity,
-        NodePosY: IntegerEntity,
-        NodeWidth: new TypeInitialization(IntegerEntity, false),
-        NodeHeight: new TypeInitialization(IntegerEntity, false),
-        bCommentBubblePinned: new TypeInitialization(Boolean, false),
-        bCommentBubbleVisible: new TypeInitialization(Boolean, false),
-        NodeComment: new TypeInitialization(String, false),
-        AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
-        EnabledState: new TypeInitialization(IdentifierEntity, false, null),
-        NodeGuid: GuidEntity,
-        ErrorType: new TypeInitialization(IntegerEntity, false),
-        ErrorMsg: new TypeInitialization(String, false, ""),
-        CustomProperties: [PinEntity],
+        bIsPureFunc: {
+            value: false,
+            showDefault: false,
+        },
+        VariableReference: {
+            type: VariableReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        SelfContextInfo: {
+            type: SymbolEntity,
+            value: null,
+            showDefault: false,
+        },
+        FunctionReference: {
+            type: FunctionReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        EventReference: {
+            type: FunctionReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        TargetType: {
+            type: ObjectReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        MacroGraphReference: {
+            type: MacroGraphReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        Enum: {
+            type: ObjectReferenceEntity,
+            showDefault: false,
+        },
+        CommentColor: {
+            type: LinearColorEntity,
+            showDefault: false,
+        },
+        bCommentBubbleVisible_InDetailsPanel: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bColorCommentBubble: {
+            type: Boolean,
+            value: false,
+            showDefault: false,
+        },
+        MoveMode: {
+            type: SymbolEntity,
+            showDefault: false,
+        },
+        NodePosX: {
+            type: IntegerEntity,
+        },
+        NodePosY: {
+            type: IntegerEntity,
+        },
+        NodeWidth: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
+        NodeHeight: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
+        bCommentBubblePinned: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bCommentBubbleVisible: {
+            type: Boolean,
+            showDefault: false,
+        },
+        NodeComment: {
+            type: String,
+            showDefault: false,
+        },
+        AdvancedPinDisplay: {
+            type: IdentifierEntity,
+            value: null,
+            showDefault: false,
+        },
+        EnabledState: {
+            type: IdentifierEntity,
+            value: null,
+            showDefault: false,
+        },
+        NodeGuid: {
+            type: GuidEntity,
+        },
+        ErrorType: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
+        ErrorMsg: {
+            type: String,
+            value: "",
+            showDefault: false,
+        },
+        CustomProperties: {
+            type: [PinEntity]
+        },
     }
 
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
+
+    static {
+        this.cleanupAttributes(this.attributes)
+    }
 
     constructor(values, suppressWarns = false) {
         super(values, suppressWarns)

@@ -1,18 +1,43 @@
 import IEntity from "./IEntity"
 import RealUnitEntity from "./UnitRealEntity"
-import TypeInitialization from "./TypeInitialization"
 import Utility from "../Utility"
 
 export default class LinearColorEntity extends IEntity {
 
     static attributes = {
-        R: RealUnitEntity,
-        G: RealUnitEntity,
-        B: RealUnitEntity,
-        A: new TypeInitialization(RealUnitEntity, true, () => new RealUnitEntity(1), false, false),
-        H: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
-        S: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
-        V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
+        R: {
+            type: RealUnitEntity,
+        },
+        G: {
+            type: RealUnitEntity,
+        },
+        B: {
+            type: RealUnitEntity,
+        },
+        A: {
+            type: RealUnitEntity,
+            value: () => new RealUnitEntity(1),
+            showDefault: true,
+        },
+        H: {
+            type: RealUnitEntity,
+            showDefault: true,
+            ignored: true,
+        },
+        S: {
+            type: RealUnitEntity,
+            showDefault: true,
+            ignored: true,
+        },
+        V: {
+            type: RealUnitEntity,
+            showDefault: true,
+            ignored: true,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     /** @param {Number} x */

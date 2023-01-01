@@ -330,23 +330,6 @@ class IInput {
     }
 }
 
-/** @typedef {import("./IEntity").default} IEntity */
-
-class CalculatedType {
-
-    #f
-
-    /** @param {Function} f */
-    constructor(f) {
-        this.#f = f;
-    }
-
-    /** @param {IEntity} entity */
-    calculate(entity) {
-        return this.#f(entity)
-    }
-}
-
 class Observable {
 
     /** @type {Map<String, Object[]>} */
@@ -455,12 +438,10 @@ class Observable {
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
  */
-/**
- * @template T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
- */
+
 /**
  * @template {AnyValue} T
  * @typedef {import("./ISerializer").default<T>} ISerializer
@@ -468,159 +449,37 @@ class Observable {
 
 class SerializerFactory {
 
-    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
+    /** @type {Map<AnyValueConstructor, ISerializer<AnyValue>>} */
     static #serializers = new Map()
 
     static registerSerializer(entity, object) {
         SerializerFactory.#serializers.set(entity, object);
     }
 
-    /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entity
-     */
+    /** @param {AnyValueConstructor} entity */
     static getSerializer(entity) {
         return SerializerFactory.#serializers.get(entity)
     }
 }
 
-/**
- * @template T
- * @typedef {import("./TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
- */
+/** @typedef {import("./IEntity").AttributeDeclarations} AttributeDeclarations */
 
-class UnionType {
+class SubAttributesDeclaration {
 
-    #types
-    get types() {
-        return this.#types
-    }
-
-    /** @param  {...AnyValueConstructor<any>} types */
-    constructor(...types) {
-        this.#types = types;
-    }
-
-    getFirstType() {
-        return this.#types[0]
-    }
-}
-
-/**
- * @typedef {IEntity | String | Number | Boolean | Array} AnyValue
- * @typedef {import("./IEntity").default} IEntity
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("./IEntity").IEntityConstructor<T>} IEntityConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {IEntityConstructor<T> | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor | UnionType} AnyValueConstructor
- */
-
-/** @template {AnyValue} T */
-class TypeInitialization {
-
-    /** @type {AnyValueConstructor<T>|AnyValueConstructor<T>[]} */
-    #type
-    get type() {
-        return this.#type
-    }
-    set type(v) {
-        this.#type = v;
-    }
-
-    #showDefault = true
-    get showDefault() {
-        return this.#showDefault
-    }
-    set showDefault(v) {
-        this.#showDefault = v;
-    }
-
-    /** @type {T | T[] | String | (() => T) | (() => T[])} */
-    #value
-    get value() {
-        return this.#value
-    }
-    set value(v) {
-        this.#value = v;
-    }
-
-    /** @type {Boolean} */
-    #serialized
-    get serialized() {
-        return this.#serialized
-    }
-    set serialized(v) {
-        this.#serialized = v;
-    }
-
-    #ignored
-    get ignored() {
-        return this.#ignored
-    }
-    set ignored(v) {
-        this.#ignored = v;
-    }
-
-    static isValueOfType(value, type) {
-        return value != null && (value instanceof type || value.constructor === type)
-    }
-
-    static sanitize(value, targetType) {
-        if (targetType === undefined) {
-            targetType = value?.constructor;
-        }
-        if (targetType instanceof Array) {
-            let type = targetType.find(t => TypeInitialization.isValueOfType(value, t));
-            if (!type) {
-                type = targetType[0];
-            }
-            targetType = type;
-        }
-        if (targetType && !TypeInitialization.isValueOfType(value, targetType)) {
-            value = new targetType(value);
-        }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = value.valueOf(); // Get the relative primitive value
-        }
-        return value
-    }
-
-    /**
-     * @param {AnyValueConstructor<T>|AnyValueConstructor<T>[]} type
-     * @param {Boolean} showDefault
-     * @param {T | T[] | String | (() => T) | (() => T[])} value
-     * @param {Boolean} serialized
-     */
-    constructor(type, showDefault = true, value = undefined, serialized = false, ignored = false) {
-        if (value === undefined) {
-            if (type instanceof Array) {
-                value = [];
-            } else {
-                value = () => TypeInitialization.sanitize(new type());
-            }
-        }
-        this.#type = type;
-        this.#showDefault = showDefault;
-        this.#value = value;
-        this.#serialized = serialized;
-        this.#ignored = ignored;
+    /** @param {AttributeDeclarations} attributes */
+    constructor(attributes) {
+        this.attributes = attributes;
     }
 }
 
 /**
  * @typedef {import("./element/IElement").default} IElement
+ * @typedef {import("./entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("./entity/IEntity").AnyValueConstructor} AnyValueConstructor
+ * @typedef {import("./entity/IEntity").AttributeInformation} TypeInformation
  * @typedef {import("./entity/IEntity").default} IEntity
  * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
- * @typedef {import("./entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template T
- * @typedef {import("./entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
  */
 
 class Utility {
@@ -706,22 +565,16 @@ class Utility {
     /**
      * @param {IEntity} entity
      * @param {String[]} keys
-     * @param {any} propertyDefinition
+     * @param {any} attribute
      * @returns {Boolean}
      */
     static isSerialized(
         entity,
         keys,
-        propertyDefinition = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
+        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
     ) {
-        if (propertyDefinition instanceof CalculatedType) {
-            return Utility.isSerialized(entity, keys, propertyDefinition.calculate(entity))
-        }
-        if (propertyDefinition instanceof TypeInitialization) {
-            if (propertyDefinition.serialized) {
-                return true
-            }
-            return Utility.isSerialized(entity, keys, propertyDefinition.type)
+        if (attribute.constructor === Object) {
+            return /** @type {TypeInformation} */(attribute).serialized
         }
         return false
     }
@@ -732,7 +585,10 @@ class Utility {
             return undefined
         }
         if (!(keys instanceof Array)) {
-            throw new TypeError("Expected keys to be an array.")
+            throw new TypeError("UEBlueprint: Expected keys to be an array")
+        }
+        if (target instanceof SubAttributesDeclaration) {
+            target = target.attributes;
         }
         if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
             return defaultValue
@@ -766,9 +622,13 @@ class Utility {
         return false
     }
 
+    /**
+     * @param {AnyValue} a
+     * @param {AnyValue} b
+     */
     static equals(a, b) {
-        a = TypeInitialization.sanitize(a);
-        b = TypeInitialization.sanitize(b);
+        a = Utility.sanitize(a);
+        b = Utility.sanitize(b);
         if (a === b) {
             return true
         }
@@ -777,25 +637,46 @@ class Utility {
         }
     }
 
-    /**
-     * @param {AnyValue | AnyValueConstructor<IEntity>} value
-     * @returns {AnyValueConstructor<IEntity> | AnyValueConstructor<IEntity>[]}
+    /** 
+     * @param {null | AnyValue | TypeInformation} value
+     * @returns {AnyValueConstructor}
      */
     static getType(value) {
         if (value === null) {
             return null
         }
-        if (value instanceof TypeInitialization) {
-            return Utility.getType(value.type)
+        // @ts-expect-error
+        if (value.constructor === Object && value.type instanceof Function) {
+            // @ts-expect-error
+            return value.type
         }
-        if (value instanceof UnionType) {
-            return value.types
+        return /** @type {AnyValueConstructor} */(value?.constructor)
+    }
+
+    /**
+     * @param {AnyValue} value
+     * @param {AnyValueConstructor} type
+     */
+    static isValueOfType(value, type) {
+        return value === null || (value instanceof type || value.constructor === type)
+    }
+
+    /** @param {AnyValue} value */
+    static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
+        if (targetType instanceof Array) {
+            let type = targetType.find(t => Utility.isValueOfType(value, t));
+            if (!type) {
+                type = targetType[0];
+            }
+            targetType = type;
         }
-        if (value instanceof Function) {
-            // value is already a constructor
-            return value
+        if (targetType && !Utility.isValueOfType(value, targetType)) {
+            value = new targetType(value);
         }
-        return /** @type {AnyValueConstructor<IEntity>} */(value?.constructor)
+        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
+            value = value.valueOf(); // Get the relative primitive value
+        }
+        return value
     }
 
     /**
@@ -955,17 +836,61 @@ class Utility {
         };
         requestAnimationFrame(doAnimation);
     }
+
+    /** @param {String} value */
+    static warn(value) {
+        console.warn("UEBlueprint: " + value);
+    }
 }
 
-/** @typedef {typeof IEntity} EntityConstructor */
+/** @typedef {import("./IEntity").AnyValueConstructor} AnyValueConstructor */
+
+class UnionType {
+
+    #types
+    get types() {
+        return this.#types
+    }
+
+    /** @param  {...AnyValueConstructor} types */
+    constructor(...types) {
+        this.#types = types;
+    }
+
+    getFirstType() {
+        return this.#types[0]
+    }
+}
+
 /**
- * @template {IEntity} T
- * @typedef {new (Object) => T} IEntityConstructor
+ * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
+ * @typedef {(entity: IEntity) => AnyValueConstructor} TypeSupplier
+ * @typedef {EntityConstructor | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ * @typedef {IEntity | String | Number | Boolean} AnyValue
+ * @typedef {{
+ *     [key: String]: AttributeInformation | AnyValue | SubAttributesDeclaration
+ * }} AttributeDeclarations
+ * @typedef {typeof IEntity} EntityConstructor
+ * @typedef {{
+ *     type?: AnyValueConstructor | AnyValueConstructor[] | UnionType | TypeSupplier,
+ *     value?: AnyValue | ValueSupplier,
+ *     showDefault?: Boolean,
+ *     nullable?: Boolean,
+ *     ignored?: Boolean,
+ *     serialized?: Boolean,
+ * }} AttributeInformation
  */
 
 class IEntity extends Observable {
 
+    /** @type {AttributeDeclarations} */
     static attributes = {}
+    static defaultAttribute = {
+        showDefault: true,
+        nullable: false,
+        ignored: false,
+        serialized: false,
+    }
 
     constructor(values = {}, suppressWarns = false) {
         super();
@@ -976,82 +901,92 @@ class IEntity extends Observable {
          * @param {String} prefix
          */
         const defineAllAttributes = (target, attributes, values = {}, prefix = "") => {
-            const valuesPropertyNames = Object.getOwnPropertyNames(values);
-            for (let attribute of Utility.mergeArrays(Object.getOwnPropertyNames(attributes), valuesPropertyNames)) {
-                let value = Utility.objectGet(values, [attribute]);
-                let defaultValue = attributes[attribute];
-                let defaultType = Utility.getType(defaultValue);
-                if (defaultValue instanceof CalculatedType) {
-                    defaultValue = defaultValue.calculate(this);
-                    defaultType = Utility.getType(defaultValue);
-                }
-                if (defaultValue != null && defaultValue === defaultType) {
-                    defaultValue = new defaultType();
+            const valuesNames = Object.getOwnPropertyNames(values);
+            for (let attributeName of Utility.mergeArrays(Object.getOwnPropertyNames(attributes), valuesNames)) {
+                let value = Utility.objectGet(values, [attributeName]);
+                /** @type {AttributeInformation} */
+                let attribute = attributes[attributeName];
+
+                if (attribute instanceof SubAttributesDeclaration) {
+                    target[attributeName] = {};
+                    defineAllAttributes(
+                        target[attributeName],
+                        attribute.attributes,
+                        values[attributeName],
+                        attributeName + "."
+                    );
+                    continue
                 }
 
                 if (!suppressWarns) {
-                    if (!(attribute in attributes)) {
-                        console.warn(
-                            `Attribute ${prefix}${attribute} in the serialized data is not defined in ${this.constructor.name}.attributes`
+                    if (!(attributeName in attributes)) {
+                        Utility.warn(
+                            `Attribute ${prefix}${attributeName} in the serialized data is not defined in `
+                            + `${this.constructor.name}.attributes`
                         );
                     } else if (
-                        valuesPropertyNames.length > 0
-                        && !(attribute in values)
-                        && defaultValue !== undefined
-                        && !(defaultValue instanceof TypeInitialization && (!defaultValue.showDefault || defaultValue.ignored))
+                        valuesNames.length > 0
+                        && !(attributeName in values)
+                        && !(!attribute.showDefault || attribute.ignored)
                     ) {
-                        console.warn(
-                            `${this.constructor.name} will add attribute ${prefix}${attribute} not defined in the serialized data`
+                        Utility.warn(
+                            `${this.constructor.name} will add attribute ${prefix}${attributeName} not defined in the `
+                            + "serialized data"
                         );
                     }
                 }
 
-                // Not instanceof because all objects are instenceof Object, exact match needed
-                // @ts-expect-error
-                if (defaultType === Object) {
-                    target[attribute] = {};
-                    defineAllAttributes(target[attribute], attributes[attribute], values[attribute], attribute + ".");
-                    continue
+                let defaultValue = attribute.value;
+                let defaultType = attribute.type;
+                if (attribute.serialized && defaultType instanceof Function) {
+                    // If the attribute is serialized, the type must contain a function providing the type
+                    defaultType = /** @type {TypeSupplier} */(defaultType)(this);
+                }
+                if (defaultType instanceof Array) {
+                    defaultType = Array;
+                }
+                if (defaultValue instanceof Function) {
+                    defaultValue = defaultValue(this);
+                }
+                if (defaultType instanceof UnionType) {
+                    if (defaultValue != undefined) {
+                        defaultType = defaultType.types.find(
+                            type => defaultValue instanceof type || defaultValue.constructor == type
+                        ) ?? defaultType.getFirstType();
+                    } else {
+                        defaultType = defaultType.getFirstType();
+                    }
+                }
+                if (defaultType === undefined) {
+                    defaultType = Utility.getType(defaultValue);
                 }
 
                 if (value !== undefined) {
                     // Remember value can still be null
-                    if (
-                        value?.constructor === String
-                        && defaultValue instanceof TypeInitialization
-                        && defaultValue.serialized
-                        && defaultValue.type !== String
-                    ) {
-                        // @ts-expect-error
-                        value = SerializerFactory.getSerializer(defaultValue.type).deserialize(value);
+                    if (value?.constructor === String && attribute.serialized && defaultType !== String) {
+                        value = SerializerFactory
+                            .getSerializer(defaultType)
+                            .deserialize(/** @type {String} */(value));
                     }
-                    target[attribute] = TypeInitialization.sanitize(value, Utility.getType(defaultValue));
+                    target[attributeName] = Utility.sanitize(value, defaultType);
                     continue // We have a value, need nothing more
                 }
-
-                if (defaultValue instanceof TypeInitialization) {
-                    if (!defaultValue.showDefault) {
-                        target[attribute] = undefined; // Declare undefined to preserve the order of attributes
-                        continue
-                    }
-                    if (defaultValue.serialized) {
-                        defaultValue = "";
-                    } else {
-                        defaultType = defaultValue.type;
-                        defaultValue = defaultValue.value;
-                        if (defaultValue instanceof Function) {
-                            defaultValue = defaultValue();
-                        }
+                if (defaultValue === undefined) {
+                    defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor} */(defaultType)());
+                }
+                if (!attribute.showDefault) {
+                    target[attributeName] = undefined; // Declare undefined to preserve the order of attributes
+                    continue
+                }
+                if (attribute.serialized) {
+                    if (defaultValue.constructor !== String) {
+                        defaultValue = SerializerFactory.getSerializer(defaultType).deserialize(defaultValue);
                     }
                 }
-                if (defaultValue instanceof UnionType) {
-                    defaultType = defaultValue.getFirstType();
-                    defaultValue = TypeInitialization.sanitize(null, defaultType);
-                }
-                if (defaultValue instanceof Array) {
-                    defaultValue = [];
-                }
-                target[attribute] = TypeInitialization.sanitize(defaultValue, defaultType);
+                target[attributeName] = Utility.sanitize(
+                    /** @type {AnyValue} */(defaultValue),
+                    /** @type {AnyValueConstructor} */(defaultType)
+                );
             }
         };
         const attributes = /** @type {typeof IEntity} */(this.constructor).attributes;
@@ -1064,21 +999,115 @@ class IEntity extends Observable {
         defineAllAttributes(this, attributes, values);
     }
 
+    /** @param {AttributeDeclarations} attributes */
+    static cleanupAttributes(attributes, prefix = "") {
+        for (const attributeName in attributes) {
+            if (attributes[attributeName] instanceof SubAttributesDeclaration) {
+                this.cleanupAttributes(
+                    /** @type {SubAttributesDeclaration} */(attributes[attributeName]).attributes,
+                    prefix + "." + attributeName
+                );
+                continue
+            }
+            if (attributes[attributeName].constructor !== Object) {
+                attributes[attributeName] = {
+                    value: attributes[attributeName],
+                };
+            }
+            const attribute = /** @type {AttributeInformation} */(attributes[attributeName]);
+            if (attribute.type === undefined && !(attribute.value instanceof Function)) {
+                attribute.type = Utility.getType(attribute.value);
+            }
+            attributes[attributeName] = {
+                ...IEntity.defaultAttribute,
+                ...attribute,
+            };
+            if (attribute.value === undefined && attribute.type === undefined) {
+                throw new Error(
+                    `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
+                    + attributeName
+                )
+            }
+            if (attribute.value === null) {
+                attributes[attributeName].nullable = true;
+            }
+        }
+    }
+
+    static isValueOfType(value, type) {
+        return value != null && (value instanceof type || value.constructor === type)
+    }
+
     unexpectedKeys() {
         // @ts-expect-error
         return Object.getOwnPropertyNames(this).length - Object.getOwnPropertyNames(this.constructor.attributes).length
     }
 }
 
+class IntegerEntity extends IEntity {
+
+    static attributes = {
+        value: 0,
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    /** @param {Object | Number | String} value */
+    constructor(value = 0) {
+        super(value);
+        this.value = Math.round(this.value);
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
+class ByteEntity extends IntegerEntity {
+
+    static attributes = {
+        value: 0,
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    /** @param {Object | Number | String} values */
+    constructor(values = 0) {
+        super(values);
+        const value = Math.round(this.value);
+        this.value = value >= 0 && value < 1 << 8 ? value : 0;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
 class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
-        type: String,
-        path: String,
+        type: "",
+        path: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values = {}) {
-        if (values.constructor !== Object) {
+        if (values.constructor === String) {
             values = {
                 path: values
             };
@@ -1096,8 +1125,15 @@ class ObjectReferenceEntity extends IEntity {
 class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
-        MemberParent: new TypeInitialization(ObjectReferenceEntity, false),
+        MemberParent: {
+            type: ObjectReferenceEntity,
+            showDefault: false
+        },
         MemberName: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1110,7 +1146,11 @@ class FunctionReferenceEntity extends IEntity {
 class GuidEntity extends IEntity {
 
     static attributes = {
-        value: String,
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     static generateGuid(random = true) {
@@ -1145,7 +1185,11 @@ class GuidEntity extends IEntity {
 class IdentifierEntity extends IEntity {
 
     static attributes = {
-        value: String,
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     static attributeConverter = {
@@ -1167,33 +1211,15 @@ class IdentifierEntity extends IEntity {
     }
 }
 
-class IntegerEntity extends IEntity {
-
-    static attributes = {
-        value: 0,
-    }
-
-    /** @param {Object | Number | String} values */
-    constructor(values = 0) {
-        super(values);
-        /** @type {Number} */
-        this.value = Math.round(this.value);
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
-
 class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
     static attributes = {
-        value: String,
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1210,7 +1236,13 @@ class KeyBindingEntity extends IEntity {
         bCtrl: false,
         bAlt: false,
         bCmd: false,
-        Key: IdentifierEntity,
+        Key: {
+            type: IdentifierEntity
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values = {}) {
@@ -1235,6 +1267,10 @@ class RealUnitEntity extends IEntity {
         value: 0,
     }
 
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
     /** @param {Object | Number | String} values */
     constructor(values = 0) {
         super(values);
@@ -1253,13 +1289,39 @@ class RealUnitEntity extends IEntity {
 class LinearColorEntity extends IEntity {
 
     static attributes = {
-        R: RealUnitEntity,
-        G: RealUnitEntity,
-        B: RealUnitEntity,
-        A: new TypeInitialization(RealUnitEntity, true, () => new RealUnitEntity(1), false, false),
-        H: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
-        S: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
-        V: new TypeInitialization(RealUnitEntity, true, undefined, false, true),
+        R: {
+            type: RealUnitEntity,
+        },
+        G: {
+            type: RealUnitEntity,
+        },
+        B: {
+            type: RealUnitEntity,
+        },
+        A: {
+            type: RealUnitEntity,
+            value: () => new RealUnitEntity(1),
+            showDefault: true,
+        },
+        H: {
+            type: RealUnitEntity,
+            showDefault: true,
+            ignored: true,
+        },
+        S: {
+            type: RealUnitEntity,
+            showDefault: true,
+            ignored: true,
+        },
+        V: {
+            type: RealUnitEntity,
+            showDefault: true,
+            ignored: true,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     /** @param {Number} x */
@@ -1462,9 +1524,13 @@ class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
     static attributes = {
-        namespace: String,
-        key: String,
-        value: String,
+        namespace: "",
+        key: "",
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1482,9 +1548,19 @@ class LocalizedTextEntity extends IEntity {
 class MacroGraphReferenceEntity extends IEntity {
 
     static attributes = {
-        MacroGraph: ObjectReferenceEntity,
-        GraphBlueprint: ObjectReferenceEntity,
-        GraphGuid: GuidEntity,
+        MacroGraph: {
+            type: ObjectReferenceEntity,
+        },
+        GraphBlueprint: {
+            type: ObjectReferenceEntity,
+        },
+        GraphGuid: {
+            type: GuidEntity,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1503,7 +1579,11 @@ class MacroGraphReferenceEntity extends IEntity {
 class PathSymbolEntity extends IEntity {
 
     static attributes = {
-        value: String,
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1523,8 +1603,16 @@ class PathSymbolEntity extends IEntity {
 class PinReferenceEntity extends IEntity {
 
     static attributes = {
-        objectName: PathSymbolEntity,
-        pinGuid: GuidEntity,
+        objectName: {
+            type: PathSymbolEntity,
+        },
+        pinGuid: {
+            type: GuidEntity,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1537,9 +1625,19 @@ class PinReferenceEntity extends IEntity {
 class RotatorEntity extends IEntity {
 
     static attributes = {
-        R: Number,
-        P: Number,
-        Y: Number,
+        R: {
+            value: 0,
+        },
+        P: {
+            value: 0,
+        },
+        Y: {
+            value: 0,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1547,6 +1645,18 @@ class RotatorEntity extends IEntity {
         /** @type {Number} */ this.R;
         /** @type {Number} */ this.P;
         /** @type {Number} */ this.Y;
+    }
+
+    getRoll() {
+        return this.R
+    }
+
+    getPitch() {
+        return this.P
+    }
+
+    getYaw() {
+        return this.Y
     }
 }
 
@@ -1556,8 +1666,8 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
 class Vector2DEntity extends IEntity {
 
     static attributes = {
-        X: Number,
-        Y: Number,
+        X: 0,
+        Y: 0,
     }
 
     constructor(values) {
@@ -1573,9 +1683,9 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
 class VectorEntity extends IEntity {
 
     static attributes = {
-        X: Number,
-        Y: Number,
-        Z: Number,
+        X: 0,
+        Y: 0,
+        Z: 0,
     }
 
     constructor(values) {
@@ -1589,7 +1699,7 @@ class VectorEntity extends IEntity {
 class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
-/** @typedef {import("./TypeInitialization").AnyValue} AnyValue */
+/** @typedef {import("./IEntity").AnyValue} AnyValue */
 
 /** @template {AnyValue} T */
 class PinEntity extends IEntity {
@@ -1613,44 +1723,77 @@ class PinEntity extends IEntity {
     }
     static lookbehind = "Pin"
     static attributes = {
-        PinId: GuidEntity,
+        PinId: {
+            type: GuidEntity,
+        },
         PinName: "",
-        PinFriendlyName: new TypeInitialization(new UnionType(LocalizedTextEntity, String), false, null),
-        PinToolTip: new TypeInitialization(String, false, ""),
-        Direction: new TypeInitialization(String, false, ""),
-        PinType: {
+        PinFriendlyName: {
+            type: new UnionType(LocalizedTextEntity, String),
+            showDefault: false,
+        },
+        PinToolTip: {
+            type: String,
+            showDefault: false,
+        },
+        Direction: {
+            type: String,
+            showDefault: false,
+        },
+        PinType: new SubAttributesDeclaration({
             PinCategory: "",
             PinSubCategory: "",
-            PinSubCategoryObject: ObjectReferenceEntity,
-            PinSubCategoryMemberReference: null,
-            PinValueType: null,
-            ContainerType: ObjectReferenceEntity,
+            PinSubCategoryObject: {
+                type: ObjectReferenceEntity,
+            },
+            PinSubCategoryMemberReference: {
+                type: ObjectReferenceEntity,
+                value: null,
+            },
+            PinValueType: {
+                type: String,
+                value: null,
+            },
+            ContainerType: {
+                type: ObjectReferenceEntity,
+            },
             bIsReference: false,
             bIsConst: false,
             bIsWeakPointer: false,
             bIsUObjectWrapper: false,
             bSerializeAsSinglePrecisionFloat: false,
+        }),
+        LinkedTo: {
+            type: [PinReferenceEntity],
+            showDefault: false,
         },
-        LinkedTo: new TypeInitialization([PinReferenceEntity], false),
-        DefaultValue:
-            new CalculatedType(
-                /** @param {PinEntity} pinEntity */
-                pinEntity => new TypeInitialization(
-                    pinEntity.getEntityType(true) ?? String,
-                    false,
-                    undefined,
-                    true
-                )
-            ),
-        AutogeneratedDefaultValue: new TypeInitialization(String, false),
-        DefaultObject: new TypeInitialization(ObjectReferenceEntity, false, null),
-        PersistentGuid: GuidEntity,
+        DefaultValue: {
+            /** @param {PinEntity} pinEntity */
+            type: pinEntity => pinEntity.getEntityType(true) ?? String,
+            serialized: true,
+            showDefault: false,
+        },
+        AutogeneratedDefaultValue: {
+            type: String,
+            showDefault: false,
+        },
+        DefaultObject: {
+            type: ObjectReferenceEntity,
+            showDefault: false,
+            value: null,
+        },
+        PersistentGuid: {
+            type: GuidEntity,
+        },
         bHidden: false,
         bNotConnectable: false,
         bDefaultValueIsReadOnly: false,
         bDefaultValueIsIgnored: false,
         bAdvancedView: false,
         bOrphanedPin: false,
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -1807,7 +1950,11 @@ class PinEntity extends IEntity {
 class SymbolEntity extends IEntity {
 
     static attributes = {
-        value: String
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1819,10 +1966,18 @@ class SymbolEntity extends IEntity {
 class VariableReferenceEntity extends IEntity {
 
     static attributes = {
-        MemberScope: new TypeInitialization(String, false),
-        MemberName: String,
-        MemberGuid: GuidEntity,
-        bSelfContext: new TypeInitialization(Boolean, false, false)
+        MemberScope: {
+            value: "",
+            showDefault: false,
+        },
+        MemberName: "",
+        MemberGuid: {
+            type: GuidEntity,
+        },
+        bSelfContext: {
+            value: false,
+            showDefault: false,
+        },
     }
 
     constructor(values) {
@@ -1836,37 +1991,124 @@ class VariableReferenceEntity extends IEntity {
 class ObjectEntity extends IEntity {
 
     static attributes = {
-        Class: ObjectReferenceEntity,
+        Class: {
+            type: ObjectReferenceEntity,
+        },
         Name: "",
-        bIsPureFunc: new TypeInitialization(Boolean, false, false),
-        VariableReference: new TypeInitialization(VariableReferenceEntity, false, null),
-        SelfContextInfo: new TypeInitialization(SymbolEntity, false, null),
-        FunctionReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
-        EventReference: new TypeInitialization(FunctionReferenceEntity, false, null,),
-        TargetType: new TypeInitialization(ObjectReferenceEntity, false, null),
-        MacroGraphReference: new TypeInitialization(MacroGraphReferenceEntity, false, null),
-        Enum: new TypeInitialization(ObjectReferenceEntity, false),
-        CommentColor: new TypeInitialization(LinearColorEntity, false),
-        bCommentBubbleVisible_InDetailsPanel: new TypeInitialization(Boolean, false),
-        bColorCommentBubble: new TypeInitialization(Boolean, false, false),
-        MoveMode: new TypeInitialization(SymbolEntity, false),
-        NodePosX: IntegerEntity,
-        NodePosY: IntegerEntity,
-        NodeWidth: new TypeInitialization(IntegerEntity, false),
-        NodeHeight: new TypeInitialization(IntegerEntity, false),
-        bCommentBubblePinned: new TypeInitialization(Boolean, false),
-        bCommentBubbleVisible: new TypeInitialization(Boolean, false),
-        NodeComment: new TypeInitialization(String, false),
-        AdvancedPinDisplay: new TypeInitialization(IdentifierEntity, false, null),
-        EnabledState: new TypeInitialization(IdentifierEntity, false, null),
-        NodeGuid: GuidEntity,
-        ErrorType: new TypeInitialization(IntegerEntity, false),
-        ErrorMsg: new TypeInitialization(String, false, ""),
-        CustomProperties: [PinEntity],
+        bIsPureFunc: {
+            value: false,
+            showDefault: false,
+        },
+        VariableReference: {
+            type: VariableReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        SelfContextInfo: {
+            type: SymbolEntity,
+            value: null,
+            showDefault: false,
+        },
+        FunctionReference: {
+            type: FunctionReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        EventReference: {
+            type: FunctionReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        TargetType: {
+            type: ObjectReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        MacroGraphReference: {
+            type: MacroGraphReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
+        Enum: {
+            type: ObjectReferenceEntity,
+            showDefault: false,
+        },
+        CommentColor: {
+            type: LinearColorEntity,
+            showDefault: false,
+        },
+        bCommentBubbleVisible_InDetailsPanel: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bColorCommentBubble: {
+            type: Boolean,
+            value: false,
+            showDefault: false,
+        },
+        MoveMode: {
+            type: SymbolEntity,
+            showDefault: false,
+        },
+        NodePosX: {
+            type: IntegerEntity,
+        },
+        NodePosY: {
+            type: IntegerEntity,
+        },
+        NodeWidth: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
+        NodeHeight: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
+        bCommentBubblePinned: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bCommentBubbleVisible: {
+            type: Boolean,
+            showDefault: false,
+        },
+        NodeComment: {
+            type: String,
+            showDefault: false,
+        },
+        AdvancedPinDisplay: {
+            type: IdentifierEntity,
+            value: null,
+            showDefault: false,
+        },
+        EnabledState: {
+            type: IdentifierEntity,
+            value: null,
+            showDefault: false,
+        },
+        NodeGuid: {
+            type: GuidEntity,
+        },
+        ErrorType: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
+        ErrorMsg: {
+            type: String,
+            value: "",
+            showDefault: false,
+        },
+        CustomProperties: {
+            type: [PinEntity]
+        },
     }
 
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
 
     constructor(values, suppressWarns = false) {
         super(values, suppressWarns);
@@ -1980,7 +2222,12 @@ var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
 class UnknownKeysEntity extends IEntity {
 
     static attributes = {
-        lookbehind: new TypeInitialization(String, false, "", false, true)
+        lookbehind:
+        {
+            value: "",
+            showDefault: false,
+            ignore: true,
+        },
     }
 
     constructor(values) {
@@ -1989,30 +2236,9 @@ class UnknownKeysEntity extends IEntity {
     }
 }
 
-class ByteEntity extends IntegerEntity {
-
-    static attributes = {
-        value: 0,
-    }
-
-    /** @param {Object | Number | String} values */
-    constructor(values = 0) {
-        super(values);
-        /** @type {Number} */
-        const value = Math.round(this.value);
-        this.value = value >= 0 && value < 1 << 8 ? value : 0;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
-
 // @ts-nocheck
+
+/** @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation */
 
 let P = Parsimmon;
 
@@ -2021,30 +2247,35 @@ class Grammar {
     /*   ---   Factory   ---   */
 
     /** @param {Grammar} r */
-    static getGrammarForType(r, attributeType, defaultGrammar = r.AttributeAnyValue) {
-        if (attributeType instanceof TypeInitialization) {
-            let result = Grammar.getGrammarForType(r, attributeType.type, defaultGrammar);
-            if (attributeType.serialized && !(attributeType.type instanceof String)) {
+    static getGrammarForType(r, attribute, defaultGrammar = r.AttributeAnyValue) {
+        if (attribute.constructor === Object) {
+            attribute = /** @type {AttributeInformation} */(attribute);
+            let type = attribute.type;
+            let result;
+            if (type instanceof Array) {
+                result = Grammar.getGrammarForType(r, type[0])
+                    .trim(P.optWhitespace)
+                    .sepBy(P.string(","))
+                    .skip(P.regex(/,?\s*/))
+                    .wrap(P.string("("), P.string(")"));
+            } else if (type instanceof UnionType) {
+                result = type.types
+                    .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
+                    .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
+                        ? r.AttributeAnyValue
+                        : accum.or(cur));
+            } else {
+                result = Grammar.getGrammarForType(r, type, defaultGrammar);
+            }
+            if (attribute.serialized && !(type instanceof String)) {
                 result = result.wrap(P.string('"'), P.string('"'));
+            }
+            if (attribute.nullable) {
+                result = result.or(r.Null);
             }
             return result
         }
-        switch (Utility.getType(attributeType)) {
-            case Array:
-                return P.seqMap(
-                    P.string("("),
-                    attributeType
-                        .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
-                        .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
-                            ? r.AttributeAnyValue
-                            : accum.or(cur)
-                        )
-                        .trim(P.optWhitespace)
-                        .sepBy(P.string(","))
-                        .skip(P.regex(/,?\s*/)),
-                    P.string(")"),
-                    (_0, grammar, _2) => grammar
-                )
+        switch (attribute) {
             case Boolean:
                 return r.Boolean
             case ByteEntity:
@@ -2087,12 +2318,6 @@ class Grammar {
                 return r.String
             case SymbolEntity:
                 return r.Symbol
-            case UnionType:
-                return attributeType.types
-                    .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
-                    .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
-                        ? r.AttributeAnyValue
-                        : accum.or(cur))
             case VariableReferenceEntity:
                 return r.VariableReference
             case Vector2DEntity:
@@ -2130,7 +2355,10 @@ class Grammar {
                 // Once the attribute name is known, look into entityType.attributes to get its type
                 const attributeKey = attributeName.split(".");
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey);
-                let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue);
+                let attributeValueGrammar =
+                    attribute.constructor === Object && /** @type {AttributeInformation} */(attribute).serialized
+                        ? r.String
+                        : Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue);
                 // Returns a setter function for the attribute
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
@@ -2526,11 +2754,8 @@ class Grammar {
 
 /**
  * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
  */
 
 /** @template {AnyValue} T */
@@ -2538,7 +2763,7 @@ class ISerializer {
 
     static grammar = Parsimmon.createLanguage(new Grammar())
 
-    /** @param {AnyValueConstructor<T>} entityType */
+    /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
         attributePrefix = "",
@@ -2596,7 +2821,11 @@ class ISerializer {
         if (!serializer) {
             throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
         }
-        return serializer.write(entity, value, insideString)
+        return serializer.write(
+            value instanceof IEntity ? value : entity,
+            value,
+            insideString
+        )
     }
 
     /**
@@ -2610,13 +2839,12 @@ class ISerializer {
         let fullKey = key.concat("");
         const last = fullKey.length - 1;
         const attributes = /** @type {EntityConstructor} */(object.constructor).attributes;
-        const keys =
-            attributes ?
-                Utility.mergeArrays(
-                    Object.getOwnPropertyNames(attributes),
-                    Object.getOwnPropertyNames(object)
-                )
-                : Object.getOwnPropertyNames(object);
+        const keys = attributes
+            ? Utility.mergeArrays(
+                Object.getOwnPropertyNames(attributes),
+                Object.getOwnPropertyNames(object)
+            )
+            : Object.getOwnPropertyNames(object);
         for (const property of keys) {
             fullKey[last] = property;
             const value = object[property];
@@ -2645,10 +2873,9 @@ class ISerializer {
     }
 
     showProperty(entity, object, attributeKey, attributeValue) {
-        // @ts-expect-error
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes;
         const attribute = Utility.objectGet(attributes, attributeKey);
-        if (attribute instanceof TypeInitialization) {
+        if (attribute.constructor === Object) {
             if (attribute.ignored) {
                 return false
             }
@@ -3090,10 +3317,6 @@ class KeyboardSelectAll extends IKeyboardShortcut {
  * @template {ITemplate} U
  */
 class IElement extends s {
-
-    /** @type {PropertyDeclarations} */
-    static properties = {
-    }
 
     #nextUpdatedCallbacks = []
 
@@ -7881,8 +8104,8 @@ class VectorPinTemplate extends INumericPinTemplate {
 }
 
 /**
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
  * @typedef {import("./LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("lit").CSSResult} CSSResult
@@ -8537,11 +8760,8 @@ function defineElements() {
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
  */
 
 /**
@@ -8552,7 +8772,7 @@ class GeneralSerializer extends ISerializer {
 
     /**
      * @param {(value: String, entity: T) => String} wrap
-     * @param {AnyValueConstructor<T>} entityType
+     * @param {AnyValueConstructor} entityType
      */
     constructor(wrap, entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
         wrap = wrap ?? (v => `(${v})`);
@@ -8569,7 +8789,6 @@ class GeneralSerializer extends ISerializer {
         let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType);
         const parseResult = grammar.parse(value);
         if (!parseResult.status) {
-            // @ts-expect-error
             throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
         }
         return parseResult.value
@@ -8588,11 +8807,8 @@ class GeneralSerializer extends ISerializer {
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
  */
 
 /**
@@ -8605,7 +8821,7 @@ class CustomSerializer extends GeneralSerializer {
 
     /**
      * @param {(v: T, insideString: Boolean) => String} objectWriter
-     * @param {AnyValueConstructor<T>} entityType
+     * @param {AnyValueConstructor} entityType
      */
     constructor(objectWriter, entityType) {
         super(undefined, entityType);
@@ -8623,18 +8839,18 @@ class CustomSerializer extends GeneralSerializer {
     }
 }
 
-/** @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue */
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+/** 
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue 
+ * @typedef {import("../entity/IEntity").AnyValueConstructor} AnyValueConstructor
  */
+
 /**
  * @template {AnyValue} T
  * @extends {GeneralSerializer<T>}
  */
 class ToStringSerializer extends GeneralSerializer {
 
-    /** @param {AnyValueConstructor<T>} entityType */
+    /** @param {AnyValueConstructor} entityType */
     constructor(entityType) {
         super(undefined, entityType);
     }

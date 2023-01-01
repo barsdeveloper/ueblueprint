@@ -1,16 +1,13 @@
 import Grammar from "./Grammar"
 import Parsimmon from "parsimmon"
 import SerializerFactory from "./SerializerFactory"
-import TypeInitialization from "../entity/TypeInitialization"
 import Utility from "../Utility"
+import IEntity from "../entity/IEntity"
 
 /**
  * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /** @template {AnyValue} T */
@@ -18,7 +15,7 @@ export default class ISerializer {
 
     static grammar = Parsimmon.createLanguage(new Grammar())
 
-    /** @param {AnyValueConstructor<T>} entityType */
+    /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
         attributePrefix = "",
@@ -76,7 +73,11 @@ export default class ISerializer {
         if (!serializer) {
             throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
         }
-        return serializer.write(entity, value, insideString)
+        return serializer.write(
+            value instanceof IEntity ? value : entity,
+            value,
+            insideString
+        )
     }
 
     /**
@@ -90,13 +91,12 @@ export default class ISerializer {
         let fullKey = key.concat("")
         const last = fullKey.length - 1
         const attributes = /** @type {EntityConstructor} */(object.constructor).attributes
-        const keys =
-            attributes ?
-                Utility.mergeArrays(
-                    Object.getOwnPropertyNames(attributes),
-                    Object.getOwnPropertyNames(object)
-                )
-                : Object.getOwnPropertyNames(object)
+        const keys = attributes
+            ? Utility.mergeArrays(
+                Object.getOwnPropertyNames(attributes),
+                Object.getOwnPropertyNames(object)
+            )
+            : Object.getOwnPropertyNames(object)
         for (const property of keys) {
             fullKey[last] = property
             const value = object[property]
@@ -125,10 +125,9 @@ export default class ISerializer {
     }
 
     showProperty(entity, object, attributeKey, attributeValue) {
-        // @ts-expect-error
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes
         const attribute = Utility.objectGet(attributes, attributeKey)
-        if (attribute instanceof TypeInitialization) {
+        if (attribute.constructor === Object) {
             if (attribute.ignored) {
                 return false
             }

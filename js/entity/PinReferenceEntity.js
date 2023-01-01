@@ -5,8 +5,16 @@ import PathSymbolEntity from "./PathSymbolEntity"
 export default class PinReferenceEntity extends IEntity {
 
     static attributes = {
-        objectName: PathSymbolEntity,
-        pinGuid: GuidEntity,
+        objectName: {
+            type: PathSymbolEntity,
+        },
+        pinGuid: {
+            type: GuidEntity,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     constructor(values) {

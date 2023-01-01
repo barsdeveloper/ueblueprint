@@ -1,4 +1,5 @@
 // @ts-nocheck
+import ByteEntity from "../entity/ByteEntity"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
@@ -17,17 +18,17 @@ import PinReferenceEntity from "../entity/PinReferenceEntity"
 import RealUnitEntity from "../entity/UnitRealEntity"
 import RotatorEntity from "../entity/RotatorEntity"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
+import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import SymbolEntity from "../entity/SymbolEntity"
-import TypeInitialization from "../entity/TypeInitialization"
 import UnionType from "../entity/UnionType"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity"
 import Utility from "../Utility"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity"
 import Vector2DEntity from "../entity/Vector2DEntity"
 import VectorEntity from "../entity/VectorEntity"
-import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity"
-import ByteEntity from "../entity/ByteEntity"
+
+/** @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation */
 
 let P = Parsimmon
 
@@ -36,30 +37,35 @@ export default class Grammar {
     /*   ---   Factory   ---   */
 
     /** @param {Grammar} r */
-    static getGrammarForType(r, attributeType, defaultGrammar = r.AttributeAnyValue) {
-        if (attributeType instanceof TypeInitialization) {
-            let result = Grammar.getGrammarForType(r, attributeType.type, defaultGrammar)
-            if (attributeType.serialized && !(attributeType.type instanceof String)) {
+    static getGrammarForType(r, attribute, defaultGrammar = r.AttributeAnyValue) {
+        if (attribute.constructor === Object) {
+            attribute = /** @type {AttributeInformation} */(attribute)
+            let type = attribute.type
+            let result
+            if (type instanceof Array) {
+                result = Grammar.getGrammarForType(r, type[0])
+                    .trim(P.optWhitespace)
+                    .sepBy(P.string(","))
+                    .skip(P.regex(/,?\s*/))
+                    .wrap(P.string("("), P.string(")"))
+            } else if (type instanceof UnionType) {
+                result = type.types
+                    .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
+                    .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
+                        ? r.AttributeAnyValue
+                        : accum.or(cur))
+            } else {
+                result = Grammar.getGrammarForType(r, type, defaultGrammar)
+            }
+            if (attribute.serialized && !(type instanceof String)) {
                 result = result.wrap(P.string('"'), P.string('"'))
+            }
+            if (attribute.nullable) {
+                result = result.or(r.Null)
             }
             return result
         }
-        switch (Utility.getType(attributeType)) {
-            case Array:
-                return P.seqMap(
-                    P.string("("),
-                    attributeType
-                        .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
-                        .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
-                            ? r.AttributeAnyValue
-                            : accum.or(cur)
-                        )
-                        .trim(P.optWhitespace)
-                        .sepBy(P.string(","))
-                        .skip(P.regex(/,?\s*/)),
-                    P.string(")"),
-                    (_0, grammar, _2) => grammar
-                )
+        switch (attribute) {
             case Boolean:
                 return r.Boolean
             case ByteEntity:
@@ -102,12 +108,6 @@ export default class Grammar {
                 return r.String
             case SymbolEntity:
                 return r.Symbol
-            case UnionType:
-                return attributeType.types
-                    .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
-                    .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
-                        ? r.AttributeAnyValue
-                        : accum.or(cur))
             case VariableReferenceEntity:
                 return r.VariableReference
             case Vector2DEntity:
@@ -145,7 +145,10 @@ export default class Grammar {
                 // Once the attribute name is known, look into entityType.attributes to get its type
                 const attributeKey = attributeName.split(".")
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey)
-                let attributeValueGrammar = Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
+                let attributeValueGrammar =
+                    attribute.constructor === Object && /** @type {AttributeInformation} */(attribute).serialized
+                        ? r.String
+                        : Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
                 // Returns a setter function for the attribute
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)

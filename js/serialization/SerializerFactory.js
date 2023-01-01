@@ -1,10 +1,11 @@
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  */
+
 /**
- * @template T
- * @typedef {import("../entity/TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
+ * @template {AnyValue} T
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
  */
 /**
  * @template {AnyValue} T
@@ -16,6 +17,11 @@ export default class SerializerFactory {
     /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
     static #serializers = new Map()
 
+    /**
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entity
+     * @param {ISerializer<T>} object
+     */
     static registerSerializer(entity, object) {
         SerializerFactory.#serializers.set(entity, object)
     }

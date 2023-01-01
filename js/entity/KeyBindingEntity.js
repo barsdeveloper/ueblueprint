@@ -9,7 +9,13 @@ export default class KeyBindingEntity extends IEntity {
         bCtrl: false,
         bAlt: false,
         bCmd: false,
-        Key: IdentifierEntity,
+        Key: {
+            type: IdentifierEntity
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     constructor(values = {}) {

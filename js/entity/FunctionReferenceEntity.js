@@ -1,12 +1,18 @@
 import IEntity from "./IEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
-import TypeInitialization from "./TypeInitialization"
 
 export default class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
-        MemberParent: new TypeInitialization(ObjectReferenceEntity, false),
+        MemberParent: {
+            type: ObjectReferenceEntity,
+            showDefault: false
+        },
         MemberName: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     constructor(values) {

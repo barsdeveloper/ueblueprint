@@ -5,9 +5,19 @@ import ObjectReferenceEntity from "./ObjectReferenceEntity"
 export default class MacroGraphReferenceEntity extends IEntity {
 
     static attributes = {
-        MacroGraph: ObjectReferenceEntity,
-        GraphBlueprint: ObjectReferenceEntity,
-        GraphGuid: GuidEntity,
+        MacroGraph: {
+            type: ObjectReferenceEntity,
+        },
+        GraphBlueprint: {
+            type: ObjectReferenceEntity,
+        },
+        GraphGuid: {
+            type: GuidEntity,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes)
     }
 
     constructor(values) {

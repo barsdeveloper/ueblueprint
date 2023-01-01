@@ -21,8 +21,8 @@ import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate"
 
 /**
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
- * @typedef {import("../entity/TypeInitialization").AnyValue} AnyValue
  * @typedef {import("./LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("lit").CSSResult} CSSResult

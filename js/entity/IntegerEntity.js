@@ -6,10 +6,13 @@ export default class IntegerEntity extends IEntity {
         value: 0,
     }
 
-    /** @param {Object | Number | String} values */
-    constructor(values = 0) {
-        super(values)
-        /** @type {Number} */
+    static {
+        this.cleanupAttributes(this.attributes)
+    }
+
+    /** @param {Object | Number | String} value */
+    constructor(value = 0) {
+        super(value)
         this.value = Math.round(this.value)
     }
 

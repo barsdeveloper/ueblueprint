@@ -1,7 +1,4 @@
-/**
- * @template T
- * @typedef {import("./TypeInitialization").AnyValueConstructor<T>} AnyValueConstructor
- */
+/** @typedef {import("./IEntity").AnyValueConstructor<*>} AnyValueConstructor */
 
 export default class UnionType {
 
@@ -10,7 +7,7 @@ export default class UnionType {
         return this.#types
     }
 
-    /** @param  {...AnyValueConstructor<any>} types */
+    /** @param  {...AnyValueConstructor} types */
     constructor(...types) {
         this.#types = types
     }

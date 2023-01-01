@@ -1,14 +1,21 @@
 import IEntity from "./IEntity"
 import GuidEntity from "./GuidEntity"
-import TypeInitialization from "./TypeInitialization"
 
 export default class VariableReferenceEntity extends IEntity {
 
     static attributes = {
-        MemberScope: new TypeInitialization(String, false),
-        MemberName: String,
-        MemberGuid: GuidEntity,
-        bSelfContext: new TypeInitialization(Boolean, false, false)
+        MemberScope: {
+            value: "",
+            showDefault: false,
+        },
+        MemberName: "",
+        MemberGuid: {
+            type: GuidEntity,
+        },
+        bSelfContext: {
+            value: false,
+            showDefault: false,
+        },
     }
 
     constructor(values) {

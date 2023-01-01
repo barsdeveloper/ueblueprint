@@ -3,8 +3,8 @@ import IEntity from "./IEntity"
 export default class Vector2DEntity extends IEntity {
 
     static attributes = {
-        X: Number,
-        Y: Number,
+        X: 0,
+        Y: 0,
     }
 
     constructor(values) {

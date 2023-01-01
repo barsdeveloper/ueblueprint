@@ -19,6 +19,7 @@ import RealUnitEntity from "../entity/UnitRealEntity"
 import RotatorEntity from "../entity/RotatorEntity"
 import SerializerFactory from "./SerializerFactory"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
+import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity"
 import SymbolEntity from "../entity/SymbolEntity"
 import ToStringSerializer from "./ToStringSerializer"
@@ -27,7 +28,11 @@ import Utility from "../Utility"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity"
 import Vector2DEntity from "../entity/Vector2DEntity"
 import VectorEntity from "../entity/VectorEntity"
-import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity"
+
+/**
+ * @typedef {import("../entity/IEntity").AnySimpleValue} AnySimpleValue
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ */
 
 export default function initializeSerializerFactory() {
 
@@ -44,11 +49,10 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         Array,
         new CustomSerializer(
-            /** @param {Array} array */
+            /** @param {AnySimpleValue[]} array */
             (array, insideString) =>
                 `(${array
                     .map(v =>
-                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
                     )
                     .join("")
