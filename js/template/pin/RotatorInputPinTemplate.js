@@ -7,7 +7,7 @@ import Utility from "../../Utility"
 /** @typedef {import("../../entity/RotatorEntity").default} Rotator */
 
 /** @extends INumericPinTemplate<Rotator> */
-export default class RotatorInputPinTemplate extends INumericPinTemplate {
+export default class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
         return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0))

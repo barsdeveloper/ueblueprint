@@ -7,7 +7,7 @@ import Utility from "../../Utility"
  * @template {Number} T
  * @extends INumericPinTemplate<T>
  */
-export default class RealInputPinTemplate extends INumericPinTemplate {
+export default class RealPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         this.element.setDefaultValue(values[0])

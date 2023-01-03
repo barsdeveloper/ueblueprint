@@ -4,7 +4,7 @@ import INumericInputPinTemplate from "./INumericInputPinTemplate"
 /** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
 /** @extends INumericInputPinTemplate<IntegerEntity> */
-export default class IntInputPinTemplate extends INumericInputPinTemplate {
+export default class IntPinTemplate extends INumericInputPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         const integer = this.element.getDefaultValue(true)

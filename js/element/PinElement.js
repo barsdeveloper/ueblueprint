@@ -4,18 +4,18 @@ import ElementFactory from "./ElementFactory"
 import ExecPinTemplate from "../template/pin/ExecPinTemplate"
 import GuidEntity from "../entity/GuidEntity"
 import IElement from "./IElement"
-import Int64InputPinTemplate from "../template/pin/Int64PinTemplate"
-import IntInputPinTemplate from "../template/pin/IntPinTemplate"
+import Int64PinTemplate from "../template/pin/Int64PinTemplate"
+import IntPinTemplate from "../template/pin/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
 import LinearColorInputPinTemplate from "../template/pin/LinearColorPinTemplate"
 import NameInputPinTemplate from "../template/pin/NamePinTemplate"
 import PinEntity from "../entity/PinEntity"
 import PinTemplate from "../template/pin/PinTemplate"
-import RealInputPinTemplate from "../template/pin/RealInputPinTemplate"
+import RealPinTemplate from "../template/pin/RealInputPinTemplate"
 import ReferencePinTemplate from "../template/pin/ReferencePinTemplate"
-import RotatorInputPinTemplate from "../template/pin/RotatorInputPinTemplate"
-import StringInputPinTemplate from "../template/pin/StringInputPinTemplate"
+import RotatorPinTemplate from "../template/pin/RotatorInputPinTemplate"
+import StringPinTemplate from "../template/pin/StringInputPinTemplate"
 import Utility from "../Utility"
 import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate"
@@ -37,17 +37,17 @@ export default class PinElement extends IElement {
 
     static #inputPinTemplates = {
         "/Script/CoreUObject.LinearColor": LinearColorInputPinTemplate,
-        "/Script/CoreUObject.Rotator": RotatorInputPinTemplate,
+        "/Script/CoreUObject.Rotator": RotatorPinTemplate,
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "/Script/CoreUObject.Vector2D": Vector2DPinTemplate,
         "bool": BoolInputPinTemplate,
-        "byte": IntInputPinTemplate,
-        "int": IntInputPinTemplate,
-        "int64": Int64InputPinTemplate,
+        "byte": IntPinTemplate,
+        "int": IntPinTemplate,
+        "int64": Int64PinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NameInputPinTemplate,
-        "real": RealInputPinTemplate,
-        "string": StringInputPinTemplate,
+        "real": RealPinTemplate,
+        "string": StringPinTemplate,
     }
 
     static properties = {

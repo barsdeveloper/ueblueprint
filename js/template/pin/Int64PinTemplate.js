@@ -1,10 +1,10 @@
 import { html } from "lit"
-import IntInputPinTemplate from "./IntPinTemplate"
+import IntPinTemplate from "./IntPinTemplate"
 import INumericInputPinTemplate from "./INumericInputPinTemplate"
 
 /** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
-export default class Int64InputPinTemplate extends IntInputPinTemplate {
+export default class Int64PinTemplate extends IntPinTemplate {
 
     /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = false) {
