@@ -7,7 +7,6 @@ export default class Zoom extends IMouseWheel {
     get enableZoonIn() {
         return this.#enableZoonIn
     }
-
     set enableZoonIn(value) {
         value = Boolean(value)
         if (value == this.#enableZoonIn) {

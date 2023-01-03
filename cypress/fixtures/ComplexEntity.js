@@ -1,5 +1,6 @@
 import IEntity from "../../js/entity/IEntity"
 import UnionType from "../../js/entity/UnionType"
+import Utility from "../../js/Utility"
 import SimpleObject from "./SimpleObject"
 
 export default class ComplexEntity extends IEntity {
@@ -56,6 +57,10 @@ export default class ComplexEntity extends IEntity {
             type: SimpleObject
         },
         papa: () => new SimpleObject(12, 13),
+        quebec: {
+            value: 0, // will assign 1 according to filter
+            filter: v => Utility.clamp(v, 1, 10),
+        },
     }
 
     static {

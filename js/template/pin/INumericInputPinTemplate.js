@@ -13,17 +13,19 @@ export default class INumericPinTemplate extends IInputPinTemplate {
         if (!values || values.length == 0) {
             values = [this.getInput()]
         }
-        let parsedValues = []
-        for (const value of values) {
-            let num = parseFloat(value)
-            if (isNaN(num)) {
-                num = 0
-                updateDefaultValue = false
-            }
-            parsedValues.push(num)
-        }
         super.setInputs(values, false)
-        this.setDefaultValue(parsedValues, values)
+        if (updateDefaultValue) {
+            let parsedValues = []
+            for (const value of values) {
+                let num = parseFloat(value)
+                if (isNaN(num)) {
+                    num = 0
+                    updateDefaultValue = false
+                }
+                parsedValues.push(num)
+            }
+            this.setDefaultValue(parsedValues, values)
+        }
     }
 
     /**

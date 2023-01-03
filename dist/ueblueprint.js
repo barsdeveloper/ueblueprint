@@ -568,7 +568,7 @@ class Utility {
         if (value === null) {
             return null
         }
-        if (value.constructor === Object && value.type instanceof Function) {
+        if (value?.constructor === Object && value?.type instanceof Function) {
             // @ts-expect-error
             return value.type
         }
@@ -593,9 +593,11 @@ class Utility {
             targetType = type;
         }
         if (targetType && !Utility.isValueOfType(value, targetType)) {
-            value = new targetType(value);
+            value = targetType === BigInt
+                ? BigInt(value)
+                : new targetType(value);
         }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
+        if (value instanceof Boolean || value instanceof Number || value instanceof String || value instanceof BigInt) {
             value = value.valueOf(); // Get the relative primitive value
         }
         return value
@@ -736,6 +738,7 @@ class Utility {
         const event = new ClipboardEvent("paste", {
             bubbles: true,
             cancelable: true,
+            clipboardData: new DataTransfer(),
         });
         event.clipboardData.setData("text", value);
         element.dispatchEvent(event);
@@ -768,7 +771,7 @@ class Utility {
 /**
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
  * @typedef {(entity: IEntity) => AnyValueConstructor<AnyValue>} TypeSupplier
- * @typedef {IEntity | String | Number | Boolean} AnySimpleValue
+ * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
  *     [key: String]: AttributeInformation | AnyValue | SubAttributesDeclaration
@@ -781,12 +784,13 @@ class Utility {
  *     nullable?: Boolean,
  *     ignored?: Boolean,
  *     serialized?: Boolean,
+ *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
  */
 
 /**
  * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
 class IEntity {
@@ -808,8 +812,9 @@ class IEntity {
          * @param {String} prefix
          */
         const defineAllAttributes = (target, attributes, values = {}, prefix = "") => {
-            const valuesNames = Object.getOwnPropertyNames(values);
-            for (let attributeName of Utility.mergeArrays(Object.getOwnPropertyNames(attributes), valuesNames)) {
+            const valuesNames = Object.keys(values);
+            const attributesNames = Object.keys(attributes);
+            for (let attributeName of Utility.mergeArrays(attributesNames, valuesNames)) {
                 let value = Utility.objectGet(values, [attributeName]);
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName];
@@ -867,6 +872,28 @@ class IEntity {
                 if (defaultType === undefined) {
                     defaultType = Utility.getType(defaultValue);
                 }
+                const assignAttribute = !attribute.predicate
+                    ? v => target[attributeName] = v
+                    : v => {
+                        Object.defineProperties(target, {
+                            ["#" + attributeName]: {
+                                writable: true,
+                                enumerable: false,
+                            },
+                            [attributeName]: {
+                                enumerable: true,
+                                get() {
+                                    return this["#" + attributeName]
+                                },
+                                set(v) {
+                                    if (attribute.predicate(v)) {
+                                        this["#" + attributeName] = v;
+                                    }
+                                }
+                            },
+                        });
+                        this[attributeName] = v;
+                    };
 
                 if (value !== undefined) {
                     // Remember value can still be null
@@ -875,14 +902,14 @@ class IEntity {
                             .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
                             .deserialize(/** @type {String} */(value));
                     }
-                    target[attributeName] = Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType));
+                    assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)));
                     continue // We have a value, need nothing more
                 }
                 if (defaultValue === undefined) {
                     defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)());
                 }
                 if (!attribute.showDefault) {
-                    target[attributeName] = undefined; // Declare undefined to preserve the order of attributes
+                    assignAttribute(undefined); // Declare undefined to preserve the order of attributes
                     continue
                 }
                 if (attribute.serialized) {
@@ -892,17 +919,17 @@ class IEntity {
                             .deserialize(defaultValue);
                     }
                 }
-                target[attributeName] = Utility.sanitize(
+                assignAttribute(Utility.sanitize(
                     /** @type {AnyValue} */(defaultValue),
                     /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
-                );
+                ));
             }
         };
         const attributes = /** @type {typeof IEntity} */(this.constructor).attributes;
-        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length === 1) {
+        if (values.constructor !== Object && Object.keys(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {
-                [Object.getOwnPropertyNames(attributes)[0]]: values
+                [Object.keys(attributes)[0]]: values
             };
         }
         defineAllAttributes(this, attributes, values);
@@ -948,25 +975,28 @@ class IEntity {
     }
 
     unexpectedKeys() {
-        // @ts-expect-error
-        return Object.getOwnPropertyNames(this).length - Object.getOwnPropertyNames(this.constructor.attributes).length
+        return Object.keys(this).length
+            - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
     }
 }
 
 class IntegerEntity extends IEntity {
 
     static attributes = {
-        value: 0,
+        ...super.attributes,
+        value: {
+            value: 0,
+            predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
+        },
     }
 
     static {
         this.cleanupAttributes(this.attributes);
     }
 
-    /** @param {Object | Number | String} value */
     constructor(value = 0) {
         super(value);
-        this.value = Math.round(this.value);
+        /** @type {Number} */ this.value;
     }
 
     valueOf() {
@@ -981,26 +1011,19 @@ class IntegerEntity extends IEntity {
 class ByteEntity extends IntegerEntity {
 
     static attributes = {
-        value: 0,
+        ...super.attributes,
+        value: {
+            ...super.attributes.value,
+            predicate: v => v % 1 == 0 && v >= 0 && v < 1 << 8,
+        },
     }
 
     static {
         this.cleanupAttributes(this.attributes);
     }
 
-    /** @param {Object | Number | String} values */
     constructor(values = 0) {
         super(values);
-        const value = Math.round(this.value);
-        this.value = value >= 0 && value < 1 << 8 ? value : 0;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
     }
 }
 
@@ -1120,6 +1143,34 @@ class IdentifierEntity extends IEntity {
     }
 }
 
+class Integer64Entity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        value: {
+            value: 0n,
+            predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(value = 0) {
+        super(value);
+        /** @type {Number} */ this.value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
 class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
@@ -1180,7 +1231,6 @@ class RealUnitEntity extends IEntity {
         this.cleanupAttributes(this.attributes);
     }
 
-    /** @param {Object | Number | String} values */
     constructor(values = 0) {
         super(values);
         this.value = Utility.clamp(this.value, 0, 1);
@@ -1616,11 +1666,13 @@ class PinEntity extends IEntity {
     static #typeEntityMap = {
         "/Script/CoreUObject.LinearColor": LinearColorEntity,
         "/Script/CoreUObject.Rotator": RotatorEntity,
-        "/Script/CoreUObject.Vector2D": Vector2DEntity,
         "/Script/CoreUObject.Vector": VectorEntity,
+        "/Script/CoreUObject.Vector2D": Vector2DEntity,
         "bool": Boolean,
+        "byte": ByteEntity,
         "exec": String,
         "int": IntegerEntity,
+        "int64": Integer64Entity,
         "name": String,
         "real": Number,
         "string": String,
@@ -2185,6 +2237,8 @@ class Grammar {
             return result
         }
         switch (attribute) {
+            case BigInt:
+                return r.BigInt
             case Boolean:
                 return r.Boolean
             case ByteEntity:
@@ -2195,6 +2249,8 @@ class Grammar {
                 return r.Guid
             case IdentifierEntity:
                 return r.Identifier
+            case Integer64Entity:
+                return r.Integer64
             case IntegerEntity:
                 return r.Integer
             case InvariantTextEntity:
@@ -2337,6 +2393,9 @@ class Grammar {
     Number = r => P.regex(/[-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
 
     /** @param {Grammar} r */
+    BigInt = r => P.regex(/[\-\+]?[0-9]+/).map(v => BigInt(v)).desc("a big integer")
+
+    /** @param {Grammar} r */
     RealNumber = r => P.regex(/[-\+]?[0-9]+\.[0-9]+/).map(Number).desc("a number written as real")
 
     /** @param {Grammar} r */
@@ -2362,6 +2421,9 @@ class Grammar {
 
     /** @param {Grammar} r */
     None = r => P.string("None").map(() => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
+
+    /** @param {Grammar} r */
+    Integer64 = r => r.BigInt.map(v => new Integer64Entity(v)).desc("an integer64")
 
     /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
@@ -2750,10 +2812,10 @@ class ISerializer {
         const attributes = /** @type {EntityConstructor} */(object.constructor).attributes;
         const keys = attributes
             ? Utility.mergeArrays(
-                Object.getOwnPropertyNames(attributes),
-                Object.getOwnPropertyNames(object)
+                Object.keys(attributes),
+                Object.keys(object)
             )
-            : Object.getOwnPropertyNames(object);
+            : Object.keys(object);
         for (const property of keys) {
             fullKey[last] = property;
             const value = object[property];
@@ -3149,7 +3211,6 @@ class Zoom extends IMouseWheel {
     get enableZoonIn() {
         return this.#enableZoonIn
     }
-
     set enableZoonIn(value) {
         value = Boolean(value);
         if (value == this.#enableZoonIn) {
@@ -7006,18 +7067,17 @@ class InputTemplate extends ITemplate {
     }
     #focusoutHandler = () => {
         this.blueprint.acknowledgeEditText(false);
-        document.getSelection()?.removeAllRanges(); // Deselect eventually selected text inside the input
+        getSelection().removeAllRanges(); // Deselect eventually selected text inside the input
     }
-    #inputSingleLineHandler =
-        /** @param {InputEvent} e */
-        e =>  /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
-    #onKeydownBlurOnEnterHandler =
-        /** @param {KeyboardEvent} e */
-        e => {
-            if (e.code == "Enter" && !e.shiftKey) {
-                /** @type {HTMLElement} */(e.target).blur();
-            }
+    /** @param {InputEvent} e */
+    #inputSingleLineHandler = e =>
+        /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
+    /** @param {KeyboardEvent} e */
+    #onKeydownBlurOnEnterHandler = e => {
+        if (e.code == "Enter" && !e.shiftKey) {
+            /** @type {HTMLElement} */(e.target).blur();
         }
+    }
 
     /** @param {InputElement} element */
     initialize(element) {
@@ -7145,6 +7205,25 @@ class BoolInputPinTemplate extends PinTemplate {
     }
 }
 
+/** @typedef {import("../../element/PinElement").default} PinElement */
+
+class ExecPinTemplate extends PinTemplate {
+
+    renderIcon() {
+        return SVGIcon.execPin
+    }
+
+    renderName() {
+        let pinName = this.element.entity.PinName;
+        if (this.element.entity.PinFriendlyName) {
+            pinName = this.element.entity.PinFriendlyName.toString();
+        } else if (pinName === "execute" || pinName === "then") {
+            return y``
+        }
+        return y`${Utility.formatStringName(pinName)}`
+    }
+}
+
 /** @typedef {import("lit").PropertyValues} PropertyValues */
 
 /**
@@ -7266,17 +7345,19 @@ class INumericPinTemplate extends IInputPinTemplate {
         if (!values || values.length == 0) {
             values = [this.getInput()];
         }
-        let parsedValues = [];
-        for (const value of values) {
-            let num = parseFloat(value);
-            if (isNaN(num)) {
-                num = 0;
-                updateDefaultValue = false;
-            }
-            parsedValues.push(num);
-        }
         super.setInputs(values, false);
-        this.setDefaultValue(parsedValues, values);
+        if (updateDefaultValue) {
+            let parsedValues = [];
+            for (const value of values) {
+                let num = parseFloat(value);
+                if (isNaN(num)) {
+                    num = 0;
+                    updateDefaultValue = false;
+                }
+                parsedValues.push(num);
+            }
+            this.setDefaultValue(parsedValues, values);
+        }
     }
 
     /**
@@ -7288,60 +7369,16 @@ class INumericPinTemplate extends IInputPinTemplate {
     }
 }
 
-/** @typedef {import("../../entity/IntegerEntity").default} IntEntity */
+/** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
-/** @extends INumericInputPinTemplate<ByteEntity> */
-class IntInputPinTemplate$1 extends INumericPinTemplate {
-
-    setDefaultValue(values = [], rawValues = values) {
-        const integer = this.element.getDefaultValue(true);
-        if (!(integer instanceof ByteEntity)) {
-            throw new TypeError("Expected DefaultValue to be a ByteEntity")
-        }
-        integer.value = values[0];
-        this.element.requestUpdate("DefaultValue", integer);
-    }
-
-    renderInput() {
-        return y`
-            <div class="ueb-pin-input">
-                <ueb-input .singleLine="${true}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "0")}">
-                </ueb-input>
-            </div>
-        `
-    }
-}
-
-/** @typedef {import("../../element/PinElement").default} PinElement */
-
-class ExecPinTemplate extends PinTemplate {
-
-    renderIcon() {
-        return SVGIcon.execPin
-    }
-
-    renderName() {
-        let pinName = this.element.entity.PinName;
-        if (this.element.entity.PinFriendlyName) {
-            pinName = this.element.entity.PinFriendlyName.toString();
-        } else if (pinName === "execute" || pinName === "then") {
-            return y``
-        }
-        return y`${Utility.formatStringName(pinName)}`
-    }
-}
-
-/** @typedef {import("../../entity/IntegerEntity").default} IntEntity */
-
-/** @extends INumericInputPinTemplate<IntEntity> */
+/** @extends INumericInputPinTemplate<IntegerEntity> */
 class IntInputPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
-        parseInt(values[0]);
         const integer = this.element.getDefaultValue(true);
         integer.value = values[0];
-        this.element.requestUpdate("DefaultValue", integer);
+        this.inputContentElements[0].innerText = this.element.getDefaultValue()?.toString(); // needed
+        this.element.requestUpdate();
     }
 
     renderInput() {
@@ -7351,6 +7388,26 @@ class IntInputPinTemplate extends INumericPinTemplate {
                 </ueb-input>
             </div>
         `
+    }
+}
+
+/** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
+
+class Int64InputPinTemplate extends IntInputPinTemplate {
+
+    /** @param {String[]} values */
+    setInputs(values = [], updateDefaultValue = false) {
+        if (!values || values.length == 0) {
+            values = [this.getInput()];
+        }
+        super.setInputs(values, false);
+        if (updateDefaultValue) {
+            if (!values[0].match(/[\-\+]?[0-9]+/)) {
+                return
+            }
+            const parsedValues = [BigInt(values[0])];
+            this.setDefaultValue(parsedValues, values);
+        }
     }
 }
 
@@ -8033,9 +8090,9 @@ class PinElement extends IElement {
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "/Script/CoreUObject.Vector2D": VectorInputPinTemplate,
         "bool": BoolInputPinTemplate,
-        "byte": IntInputPinTemplate$1,
+        "byte": IntInputPinTemplate,
         "int": IntInputPinTemplate,
-        "int64": IntInputPinTemplate,
+        "int64": Int64InputPinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NameInputPinTemplate,
         "real": RealInputPinTemplate,
@@ -8799,6 +8856,11 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        BigInt,
+        new ToStringSerializer(BigInt)
+    );
+
+    SerializerFactory.registerSerializer(
         Boolean,
         new CustomSerializer(
             /** @param {Boolean} boolean */
@@ -8814,6 +8876,11 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        ByteEntity,
+        new ToStringSerializer(ByteEntity)
+    );
+
+    SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
         new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
     );
@@ -8826,6 +8893,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         IdentifierEntity,
         new ToStringSerializer(IdentifierEntity)
+    );
+
+    SerializerFactory.registerSerializer(
+        Integer64Entity,
+        new ToStringSerializer(Integer64Entity)
     );
 
     SerializerFactory.registerSerializer(
@@ -8860,11 +8932,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         Number,
-        new CustomSerializer(
-            /** @param {Number} value */
-            value => value.toString(),
-            Number
-        )
+        new ToStringSerializer(Number)
     );
 
     SerializerFactory.registerSerializer(

@@ -11,7 +11,6 @@ export default class RealUnitEntity extends IEntity {
         this.cleanupAttributes(this.attributes)
     }
 
-    /** @param {Object | Number | String} values */
     constructor(values = 0) {
         super(values)
         this.value = Utility.clamp(this.value, 0, 1)

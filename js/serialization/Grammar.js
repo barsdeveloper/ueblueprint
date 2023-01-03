@@ -3,6 +3,7 @@ import ByteEntity from "../entity/ByteEntity"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
+import Integer64Entity from "../entity/Integer64Entity"
 import IntegerEntity from "../entity/IntegerEntity"
 import InvariantTextEntity from "../entity/InvariantTextEntity"
 import KeyBindingEntity from "../entity/KeyBindingEntity"
@@ -66,6 +67,8 @@ export default class Grammar {
             return result
         }
         switch (attribute) {
+            case BigInt:
+                return r.BigInt
             case Boolean:
                 return r.Boolean
             case ByteEntity:
@@ -76,6 +79,8 @@ export default class Grammar {
                 return r.Guid
             case IdentifierEntity:
                 return r.Identifier
+            case Integer64Entity:
+                return r.Integer64
             case IntegerEntity:
                 return r.Integer
             case InvariantTextEntity:
@@ -218,6 +223,9 @@ export default class Grammar {
     Number = r => P.regex(/[-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
 
     /** @param {Grammar} r */
+    BigInt = r => P.regex(/[\-\+]?[0-9]+/).map(v => BigInt(v)).desc("a big integer")
+
+    /** @param {Grammar} r */
     RealNumber = r => P.regex(/[-\+]?[0-9]+\.[0-9]+/).map(Number).desc("a number written as real")
 
     /** @param {Grammar} r */
@@ -243,6 +251,9 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     None = r => P.string("None").map(() => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
+
+    /** @param {Grammar} r */
+    Integer64 = r => r.BigInt.map(v => new Integer64Entity(v)).desc("an integer64")
 
     /** @param {Grammar} r */
     Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")

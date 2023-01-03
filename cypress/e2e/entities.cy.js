@@ -57,7 +57,27 @@ describe("Entity initialization", () => {
 
     context("ComplexEntity", () => {
         const entity = new ComplexEntity()
-        it("has 8 keys", () => expect(Object.keys(entity).length).to.equal(8))
+        const keys = [
+            "alpha",
+            "bravo",
+            "charlie",
+            "delta",
+            "echo",
+            "foxtrot",
+            "golf",
+            "hotel",
+            "india",
+            "juliett",
+            "kilo",
+            "lima",
+            "mike",
+            "november",
+            "oscar",
+            "papa",
+            "quebec",
+        ]
+        it(`has ${keys.length} keys`, () => expect(Object.keys(entity).length).to.equal(keys.length))
+        it("has specific keys names", () => expect(Object.keys(entity)).to.be.deep.equal(keys))
         it("has alpha equal to 32", () => expect(entity)
             .to.have.property("alpha")
             .which.is.a("number")
@@ -135,5 +155,27 @@ describe("Entity initialization", () => {
             .which.is.instanceOf(SimpleObject)
             .and.is.deep.equal({ a: 12, b: 13 })
         )
+        it("has quebec, a number between 1 and 10", () => expect(entity)
+            .to.have.property("quebec")
+            .which.is.a("number")
+            .and.is.equal(1)
+        )
+        it("quebec can be assigned and it always filtered", () => {
+            const entity = new ComplexEntity()
+            entity.quebec = 2
+            expect(entity.quebec).to.be.equal(2)
+            entity["quebec"] = 7
+            expect(entity.quebec).to.be.equal(7)
+            entity.quebec = 1
+            expect(entity.quebec).to.be.equal(1)
+            entity["quebec"] = 10
+            expect(entity.quebec).to.be.equal(10)
+            entity.quebec = 0
+            expect(entity.quebec).to.be.equal(1)
+            entity["quebec"] = 11
+            expect(entity.quebec).to.be.equal(10)
+            entity.quebec = -1
+            expect(entity.quebec).to.be.equal(1)
+        })
     })
 })

@@ -13,18 +13,17 @@ export default class InputTemplate extends ITemplate {
     }
     #focusoutHandler = () => {
         this.blueprint.acknowledgeEditText(false)
-        document.getSelection()?.removeAllRanges() // Deselect eventually selected text inside the input
+        getSelection().removeAllRanges() // Deselect eventually selected text inside the input
     }
-    #inputSingleLineHandler =
-        /** @param {InputEvent} e */
-        e =>  /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
-    #onKeydownBlurOnEnterHandler =
-        /** @param {KeyboardEvent} e */
-        e => {
-            if (e.code == "Enter" && !e.shiftKey) {
-                /** @type {HTMLElement} */(e.target).blur()
-            }
+    /** @param {InputEvent} e */
+    #inputSingleLineHandler = e =>
+        /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
+    /** @param {KeyboardEvent} e */
+    #onKeydownBlurOnEnterHandler = e => {
+        if (e.code == "Enter" && !e.shiftKey) {
+            /** @type {HTMLElement} */(e.target).blur()
         }
+    }
 
     /** @param {InputElement} element */
     initialize(element) {

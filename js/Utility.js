@@ -173,7 +173,7 @@ export default class Utility {
         if (value === null) {
             return null
         }
-        if (value.constructor === Object && value.type instanceof Function) {
+        if (value?.constructor === Object && value?.type instanceof Function) {
             // @ts-expect-error
             return value.type
         }
@@ -198,9 +198,11 @@ export default class Utility {
             targetType = type
         }
         if (targetType && !Utility.isValueOfType(value, targetType)) {
-            value = new targetType(value)
+            value = targetType === BigInt
+                ? BigInt(value)
+                : new targetType(value)
         }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
+        if (value instanceof Boolean || value instanceof Number || value instanceof String || value instanceof BigInt) {
             value = value.valueOf() // Get the relative primitive value
         }
         return value
@@ -341,6 +343,7 @@ export default class Utility {
         const event = new ClipboardEvent("paste", {
             bubbles: true,
             cancelable: true,
+            clipboardData: new DataTransfer(),
         })
         event.clipboardData.setData("text", value)
         element.dispatchEvent(event)

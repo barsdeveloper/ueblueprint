@@ -93,10 +93,10 @@ export default class ISerializer {
         const attributes = /** @type {EntityConstructor} */(object.constructor).attributes
         const keys = attributes
             ? Utility.mergeArrays(
-                Object.getOwnPropertyNames(attributes),
-                Object.getOwnPropertyNames(object)
+                Object.keys(attributes),
+                Object.keys(object)
             )
-            : Object.getOwnPropertyNames(object)
+            : Object.keys(object)
         for (const property of keys) {
             fullKey[last] = property
             const value = object[property]

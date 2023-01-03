@@ -1,17 +1,16 @@
 import { html } from "lit"
-import IntegerEntity from "../../entity/IntegerEntity"
 import INumericInputPinTemplate from "./INumericInputPinTemplate"
 
-/** @typedef {import("../../entity/IntegerEntity").default} IntEntity */
+/** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
-/** @extends INumericInputPinTemplate<IntEntity> */
+/** @extends INumericInputPinTemplate<IntegerEntity> */
 export default class IntInputPinTemplate extends INumericInputPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
-        let value = parseInt(values[0])
         const integer = this.element.getDefaultValue(true)
         integer.value = values[0]
-        this.element.requestUpdate("DefaultValue", integer)
+        this.inputContentElements[0].innerText = this.element.getDefaultValue()?.toString() // needed
+        this.element.requestUpdate()
     }
 
     renderInput() {

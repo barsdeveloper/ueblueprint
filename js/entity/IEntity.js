@@ -6,7 +6,7 @@ import Utility from "../Utility"
 /**
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
  * @typedef {(entity: IEntity) => AnyValueConstructor<AnyValue>} TypeSupplier
- * @typedef {IEntity | String | Number | Boolean} AnySimpleValue
+ * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
  *     [key: String]: AttributeInformation | AnyValue | SubAttributesDeclaration
@@ -19,12 +19,13 @@ import Utility from "../Utility"
  *     nullable?: Boolean,
  *     ignored?: Boolean,
  *     serialized?: Boolean,
+ *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
  */
 
 /**
  * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
 export default class IEntity {
@@ -46,8 +47,9 @@ export default class IEntity {
          * @param {String} prefix
          */
         const defineAllAttributes = (target, attributes, values = {}, prefix = "") => {
-            const valuesNames = Object.getOwnPropertyNames(values)
-            for (let attributeName of Utility.mergeArrays(Object.getOwnPropertyNames(attributes), valuesNames)) {
+            const valuesNames = Object.keys(values)
+            const attributesNames = Object.keys(attributes)
+            for (let attributeName of Utility.mergeArrays(attributesNames, valuesNames)) {
                 let value = Utility.objectGet(values, [attributeName])
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName]
@@ -105,6 +107,28 @@ export default class IEntity {
                 if (defaultType === undefined) {
                     defaultType = Utility.getType(defaultValue)
                 }
+                const assignAttribute = !attribute.predicate
+                    ? v => target[attributeName] = v
+                    : v => {
+                        Object.defineProperties(target, {
+                            ["#" + attributeName]: {
+                                writable: true,
+                                enumerable: false,
+                            },
+                            [attributeName]: {
+                                enumerable: true,
+                                get() {
+                                    return this["#" + attributeName]
+                                },
+                                set(v) {
+                                    if (attribute.predicate(v)) {
+                                        this["#" + attributeName] = v
+                                    }
+                                }
+                            },
+                        })
+                        this[attributeName] = v
+                    }
 
                 if (value !== undefined) {
                     // Remember value can still be null
@@ -113,14 +137,14 @@ export default class IEntity {
                             .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
                             .deserialize(/** @type {String} */(value))
                     }
-                    target[attributeName] = Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType))
+                    assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
                     continue // We have a value, need nothing more
                 }
                 if (defaultValue === undefined) {
                     defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())
                 }
                 if (!attribute.showDefault) {
-                    target[attributeName] = undefined // Declare undefined to preserve the order of attributes
+                    assignAttribute(undefined) // Declare undefined to preserve the order of attributes
                     continue
                 }
                 if (attribute.serialized) {
@@ -130,17 +154,17 @@ export default class IEntity {
                             .deserialize(defaultValue)
                     }
                 }
-                target[attributeName] = Utility.sanitize(
+                assignAttribute(Utility.sanitize(
                     /** @type {AnyValue} */(defaultValue),
                     /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
-                )
+                ))
             }
         }
         const attributes = /** @type {typeof IEntity} */(this.constructor).attributes
-        if (values.constructor !== Object && Object.getOwnPropertyNames(attributes).length === 1) {
+        if (values.constructor !== Object && Object.keys(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {
-                [Object.getOwnPropertyNames(attributes)[0]]: values
+                [Object.keys(attributes)[0]]: values
             }
         }
         defineAllAttributes(this, attributes, values)
@@ -186,7 +210,7 @@ export default class IEntity {
     }
 
     unexpectedKeys() {
-        // @ts-expect-error
-        return Object.getOwnPropertyNames(this).length - Object.getOwnPropertyNames(this.constructor.attributes).length
+        return Object.keys(this).length
+            - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
     }
 }

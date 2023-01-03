@@ -1,8 +1,10 @@
+import ByteEntity from "../entity/ByteEntity"
 import CustomSerializer from "./CustomSerializer"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GeneralSerializer from "./GeneralSerializer"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
+import Integer64Entity from "../entity/Integer64Entity"
 import IntegerEntity from "../entity/IntegerEntity"
 import InvariantTextEntity from "../entity/InvariantTextEntity"
 import KeyBindingEntity from "../entity/KeyBindingEntity"
@@ -62,6 +64,11 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        BigInt,
+        new ToStringSerializer(BigInt)
+    )
+
+    SerializerFactory.registerSerializer(
         Boolean,
         new CustomSerializer(
             /** @param {Boolean} boolean */
@@ -77,6 +84,11 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        ByteEntity,
+        new ToStringSerializer(ByteEntity)
+    )
+
+    SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
         new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
     )
@@ -89,6 +101,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         IdentifierEntity,
         new ToStringSerializer(IdentifierEntity)
+    )
+
+    SerializerFactory.registerSerializer(
+        Integer64Entity,
+        new ToStringSerializer(Integer64Entity)
     )
 
     SerializerFactory.registerSerializer(
@@ -123,11 +140,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         Number,
-        new CustomSerializer(
-            /** @param {Number} value */
-            value => value.toString(),
-            Number
-        )
+        new ToStringSerializer(Number)
     )
 
     SerializerFactory.registerSerializer(

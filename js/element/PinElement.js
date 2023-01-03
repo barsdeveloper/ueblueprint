@@ -1,10 +1,10 @@
 import BoolInputPinTemplate from "../template/pin/BoolPinTemplate"
-import BytePinTemplate from "../template/pin/BytePinTemplate"
 import Configuration from "../Configuration"
 import ElementFactory from "./ElementFactory"
 import ExecPinTemplate from "../template/pin/ExecPinTemplate"
 import GuidEntity from "../entity/GuidEntity"
 import IElement from "./IElement"
+import Int64InputPinTemplate from "../template/pin/Int64PinTemplate"
 import IntInputPinTemplate from "../template/pin/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
@@ -41,9 +41,9 @@ export default class PinElement extends IElement {
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "/Script/CoreUObject.Vector2D": Vector2DPinTemplate,
         "bool": BoolInputPinTemplate,
-        "byte": BytePinTemplate,
+        "byte": IntInputPinTemplate,
         "int": IntInputPinTemplate,
-        "int64": IntInputPinTemplate,
+        "int64": Int64InputPinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NameInputPinTemplate,
         "real": RealInputPinTemplate,

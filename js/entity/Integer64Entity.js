@@ -1,12 +1,12 @@
 import IEntity from "./IEntity"
 
-export default class IntegerEntity extends IEntity {
+export default class Integer64Entity extends IEntity {
 
     static attributes = {
         ...super.attributes,
         value: {
-            value: 0,
-            predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
+            value: 0n,
+            predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
         },
     }
 

@@ -1,5 +1,7 @@
+import ByteEntity from "./ByteEntity"
 import GuidEntity from "./GuidEntity"
 import IEntity from "./IEntity"
+import Integer64Entity from "./Integer64Entity"
 import IntegerEntity from "./IntegerEntity"
 import LinearColorEntity from "./LinearColorEntity"
 import LocalizedTextEntity from "./LocalizedTextEntity"
@@ -23,11 +25,13 @@ export default class PinEntity extends IEntity {
     static #typeEntityMap = {
         "/Script/CoreUObject.LinearColor": LinearColorEntity,
         "/Script/CoreUObject.Rotator": RotatorEntity,
-        "/Script/CoreUObject.Vector2D": Vector2DEntity,
         "/Script/CoreUObject.Vector": VectorEntity,
+        "/Script/CoreUObject.Vector2D": Vector2DEntity,
         "bool": Boolean,
+        "byte": ByteEntity,
         "exec": String,
         "int": IntegerEntity,
+        "int64": Integer64Entity,
         "name": String,
         "real": Number,
         "string": String,
