@@ -7168,7 +7168,7 @@ class MouseIgnore extends IMouseClickDrag {
 /** @typedef {import("lit").PropertyValues} PropertyValues */
 
 /** @extends PinTemplate<Boolean> */
-class BoolInputPinTemplate extends PinTemplate {
+class BoolPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement?} */
     #input
@@ -7371,8 +7371,8 @@ class INumericPinTemplate extends IInputPinTemplate {
 
 /** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
-/** @extends INumericInputPinTemplate<IntegerEntity> */
-class IntInputPinTemplate extends INumericPinTemplate {
+/** @extends INumericPinTemplate<IntegerEntity> */
+class IntPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         const integer = this.element.getDefaultValue(true);
@@ -7393,7 +7393,7 @@ class IntInputPinTemplate extends INumericPinTemplate {
 
 /** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
-class Int64InputPinTemplate extends IntInputPinTemplate {
+class Int64PinTemplate extends IntPinTemplate {
 
     /** @param {String[]} values */
     setInputs(values = [], updateDefaultValue = false) {
@@ -7838,7 +7838,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
  */
 
 /** @extends PinTemplate<LinearColorEntity> */
-class LinearColorInputPinTemplate extends PinTemplate {
+class LinearColorPinTemplate extends PinTemplate {
 
     /** @type {WindowElement} */
     #window
@@ -7885,7 +7885,7 @@ class LinearColorInputPinTemplate extends PinTemplate {
 
 /** @typedef {import("../../element/PinElement").default} PinElement */
 
-class NameInputPinTemplate extends IInputPinTemplate {
+class NamePinTemplate extends IInputPinTemplate {
 
     static singleLineInput = true
 }
@@ -7894,7 +7894,7 @@ class NameInputPinTemplate extends IInputPinTemplate {
  * @template {Number} T
  * @extends INumericPinTemplate<T>
  */
-class RealInputPinTemplate extends INumericPinTemplate {
+class RealPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         this.element.setDefaultValue(values[0]);
@@ -7921,7 +7921,7 @@ class ReferencePinTemplate extends PinTemplate {
 /** @typedef {import("../../entity/RotatorEntity").default} Rotator */
 
 /** @extends INumericPinTemplate<Rotator> */
-class RotatorInputPinTemplate extends INumericPinTemplate {
+class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
         return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0))
@@ -7967,7 +7967,7 @@ class RotatorInputPinTemplate extends INumericPinTemplate {
 }
 
 /** @extends IInputPinTemplate<String> */
-class StringInputPinTemplate extends IInputPinTemplate {
+class StringPinTemplate extends IInputPinTemplate {
 }
 
 /** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
@@ -8085,18 +8085,18 @@ class VectorPinTemplate extends INumericPinTemplate {
 class PinElement extends IElement {
 
     static #inputPinTemplates = {
-        "/Script/CoreUObject.LinearColor": LinearColorInputPinTemplate,
-        "/Script/CoreUObject.Rotator": RotatorInputPinTemplate,
+        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
+        "/Script/CoreUObject.Rotator": RotatorPinTemplate,
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "/Script/CoreUObject.Vector2D": VectorInputPinTemplate,
-        "bool": BoolInputPinTemplate,
-        "byte": IntInputPinTemplate,
-        "int": IntInputPinTemplate,
-        "int64": Int64InputPinTemplate,
+        "bool": BoolPinTemplate,
+        "byte": IntPinTemplate,
+        "int": IntPinTemplate,
+        "int64": Int64PinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
-        "name": NameInputPinTemplate,
-        "real": RealInputPinTemplate,
-        "string": StringInputPinTemplate,
+        "name": NamePinTemplate,
+        "real": RealPinTemplate,
+        "string": StringPinTemplate,
     }
 
     static properties = {

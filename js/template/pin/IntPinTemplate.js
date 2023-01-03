@@ -1,10 +1,10 @@
 import { html } from "lit"
-import INumericInputPinTemplate from "./INumericInputPinTemplate"
+import INumericPinTemplate from "./INumericPinTemplate"
 
 /** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
-/** @extends INumericInputPinTemplate<IntegerEntity> */
-export default class IntPinTemplate extends INumericInputPinTemplate {
+/** @extends INumericPinTemplate<IntegerEntity> */
+export default class IntPinTemplate extends INumericPinTemplate {
 
     setDefaultValue(values = [], rawValues = values) {
         const integer = this.element.getDefaultValue(true)

@@ -1,6 +1,6 @@
 import { html } from "lit"
 import IInputPinTemplate from "./IInputPinTemplate"
-import INumericPinTemplate from "./INumericInputPinTemplate"
+import INumericPinTemplate from "./INumericPinTemplate"
 import RotatorEntity from "../../entity/RotatorEntity"
 import Utility from "../../Utility"
 

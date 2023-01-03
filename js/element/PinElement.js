@@ -9,13 +9,13 @@ import IntPinTemplate from "../template/pin/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
 import LinearColorPinTemplate from "../template/pin/LinearColorPinTemplate"
-import NameInputPinTemplate from "../template/pin/NamePinTemplate"
+import NamePinTemplate from "../template/pin/NamePinTemplate"
 import PinEntity from "../entity/PinEntity"
 import PinTemplate from "../template/pin/PinTemplate"
-import RealPinTemplate from "../template/pin/RealInputPinTemplate"
+import RealPinTemplate from "../template/pin/RealPinTemplate"
 import ReferencePinTemplate from "../template/pin/ReferencePinTemplate"
-import RotatorPinTemplate from "../template/pin/RotatorInputPinTemplate"
-import StringPinTemplate from "../template/pin/StringInputPinTemplate"
+import RotatorPinTemplate from "../template/pin/RotatorPinTemplate"
+import StringPinTemplate from "../template/pin/StringPinTemplate"
 import Utility from "../Utility"
 import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate"
@@ -45,7 +45,7 @@ export default class PinElement extends IElement {
         "int": IntPinTemplate,
         "int64": Int64PinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
-        "name": NameInputPinTemplate,
+        "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
     }

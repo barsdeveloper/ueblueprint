@@ -1,6 +1,4 @@
-import { html } from "lit"
 import IntPinTemplate from "./IntPinTemplate"
-import INumericInputPinTemplate from "./INumericInputPinTemplate"
 
 /** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
