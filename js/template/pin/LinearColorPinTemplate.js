@@ -11,7 +11,7 @@ import PinTemplate from "./PinTemplate"
  */
 
 /** @extends PinTemplate<LinearColorEntity> */
-export default class LinearColorInputPinTemplate extends PinTemplate {
+export default class LinearColorPinTemplate extends PinTemplate {
 
     /** @type {WindowElement} */
     #window

@@ -1,4 +1,4 @@
-import BoolInputPinTemplate from "../template/pin/BoolPinTemplate"
+import BoolPinTemplate from "../template/pin/BoolPinTemplate"
 import Configuration from "../Configuration"
 import ElementFactory from "./ElementFactory"
 import ExecPinTemplate from "../template/pin/ExecPinTemplate"
@@ -8,7 +8,7 @@ import Int64PinTemplate from "../template/pin/Int64PinTemplate"
 import IntPinTemplate from "../template/pin/IntPinTemplate"
 import ISerializer from "../serialization/ISerializer"
 import LinearColorEntity from "../entity/LinearColorEntity"
-import LinearColorInputPinTemplate from "../template/pin/LinearColorPinTemplate"
+import LinearColorPinTemplate from "../template/pin/LinearColorPinTemplate"
 import NameInputPinTemplate from "../template/pin/NamePinTemplate"
 import PinEntity from "../entity/PinEntity"
 import PinTemplate from "../template/pin/PinTemplate"
@@ -36,11 +36,11 @@ import VectorPinTemplate from "../template/pin/VectorPinTemplate"
 export default class PinElement extends IElement {
 
     static #inputPinTemplates = {
-        "/Script/CoreUObject.LinearColor": LinearColorInputPinTemplate,
+        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
         "/Script/CoreUObject.Rotator": RotatorPinTemplate,
         "/Script/CoreUObject.Vector": VectorPinTemplate,
         "/Script/CoreUObject.Vector2D": Vector2DPinTemplate,
-        "bool": BoolInputPinTemplate,
+        "bool": BoolPinTemplate,
         "byte": IntPinTemplate,
         "int": IntPinTemplate,
         "int64": Int64PinTemplate,

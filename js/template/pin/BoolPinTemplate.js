@@ -5,7 +5,7 @@ import PinTemplate from "./PinTemplate"
 /** @typedef {import("lit").PropertyValues} PropertyValues */
 
 /** @extends PinTemplate<Boolean> */
-export default class BoolInputPinTemplate extends PinTemplate {
+export default class BoolPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement?} */
     #input
