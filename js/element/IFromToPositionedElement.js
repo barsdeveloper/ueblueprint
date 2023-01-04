@@ -48,15 +48,21 @@ export default class IFromToPositionedElement extends IElement {
         this.toY = y
     }
 
-    /** @param {Number[]} offset */
-    addSourceLocation([offsetX, offsetY]) {
-        this.fromX += offsetX
-        this.fromY += offsetY
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addSourceLocation(x, y) {
+        this.fromX += x
+        this.fromY += y
     }
 
-    /** @param {Number[]} offset */
-    addDestinationLocation([offsetX, offsetY]) {
-        this.toX += offsetX
-        this.toY += offsetY
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addDestinationLocation(x, y) {
+        this.toX += x
+        this.toY += y
     }
 }

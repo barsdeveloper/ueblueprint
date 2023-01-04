@@ -39,7 +39,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
                     this.link.setMessageDirectionsIncompatible()
                 } else if (a.isOutput() == b.isOutput()) {
                     this.link.setMessageDirectionsIncompatible()
-                } else if (this.blueprint.getLinks([a, b]).length) {
+                } else if (this.blueprint.getLinks(a, b).length) {
                     this.link.setMessageReplaceLink()
                     this.linkValid = true
                 } else {

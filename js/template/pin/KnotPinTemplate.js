@@ -24,6 +24,6 @@ export default class KnotPinTemplate extends PinTemplate {
             ],
             this.blueprint.template.gridElement
         )
-        return this.blueprint.compensateTranslation(location)
+        return this.blueprint.compensateTranslation(location[0], location[1])
     }
 }

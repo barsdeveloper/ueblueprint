@@ -125,7 +125,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
              * @param {Number} y in the range [0, 1]
              */
             (x, y) => {
-                this.color.setFromWheelLocation([x, y], this.color.V.value, this.color.A.value)
+                this.color.setFromWheelLocation(x, y, this.color.V.value, this.color.A.value)
                 this.fullColor.setFromHSVA(this.color.H.value, 1, 1, 1)
                 this.element.requestUpdate()
             }

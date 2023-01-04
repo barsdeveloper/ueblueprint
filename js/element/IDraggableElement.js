@@ -5,6 +5,9 @@ import Utility from "../Utility"
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
+ * @typedef {CustomEvent<{
+ *     value: [Number, Number]
+ * }>} DragEvent
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -58,9 +61,13 @@ export default class IDraggableElement extends IElement {
         this.computeSizes()
     }
 
-    /** @param {Number[]} param0 */
-    setLocation([x, y], acknowledge = true) {
-        const d = [x - this.locationX, y - this.locationY]
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    setLocation(x, y, acknowledge = true) {
+        const dx = x - this.locationX
+        const dy = y - this.locationY
         this.locationX = x
         this.locationY = y
         if (this.blueprint && acknowledge) {
@@ -68,7 +75,7 @@ export default class IDraggableElement extends IElement {
                 /** @type {typeof IDraggableElement} */(this.constructor).dragEventName,
                 {
                     detail: {
-                        value: d,
+                        value: [dx, dy],
                     },
                     bubbles: false,
                     cancelable: true,
@@ -78,9 +85,12 @@ export default class IDraggableElement extends IElement {
         }
     }
 
-    /** @param {Number[]} param0 */
-    addLocation([x, y], acknowledge = true) {
-        this.setLocation([this.locationX + x, this.locationY + y], acknowledge)
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addLocation(x, y, acknowledge = true) {
+        this.setLocation(this.locationX + x, this.locationY + y, acknowledge)
     }
 
     /** @param {Number[]} value */
@@ -99,9 +109,9 @@ export default class IDraggableElement extends IElement {
     }
 
     snapToGrid() {
-        const snappedLocation = Utility.snapToGrid([this.locationX, this.locationY], Configuration.gridSize)
+        const snappedLocation = Utility.snapToGrid(this.locationX, this.locationY, Configuration.gridSize)
         if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
-            this.setLocation(snappedLocation)
+            this.setLocation(snappedLocation[0], snappedLocation[1])
         }
     }
 

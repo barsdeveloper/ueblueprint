@@ -164,8 +164,14 @@ export default class LinearColorEntity extends IEntity {
         this.V.value = v
     }
 
-    setFromWheelLocation([x, y], v, a) {
-        const [r, theta] = Utility.getPolarCoordinates([x, y], true)
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} v
+     * @param {Number} a
+     */
+    setFromWheelLocation(x, y, v, a) {
+        const [r, theta] = Utility.getPolarCoordinates(x, y, true)
         this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a)
     }
 
@@ -215,19 +221,19 @@ export default class LinearColorEntity extends IEntity {
 
     /** @param {Number} number */
     setFromRGBANumber(number) {
-        this.A.value = (number & 0xFF) / 0xff
-        this.B.value = ((number >> 8) & 0xFF) / 0xff
-        this.G.value = ((number >> 16) & 0xFF) / 0xff
-        this.R.value = ((number >> 24) & 0xFF) / 0xff
+        this.A.value = (number & 0xff) / 0xff
+        this.B.value = ((number >> 8) & 0xff) / 0xff
+        this.G.value = ((number >> 16) & 0xff) / 0xff
+        this.R.value = ((number >> 24) & 0xff) / 0xff
         this.#updateHSV()
     }
 
     /** @param {Number} number */
     setFromSRGBANumber(number) {
-        this.A.value = (number & 0xFF) / 0xff
-        this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xFF) / 0xff)
-        this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xFF) / 0xff)
-        this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xFF) / 0xff)
+        this.A.value = (number & 0xff) / 0xff
+        this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xff) / 0xff)
+        this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff)
+        this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff)
         this.#updateHSV()
     }
 

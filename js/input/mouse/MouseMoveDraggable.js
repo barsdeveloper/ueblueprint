@@ -12,23 +12,31 @@ import Utility from "../../Utility"
  */
 export default class MouseMoveDraggable extends IMouseClickDrag {
 
+    /** @param {[Number, Number]} location */
     clicked(location) {
         if (this.options.repositionOnClick) {
-            this.target.setLocation(this.stepSize > 1
-                ? Utility.snapToGrid(location, this.stepSize)
+            this.target.setLocation(...(this.stepSize > 1
+                ? Utility.snapToGrid(location[0], location[1], this.stepSize)
                 : location
-            )
+            ))
             this.clickedOffset = [0, 0]
         }
     }
 
+    /**
+     * @param {Number[]} location
+     * @param {Number[]} offset
+     */
     dragTo(location, offset) {
         const targetLocation = [
             this.target.locationX ?? this.lastLocation[0],
             this.target.locationY ?? this.lastLocation[1],
         ]
         const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
+            ? [
+                Utility.snapToGrid(location[0], location[1], this.stepSize),
+                Utility.snapToGrid(targetLocation[0], targetLocation[1], this.stepSize)
+            ]
             : [location, targetLocation]
         offset = [
             adjustedLocation[0] - this.lastLocation[0],
@@ -45,10 +53,11 @@ export default class MouseMoveDraggable extends IMouseClickDrag {
         this.lastLocation = adjustedLocation
     }
 
+    /**
+     * @param {Number[]} location
+     * @param {Number[]} offset
+     */
     dragAction(location, offset) {
-        this.target.setLocation([
-            location[0] - this.clickedOffset[0],
-            location[1] - this.clickedOffset[1],
-        ])
+        this.target.setLocation(location[0] - this.clickedOffset[0], location[1] - this.clickedOffset[1])
     }
 }

@@ -31,12 +31,14 @@ export default class Utility {
         }
     }
 
+    /** @param {Number} x */
     static sigmoid(x, curvature = 1.7) {
         return 1 / (1 + (x / (1 - x) ** -curvature))
     }
 
-    static clamp(val, min = -Infinity, max = Infinity) {
-        return Math.min(Math.max(val, min), max)
+    /** @param {Number} value */
+    static clamp(value, min = -Infinity, max = Infinity) {
+        return Math.min(Math.max(value, min), max)
     }
 
     /** @param {HTMLElement} element */
@@ -217,16 +219,18 @@ export default class Utility {
     }
 
     /**
-     * @param {Number[]} location
+     * @param {Number} x
+     * @param {Number} y
      * @param {Number} gridSize
+     * @returns {[Number, Number]}
      */
-    static snapToGrid(location, gridSize) {
+    static snapToGrid(x, y, gridSize) {
         if (gridSize === 1) {
-            return location
+            return [x, y]
         }
         return [
-            gridSize * Math.round(location[0] / gridSize),
-            gridSize * Math.round(location[1] / gridSize)
+            gridSize * Math.round(x / gridSize),
+            gridSize * Math.round(y / gridSize)
         ]
     }
 
@@ -318,8 +322,12 @@ export default class Utility {
         return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
     }
 
-    /**  @param {[Number, Number]} param0 */
-    static getPolarCoordinates([x, y], positiveTheta = false) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {[Number, Number]}
+     */
+    static getPolarCoordinates(x, y, positiveTheta = false) {
         let theta = Math.atan2(y, x)
         if (positiveTheta && theta < 0) {
             theta = 2 * Math.PI + theta
@@ -330,8 +338,12 @@ export default class Utility {
         ]
     }
 
-    /**  @param {[Number, Number]} param0 */
-    static getCartesianCoordinates([r, theta]) {
+    /**
+     * @param {Number} r
+     * @param {Number} theta
+     * @returns {[Number, Number]}
+     */
+    static getCartesianCoordinates(r, theta) {
         return [
             r * Math.cos(theta),
             r * Math.sin(theta)

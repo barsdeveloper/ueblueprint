@@ -457,7 +457,7 @@ export default class Grammar {
         }
     )
 
-    /** @returns {Parsimmon.Parser<ObjectEntity[]>} */
+    /** @param {Grammar} r */
     MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
 
     /*   ---   Others   ---   */

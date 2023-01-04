@@ -25,6 +25,6 @@ export default class IPointing extends IInput {
         )
         return this.options.ignoreTranslateCompensate
             ? location
-            : this.blueprint.compensateTranslation(location)
+            : this.blueprint.compensateTranslation(location[0], location[1])
     }
 }

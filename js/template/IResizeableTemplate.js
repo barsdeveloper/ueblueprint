@@ -64,7 +64,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.topBoundary()
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]], false)
+                        this.element.addLocation(0, movement[1], false)
                     }
                 },
                 onEndDrag: () => this.endResize(),
@@ -87,7 +87,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary()
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0], false)
+                        this.element.addLocation(movement[0], 0, false)
                     }
                 },
                 onEndDrag: () => this.endResize(),
@@ -98,7 +98,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                     movement[1] = location[1] - this.element.topBoundary()
                     this.setSizeX(this.element.sizeX + movement[0])
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]], false)
+                        this.element.addLocation(0, movement[1], false)
                     }
                 },
                 onEndDrag: () => this.endResize(),
@@ -117,7 +117,7 @@ export default class IResizeableTemplate extends NodeTemplate {
                     movement[0] = location[0] - this.element.leftBoundary()
                     movement[1] = location[1] - this.element.bottomBoundary()
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0], false)
+                        this.element.addLocation(movement[0], 0, false)
                     }
                     this.setSizeY(this.element.sizeY + movement[1])
                 },
@@ -128,10 +128,10 @@ export default class IResizeableTemplate extends NodeTemplate {
                     movement[0] = location[0] - this.element.leftBoundary()
                     movement[1] = location[1] - this.element.topBoundary()
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0], false)
+                        this.element.addLocation(movement[0], 0, false)
                     }
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]], false)
+                        this.element.addLocation(0, movement[1], false)
                     }
                 },
                 onEndDrag: () => this.endResize(),

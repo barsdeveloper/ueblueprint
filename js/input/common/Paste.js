@@ -30,6 +30,7 @@ export default class Paste extends IInput {
         window.removeEventListener("paste", this.#pasteHandle)
     }
 
+    /** @param {String} value */
     pasted(value) {
         let top = 0
         let left = 0
@@ -50,11 +51,7 @@ export default class Paste extends IInput {
         }
         let mousePosition = this.blueprint.mousePosition
         nodes.forEach(node => {
-            const locationOffset = [
-                mousePosition[0] - left,
-                mousePosition[1] - top,
-            ]
-            node.addLocation(locationOffset)
+            node.addLocation(mousePosition[0] - left, mousePosition[1] - top)
             node.snapToGrid()
             node.setSelected(true)
         })

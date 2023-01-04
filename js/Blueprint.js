@@ -117,30 +117,32 @@ export default class Blueprint extends IElement {
         return [this.scrollX, this.scrollY]
     }
 
-    /** @param {Number[]} param0 */
-    setScroll([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    setScroll(x, y) {
         this.scrollX = x
         this.scrollY = y
     }
 
-    /** @param {Number[]} delta */
-    scrollDelta(delta, smooth = false) {
+    scrollDelta(x = 0, y = 0, smooth = false) {
         if (smooth) {
             let previousScrollDelta = [0, 0]
-            Utility.animate(0, delta[0], Configuration.smoothScrollTime, x => {
-                this.scrollDelta([x - previousScrollDelta[0], 0], false)
+            Utility.animate(0, x, Configuration.smoothScrollTime, x => {
+                this.scrollDelta(x - previousScrollDelta[0], 0, false)
                 previousScrollDelta[0] = x
             })
-            Utility.animate(0, delta[1], Configuration.smoothScrollTime, y => {
-                this.scrollDelta([0, y - previousScrollDelta[1]], false)
+            Utility.animate(0, y, Configuration.smoothScrollTime, y => {
+                this.scrollDelta(0, y - previousScrollDelta[1], false)
                 previousScrollDelta[1] = y
             })
         } else {
             const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
             let currentScroll = this.getScroll()
             let finalScroll = [
-                currentScroll[0] + delta[0],
-                currentScroll[1] + delta[1]
+                currentScroll[0] + x,
+                currentScroll[1] + y
             ]
             let expand = [0, 0]
             for (let i = 0; i < 2; ++i) {
@@ -156,14 +158,14 @@ export default class Blueprint extends IElement {
                 }
             }
             if (expand[0] != 0 || expand[1] != 0) {
-                this.seamlessExpand(expand)
+                this.seamlessExpand(expand[0], expand[1])
             }
             currentScroll = this.getScroll()
             finalScroll = [
-                currentScroll[0] + delta[0],
-                currentScroll[1] + delta[1]
+                currentScroll[0] + x,
+                currentScroll[1] + y
             ]
-            this.setScroll(finalScroll)
+            this.setScroll(finalScroll[0], finalScroll[1])
         }
     }
 
@@ -178,7 +180,7 @@ export default class Blueprint extends IElement {
             offset[0] - targetOffset[0],
             offset[1] - targetOffset[1]
         ]
-        this.scrollDelta(deltaOffset, true)
+        this.scrollDelta(deltaOffset[0], deltaOffset[1], true)
     }
 
     getViewportSize() {
@@ -195,12 +197,19 @@ export default class Blueprint extends IElement {
         ]
     }
 
-    snapToGrid(location) {
-        return Utility.snapToGrid(location, Configuration.gridSize)
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    snapToGrid(x, y) {
+        return Utility.snapToGrid(x, y, Configuration.gridSize)
     }
 
-    /** @param {Number[]} param0 */
-    seamlessExpand([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    seamlessExpand(x, y) {
         x = Math.round(x)
         y = Math.round(y)
         let scale = this.getScale()
@@ -237,19 +246,17 @@ export default class Blueprint extends IElement {
         this.zoom = zoom
 
         if (center) {
-            //requestAnimationFrame(_ => {
-                center[0] += this.translateX
-                center[1] += this.translateY
-                let relativeScale = this.getScale() / initialScale
-                let newCenter = [
-                    relativeScale * center[0],
-                    relativeScale * center[1],
-                ]
-                this.scrollDelta([
-                    (newCenter[0] - center[0]) * initialScale,
-                    (newCenter[1] - center[1]) * initialScale,
-                ])
-            //})
+            center[0] += this.translateX
+            center[1] += this.translateY
+            let relativeScale = this.getScale() / initialScale
+            let newCenter = [
+                relativeScale * center[0],
+                relativeScale * center[1],
+            ]
+            this.scrollDelta(
+                (newCenter[0] - center[0]) * initialScale,
+                (newCenter[1] - center[1]) * initialScale,
+            )
         }
     }
 
@@ -257,8 +264,12 @@ export default class Blueprint extends IElement {
         return Configuration.scale[this.getZoom()]
     }
 
-    /** @param {Number[]} param0 */
-    compensateTranslation([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {[Number, Number]}
+     */
+    compensateTranslation(x, y) {
         x -= this.translateX
         y -= this.translateY
         return [x, y]
@@ -315,11 +326,11 @@ export default class Blueprint extends IElement {
     }
 
     /**
-     * Returns the list of links in this blueprint.
-     * @returns {LinkElement[]} Nodes
+     * @param {PinElement?} a
+     * @param {PinElement?} b
      */
-    getLinks([a, b] = []) {
-        if (a == null != b == null) {
+    getLinks(a = null, b = null) {
+        if ((a == null) != (b == null)) {
             const pin = a ?? b
             return this.links.filter(link => link.sourcePin == pin || link.destinationPin == pin)
         }

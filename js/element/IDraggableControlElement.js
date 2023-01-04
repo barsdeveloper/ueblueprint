@@ -21,8 +21,11 @@ export default class IDraggableControlElement extends IDraggableElement {
         this.windowElement = this.closest("ueb-window")
     }
 
-    /** @param {Number[]} param0 */
-    setLocation([x, y]) {
-        super.setLocation(this.template.adjustLocation([x, y]))
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    setLocation(x, y) {
+        super.setLocation(...this.template.adjustLocation(x, y))
     }
 }

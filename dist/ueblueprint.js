@@ -447,12 +447,14 @@ class Utility {
         }
     }
 
+    /** @param {Number} x */
     static sigmoid(x, curvature = 1.7) {
         return 1 / (1 + (x / (1 - x) ** -curvature))
     }
 
-    static clamp(val, min = -Infinity, max = Infinity) {
-        return Math.min(Math.max(val, min), max)
+    /** @param {Number} value */
+    static clamp(value, min = -Infinity, max = Infinity) {
+        return Math.min(Math.max(value, min), max)
     }
 
     /** @param {HTMLElement} element */
@@ -633,16 +635,18 @@ class Utility {
     }
 
     /**
-     * @param {Number[]} location
+     * @param {Number} x
+     * @param {Number} y
      * @param {Number} gridSize
+     * @returns {[Number, Number]}
      */
-    static snapToGrid(location, gridSize) {
+    static snapToGrid(x, y, gridSize) {
         if (gridSize === 1) {
-            return location
+            return [x, y]
         }
         return [
-            gridSize * Math.round(location[0] / gridSize),
-            gridSize * Math.round(location[1] / gridSize)
+            gridSize * Math.round(x / gridSize),
+            gridSize * Math.round(y / gridSize)
         ]
     }
 
@@ -734,8 +738,12 @@ class Utility {
         return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
     }
 
-    /**  @param {[Number, Number]} param0 */
-    static getPolarCoordinates([x, y], positiveTheta = false) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {[Number, Number]}
+     */
+    static getPolarCoordinates(x, y, positiveTheta = false) {
         let theta = Math.atan2(y, x);
         if (positiveTheta && theta < 0) {
             theta = 2 * Math.PI + theta;
@@ -746,8 +754,12 @@ class Utility {
         ]
     }
 
-    /**  @param {[Number, Number]} param0 */
-    static getCartesianCoordinates([r, theta]) {
+    /**
+     * @param {Number} r
+     * @param {Number} theta
+     * @returns {[Number, Number]}
+     */
+    static getCartesianCoordinates(r, theta) {
         return [
             r * Math.cos(theta),
             r * Math.sin(theta)
@@ -1445,8 +1457,14 @@ class LinearColorEntity extends IEntity {
         this.V.value = v;
     }
 
-    setFromWheelLocation([x, y], v, a) {
-        const [r, theta] = Utility.getPolarCoordinates([x, y], true);
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} v
+     * @param {Number} a
+     */
+    setFromWheelLocation(x, y, v, a) {
+        const [r, theta] = Utility.getPolarCoordinates(x, y, true);
         this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a);
     }
 
@@ -1496,19 +1514,19 @@ class LinearColorEntity extends IEntity {
 
     /** @param {Number} number */
     setFromRGBANumber(number) {
-        this.A.value = (number & 0xFF) / 0xff;
-        this.B.value = ((number >> 8) & 0xFF) / 0xff;
-        this.G.value = ((number >> 16) & 0xFF) / 0xff;
-        this.R.value = ((number >> 24) & 0xFF) / 0xff;
+        this.A.value = (number & 0xff) / 0xff;
+        this.B.value = ((number >> 8) & 0xff) / 0xff;
+        this.G.value = ((number >> 16) & 0xff) / 0xff;
+        this.R.value = ((number >> 24) & 0xff) / 0xff;
         this.#updateHSV();
     }
 
     /** @param {Number} number */
     setFromSRGBANumber(number) {
-        this.A.value = (number & 0xFF) / 0xff;
-        this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xFF) / 0xff);
-        this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xFF) / 0xff);
-        this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xFF) / 0xff);
+        this.A.value = (number & 0xff) / 0xff;
+        this.B.value = LinearColorEntity.sRGBtoLinear(((number >> 8) & 0xff) / 0xff);
+        this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff);
+        this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff);
         this.#updateHSV();
     }
 
@@ -2681,7 +2699,7 @@ class Grammar {
         }
     )
 
-    /** @returns {Parsimmon.Parser<ObjectEntity[]>} */
+    /** @param {Grammar} r */
     MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
 
     /*   ---   Others   ---   */
@@ -2910,6 +2928,8 @@ class ISerializer {
     }
 }
 
+/** @typedef {import("../element/NodeElement").default} NodeElement */
+
 class ObjectSerializer extends ISerializer {
 
     constructor() {
@@ -2936,7 +2956,10 @@ class ObjectSerializer extends ISerializer {
         return parseResult.value
     }
 
-    /** @param {String} value */
+    /**
+     * @param {String} value
+     * @returns {NodeElement[]}
+     */
     readMultiple(value) {
         const parseResult = ISerializer.grammar.MultipleObject.parse(value);
         if (!parseResult.status) {
@@ -3213,7 +3236,7 @@ class IPointing extends IInput {
         );
         return this.options.ignoreTranslateCompensate
             ? location
-            : this.blueprint.compensateTranslation(location)
+            : this.blueprint.compensateTranslation(location[0], location[1])
     }
 }
 
@@ -3482,6 +3505,9 @@ class IElement extends s {
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
+ * @typedef {CustomEvent<{
+ *     value: [Number, Number]
+ * }>} DragEvent
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -3535,9 +3561,13 @@ class IDraggableElement extends IElement {
         this.computeSizes();
     }
 
-    /** @param {Number[]} param0 */
-    setLocation([x, y], acknowledge = true) {
-        const d = [x - this.locationX, y - this.locationY];
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    setLocation(x, y, acknowledge = true) {
+        const dx = x - this.locationX;
+        const dy = y - this.locationY;
         this.locationX = x;
         this.locationY = y;
         if (this.blueprint && acknowledge) {
@@ -3545,7 +3575,7 @@ class IDraggableElement extends IElement {
                 /** @type {typeof IDraggableElement} */(this.constructor).dragEventName,
                 {
                     detail: {
-                        value: d,
+                        value: [dx, dy],
                     },
                     bubbles: false,
                     cancelable: true,
@@ -3555,9 +3585,12 @@ class IDraggableElement extends IElement {
         }
     }
 
-    /** @param {Number[]} param0 */
-    addLocation([x, y], acknowledge = true) {
-        this.setLocation([this.locationX + x, this.locationY + y], acknowledge);
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addLocation(x, y, acknowledge = true) {
+        this.setLocation(this.locationX + x, this.locationY + y, acknowledge);
     }
 
     /** @param {Number[]} value */
@@ -3576,9 +3609,9 @@ class IDraggableElement extends IElement {
     }
 
     snapToGrid() {
-        const snappedLocation = Utility.snapToGrid([this.locationX, this.locationY], Configuration.gridSize);
+        const snappedLocation = Utility.snapToGrid(this.locationX, this.locationY, Configuration.gridSize);
         if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
-            this.setLocation(snappedLocation);
+            this.setLocation(snappedLocation[0], snappedLocation[1]);
         }
     }
 
@@ -3610,96 +3643,92 @@ class IDraggableElement extends IElement {
  */
 class IMouseClickDrag extends IPointing {
 
-    #mouseDownHandler =
-        /** @param {MouseEvent} e  */
-        e => {
-            this.blueprint.setFocused(true);
-            switch (e.button) {
-                case this.options.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                    if (!this.options.strictTarget || e.target == e.currentTarget) {
-                        if (this.options.consumeEvent) {
-                            e.stopImmediatePropagation(); // Captured, don't call anyone else
-                        }
-                        // Attach the listeners
-                        this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
-                        document.addEventListener("mouseup", this.#mouseUpHandler);
-                        this.clickedPosition = this.locationFromEvent(e);
-                        this.blueprint.mousePosition[0] = this.clickedPosition[0];
-                        this.blueprint.mousePosition[1] = this.clickedPosition[1];
-                        if (this.target instanceof IDraggableElement) {
-                            this.clickedOffset = [
-                                this.clickedPosition[0] - this.target.locationX,
-                                this.clickedPosition[1] - this.target.locationY,
-                            ];
-                        }
-                        this.clicked(this.clickedPosition);
+    /** @param {MouseEvent} e  */
+    #mouseDownHandler = e => {
+        this.blueprint.setFocused(true);
+        switch (e.button) {
+            case this.options.clickButton:
+                // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+                if (!this.options.strictTarget || e.target == e.currentTarget) {
+                    if (this.options.consumeEvent) {
+                        e.stopImmediatePropagation(); // Captured, don't call anyone else
                     }
-                    break
-                default:
-                    if (!this.options.exitAnyButton) {
-                        this.#mouseUpHandler(e);
+                    // Attach the listeners
+                    this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
+                    document.addEventListener("mouseup", this.#mouseUpHandler);
+                    this.clickedPosition = this.locationFromEvent(e);
+                    this.blueprint.mousePosition[0] = this.clickedPosition[0];
+                    this.blueprint.mousePosition[1] = this.clickedPosition[1];
+                    if (this.target instanceof IDraggableElement) {
+                        this.clickedOffset = [
+                            this.clickedPosition[0] - this.target.locationX,
+                            this.clickedPosition[1] - this.target.locationY,
+                        ];
                     }
-                    break
-            }
+                    this.clicked(this.clickedPosition);
+                }
+                break
+            default:
+                if (!this.options.exitAnyButton) {
+                    this.#mouseUpHandler(e);
+                }
+                break
         }
+    }
 
-    #mouseStartedMovingHandler =
-        /** @param {MouseEvent} e  */
-        e => {
+    /** @param {MouseEvent} e  */
+    #mouseStartedMovingHandler = e => {
+        if (this.options.consumeEvent) {
+            e.stopImmediatePropagation(); // Captured, don't call anyone else
+        }
+        // Delegate from now on to this.#mouseMoveHandler
+        this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
+        this.#movementListenedElement.addEventListener("mousemove", this.#mouseMoveHandler);
+        // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
+        const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin);
+        this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
+        const location = this.locationFromEvent(e);
+        // Do actual actions
+        this.lastLocation = Utility.snapToGrid(this.clickedPosition[0], this.clickedPosition[1], this.stepSize);
+        this.startDrag(location);
+        this.started = true;
+    }
+
+    /** @param {MouseEvent} e  */
+    #mouseMoveHandler = e => {
+        if (this.options.consumeEvent) {
+            e.stopImmediatePropagation(); // Captured, don't call anyone else
+        }
+        const location = this.locationFromEvent(e);
+        const movement = [e.movementX, e.movementY];
+        this.dragTo(location, movement);
+        if (this.#trackingMouse) {
+            this.blueprint.mousePosition = this.locationFromEvent(e);
+        }
+    }
+
+    /** @param {MouseEvent} e  */
+    #mouseUpHandler = e => {
+        if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
             if (this.options.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
-            // Delegate from now on to this.#mouseMoveHandler
+            // Remove the handlers of "mousemove" and "mouseup"
             this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
-            this.#movementListenedElement.addEventListener("mousemove", this.#mouseMoveHandler);
-            // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-            const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin);
-            this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
-            const location = this.locationFromEvent(e);
-            // Do actual actions
-            this.lastLocation = Utility.snapToGrid(this.clickedPosition, this.stepSize);
-            this.startDrag(location);
-            this.started = true;
-        }
-
-    #mouseMoveHandler =
-        /** @param {MouseEvent} e  */
-        e => {
-            if (this.options.consumeEvent) {
-                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler);
+            document.removeEventListener("mouseup", this.#mouseUpHandler);
+            if (this.started) {
+                this.endDrag();
             }
-            const location = this.locationFromEvent(e);
-            const movement = [e.movementX, e.movementY];
-            this.dragTo(location, movement);
+            this.unclicked();
             if (this.#trackingMouse) {
-                this.blueprint.mousePosition = this.locationFromEvent(e);
+                const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end);
+                this.target.dispatchEvent(dragEvent);
+                this.#trackingMouse = false;
             }
+            this.started = false;
         }
-
-    #mouseUpHandler =
-        /** @param {MouseEvent} e  */
-        e => {
-            if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
-                if (this.options.consumeEvent) {
-                    e.stopImmediatePropagation(); // Captured, don't call anyone else
-                }
-                // Remove the handlers of "mousemove" and "mouseup"
-                this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
-                this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler);
-                document.removeEventListener("mouseup", this.#mouseUpHandler);
-                if (this.started) {
-                    this.endDrag();
-                }
-                this.unclicked();
-                if (this.#trackingMouse) {
-                    const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end);
-                    this.target.dispatchEvent(dragEvent);
-                    this.#trackingMouse = false;
-                }
-                this.started = false;
-            }
-        }
+    }
 
     #trackingMouse = false
     #movementListenedElement
@@ -3780,7 +3809,7 @@ class MouseScrollGraph extends IMouseClickDrag {
     }
 
     dragTo(location, movement) {
-        this.blueprint.scrollDelta([-movement[0], -movement[1]]);
+        this.blueprint.scrollDelta(-movement[0], -movement[1]);
     }
 
     endDrag() {
@@ -3912,6 +3941,7 @@ class Paste extends IInput {
         window.removeEventListener("paste", this.#pasteHandle);
     }
 
+    /** @param {String} value */
     pasted(value) {
         let top = 0;
         let left = 0;
@@ -3932,11 +3962,7 @@ class Paste extends IInput {
         }
         let mousePosition = this.blueprint.mousePosition;
         nodes.forEach(node => {
-            const locationOffset = [
-                mousePosition[0] - left,
-                mousePosition[1] - top,
-            ];
-            node.addLocation(locationOffset);
+            node.addLocation(mousePosition[0] - left, mousePosition[1] - top);
             node.snapToGrid();
             node.setSelected(true);
         });
@@ -4250,16 +4276,22 @@ class IFromToPositionedElement extends IElement {
         this.toY = y;
     }
 
-    /** @param {Number[]} offset */
-    addSourceLocation([offsetX, offsetY]) {
-        this.fromX += offsetX;
-        this.fromY += offsetY;
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addSourceLocation(x, y) {
+        this.fromX += x;
+        this.fromY += y;
     }
 
-    /** @param {Number[]} offset */
-    addDestinationLocation([offsetX, offsetY]) {
-        this.toX += offsetX;
-        this.toY += offsetY;
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addDestinationLocation(x, y) {
+        this.toX += x;
+        this.toY += y;
     }
 }
 
@@ -4446,12 +4478,12 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
     static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
-    /** @type {(location: Number[]) => void} */
+    /** @param {[Number, Number]} location */
     #createKnot = location => {
         const knotEntity = new KnotEntity({}, this.element.sourcePin.entity);
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
             .newObject(knotEntity);
-        knot.setLocation(this.blueprint.snapToGrid(location));
+        knot.setLocation(...this.blueprint.snapToGrid(...location));
         this.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(
@@ -4469,7 +4501,8 @@ class LinkTemplate extends IFromToPositionedTemplate {
                 this.element.querySelector(".ueb-link-area"),
                 this.blueprint,
                 undefined,
-                (location) => this.#createKnot(location)
+                /** @param {[Number, Number]} location */
+                location => this.#createKnot(location)
             )
         ]
     }
@@ -4754,6 +4787,7 @@ class SVGIcon {
 }
 
 /**
+ * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("lit").TemplateResult<1>} TemplateResult
  * @typedef {typeof LinkElement} LinkElementConstructor
@@ -4815,8 +4849,10 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     #nodeDeleteHandler = () => this.remove()
-    #nodeDragSourceHandler = e => this.addSourceLocation(e.detail.value)
-    #nodeDragDestinatonHandler = e => this.addDestinationLocation(e.detail.value)
+    /** @param {DragEvent} e */
+    #nodeDragSourceHandler = e => this.addSourceLocation(...e.detail.value)
+    /** @param {DragEvent} e */
+    #nodeDragDestinatonHandler = e => this.addDestinationLocation(...e.detail.value)
     #nodeReflowSourceHandler = e => this.setSourceLocation()
     #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
 
@@ -5031,23 +5067,31 @@ class LinkElement extends IFromToPositionedElement {
  */
 class MouseMoveDraggable extends IMouseClickDrag {
 
+    /** @param {[Number, Number]} location */
     clicked(location) {
         if (this.options.repositionOnClick) {
-            this.target.setLocation(this.stepSize > 1
-                ? Utility.snapToGrid(location, this.stepSize)
+            this.target.setLocation(...(this.stepSize > 1
+                ? Utility.snapToGrid(location[0], location[1], this.stepSize)
                 : location
-            );
+            ));
             this.clickedOffset = [0, 0];
         }
     }
 
+    /**
+     * @param {Number[]} location
+     * @param {Number[]} offset
+     */
     dragTo(location, offset) {
         const targetLocation = [
             this.target.locationX ?? this.lastLocation[0],
             this.target.locationY ?? this.lastLocation[1],
         ];
         const [adjustedLocation, adjustedTargetLocation] = this.stepSize > 1
-            ? [Utility.snapToGrid(location, this.stepSize), Utility.snapToGrid(targetLocation, this.stepSize)]
+            ? [
+                Utility.snapToGrid(location[0], location[1], this.stepSize),
+                Utility.snapToGrid(targetLocation[0], targetLocation[1], this.stepSize)
+            ]
             : [location, targetLocation];
         offset = [
             adjustedLocation[0] - this.lastLocation[0],
@@ -5064,11 +5108,12 @@ class MouseMoveDraggable extends IMouseClickDrag {
         this.lastLocation = adjustedLocation;
     }
 
+    /**
+     * @param {Number[]} location
+     * @param {Number[]} offset
+     */
     dragAction(location, offset) {
-        this.target.setLocation([
-            location[0] - this.clickedOffset[0],
-            location[1] - this.clickedOffset[1],
-        ]);
+        this.target.setLocation(location[0] - this.clickedOffset[0], location[1] - this.clickedOffset[1]);
     }
 }
 
@@ -5102,8 +5147,9 @@ class MouseClickDrag extends MouseMoveDraggable {
         }
     }
 
-    clicked() {
-        super.clicked();
+    /** @param {[Number, Number]} location */
+    clicked(location) {
+        super.clicked(location);
         this.#onClicked?.();
     }
 
@@ -5177,8 +5223,7 @@ class IDraggableTemplate extends ITemplate {
         const dt = this.topBoundary() - this.blueprint.template.gridTopVisibilityBoundary();
         const db = this.blueprint.template.gridBottomVisibilityBoundary() - this.bottomBoundary();
         let avgY = Math.max((dt + db) / 2, minMargin);
-        const delta = [dl - avgX, dt - avgY];
-        this.blueprint.scrollDelta(delta, true);
+        this.blueprint.scrollDelta(dl - avgX, dt - avgY, true);
     }
 }
 
@@ -5502,7 +5547,7 @@ class IResizeableTemplate extends NodeTemplate {
                 onDrag: (location, movement) => {
                     movement[1] = location[1] - this.element.topBoundary();
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]], false);
+                        this.element.addLocation(0, movement[1], false);
                     }
                 },
                 onEndDrag: () => this.endResize(),
@@ -5525,7 +5570,7 @@ class IResizeableTemplate extends NodeTemplate {
                 onDrag: (location, movement) => {
                     movement[0] = location[0] - this.element.leftBoundary();
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0], false);
+                        this.element.addLocation(movement[0], 0, false);
                     }
                 },
                 onEndDrag: () => this.endResize(),
@@ -5536,7 +5581,7 @@ class IResizeableTemplate extends NodeTemplate {
                     movement[1] = location[1] - this.element.topBoundary();
                     this.setSizeX(this.element.sizeX + movement[0]);
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]], false);
+                        this.element.addLocation(0, movement[1], false);
                     }
                 },
                 onEndDrag: () => this.endResize(),
@@ -5555,7 +5600,7 @@ class IResizeableTemplate extends NodeTemplate {
                     movement[0] = location[0] - this.element.leftBoundary();
                     movement[1] = location[1] - this.element.bottomBoundary();
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0], false);
+                        this.element.addLocation(movement[0], 0, false);
                     }
                     this.setSizeY(this.element.sizeY + movement[1]);
                 },
@@ -5566,10 +5611,10 @@ class IResizeableTemplate extends NodeTemplate {
                     movement[0] = location[0] - this.element.leftBoundary();
                     movement[1] = location[1] - this.element.topBoundary();
                     if (this.setSizeX(this.element.sizeX - movement[0])) {
-                        this.element.addLocation([movement[0], 0], false);
+                        this.element.addLocation(movement[0], 0, false);
                     }
                     if (this.setSizeY(this.element.sizeY - movement[1])) {
-                        this.element.addLocation([0, movement[1]], false);
+                        this.element.addLocation(0, movement[1], false);
                     }
                 },
                 onEndDrag: () => this.endResize(),
@@ -5707,8 +5752,9 @@ class CommentNodeTemplate extends IResizeableTemplate {
 }
 
 /**
- * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
+ * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
  * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
  */
 
 /**
@@ -5728,7 +5774,8 @@ class ISelectableDraggableElement extends IDraggableElement {
         },
     }
 
-    dragHandler = e => this.addLocation(e.detail.value)
+    /** @param {DragEvent} e */
+    dragHandler = e => this.addLocation(...e.detail.value)
 
     constructor() {
         super();
@@ -5797,7 +5844,7 @@ class MouseCreateLink extends IMouseClickDrag {
                     this.link.setMessageDirectionsIncompatible();
                 } else if (a.isOutput() == b.isOutput()) {
                     this.link.setMessageDirectionsIncompatible();
-                } else if (this.blueprint.getLinks([a, b]).length) {
+                } else if (this.blueprint.getLinks(a, b).length) {
                     this.link.setMessageReplaceLink();
                     this.linkValid = true;
                 } else {
@@ -6063,7 +6110,7 @@ class PinTemplate extends ITemplate {
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
             this.blueprint.template.gridElement
         );
-        return this.blueprint.compensateTranslation(location)
+        return this.blueprint.compensateTranslation(location[0], location[1])
     }
 
     getClickableElement() {
@@ -6093,7 +6140,7 @@ class KnotPinTemplate extends PinTemplate {
             ],
             this.blueprint.template.gridElement
         );
-        return this.blueprint.compensateTranslation(location)
+        return this.blueprint.compensateTranslation(location[0], location[1])
     }
 }
 
@@ -6205,6 +6252,7 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 }
 
 /**
+ * @typedef {import("./IDraggableElement").DragEvent} DragEvent
  * @typedef {import("./IElement").default} IElement
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {typeof NodeElement} NodeElementConstructor
@@ -6212,9 +6260,6 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 class NodeElement extends ISelectableDraggableElement {
-
-    static #typeTemplateMap = {
-    }
 
     static properties = {
         ...ISelectableDraggableElement.properties,
@@ -6275,12 +6320,13 @@ class NodeElement extends ISelectableDraggableElement {
     /** @type {NodeElement[]} */
     boundComments = []
     #commentDragged = false
+    /** @param {DragEvent} e */
     #commentDragHandler = e => {
         // If selected, it will already drag, also must check if under nested comments, it must drag just once
         if (!this.selected && !this.#commentDragged) {
             this.#commentDragged = true;
             this.addNextUpdatedCallbacks(() => this.#commentDragged = false);
-            this.addLocation(e.detail.value);
+            this.addLocation(...e.detail.value);
         }
     }
 
@@ -6351,7 +6397,7 @@ class NodeElement extends ISelectableDraggableElement {
         this.nodeDisplayName = this.getNodeDisplayName();
         this.pureFunction = this.entity.bIsPureFunc;
         this.dragLinkObjects = [];
-        super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value]);
+        super.setLocation(this.entity.NodePosX.value, this.entity.NodePosY.value);
         if (this.entity.NodeWidth && this.entity.NodeHeight) {
             this.sizeX = this.entity.NodeWidth.value;
             this.sizeY = this.entity.NodeHeight.value;
@@ -6509,10 +6555,10 @@ class NodeElement extends ISelectableDraggableElement {
         return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
-    setLocation(value = [0, 0], acknowledge = true) {
-        this.entity.NodePosX.value = value[0];
-        this.entity.NodePosY.value = value[1];
-        super.setLocation(value, acknowledge);
+    setLocation(x = 0, y = 0, acknowledge = true) {
+        this.entity.NodePosX.value = x;
+        this.entity.NodePosY.value = y;
+        super.setLocation(x, y, acknowledge);
     }
 
     acknowledgeDelete() {
@@ -6648,30 +6694,32 @@ class Blueprint extends IElement {
         return [this.scrollX, this.scrollY]
     }
 
-    /** @param {Number[]} param0 */
-    setScroll([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    setScroll(x, y) {
         this.scrollX = x;
         this.scrollY = y;
     }
 
-    /** @param {Number[]} delta */
-    scrollDelta(delta, smooth = false) {
+    scrollDelta(x = 0, y = 0, smooth = false) {
         if (smooth) {
             let previousScrollDelta = [0, 0];
-            Utility.animate(0, delta[0], Configuration.smoothScrollTime, x => {
-                this.scrollDelta([x - previousScrollDelta[0], 0], false);
+            Utility.animate(0, x, Configuration.smoothScrollTime, x => {
+                this.scrollDelta(x - previousScrollDelta[0], 0, false);
                 previousScrollDelta[0] = x;
             });
-            Utility.animate(0, delta[1], Configuration.smoothScrollTime, y => {
-                this.scrollDelta([0, y - previousScrollDelta[1]], false);
+            Utility.animate(0, y, Configuration.smoothScrollTime, y => {
+                this.scrollDelta(0, y - previousScrollDelta[1], false);
                 previousScrollDelta[1] = y;
             });
         } else {
             const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
             let currentScroll = this.getScroll();
             let finalScroll = [
-                currentScroll[0] + delta[0],
-                currentScroll[1] + delta[1]
+                currentScroll[0] + x,
+                currentScroll[1] + y
             ];
             let expand = [0, 0];
             for (let i = 0; i < 2; ++i) {
@@ -6687,14 +6735,14 @@ class Blueprint extends IElement {
                 }
             }
             if (expand[0] != 0 || expand[1] != 0) {
-                this.seamlessExpand(expand);
+                this.seamlessExpand(expand[0], expand[1]);
             }
             currentScroll = this.getScroll();
             finalScroll = [
-                currentScroll[0] + delta[0],
-                currentScroll[1] + delta[1]
+                currentScroll[0] + x,
+                currentScroll[1] + y
             ];
-            this.setScroll(finalScroll);
+            this.setScroll(finalScroll[0], finalScroll[1]);
         }
     }
 
@@ -6709,7 +6757,7 @@ class Blueprint extends IElement {
             offset[0] - targetOffset[0],
             offset[1] - targetOffset[1]
         ];
-        this.scrollDelta(deltaOffset, true);
+        this.scrollDelta(deltaOffset[0], deltaOffset[1], true);
     }
 
     getViewportSize() {
@@ -6726,12 +6774,19 @@ class Blueprint extends IElement {
         ]
     }
 
-    snapToGrid(location) {
-        return Utility.snapToGrid(location, Configuration.gridSize)
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    snapToGrid(x, y) {
+        return Utility.snapToGrid(x, y, Configuration.gridSize)
     }
 
-    /** @param {Number[]} param0 */
-    seamlessExpand([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    seamlessExpand(x, y) {
         x = Math.round(x);
         y = Math.round(y);
         let scale = this.getScale();
@@ -6768,19 +6823,17 @@ class Blueprint extends IElement {
         this.zoom = zoom;
 
         if (center) {
-            //requestAnimationFrame(_ => {
-                center[0] += this.translateX;
-                center[1] += this.translateY;
-                let relativeScale = this.getScale() / initialScale;
-                let newCenter = [
-                    relativeScale * center[0],
-                    relativeScale * center[1],
-                ];
-                this.scrollDelta([
-                    (newCenter[0] - center[0]) * initialScale,
-                    (newCenter[1] - center[1]) * initialScale,
-                ]);
-            //})
+            center[0] += this.translateX;
+            center[1] += this.translateY;
+            let relativeScale = this.getScale() / initialScale;
+            let newCenter = [
+                relativeScale * center[0],
+                relativeScale * center[1],
+            ];
+            this.scrollDelta(
+                (newCenter[0] - center[0]) * initialScale,
+                (newCenter[1] - center[1]) * initialScale,
+            );
         }
     }
 
@@ -6788,8 +6841,12 @@ class Blueprint extends IElement {
         return Configuration.scale[this.getZoom()]
     }
 
-    /** @param {Number[]} param0 */
-    compensateTranslation([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {[Number, Number]}
+     */
+    compensateTranslation(x, y) {
         x -= this.translateX;
         y -= this.translateY;
         return [x, y]
@@ -6846,11 +6903,11 @@ class Blueprint extends IElement {
     }
 
     /**
-     * Returns the list of links in this blueprint.
-     * @returns {LinkElement[]} Nodes
+     * @param {PinElement?} a
+     * @param {PinElement?} b
      */
-    getLinks([a, b] = []) {
-        if (a == null != b == null) {
+    getLinks(a = null, b = null) {
+        if ((a == null) != (b == null)) {
             const pin = a ?? b;
             return this.links.filter(link => link.sourcePin == pin || link.destinationPin == pin)
         }
@@ -7008,8 +7065,12 @@ class IDraggableControlTemplate extends IDraggableTemplate {
         })
     }
 
-    /**  @param {[Number, Number]} param0 */
-    adjustLocation([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {[Number, Number]}
+     */
+    adjustLocation(x, y) {
         this.locationChangeCallback?.(x, y);
         return [x, y]
     }
@@ -7020,13 +7081,17 @@ class IDraggableControlTemplate extends IDraggableTemplate {
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
 class ColorHandlerTemplate extends IDraggableControlTemplate {
 
-    /**  @param {[Number, Number]} param0 */
-    adjustLocation([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {[Number, Number]}
+     */
+    adjustLocation(x, y) {
         const radius = Math.round(this.movementSpaceSize[0] / 2);
         x = x - radius;
         y = -(y - radius);
-        let [r, theta] = Utility.getPolarCoordinates([x, y]);
-        r = Math.min(r, radius), [x, y] = Utility.getCartesianCoordinates([r, theta]);
+        let [r, theta] = Utility.getPolarCoordinates(x, y);
+        r = Math.min(r, radius), [x, y] = Utility.getCartesianCoordinates(r, theta);
         this.locationChangeCallback?.(x / radius, y / radius);
         x = Math.round(x + radius);
         y = Math.round(-y + radius);
@@ -7055,9 +7120,12 @@ class IDraggableControlElement extends IDraggableElement {
         this.windowElement = this.closest("ueb-window");
     }
 
-    /** @param {Number[]} param0 */
-    setLocation([x, y]) {
-        super.setLocation(this.template.adjustLocation([x, y]));
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    setLocation(x, y) {
+        super.setLocation(...this.template.adjustLocation(x, y));
     }
 }
 
@@ -7083,8 +7151,12 @@ class ColorHandlerElement extends IDraggableControlElement {
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
 class ColorSliderTemplate extends IDraggableControlTemplate {
 
-    /**  @param {[Number, Number]} param0 */
-    adjustLocation([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @return {[Number, Number]}
+     */
+    adjustLocation(x, y) {
         x = Utility.clamp(x, 0, this.movementSpaceSize[0]);
         y = Utility.clamp(y, 0, this.movementSpaceSize[1]);
         this.locationChangeCallback?.(x / this.movementSpaceSize[0], 1 - y / this.movementSpaceSize[1]);
@@ -7653,7 +7725,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
              * @param {Number} y in the range [0, 1]
              */
             (x, y) => {
-                this.color.setFromWheelLocation([x, y], this.color.V.value, this.color.A.value);
+                this.color.setFromWheelLocation(x, y, this.color.V.value, this.color.A.value);
                 this.fullColor.setFromHSVA(this.color.H.value, 1, 1, 1);
                 this.element.requestUpdate();
             };

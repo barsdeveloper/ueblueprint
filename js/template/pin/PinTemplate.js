@@ -105,7 +105,7 @@ export default class PinTemplate extends ITemplate {
             [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
             this.blueprint.template.gridElement
         )
-        return this.blueprint.compensateTranslation(location)
+        return this.blueprint.compensateTranslation(location[0], location[1])
     }
 
     getClickableElement() {

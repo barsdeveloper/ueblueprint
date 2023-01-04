@@ -56,7 +56,6 @@ export default class IDraggableTemplate extends ITemplate {
         const dt = this.topBoundary() - this.blueprint.template.gridTopVisibilityBoundary()
         const db = this.blueprint.template.gridBottomVisibilityBoundary() - this.bottomBoundary()
         let avgY = Math.max((dt + db) / 2, minMargin)
-        const delta = [dl - avgX, dt - avgY]
-        this.blueprint.scrollDelta(delta, true)
+        this.blueprint.scrollDelta(dl - avgX, dt - avgY, true)
     }
 }

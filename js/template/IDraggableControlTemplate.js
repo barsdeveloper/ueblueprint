@@ -47,8 +47,12 @@ export default class IDraggableControlTemplate extends IDraggableTemplate {
         })
     }
 
-    /**  @param {[Number, Number]} param0 */
-    adjustLocation([x, y]) {
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {[Number, Number]}
+     */
+    adjustLocation(x, y) {
         this.locationChangeCallback?.(x, y)
         return [x, y]
     }

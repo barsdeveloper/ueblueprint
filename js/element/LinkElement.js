@@ -6,6 +6,7 @@ import SVGIcon from "../SVGIcon"
 import Utility from "../Utility"
 
 /**
+ * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {import("lit").TemplateResult<1>} TemplateResult
  * @typedef {typeof LinkElement} LinkElementConstructor
@@ -67,8 +68,10 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     #nodeDeleteHandler = () => this.remove()
-    #nodeDragSourceHandler = e => this.addSourceLocation(e.detail.value)
-    #nodeDragDestinatonHandler = e => this.addDestinationLocation(e.detail.value)
+    /** @param {DragEvent} e */
+    #nodeDragSourceHandler = e => this.addSourceLocation(...e.detail.value)
+    /** @param {DragEvent} e */
+    #nodeDragDestinatonHandler = e => this.addDestinationLocation(...e.detail.value)
     #nodeReflowSourceHandler = e => this.setSourceLocation()
     #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
 

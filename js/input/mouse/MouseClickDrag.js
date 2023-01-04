@@ -30,8 +30,9 @@ export default class MouseClickDrag extends MouseMoveDraggable {
         }
     }
 
-    clicked() {
-        super.clicked()
+    /** @param {[Number, Number]} location */
+    clicked(location) {
+        super.clicked(location)
         this.#onClicked?.()
     }
 

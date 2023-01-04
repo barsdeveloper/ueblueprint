@@ -14,6 +14,7 @@ import VariableConversionNodeTemplate from "../template/node/VariableConversionN
 import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate"
 
 /**
+ * @typedef {import("./IDraggableElement").DragEvent} DragEvent
  * @typedef {import("./IElement").default} IElement
  * @typedef {import("./PinElement").default} PinElement
  * @typedef {typeof NodeElement} NodeElementConstructor
@@ -21,9 +22,6 @@ import VariableOperationNodeTemplate from "../template/node/VariableOperationNod
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 export default class NodeElement extends ISelectableDraggableElement {
-
-    static #typeTemplateMap = {
-    }
 
     static properties = {
         ...ISelectableDraggableElement.properties,
@@ -84,12 +82,13 @@ export default class NodeElement extends ISelectableDraggableElement {
     /** @type {NodeElement[]} */
     boundComments = []
     #commentDragged = false
+    /** @param {DragEvent} e */
     #commentDragHandler = e => {
         // If selected, it will already drag, also must check if under nested comments, it must drag just once
         if (!this.selected && !this.#commentDragged) {
             this.#commentDragged = true
             this.addNextUpdatedCallbacks(() => this.#commentDragged = false)
-            this.addLocation(e.detail.value)
+            this.addLocation(...e.detail.value)
         }
     }
 
@@ -160,7 +159,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.nodeDisplayName = this.getNodeDisplayName()
         this.pureFunction = this.entity.bIsPureFunc
         this.dragLinkObjects = []
-        super.setLocation([this.entity.NodePosX.value, this.entity.NodePosY.value])
+        super.setLocation(this.entity.NodePosX.value, this.entity.NodePosY.value)
         if (this.entity.NodeWidth && this.entity.NodeHeight) {
             this.sizeX = this.entity.NodeWidth.value
             this.sizeY = this.entity.NodeHeight.value
@@ -318,10 +317,10 @@ export default class NodeElement extends ISelectableDraggableElement {
         return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
-    setLocation(value = [0, 0], acknowledge = true) {
-        this.entity.NodePosX.value = value[0]
-        this.entity.NodePosY.value = value[1]
-        super.setLocation(value, acknowledge)
+    setLocation(x = 0, y = 0, acknowledge = true) {
+        this.entity.NodePosX.value = x
+        this.entity.NodePosY.value = y
+        super.setLocation(x, y, acknowledge)
     }
 
     acknowledgeDelete() {

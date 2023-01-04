@@ -63,12 +63,12 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
 
     static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
 
-    /** @type {(location: Number[]) => void} */
+    /** @param {[Number, Number]} location */
     #createKnot = location => {
         const knotEntity = new KnotEntity({}, this.element.sourcePin.entity)
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
             .newObject(knotEntity)
-        knot.setLocation(this.blueprint.snapToGrid(location))
+        knot.setLocation(...this.blueprint.snapToGrid(...location))
         this.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(
@@ -86,7 +86,8 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
                 this.element.querySelector(".ueb-link-area"),
                 this.blueprint,
                 undefined,
-                (location) => this.#createKnot(location)
+                /** @param {[Number, Number]} location */
+                location => this.#createKnot(location)
             )
         ]
     }

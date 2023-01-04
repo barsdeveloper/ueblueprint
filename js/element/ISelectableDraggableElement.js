@@ -3,8 +3,9 @@ import Utility from "../Utility"
 import IDraggableElement from "./IDraggableElement"
 
 /**
- * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
+ * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
  * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
  */
 
 /**
@@ -24,7 +25,8 @@ export default class ISelectableDraggableElement extends IDraggableElement {
         },
     }
 
-    dragHandler = e => this.addLocation(e.detail.value)
+    /** @param {DragEvent} e */
+    dragHandler = e => this.addLocation(...e.detail.value)
 
     constructor() {
         super()
