@@ -131,6 +131,28 @@ export default class Configuration {
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
+    static scale = {
+        [-12]: 0.133333,
+        [-11]: 0.166666,
+        [-10]: 0.2,
+        [-9]: 0.233333,
+        [-8]: 0.266666,
+        [-7]: 0.3,
+        [-6]: 0.333333,
+        [-5]: 0.375,
+        [-4]: 0.5,
+        [-3]: 0.675,
+        [-2]: 0.75,
+        [-1]: 0.875,
+        0: 1,
+        1: 1.25,
+        2: 1.375,
+        3: 1.5,
+        4: 1.675,
+        5: 1.75,
+        6: 1.875,
+        7: 2,
+    }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
     static trackingMouseEventName = {

@@ -155,6 +155,7 @@ export default class BlueprintTemplate extends ITemplate {
             this.viewportElement.scroll(this.element.scrollX, this.element.scrollY)
         }
         if (changedProperties.has("zoom")) {
+            this.element.style.setProperty("--ueb-scale", this.blueprint.getScale())
             const previousZoom = changedProperties.get("zoom")
             const minZoom = Math.min(previousZoom, this.element.zoom)
             const maxZoom = Math.max(previousZoom, this.element.zoom)

@@ -95,92 +95,16 @@ ueb-blueprint[data-scrolling=false] .ueb-grid {
   cursor: default;
 }
 
-ueb-blueprint[data-zoom="7"] {
-  --ueb-scale: 2;
-}
-
-ueb-blueprint[data-zoom="6"] {
-  --ueb-scale: 1.875;
-}
-
-ueb-blueprint[data-zoom="5"] {
-  --ueb-scale: 1.75;
-}
-
-ueb-blueprint[data-zoom="4"] {
-  --ueb-scale: 1.675;
-}
-
-ueb-blueprint[data-zoom="3"] {
-  --ueb-scale: 1.5;
-}
-
-ueb-blueprint[data-zoom="2"] {
-  --ueb-scale: 1.375;
-}
-
-ueb-blueprint[data-zoom="1"] {
-  --ueb-scale: 1.25;
-}
-
-ueb-blueprint[data-zoom="-1"] {
-  --ueb-scale: 0.875;
-}
-
-ueb-blueprint[data-zoom="-2"] {
-  --ueb-scale: 0.75;
-}
-
-ueb-blueprint[data-zoom="-3"] {
-  --ueb-scale: 0.675;
-}
-
-ueb-blueprint[data-zoom="-4"] {
-  --ueb-scale: 0.5;
-  --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
-}
-
 ueb-blueprint.ueb-zoom--4 {
+  --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
   --ueb-node-radius: 0 !important;
 }
 
-ueb-blueprint[data-zoom="-5"] {
-  --ueb-scale: 0.375;
-  --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 2);
-}
-
-ueb-blueprint[data-zoom="-6"] {
-  --ueb-scale: 0.333333;
+ueb-blueprint.ueb-zoom--6 {
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
 }
 
-ueb-blueprint[data-zoom="-7"] {
-  --ueb-scale: 0.3;
-  --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
-}
-
-ueb-blueprint[data-zoom="-8"] {
-  --ueb-scale: 0.266666;
-  --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
-}
-
-ueb-blueprint[data-zoom="-9"] {
-  --ueb-scale: 0.233333;
-  --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
-}
-
-ueb-blueprint[data-zoom="-10"] {
-  --ueb-scale: 0.2;
-  --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 3);
-}
-
-ueb-blueprint[data-zoom="-11"] {
-  --ueb-scale: 0.166666;
-  --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
-}
-
-ueb-blueprint[data-zoom="-12"] {
-  --ueb-scale: 0.133333;
+ueb-blueprint.ueb-zoom--11 {
   --ueb-grid-actual-size: calc(var(--ueb-grid-size) * 6);
 }
 

@@ -205,7 +205,7 @@ export default class Utility {
             }
             targetType = type
         }
-        if (targetType && !Utility.isValueOfType(value, targetType)) {
+        if (targetType && !Utility.isValueOfType(value, targetType, true)) {
             value = targetType === BigInt
                 ? BigInt(value)
                 : new targetType(value)

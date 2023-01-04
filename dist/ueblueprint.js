@@ -155,6 +155,28 @@ class Configuration {
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
+    static scale = {
+        [-12]: 0.133333,
+        [-11]: 0.166666,
+        [-10]: 0.2,
+        [-9]: 0.233333,
+        [-8]: 0.266666,
+        [-7]: 0.3,
+        [-6]: 0.333333,
+        [-5]: 0.375,
+        [-4]: 0.5,
+        [-3]: 0.675,
+        [-2]: 0.75,
+        [-1]: 0.875,
+        0: 1,
+        1: 1.25,
+        2: 1.375,
+        3: 1.5,
+        4: 1.675,
+        5: 1.75,
+        6: 1.875,
+        7: 2,
+    }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
     static trackingMouseEventName = {
@@ -599,7 +621,7 @@ class Utility {
             }
             targetType = type;
         }
-        if (targetType && !Utility.isValueOfType(value, targetType)) {
+        if (targetType && !Utility.isValueOfType(value, targetType, true)) {
             value = targetType === BigInt
                 ? BigInt(value)
                 : new targetType(value);
@@ -736,7 +758,7 @@ class Utility {
      * @param {Number} begin
      * @param {Number} end
      */
-    static range(begin, end, step = 1) {
+    static range(begin = 0, end = 0, step = end >= begin ? 1 : -1) {
         return Array.from({ length: Math.ceil((end - begin) / step) }, (_, i) => begin + (i * step))
     }
 
@@ -4126,6 +4148,7 @@ class BlueprintTemplate extends ITemplate {
             this.viewportElement.scroll(this.element.scrollX, this.element.scrollY);
         }
         if (changedProperties.has("zoom")) {
+            this.element.style.setProperty("--ueb-scale", this.blueprint.getScale());
             const previousZoom = changedProperties.get("zoom");
             const minZoom = Math.min(previousZoom, this.element.zoom);
             const maxZoom = Math.max(previousZoom, this.element.zoom);
@@ -6745,7 +6768,7 @@ class Blueprint extends IElement {
         this.zoom = zoom;
 
         if (center) {
-            requestAnimationFrame(_ => {
+            //requestAnimationFrame(_ => {
                 center[0] += this.translateX;
                 center[1] += this.translateY;
                 let relativeScale = this.getScale() / initialScale;
@@ -6757,12 +6780,12 @@ class Blueprint extends IElement {
                     (newCenter[0] - center[0]) * initialScale,
                     (newCenter[1] - center[1]) * initialScale,
                 ]);
-            });
+            //})
         }
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.template.gridElement).getPropertyValue("--ueb-scale"))
+        return Configuration.scale[this.getZoom()]
     }
 
     /** @param {Number[]} param0 */

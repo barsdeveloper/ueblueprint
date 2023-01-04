@@ -237,7 +237,7 @@ export default class Blueprint extends IElement {
         this.zoom = zoom
 
         if (center) {
-            requestAnimationFrame(_ => {
+            //requestAnimationFrame(_ => {
                 center[0] += this.translateX
                 center[1] += this.translateY
                 let relativeScale = this.getScale() / initialScale
@@ -249,12 +249,12 @@ export default class Blueprint extends IElement {
                     (newCenter[0] - center[0]) * initialScale,
                     (newCenter[1] - center[1]) * initialScale,
                 ])
-            })
+            //})
         }
     }
 
     getScale() {
-        return parseFloat(getComputedStyle(this.template.gridElement).getPropertyValue("--ueb-scale"))
+        return Configuration.scale[this.getZoom()]
     }
 
     /** @param {Number[]} param0 */
