@@ -18,6 +18,10 @@ export default class VariableReferenceEntity extends IEntity {
         },
     }
 
+    static {
+        this.cleanupAttributes(this.attributes)
+    }
+
     constructor(values) {
         super(values)
         /** @type {String} */ this.MemberName

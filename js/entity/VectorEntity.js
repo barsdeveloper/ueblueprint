@@ -8,6 +8,10 @@ export default class VectorEntity extends IEntity {
         Z: 0,
     }
 
+    static {
+        this.cleanupAttributes(this.attributes)
+    }
+
     constructor(values) {
         super(values)
         /** @type {Number} */ this.X

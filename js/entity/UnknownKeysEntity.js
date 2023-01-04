@@ -11,6 +11,10 @@ export default class UnknownKeysEntity extends IEntity {
         },
     }
 
+    static {
+        this.cleanupAttributes(this.attributes)
+    }
+
     constructor(values) {
         super(values)
         /** @type {String} */ this.lookbehind

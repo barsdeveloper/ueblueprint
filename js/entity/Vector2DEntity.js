@@ -7,6 +7,10 @@ export default class Vector2DEntity extends IEntity {
         Y: 0,
     }
 
+    static {
+        this.cleanupAttributes(this.attributes)
+    }
+
     constructor(values) {
         super(values)
         /** @type {Number} */ this.X
