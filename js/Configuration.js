@@ -17,7 +17,7 @@ export default class Configuration {
         "bool": css`117, 0, 0`,
         "byte": css`0, 110, 98`,
         "class": css`88, 0, 186`,
-        "default": css`167, 167, 167`,
+        "default": css`255, 255, 255`,
         "exec": css`240, 240, 240`,
         "int": css`32, 224, 173`,
         "int64": css`170, 224, 172`,
@@ -41,6 +41,7 @@ export default class Configuration {
         end: "ueb-edit-text-end",
     }
     static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    static epsilon = 1e-8
     static expandGridSize = 400
     static focusEventName = {
         begin: "blueprint-focus",

@@ -1,4 +1,6 @@
+import Configuration from "./Configuration"
 import SubAttributesDeclaration from "./entity/SubObject"
+import UnionType from "./entity/UnionType"
 
 /**
  * @typedef {import("./element/IElement").default} IElement
@@ -33,7 +35,7 @@ export default class Utility {
         return 1 / (1 + (x / (1 - x) ** -curvature))
     }
 
-    static clamp(val, min, max) {
+    static clamp(val, min = -Infinity, max = Infinity) {
         return Math.min(Math.max(val, min), max)
     }
 
@@ -53,7 +55,7 @@ export default class Utility {
      */
     static minDecimals(num, decimals = 1) {
         const powered = num * 10 ** decimals
-        if (Math.abs(powered % 1) > Number.EPSILON) {
+        if (Math.abs(powered % 1) > Configuration.epsilon) {
             // More decimal digits than required
             return num.toString()
         }
@@ -74,7 +76,7 @@ export default class Utility {
      * @param {Number} b
      */
     static approximatelyEqual(a, b) {
-        return !(Math.abs(a - b) > Number.EPSILON)
+        return !(Math.abs(a - b) > Configuration.epsilon)
     }
 
     /**
@@ -157,12 +159,18 @@ export default class Utility {
     static equals(a, b) {
         a = Utility.sanitize(a)
         b = Utility.sanitize(b)
+        if (a?.constructor === BigInt && b?.constructor === Number) {
+            b = BigInt(b)
+        } else if (a?.constructor === Number && b?.constructor === BigInt) {
+            a = BigInt(a)
+        }
         if (a === b) {
             return true
         }
         if (a instanceof Array && b instanceof Array) {
             return a.length == b.length && !a.find((value, i) => !Utility.equals(value, b[i]))
         }
+        return false
     }
 
     /** 
@@ -184,16 +192,16 @@ export default class Utility {
      * @param {AnyValue} value
      * @param {AnyValueConstructor} type
      */
-    static isValueOfType(value, type) {
-        return value === null || (value instanceof type || value.constructor === type)
+    static isValueOfType(value, type, acceptNull = false) {
+        return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 
     /** @param {AnyValue} value */
     static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
-        if (targetType instanceof Array) {
-            let type = targetType.find(t => Utility.isValueOfType(value, t))
+        if (targetType instanceof UnionType) {
+            let type = targetType.types.find(t => Utility.isValueOfType(value, t, false))
             if (!type) {
-                type = targetType[0]
+                type = targetType.getFirstType()
             }
             targetType = type
         }
@@ -232,22 +240,25 @@ export default class Utility {
         a = [...a]
         b = [...b]
         restart:
-        for (let j = 0; j < b.length; ++j) {
-            for (let i = 0; i < a.length; ++i) {
-                if (a[i] == b[j]) {
-                    // Found an element in common in the two arrays
-                    result.push(
-                        // Take and append all the elements skipped from a
-                        ...a.splice(0, i),
-                        // Take and append all the elements skippend from b
-                        ...b.splice(0, j),
-                        // Take and append the element in common
-                        ...a.splice(0, 1)
-                    )
-                    b.shift() // Remove the same element from b
-                    break restart
+        while (true) {
+            for (let j = 0; j < b.length; ++j) {
+                for (let i = 0; i < a.length; ++i) {
+                    if (a[i] == b[j]) {
+                        // Found an element in common in the two arrays
+                        result.push(
+                            // Take and append all the elements skipped from a
+                            ...a.splice(0, i),
+                            // Take and append all the elements skippend from b
+                            ...b.splice(0, j),
+                            // Take and append the element in common
+                            ...a.splice(0, 1)
+                        )
+                        b.shift() // Remove the same element from b
+                        continue restart
+                    }
                 }
             }
+            break restart
         }
         // Append remaining the elements in the arrays and make it unique
         return [...(new Set(result.concat(...a, ...b)))]
@@ -331,7 +342,7 @@ export default class Utility {
      * @param {Number} begin
      * @param {Number} end
      */
-    static range(begin, end, step = 1) {
+    static range(begin = 0, end = 0, step = end >= begin ? 1 : -1) {
         return Array.from({ length: Math.ceil((end - begin) / step) }, (_, i) => begin + (i * step))
     }
 

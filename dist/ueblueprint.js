@@ -41,7 +41,7 @@ class Configuration {
         "bool": i$3`117, 0, 0`,
         "byte": i$3`0, 110, 98`,
         "class": i$3`88, 0, 186`,
-        "default": i$3`167, 167, 167`,
+        "default": i$3`255, 255, 255`,
         "exec": i$3`240, 240, 240`,
         "int": i$3`32, 224, 173`,
         "int64": i$3`170, 224, 172`,
@@ -65,6 +65,7 @@ class Configuration {
         end: "ueb-edit-text-end",
     }
     static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    static epsilon = 1e-8
     static expandGridSize = 400
     static focusEventName = {
         begin: "blueprint-focus",
@@ -428,7 +429,7 @@ class Utility {
         return 1 / (1 + (x / (1 - x) ** -curvature))
     }
 
-    static clamp(val, min, max) {
+    static clamp(val, min = -Infinity, max = Infinity) {
         return Math.min(Math.max(val, min), max)
     }
 
@@ -448,7 +449,7 @@ class Utility {
      */
     static minDecimals(num, decimals = 1) {
         const powered = num * 10 ** decimals;
-        if (Math.abs(powered % 1) > Number.EPSILON) {
+        if (Math.abs(powered % 1) > Configuration.epsilon) {
             // More decimal digits than required
             return num.toString()
         }
@@ -469,7 +470,7 @@ class Utility {
      * @param {Number} b
      */
     static approximatelyEqual(a, b) {
-        return !(Math.abs(a - b) > Number.EPSILON)
+        return !(Math.abs(a - b) > Configuration.epsilon)
     }
 
     /**
@@ -552,12 +553,18 @@ class Utility {
     static equals(a, b) {
         a = Utility.sanitize(a);
         b = Utility.sanitize(b);
+        if (a?.constructor === BigInt && b?.constructor === Number) {
+            b = BigInt(b);
+        } else if (a?.constructor === Number && b?.constructor === BigInt) {
+            a = BigInt(a);
+        }
         if (a === b) {
             return true
         }
         if (a instanceof Array && b instanceof Array) {
             return a.length == b.length && !a.find((value, i) => !Utility.equals(value, b[i]))
         }
+        return false
     }
 
     /** 
@@ -579,16 +586,16 @@ class Utility {
      * @param {AnyValue} value
      * @param {AnyValueConstructor} type
      */
-    static isValueOfType(value, type) {
-        return value === null || (value instanceof type || value.constructor === type)
+    static isValueOfType(value, type, acceptNull = false) {
+        return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 
     /** @param {AnyValue} value */
     static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
-        if (targetType instanceof Array) {
-            let type = targetType.find(t => Utility.isValueOfType(value, t));
+        if (targetType instanceof UnionType) {
+            let type = targetType.types.find(t => Utility.isValueOfType(value, t, false));
             if (!type) {
-                type = targetType[0];
+                type = targetType.getFirstType();
             }
             targetType = type;
         }
@@ -627,22 +634,25 @@ class Utility {
         a = [...a];
         b = [...b];
         restart:
-        for (let j = 0; j < b.length; ++j) {
-            for (let i = 0; i < a.length; ++i) {
-                if (a[i] == b[j]) {
-                    // Found an element in common in the two arrays
-                    result.push(
-                        // Take and append all the elements skipped from a
-                        ...a.splice(0, i),
-                        // Take and append all the elements skippend from b
-                        ...b.splice(0, j),
-                        // Take and append the element in common
-                        ...a.splice(0, 1)
-                    );
-                    b.shift(); // Remove the same element from b
-                    break restart
+        while (true) {
+            for (let j = 0; j < b.length; ++j) {
+                for (let i = 0; i < a.length; ++i) {
+                    if (a[i] == b[j]) {
+                        // Found an element in common in the two arrays
+                        result.push(
+                            // Take and append all the elements skipped from a
+                            ...a.splice(0, i),
+                            // Take and append all the elements skippend from b
+                            ...b.splice(0, j),
+                            // Take and append the element in common
+                            ...a.splice(0, 1)
+                        );
+                        b.shift(); // Remove the same element from b
+                        continue restart
+                    }
                 }
             }
+            break restart
         }
         // Append remaining the elements in the arrays and make it unique
         return [...(new Set(result.concat(...a, ...b)))]
@@ -886,9 +896,15 @@ class IEntity {
                                     return this["#" + attributeName]
                                 },
                                 set(v) {
-                                    if (attribute.predicate(v)) {
-                                        this["#" + attributeName] = v;
+                                    if (!attribute.predicate?.(v)) {
+                                        console.warn(
+                                            `UEBlueprint: Tried to assign attribute ${prefix}${attributeName} to `
+                                            + `${this.constructor.name} not satisfying the predicate`
+
+                                        );
+                                        return
                                     }
+                                    this["#" + attributeName] = v;
                                 }
                             },
                         });
@@ -1629,6 +1645,10 @@ class Vector2DEntity extends IEntity {
         Y: 0,
     }
 
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
     constructor(values) {
         super(values);
         /** @type {Number} */ this.X;
@@ -1645,6 +1665,10 @@ class VectorEntity extends IEntity {
         X: 0,
         Y: 0,
         Z: 0,
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {
@@ -1941,6 +1965,10 @@ class VariableReferenceEntity extends IEntity {
         },
     }
 
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
     constructor(values) {
         super(values);
         /** @type {String} */ this.MemberName;
@@ -2189,6 +2217,10 @@ class UnknownKeysEntity extends IEntity {
             showDefault: false,
             ignore: true,
         },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
     }
 
     constructor(values) {

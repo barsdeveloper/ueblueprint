@@ -121,9 +121,15 @@ export default class IEntity {
                                     return this["#" + attributeName]
                                 },
                                 set(v) {
-                                    if (attribute.predicate(v)) {
-                                        this["#" + attributeName] = v
+                                    if (!attribute.predicate?.(v)) {
+                                        console.warn(
+                                            `UEBlueprint: Tried to assign attribute ${prefix}${attributeName} to `
+                                            + `${this.constructor.name} not satisfying the predicate`
+
+                                        )
+                                        return
                                     }
+                                    this["#" + attributeName] = v
                                 }
                             },
                         })

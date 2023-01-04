@@ -58,8 +58,8 @@ export default class ComplexEntity extends IEntity {
         },
         papa: () => new SimpleObject(12, 13),
         quebec: {
-            value: 0, // will assign 1 according to filter
-            filter: v => Utility.clamp(v, 1, 10),
+            value: 0, // will assign undefined because it does not satisfy the predicate
+            predicate: v => v >= 1 && v <= 10,
         },
     }
 

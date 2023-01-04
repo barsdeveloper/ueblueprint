@@ -155,27 +155,28 @@ describe("Entity initialization", () => {
             .which.is.instanceOf(SimpleObject)
             .and.is.deep.equal({ a: 12, b: 13 })
         )
-        it("has quebec, a number between 1 and 10", () => expect(entity)
+        it("has quebec undefined", () => expect(entity)
             .to.have.property("quebec")
-            .which.is.a("number")
-            .and.is.equal(1)
+            .which.is.undefined
         )
         it("quebec can be assigned and it always filtered", () => {
             const entity = new ComplexEntity()
             entity.quebec = 2
-            expect(entity.quebec).to.be.equal(2)
+            expect(entity.quebec, "assigned 2").to.be.equal(2)
             entity["quebec"] = 7
-            expect(entity.quebec).to.be.equal(7)
+            expect(entity.quebec, "assigned 7").to.be.equal(7)
             entity.quebec = 1
-            expect(entity.quebec).to.be.equal(1)
+            expect(entity.quebec, "assigned 1").to.be.equal(1)
             entity["quebec"] = 10
-            expect(entity.quebec).to.be.equal(10)
+            expect(entity.quebec, "assigned 10").to.be.equal(10)
             entity.quebec = 0
-            expect(entity.quebec).to.be.equal(1)
+            expect(entity.quebec, "assigned 0").to.be.equal(10)
             entity["quebec"] = 11
-            expect(entity.quebec).to.be.equal(10)
+            expect(entity.quebec, "assigned 11").to.be.equal(10)
             entity.quebec = -1
-            expect(entity.quebec).to.be.equal(1)
+            expect(entity.quebec, "assigned -1").to.be.equal(10)
+            entity.quebec = 6
+            expect(entity.quebec, "assigned 6").to.be.equal(6)
         })
     })
 })
