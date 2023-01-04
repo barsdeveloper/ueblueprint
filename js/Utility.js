@@ -105,7 +105,7 @@ export default class Utility {
         keys,
         attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
     ) {
-        if (attribute.constructor === Object) {
+        if (attribute?.constructor === Object) {
             return /** @type {TypeInformation} */(attribute).serialized
         }
         return false

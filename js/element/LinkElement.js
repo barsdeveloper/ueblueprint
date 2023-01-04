@@ -230,8 +230,8 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     removeMessage() {
-        this.linkMessageIcon = ""
-        this.linkMessageText = ""
+        this.linkMessageIcon = nothing
+        this.linkMessageText = nothing
     }
 
     setMessageConvertType() {

@@ -25,7 +25,8 @@ import Utility from "../Utility"
 
 /**
  * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor 
+ *     | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
 export default class IEntity {
@@ -53,6 +54,12 @@ export default class IEntity {
                 let value = Utility.objectGet(values, [attributeName])
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName]
+
+                if (!attribute) {
+                    // Remember attributeName can come from the values and be not defined in the attributes
+                    target[attributeName] = value
+                    continue
+                }
 
                 if (attribute instanceof SubAttributesDeclaration) {
                     target[attributeName] = {}

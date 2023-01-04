@@ -127,7 +127,7 @@ export default class ISerializer {
     showProperty(entity, object, attributeKey, attributeValue) {
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes
         const attribute = Utility.objectGet(attributes, attributeKey)
-        if (attribute.constructor === Object) {
+        if (attribute?.constructor === Object) {
             if (attribute.ignored) {
                 return false
             }

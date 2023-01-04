@@ -521,7 +521,7 @@ class Utility {
         keys,
         attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
     ) {
-        if (attribute.constructor === Object) {
+        if (attribute?.constructor === Object) {
             return /** @type {TypeInformation} */(attribute).serialized
         }
         return false
@@ -834,7 +834,8 @@ class Utility {
 
 /**
  * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor 
+ *     | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
 class IEntity {
@@ -862,6 +863,12 @@ class IEntity {
                 let value = Utility.objectGet(values, [attributeName]);
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName];
+
+                if (!attribute) {
+                    // Remember attributeName can come from the values and be not defined in the attributes
+                    target[attributeName] = value;
+                    continue
+                }
 
                 if (attribute instanceof SubAttributesDeclaration) {
                     target[attributeName] = {};
@@ -1794,6 +1801,7 @@ class PinEntity extends IEntity {
         DefaultValue: {
             /** @param {PinEntity} pinEntity */
             type: pinEntity => pinEntity.getEntityType(true) ?? String,
+            nullable: true,
             serialized: true,
             showDefault: false,
         },
@@ -2271,7 +2279,10 @@ class UnknownKeysEntity extends IEntity {
 
 // @ts-nocheck
 
-/** @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation */
+/**
+ * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
+ * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
+ */
 
 let P = Parsimmon;
 
@@ -2392,17 +2403,21 @@ class Grammar {
                 // Once the attribute name is known, look into entityType.attributes to get its type
                 const attributeKey = attributeName.split(".");
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey);
-                let attributeValueGrammar =
-                    attribute.constructor === Object && /** @type {AttributeInformation} */(attribute).serialized
+                const attributeValueGrammar = attribute // Remember attributeKey can not correspond to any attribute
+                    ? attribute.constructor === Object && /** @type {AttributeInformation} */(attribute).serialized
                         ? r.String
-                        : Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue);
+                        : Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
+                    : r.AttributeAnyValue;
                 // Returns a setter function for the attribute
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
                 )
             })
 
-    /** @param {Grammar} r */
+    /**
+     * @param {Grammar} r
+     * @param {EntityConstructor}
+     */
     static createEntityGrammar = (r, entityType, limitUnknownKeys = false) =>
         P.seqMap(
             entityType.lookbehind
@@ -2423,10 +2438,9 @@ class Grammar {
             .chain(values => {
                 if (limitUnknownKeys) {
                     let unexpectedKeysCount = 0;
-                    let totalKeys = 0;
+                    let totalKeys = Object.keys(values);
                     for (const key in values) {
                         unexpectedKeysCount += key in entityType.attributes ? 0 : 1;
-                        ++totalKeys;
                     }
                     if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
                         return P.fail()
@@ -2918,7 +2932,7 @@ class ISerializer {
     showProperty(entity, object, attributeKey, attributeValue) {
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes;
         const attribute = Utility.objectGet(attributes, attributeKey);
-        if (attribute.constructor === Object) {
+        if (attribute?.constructor === Object) {
             if (attribute.ignored) {
                 return false
             }
@@ -2927,8 +2941,6 @@ class ISerializer {
         return true
     }
 }
-
-/** @typedef {import("../element/NodeElement").default} NodeElement */
 
 class ObjectSerializer extends ISerializer {
 
@@ -2958,7 +2970,7 @@ class ObjectSerializer extends ISerializer {
 
     /**
      * @param {String} value
-     * @returns {NodeElement[]}
+     * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
         const parseResult = ISerializer.grammar.MultipleObject.parse(value);
@@ -3914,7 +3926,7 @@ class ElementFactory {
 }
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
+ * @typedef {import("../../entity/ObjectEntity").default} ObjectEntity
  * @typedef {import("../../element/NodeElement").NodeElementConstructor} NodeElementConstructor
  */
 
@@ -3947,7 +3959,6 @@ class Paste extends IInput {
         let left = 0;
         let count = 0;
         let nodes = Paste.#serializer.readMultiple(value).map(entity => {
-            /** @type {NodeElement} */
             let node = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
                 .newObject(entity);
             top += node.locationY;
@@ -5011,8 +5022,8 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     removeMessage() {
-        this.linkMessageIcon = "";
-        this.linkMessageText = "";
+        this.linkMessageIcon = b;
+        this.linkMessageText = b;
     }
 
     setMessageConvertType() {

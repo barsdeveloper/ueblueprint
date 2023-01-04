@@ -3,8 +3,6 @@ import ObjectEntity from "../entity/ObjectEntity"
 import PinEntity from "../entity/PinEntity"
 import SerializerFactory from "./SerializerFactory"
 
-/** @typedef {import("../element/NodeElement").default} NodeElement */
-
 export default class ObjectSerializer extends ISerializer {
 
     constructor() {
@@ -33,7 +31,7 @@ export default class ObjectSerializer extends ISerializer {
 
     /**
      * @param {String} value
-     * @returns {NodeElement[]}
+     * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
         const parseResult = ISerializer.grammar.MultipleObject.parse(value)

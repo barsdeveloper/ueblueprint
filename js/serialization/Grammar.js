@@ -29,7 +29,10 @@ import VariableReferenceEntity from "../entity/VariableReferenceEntity"
 import Vector2DEntity from "../entity/Vector2DEntity"
 import VectorEntity from "../entity/VectorEntity"
 
-/** @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation */
+/**
+ * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
+ * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
+ */
 
 let P = Parsimmon
 
@@ -150,17 +153,21 @@ export default class Grammar {
                 // Once the attribute name is known, look into entityType.attributes to get its type
                 const attributeKey = attributeName.split(".")
                 const attribute = Utility.objectGet(entityType.attributes, attributeKey)
-                let attributeValueGrammar =
-                    attribute.constructor === Object && /** @type {AttributeInformation} */(attribute).serialized
+                const attributeValueGrammar = attribute // Remember attributeKey can not correspond to any attribute
+                    ? attribute.constructor === Object && /** @type {AttributeInformation} */(attribute).serialized
                         ? r.String
                         : Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
+                    : r.AttributeAnyValue
                 // Returns a setter function for the attribute
                 return attributeValueGrammar.map(attributeValue =>
                     entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
                 )
             })
 
-    /** @param {Grammar} r */
+    /**
+     * @param {Grammar} r
+     * @param {EntityConstructor}
+     */
     static createEntityGrammar = (r, entityType, limitUnknownKeys = false) =>
         P.seqMap(
             entityType.lookbehind
@@ -181,10 +188,9 @@ export default class Grammar {
             .chain(values => {
                 if (limitUnknownKeys) {
                     let unexpectedKeysCount = 0
-                    let totalKeys = 0
+                    let totalKeys = Object.keys(values)
                     for (const key in values) {
                         unexpectedKeysCount += key in entityType.attributes ? 0 : 1
-                        ++totalKeys
                     }
                     if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
                         return P.fail()
