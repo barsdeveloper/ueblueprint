@@ -4,10 +4,5 @@ import VariableManagementNodeTemplate from "./VariableMangementNodeTemplate"
 
 export default class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
 
-
-    /** @param {NodeElement} element */
-    initialize(element) {
-        super.initialize(element)
-        this.element.classList.add("ueb-node-style-operation")
-    }
+    static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-operation"]
 }

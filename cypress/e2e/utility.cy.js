@@ -2,7 +2,7 @@
 
 import Utility from "../../js/Utility"
 
-describe("Utility functions testing", () => {
+describe("Utility class", () => {
     before(() => {
         expect(Utility,).to.be.a("function")
     })

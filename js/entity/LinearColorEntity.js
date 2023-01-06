@@ -7,17 +7,19 @@ export default class LinearColorEntity extends IEntity {
     static attributes = {
         R: {
             type: RealUnitEntity,
+            expected: true,
         },
         G: {
             type: RealUnitEntity,
+            expected: true,
         },
         B: {
             type: RealUnitEntity,
+            expected: true,
         },
         A: {
             type: RealUnitEntity,
             value: () => new RealUnitEntity(1),
-            showDefault: true,
         },
         H: {
             type: RealUnitEntity,

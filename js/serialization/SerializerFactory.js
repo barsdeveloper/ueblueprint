@@ -28,9 +28,11 @@ export default class SerializerFactory {
 
     /**
      * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entity
+     * @param {new () => T} entity
+     * @returns {ISerializer<T>}
      */
     static getSerializer(entity) {
+        // @ts-expect-error
         return SerializerFactory.#serializers.get(entity)
     }
 }

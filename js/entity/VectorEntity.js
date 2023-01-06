@@ -3,9 +3,18 @@ import IEntity from "./IEntity"
 export default class VectorEntity extends IEntity {
 
     static attributes = {
-        X: 0,
-        Y: 0,
-        Z: 0,
+        X: {
+            value: 0,
+            expected: true,
+        },
+        Y: {
+            value: 0,
+            expected: true,
+        },
+        Z: {
+            value: 0,
+            expected: true,
+        },
     }
 
     static {

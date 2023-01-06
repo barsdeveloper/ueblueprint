@@ -68,6 +68,12 @@ export default class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
+        if (this.element.entity.PinType.ContainerType.toString() == "Array") {
+            return SVGIcon.array
+        }
+        if (this.element.entity.PinType.ContainerType.toString() == "Set") {
+            return SVGIcon.set
+        }
         return SVGIcon.genericPin
     }
 
@@ -101,10 +107,8 @@ export default class PinTemplate extends ITemplate {
 
     getLinkLocation() {
         const rect = this.iconElement.getBoundingClientRect()
-        const location = Utility.convertLocation(
-            [(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2],
-            this.blueprint.template.gridElement
-        )
+        const boundingLocation = [this.element.isInput() ? rect.left : rect.right, (rect.top + rect.bottom) / 2]
+        const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement)
         return this.blueprint.compensateTranslation(location[0], location[1])
     }
 

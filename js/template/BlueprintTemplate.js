@@ -69,6 +69,8 @@ export default class BlueprintTemplate extends ITemplate {
         const bounding = this.viewportElement.getBoundingClientRect()
         this.viewportSize[0] = bounding.width
         this.viewportSize[1] = bounding.height
+        this.blueprint.requestUpdate()
+        this.blueprint.updateComplete.then(() => this.centerContentInViewport())
     }
 
     cleanup() {
@@ -206,5 +208,28 @@ export default class BlueprintTemplate extends ITemplate {
 
     gridLeftVisibilityBoundary() {
         return this.blueprint.scrollX - this.blueprint.translateX
+    }
+
+    centerViewport(x = 0, y = 0, smooth = true) {
+        const centerX = this.gridLeftVisibilityBoundary() + this.viewportSize[0] / 2
+        const centerY = this.gridTopVisibilityBoundary() + this.viewportSize[1] / 2
+        this.blueprint.scrollDelta(
+            x - centerX,
+            y - centerY,
+            smooth
+        )
+    }
+
+    centerContentInViewport(smooth = true) {
+        let avgX = 0
+        let avgY = 0
+        const nodes = this.blueprint.getNodes()
+        for (const node of nodes) {
+            avgX += node.leftBoundary() + node.rightBoundary()
+            avgY += node.topBoundary() + node.bottomBoundary()
+        }
+        avgX = nodes.length > 0 ? Math.round(avgX / (2 * nodes.length)) : 0
+        avgY = nodes.length > 0 ? Math.round(avgY / (2 * nodes.length)) : 0
+        this.centerViewport(avgX, avgY, smooth)
     }
 }

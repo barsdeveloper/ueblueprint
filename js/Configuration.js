@@ -1,6 +1,9 @@
 import { css } from "lit"
+import SVGIcon from "./SVGIcon"
+import Utility from "./Utility"
 
 /**
+ * @typedef {import("./element/NodeElement").default} NodeElement
  * @typedef {import("./element/PinElement").default} PinElement
  * @typedef {import("lit").CSSResult} CSSResult
  */
@@ -41,14 +44,12 @@ export default class Configuration {
         end: "ueb-edit-text-end",
     }
     static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
-    static epsilon = 1e-8
     static expandGridSize = 400
     static focusEventName = {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
     static fontSize = css`12.5px`
-
     /**
      * @param {PinElement} pin
      * @return {CSSResult}
@@ -104,7 +105,119 @@ export default class Configuration {
     static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
+    /** @param {NodeElement} node */
+    static nodeIcon(node) {
+        switch (node.getType()) {
+            case Configuration.nodeType.doN: return SVGIcon.doN
+            case Configuration.nodeType.dynamicCast: return SVGIcon.cast
+            case Configuration.nodeType.event: return SVGIcon.event
+            case Configuration.nodeType.executionSequence: return SVGIcon.sequence
+            case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
+            case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
+            case Configuration.nodeType.forEachLoopWithBreak: return SVGIcon.forEachLoop
+            case Configuration.nodeType.forLoop: return SVGIcon.loop
+            case Configuration.nodeType.forLoopWithBreak: return SVGIcon.loop
+            case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
+            case Configuration.nodeType.makeArray: return SVGIcon.makeArray
+            case Configuration.nodeType.makeMap: return SVGIcon.makeMap
+            case Configuration.nodeType.select: return SVGIcon.select
+            case Configuration.nodeType.whileLoop: return SVGIcon.loop
+        }
+        if (node.getNodeDisplayName().startsWith("Break")) {
+            return SVGIcon.breakStruct
+        }
+        if (node.entity.getClass() === Configuration.nodeType.macro) {
+            return SVGIcon.macro
+        }
+        return SVGIcon.functionSymbol
+    }
+    /** @param {NodeElement} node */
+    static nodeColor(node) {
+        const functionColor = css`84, 122, 156`
+        const pureFunctionColor = css`95, 129, 90`
+        switch (node.entity.getClass()) {
+            case Configuration.nodeType.callFunction:
+                return node.entity.bIsPureFunc
+                    ? pureFunctionColor
+                    : functionColor
+            case Configuration.nodeType.event:
+                return css`151, 33, 32`
+            case Configuration.nodeType.makeArray:
+            case Configuration.nodeType.makeMap:
+            case Configuration.nodeType.select:
+                return pureFunctionColor
+            case Configuration.nodeType.macro:
+            case Configuration.nodeType.executionSequence:
+                return css`150,150,150`
+            case Configuration.nodeType.dynamicCast:
+                return css`46, 104, 106`
+        }
+        return functionColor
+    }
     static nodeName = (name, counter) => `${name}_${counter}`
+    /** @param {NodeElement} node */
+    static nodeDisplayName(node) {
+        switch (node.getType()) {
+            case Configuration.nodeType.callFunction:
+            case Configuration.nodeType.commutativeAssociativeBinaryOperator:
+                if (node.entity.FunctionReference.MemberName == "AddKey") {
+                    const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
+                    let result = node.entity.FunctionReference.MemberParent.path.match(sequencerScriptingNameRegex)
+                    if (result) {
+                        return `Add Key (${Utility.formatStringName(result[1])})`
+                    }
+                }
+                let memberName = node.entity.FunctionReference.MemberName
+                if (node.entity.FunctionReference.MemberParent.path == "/Script/Engine.KismetMathLibrary") {
+                    if (memberName.startsWith("Conv_")) {
+                        return "" // Conversion  nodes do not have visible names
+                    }
+                    if (memberName.startsWith("Percent_")) {
+                        return "%"
+                    }
+                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
+                    if (leadingLetter) {
+                        // Some functions start with B or F (Like FCeil, FMax, BMin)
+                        memberName = leadingLetter[1]
+                    }
+                    switch (memberName) {
+                        case "Abs": return "ABS"
+                        case "Exp": return "e"
+                        case "Max": return "MAX"
+                        case "MaxInt64": return "MAX"
+                        case "Min": return "MIN"
+                        case "MinInt64": return "MIN"
+                    }
+                }
+                if (node.entity.FunctionReference.MemberParent.path === "/Script/Engine.BlueprintSetLibrary") {
+                    const setOperationMatch = memberName.match(/Set_(\w+)/)
+                    if (setOperationMatch) {
+                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                    }
+                }
+                return Utility.formatStringName(memberName)
+            case Configuration.nodeType.dynamicCast:
+                return `Cast To ${node.entity.TargetType.getName()}`
+            case Configuration.nodeType.executionSequence:
+                return "Sequence"
+            case Configuration.nodeType.ifThenElse:
+                return "Branch"
+            case Configuration.nodeType.forEachElementInEnum:
+                return `For Each ${node.entity.Enum.getName()}`
+            case Configuration.nodeType.forEachLoopWithBreak:
+                return "For Each Loop with Break"
+            case Configuration.nodeType.variableGet:
+                return ""
+            case Configuration.nodeType.variableSet:
+                return "SET"
+            default:
+                if (node.entity.getClass() === Configuration.nodeType.macro) {
+                    return Utility.formatStringName(node.entity.MacroGraphReference.getMacroName())
+                } else {
+                    return Utility.formatStringName(node.entity.getNameAndCounter()[0])
+                }
+        }
+    }
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
@@ -113,6 +226,7 @@ export default class Configuration {
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
         forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",

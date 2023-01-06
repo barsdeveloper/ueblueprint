@@ -50,7 +50,9 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:h
 }
 
 .ueb-pin-icon {
-    min-width: 15px;
+    color: var(--ueb-pin-color);
+    width: 13px;
+    height: 13px;
     text-align: left;
 }
 
@@ -63,10 +65,7 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:h
 }
 
 .ueb-pin-icon>svg {
-    width: 11px;
-    height: 11px;
-    vertical-align: middle;
-    color: var(--ueb-pin-color);
+    vertical-align: top;
 }
 
 ueb-pin[data-type="exec"] .ueb-pin-icon>svg {

@@ -1,4 +1,3 @@
-import Configuration from "./Configuration"
 import SubAttributesDeclaration from "./entity/SubObject"
 import UnionType from "./entity/UnionType"
 
@@ -55,9 +54,9 @@ export default class Utility {
      * @param {Number} num
      * @param {Number} decimals
      */
-    static minDecimals(num, decimals = 1) {
+    static minDecimals(num, decimals = 1, epsilon = 1e-8) {
         const powered = num * 10 ** decimals
-        if (Math.abs(powered % 1) > Configuration.epsilon) {
+        if (Math.abs(powered % 1) > epsilon) {
             // More decimal digits than required
             return num.toString()
         }
@@ -77,8 +76,8 @@ export default class Utility {
      * @param {Number} a
      * @param {Number} b
      */
-    static approximatelyEqual(a, b) {
-        return !(Math.abs(a - b) > Configuration.epsilon)
+    static approximatelyEqual(a, b, epsilon = 1e-8) {
+        return !(Math.abs(a - b) > epsilon)
     }
 
     /**
@@ -292,7 +291,7 @@ export default class Utility {
 
     /** @param {String} value */
     static capitalFirstLetter(value) {
-        if (value.length === 0) {
+        if (value.length === 0 || value == "2D" || value == "3D") {
             return value
         }
         return value.charAt(0).toLocaleUpperCase() + value.slice(1).toLocaleLowerCase()
@@ -302,8 +301,13 @@ export default class Utility {
     static formatStringName(value) {
         return value
             .trim()
-            .replace(/^b/, "") // Remove leading b (for boolean values) or newlines
-            .replaceAll(/^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z])|_|\s+/g, " ") // Insert a space between a lowercase and uppercase letter, instead of an underscore or multiple spaces
+            // Remove leading b (for boolean values) or newlines
+            .replace(/^b/, "")
+            // Insert a space where needed, possibly removing unnecessary elading characters
+            .replaceAll(
+                /^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z0-9])|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])|(?<=[014-9]|(?:2|3)(?!D(?:[^a-z]|$)))(?=[a-zA-Z])|_|\s{2,}/g,
+                " "
+            )
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
@@ -376,8 +380,11 @@ export default class Utility {
         const v = x ** 3.5
         return v / (v + ((1 - x) ** 3.5))
     }) {
-        const startTimestamp = performance.now()
+        let startTimestamp
         const doAnimation = currentTimestamp => {
+            if (startTimestamp === undefined) {
+                startTimestamp = currentTimestamp
+            }
             let delta = (currentTimestamp - startTimestamp) / intervalSeconds
             if (Utility.approximatelyEqual(delta, 1) || delta > 1) {
                 delta = 1

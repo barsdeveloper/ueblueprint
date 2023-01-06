@@ -13,10 +13,11 @@ export default class VariableManagementNodeTemplate extends NodeTemplate {
     #hasOutput = false
     #displayName = ""
 
+    static nodeStyleClasses = ["ueb-node-style-glass"]
+
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
-        this.element.classList.add("ueb-node-style-glass")
         this.#displayName = this.element.getNodeDisplayName()
     }
 

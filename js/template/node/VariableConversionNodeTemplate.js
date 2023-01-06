@@ -4,10 +4,5 @@ import VariableManagementNodeTemplate from "./VariableMangementNodeTemplate"
 
 export default class VariableConversionNodeTemplate extends VariableManagementNodeTemplate {
 
-
-    /** @param {NodeElement} element */
-    initialize(element) {
-        super.initialize(element)
-        this.element.classList.add("ueb-node-style-conversion")
-    }
+    static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-conversion"]
 }

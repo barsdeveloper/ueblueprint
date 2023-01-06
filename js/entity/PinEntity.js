@@ -1,4 +1,5 @@
 import ByteEntity from "./ByteEntity"
+import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
 import IEntity from "./IEntity"
 import Integer64Entity from "./Integer64Entity"
@@ -6,6 +7,7 @@ import IntegerEntity from "./IntegerEntity"
 import LinearColorEntity from "./LinearColorEntity"
 import LocalizedTextEntity from "./LocalizedTextEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
+import PathSymbolEntity from "./PathSymbolEntity"
 import PinReferenceEntity from "./PinReferenceEntity"
 import RotatorEntity from "./RotatorEntity"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity"
@@ -66,7 +68,7 @@ export default class PinEntity extends IEntity {
                 type: ObjectReferenceEntity,
             },
             PinSubCategoryMemberReference: {
-                type: ObjectReferenceEntity,
+                type: FunctionReferenceEntity,
                 value: null,
             },
             PinValueType: {
@@ -74,7 +76,7 @@ export default class PinEntity extends IEntity {
                 value: null,
             },
             ContainerType: {
-                type: ObjectReferenceEntity,
+                type: PathSymbolEntity,
             },
             bIsReference: false,
             bIsConst: false,
@@ -128,9 +130,9 @@ export default class PinEntity extends IEntity {
          *     PinCategory: String,
          *     PinSubCategory: String,
          *     PinSubCategoryObject: ObjectReferenceEntity,
-         *     PinSubCategoryMemberReference: any,
+         *     PinSubCategoryMemberReference: FunctionReferenceEntity,
          *     PinValueType: String,
-         *     ContainerType: ObjectReferenceEntity,
+         *     ContainerType: PathSymbolEntity,
          *     bIsReference: Boolean,
          *     bIsConst: Boolean,
          *     bIsWeakPointer: Boolean,

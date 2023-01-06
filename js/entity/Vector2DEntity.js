@@ -3,8 +3,14 @@ import IEntity from "./IEntity"
 export default class Vector2DEntity extends IEntity {
 
     static attributes = {
-        X: 0,
-        Y: 0,
+        X: {
+            value: 0,
+            expected: true,
+        },
+        Y: {
+            value: 0,
+            expected: true,
+        },
     }
 
     static {

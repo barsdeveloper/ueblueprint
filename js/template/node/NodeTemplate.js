@@ -15,24 +15,11 @@ import Utility from "../../Utility"
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class NodeTemplate extends ISelectableDraggableTemplate {
 
-    static #nodeIcon = {
-        [Configuration.nodeType.doN]: SVGIcon.doN,
-        [Configuration.nodeType.dynamicCast]: SVGIcon.cast,
-        [Configuration.nodeType.executionSequence]: SVGIcon.sequence,
-        [Configuration.nodeType.forEachElementInEnum]: SVGIcon.loop,
-        [Configuration.nodeType.forEachLoop]: SVGIcon.forEachLoop,
-        [Configuration.nodeType.forEachLoopWithBreak]: SVGIcon.forEachLoop,
-        [Configuration.nodeType.forLoop]: SVGIcon.loop,
-        [Configuration.nodeType.forLoopWithBreak]: SVGIcon.loop,
-        [Configuration.nodeType.ifThenElse]: SVGIcon.branchNode,
-        [Configuration.nodeType.makeArray]: SVGIcon.makeArray,
-        [Configuration.nodeType.makeMap]: SVGIcon.makeMap,
-        [Configuration.nodeType.select]: SVGIcon.select,
-        [Configuration.nodeType.whileLoop]: SVGIcon.loop,
-        default: SVGIcon.functionSymbol
-    }
+    /** @typedef {typeof NodeTemplate} NodeTemplateConstructor */
 
     #hasTargetInputNode = false
+
+    static nodeStyleClasses = ["ueb-node-style-default"]
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay()
@@ -42,29 +29,12 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
+        this.element.classList.add(.../** @type {NodeTemplateConstructor} */(this.constructor).nodeStyleClasses)
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
     }
 
     getColor() {
-        const functionColor = css`84, 122, 156`
-        const pureFunctionColor = css`95, 129, 90`
-        switch (this.element.entity.getClass()) {
-            case Configuration.nodeType.callFunction:
-                return this.element.entity.bIsPureFunc
-                    ? pureFunctionColor
-                    : functionColor
-            case Configuration.nodeType.makeArray:
-            case Configuration.nodeType.makeMap:
-            case Configuration.nodeType.select:
-                return pureFunctionColor
-            case Configuration.nodeType.macro:
-            case Configuration.nodeType.executionSequence:
-                return css`150,150,150`
-            case Configuration.nodeType.dynamicCast:
-                return css`46, 104, 106`
-
-        }
-        return functionColor
+        return Configuration.nodeColor(this.element)
     }
 
     render() {
@@ -110,17 +80,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     renderNodeIcon() {
-        let icon = NodeTemplate.#nodeIcon[this.element.getType()]
-        if (icon) {
-            return icon
-        }
-        if (this.element.getNodeDisplayName().startsWith("Break")) {
-            return SVGIcon.breakStruct
-        }
-        if (this.element.entity.getClass() === Configuration.nodeType.macro) {
-            return SVGIcon.macro
-        }
-        return NodeTemplate.#nodeIcon.default
+        return Configuration.nodeIcon(this.element)
     }
 
     renderNodeName() {

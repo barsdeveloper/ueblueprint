@@ -98,6 +98,8 @@ export default class Grammar {
                 return r.Number
             case ObjectReferenceEntity:
                 return r.ObjectReference
+            case PathSymbolEntity:
+                return r.PathSymbol
             case PinEntity:
                 return r.Pin
             case PinReferenceEntity:
@@ -166,9 +168,10 @@ export default class Grammar {
 
     /**
      * @param {Grammar} r
-     * @param {EntityConstructor}
+     * @param {EntityConstructor} entityType
+     * @param {Boolean | Number} acceptUnknownKeys can be anumber to specify the limit or true, to let it be a reasonable value
      */
-    static createEntityGrammar = (r, entityType, limitUnknownKeys = false) =>
+    static createEntityGrammar = (r, entityType, acceptUnknownKeys = true) =>
         P.seqMap(
             entityType.lookbehind
                 ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
@@ -186,15 +189,22 @@ export default class Grammar {
         )
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
             .chain(values => {
-                if (limitUnknownKeys) {
-                    let unexpectedKeysCount = 0
-                    let totalKeys = Object.keys(values)
-                    for (const key in values) {
-                        unexpectedKeysCount += key in entityType.attributes ? 0 : 1
-                    }
-                    if (unexpectedKeysCount + 0.5 > Math.sqrt(totalKeys)) {
-                        return P.fail()
-                    }
+                let totalKeys = Object.keys(values)
+                // Check missing values
+                if (
+                    Object.keys(entityType.attributes)
+                        .filter(key => entityType.attributes[key].expected)
+                        .find(key => !totalKeys.includes(key))
+                ) {
+                    return P.fail()
+                }
+                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length
+                if (
+                    !acceptUnknownKeys && unknownKeys > 0
+                    // Unknown keys must still be limited in number
+                    || acceptUnknownKeys && unknownKeys + 0.5 > Math.sqrt(totalKeys)
+                ) {
+                    return P.fail()
                 }
                 return P.succeed().map(() => new entityType(values))
             })
@@ -344,9 +354,9 @@ export default class Grammar {
         r.LocalizedText,
         r.InvariantText,
         r.PinReference,
-        Grammar.createEntityGrammar(r, VectorEntity, true),
-        Grammar.createEntityGrammar(r, LinearColorEntity, true),
-        Grammar.createEntityGrammar(r, Vector2DEntity, true),
+        r.Vector,
+        r.LinearColor,
+        r.Vector2D,
         r.UnknownKeys,
         r.ObjectReference,
         r.Symbol,
@@ -364,13 +374,13 @@ export default class Grammar {
     )
 
     /** @param {Grammar} r */
-    Vector2D = r => Grammar.createEntityGrammar(r, Vector2DEntity)
+    Vector2D = r => Grammar.createEntityGrammar(r, Vector2DEntity, false)
 
     /** @param {Grammar} r */
-    Vector = r => Grammar.createEntityGrammar(r, VectorEntity)
+    Vector = r => Grammar.createEntityGrammar(r, VectorEntity, false)
 
     /** @param {Grammar} r */
-    Rotator = r => Grammar.createEntityGrammar(r, RotatorEntity)
+    Rotator = r => Grammar.createEntityGrammar(r, RotatorEntity, false)
 
     /** @param {Grammar} r */
     SimpleSerializationRotator = r => P.seqMap(
@@ -412,7 +422,7 @@ export default class Grammar {
     )
 
     /** @param {Grammar} r */
-    LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity)
+    LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity, false)
 
     /** @param {Grammar} r */
     FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)

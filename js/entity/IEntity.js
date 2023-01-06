@@ -19,6 +19,7 @@ import Utility from "../Utility"
  *     nullable?: Boolean,
  *     ignored?: Boolean,
  *     serialized?: Boolean,
+ *     expected?: Boolean,
  *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
  */
@@ -38,6 +39,7 @@ export default class IEntity {
         nullable: false,
         ignored: false,
         serialized: false,
+        expected: false,
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -220,6 +222,12 @@ export default class IEntity {
 
     static isValueOfType(value, type) {
         return value != null && (value instanceof type || value.constructor === type)
+    }
+
+    static expectsAllKeys() {
+        return !Object.values(this.attributes)
+            .filter(/** @param {AttributeInformation} attribute */attribute => !attribute.ignored)
+            .some(/** @param {AttributeInformation} attribute */attribute => !attribute.expected)
     }
 
     unexpectedKeys() {
