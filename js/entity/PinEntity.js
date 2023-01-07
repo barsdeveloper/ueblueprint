@@ -9,6 +9,7 @@ import LocalizedTextEntity from "./LocalizedTextEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 import PathSymbolEntity from "./PathSymbolEntity"
 import PinReferenceEntity from "./PinReferenceEntity"
+import PinTypeEntity from "./PinTypeEntity"
 import RotatorEntity from "./RotatorEntity"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity"
 import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEntity"
@@ -72,7 +73,7 @@ export default class PinEntity extends IEntity {
                 value: null,
             },
             PinValueType: {
-                type: String,
+                type: PinTypeEntity,
                 value: null,
             },
             ContainerType: {
@@ -131,7 +132,7 @@ export default class PinEntity extends IEntity {
          *     PinSubCategory: String,
          *     PinSubCategoryObject: ObjectReferenceEntity,
          *     PinSubCategoryMemberReference: FunctionReferenceEntity,
-         *     PinValueType: String,
+         *     PinValueType: PinTypeEntity,
          *     ContainerType: PathSymbolEntity,
          *     bIsReference: Boolean,
          *     bIsConst: Boolean,

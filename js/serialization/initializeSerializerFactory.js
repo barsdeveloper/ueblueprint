@@ -17,6 +17,7 @@ import ObjectSerializer from "./ObjectSerializer"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import PinTypeEntity from "../entity/PinTypeEntity"
 import RealUnitEntity from "../entity/UnitRealEntity"
 import RotatorEntity from "../entity/RotatorEntity"
 import SerializerFactory from "./SerializerFactory"
@@ -173,6 +174,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+    )
+
+    SerializerFactory.registerSerializer(
+        PinTypeEntity,
+        new GeneralSerializer(bracketsWrapped, PinTypeEntity)
     )
 
     SerializerFactory.registerSerializer(

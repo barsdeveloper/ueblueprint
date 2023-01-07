@@ -17,6 +17,10 @@ ueb-pin {
     min-height: 30px;
 }
 
+.ueb-node-top ueb-pin {
+    min-height: 0;
+}
+
 .ueb-zoom--10 ueb-pin {
     visibility: hidden;
 }

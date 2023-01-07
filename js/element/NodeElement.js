@@ -1,5 +1,6 @@
 import CommentNodeTemplate from "../template/node/CommentNodeTemplate"
 import Configuration from "../Configuration"
+import EventNodeTemplate from "../template/node/EventNodeTemplate"
 import IdentifierEntity from "../entity/IdentifierEntity"
 import ISelectableDraggableElement from "./ISelectableDraggableElement"
 import KnotNodeTemplate from "../template/node/KnotNodeTemplate"
@@ -122,16 +123,18 @@ export default class NodeElement extends ISelectableDraggableElement {
                         return VariableOperationNodeTemplate
                 }
             }
-            if (nodeEntity.FunctionReference.MemberParent.path === "/Script/Engine.BlueprintSetLibrary") {
-                switch (nodeEntity.FunctionReference.MemberName) {
-                    case "Set_Contains":
-                    case "Set_ToArray":
-                        return VariableOperationNodeTemplate
-                }
+            if (nodeEntity.FunctionReference.MemberParent.path == "/Script/Engine.BlueprintSetLibrary") {
+                return VariableOperationNodeTemplate
+            }
+            if (nodeEntity.FunctionReference.MemberParent.path == "/Script/Engine.BlueprintMapLibrary") {
+                return VariableOperationNodeTemplate
             }
         }
         switch (nodeEntity.getClass()) {
-            case Configuration.nodeType.comment: return CommentNodeTemplate
+            case Configuration.nodeType.comment:
+            case Configuration.nodeType.customEvent:
+                return CommentNodeTemplate
+            case Configuration.nodeType.event: return EventNodeTemplate
             case Configuration.nodeType.knot: return KnotNodeTemplate
             case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
             case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate

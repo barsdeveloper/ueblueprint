@@ -68,11 +68,13 @@ export default class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
-        if (this.element.entity.PinType.ContainerType.toString() == "Array") {
-            return SVGIcon.array
+        switch (this.element.entity.PinType.ContainerType.toString()) {
+            case "Array": return SVGIcon.array
+            case "Set": return SVGIcon.set
+            case "Map": return SVGIcon.map
         }
-        if (this.element.entity.PinType.ContainerType.toString() == "Set") {
-            return SVGIcon.set
+        if (this.element.entity.PinType.PinCategory === "delegate") {
+            return SVGIcon.delegate
         }
         return SVGIcon.genericPin
     }
@@ -101,7 +103,7 @@ export default class PinTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.getPinColor(this.element).cssText)
+        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor(this.element).cssText)
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element
     }
 

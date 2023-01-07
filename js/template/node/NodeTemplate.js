@@ -1,4 +1,4 @@
-import { css, html, nothing } from "lit"
+import { html, nothing } from "lit"
 import Configuration from "../../Configuration"
 import ElementFactory from "../../element/ElementFactory"
 import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate"
@@ -17,7 +17,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     /** @typedef {typeof NodeTemplate} NodeTemplateConstructor */
 
-    #hasTargetInputNode = false
+    hasSubtitle = false
 
     static nodeStyleClasses = ["ueb-node-style-default"]
 
@@ -38,28 +38,10 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     render() {
-        const icon = this.renderNodeIcon()
-        const name = this.renderNodeName()
         return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
-                    <div class="ueb-node-top">
-                        <div class="ueb-node-name">
-                            ${icon ? html`
-                                <div class="ueb-node-name-symbol">${icon}</div>
-                            ` : nothing}
-                            ${name ? html`
-                                <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                                    ${name}
-                                    ${this.#hasTargetInputNode && this.element.entity.FunctionReference.MemberParent ? html`
-                                        <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
-                                            Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
-                                        </div>
-                                    `: nothing}
-                                </div>
-                            ` : nothing}
-                        </div>
-                    </div>
+                    <div class="ueb-node-top">${this.renderTop()}</div>
                     <div class="ueb-node-content">
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
@@ -87,6 +69,28 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getNodeDisplayName()
     }
 
+    renderTop() {
+        const icon = this.renderNodeIcon()
+        const name = this.renderNodeName()
+        return html`
+            <div class="ueb-node-name">
+                ${icon ? html`
+                    <div class="ueb-node-name-symbol">${icon}</div>
+                ` : nothing}
+                ${name ? html`
+                    <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
+                        ${name}
+                        ${this.hasSubtitle && this.element.entity.FunctionReference.MemberParent ? html`
+                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
+                                Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
+                            </div>
+                        `: nothing}
+                    </div>
+                ` : nothing}
+            </div>
+        `
+    }
+
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
@@ -111,9 +115,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
             .map(pinEntity => {
-                if (!this.#hasTargetInputNode && pinEntity.getDisplayName() == "Target") {
-                    this.#hasTargetInputNode = true
-                }
+                this.hasSubtitle = this.hasSubtitle || pinEntity.getDisplayName() === "Target"
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                     .newObject(pinEntity, undefined, this.element)
                 return pinElement

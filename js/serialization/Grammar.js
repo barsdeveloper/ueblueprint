@@ -16,6 +16,7 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity"
 import PinEntity from "../entity/PinEntity"
 import PinReferenceEntity from "../entity/PinReferenceEntity"
+import PinTypeEntity from "../entity/PinTypeEntity"
 import RealUnitEntity from "../entity/UnitRealEntity"
 import RotatorEntity from "../entity/RotatorEntity"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity"
@@ -104,6 +105,8 @@ export default class Grammar {
                 return r.Pin
             case PinReferenceEntity:
                 return r.PinReference
+            case PinTypeEntity:
+                return r.PinType
             case RealUnitEntity:
                 return r.RealUnit
             case RotatorEntity:
@@ -372,6 +375,9 @@ export default class Grammar {
             pinGuid: pinGuid,
         })
     )
+
+    /** @param {Grammar} r */
+    PinType = r => Grammar.createEntityGrammar(r, PinTypeEntity, true)
 
     /** @param {Grammar} r */
     Vector2D = r => Grammar.createEntityGrammar(r, Vector2DEntity, false)

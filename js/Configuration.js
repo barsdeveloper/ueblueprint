@@ -21,6 +21,7 @@ export default class Configuration {
         "byte": css`0, 110, 98`,
         "class": css`88, 0, 186`,
         "default": css`255, 255, 255`,
+        "delegate": css`255, 56, 56`,
         "exec": css`240, 240, 240`,
         "int": css`32, 224, 173`,
         "int64": css`170, 224, 172`,
@@ -50,33 +51,6 @@ export default class Configuration {
         end: "blueprint-unfocus",
     }
     static fontSize = css`12.5px`
-    /**
-     * @param {PinElement} pin
-     * @return {CSSResult}
-     */
-    static getPinColor(pin) {
-        if (!pin) {
-            return Configuration.#pinColor["default"]
-        }
-        if (Configuration.#pinColor[pin.pinType]) {
-            return Configuration.#pinColor[pin.pinType]
-        }
-        if (pin.entity.PinType.PinCategory == "struct" || pin.entity.PinType.PinCategory == "object") {
-            switch (pin.entity.PinType.PinSubCategoryObject.type) {
-                case "ScriptStruct":
-                case "/Script/CoreUObject.ScriptStruct":
-                    return css`0, 88, 200`
-                default:
-                    if (
-                        pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")
-                        || pin.getPinDisplayName() == "Target"
-                    ) {
-                        return Configuration.#pinColor["/Script/Engine.Actor"]
-                    }
-            }
-        }
-        return Configuration.#pinColor["default"]
-    }
     static gridAxisLineColor = css`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = css`#353535`
@@ -120,6 +94,7 @@ export default class Configuration {
             case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
             case Configuration.nodeType.makeArray: return SVGIcon.makeArray
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
+            case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
             case Configuration.nodeType.whileLoop: return SVGIcon.loop
         }
@@ -195,9 +170,17 @@ export default class Configuration {
                         return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
                     }
                 }
+                if (node.entity.FunctionReference.MemberParent.path === "/Script/Engine.BlueprintMapLibrary") {
+                    const setOperationMatch = memberName.match(/Map_(\w+)/)
+                    if (setOperationMatch) {
+                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                    }
+                }
                 return Utility.formatStringName(memberName)
             case Configuration.nodeType.dynamicCast:
                 return `Cast To ${node.entity.TargetType.getName()}`
+            case Configuration.nodeType.event:
+                return `Event ${(node.entity.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
             case Configuration.nodeType.executionSequence:
                 return "Sequence"
             case Configuration.nodeType.ifThenElse:
@@ -224,6 +207,7 @@ export default class Configuration {
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
+        customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         event: "/Script/BlueprintGraph.K2Node_Event",
@@ -238,12 +222,37 @@ export default class Configuration {
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
+        makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
         pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         select: "/Script/BlueprintGraph.K2Node_Select",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
+    }
+    /**
+     * @param {PinElement} pin
+     * @return {CSSResult}
+     */
+    static pinColor(pin) {
+        if (Configuration.#pinColor[pin.pinType]) {
+            return Configuration.#pinColor[pin.pinType]
+        }
+        if (pin.entity.PinType.PinCategory == "struct" || pin.entity.PinType.PinCategory == "object") {
+            switch (pin.entity.PinType.PinSubCategoryObject.type) {
+                case "ScriptStruct":
+                case "/Script/CoreUObject.ScriptStruct":
+                    return css`0, 88, 200`
+                default:
+                    if (
+                        pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")
+                        || pin.getPinDisplayName() == "Target"
+                    ) {
+                        return Configuration.#pinColor["/Script/Engine.Actor"]
+                    }
+            }
+        }
+        return Configuration.#pinColor["default"]
     }
     static scale = {
         [-12]: 0.133333,

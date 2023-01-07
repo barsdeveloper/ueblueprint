@@ -71,6 +71,13 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-wrapper 
     white-space: nowrap;
 }
 
+ueb-node.ueb-node-style-event .ueb-node-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 8px;
+}
+
 .ueb-node-style-default .ueb-node-top {
     padding: 3px 20px 2px 6px;
     box-shadow:

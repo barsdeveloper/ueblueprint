@@ -291,10 +291,10 @@ export default class Utility {
 
     /** @param {String} value */
     static capitalFirstLetter(value) {
-        if (value.length === 0 || value == "2D" || value == "3D") {
+        if (value.length === 0) {
             return value
         }
-        return value.charAt(0).toLocaleUpperCase() + value.slice(1).toLocaleLowerCase()
+        return value.charAt(0).toUpperCase() + value.slice(1)
     }
 
     /** @param {String} value */
@@ -305,7 +305,7 @@ export default class Utility {
             .replace(/^b/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
             .replaceAll(
-                /^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z0-9])|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])|(?<=[014-9]|(?:2|3)(?!D(?:[^a-z]|$)))(?=[a-zA-Z])|_|\s{2,}/g,
+                /^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z0-9])|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])|(?<=[014-9]|(?:2|3)(?!D(?:[^a-z]|$)))(?=[a-zA-Z])|\s*_+\s*|\s{2,}/g,
                 " "
             )
             .split(" ")

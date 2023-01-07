@@ -317,6 +317,13 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-wrapper {
   white-space: nowrap;
 }
 
+ueb-node.ueb-node-style-event .ueb-node-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 8px;
+}
+
 .ueb-node-style-default .ueb-node-top {
   padding: 3px 20px 2px 6px;
   box-shadow: inset 5px 1px 5px -3px rgba(255, 255, 255, 0.2509803922), inset 0 1px 2px 0 rgba(255, 255, 255, 0.2509803922);
@@ -563,6 +570,10 @@ ueb-pin {
 ueb-pin {
   display: block;
   min-height: 30px;
+}
+
+.ueb-node-top ueb-pin {
+  min-height: 0;
 }
 
 .ueb-zoom--10 ueb-pin {

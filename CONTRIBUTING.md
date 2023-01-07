@@ -75,6 +75,7 @@ Please refer to the following rules, in no particular order:
 * Semicolons at the end of the lines must be removed (already set for VS Code).
 * Order of elements in a class is: first variables then constructor, then methods; first static then instance members; first private then public.
 * At the end of the file there must be exactly one empty line (already set for VS Code).
+* The line must not exceed 120 characters (ruler already set for VS Code).
 
 ### File organization
 There must be exactly one class in each file and the name of the file is the same as the class it contains.

@@ -1,13 +1,13 @@
 import { html } from "lit"
-import PinTemplate from "./PinTemplate"
+import MinimalPinTemplate from "./MinimalPinTemplate"
 import Utility from "../../Utility"
 
 /** @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate */
 
-export default class KnotPinTemplate extends PinTemplate {
+export default class KnotPinTemplate extends MinimalPinTemplate {
 
     render() {
-        return this.element.isOutput() ? html`<div class="ueb-pin-icon">${this.renderIcon()}</div>` : html``
+        return this.element.isOutput() ? super.render() : html``
     }
 
     getLinkLocation() {
@@ -17,13 +17,8 @@ export default class KnotPinTemplate extends PinTemplate {
                 : this
         )
             .iconElement.getBoundingClientRect()
-        const location = Utility.convertLocation(
-            [
-                this.element.isInput() ? rect.left + 1 : rect.right + 2,
-                (rect.top + rect.bottom) / 2,
-            ],
-            this.blueprint.template.gridElement
-        )
+        const boundingLocation = [this.element.isInput() ? rect.left : rect.right, (rect.top + rect.bottom) / 2]
+        const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement)
         return this.blueprint.compensateTranslation(location[0], location[1])
     }
 }

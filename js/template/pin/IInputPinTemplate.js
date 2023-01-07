@@ -49,16 +49,16 @@ export default class IInputPinTemplate extends PinTemplate {
 
     setup() {
         super.setup()
-        this.#inputContentElements.forEach(element => {
+        this.#inputContentElements.forEach(element =>
             element.addEventListener("focusout", this.#onFocusOutHandler)
-        })
+        )
     }
 
     cleanup() {
         super.cleanup()
-        this.#inputContentElements.forEach(element => {
+        this.#inputContentElements.forEach(element =>
             element.removeEventListener("focusout", this.#onFocusOutHandler)
-        })
+        )
     }
 
     createInputObjects() {
