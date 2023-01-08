@@ -1,10 +1,7 @@
 import { html } from "lit"
-import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericPinTemplate"
 import Utility from "../../Utility"
 import Vector2DEntity from "../../entity/Vector2DEntity"
-
-/** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
 
 /**
  * @extends INumericPinTemplate<Vector2DEntity>
@@ -12,11 +9,11 @@ import Vector2DEntity from "../../entity/Vector2DEntity"
 export default class VectorInputPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0)
     }
 
     #getY() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     /**

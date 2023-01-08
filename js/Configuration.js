@@ -10,24 +10,24 @@ import Utility from "./Utility"
 
 export default class Configuration {
     static #pinColor = {
-        "/Script/CoreUObject.Rotator": css`152, 171, 241`,
-        "/Script/CoreUObject.Transform": css`241, 110, 1`,
-        "/Script/CoreUObject.Vector": css`215, 202, 11`,
-        "/Script/Engine.Actor": css`0, 168, 242`,
-        "/Script/Engine.GameStateBase": css`0, 168, 242`,
-        "/Script/Engine.Pawn": css`0, 168, 242`,
-        "/Script/Engine.PlayerState": css`0, 168, 242`,
-        "bool": css`117, 0, 0`,
-        "byte": css`0, 110, 98`,
+        "/Script/CoreUObject.Rotator": css`157, 177, 251`,
+        "/Script/CoreUObject.Transform": css`227, 103, 0`,
+        "/Script/CoreUObject.Vector": css`251, 198, 34`,
+        "bool": css`147, 0, 0`,
+        "byte": css`0, 109, 99`,
         "class": css`88, 0, 186`,
         "default": css`255, 255, 255`,
         "delegate": css`255, 56, 56`,
         "exec": css`240, 240, 240`,
-        "int": css`32, 224, 173`,
-        "int64": css`170, 224, 172`,
-        "name": css`203, 129, 252`,
-        "real": css`50, 187, 0`,
-        "string": css`213, 0, 176`,
+        "int": css`31, 224, 172`,
+        "int64": css`169, 223, 172`,
+        "interface": css`238, 252, 168`,
+        "name": css`201, 128, 251`,
+        "object": css`0, 167, 240`,
+        "real": css`54, 208, 0`,
+        "string": css`251, 0, 209`,
+        "struct": css`0, 88, 201`,
+        "text": css`226, 121, 167`,
         "wildcard": css`128, 120, 120`,
     }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
@@ -135,15 +135,16 @@ export default class Configuration {
         switch (node.getType()) {
             case Configuration.nodeType.callFunction:
             case Configuration.nodeType.commutativeAssociativeBinaryOperator:
-                if (node.entity.FunctionReference.MemberName == "AddKey") {
+                let memberName = node.entity.FunctionReference.MemberName ?? ""
+                const memberParent = node.entity.FunctionReference.MemberParent?.path ?? ""
+                if (memberName === "AddKey") {
                     const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
-                    let result = node.entity.FunctionReference.MemberParent.path.match(sequencerScriptingNameRegex)
+                    let result = memberParent.match(sequencerScriptingNameRegex)
                     if (result) {
                         return `Add Key (${Utility.formatStringName(result[1])})`
                     }
                 }
-                let memberName = node.entity.FunctionReference.MemberName
-                if (node.entity.FunctionReference.MemberParent.path == "/Script/Engine.KismetMathLibrary") {
+                if (memberParent == "/Script/Engine.KismetMathLibrary") {
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion  nodes do not have visible names
                     }
@@ -164,13 +165,13 @@ export default class Configuration {
                         case "MinInt64": return "MIN"
                     }
                 }
-                if (node.entity.FunctionReference.MemberParent.path === "/Script/Engine.BlueprintSetLibrary") {
+                if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
                     const setOperationMatch = memberName.match(/Set_(\w+)/)
                     if (setOperationMatch) {
                         return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
                     }
                 }
-                if (node.entity.FunctionReference.MemberParent.path === "/Script/Engine.BlueprintMapLibrary") {
+                if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
                     const setOperationMatch = memberName.match(/Map_(\w+)/)
                     if (setOperationMatch) {
                         return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
@@ -217,6 +218,7 @@ export default class Configuration {
         forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
         forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
         forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
+        functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
@@ -226,6 +228,7 @@ export default class Configuration {
         pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         select: "/Script/BlueprintGraph.K2Node_Select",
+        userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
@@ -235,24 +238,9 @@ export default class Configuration {
      * @return {CSSResult}
      */
     static pinColor(pin) {
-        if (Configuration.#pinColor[pin.pinType]) {
-            return Configuration.#pinColor[pin.pinType]
-        }
-        if (pin.entity.PinType.PinCategory == "struct" || pin.entity.PinType.PinCategory == "object") {
-            switch (pin.entity.PinType.PinSubCategoryObject.type) {
-                case "ScriptStruct":
-                case "/Script/CoreUObject.ScriptStruct":
-                    return css`0, 88, 200`
-                default:
-                    if (
-                        pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")
-                        || pin.getPinDisplayName() == "Target"
-                    ) {
-                        return Configuration.#pinColor["/Script/Engine.Actor"]
-                    }
-            }
-        }
-        return Configuration.#pinColor["default"]
+        return Configuration.#pinColor[pin.entity.getType()]
+            ?? Configuration.#pinColor[pin.entity.PinType.PinCategory]
+            ?? Configuration.#pinColor["default"]
     }
     static scale = {
         [-12]: 0.133333,

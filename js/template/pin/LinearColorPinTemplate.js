@@ -1,4 +1,4 @@
-import { html } from "lit"
+import { html, nothing } from "lit"
 import ColorPickerWindowTemplate from "../ColorPickerWindowTemplate"
 import Configuration from "../../Configuration"
 import ElementFactory from "../../element/ElementFactory"
@@ -48,9 +48,9 @@ export default class LinearColorPinTemplate extends PinTemplate {
 
     renderInput() {
         return html`
-            <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
+            <span class="ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? nothing}"
                 @click="${this.#launchColorPickerWindow}"
-                style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
+                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? nothing})">
             </span>
         `
     }

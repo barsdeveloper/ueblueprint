@@ -118,7 +118,8 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-dir
     }
 }
 
-ueb-pin[data-linked="true"] .ueb-pin-input {
+ueb-pin[data-linked="true"] .ueb-pin-input,
+ueb-pin[data-linked="true"] .ueb-pin-input-wrapper {
     display: none;
 }
 

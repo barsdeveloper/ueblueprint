@@ -80,9 +80,9 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 ${name ? html`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.hasSubtitle && this.element.entity.FunctionReference.MemberParent ? html`
+                        ${this.hasSubtitle && this.getTargetType().length > 0 ? html`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
-                                Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
+                                Target is ${Utility.formatStringName(this.getTargetType())}
                             </div>
                         `: nothing}
                     </div>
@@ -115,11 +115,15 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
             .map(pinEntity => {
-                this.hasSubtitle = this.hasSubtitle || pinEntity.getDisplayName() === "Target"
+                this.hasSubtitle = this.hasSubtitle || pinEntity.PinName === "self" && pinEntity.getDisplayName() === "Target"
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                     .newObject(pinEntity, undefined, this.element)
                 return pinElement
             })
+    }
+
+    getTargetType() {
+        return this.element.entity.FunctionReference?.MemberParent?.getName() ?? "Untitled"
     }
 
     /**

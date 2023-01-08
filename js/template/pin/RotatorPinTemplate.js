@@ -1,5 +1,4 @@
 import { html } from "lit"
-import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericPinTemplate"
 import RotatorEntity from "../../entity/RotatorEntity"
 import Utility from "../../Utility"
@@ -10,15 +9,15 @@ import Utility from "../../Utility"
 export default class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0)
     }
 
     #getP() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.P ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.P ?? 0)
     }
 
     #getY() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     setDefaultValue(values = [], rawValues = values) {

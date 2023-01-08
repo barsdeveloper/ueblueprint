@@ -22,6 +22,10 @@ export default class ObjectEntity extends IEntity {
             value: false,
             showDefault: false,
         },
+        bIsConstFunc: {
+            value: false,
+            showDefault: false,
+        },
         VariableReference: {
             type: VariableReferenceEntity,
             value: null,

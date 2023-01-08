@@ -11,13 +11,16 @@ export default class InputTemplate extends ITemplate {
             getSelection().selectAllChildren(this.element)
         }
     }
+
     #focusoutHandler = () => {
         this.blueprint.acknowledgeEditText(false)
         getSelection().removeAllRanges() // Deselect eventually selected text inside the input
     }
+
     /** @param {InputEvent} e */
     #inputSingleLineHandler = e =>
         /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
+
     /** @param {KeyboardEvent} e */
     #onKeydownBlurOnEnterHandler = e => {
         if (e.code == "Enter" && !e.shiftKey) {

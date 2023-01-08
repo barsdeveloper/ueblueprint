@@ -1,5 +1,6 @@
 // @ts-nocheck
 import ByteEntity from "../entity/ByteEntity"
+import EnumEntity from "../entity/EnumEntity"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
@@ -77,6 +78,8 @@ export default class Grammar {
                 return r.Boolean
             case ByteEntity:
                 return r.Byte
+            case EnumEntity:
+                return r.Enum
             case FunctionReferenceEntity:
                 return r.FunctionReference
             case GuidEntity:

@@ -7,11 +7,6 @@ import Utility from "../../Utility"
 
 /**
  * @template T
- * @typedef {import("../../element/PinElement").default<T>} PinElement
- */
-
-/**
- * @template T
  * @extends PinTemplate<T>
  */
 export default class IInputPinTemplate extends PinTemplate {
@@ -104,7 +99,7 @@ export default class IInputPinTemplate extends PinTemplate {
         return html`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
                 </ueb-input>
             </div>
         `

@@ -714,24 +714,24 @@ class Utility {
 
 class Configuration {
     static #pinColor = {
-        "/Script/CoreUObject.Rotator": i$3`152, 171, 241`,
-        "/Script/CoreUObject.Transform": i$3`241, 110, 1`,
-        "/Script/CoreUObject.Vector": i$3`215, 202, 11`,
-        "/Script/Engine.Actor": i$3`0, 168, 242`,
-        "/Script/Engine.GameStateBase": i$3`0, 168, 242`,
-        "/Script/Engine.Pawn": i$3`0, 168, 242`,
-        "/Script/Engine.PlayerState": i$3`0, 168, 242`,
-        "bool": i$3`117, 0, 0`,
-        "byte": i$3`0, 110, 98`,
+        "/Script/CoreUObject.Rotator": i$3`157, 177, 251`,
+        "/Script/CoreUObject.Transform": i$3`227, 103, 0`,
+        "/Script/CoreUObject.Vector": i$3`251, 198, 34`,
+        "bool": i$3`147, 0, 0`,
+        "byte": i$3`0, 109, 99`,
         "class": i$3`88, 0, 186`,
         "default": i$3`255, 255, 255`,
         "delegate": i$3`255, 56, 56`,
         "exec": i$3`240, 240, 240`,
-        "int": i$3`32, 224, 173`,
-        "int64": i$3`170, 224, 172`,
-        "name": i$3`203, 129, 252`,
-        "real": i$3`50, 187, 0`,
-        "string": i$3`213, 0, 176`,
+        "int": i$3`31, 224, 172`,
+        "int64": i$3`169, 223, 172`,
+        "interface": i$3`238, 252, 168`,
+        "name": i$3`201, 128, 251`,
+        "object": i$3`0, 167, 240`,
+        "real": i$3`54, 208, 0`,
+        "string": i$3`251, 0, 209`,
+        "struct": i$3`0, 88, 201`,
+        "text": i$3`226, 121, 167`,
         "wildcard": i$3`128, 120, 120`,
     }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
@@ -839,15 +839,16 @@ class Configuration {
         switch (node.getType()) {
             case Configuration.nodeType.callFunction:
             case Configuration.nodeType.commutativeAssociativeBinaryOperator:
-                if (node.entity.FunctionReference.MemberName == "AddKey") {
+                let memberName = node.entity.FunctionReference.MemberName ?? "";
+                const memberParent = node.entity.FunctionReference.MemberParent?.path ?? "";
+                if (memberName === "AddKey") {
                     const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/;
-                    let result = node.entity.FunctionReference.MemberParent.path.match(sequencerScriptingNameRegex);
+                    let result = memberParent.match(sequencerScriptingNameRegex);
                     if (result) {
                         return `Add Key (${Utility.formatStringName(result[1])})`
                     }
                 }
-                let memberName = node.entity.FunctionReference.MemberName;
-                if (node.entity.FunctionReference.MemberParent.path == "/Script/Engine.KismetMathLibrary") {
+                if (memberParent == "/Script/Engine.KismetMathLibrary") {
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion  nodes do not have visible names
                     }
@@ -868,13 +869,13 @@ class Configuration {
                         case "MinInt64": return "MIN"
                     }
                 }
-                if (node.entity.FunctionReference.MemberParent.path === "/Script/Engine.BlueprintSetLibrary") {
+                if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
                     const setOperationMatch = memberName.match(/Set_(\w+)/);
                     if (setOperationMatch) {
                         return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
                     }
                 }
-                if (node.entity.FunctionReference.MemberParent.path === "/Script/Engine.BlueprintMapLibrary") {
+                if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
                     const setOperationMatch = memberName.match(/Map_(\w+)/);
                     if (setOperationMatch) {
                         return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
@@ -921,6 +922,7 @@ class Configuration {
         forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
         forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
         forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
+        functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
@@ -930,6 +932,7 @@ class Configuration {
         pawn: "/Script/Engine.Pawn",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         select: "/Script/BlueprintGraph.K2Node_Select",
+        userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
@@ -939,24 +942,9 @@ class Configuration {
      * @return {CSSResult}
      */
     static pinColor(pin) {
-        if (Configuration.#pinColor[pin.pinType]) {
-            return Configuration.#pinColor[pin.pinType]
-        }
-        if (pin.entity.PinType.PinCategory == "struct" || pin.entity.PinType.PinCategory == "object") {
-            switch (pin.entity.PinType.PinSubCategoryObject.type) {
-                case "ScriptStruct":
-                case "/Script/CoreUObject.ScriptStruct":
-                    return i$3`0, 88, 200`
-                default:
-                    if (
-                        pin.entity.PinType.PinSubCategoryObject.getName().endsWith("Actor")
-                        || pin.getPinDisplayName() == "Target"
-                    ) {
-                        return Configuration.#pinColor["/Script/Engine.Actor"]
-                    }
-            }
-        }
-        return Configuration.#pinColor["default"]
+        return Configuration.#pinColor[pin.entity.getType()]
+            ?? Configuration.#pinColor[pin.entity.PinType.PinCategory]
+            ?? Configuration.#pinColor["default"]
     }
     static scale = {
         [-12]: 0.133333,
@@ -2482,6 +2470,10 @@ class ObjectEntity extends IEntity {
             value: false,
             showDefault: false,
         },
+        bIsConstFunc: {
+            value: false,
+            showDefault: false,
+        },
         VariableReference: {
             type: VariableReferenceEntity,
             value: null,
@@ -2723,6 +2715,10 @@ class UnknownKeysEntity extends IEntity {
     }
 }
 
+class EnumEntity extends ByteEntity {
+
+}
+
 // @ts-nocheck
 
 /**
@@ -2772,6 +2768,8 @@ class Grammar {
                 return r.Boolean
             case ByteEntity:
                 return r.Byte
+            case EnumEntity:
+                return r.Enum
             case FunctionReferenceEntity:
                 return r.FunctionReference
             case GuidEntity:
@@ -5694,9 +5692,9 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 ${name ? y`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.hasSubtitle && this.element.entity.FunctionReference.MemberParent ? y`
+                        ${this.hasSubtitle && this.getTargetType().length > 0 ? y`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
-                                Target is ${Utility.formatStringName(this.element.entity.FunctionReference.MemberParent.getName())}
+                                Target is ${Utility.formatStringName(this.getTargetType())}
                             </div>
                         `: b}
                     </div>
@@ -5729,11 +5727,15 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
             .map(pinEntity => {
-                this.hasSubtitle = this.hasSubtitle || pinEntity.getDisplayName() === "Target";
+                this.hasSubtitle = this.hasSubtitle || pinEntity.PinName === "self" && pinEntity.getDisplayName() === "Target";
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                     .newObject(pinEntity, undefined, this.element);
                 return pinElement
             })
+    }
+
+    getTargetType() {
+        return this.element.entity.FunctionReference?.MemberParent?.getName() ?? "Untitled"
     }
 
     /**
@@ -6011,62 +6013,6 @@ class CommentNodeTemplate extends IResizeableTemplate {
 
     leftBoundary(justSelectableArea = false) {
         return this.element.locationX
-    }
-}
-
-/**
- * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
- */
-
-/**
- * @template {IEntity} T
- * @template {ISelectableDraggableTemplate} U
- * @extends {IDraggableElement<T, U>}
- */
-class ISelectableDraggableElement extends IDraggableElement {
-
-    static properties = {
-        ...super.properties,
-        selected: {
-            type: Boolean,
-            attribute: "data-selected",
-            reflect: true,
-            converter: Utility.booleanConverter,
-        },
-    }
-
-    /** @param {DragEvent} e */
-    dragHandler = e => this.addLocation(...e.detail.value)
-
-    constructor() {
-        super();
-        this.selected = false;
-        this.listeningDrag = false;
-    }
-
-    setup() {
-        super.setup();
-        this.setSelected(this.selected);
-    }
-
-    cleanup() {
-        super.cleanup();
-        this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
-    }
-
-    setSelected(value = true) {
-        this.selected = value;
-        if (this.blueprint) {
-            if (this.selected) {
-                this.listeningDrag = true;
-                this.blueprint.addEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
-            } else {
-                this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
-                this.listeningDrag = false;
-            }
-        }
     }
 }
 
@@ -6378,12 +6324,122 @@ class PinTemplate extends ITemplate {
     }
 }
 
-/** @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate */
-
 class MinimalPinTemplate extends PinTemplate {
 
     render() {
         return y`<div class="ueb-pin-icon">${this.renderIcon()}</div>`
+    }
+}
+
+/**
+ * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
+
+class EventNodeTemplate extends NodeTemplate {
+
+    static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-event"]
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.element.querySelector(".ueb-node-top").appendChild(this.createDelegatePinElement());
+    }
+
+    renderTop() {
+        const icon = this.renderNodeIcon();
+        const name = this.renderNodeName();
+        return y`
+            <div class="ueb-node-name">
+                ${icon ? y`
+                    <div class="ueb-node-name-symbol">${icon}</div>
+                ` : b}
+                ${name ? y`
+                    <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
+                        ${name}
+                        ${this.hasSubtitle && this.element.entity.FunctionReference.MemberParent ? y`
+                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
+                                Custom Event
+                            </div>
+                        `: b}
+                    </div>
+                ` : b}
+            </div>
+        `
+    }
+
+    createDelegatePinElement() {
+        const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
+            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory === "delegate"),
+            new MinimalPinTemplate(),
+            this.element
+        );
+        pin.template.isNameRendered = false;
+        return pin
+    }
+
+    createPinElements() {
+        return this.element.getPinEntities()
+            .filter(v => !v.isHidden() && v.PinType.PinCategory !== "delegate")
+            .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+                .newObject(pinEntity, undefined, this.element)
+            )
+    }
+}
+
+/**
+ * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
+ */
+
+/**
+ * @template {IEntity} T
+ * @template {ISelectableDraggableTemplate} U
+ * @extends {IDraggableElement<T, U>}
+ */
+class ISelectableDraggableElement extends IDraggableElement {
+
+    static properties = {
+        ...super.properties,
+        selected: {
+            type: Boolean,
+            attribute: "data-selected",
+            reflect: true,
+            converter: Utility.booleanConverter,
+        },
+    }
+
+    /** @param {DragEvent} e */
+    dragHandler = e => this.addLocation(...e.detail.value)
+
+    constructor() {
+        super();
+        this.selected = false;
+        this.listeningDrag = false;
+    }
+
+    setup() {
+        super.setup();
+        this.setSelected(this.selected);
+    }
+
+    cleanup() {
+        super.cleanup();
+        this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
+    }
+
+    setSelected(value = true) {
+        this.selected = value;
+        if (this.blueprint) {
+            if (this.selected) {
+                this.listeningDrag = true;
+                this.blueprint.addEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
+            } else {
+                this.blueprint.removeEventListener(Configuration.nodeDragGeneralEventName, this.dragHandler);
+                this.listeningDrag = false;
+            }
+        }
     }
 }
 
@@ -6516,64 +6572,6 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 }
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").default} PinElement
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-class EventNodeTemplate extends NodeTemplate {
-
-    static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-event"]
-
-    /** @param {PropertyValues} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.element.querySelector(".ueb-node-top").appendChild(this.createDelegatePinElement());
-    }
-
-    renderTop() {
-        const icon = this.renderNodeIcon();
-        const name = this.renderNodeName();
-        return y`
-            <div class="ueb-node-name">
-                ${icon ? y`
-                    <div class="ueb-node-name-symbol">${icon}</div>
-                ` : b}
-                ${name ? y`
-                    <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                        ${name}
-                        ${this.hasSubtitle && this.element.entity.FunctionReference.MemberParent ? y`
-                            <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
-                                Custom Event
-                            </div>
-                        `: b}
-                    </div>
-                ` : b}
-            </div>
-        `
-    }
-
-    createDelegatePinElement() {
-        const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory === "delegate"),
-            new MinimalPinTemplate(),
-            this.element
-        );
-        pin.template.isNameRendered = false;
-        return pin
-    }
-
-    createPinElements() {
-        return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType.PinCategory !== "delegate")
-            .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                .newObject(pinEntity, undefined, this.element)
-            )
-    }
-}
-
-/**
  * @typedef {import("./IDraggableElement").DragEvent} DragEvent
  * @typedef {import("./IElement").default} IElement
  * @typedef {import("./PinElement").default} PinElement
@@ -6661,7 +6659,8 @@ class NodeElement extends ISelectableDraggableElement {
             nodeEntity.getClass() === Configuration.nodeType.callFunction
             || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
         ) {
-            if (nodeEntity.FunctionReference.MemberParent.path === "/Script/Engine.KismetMathLibrary") {
+            const memberParent = nodeEntity.FunctionReference.MemberParent?.path ?? "";
+            if (memberParent === "/Script/Engine.KismetMathLibrary") {
                 if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
                     return VariableConversionNodeTemplate
                 }
@@ -6682,10 +6681,10 @@ class NodeElement extends ISelectableDraggableElement {
                         return VariableOperationNodeTemplate
                 }
             }
-            if (nodeEntity.FunctionReference.MemberParent.path == "/Script/Engine.BlueprintSetLibrary") {
+            if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
                 return VariableOperationNodeTemplate
             }
-            if (nodeEntity.FunctionReference.MemberParent.path == "/Script/Engine.BlueprintMapLibrary") {
+            if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
                 return VariableOperationNodeTemplate
             }
         }
@@ -7469,13 +7468,16 @@ class InputTemplate extends ITemplate {
             getSelection().selectAllChildren(this.element);
         }
     }
+
     #focusoutHandler = () => {
         this.blueprint.acknowledgeEditText(false);
         getSelection().removeAllRanges(); // Deselect eventually selected text inside the input
     }
+
     /** @param {InputEvent} e */
     #inputSingleLineHandler = e =>
         /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
+
     /** @param {KeyboardEvent} e */
     #onKeydownBlurOnEnterHandler = e => {
         if (e.code == "Enter" && !e.shiftKey) {
@@ -7632,11 +7634,6 @@ class ExecPinTemplate extends PinTemplate {
 
 /**
  * @template T
- * @typedef {import("../../element/PinElement").default<T>} PinElement
- */
-
-/**
- * @template T
  * @extends PinTemplate<T>
  */
 class IInputPinTemplate extends PinTemplate {
@@ -7729,7 +7726,7 @@ class IInputPinTemplate extends PinTemplate {
         return y`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.entity.DefaultValue.toString())}">
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
                 </ueb-input>
             </div>
         `
@@ -8279,9 +8276,9 @@ class LinearColorPinTemplate extends PinTemplate {
 
     renderInput() {
         return y`
-            <span class="ueb-pin-input" data-linear-color="${this.element.defaultValue.toString()}"
+            <span class="ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? b}"
                 @click="${this.#launchColorPickerWindow}"
-                style="--ueb-linear-color: rgba(${this.element.defaultValue.toString()})">
+                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? b})">
             </span>
         `
     }
@@ -8308,7 +8305,7 @@ class RealPinTemplate extends INumericPinTemplate {
         return y`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${true}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue() ?? 0))}">
+                    .innerText="${Utility.minDecimals(this.element.getDefaultValue() ?? 0)}">
                 </ueb-input>
             </div>
         `
@@ -8328,15 +8325,15 @@ class ReferencePinTemplate extends PinTemplate {
 class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0)
     }
 
     #getP() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.P ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.P ?? 0)
     }
 
     #getY() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -8382,11 +8379,11 @@ class StringPinTemplate extends IInputPinTemplate {
 class VectorInputPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0)
     }
 
     #getY() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     /**
@@ -8427,15 +8424,15 @@ class VectorInputPinTemplate extends INumericPinTemplate {
 class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0)
     }
 
     #getY() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     #getZ() {
-        return IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue()?.Z ?? 0))
+        return Utility.minDecimals(this.element.getDefaultValue()?.Z ?? 0)
     }
 
     /**

@@ -102,7 +102,8 @@ export default class NodeElement extends ISelectableDraggableElement {
             nodeEntity.getClass() === Configuration.nodeType.callFunction
             || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
         ) {
-            if (nodeEntity.FunctionReference.MemberParent.path === "/Script/Engine.KismetMathLibrary") {
+            const memberParent = nodeEntity.FunctionReference.MemberParent?.path ?? ""
+            if (memberParent === "/Script/Engine.KismetMathLibrary") {
                 if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
                     return VariableConversionNodeTemplate
                 }
@@ -123,10 +124,10 @@ export default class NodeElement extends ISelectableDraggableElement {
                         return VariableOperationNodeTemplate
                 }
             }
-            if (nodeEntity.FunctionReference.MemberParent.path == "/Script/Engine.BlueprintSetLibrary") {
+            if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
                 return VariableOperationNodeTemplate
             }
-            if (nodeEntity.FunctionReference.MemberParent.path == "/Script/Engine.BlueprintMapLibrary") {
+            if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
                 return VariableOperationNodeTemplate
             }
         }

@@ -1,5 +1,4 @@
 import { html } from "lit"
-import IInputPinTemplate from "./IInputPinTemplate"
 import INumericPinTemplate from "./INumericPinTemplate"
 import Utility from "../../Utility"
 
@@ -17,7 +16,7 @@ export default class RealPinTemplate extends INumericPinTemplate {
         return html`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${true}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(Utility.minDecimals(this.element.getDefaultValue() ?? 0))}">
+                    .innerText="${Utility.minDecimals(this.element.getDefaultValue() ?? 0)}">
                 </ueb-input>
             </div>
         `
