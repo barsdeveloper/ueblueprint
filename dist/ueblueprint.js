@@ -461,6 +461,10 @@ class Utility {
      * @param {AnyValue} b
      */
     static equals(a, b) {
+        // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
+        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
+            return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
+        }
         a = Utility.sanitize(a);
         b = Utility.sanitize(b);
         if (a?.constructor === BigInt && b?.constructor === Number) {
@@ -472,7 +476,15 @@ class Utility {
             return true
         }
         if (a instanceof Array && b instanceof Array) {
-            return a.length == b.length && !a.find((value, i) => !Utility.equals(value, b[i]))
+            return a.length === b.length && a.every((value, i) => Utility.equals(value, b[i]))
+        }
+        if (a instanceof Set && b instanceof Set) {
+            if (a.size !== b.size) {
+                return false
+            }
+            a = [...a];
+            b = [...b];
+            return a.every(first => /** @type {Array} */(b).some(second => Utility.equals(first, second)))
         }
         return false
     }
@@ -486,7 +498,6 @@ class Utility {
             return null
         }
         if (value?.constructor === Object && value?.type instanceof Function) {
-            // @ts-expect-error
             return value.type
         }
         return /** @type {AnyValueConstructor} */(value?.constructor)
@@ -722,6 +733,7 @@ class Configuration {
         "class": i$3`88, 0, 186`,
         "default": i$3`255, 255, 255`,
         "delegate": i$3`255, 56, 56`,
+        "enum": i$3`0, 109, 99`,
         "exec": i$3`240, 240, 240`,
         "int": i$3`31, 224, 172`,
         "int64": i$3`169, 223, 172`,
@@ -780,7 +792,6 @@ class Configuration {
     static maxZoom = 7
     static minZoom = -12
     static mouseWheelFactor = 0.2
-    static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
     /** @param {NodeElement} node */
@@ -825,8 +836,9 @@ class Configuration {
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
                 return pureFunctionColor
-            case Configuration.nodeType.macro:
             case Configuration.nodeType.executionSequence:
+            case Configuration.nodeType.ifThenElse:
+            case Configuration.nodeType.macro:
                 return i$3`150,150,150`
             case Configuration.nodeType.dynamicCast:
                 return i$3`46, 104, 106`
@@ -915,6 +927,7 @@ class Configuration {
         customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        enum: "/Script/CoreUObject.Enum",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
@@ -946,6 +959,7 @@ class Configuration {
             ?? Configuration.#pinColor[pin.entity.PinType.PinCategory]
             ?? Configuration.#pinColor["default"]
     }
+    static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
         [-11]: 0.166666,
@@ -1232,7 +1246,8 @@ class IEntity {
         const defineAllAttributes = (target, attributes, values = {}, prefix = "") => {
             const valuesNames = Object.keys(values);
             const attributesNames = Object.keys(attributes);
-            for (let attributeName of Utility.mergeArrays(attributesNames, valuesNames)) {
+            const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames);
+            for (let attributeName of allAttributesNames) {
                 let value = Utility.objectGet(values, [attributeName]);
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName];
@@ -1414,6 +1429,23 @@ class IEntity {
         return Object.keys(this).length
             - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
     }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        const thisKeys = Object.keys(this);
+        const otherKeys = Object.keys(this);
+        if (thisKeys.length != otherKeys.length) {
+            return false
+        }
+        for (const key of thisKeys) {
+            if (this[key] instanceof IEntity && !this[key].equals(other[key])) {
+                return false
+            } else if (!Utility.equals(this[key], other[key])) {
+                return false
+            }
+        }
+        return true
+    }
 }
 
 class IntegerEntity extends IEntity {
@@ -1461,6 +1493,26 @@ class ByteEntity extends IntegerEntity {
     constructor(values = 0) {
         super(values);
     }
+}
+
+class SymbolEntity extends IEntity {
+
+    static attributes = {
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.value;
+    }
+}
+
+class EnumEntity extends SymbolEntity {
+
 }
 
 class ObjectReferenceEntity extends IEntity {
@@ -2176,6 +2228,7 @@ class PinEntity extends IEntity {
         "/Script/CoreUObject.Vector2D": Vector2DEntity,
         "bool": Boolean,
         "byte": ByteEntity,
+        "enum": EnumEntity,
         "exec": String,
         "int": IntegerEntity,
         "int64": Integer64Entity,
@@ -2299,8 +2352,18 @@ class PinEntity extends IEntity {
     }
 
     getType() {
-        if (this.PinType.PinCategory == "struct" || this.PinType.PinCategory == "object") {
-            return this.PinType.PinSubCategoryObject.path
+        const subCategory = this.PinType.PinSubCategoryObject;
+        if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
+            return subCategory.path
+        }
+        if (
+            this.PinType.PinCategory === "byte"
+            && (
+                subCategory.type === Configuration.nodeType.enum
+                || subCategory.type === Configuration.nodeType.userDefinedEnum
+            )
+        ) {
+            return "enum"
         }
         return this.PinType.PinCategory
     }
@@ -2373,20 +2436,18 @@ class PinEntity extends IEntity {
      * @param {PinEntity} targetPinEntity
      */
     linkTo(targetObjectName, targetPinEntity) {
-        /** @type {PinReferenceEntity[]} */
-        this.LinkedTo;
-        const linkFound = this.LinkedTo?.find(pinReferenceEntity => {
-            return pinReferenceEntity.objectName.toString() == targetObjectName
-                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
-        });
+        const linkFound = this.LinkedTo?.find(pinReferenceEntity =>
+            pinReferenceEntity.objectName.toString() == targetObjectName
+            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+        );
         if (!linkFound) {
-            (this.LinkedTo ?? (this.LinkedTo = [])).push(new PinReferenceEntity({
+            (this.LinkedTo ??= []).push(new PinReferenceEntity({
                 objectName: targetObjectName,
                 pinGuid: targetPinEntity.PinId,
             }));
             return true
         }
-        return false
+        return false // It is already linked
     }
 
     /**
@@ -2411,22 +2472,6 @@ class PinEntity extends IEntity {
 
     getSubCategory() {
         return this.PinType.PinSubCategoryObject.path
-    }
-}
-
-class SymbolEntity extends IEntity {
-
-    static attributes = {
-        value: "",
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.value;
     }
 }
 
@@ -2715,10 +2760,6 @@ class UnknownKeysEntity extends IEntity {
     }
 }
 
-class EnumEntity extends ByteEntity {
-
-}
-
 // @ts-nocheck
 
 /**
@@ -2990,7 +3031,10 @@ class Grammar {
     PathSymbolOptSpaces = r => P.regex(/[0-9\w]+(?: [0-9\w]+)+|[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
-    Symbol = r => P.regex(/\w+/).map(v => new SymbolEntity({ value: v }))
+    Symbol = r => P.regex(/[a-zA-Z_]\w*/).map(v => new SymbolEntity({ value: v }))
+
+    /** @param {Grammar} r */
+    Enum = r => P.regex(/[a-zA-Z_]\w*/).map(v => new EnumEntity({ value: v }))
 
     /** @param {Grammar} r */
     ObjectReference = r => P.alt(
@@ -3897,6 +3941,7 @@ class IElement extends s {
         if (this.isSetup) {
             this.updateComplete.then(() => this.cleanup());
         }
+        this.acknowledgeDelete();
     }
 
     createRenderRoot() {
@@ -3957,6 +4002,11 @@ class IElement extends s {
         if (requestUpdate) {
             this.requestUpdate();
         }
+    }
+
+    acknowledgeDelete() {
+        let deleteEvent = new CustomEvent(Configuration.removeEventName);
+        this.dispatchEvent(deleteEvent);
     }
 
     /** @param {IElement} element */
@@ -4976,14 +5026,17 @@ class LinkTemplate extends IFromToPositionedTemplate {
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
             .newObject(knotEntity);
         knot.setLocation(...this.blueprint.snapToGrid(...location));
+        const knotTemplate = /** @type {KnotNodeTemplate} */(knot.template);
         this.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
+        const inputPin = this.element.getInputPin();
+        const outputPin = this.element.getOutputPin();
+        this.element.sourcePin = null;
+        this.element.destinationPin = null;
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
-            .newObject(
-                /** @type {KnotNodeTemplate} */(knot.template).outputPin,
-                this.element.destinationPin
-            );
-        this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin;
+            .newObject(outputPin, knotTemplate.inputPin);
         this.blueprint.addGraphElement(link);
+        this.element.sourcePin = knotTemplate.outputPin;
+        this.element.destinationPin = inputPin;
     }
 
     createInputObjects() {
@@ -5005,19 +5058,21 @@ class LinkTemplate extends IFromToPositionedTemplate {
         const sourcePin = this.element.sourcePin;
         const destinationPin = this.element.destinationPin;
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
+            const from = this.element.fromX;
+            const to = this.element.toX;
             const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.nodeType.knot;
             const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.nodeType.knot;
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
-                if (sourcePin?.isInput() && this.element.toX > this.element.fromX + Configuration.distanceThreshold) {
+                if (sourcePin?.isInput() && to > from + Configuration.distanceThreshold) {
                     this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin;
-                } else if (sourcePin?.isOutput() && this.element.toX < this.element.fromX - Configuration.distanceThreshold) {
+                } else if (sourcePin?.isOutput() && to < from - Configuration.distanceThreshold) {
                     this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin;
                 }
             }
             if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
-                if (destinationPin?.isInput() && this.element.toX < this.element.fromX + Configuration.distanceThreshold) {
+                if (destinationPin?.isInput() && to < from - Configuration.distanceThreshold) {
                     this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin;
-                } else if (destinationPin?.isOutput() && this.element.toX > this.element.fromX - Configuration.distanceThreshold) {
+                } else if (destinationPin?.isOutput() && to > from + Configuration.distanceThreshold) {
                     this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin;
                 }
             }
@@ -5204,7 +5259,6 @@ class LinkElement extends IFromToPositionedElement {
                 this.fromY = this.toY;
             }
         }
-        this.#linkPins();
     }
 
     /**
@@ -5218,7 +5272,7 @@ class LinkElement extends IFromToPositionedElement {
         }
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement();
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.removeEventListener(Configuration.removeEventName, this.#nodeDeleteHandler);
             nodeElement.removeEventListener(
                 Configuration.nodeDragEventName,
                 isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
@@ -5234,7 +5288,7 @@ class LinkElement extends IFromToPositionedElement {
             : this.#sourcePin = pin;
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement();
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler);
+            nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler);
             nodeElement.addEventListener(
                 Configuration.nodeDragEventName,
                 isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
@@ -5259,8 +5313,8 @@ class LinkElement extends IFromToPositionedElement {
 
     #unlinkPins() {
         if (this.sourcePin && this.destinationPin) {
-            this.sourcePin.unlinkFrom(this.destinationPin);
-            this.destinationPin.unlinkFrom(this.sourcePin);
+            this.sourcePin.unlinkFrom(this.destinationPin, false);
+            this.destinationPin.unlinkFrom(this.sourcePin, false);
         }
     }
 
@@ -5272,11 +5326,12 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     /** @param {Number[]?} location */
-    setSourceLocation(location = null) {
+    setSourceLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
-            if (!this.hasUpdated || !this.sourcePin.hasUpdated) {
-                Promise.all([this.updateComplete, this.sourcePin.updateComplete]).then(() => self.setSourceLocation());
+            if (canPostpone && (!this.hasUpdated || !this.sourcePin.hasUpdated)) {
+                Promise.all([this.updateComplete, this.sourcePin.updateComplete])
+                    .then(() => self.setSourceLocation(null, false));
                 return
             }
             location = this.sourcePin.template.getLinkLocation();
@@ -5287,18 +5342,48 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     /** @param {Number[]?} location */
-    setDestinationLocation(location = null) {
+    setDestinationLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
-            if (!this.hasUpdated || !this.destinationPin.hasUpdated) {
+            if (canPostpone && (!this.hasUpdated || !this.destinationPin.hasUpdated)) {
                 Promise.all([this.updateComplete, this.destinationPin.updateComplete])
-                    .then(() => self.setDestinationLocation());
+                    .then(() => self.setDestinationLocation(null, false));
                 return
             }
             location = this.destinationPin.template.getLinkLocation();
         }
         this.toX = location[0];
         this.toY = location[1];
+    }
+
+    getInputPin() {
+        if (this.sourcePin?.isInput()) {
+            return this.sourcePin
+        }
+        return this.destinationPin
+    }
+
+    /** @param {PinElement} pin */
+    setInputPin(pin) {
+        if (this.sourcePin?.isInput()) {
+            this.sourcePin = pin;
+        }
+        this.destinationPin = pin;
+    }
+
+    getOutputPin() {
+        if (this.destinationPin?.isOutput()) {
+            return this.destinationPin
+        }
+        return this.sourcePin
+    }
+
+    /** @param {PinElement} pin */
+    setOutputPin(pin) {
+        if (this.destinationPin?.isOutput()) {
+            this.destinationPin = pin;
+        }
+        this.sourcePin = pin;
     }
 
     startDragging() {
@@ -5342,6 +5427,11 @@ class LinkElement extends IFromToPositionedElement {
     setMessageReplaceLink() {
         this.linkMessageIcon = SVGIcon.correct;
         this.linkMessageText = y`Replace existing input connections.`;
+    }
+
+    setMessageReplaceOutputLink() {
+        this.linkMessageIcon = SVGIcon.correct;
+        this.linkMessageText = y`Replace existing output connections.`;
     }
 
     setMessageSameNode() {
@@ -6021,6 +6111,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
  * @typedef {import("../../element/LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("../../element/PinElement").default} PinElement
  * @typedef {import("../../template/node/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("../../template/pin/KnotPinTemplate").default} KnotPinTemplate
  */
 
 /** @extends IMouseClickDrag<PinElement> */
@@ -6032,46 +6123,46 @@ class MouseCreateLink extends IMouseClickDrag {
     /** @type {PinElement} */
     #knotPin = null
 
-    #mouseenterHandler =
-        /** @param {MouseEvent} e */
-        e => {
-            if (!this.enteredPin) {
-                this.linkValid = false;
-                this.enteredPin = /** @type {PinElement} */(e.target);
-                const a = this.link.sourcePin ?? this.target; // Remember target might have change
-                const b = this.enteredPin;
-                if (
-                    a.nodeElement.getType() == Configuration.nodeType.knot
-                    || b.nodeElement.getType() == Configuration.nodeType.knot
-                ) {
-                    // A knot can be linked to any pin, it doesn't matter the type or input/output direction
-                    this.link.setMessageCorrect();
-                    this.linkValid = true;
-                } else if (a.getNodeElement() == b.getNodeElement()) {
-                    this.link.setMessageSameNode();
-                } else if (a.isOutput() == b.isOutput()) {
-                    this.link.setMessageDirectionsIncompatible();
-                } else if (a.isOutput() == b.isOutput()) {
-                    this.link.setMessageDirectionsIncompatible();
-                } else if (this.blueprint.getLinks(a, b).length) {
-                    this.link.setMessageReplaceLink();
-                    this.linkValid = true;
-                } else {
-                    this.link.setMessageCorrect();
-                    this.linkValid = true;
-                }
+    /** @param {MouseEvent} e */
+    #mouseenterHandler = e => {
+        if (!this.enteredPin) {
+            this.linkValid = false;
+            this.enteredPin = /** @type {PinElement} */(e.target);
+            const a = this.link.sourcePin ?? this.target; // Remember target might have change
+            const b = this.enteredPin;
+            const outputPin = a.isOutput() ? a : b;
+            if (
+                a.nodeElement.getType() === Configuration.nodeType.knot
+                || b.nodeElement.getType() === Configuration.nodeType.knot
+            ) {
+                // A knot can be linked to any pin, it doesn't matter the type or input/output direction
+                this.link.setMessageCorrect();
+                this.linkValid = true;
+            } else if (a.getNodeElement() === b.getNodeElement()) {
+                this.link.setMessageSameNode();
+            } else if (a.isOutput() === b.isOutput()) {
+                this.link.setMessageDirectionsIncompatible();
+            } else if (this.blueprint.getLinks(a, b).length) {
+                this.link.setMessageReplaceLink();
+                this.linkValid = true;
+            } else if (outputPin.entity.getType() === "exec" && outputPin.isLinked) {
+                this.link.setMessageReplaceOutputLink();
+                this.linkValid = true;
+            } else {
+                this.link.setMessageCorrect();
+                this.linkValid = true;
             }
         }
+    }
 
-    #mouseleaveHandler =
-        /** @param {MouseEvent} e */
-        e => {
-            if (this.enteredPin == e.target) {
-                this.enteredPin = null;
-                this.linkValid = false;
-                this.link?.setMessagePlaceNode();
-            }
+    /** @param {MouseEvent} e */
+    #mouseleaveHandler = e => {
+        if (this.enteredPin == e.target) {
+            this.enteredPin = null;
+            this.linkValid = false;
+            this.link?.setMessagePlaceNode();
         }
+    }
 
     /** @type {LinkElement?} */
     link
@@ -6116,15 +6207,15 @@ class MouseCreateLink extends IMouseClickDrag {
                 const otherPin = this.#knotPin !== this.link.sourcePin ? this.link.sourcePin : this.enteredPin;
                 // Knot pin direction correction
                 if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
-                    const oppositePin = this.#knotPin.isInput()
-                        ? /** @type {KnotNodeTemplate} */(this.#knotPin.nodeElement.template).outputPin
-                        : /** @type {KnotNodeTemplate} */(this.#knotPin.nodeElement.template).inputPin;
+                    const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).getOppositePin();
                     if (this.#knotPin === this.link.sourcePin) {
                         this.link.sourcePin = oppositePin;
                     } else {
                         this.enteredPin = oppositePin;
                     }
                 }
+            } else if (this.enteredPin.nodeElement.getType() === Configuration.nodeType.knot) {
+                this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin();
             }
             this.blueprint.addGraphElement(this.link);
             this.link.destinationPin = this.enteredPin;
@@ -6324,6 +6415,15 @@ class PinTemplate extends ITemplate {
     }
 }
 
+/**
+ * @template T
+ * @typedef {import("../../element/PinElement").default<T>} PinElement
+ */
+
+/**
+ * @template T
+ * @extends PinTemplate<PinElement<T>>
+ */
 class MinimalPinTemplate extends PinTemplate {
 
     render() {
@@ -6443,12 +6543,21 @@ class ISelectableDraggableElement extends IDraggableElement {
     }
 }
 
-/** @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate */
+/**
+ * @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("../../entity/PinEntity").default} KnotEntity
+ */
 
+/** @extends MinimalPinTemplate<KnotEntity> */
 class KnotPinTemplate extends MinimalPinTemplate {
 
     render() {
         return this.element.isOutput() ? super.render() : y``
+    }
+
+    getOppositePin() {
+        const nodeTemplate = /** @type {KnotNodeTemplate} */(this.element.nodeElement.template);
+        return this.element.isOutput() ? nodeTemplate.inputPin : nodeTemplate.outputPin
     }
 
     getLinkLocation() {
@@ -6769,11 +6878,6 @@ class NodeElement extends ISelectableDraggableElement {
             && this.leftBoundary() >= commentNode.leftBoundary()
     }
 
-    cleanup() {
-        super.cleanup();
-        this.acknowledgeDelete();
-    }
-
     getType() {
         return this.entity.getType()
     }
@@ -6837,13 +6941,9 @@ class NodeElement extends ISelectableDraggableElement {
         super.setLocation(x, y, acknowledge);
     }
 
-    acknowledgeDelete() {
-        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName);
-        this.dispatchEvent(deleteEvent);
-    }
-
     acknowledgeReflow() {
-        this.addNextUpdatedCallbacks(() => this.computeSizes(), true);
+        this.requestUpdate();
+        this.updateComplete.then(() => this.computeSizes());
         let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName);
         this.dispatchEvent(reflowEvent);
     }
@@ -7200,10 +7300,10 @@ class Blueprint extends IElement {
      * @param {PinElement} sourcePin
      * @param {PinElement} destinationPin
      */
-    getLink(sourcePin, destinationPin, ignoreDirection = false) {
+    getLink(sourcePin, destinationPin, strictDirection = false) {
         return this.links.find(link =>
             link.sourcePin == sourcePin && link.destinationPin == destinationPin
-            || ignoreDirection && link.sourcePin == destinationPin && link.destinationPin == sourcePin
+            || !strictDirection && link.sourcePin == destinationPin && link.destinationPin == sourcePin
         )
     }
 
@@ -7217,7 +7317,7 @@ class Blueprint extends IElement {
 
     /** @param  {...IElement} graphElements */
     addGraphElement(...graphElements) {
-        for (let element of graphElements) {
+        for (const element of graphElements) {
             element.blueprint = this;
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
                 const nodeName = element.entity.getObjectName();
@@ -7234,9 +7334,23 @@ class Blueprint extends IElement {
                     homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]));
                 }
                 this.nodes.push(element);
+                element.addEventListener(Configuration.removeEventName, () => {
+                    const index = this.nodes.indexOf(element);
+                    const last = this.nodes.pop();
+                    if (this.nodes.length > 0) {
+                        this.nodes[index] = last;
+                    }
+                });
                 this.template.nodesContainerElement?.appendChild(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
+                element.addEventListener(Configuration.removeEventName, () => {
+                    const index = this.links.indexOf(element);
+                    const last = this.links.pop();
+                    if (this.nodes.length > 0) {
+                        this.links[index] = last;
+                    }
+                });
                 if (this.template.linksContainerElement && !this.template.linksContainerElement.contains(element)) {
                     this.template.linksContainerElement.appendChild(element);
                 }
@@ -8371,8 +8485,6 @@ class RotatorPinTemplate extends INumericPinTemplate {
 class StringPinTemplate extends IInputPinTemplate {
 }
 
-/** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
-
 /**
  * @extends INumericPinTemplate<Vector2DEntity>
  */
@@ -8415,8 +8527,6 @@ class VectorInputPinTemplate extends INumericPinTemplate {
         `
     }
 }
-
-/** @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity */
 
 /**
  * @extends INumericPinTemplate<VectorEntity>
@@ -8472,7 +8582,6 @@ class VectorPinTemplate extends INumericPinTemplate {
 
 /**
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("lit").CSSResult} CSSResult
@@ -8602,6 +8711,13 @@ class PinElement extends IElement {
         this.nodeElement = this.closest("ueb-node");
     }
 
+    createPinReference() {
+        return new PinReferenceEntity({
+            objectName: this.nodeElement.getNodeName(),
+            pinGuid: this.getPinId(),
+        })
+    }
+
     /** @return {GuidEntity} */
     getPinId() {
         return this.entity.PinId
@@ -8659,7 +8775,7 @@ class PinElement extends IElement {
                 if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
                     return false
                 }
-                let link = this.blueprint.getLink(this, pin, true);
+                let link = this.blueprint.getLink(this, pin);
                 if (!link) {
                     link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
                         .newObject(this, pin);
@@ -8673,6 +8789,14 @@ class PinElement extends IElement {
 
     /** @param {PinElement} targetPinElement */
     linkTo(targetPinElement) {
+        const pinReference = this.createPinReference();
+        if (
+            this.isLinked
+            && this.isOutput()
+            && (this.pinType === "exec" || targetPinElement.pinType === "exec")
+            && !this.getLinks().some(ref => pinReference.equals(ref))) {
+            this.unlinkFromAll();
+        }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked();
             this.nodeElement?.template.linksChanged();
@@ -8680,9 +8804,20 @@ class PinElement extends IElement {
     }
 
     /** @param {PinElement} targetPinElement */
-    unlinkFrom(targetPinElement) {
+    unlinkFrom(targetPinElement, removeLink = true) {
         if (this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked();
+            this.nodeElement?.template.linksChanged();
+            if (removeLink) {
+                this.blueprint.getLink(this, targetPinElement)?.remove(); // Might be called after the link is removed
+            }
+        }
+    }
+
+    unlinkFromAll() {
+        const isLinked = this.getLinks().length;
+        this.getLinks().map(ref => this.blueprint.getPin(ref)).forEach(pin => this.unlinkFrom(pin));
+        if (isLinked) {
             this.nodeElement?.template.linksChanged();
         }
     }
@@ -8692,7 +8827,7 @@ class PinElement extends IElement {
      * @param {PinReferenceEntity} newReference
      */
     redirectLink(originalPinElement, newReference) {
-        const index = this.entity.LinkedTo.findIndex(pinReference =>
+        const index = this.getLinks().findIndex(pinReference =>
             pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
             && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
         );
@@ -9248,6 +9383,7 @@ function initializeSerializerFactory() {
             (array, insideString) =>
                 `(${array
                     .map(v =>
+                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
                     )
                     .join("")
@@ -9279,6 +9415,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ByteEntity,
         new ToStringSerializer(ByteEntity)
+    );
+
+    SerializerFactory.registerSerializer(
+        EnumEntity,
+        new ToStringSerializer(EnumEntity)
     );
 
     SerializerFactory.registerSerializer(

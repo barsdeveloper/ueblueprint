@@ -69,14 +69,17 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
             .newObject(knotEntity)
         knot.setLocation(...this.blueprint.snapToGrid(...location))
+        const knotTemplate = /** @type {KnotNodeTemplate} */(knot.template)
         this.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
+        const inputPin = this.element.getInputPin()
+        const outputPin = this.element.getOutputPin()
+        this.element.sourcePin = null
+        this.element.destinationPin = null
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
-            .newObject(
-                /** @type {KnotNodeTemplate} */(knot.template).outputPin,
-                this.element.destinationPin
-            )
-        this.element.destinationPin = /** @type {KnotNodeTemplate} */(knot.template).inputPin
+            .newObject(outputPin, knotTemplate.inputPin)
         this.blueprint.addGraphElement(link)
+        this.element.sourcePin = knotTemplate.outputPin
+        this.element.destinationPin = inputPin
     }
 
     createInputObjects() {
@@ -98,19 +101,21 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         const sourcePin = this.element.sourcePin
         const destinationPin = this.element.destinationPin
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
+            const from = this.element.fromX
+            const to = this.element.toX
             const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.nodeType.knot
             const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.nodeType.knot
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
-                if (sourcePin?.isInput() && this.element.toX > this.element.fromX + Configuration.distanceThreshold) {
+                if (sourcePin?.isInput() && to > from + Configuration.distanceThreshold) {
                     this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin
-                } else if (sourcePin?.isOutput() && this.element.toX < this.element.fromX - Configuration.distanceThreshold) {
+                } else if (sourcePin?.isOutput() && to < from - Configuration.distanceThreshold) {
                     this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin
                 }
             }
             if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
-                if (destinationPin?.isInput() && this.element.toX < this.element.fromX + Configuration.distanceThreshold) {
+                if (destinationPin?.isInput() && to < from - Configuration.distanceThreshold) {
                     this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin
-                } else if (destinationPin?.isOutput() && this.element.toX > this.element.fromX - Configuration.distanceThreshold) {
+                } else if (destinationPin?.isOutput() && to > from + Configuration.distanceThreshold) {
                     this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin
                 }
             }

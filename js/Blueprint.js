@@ -347,10 +347,10 @@ export default class Blueprint extends IElement {
      * @param {PinElement} sourcePin
      * @param {PinElement} destinationPin
      */
-    getLink(sourcePin, destinationPin, ignoreDirection = false) {
+    getLink(sourcePin, destinationPin, strictDirection = false) {
         return this.links.find(link =>
             link.sourcePin == sourcePin && link.destinationPin == destinationPin
-            || ignoreDirection && link.sourcePin == destinationPin && link.destinationPin == sourcePin
+            || !strictDirection && link.sourcePin == destinationPin && link.destinationPin == sourcePin
         )
     }
 
@@ -364,8 +364,7 @@ export default class Blueprint extends IElement {
 
     /** @param  {...IElement} graphElements */
     addGraphElement(...graphElements) {
-        let nodeElements = []
-        for (let element of graphElements) {
+        for (const element of graphElements) {
             element.blueprint = this
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
                 const nodeName = element.entity.getObjectName()
@@ -382,10 +381,23 @@ export default class Blueprint extends IElement {
                     homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]))
                 }
                 this.nodes.push(element)
-                nodeElements.push(element)
+                element.addEventListener(Configuration.removeEventName, () => {
+                    const index = this.nodes.indexOf(element)
+                    const last = this.nodes.pop()
+                    if (this.nodes.length > 0) {
+                        this.nodes[index] = last
+                    }
+                })
                 this.template.nodesContainerElement?.appendChild(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
+                element.addEventListener(Configuration.removeEventName, () => {
+                    const index = this.links.indexOf(element)
+                    const last = this.links.pop()
+                    if (this.nodes.length > 0) {
+                        this.links[index] = last
+                    }
+                })
                 if (this.template.linksContainerElement && !this.template.linksContainerElement.contains(element)) {
                     this.template.linksContainerElement.appendChild(element)
                 }

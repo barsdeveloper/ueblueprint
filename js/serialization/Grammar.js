@@ -300,7 +300,10 @@ export default class Grammar {
     PathSymbolOptSpaces = r => P.regex(/[0-9\w]+(?: [0-9\w]+)+|[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
-    Symbol = r => P.regex(/\w+/).map(v => new SymbolEntity({ value: v }))
+    Symbol = r => P.regex(/[a-zA-Z_]\w*/).map(v => new SymbolEntity({ value: v }))
+
+    /** @param {Grammar} r */
+    Enum = r => P.regex(/[a-zA-Z_]\w*/).map(v => new EnumEntity({ value: v }))
 
     /** @param {Grammar} r */
     ObjectReference = r => P.alt(

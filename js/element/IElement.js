@@ -1,4 +1,5 @@
 import { LitElement } from "lit"
+import Configuration from "../Configuration"
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint
@@ -76,6 +77,7 @@ export default class IElement extends LitElement {
         if (this.isSetup) {
             this.updateComplete.then(() => this.cleanup())
         }
+        this.acknowledgeDelete()
     }
 
     createRenderRoot() {
@@ -136,6 +138,11 @@ export default class IElement extends LitElement {
         if (requestUpdate) {
             this.requestUpdate()
         }
+    }
+
+    acknowledgeDelete() {
+        let deleteEvent = new CustomEvent(Configuration.removeEventName)
+        this.dispatchEvent(deleteEvent)
     }
 
     /** @param {IElement} element */

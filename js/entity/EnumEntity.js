@@ -1,5 +1,5 @@
-import ByteEntity from "./ByteEntity"
+import SymbolEntity from "./SymbolEntity"
 
-export default class EnumEntity extends ByteEntity {
+export default class EnumEntity extends SymbolEntity {
 
 }

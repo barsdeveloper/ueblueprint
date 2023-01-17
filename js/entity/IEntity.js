@@ -52,7 +52,8 @@ export default class IEntity {
         const defineAllAttributes = (target, attributes, values = {}, prefix = "") => {
             const valuesNames = Object.keys(values)
             const attributesNames = Object.keys(attributes)
-            for (let attributeName of Utility.mergeArrays(attributesNames, valuesNames)) {
+            const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames)
+            for (let attributeName of allAttributesNames) {
                 let value = Utility.objectGet(values, [attributeName])
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName]
@@ -233,5 +234,22 @@ export default class IEntity {
     unexpectedKeys() {
         return Object.keys(this).length
             - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        const thisKeys = Object.keys(this)
+        const otherKeys = Object.keys(this)
+        if (thisKeys.length != otherKeys.length) {
+            return false
+        }
+        for (const key of thisKeys) {
+            if (this[key] instanceof IEntity && !this[key].equals(other[key])) {
+                return false
+            } else if (!Utility.equals(this[key], other[key])) {
+                return false
+            }
+        }
+        return true
     }
 }

@@ -158,6 +158,10 @@ export default class Utility {
      * @param {AnyValue} b
      */
     static equals(a, b) {
+        // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
+        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
+            return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
+        }
         a = Utility.sanitize(a)
         b = Utility.sanitize(b)
         if (a?.constructor === BigInt && b?.constructor === Number) {
@@ -169,7 +173,15 @@ export default class Utility {
             return true
         }
         if (a instanceof Array && b instanceof Array) {
-            return a.length == b.length && !a.find((value, i) => !Utility.equals(value, b[i]))
+            return a.length === b.length && a.every((value, i) => Utility.equals(value, b[i]))
+        }
+        if (a instanceof Set && b instanceof Set) {
+            if (a.size !== b.size) {
+                return false
+            }
+            a = [...a]
+            b = [...b]
+            return a.every(first => /** @type {Array} */(b).some(second => Utility.equals(first, second)))
         }
         return false
     }
@@ -183,7 +195,6 @@ export default class Utility {
             return null
         }
         if (value?.constructor === Object && value?.type instanceof Function) {
-            // @ts-expect-error
             return value.type
         }
         return /** @type {AnyValueConstructor} */(value?.constructor)

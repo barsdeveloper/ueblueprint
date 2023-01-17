@@ -1,5 +1,6 @@
 import ByteEntity from "../entity/ByteEntity"
 import CustomSerializer from "./CustomSerializer"
+import EnumEntity from "../entity/EnumEntity"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GeneralSerializer from "./GeneralSerializer"
 import GuidEntity from "../entity/GuidEntity"
@@ -56,6 +57,7 @@ export default function initializeSerializerFactory() {
             (array, insideString) =>
                 `(${array
                     .map(v =>
+                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
                     )
                     .join("")
@@ -87,6 +89,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ByteEntity,
         new ToStringSerializer(ByteEntity)
+    )
+
+    SerializerFactory.registerSerializer(
+        EnumEntity,
+        new ToStringSerializer(EnumEntity)
     )
 
     SerializerFactory.registerSerializer(

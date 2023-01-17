@@ -1,4 +1,6 @@
 import ByteEntity from "./ByteEntity"
+import Configuration from "../Configuration"
+import EnumEntity from "./EnumEntity"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
 import IEntity from "./IEntity"
@@ -32,6 +34,7 @@ export default class PinEntity extends IEntity {
         "/Script/CoreUObject.Vector2D": Vector2DEntity,
         "bool": Boolean,
         "byte": ByteEntity,
+        "enum": EnumEntity,
         "exec": String,
         "int": IntegerEntity,
         "int64": Integer64Entity,
@@ -155,8 +158,18 @@ export default class PinEntity extends IEntity {
     }
 
     getType() {
-        if (this.PinType.PinCategory == "struct" || this.PinType.PinCategory == "object") {
-            return this.PinType.PinSubCategoryObject.path
+        const subCategory = this.PinType.PinSubCategoryObject
+        if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
+            return subCategory.path
+        }
+        if (
+            this.PinType.PinCategory === "byte"
+            && (
+                subCategory.type === Configuration.nodeType.enum
+                || subCategory.type === Configuration.nodeType.userDefinedEnum
+            )
+        ) {
+            return "enum"
         }
         return this.PinType.PinCategory
     }
@@ -229,20 +242,18 @@ export default class PinEntity extends IEntity {
      * @param {PinEntity} targetPinEntity
      */
     linkTo(targetObjectName, targetPinEntity) {
-        /** @type {PinReferenceEntity[]} */
-        this.LinkedTo
-        const linkFound = this.LinkedTo?.find(pinReferenceEntity => {
-            return pinReferenceEntity.objectName.toString() == targetObjectName
-                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
-        })
+        const linkFound = this.LinkedTo?.some(pinReferenceEntity =>
+            pinReferenceEntity.objectName.toString() == targetObjectName
+            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+        )
         if (!linkFound) {
-            (this.LinkedTo ?? (this.LinkedTo = [])).push(new PinReferenceEntity({
+            (this.LinkedTo ??= []).push(new PinReferenceEntity({
                 objectName: targetObjectName,
                 pinGuid: targetPinEntity.PinId,
             }))
             return true
         }
-        return false
+        return false // Already linked
     }
 
     /**

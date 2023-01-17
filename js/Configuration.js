@@ -18,6 +18,7 @@ export default class Configuration {
         "class": css`88, 0, 186`,
         "default": css`255, 255, 255`,
         "delegate": css`255, 56, 56`,
+        "enum": css`0, 109, 99`,
         "exec": css`240, 240, 240`,
         "int": css`31, 224, 172`,
         "int64": css`169, 223, 172`,
@@ -76,7 +77,6 @@ export default class Configuration {
     static maxZoom = 7
     static minZoom = -12
     static mouseWheelFactor = 0.2
-    static nodeDeleteEventName = "ueb-node-delete"
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
     /** @param {NodeElement} node */
@@ -121,8 +121,9 @@ export default class Configuration {
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
                 return pureFunctionColor
-            case Configuration.nodeType.macro:
             case Configuration.nodeType.executionSequence:
+            case Configuration.nodeType.ifThenElse:
+            case Configuration.nodeType.macro:
                 return css`150,150,150`
             case Configuration.nodeType.dynamicCast:
                 return css`46, 104, 106`
@@ -211,6 +212,7 @@ export default class Configuration {
         customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        enum: "/Script/CoreUObject.Enum",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
@@ -242,6 +244,7 @@ export default class Configuration {
             ?? Configuration.#pinColor[pin.entity.PinType.PinCategory]
             ?? Configuration.#pinColor["default"]
     }
+    static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
         [-11]: 0.166666,

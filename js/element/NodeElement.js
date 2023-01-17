@@ -212,11 +212,6 @@ export default class NodeElement extends ISelectableDraggableElement {
             && this.leftBoundary() >= commentNode.leftBoundary()
     }
 
-    cleanup() {
-        super.cleanup()
-        this.acknowledgeDelete()
-    }
-
     getType() {
         return this.entity.getType()
     }
@@ -280,13 +275,9 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.setLocation(x, y, acknowledge)
     }
 
-    acknowledgeDelete() {
-        let deleteEvent = new CustomEvent(Configuration.nodeDeleteEventName)
-        this.dispatchEvent(deleteEvent)
-    }
-
     acknowledgeReflow() {
-        this.addNextUpdatedCallbacks(() => this.computeSizes(), true)
+        this.requestUpdate()
+        this.updateComplete.then(() => this.computeSizes())
         let reflowEvent = new CustomEvent(Configuration.nodeReflowEventName)
         this.dispatchEvent(reflowEvent)
     }

@@ -55,8 +55,8 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:h
 
 .ueb-pin-icon {
     color: var(--ueb-pin-color);
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
     text-align: left;
 }
 
@@ -72,11 +72,10 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:h
     vertical-align: top;
 }
 
-ueb-pin[data-type="exec"] .ueb-pin-icon>svg {
-    --ueb-pin-color: white;
+ueb-pin[data-type="exec"] .ueb-pin-icon {
     width: 15px;
     height: 15px;
-    vertical-align: middle;
+    --ueb-pin-color: white;
 }
 
 ueb-pin[data-linked="true"] .ueb-pin-tofill {

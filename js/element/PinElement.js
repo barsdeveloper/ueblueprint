@@ -11,6 +11,7 @@ import LinearColorEntity from "../entity/LinearColorEntity"
 import LinearColorPinTemplate from "../template/pin/LinearColorPinTemplate"
 import NamePinTemplate from "../template/pin/NamePinTemplate"
 import PinEntity from "../entity/PinEntity"
+import PinReferenceEntity from "../entity/PinReferenceEntity"
 import PinTemplate from "../template/pin/PinTemplate"
 import RealPinTemplate from "../template/pin/RealPinTemplate"
 import ReferencePinTemplate from "../template/pin/ReferencePinTemplate"
@@ -22,7 +23,6 @@ import VectorPinTemplate from "../template/pin/VectorPinTemplate"
 
 /**
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
  * @typedef {import("./LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("./NodeElement").default} NodeElement
  * @typedef {import("lit").CSSResult} CSSResult
@@ -152,6 +152,13 @@ export default class PinElement extends IElement {
         this.nodeElement = this.closest("ueb-node")
     }
 
+    createPinReference() {
+        return new PinReferenceEntity({
+            objectName: this.nodeElement.getNodeName(),
+            pinGuid: this.getPinId(),
+        })
+    }
+
     /** @return {GuidEntity} */
     getPinId() {
         return this.entity.PinId
@@ -209,7 +216,7 @@ export default class PinElement extends IElement {
                 if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
                     return false
                 }
-                let link = this.blueprint.getLink(this, pin, true)
+                let link = this.blueprint.getLink(this, pin)
                 if (!link) {
                     link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
                         .newObject(this, pin)
@@ -223,6 +230,14 @@ export default class PinElement extends IElement {
 
     /** @param {PinElement} targetPinElement */
     linkTo(targetPinElement) {
+        const pinReference = this.createPinReference()
+        if (
+            this.isLinked
+            && this.isOutput()
+            && (this.pinType === "exec" || targetPinElement.pinType === "exec")
+            && !this.getLinks().some(ref => pinReference.equals(ref))) {
+            this.unlinkFromAll()
+        }
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked()
             this.nodeElement?.template.linksChanged()
@@ -230,9 +245,20 @@ export default class PinElement extends IElement {
     }
 
     /** @param {PinElement} targetPinElement */
-    unlinkFrom(targetPinElement) {
+    unlinkFrom(targetPinElement, removeLink = true) {
         if (this.entity.unlinkFrom(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked()
+            this.nodeElement?.template.linksChanged()
+            if (removeLink) {
+                this.blueprint.getLink(this, targetPinElement)?.remove() // Might be called after the link is removed
+            }
+        }
+    }
+
+    unlinkFromAll() {
+        const isLinked = this.getLinks().length
+        this.getLinks().map(ref => this.blueprint.getPin(ref)).forEach(pin => this.unlinkFrom(pin))
+        if (isLinked) {
             this.nodeElement?.template.linksChanged()
         }
     }
@@ -242,7 +268,7 @@ export default class PinElement extends IElement {
      * @param {PinReferenceEntity} newReference
      */
     redirectLink(originalPinElement, newReference) {
-        const index = this.entity.LinkedTo.findIndex(pinReference =>
+        const index = this.getLinks().findIndex(pinReference =>
             pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
             && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
         )

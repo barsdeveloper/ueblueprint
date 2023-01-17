@@ -53,6 +53,38 @@ describe("Entity initialization", () => {
             .which.is.instanceOf(Set)
             .and.is.deep.equal(new Set([10, 20, 30, 40, 50, 60, 70]))
         )
+        it("is equal to another empty SimpleEntity", () => expect(entity.equals(new SimpleEntity()))
+            .to.be.true
+        )
+        const other = new SimpleEntity({
+            someString2: "gamma"
+        })
+        it("is not equal to another empty SimpleEntity", () => expect(entity.equals(other))
+            .to.be.false
+        )
+        const other1 = new SimpleEntity({
+            someNumber: 123,
+            someString: "a",
+            someString2: "b",
+            someBoolean: false,
+            someBoolean2: false,
+            someObjectString: new String("delta"),
+            someArray: [-1, -2, -3],
+            someSet: new Set([-10, -20, -30]),
+        })
+        const other2 = new SimpleEntity({
+            someNumber: 123,
+            someString: "a",
+            someString2: "b",
+            someBoolean: false,
+            someBoolean2: false,
+            someObjectString: "delta",
+            someArray: [-1, -2, -3],
+            someSet: new Set([-10, -20, -30]),
+        })
+        it("compares equal entities as equal", () => expect(other1.equals(other2))
+            .to.be.true
+        )
     })
 
     context("ComplexEntity", () => {

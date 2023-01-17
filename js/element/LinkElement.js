@@ -124,7 +124,6 @@ export default class LinkElement extends IFromToPositionedElement {
                 this.fromY = this.toY
             }
         }
-        this.#linkPins()
     }
 
     /**
@@ -138,7 +137,7 @@ export default class LinkElement extends IFromToPositionedElement {
         }
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement()
-            nodeElement.removeEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.removeEventListener(Configuration.removeEventName, this.#nodeDeleteHandler)
             nodeElement.removeEventListener(
                 Configuration.nodeDragEventName,
                 isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
@@ -154,7 +153,7 @@ export default class LinkElement extends IFromToPositionedElement {
             : this.#sourcePin = pin
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement()
-            nodeElement.addEventListener(Configuration.nodeDeleteEventName, this.#nodeDeleteHandler)
+            nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler)
             nodeElement.addEventListener(
                 Configuration.nodeDragEventName,
                 isDestinationPin ? this.#nodeDragDestinatonHandler : this.#nodeDragSourceHandler
@@ -179,8 +178,8 @@ export default class LinkElement extends IFromToPositionedElement {
 
     #unlinkPins() {
         if (this.sourcePin && this.destinationPin) {
-            this.sourcePin.unlinkFrom(this.destinationPin)
-            this.destinationPin.unlinkFrom(this.sourcePin)
+            this.sourcePin.unlinkFrom(this.destinationPin, false)
+            this.destinationPin.unlinkFrom(this.sourcePin, false)
         }
     }
 
@@ -192,11 +191,12 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     /** @param {Number[]?} location */
-    setSourceLocation(location = null) {
+    setSourceLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this
-            if (!this.hasUpdated || !this.sourcePin.hasUpdated) {
-                Promise.all([this.updateComplete, this.sourcePin.updateComplete]).then(() => self.setSourceLocation())
+            if (canPostpone && (!this.hasUpdated || !this.sourcePin.hasUpdated)) {
+                Promise.all([this.updateComplete, this.sourcePin.updateComplete])
+                    .then(() => self.setSourceLocation(null, false))
                 return
             }
             location = this.sourcePin.template.getLinkLocation()
@@ -207,18 +207,48 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     /** @param {Number[]?} location */
-    setDestinationLocation(location = null) {
+    setDestinationLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this
-            if (!this.hasUpdated || !this.destinationPin.hasUpdated) {
+            if (canPostpone && (!this.hasUpdated || !this.destinationPin.hasUpdated)) {
                 Promise.all([this.updateComplete, this.destinationPin.updateComplete])
-                    .then(() => self.setDestinationLocation())
+                    .then(() => self.setDestinationLocation(null, false))
                 return
             }
             location = this.destinationPin.template.getLinkLocation()
         }
         this.toX = location[0]
         this.toY = location[1]
+    }
+
+    getInputPin() {
+        if (this.sourcePin?.isInput()) {
+            return this.sourcePin
+        }
+        return this.destinationPin
+    }
+
+    /** @param {PinElement} pin */
+    setInputPin(pin) {
+        if (this.sourcePin?.isInput()) {
+            this.sourcePin = pin
+        }
+        this.destinationPin = pin
+    }
+
+    getOutputPin() {
+        if (this.destinationPin?.isOutput()) {
+            return this.destinationPin
+        }
+        return this.sourcePin
+    }
+
+    /** @param {PinElement} pin */
+    setOutputPin(pin) {
+        if (this.destinationPin?.isOutput()) {
+            this.destinationPin = pin
+        }
+        this.sourcePin = pin
     }
 
     startDragging() {
@@ -262,6 +292,11 @@ export default class LinkElement extends IFromToPositionedElement {
     setMessageReplaceLink() {
         this.linkMessageIcon = SVGIcon.correct
         this.linkMessageText = html`Replace existing input connections.`
+    }
+
+    setMessageReplaceOutputLink() {
+        this.linkMessageIcon = SVGIcon.correct
+        this.linkMessageText = html`Replace existing output connections.`
     }
 
     setMessageSameNode() {
