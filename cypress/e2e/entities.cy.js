@@ -48,11 +48,6 @@ describe("Entity initialization", () => {
             .which.is.an("array")
             .and.is.deep.equal([400, 500, 600, 700, 800])
         )
-        it("has someSet with numbers", () => expect(entity)
-            .to.have.property("someSet")
-            .which.is.instanceOf(Set)
-            .and.is.deep.equal(new Set([10, 20, 30, 40, 50, 60, 70]))
-        )
         it("is equal to another empty SimpleEntity", () => expect(entity.equals(new SimpleEntity()))
             .to.be.true
         )
@@ -70,7 +65,6 @@ describe("Entity initialization", () => {
             someBoolean2: false,
             someObjectString: new String("delta"),
             someArray: [-1, -2, -3],
-            someSet: new Set([-10, -20, -30]),
         })
         const other2 = new SimpleEntity({
             someNumber: 123,
@@ -80,7 +74,6 @@ describe("Entity initialization", () => {
             someBoolean2: false,
             someObjectString: "delta",
             someArray: [-1, -2, -3],
-            someSet: new Set([-10, -20, -30]),
         })
         it("compares equal entities as equal", () => expect(other1.equals(other2))
             .to.be.true

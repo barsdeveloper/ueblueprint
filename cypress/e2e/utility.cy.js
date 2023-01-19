@@ -69,34 +69,6 @@ describe("Utility class", () => {
                 [-2, "Alpha", new String("beta"), new Number(40), [1, 2, 3]],
                 [new Number(-2), new String("alpha"), new String("beta"), new Number(40), new Array(1, 2, 3)]
             )).to.be.false // Second element is different
-            expect(Utility.equals(
-                new Set(["alpha", -67, new String("beta"), [1, 2, 3]]),
-                new Set([-67, "beta", new String("alpha"), [1, 2, 3]])
-            )).to.be.true
-            expect(Utility.equals( // First element has capital Beta
-                new Set(["alpha", -67, new String("Beta"), [1, 2, 3]]),
-                new Set([-67, "beta", new String("alpha"), [1, 2, 3]])
-            )).to.be.false
-            expect(Utility.equals( // First element has capital Beta
-                new Set(["alpha", -67, new String("beta"), [1, 2, 3]]),
-                new Set([-67, "beta", new String("alpha"), [1, 3]])
-            )).to.be.false
-            expect(Utility.equals( // Different number of elements
-                new Set([2, 4, 6, 8]),
-                new Set([8, 6, 4])
-            )).to.be.false
-            expect(Utility.equals( // Second element has different type
-                new Set([4, "6", 8]),
-                new Set([8, 6, 4])
-            )).to.be.false
-            expect(Utility.equals(
-                new Set([new IEntity({ a: "alpha", b: new String("beta") })]),
-                new Set([new IEntity({ a: "alpha", b: new String("beta") })]),
-            )).to.be.true
-            expect(Utility.equals( // First a key has a number
-                new Set([new IEntity({ a: 2, b: new String("beta") })]),
-                new Set([new IEntity({ a: "alpha", b: new String("beta") })]),
-            )).to.be.false
         })
         it("isValueOfType method test", () => {
             expect(Utility.isValueOfType(34, Number)).to.be.true

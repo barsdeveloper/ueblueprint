@@ -175,14 +175,6 @@ export default class Utility {
         if (a instanceof Array && b instanceof Array) {
             return a.length === b.length && a.every((value, i) => Utility.equals(value, b[i]))
         }
-        if (a instanceof Set && b instanceof Set) {
-            if (a.size !== b.size) {
-                return false
-            }
-            a = [...a]
-            b = [...b]
-            return a.every(first => /** @type {Array} */(b).some(second => Utility.equals(first, second)))
-        }
         return false
     }
 
