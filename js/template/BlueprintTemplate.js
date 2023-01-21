@@ -195,27 +195,28 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     gridTopVisibilityBoundary() {
-        return this.blueprint.scrollY - this.blueprint.translateY
+        return this.blueprint.scaleCorrect(this.blueprint.scrollY) - this.blueprint.translateY
     }
 
     gridRightVisibilityBoundary() {
-        return this.gridLeftVisibilityBoundary() + this.viewportSize[0]
+        this.blueprint
+        return this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0])
     }
 
     gridBottomVisibilityBoundary() {
-        return this.gridTopVisibilityBoundary() + this.viewportSize[1]
+        return this.gridTopVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[1])
     }
 
     gridLeftVisibilityBoundary() {
-        return this.blueprint.scrollX - this.blueprint.translateX
+        return this.blueprint.scaleCorrect(this.blueprint.scrollX) - this.blueprint.translateX
     }
 
     centerViewport(x = 0, y = 0, smooth = true) {
-        const centerX = this.gridLeftVisibilityBoundary() + this.viewportSize[0] / 2
-        const centerY = this.gridTopVisibilityBoundary() + this.viewportSize[1] / 2
+        const centerX = this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0] / 2)
+        const centerY = this.gridTopVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[1] / 2)
         this.blueprint.scrollDelta(
-            x - centerX,
-            y - centerY,
+            this.blueprint.scaleCorrectReverse(x - centerX),
+            this.blueprint.scaleCorrectReverse(y - centerY),
             smooth
         )
     }

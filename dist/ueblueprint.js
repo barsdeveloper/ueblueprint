@@ -478,14 +478,6 @@ class Utility {
         if (a instanceof Array && b instanceof Array) {
             return a.length === b.length && a.every((value, i) => Utility.equals(value, b[i]))
         }
-        if (a instanceof Set && b instanceof Set) {
-            if (a.size !== b.size) {
-                return false
-            }
-            a = [...a];
-            b = [...b];
-            return a.every(first => /** @type {Array} */(b).some(second => Utility.equals(first, second)))
-        }
         return false
     }
 
@@ -2436,7 +2428,7 @@ class PinEntity extends IEntity {
      * @param {PinEntity} targetPinEntity
      */
     linkTo(targetObjectName, targetPinEntity) {
-        const linkFound = this.LinkedTo?.find(pinReferenceEntity =>
+        const linkFound = this.LinkedTo?.some(pinReferenceEntity =>
             pinReferenceEntity.objectName.toString() == targetObjectName
             && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         );
@@ -2447,7 +2439,7 @@ class PinEntity extends IEntity {
             }));
             return true
         }
-        return false // It is already linked
+        return false // Already linked
     }
 
     /**
@@ -2572,9 +2564,11 @@ class ObjectEntity extends IEntity {
         },
         NodePosX: {
             type: IntegerEntity,
+            showDefault: false,
         },
         NodePosY: {
             type: IntegerEntity,
+            showDefault: false,
         },
         NodeWidth: {
             type: IntegerEntity,
@@ -2722,6 +2716,30 @@ class ObjectEntity extends IEntity {
             this.NodeHeight = new IntegerEntity();
         }
         this.NodeHeight.value = value;
+    }
+
+    getNodePosX() {
+        return this.NodePosX?.value ?? 0
+    }
+
+    /** @param {Number} value */
+    setNodePosX(value) {
+        if (!this.NodePosX) {
+            this.NodePosX = new IntegerEntity();
+        }
+        this.NodePosX.value = value;
+    }
+
+    getNodePosY() {
+        return this.NodePosY?.value ?? 0
+    }
+
+    /** @param {Number} value */
+    setNodePosY(value) {
+        if (!this.NodePosY) {
+            this.NodePosY = new IntegerEntity();
+        }
+        this.NodePosY.value = value;
     }
 }
 
@@ -4731,27 +4749,28 @@ class BlueprintTemplate extends ITemplate {
     }
 
     gridTopVisibilityBoundary() {
-        return this.blueprint.scrollY - this.blueprint.translateY
+        return this.blueprint.scaleCorrect(this.blueprint.scrollY) - this.blueprint.translateY
     }
 
     gridRightVisibilityBoundary() {
-        return this.gridLeftVisibilityBoundary() + this.viewportSize[0]
+        this.blueprint;
+        return this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0])
     }
 
     gridBottomVisibilityBoundary() {
-        return this.gridTopVisibilityBoundary() + this.viewportSize[1]
+        return this.gridTopVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[1])
     }
 
     gridLeftVisibilityBoundary() {
-        return this.blueprint.scrollX - this.blueprint.translateX
+        return this.blueprint.scaleCorrect(this.blueprint.scrollX) - this.blueprint.translateX
     }
 
     centerViewport(x = 0, y = 0, smooth = true) {
-        const centerX = this.gridLeftVisibilityBoundary() + this.viewportSize[0] / 2;
-        const centerY = this.gridTopVisibilityBoundary() + this.viewportSize[1] / 2;
+        const centerX = this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0] / 2);
+        const centerY = this.gridTopVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[1] / 2);
         this.blueprint.scrollDelta(
-            x - centerX,
-            y - centerY,
+            this.blueprint.scaleCorrectReverse(x - centerX),
+            this.blueprint.scaleCorrectReverse(y - centerY),
             smooth
         );
     }
@@ -5804,13 +5823,23 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"));
         const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"));
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
+        let hasInput = false;
+        let hasOutput = false;
         this.element.getPinElements().forEach(p => {
             if (p.isInput()) {
                 inputContainer.appendChild(p);
+                hasInput = true;
             } else if (p.isOutput()) {
                 outputContainer.appendChild(p);
+                hasOutput = true;
             }
         });
+        if (hasInput) {
+            this.element.classList.add("ueb-node-has-inputs");
+        }
+        if (hasOutput) {
+            this.element.classList.add("ueb-node-has-outputs");
+        }
     }
 
     createPinElements() {
@@ -6427,7 +6456,11 @@ class PinTemplate extends ITemplate {
 class MinimalPinTemplate extends PinTemplate {
 
     render() {
-        return y`<div class="ueb-pin-icon">${this.renderIcon()}</div>`
+        return y`
+            <div class="ueb-pin-wrapper">
+                <div class="ueb-pin-icon">${this.renderIcon()}</div>
+            </div>
+        `
     }
 }
 
@@ -6836,7 +6869,7 @@ class NodeElement extends ISelectableDraggableElement {
         this.nodeDisplayName = this.getNodeDisplayName();
         this.pureFunction = this.entity.bIsPureFunc;
         this.dragLinkObjects = [];
-        super.setLocation(this.entity.NodePosX.value, this.entity.NodePosY.value);
+        super.setLocation(this.entity.getNodePosX(), this.entity.getNodePosY());
         if (this.entity.NodeWidth && this.entity.NodeHeight) {
             this.sizeX = this.entity.NodeWidth.value;
             this.sizeY = this.entity.NodeHeight.value;
@@ -6936,8 +6969,8 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     setLocation(x = 0, y = 0, acknowledge = true) {
-        this.entity.NodePosX.value = x;
-        this.entity.NodePosY.value = y;
+        this.entity.setNodePosX(x);
+        this.entity.setNodePosY(y);
         super.setLocation(x, y, acknowledge);
     }
 
@@ -7215,6 +7248,16 @@ class Blueprint extends IElement {
 
     getScale() {
         return Configuration.scale[this.getZoom()]
+    }
+
+    /** @param {Number} value */
+    scaleCorrect(value) {
+        return value / this.getScale()
+    }
+
+    /** @param {Number} value */
+    scaleCorrectReverse(value) {
+        return value * this.getScale()
     }
 
     /**

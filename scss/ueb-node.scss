@@ -55,7 +55,12 @@ ueb-node[data-selected="true"]>.ueb-node-border {
     overflow: hidden;
 }
 
-ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-wrapper {
+.ueb-node-outputs ueb-pin[data-type="exec"] .ueb-pin-wrapper {
+    margin-right: -3px;
+}
+
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-wrapper,
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] ueb-node.ueb-node-style-minimal .ueb-node-border {
     cursor: move;
 }
 
@@ -75,16 +80,22 @@ ueb-node.ueb-node-style-event .ueb-node-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-right: 8px;
+    padding-right: 2px;
+}
+
+ueb-node.ueb-node-style-event .ueb-node-top ueb-pin {
+    margin-left: 10px;
 }
 
 .ueb-node-style-default .ueb-node-top {
-    padding: 3px 20px 2px 6px;
+    padding: 2px 20px 2px 8px;
     box-shadow:
         inset 5px 1px 5px -3px #ffffff40,
         inset 0 1px 2px 0 #ffffff40;
     border-radius: var(--ueb-node-radius) var(--ueb-node-radius) 0 0;
-    background: linear-gradient(170deg, rgb(var(--ueb-node-color)) 0%, rgb(var(--ueb-node-color)) 50%, transparent 100%);
+    background:
+        linear-gradient(#ffffff30 1px, transparent 1px),
+        linear-gradient(170deg, rgb(var(--ueb-node-color)) 0%, rgb(var(--ueb-node-color)) 50%, transparent 100%);
 }
 
 .ueb-zoom--2 .ueb-node-top {
@@ -97,9 +108,9 @@ ueb-node.ueb-node-style-event .ueb-node-top {
 
 .ueb-node-name {
     display: flex;
-    background: radial-gradient(ellipse 100% 100% at 35% 50%, rgba(0, 0, 0, 0.5) 18%, transparent 50%);
-    margin: -0.1em -1.6em;
-    padding: 0.1em 1.6em;
+    background: radial-gradient(ellipse 100% 100% at 40% 50%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
+    margin: -1px -15px;
+    padding: 2px 15px;
 }
 
 .ueb-zoom--2 .ueb-node-name {
@@ -134,19 +145,22 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 
 .ueb-node-content {
     display: flex;
-    padding: 1px 0;
+    padding: 6px 0 2px 0;
     font-weight: 100;
     white-space: nowrap;
 }
 
-.ueb-node-inputs {
-    margin-right: 20px;
+.ueb-node-has-inputs .ueb-node-inputs {
     padding-left: 8px;
 }
 
 .ueb-node-outputs {
     margin-left: auto;
     padding-right: 8px;
+}
+
+.ueb-node-has-inputs .ueb-node-outputs {
+    margin-left: 20px;
 }
 
 .ueb-node-developmentonly {

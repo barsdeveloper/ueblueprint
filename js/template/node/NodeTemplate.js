@@ -102,13 +102,23 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"))
         const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"))
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"))
+        let hasInput = false
+        let hasOutput = false
         this.element.getPinElements().forEach(p => {
             if (p.isInput()) {
                 inputContainer.appendChild(p)
+                hasInput = true
             } else if (p.isOutput()) {
                 outputContainer.appendChild(p)
+                hasOutput = true
             }
         })
+        if (hasInput) {
+            this.element.classList.add("ueb-node-has-inputs")
+        }
+        if (hasOutput) {
+            this.element.classList.add("ueb-node-has-outputs")
+        }
     }
 
     createPinElements() {

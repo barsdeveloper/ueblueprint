@@ -79,9 +79,11 @@ export default class ObjectEntity extends IEntity {
         },
         NodePosX: {
             type: IntegerEntity,
+            showDefault: false,
         },
         NodePosY: {
             type: IntegerEntity,
+            showDefault: false,
         },
         NodeWidth: {
             type: IntegerEntity,
@@ -229,5 +231,29 @@ export default class ObjectEntity extends IEntity {
             this.NodeHeight = new IntegerEntity()
         }
         this.NodeHeight.value = value
+    }
+
+    getNodePosX() {
+        return this.NodePosX?.value ?? 0
+    }
+
+    /** @param {Number} value */
+    setNodePosX(value) {
+        if (!this.NodePosX) {
+            this.NodePosX = new IntegerEntity()
+        }
+        this.NodePosX.value = value
+    }
+
+    getNodePosY() {
+        return this.NodePosY?.value ?? 0
+    }
+
+    /** @param {Number} value */
+    setNodePosY(value) {
+        if (!this.NodePosY) {
+            this.NodePosY = new IntegerEntity()
+        }
+        this.NodePosY.value = value
     }
 }

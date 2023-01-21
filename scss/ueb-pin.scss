@@ -31,13 +31,20 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"] {
 
 .ueb-pin-wrapper {
     display: inline-block;
-    margin: 4px 0 0 0;
-    padding: 2px 2px;
 
     &>* {
         display: inline-block;
         vertical-align: middle;
     }
+}
+
+.ueb-node-top .ueb-pin-wrapper {
+    padding: 2px 4px 2px 10px;
+}
+
+.ueb-node-content .ueb-pin-wrapper {
+    margin: 4px 0 0 0;
+    padding: 2px 2px;
 }
 
 ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:hover {
@@ -60,12 +67,22 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:h
     text-align: left;
 }
 
+.ueb-node-style-event ueb-pin[data-type="delegate"] .ueb-pin-icon {
+    width: 11px;
+    height: 11px;
+}
+
 .ueb-node-inputs .ueb-pin-icon {
     margin-right: 4px;
 }
 
 .ueb-node-outputs .ueb-pin-icon {
     margin-left: 4px;
+}
+
+ueb-node.ueb-node-style-minimal .ueb-pin-wrapper,
+ueb-node.ueb-node-style-minimal .ueb-pin-icon {
+    display: block;
 }
 
 .ueb-pin-icon>svg {
@@ -180,8 +197,4 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     &:hover::-webkit-scrollbar-thumb {
         background: #575757;
     }
-}
-
-ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-wrapper {
-    cursor: move;
 }

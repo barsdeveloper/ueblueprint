@@ -170,7 +170,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.nodeDisplayName = this.getNodeDisplayName()
         this.pureFunction = this.entity.bIsPureFunc
         this.dragLinkObjects = []
-        super.setLocation(this.entity.NodePosX.value, this.entity.NodePosY.value)
+        super.setLocation(this.entity.getNodePosX(), this.entity.getNodePosY())
         if (this.entity.NodeWidth && this.entity.NodeHeight) {
             this.sizeX = this.entity.NodeWidth.value
             this.sizeY = this.entity.NodeHeight.value
@@ -270,8 +270,8 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     setLocation(x = 0, y = 0, acknowledge = true) {
-        this.entity.NodePosX.value = x
-        this.entity.NodePosY.value = y
+        this.entity.setNodePosX(x)
+        this.entity.setNodePosY(y)
         super.setLocation(x, y, acknowledge)
     }
 

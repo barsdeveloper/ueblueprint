@@ -1,20 +1,24 @@
-ueb-node[data-type="/Script/BlueprintGraph.K2Node_Knot"] {
+ueb-node.ueb-node-style-minimal {
     box-shadow: none;
 }
 
-ueb-node[data-type="/Script/BlueprintGraph.K2Node_Knot"] ueb-pin {
+ueb-node.ueb-node-style-minimal ueb-pin {
     min-height: 0;
 }
 
-ueb-node[data-type="/Script/BlueprintGraph.K2Node_Knot"] ueb-pin[data-direction="input"] {
+ueb-node.ueb-node-style-minimal ueb-pin[data-direction="input"] {
     display: none;
 }
 
-ueb-node[data-type="/Script/BlueprintGraph.K2Node_Knot"] .ueb-node-border {
-    padding: 8px 18px;
+ueb-node.ueb-node-style-minimal .ueb-node-border {
+    padding: 8px 16px;
     background: none !important;
 }
 
-ueb-node[data-type="/Script/BlueprintGraph.K2Node_Knot"][data-selected="true"] .ueb-node-border {
+ueb-node.ueb-node-style-minimal .ueb-pin-wrapper {
+    padding: 4px 6px;
+}
+
+ueb-node.ueb-node-style-minimal[data-selected="true"] .ueb-node-border {
     box-shadow: inset 0 0 0px 6px #d29e07;
 }

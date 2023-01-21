@@ -264,6 +264,16 @@ export default class Blueprint extends IElement {
         return Configuration.scale[this.getZoom()]
     }
 
+    /** @param {Number} value */
+    scaleCorrect(value) {
+        return value / this.getScale()
+    }
+
+    /** @param {Number} value */
+    scaleCorrectReverse(value) {
+        return value * this.getScale()
+    }
+
     /**
      * @param {Number} x
      * @param {Number} y
