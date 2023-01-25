@@ -46,6 +46,7 @@ export default class ISerializer {
     }
 
     /**
+     * @protected
      * @param {String} value
      * @returns {T}
      */
@@ -54,6 +55,7 @@ export default class ISerializer {
     }
 
     /**
+     * @protected
      * @param {T} object
      * @param {Boolean} insideString
      * @returns {String}
@@ -63,12 +65,14 @@ export default class ISerializer {
     }
 
     /**
+     * @protected
      * @param {AnyValue} value
      * @param {String[]} fullKey
      * @param {Boolean} insideString
      */
     writeValue(entity, value, fullKey, insideString) {
         const type = Utility.getType(value)
+        // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type)
         if (!serializer) {
             throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
@@ -81,6 +85,7 @@ export default class ISerializer {
     }
 
     /**
+     * @protected
      * @param {String[]} key
      * @param {Object} object
      * @param {Boolean} insideString

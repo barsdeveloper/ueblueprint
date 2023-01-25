@@ -58,12 +58,6 @@ export default class IEntity {
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName]
 
-                if (!attribute) {
-                    // Remember attributeName can come from the values and be not defined in the attributes
-                    target[attributeName] = value
-                    continue
-                }
-
                 if (attribute instanceof SubAttributesDeclaration) {
                     target[attributeName] = {}
                     defineAllAttributes(
@@ -91,6 +85,12 @@ export default class IEntity {
                             + "serialized data"
                         )
                     }
+                }
+
+                if (!attribute) {
+                    // Remember attributeName can come from the values and be not defined in the attributes
+                    target[attributeName] = value
+                    continue
                 }
 
                 let defaultValue = attribute.value

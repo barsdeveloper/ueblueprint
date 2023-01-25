@@ -46,7 +46,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${this.element.enabledState?.toString() == "DevelopmentOnly" ? html`
+                    ${this.element.entity.isDevelopmentOnly() ? html`
                         <div class="ueb-node-developmentonly">
                             <span class="ueb-node-developmentonly-text">Development Only</span>
                         </div>

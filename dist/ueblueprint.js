@@ -139,7 +139,13 @@ class SVGIcon {
     static genericPin = y`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <circle class="ueb-pin-tofill" cx="16" cy="16" r="13" fill="black" stroke="currentColor" stroke-width="5" />
-            <path d="M 34 6 L 34 26 L 42 16 Z" fill="currentColor" />
+            <path fill="currentColor" d="M 34 6 L 34 26 L 42 16 Z" />
+        </svg>
+    `
+
+    static keyboard = y `
+        <svg viewBox="0 -3 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path fill="white" d="M 1 10 H 15 c 0.2652 0 0.5195 -0.1054 0.707 -0.293 c 0.1875 -0.1875 0.293 -0.4418 0.293 -0.707 v -8 c 0 -0.2652 -0.1054 -0.5195 -0.293 -0.707 c -0.1875 -0.1875 -0.4418 -0.293 -0.707 -0.293 H 1 c -0.2652 0 -0.5195 0.1054 -0.707 0.293 c -0.1875 0.1875 -0.293 0.4418 -0.293 0.707 V 9 c 0 0.2652 0.1054 0.5195 0.293 0.707 c 0.1875 0.1875 0.4418 0.293 0.707 0.293 Z M 14 6 h -3 v -2 h 3 v 2 Z M 13 1 h 2 v 2 h -2 v -2 Z M 10 1 h 2 v 2 h -2 v -2 Z M 10 6 h -2 v -2 h 2 v 2 Z M 7 1 h 2 v 2 h -2 v -2 Z M 7 6 h -2 v -2 h 2 v 2 Z M 4 1 h 2 v 2 h -2 v -2 Z M 4 6 h -2 v -2 h 2 v 2 Z M 1 1 h 2 v 2 h -2 v -2 Z M 1 7 h 2 v 2 h -2 v -2 M 4 7 h 8 v 2 h -8 v -2 M 13 7 h 2 v 2 h -2 v -2 Z" />
         </svg>
     `
 
@@ -227,6 +233,13 @@ class SVGIcon {
             <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
             <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
             <path d="M12.975 6H8.025C6.90662 6 6 6.90662 6 8.025V8.475C6 9.59338 6.90662 10.5 8.025 10.5H12.975C14.0934 10.5 15 9.59338 15 8.475V8.025C15 6.90662 14.0934 6 12.975 6Z" fill="white" />
+        </svg>
+    `
+
+    static mouse = y`
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 0C11 0.595745 13.4 3.31915 13.9143 6.6383H8.85714V0ZM7.14286 0C5 0.595745 2.6 3.31915 2.08571 6.6383H7.14286V0ZM8.85714 8.34043H7.14286H2C2 12.5957 3.02857 16 8 16C12.9714 16 14 12.5957 14 8.34043H8.85714Z" fill="white"/>
         </svg>
     `
 
@@ -364,6 +377,23 @@ class Utility {
             return num.toString()
         }
         return num.toFixed(decimals)
+    }
+
+    /** @param {String} value */
+    static numberFromText(value = "") {
+        value = value.toLowerCase();
+        switch(value) {
+            case "zero": return 0
+            case "one": return 1
+            case "two": return 2
+            case "three": return 3
+            case "four": return 4
+            case "five": return 5
+            case "six": return 6
+            case "seven": return 7
+            case "eight": return 8
+            case "nine": return 9
+        }
     }
 
     /**
@@ -738,6 +768,18 @@ class Configuration {
         "text": i$3`226, 121, 167`,
         "wildcard": i$3`128, 120, 120`,
     }
+    static #keyName = {
+        "A_AccentGrave": "à",
+        "E_AccentGrave": "è",
+        "E_AccentAigu": "é",
+        "Add": "Num +",
+        "Decimal": "Num .",
+        "Divide": "Num /",
+        "Multiply": "Num *",
+        "Subtract": "Num -",
+        "Section": "§",
+        "C_Cedille": "ç",
+    }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
@@ -768,6 +810,28 @@ class Configuration {
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
+    /** @param {String} value */
+    static keyName(value) {
+        let result = Configuration.#keyName[value];
+        if (result) {
+            return result
+        }
+        result = Utility.numberFromText(value);
+        if (result) {
+            return result
+        }
+        const match = value.match(/NumPad([a-zA-Z]+)/);
+        if (match) {
+            result = Utility.numberFromText(match[1]);
+            if (result) {
+                return "Num " + result
+            }
+        }
+    }
+    /** @param {NodeElement} node */
+    static hidAttribute(node) {
+        return node.entity.InputKey ?? node.entity.AxisKey ?? node.entity.InputAxisKey
+    }
     static keysSeparator = "+"
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
@@ -791,7 +855,9 @@ class Configuration {
         switch (node.getType()) {
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.dynamicCast: return SVGIcon.cast
-            case Configuration.nodeType.event: return SVGIcon.event
+            case Configuration.nodeType.event:
+            case Configuration.nodeType.customEvent:
+                return SVGIcon.event
             case Configuration.nodeType.executionSequence: return SVGIcon.sequence
             case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
             case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
@@ -811,19 +877,27 @@ class Configuration {
         if (node.entity.getClass() === Configuration.nodeType.macro) {
             return SVGIcon.macro
         }
+        if (Configuration.hidAttribute(node)?.toString().includes("Mouse")) {
+            return SVGIcon.mouse
+        }
         return SVGIcon.functionSymbol
     }
     /** @param {NodeElement} node */
     static nodeColor(node) {
-        const functionColor = i$3`84, 122, 156`;
-        const pureFunctionColor = i$3`95, 129, 90`;
+        const functionColor = i$3`84, 122, 156`; // Blue
+        const pureFunctionColor = i$3`95, 129, 90`; // Green
+        const eventColor = i$3`151, 33, 32`; // Red
         switch (node.entity.getClass()) {
             case Configuration.nodeType.callFunction:
                 return node.entity.bIsPureFunc
                     ? pureFunctionColor
                     : functionColor
             case Configuration.nodeType.event:
-                return i$3`151, 33, 32`
+            case Configuration.nodeType.customEvent:
+            case Configuration.nodeType.inputKey:
+            case Configuration.nodeType.inputAxisKeyEvent:
+            case Configuration.nodeType.inputDebugKey:
+                return eventColor
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
@@ -831,9 +905,15 @@ class Configuration {
             case Configuration.nodeType.executionSequence:
             case Configuration.nodeType.ifThenElse:
             case Configuration.nodeType.macro:
-                return i$3`150,150,150`
+                return i$3`150,150,150` // Gray
             case Configuration.nodeType.dynamicCast:
-                return i$3`46, 104, 106`
+                return i$3`46, 104, 106` // Turquoise
+        }
+        if (node.entity.bIsPureFunc) {
+            return pureFunctionColor
+        }
+        if (node.isEvent()) {
+            return eventColor
         }
         return functionColor
     }
@@ -892,22 +972,30 @@ class Configuration {
                 return `Event ${(node.entity.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
             case Configuration.nodeType.executionSequence:
                 return "Sequence"
-            case Configuration.nodeType.ifThenElse:
-                return "Branch"
             case Configuration.nodeType.forEachElementInEnum:
                 return `For Each ${node.entity.Enum.getName()}`
             case Configuration.nodeType.forEachLoopWithBreak:
                 return "For Each Loop with Break"
+            case Configuration.nodeType.ifThenElse:
+                return "Branch"
             case Configuration.nodeType.variableGet:
                 return ""
             case Configuration.nodeType.variableSet:
                 return "SET"
-            default:
-                if (node.entity.getClass() === Configuration.nodeType.macro) {
-                    return Utility.formatStringName(node.entity.MacroGraphReference.getMacroName())
-                } else {
-                    return Utility.formatStringName(node.entity.getNameAndCounter()[0])
-                }
+        }
+        const keyNameSymbol = Configuration.hidAttribute(node);
+        if (keyNameSymbol) {
+            const keyName = keyNameSymbol.toString();
+            let title = Configuration.keyName(keyName) ?? Utility.formatStringName(keyName);
+            if (node.entity.getClass() === Configuration.nodeType.inputDebugKey) {
+                title = "Debug Key " + title;
+            }
+            return title
+        }
+        if (node.entity.getClass() === Configuration.nodeType.macro) {
+            return Utility.formatStringName(node.entity.MacroGraphReference.getMacroName())
+        } else {
+            return Utility.formatStringName(node.entity.getNameAndCounter()[0])
         }
     }
     static nodeRadius = 8 // px
@@ -928,7 +1016,11 @@ class Configuration {
         forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
         forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
         functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
+        getInputAxisKeyValue: "/Script/BlueprintGraph.K2Node_GetInputAxisKeyValue",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
+        inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
+        inputDebugKey: "/Script/InputBlueprintNodes.K2Node_InputDebugKey",
+        inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
@@ -1244,12 +1336,6 @@ class IEntity {
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName];
 
-                if (!attribute) {
-                    // Remember attributeName can come from the values and be not defined in the attributes
-                    target[attributeName] = value;
-                    continue
-                }
-
                 if (attribute instanceof SubAttributesDeclaration) {
                     target[attributeName] = {};
                     defineAllAttributes(
@@ -1277,6 +1363,12 @@ class IEntity {
                             + "serialized data"
                         );
                     }
+                }
+
+                if (!attribute) {
+                    // Remember attributeName can come from the values and be not defined in the attributes
+                    target[attributeName] = value;
+                    continue
                 }
 
                 let defaultValue = attribute.value;
@@ -1501,6 +1593,14 @@ class SymbolEntity extends IEntity {
         super(values);
         /** @type {String} */ this.value;
     }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
 }
 
 class EnumEntity extends SymbolEntity {
@@ -1541,7 +1641,10 @@ class FunctionReferenceEntity extends IEntity {
             type: ObjectReferenceEntity,
             showDefault: false
         },
-        MemberName: "",
+        MemberName: {
+            type: String,
+            showDefault: false,
+        },
     }
 
     static {
@@ -2452,10 +2555,9 @@ class PinEntity extends IEntity {
                 && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
         if (indexElement >= 0) {
-            if (this.LinkedTo.length == 1) {
+            this.LinkedTo.splice(indexElement, 1);
+            if (this.LinkedTo.length === 0 && !PinEntity.attributes.LinkedTo.showDefault) {
                 this.LinkedTo = undefined;
-            } else {
-                this.LinkedTo.splice(indexElement, 1);
             }
             return true
         }
@@ -2503,6 +2605,14 @@ class ObjectEntity extends IEntity {
             type: ObjectReferenceEntity,
         },
         Name: "",
+        AxisKey: {
+            type: SymbolEntity,
+            showDefault: false,
+        },
+        InputAxisKey: {
+            type: SymbolEntity,
+            showDefault: false,
+        },
         bIsPureFunc: {
             value: false,
             showDefault: false,
@@ -2521,14 +2631,18 @@ class ObjectEntity extends IEntity {
             value: null,
             showDefault: false,
         },
+        EventReference: {
+            type: FunctionReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
         FunctionReference: {
             type: FunctionReferenceEntity,
             value: null,
             showDefault: false,
         },
-        EventReference: {
-            type: FunctionReferenceEntity,
-            value: null,
+        CustomFunctionName: {
+            type: String,
             showDefault: false,
         },
         TargetType: {
@@ -2543,6 +2657,46 @@ class ObjectEntity extends IEntity {
         },
         Enum: {
             type: ObjectReferenceEntity,
+            showDefault: false,
+        },
+        InputKey: {
+            type: SymbolEntity,
+            showDefault: false,
+        },
+        bOverrideFunction: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bInternalEvent: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bConsumeInput: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bExecuteWhenPaused: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bOverrideParentBinding: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bControl: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bAlt: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bShift: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bCommand: {
+            type: Boolean,
             showDefault: false,
         },
         CommentColor: {
@@ -2628,9 +2782,15 @@ class ObjectEntity extends IEntity {
         super(values, suppressWarns);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
+        /** @type {SymbolEntity?} */ this.AxisKey;
+        /** @type {SymbolEntity?} */ this.InputAxisKey;
+        /** @type {SymbolEntity?} */ this.InputKey;
         /** @type {Boolean?} */ this.bIsPureFunc;
+        /** @type {Boolean?} */ this.bIsConstFunc;
         /** @type {VariableReferenceEntity?} */ this.VariableReference;
+        /** @type {SymbolEntity?} */ this.SelfContextInfo;
         /** @type {FunctionReferenceEntity?} */ this.FunctionReference;
+        /** @type {String} */ this.CustomFunctionName;
         /** @type {FunctionReferenceEntity?} */ this.EventReference;
         /** @type {ObjectReferenceEntity?} */ this.TargetType;
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference;
@@ -2727,7 +2887,7 @@ class ObjectEntity extends IEntity {
         if (!this.NodePosX) {
             this.NodePosX = new IntegerEntity();
         }
-        this.NodePosX.value = value;
+        this.NodePosX.value = Math.round(value);
     }
 
     getNodePosY() {
@@ -2739,7 +2899,17 @@ class ObjectEntity extends IEntity {
         if (!this.NodePosY) {
             this.NodePosY = new IntegerEntity();
         }
-        this.NodePosY.value = value;
+        this.NodePosY.value = Math.round(value);
+    }
+
+    isDevelopmentOnly() {
+        const nodeClass = this.getClass();
+        return this.EnabledState?.toString() === "DevelopmentOnly"
+            || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
+    }
+
+    getDelegatePin() {
+        return this.CustomProperties?.find(pin => pin.PinType.PinCategory === "delegate")
     }
 }
 
@@ -3372,6 +3542,7 @@ class ISerializer {
     }
 
     /**
+     * @protected
      * @param {String} value
      * @returns {T}
      */
@@ -3380,6 +3551,7 @@ class ISerializer {
     }
 
     /**
+     * @protected
      * @param {T} object
      * @param {Boolean} insideString
      * @returns {String}
@@ -3389,12 +3561,14 @@ class ISerializer {
     }
 
     /**
+     * @protected
      * @param {AnyValue} value
      * @param {String[]} fullKey
      * @param {Boolean} insideString
      */
     writeValue(entity, value, fullKey, insideString) {
         const type = Utility.getType(value);
+        // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type);
         if (!serializer) {
             throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
@@ -3407,6 +3581,7 @@ class ISerializer {
     }
 
     /**
+     * @protected
      * @param {String[]} key
      * @param {Object} object
      * @param {Boolean} insideString
@@ -5767,7 +5942,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${this.element.enabledState?.toString() == "DevelopmentOnly" ? y`
+                    ${this.element.entity.isDevelopmentOnly() ? y`
                         <div class="ueb-node-developmentonly">
                             <span class="ueb-node-developmentonly-text">Development Only</span>
                         </div>
@@ -6832,12 +7007,16 @@ class NodeElement extends ISelectableDraggableElement {
         }
         switch (nodeEntity.getClass()) {
             case Configuration.nodeType.comment:
-            case Configuration.nodeType.customEvent:
                 return CommentNodeTemplate
-            case Configuration.nodeType.event: return EventNodeTemplate
+            case Configuration.nodeType.event:
+            case Configuration.nodeType.customEvent:
+                return EventNodeTemplate
             case Configuration.nodeType.knot: return KnotNodeTemplate
             case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
             case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
+        }
+        if (nodeEntity.getDelegatePin()) {
+            return EventNodeTemplate
         }
         return NodeTemplate
     }
@@ -6972,6 +7151,10 @@ class NodeElement extends ISelectableDraggableElement {
         this.entity.setNodePosX(x);
         this.entity.setNodePosY(y);
         super.setLocation(x, y, acknowledge);
+    }
+
+    isEvent() {
+        return this.template instanceof EventNodeTemplate
     }
 
     acknowledgeReflow() {
@@ -8812,7 +8995,7 @@ class PinElement extends IElement {
 
     /** @param  {IElement[]} nodesWhitelist */
     sanitizeLinks(nodesWhitelist = []) {
-        this.entity.LinkedTo = this.getLinks().filter(pinReference => {
+        this.entity.LinkedTo = this.entity.LinkedTo?.filter(pinReference => {
             let pin = this.blueprint.getPin(pinReference);
             if (pin) {
                 if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {

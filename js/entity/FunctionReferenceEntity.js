@@ -8,7 +8,10 @@ export default class FunctionReferenceEntity extends IEntity {
             type: ObjectReferenceEntity,
             showDefault: false
         },
-        MemberName: "",
+        MemberName: {
+            type: String,
+            showDefault: false,
+        },
     }
 
     static {

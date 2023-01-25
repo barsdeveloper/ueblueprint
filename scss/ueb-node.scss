@@ -1,7 +1,7 @@
 ueb-node {
     display: block;
     position: absolute;
-    min-width: 130px;
+    min-width: 100px;
     border-radius: var(--ueb-node-radius);
     box-shadow: 0 0 1px 0 black, 1px 4px 6px 0 rgba(0, 0, 0, 0.3);
     font-weight: lighter;
@@ -108,6 +108,7 @@ ueb-node.ueb-node-style-event .ueb-node-top ueb-pin {
 
 .ueb-node-name {
     display: flex;
+    align-items: center;
     background: radial-gradient(ellipse 100% 100% at 40% 50%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
     margin: -1px -15px;
     padding: 2px 15px;
@@ -156,15 +157,14 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 
 .ueb-node-outputs {
     margin-left: auto;
-    padding-right: 8px;
+    padding-right: 10px;
 }
 
 .ueb-node-has-inputs .ueb-node-outputs {
-    margin-left: 20px;
+    margin-left: 30px;
 }
 
 .ueb-node-developmentonly {
-    display: none;
     margin-top: 4px;
     padding: 2px;
     background: repeating-linear-gradient(-45deg,
@@ -183,16 +183,14 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 }
 
 .ueb-node-developmentonly-text {
+    padding: 0 10px;
     letter-spacing: 0.04em;
     text-shadow: 1px 1px 1px black;
+    white-space: nowrap;
 }
 
 .ueb-zoom--6 .ueb-node-developmentonly-text {
     visibility: hidden;
-}
-
-ueb-node[data-enabled-state="DevelopmentOnly"] .ueb-node-developmentonly {
-    display: block;
 }
 
 .ueb-node-expansion {

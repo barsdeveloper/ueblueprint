@@ -18,6 +18,14 @@ export default class ObjectEntity extends IEntity {
             type: ObjectReferenceEntity,
         },
         Name: "",
+        AxisKey: {
+            type: SymbolEntity,
+            showDefault: false,
+        },
+        InputAxisKey: {
+            type: SymbolEntity,
+            showDefault: false,
+        },
         bIsPureFunc: {
             value: false,
             showDefault: false,
@@ -36,14 +44,18 @@ export default class ObjectEntity extends IEntity {
             value: null,
             showDefault: false,
         },
+        EventReference: {
+            type: FunctionReferenceEntity,
+            value: null,
+            showDefault: false,
+        },
         FunctionReference: {
             type: FunctionReferenceEntity,
             value: null,
             showDefault: false,
         },
-        EventReference: {
-            type: FunctionReferenceEntity,
-            value: null,
+        CustomFunctionName: {
+            type: String,
             showDefault: false,
         },
         TargetType: {
@@ -58,6 +70,46 @@ export default class ObjectEntity extends IEntity {
         },
         Enum: {
             type: ObjectReferenceEntity,
+            showDefault: false,
+        },
+        InputKey: {
+            type: SymbolEntity,
+            showDefault: false,
+        },
+        bOverrideFunction: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bInternalEvent: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bConsumeInput: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bExecuteWhenPaused: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bOverrideParentBinding: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bControl: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bAlt: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bShift: {
+            type: Boolean,
+            showDefault: false,
+        },
+        bCommand: {
+            type: Boolean,
             showDefault: false,
         },
         CommentColor: {
@@ -143,9 +195,15 @@ export default class ObjectEntity extends IEntity {
         super(values, suppressWarns)
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
+        /** @type {SymbolEntity?} */ this.AxisKey
+        /** @type {SymbolEntity?} */ this.InputAxisKey
+        /** @type {SymbolEntity?} */ this.InputKey
         /** @type {Boolean?} */ this.bIsPureFunc
+        /** @type {Boolean?} */ this.bIsConstFunc
         /** @type {VariableReferenceEntity?} */ this.VariableReference
+        /** @type {SymbolEntity?} */ this.SelfContextInfo
         /** @type {FunctionReferenceEntity?} */ this.FunctionReference
+        /** @type {String} */ this.CustomFunctionName
         /** @type {FunctionReferenceEntity?} */ this.EventReference
         /** @type {ObjectReferenceEntity?} */ this.TargetType
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference
@@ -242,7 +300,7 @@ export default class ObjectEntity extends IEntity {
         if (!this.NodePosX) {
             this.NodePosX = new IntegerEntity()
         }
-        this.NodePosX.value = value
+        this.NodePosX.value = Math.round(value)
     }
 
     getNodePosY() {
@@ -254,6 +312,16 @@ export default class ObjectEntity extends IEntity {
         if (!this.NodePosY) {
             this.NodePosY = new IntegerEntity()
         }
-        this.NodePosY.value = value
+        this.NodePosY.value = Math.round(value)
+    }
+
+    isDevelopmentOnly() {
+        const nodeClass = this.getClass()
+        return this.EnabledState?.toString() === "DevelopmentOnly"
+            || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
+    }
+
+    getDelegatePin() {
+        return this.CustomProperties?.find(pin => pin.PinType.PinCategory === "delegate")
     }
 }

@@ -14,4 +14,12 @@ export default class SymbolEntity extends IEntity {
         super(values)
         /** @type {String} */ this.value
     }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
 }

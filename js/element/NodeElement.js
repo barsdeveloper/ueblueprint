@@ -133,12 +133,16 @@ export default class NodeElement extends ISelectableDraggableElement {
         }
         switch (nodeEntity.getClass()) {
             case Configuration.nodeType.comment:
-            case Configuration.nodeType.customEvent:
                 return CommentNodeTemplate
-            case Configuration.nodeType.event: return EventNodeTemplate
+            case Configuration.nodeType.event:
+            case Configuration.nodeType.customEvent:
+                return EventNodeTemplate
             case Configuration.nodeType.knot: return KnotNodeTemplate
             case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
             case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
+        }
+        if (nodeEntity.getDelegatePin()) {
+            return EventNodeTemplate
         }
         return NodeTemplate
     }
@@ -273,6 +277,10 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.entity.setNodePosX(x)
         this.entity.setNodePosY(y)
         super.setLocation(x, y, acknowledge)
+    }
+
+    isEvent() {
+        return this.template instanceof EventNodeTemplate
     }
 
     acknowledgeReflow() {

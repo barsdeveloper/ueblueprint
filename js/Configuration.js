@@ -31,6 +31,18 @@ export default class Configuration {
         "text": css`226, 121, 167`,
         "wildcard": css`128, 120, 120`,
     }
+    static #keyName = {
+        "A_AccentGrave": "à",
+        "E_AccentGrave": "è",
+        "E_AccentAigu": "é",
+        "Add": "Num +",
+        "Decimal": "Num .",
+        "Divide": "Num /",
+        "Multiply": "Num *",
+        "Subtract": "Num -",
+        "Section": "§",
+        "C_Cedille": "ç",
+    }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
@@ -61,6 +73,28 @@ export default class Configuration {
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
+    /** @param {String} value */
+    static keyName(value) {
+        let result = Configuration.#keyName[value]
+        if (result) {
+            return result
+        }
+        result = Utility.numberFromText(value)
+        if (result) {
+            return result
+        }
+        const match = value.match(/NumPad([a-zA-Z]+)/)
+        if (match) {
+            result = Utility.numberFromText(match[1])
+            if (result) {
+                return "Num " + result
+            }
+        }
+    }
+    /** @param {NodeElement} node */
+    static hidAttribute(node) {
+        return node.entity.InputKey ?? node.entity.AxisKey ?? node.entity.InputAxisKey
+    }
     static keysSeparator = "+"
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
@@ -84,7 +118,9 @@ export default class Configuration {
         switch (node.getType()) {
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.dynamicCast: return SVGIcon.cast
-            case Configuration.nodeType.event: return SVGIcon.event
+            case Configuration.nodeType.event:
+            case Configuration.nodeType.customEvent:
+                return SVGIcon.event
             case Configuration.nodeType.executionSequence: return SVGIcon.sequence
             case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
             case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
@@ -104,19 +140,27 @@ export default class Configuration {
         if (node.entity.getClass() === Configuration.nodeType.macro) {
             return SVGIcon.macro
         }
+        if (Configuration.hidAttribute(node)?.toString().includes("Mouse")) {
+            return SVGIcon.mouse
+        }
         return SVGIcon.functionSymbol
     }
     /** @param {NodeElement} node */
     static nodeColor(node) {
-        const functionColor = css`84, 122, 156`
-        const pureFunctionColor = css`95, 129, 90`
+        const functionColor = css`84, 122, 156` // Blue
+        const pureFunctionColor = css`95, 129, 90` // Green
+        const eventColor = css`151, 33, 32` // Red
         switch (node.entity.getClass()) {
             case Configuration.nodeType.callFunction:
                 return node.entity.bIsPureFunc
                     ? pureFunctionColor
                     : functionColor
             case Configuration.nodeType.event:
-                return css`151, 33, 32`
+            case Configuration.nodeType.customEvent:
+            case Configuration.nodeType.inputKey:
+            case Configuration.nodeType.inputAxisKeyEvent:
+            case Configuration.nodeType.inputDebugKey:
+                return eventColor
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
@@ -124,9 +168,15 @@ export default class Configuration {
             case Configuration.nodeType.executionSequence:
             case Configuration.nodeType.ifThenElse:
             case Configuration.nodeType.macro:
-                return css`150,150,150`
+                return css`150,150,150` // Gray
             case Configuration.nodeType.dynamicCast:
-                return css`46, 104, 106`
+                return css`46, 104, 106` // Turquoise
+        }
+        if (node.entity.bIsPureFunc) {
+            return pureFunctionColor
+        }
+        if (node.isEvent()) {
+            return eventColor
         }
         return functionColor
     }
@@ -185,22 +235,30 @@ export default class Configuration {
                 return `Event ${(node.entity.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
             case Configuration.nodeType.executionSequence:
                 return "Sequence"
-            case Configuration.nodeType.ifThenElse:
-                return "Branch"
             case Configuration.nodeType.forEachElementInEnum:
                 return `For Each ${node.entity.Enum.getName()}`
             case Configuration.nodeType.forEachLoopWithBreak:
                 return "For Each Loop with Break"
+            case Configuration.nodeType.ifThenElse:
+                return "Branch"
             case Configuration.nodeType.variableGet:
                 return ""
             case Configuration.nodeType.variableSet:
                 return "SET"
-            default:
-                if (node.entity.getClass() === Configuration.nodeType.macro) {
-                    return Utility.formatStringName(node.entity.MacroGraphReference.getMacroName())
-                } else {
-                    return Utility.formatStringName(node.entity.getNameAndCounter()[0])
-                }
+        }
+        const keyNameSymbol = Configuration.hidAttribute(node)
+        if (keyNameSymbol) {
+            const keyName = keyNameSymbol.toString()
+            let title = Configuration.keyName(keyName) ?? Utility.formatStringName(keyName)
+            if (node.entity.getClass() === Configuration.nodeType.inputDebugKey) {
+                title = "Debug Key " + title
+            }
+            return title
+        }
+        if (node.entity.getClass() === Configuration.nodeType.macro) {
+            return Utility.formatStringName(node.entity.MacroGraphReference.getMacroName())
+        } else {
+            return Utility.formatStringName(node.entity.getNameAndCounter()[0])
         }
     }
     static nodeRadius = 8 // px
@@ -221,7 +279,11 @@ export default class Configuration {
         forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
         forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
         functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
+        getInputAxisKeyValue: "/Script/BlueprintGraph.K2Node_GetInputAxisKeyValue",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
+        inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
+        inputDebugKey: "/Script/InputBlueprintNodes.K2Node_InputDebugKey",
+        inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
