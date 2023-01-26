@@ -6,7 +6,7 @@ import SimpleObject from "../fixtures/SimpleObject"
 
 describe("Entity initialization", () => {
     before(() => {
-        expect(SimpleEntity,).to.be.a("function")
+        expect(SimpleEntity).to.be.a("function")
         expect(ComplexEntity).to.be.a("function")
     })
 

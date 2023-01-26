@@ -4,7 +4,7 @@ import Utility from "../../js/Utility"
 
 describe('empty spec', () => {
     it('passes', () => {
-        cy.visit('http://127.0.0.1:8080/empty.html')
+        cy.visit(`http://127.0.0.1:${Cypress.env("UEBLUEPRINT_TEST_SERVER_PORT")}/empty.html`)
         cy.get("ueb-blueprint")
             .click(100, 300)
             .then(blueprint => Utility.paste(blueprint[0], String.raw`

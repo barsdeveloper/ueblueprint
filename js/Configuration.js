@@ -31,6 +31,13 @@ export default class Configuration {
         "text": css`226, 121, 167`,
         "wildcard": css`128, 120, 120`,
     }
+    static nodeColors = {
+        blue: css`84, 122, 156`,
+        gray: css`150,150,150`,
+        green: css`95, 129, 90`,
+        red: css`151, 33, 32`,
+        turquoise: css`46, 104, 106`,
+    }
     static #keyName = {
         "A_AccentGrave": "à",
         "E_AccentGrave": "è",
@@ -79,7 +86,7 @@ export default class Configuration {
         if (result) {
             return result
         }
-        result = Utility.numberFromText(value)
+        result = Utility.numberFromText(value)?.toString()
         if (result) {
             return result
         }
@@ -140,45 +147,47 @@ export default class Configuration {
         if (node.entity.getClass() === Configuration.nodeType.macro) {
             return SVGIcon.macro
         }
-        if (Configuration.hidAttribute(node)?.toString().includes("Mouse")) {
-            return SVGIcon.mouse
+        const hidValue = Configuration.hidAttribute(node)
+        if (hidValue) {
+            if (hidValue.toString().includes("Mouse")) {
+                return SVGIcon.mouse
+            } else {
+                return SVGIcon.keyboard
+            }
         }
         return SVGIcon.functionSymbol
     }
     /** @param {NodeElement} node */
     static nodeColor(node) {
-        const functionColor = css`84, 122, 156` // Blue
-        const pureFunctionColor = css`95, 129, 90` // Green
-        const eventColor = css`151, 33, 32` // Red
         switch (node.entity.getClass()) {
             case Configuration.nodeType.callFunction:
                 return node.entity.bIsPureFunc
-                    ? pureFunctionColor
-                    : functionColor
+                    ? Configuration.nodeColors.green
+                    : Configuration.nodeColors.blue
             case Configuration.nodeType.event:
             case Configuration.nodeType.customEvent:
             case Configuration.nodeType.inputKey:
             case Configuration.nodeType.inputAxisKeyEvent:
             case Configuration.nodeType.inputDebugKey:
-                return eventColor
+                return Configuration.nodeColors.red
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
-                return pureFunctionColor
+                return Configuration.nodeColors.green
             case Configuration.nodeType.executionSequence:
             case Configuration.nodeType.ifThenElse:
             case Configuration.nodeType.macro:
-                return css`150,150,150` // Gray
+                return Configuration.nodeColors.gray
             case Configuration.nodeType.dynamicCast:
-                return css`46, 104, 106` // Turquoise
+                return Configuration.nodeColors.turquoise
         }
         if (node.entity.bIsPureFunc) {
-            return pureFunctionColor
+            return Configuration.nodeColors.green
         }
         if (node.isEvent()) {
-            return eventColor
+            return Configuration.nodeColors.red
         }
-        return functionColor
+        return Configuration.nodeColors.blue
     }
     static nodeName = (name, counter) => `${name}_${counter}`
     /** @param {NodeElement} node */

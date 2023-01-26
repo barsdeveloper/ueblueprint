@@ -768,6 +768,13 @@ class Configuration {
         "text": i$3`226, 121, 167`,
         "wildcard": i$3`128, 120, 120`,
     }
+    static nodeColors = {
+        blue: i$3`84, 122, 156`,
+        gray: i$3`150,150,150`,
+        green: i$3`95, 129, 90`,
+        red: i$3`151, 33, 32`,
+        turquoise: i$3`46, 104, 106`,
+    }
     static #keyName = {
         "A_AccentGrave": "à",
         "E_AccentGrave": "è",
@@ -816,7 +823,7 @@ class Configuration {
         if (result) {
             return result
         }
-        result = Utility.numberFromText(value);
+        result = Utility.numberFromText(value)?.toString();
         if (result) {
             return result
         }
@@ -877,45 +884,47 @@ class Configuration {
         if (node.entity.getClass() === Configuration.nodeType.macro) {
             return SVGIcon.macro
         }
-        if (Configuration.hidAttribute(node)?.toString().includes("Mouse")) {
-            return SVGIcon.mouse
+        const hidValue = Configuration.hidAttribute(node);
+        if (hidValue) {
+            if (hidValue.toString().includes("Mouse")) {
+                return SVGIcon.mouse
+            } else {
+                return SVGIcon.keyboard
+            }
         }
         return SVGIcon.functionSymbol
     }
     /** @param {NodeElement} node */
     static nodeColor(node) {
-        const functionColor = i$3`84, 122, 156`; // Blue
-        const pureFunctionColor = i$3`95, 129, 90`; // Green
-        const eventColor = i$3`151, 33, 32`; // Red
         switch (node.entity.getClass()) {
             case Configuration.nodeType.callFunction:
                 return node.entity.bIsPureFunc
-                    ? pureFunctionColor
-                    : functionColor
+                    ? Configuration.nodeColors.green
+                    : Configuration.nodeColors.blue
             case Configuration.nodeType.event:
             case Configuration.nodeType.customEvent:
             case Configuration.nodeType.inputKey:
             case Configuration.nodeType.inputAxisKeyEvent:
             case Configuration.nodeType.inputDebugKey:
-                return eventColor
+                return Configuration.nodeColors.red
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
-                return pureFunctionColor
+                return Configuration.nodeColors.green
             case Configuration.nodeType.executionSequence:
             case Configuration.nodeType.ifThenElse:
             case Configuration.nodeType.macro:
-                return i$3`150,150,150` // Gray
+                return Configuration.nodeColors.gray
             case Configuration.nodeType.dynamicCast:
-                return i$3`46, 104, 106` // Turquoise
+                return Configuration.nodeColors.turquoise
         }
         if (node.entity.bIsPureFunc) {
-            return pureFunctionColor
+            return Configuration.nodeColors.green
         }
         if (node.isEvent()) {
-            return eventColor
+            return Configuration.nodeColors.red
         }
-        return functionColor
+        return Configuration.nodeColors.blue
     }
     static nodeName = (name, counter) => `${name}_${counter}`
     /** @param {NodeElement} node */
@@ -3763,6 +3772,14 @@ class ITemplate {
         return /** @type {IInput[]} */([])
     }
 
+    /**
+     * @template {IInput} T
+     * @param {new () => T} type
+     */
+    getInputObject(type) {
+        return /** @type {T} */(this.inputObjects.find(object => object.constructor == type))
+    }
+
     setup() {
         this.#inputObjects.forEach(v => v.setup());
     }
@@ -4798,8 +4815,10 @@ class BlueprintTemplate extends ITemplate {
         const bounding = this.viewportElement.getBoundingClientRect();
         this.viewportSize[0] = bounding.width;
         this.viewportSize[1] = bounding.height;
-        this.blueprint.requestUpdate();
-        this.blueprint.updateComplete.then(() => this.centerContentInViewport());
+        if (this.blueprint.nodes.length > 0) {
+            this.blueprint.requestUpdate();
+            this.blueprint.updateComplete.then(() => this.centerContentInViewport());
+        }
     }
 
     cleanup() {
@@ -4913,6 +4932,10 @@ class BlueprintTemplate extends ITemplate {
         return /** @type {PinElement} */(this.element.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
+    }
+
+    getCopyInputObject() {
+        return this.getInputObject(Copy)
     }
 
     /**

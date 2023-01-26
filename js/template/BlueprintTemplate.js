@@ -69,8 +69,10 @@ export default class BlueprintTemplate extends ITemplate {
         const bounding = this.viewportElement.getBoundingClientRect()
         this.viewportSize[0] = bounding.width
         this.viewportSize[1] = bounding.height
-        this.blueprint.requestUpdate()
-        this.blueprint.updateComplete.then(() => this.centerContentInViewport())
+        if (this.blueprint.nodes.length > 0) {
+            this.blueprint.requestUpdate()
+            this.blueprint.updateComplete.then(() => this.centerContentInViewport())
+        }
     }
 
     cleanup() {
@@ -184,6 +186,10 @@ export default class BlueprintTemplate extends ITemplate {
         return /** @type {PinElement} */(this.element.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
+    }
+
+    getCopyInputObject() {
+        return this.getInputObject(Copy)
     }
 
     /**
