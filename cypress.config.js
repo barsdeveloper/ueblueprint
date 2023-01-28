@@ -6,5 +6,6 @@ module.exports = defineConfig({
       // implement node event listeners here
     },
     experimentalRunAllSpecs: true,
+    testIsolation: false,
   },
 })

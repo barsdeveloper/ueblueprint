@@ -156,13 +156,13 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
     padding-left: 8px;
 }
 
+.ueb-node-has-inputs .ueb-node-inputs {
+    margin-right: 30px;
+}
+
 .ueb-node-outputs {
     margin-left: auto;
     padding-right: 10px;
-}
-
-.ueb-node-has-inputs .ueb-node-outputs {
-    margin-left: 30px;
 }
 
 .ueb-node-developmentonly {
