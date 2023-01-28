@@ -746,46 +746,12 @@ class Utility {
  */
 
 class Configuration {
-    static #pinColor = {
-        "/Script/CoreUObject.Rotator": i$3`157, 177, 251`,
-        "/Script/CoreUObject.Transform": i$3`227, 103, 0`,
-        "/Script/CoreUObject.Vector": i$3`251, 198, 34`,
-        "bool": i$3`147, 0, 0`,
-        "byte": i$3`0, 109, 99`,
-        "class": i$3`88, 0, 186`,
-        "default": i$3`255, 255, 255`,
-        "delegate": i$3`255, 56, 56`,
-        "enum": i$3`0, 109, 99`,
-        "exec": i$3`240, 240, 240`,
-        "int": i$3`31, 224, 172`,
-        "int64": i$3`169, 223, 172`,
-        "interface": i$3`238, 252, 168`,
-        "name": i$3`201, 128, 251`,
-        "object": i$3`0, 167, 240`,
-        "real": i$3`54, 208, 0`,
-        "string": i$3`251, 0, 209`,
-        "struct": i$3`0, 88, 201`,
-        "text": i$3`226, 121, 167`,
-        "wildcard": i$3`128, 120, 120`,
-    }
     static nodeColors = {
         blue: i$3`84, 122, 156`,
         gray: i$3`150,150,150`,
         green: i$3`95, 129, 90`,
         red: i$3`151, 33, 32`,
         turquoise: i$3`46, 104, 106`,
-    }
-    static #keyName = {
-        "A_AccentGrave": "à",
-        "E_AccentGrave": "è",
-        "E_AccentAigu": "é",
-        "Add": "Num +",
-        "Decimal": "Num .",
-        "Divide": "Num /",
-        "Multiply": "Num *",
-        "Subtract": "Num -",
-        "Section": "§",
-        "C_Cedille": "ç",
     }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
@@ -817,28 +783,6 @@ class Configuration {
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
-    /** @param {String} value */
-    static keyName(value) {
-        let result = Configuration.#keyName[value];
-        if (result) {
-            return result
-        }
-        result = Utility.numberFromText(value)?.toString();
-        if (result) {
-            return result
-        }
-        const match = value.match(/NumPad([a-zA-Z]+)/);
-        if (match) {
-            result = Utility.numberFromText(match[1]);
-            if (result) {
-                return "Num " + result
-            }
-        }
-    }
-    /** @param {NodeElement} node */
-    static hidAttribute(node) {
-        return node.entity.InputKey ?? node.entity.AxisKey ?? node.entity.InputAxisKey
-    }
     static keysSeparator = "+"
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
@@ -857,156 +801,7 @@ class Configuration {
     static mouseWheelFactor = 0.2
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
-    /** @param {NodeElement} node */
-    static nodeIcon(node) {
-        switch (node.getType()) {
-            case Configuration.nodeType.doN: return SVGIcon.doN
-            case Configuration.nodeType.dynamicCast: return SVGIcon.cast
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-                return SVGIcon.event
-            case Configuration.nodeType.executionSequence: return SVGIcon.sequence
-            case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
-            case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
-            case Configuration.nodeType.forEachLoopWithBreak: return SVGIcon.forEachLoop
-            case Configuration.nodeType.forLoop: return SVGIcon.loop
-            case Configuration.nodeType.forLoopWithBreak: return SVGIcon.loop
-            case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
-            case Configuration.nodeType.makeArray: return SVGIcon.makeArray
-            case Configuration.nodeType.makeMap: return SVGIcon.makeMap
-            case Configuration.nodeType.makeSet: return SVGIcon.makeSet
-            case Configuration.nodeType.select: return SVGIcon.select
-            case Configuration.nodeType.whileLoop: return SVGIcon.loop
-        }
-        if (node.getNodeDisplayName().startsWith("Break")) {
-            return SVGIcon.breakStruct
-        }
-        if (node.entity.getClass() === Configuration.nodeType.macro) {
-            return SVGIcon.macro
-        }
-        const hidValue = Configuration.hidAttribute(node);
-        if (hidValue) {
-            if (hidValue.toString().includes("Mouse")) {
-                return SVGIcon.mouse
-            } else {
-                return SVGIcon.keyboard
-            }
-        }
-        return SVGIcon.functionSymbol
-    }
-    /** @param {NodeElement} node */
-    static nodeColor(node) {
-        switch (node.entity.getClass()) {
-            case Configuration.nodeType.callFunction:
-                return node.entity.bIsPureFunc
-                    ? Configuration.nodeColors.green
-                    : Configuration.nodeColors.blue
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-            case Configuration.nodeType.inputKey:
-            case Configuration.nodeType.inputAxisKeyEvent:
-            case Configuration.nodeType.inputDebugKey:
-                return Configuration.nodeColors.red
-            case Configuration.nodeType.makeArray:
-            case Configuration.nodeType.makeMap:
-            case Configuration.nodeType.select:
-                return Configuration.nodeColors.green
-            case Configuration.nodeType.executionSequence:
-            case Configuration.nodeType.ifThenElse:
-            case Configuration.nodeType.macro:
-                return Configuration.nodeColors.gray
-            case Configuration.nodeType.dynamicCast:
-                return Configuration.nodeColors.turquoise
-        }
-        if (node.entity.bIsPureFunc) {
-            return Configuration.nodeColors.green
-        }
-        if (node.isEvent()) {
-            return Configuration.nodeColors.red
-        }
-        return Configuration.nodeColors.blue
-    }
     static nodeName = (name, counter) => `${name}_${counter}`
-    /** @param {NodeElement} node */
-    static nodeDisplayName(node) {
-        switch (node.getType()) {
-            case Configuration.nodeType.callFunction:
-            case Configuration.nodeType.commutativeAssociativeBinaryOperator:
-                let memberName = node.entity.FunctionReference.MemberName ?? "";
-                const memberParent = node.entity.FunctionReference.MemberParent?.path ?? "";
-                if (memberName === "AddKey") {
-                    const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/;
-                    let result = memberParent.match(sequencerScriptingNameRegex);
-                    if (result) {
-                        return `Add Key (${Utility.formatStringName(result[1])})`
-                    }
-                }
-                if (memberParent == "/Script/Engine.KismetMathLibrary") {
-                    if (memberName.startsWith("Conv_")) {
-                        return "" // Conversion  nodes do not have visible names
-                    }
-                    if (memberName.startsWith("Percent_")) {
-                        return "%"
-                    }
-                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
-                    if (leadingLetter) {
-                        // Some functions start with B or F (Like FCeil, FMax, BMin)
-                        memberName = leadingLetter[1];
-                    }
-                    switch (memberName) {
-                        case "Abs": return "ABS"
-                        case "Exp": return "e"
-                        case "Max": return "MAX"
-                        case "MaxInt64": return "MAX"
-                        case "Min": return "MIN"
-                        case "MinInt64": return "MIN"
-                    }
-                }
-                if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
-                    const setOperationMatch = memberName.match(/Set_(\w+)/);
-                    if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
-                    }
-                }
-                if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
-                    const setOperationMatch = memberName.match(/Map_(\w+)/);
-                    if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
-                    }
-                }
-                return Utility.formatStringName(memberName)
-            case Configuration.nodeType.dynamicCast:
-                return `Cast To ${node.entity.TargetType.getName()}`
-            case Configuration.nodeType.event:
-                return `Event ${(node.entity.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
-            case Configuration.nodeType.executionSequence:
-                return "Sequence"
-            case Configuration.nodeType.forEachElementInEnum:
-                return `For Each ${node.entity.Enum.getName()}`
-            case Configuration.nodeType.forEachLoopWithBreak:
-                return "For Each Loop with Break"
-            case Configuration.nodeType.ifThenElse:
-                return "Branch"
-            case Configuration.nodeType.variableGet:
-                return ""
-            case Configuration.nodeType.variableSet:
-                return "SET"
-        }
-        const keyNameSymbol = Configuration.hidAttribute(node);
-        if (keyNameSymbol) {
-            const keyName = keyNameSymbol.toString();
-            let title = Configuration.keyName(keyName) ?? Utility.formatStringName(keyName);
-            if (node.entity.getClass() === Configuration.nodeType.inputDebugKey) {
-                title = "Debug Key " + title;
-            }
-            return title
-        }
-        if (node.entity.getClass() === Configuration.nodeType.macro) {
-            return Utility.formatStringName(node.entity.MacroGraphReference.getMacroName())
-        } else {
-            return Utility.formatStringName(node.entity.getNameAndCounter()[0])
-        }
-    }
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
@@ -1043,14 +838,27 @@ class Configuration {
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
-    /**
-     * @param {PinElement} pin
-     * @return {CSSResult}
-     */
-    static pinColor(pin) {
-        return Configuration.#pinColor[pin.entity.getType()]
-            ?? Configuration.#pinColor[pin.entity.PinType.PinCategory]
-            ?? Configuration.#pinColor["default"]
+    static pinColor = {
+        "/Script/CoreUObject.Rotator": i$3`157, 177, 251`,
+        "/Script/CoreUObject.Transform": i$3`227, 103, 0`,
+        "/Script/CoreUObject.Vector": i$3`251, 198, 34`,
+        "bool": i$3`147, 0, 0`,
+        "byte": i$3`0, 109, 99`,
+        "class": i$3`88, 0, 186`,
+        "default": i$3`255, 255, 255`,
+        "delegate": i$3`255, 56, 56`,
+        "enum": i$3`0, 109, 99`,
+        "exec": i$3`240, 240, 240`,
+        "int": i$3`31, 224, 172`,
+        "int64": i$3`169, 223, 172`,
+        "interface": i$3`238, 252, 168`,
+        "name": i$3`201, 128, 251`,
+        "object": i$3`0, 167, 240`,
+        "real": i$3`54, 208, 0`,
+        "string": i$3`251, 0, 209`,
+        "struct": i$3`0, 88, 201`,
+        "text": i$3`226, 121, 167`,
+        "wildcard": i$3`128, 120, 120`,
     }
     static removeEventName = "ueb-element-delete"
     static scale = {
@@ -2320,7 +2128,11 @@ class VectorEntity extends IEntity {
 class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
-/** @typedef {import("./IEntity").AnyValue} AnyValue */
+/**
+ * @typedef {import("../element/PinElement").default} PinElement
+ * @typedef {import("./IEntity").AnyValue} AnyValue
+ * @typedef {import("lit").CSSResult} CSSResult
+ */
 
 /** @template {AnyValue} T */
 class PinEntity extends IEntity {
@@ -2576,6 +2388,13 @@ class PinEntity extends IEntity {
     getSubCategory() {
         return this.PinType.PinSubCategoryObject.path
     }
+
+    /** @return {CSSResult} */
+    pinColor() {
+        return Configuration.pinColor[this.getType()]
+            ?? Configuration.pinColor[this.PinType.PinCategory]
+            ?? Configuration.pinColor["default"]
+    }
 }
 
 class VariableReferenceEntity extends IEntity {
@@ -2782,9 +2601,40 @@ class ObjectEntity extends IEntity {
 
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
+    static #keyName = {
+        "A_AccentGrave": "à",
+        "E_AccentGrave": "è",
+        "E_AccentAigu": "é",
+        "Add": "Num +",
+        "Decimal": "Num .",
+        "Divide": "Num /",
+        "Multiply": "Num *",
+        "Subtract": "Num -",
+        "Section": "§",
+        "C_Cedille": "ç",
+    }
 
     static {
         this.cleanupAttributes(this.attributes);
+    }
+
+    /** @param {String} value */
+    static keyName(value) {
+        let result = ObjectEntity.#keyName[value];
+        if (result) {
+            return result
+        }
+        result = Utility.numberFromText(value)?.toString();
+        if (result) {
+            return result
+        }
+        const match = value.match(/NumPad([a-zA-Z]+)/);
+        if (match) {
+            result = Utility.numberFromText(match[1]);
+            if (result) {
+                return "Num " + result
+            }
+        }
     }
 
     constructor(values, suppressWarns = false) {
@@ -2911,14 +2761,179 @@ class ObjectEntity extends IEntity {
         this.NodePosY.value = Math.round(value);
     }
 
+    isEvent() {
+        if (
+            this.getClass() === Configuration.nodeType.event
+            || this.getClass() === Configuration.nodeType.customEvent
+        ) {
+            return true
+        }
+        if (this.getDelegatePin()) {
+            return true
+        }
+        return false
+    }
+
     isDevelopmentOnly() {
         const nodeClass = this.getClass();
         return this.EnabledState?.toString() === "DevelopmentOnly"
             || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
     }
 
+    hasHIDAttribute() {
+        return this.InputKey ?? this.AxisKey ?? this.InputAxisKey
+    }
+
     getDelegatePin() {
         return this.CustomProperties?.find(pin => pin.PinType.PinCategory === "delegate")
+    }
+
+    nodeDisplayName() {
+        switch (this.getType()) {
+            case Configuration.nodeType.callFunction:
+            case Configuration.nodeType.commutativeAssociativeBinaryOperator:
+                let memberName = this.FunctionReference.MemberName ?? "";
+                const memberParent = this.FunctionReference.MemberParent?.path ?? "";
+                if (memberName === "AddKey") {
+                    let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex);
+                    if (result) {
+                        return `Add Key (${Utility.formatStringName(result[1])})`
+                    }
+                }
+                if (memberParent == "/Script/Engine.KismetMathLibrary") {
+                    if (memberName.startsWith("Conv_")) {
+                        return "" // Conversion  nodes do not have visible names
+                    }
+                    if (memberName.startsWith("Percent_")) {
+                        return "%"
+                    }
+                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
+                    if (leadingLetter) {
+                        // Some functions start with B or F (Like FCeil, FMax, BMin)
+                        memberName = leadingLetter[1];
+                    }
+                    switch (memberName) {
+                        case "Abs": return "ABS"
+                        case "Exp": return "e"
+                        case "Max": return "MAX"
+                        case "MaxInt64": return "MAX"
+                        case "Min": return "MIN"
+                        case "MinInt64": return "MIN"
+                    }
+                }
+                if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
+                    const setOperationMatch = memberName.match(/Set_(\w+)/);
+                    if (setOperationMatch) {
+                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                    }
+                }
+                if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
+                    const setOperationMatch = memberName.match(/Map_(\w+)/);
+                    if (setOperationMatch) {
+                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                    }
+                }
+                return Utility.formatStringName(memberName)
+            case Configuration.nodeType.dynamicCast:
+                return `Cast To ${this.TargetType.getName()}`
+            case Configuration.nodeType.event:
+                return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
+            case Configuration.nodeType.executionSequence:
+                return "Sequence"
+            case Configuration.nodeType.forEachElementInEnum:
+                return `For Each ${this.Enum.getName()}`
+            case Configuration.nodeType.forEachLoopWithBreak:
+                return "For Each Loop with Break"
+            case Configuration.nodeType.ifThenElse:
+                return "Branch"
+            case Configuration.nodeType.variableGet:
+                return ""
+            case Configuration.nodeType.variableSet:
+                return "SET"
+        }
+        const keyNameSymbol = this.hasHIDAttribute();
+        if (keyNameSymbol) {
+            const keyName = keyNameSymbol.toString();
+            let title = ObjectEntity.keyName(keyName) ?? Utility.formatStringName(keyName);
+            if (this.getClass() === Configuration.nodeType.inputDebugKey) {
+                title = "Debug Key " + title;
+            }
+            return title
+        }
+        if (this.getClass() === Configuration.nodeType.macro) {
+            return Utility.formatStringName(this.MacroGraphReference.getMacroName())
+        } else {
+            return Utility.formatStringName(this.getNameAndCounter()[0])
+        }
+    }
+
+    nodeColor() {
+        switch (this.getClass()) {
+            case Configuration.nodeType.callFunction:
+                return this.bIsPureFunc
+                    ? Configuration.nodeColors.green
+                    : Configuration.nodeColors.blue
+            case Configuration.nodeType.event:
+            case Configuration.nodeType.customEvent:
+            case Configuration.nodeType.inputKey:
+            case Configuration.nodeType.inputAxisKeyEvent:
+            case Configuration.nodeType.inputDebugKey:
+                return Configuration.nodeColors.red
+            case Configuration.nodeType.makeArray:
+            case Configuration.nodeType.makeMap:
+            case Configuration.nodeType.select:
+                return Configuration.nodeColors.green
+            case Configuration.nodeType.executionSequence:
+            case Configuration.nodeType.ifThenElse:
+            case Configuration.nodeType.macro:
+                return Configuration.nodeColors.gray
+            case Configuration.nodeType.dynamicCast:
+                return Configuration.nodeColors.turquoise
+        }
+        if (this.bIsPureFunc) {
+            return Configuration.nodeColors.green
+        }
+        if (this.isEvent()) {
+            return Configuration.nodeColors.red
+        }
+        return Configuration.nodeColors.blue
+    }
+
+    nodeIcon() {
+        switch (this.getType()) {
+            case Configuration.nodeType.doN: return SVGIcon.doN
+            case Configuration.nodeType.dynamicCast: return SVGIcon.cast
+            case Configuration.nodeType.event:
+            case Configuration.nodeType.customEvent:
+                return SVGIcon.event
+            case Configuration.nodeType.executionSequence: return SVGIcon.sequence
+            case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
+            case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
+            case Configuration.nodeType.forEachLoopWithBreak: return SVGIcon.forEachLoop
+            case Configuration.nodeType.forLoop: return SVGIcon.loop
+            case Configuration.nodeType.forLoopWithBreak: return SVGIcon.loop
+            case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
+            case Configuration.nodeType.makeArray: return SVGIcon.makeArray
+            case Configuration.nodeType.makeMap: return SVGIcon.makeMap
+            case Configuration.nodeType.makeSet: return SVGIcon.makeSet
+            case Configuration.nodeType.select: return SVGIcon.select
+            case Configuration.nodeType.whileLoop: return SVGIcon.loop
+        }
+        if (this.nodeDisplayName().startsWith("Break")) {
+            return SVGIcon.breakStruct
+        }
+        if (this.getClass() === Configuration.nodeType.macro) {
+            return SVGIcon.macro
+        }
+        const hidValue = this.hasHIDAttribute();
+        if (hidValue) {
+            if (hidValue.toString().includes("Mouse")) {
+                return SVGIcon.mouse
+            } else {
+                return SVGIcon.keyboard
+            }
+        }
+        return SVGIcon.functionSymbol
     }
 }
 
@@ -5953,7 +5968,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     getColor() {
-        return Configuration.nodeColor(this.element)
+        return this.element.entity.nodeColor()
     }
 
     render() {
@@ -5981,7 +5996,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     renderNodeIcon() {
-        return Configuration.nodeIcon(this.element)
+        return this.element.entity.nodeIcon()
     }
 
     renderNodeName() {
@@ -6626,7 +6641,7 @@ class PinTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor(this.element).cssText);
+        this.element.style.setProperty("--ueb-pin-color-rgb", this.element.entity.pinColor().cssText);
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element;
     }
 
@@ -7122,7 +7137,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     getNodeDisplayName() {
-        return Configuration.nodeDisplayName(this)
+        return this.entity.nodeDisplayName()
     }
 
     /** @param {Number} value */
@@ -7174,10 +7189,6 @@ class NodeElement extends ISelectableDraggableElement {
         this.entity.setNodePosX(x);
         this.entity.setNodePosY(y);
         super.setLocation(x, y, acknowledge);
-    }
-
-    isEvent() {
-        return this.template instanceof EventNodeTemplate
     }
 
     acknowledgeReflow() {
@@ -8983,7 +8994,7 @@ class PinElement extends IElement {
 
     /** @return {CSSResult} */
     getColor() {
-        return Configuration.pinColor(this)
+        return this.entity.pinColor()
     }
 
     isInput() {

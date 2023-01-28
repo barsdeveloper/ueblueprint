@@ -225,7 +225,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     getNodeDisplayName() {
-        return Configuration.nodeDisplayName(this)
+        return this.entity.nodeDisplayName()
     }
 
     /** @param {Number} value */
@@ -277,10 +277,6 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.entity.setNodePosX(x)
         this.entity.setNodePosY(y)
         super.setLocation(x, y, acknowledge)
-    }
-
-    isEvent() {
-        return this.template instanceof EventNodeTemplate
     }
 
     acknowledgeReflow() {

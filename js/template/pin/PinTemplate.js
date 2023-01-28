@@ -1,5 +1,4 @@
 import { html, nothing } from "lit"
-import Configuration from "../../Configuration"
 import ITemplate from "../ITemplate"
 import MouseCreateLink from "../../input/mouse/MouseCreateLink"
 import SVGIcon from "../../SVGIcon"
@@ -103,7 +102,7 @@ export default class PinTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.element.style.setProperty("--ueb-pin-color-rgb", Configuration.pinColor(this.element).cssText)
+        this.element.style.setProperty("--ueb-pin-color-rgb", this.element.entity.pinColor().cssText)
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element
     }
 

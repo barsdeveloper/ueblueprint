@@ -1,6 +1,4 @@
 import { css } from "lit"
-import SVGIcon from "./SVGIcon"
-import Utility from "./Utility"
 
 /**
  * @typedef {import("./element/NodeElement").default} NodeElement
@@ -9,46 +7,12 @@ import Utility from "./Utility"
  */
 
 export default class Configuration {
-    static #pinColor = {
-        "/Script/CoreUObject.Rotator": css`157, 177, 251`,
-        "/Script/CoreUObject.Transform": css`227, 103, 0`,
-        "/Script/CoreUObject.Vector": css`251, 198, 34`,
-        "bool": css`147, 0, 0`,
-        "byte": css`0, 109, 99`,
-        "class": css`88, 0, 186`,
-        "default": css`255, 255, 255`,
-        "delegate": css`255, 56, 56`,
-        "enum": css`0, 109, 99`,
-        "exec": css`240, 240, 240`,
-        "int": css`31, 224, 172`,
-        "int64": css`169, 223, 172`,
-        "interface": css`238, 252, 168`,
-        "name": css`201, 128, 251`,
-        "object": css`0, 167, 240`,
-        "real": css`54, 208, 0`,
-        "string": css`251, 0, 209`,
-        "struct": css`0, 88, 201`,
-        "text": css`226, 121, 167`,
-        "wildcard": css`128, 120, 120`,
-    }
     static nodeColors = {
         blue: css`84, 122, 156`,
         gray: css`150,150,150`,
         green: css`95, 129, 90`,
         red: css`151, 33, 32`,
         turquoise: css`46, 104, 106`,
-    }
-    static #keyName = {
-        "A_AccentGrave": "à",
-        "E_AccentGrave": "è",
-        "E_AccentAigu": "é",
-        "Add": "Num +",
-        "Decimal": "Num .",
-        "Divide": "Num /",
-        "Multiply": "Num *",
-        "Subtract": "Num -",
-        "Section": "§",
-        "C_Cedille": "ç",
     }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
@@ -80,28 +44,6 @@ export default class Configuration {
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
-    /** @param {String} value */
-    static keyName(value) {
-        let result = Configuration.#keyName[value]
-        if (result) {
-            return result
-        }
-        result = Utility.numberFromText(value)?.toString()
-        if (result) {
-            return result
-        }
-        const match = value.match(/NumPad([a-zA-Z]+)/)
-        if (match) {
-            result = Utility.numberFromText(match[1])
-            if (result) {
-                return "Num " + result
-            }
-        }
-    }
-    /** @param {NodeElement} node */
-    static hidAttribute(node) {
-        return node.entity.InputKey ?? node.entity.AxisKey ?? node.entity.InputAxisKey
-    }
     static keysSeparator = "+"
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
@@ -120,156 +62,7 @@ export default class Configuration {
     static mouseWheelFactor = 0.2
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
-    /** @param {NodeElement} node */
-    static nodeIcon(node) {
-        switch (node.getType()) {
-            case Configuration.nodeType.doN: return SVGIcon.doN
-            case Configuration.nodeType.dynamicCast: return SVGIcon.cast
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-                return SVGIcon.event
-            case Configuration.nodeType.executionSequence: return SVGIcon.sequence
-            case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
-            case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
-            case Configuration.nodeType.forEachLoopWithBreak: return SVGIcon.forEachLoop
-            case Configuration.nodeType.forLoop: return SVGIcon.loop
-            case Configuration.nodeType.forLoopWithBreak: return SVGIcon.loop
-            case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
-            case Configuration.nodeType.makeArray: return SVGIcon.makeArray
-            case Configuration.nodeType.makeMap: return SVGIcon.makeMap
-            case Configuration.nodeType.makeSet: return SVGIcon.makeSet
-            case Configuration.nodeType.select: return SVGIcon.select
-            case Configuration.nodeType.whileLoop: return SVGIcon.loop
-        }
-        if (node.getNodeDisplayName().startsWith("Break")) {
-            return SVGIcon.breakStruct
-        }
-        if (node.entity.getClass() === Configuration.nodeType.macro) {
-            return SVGIcon.macro
-        }
-        const hidValue = Configuration.hidAttribute(node)
-        if (hidValue) {
-            if (hidValue.toString().includes("Mouse")) {
-                return SVGIcon.mouse
-            } else {
-                return SVGIcon.keyboard
-            }
-        }
-        return SVGIcon.functionSymbol
-    }
-    /** @param {NodeElement} node */
-    static nodeColor(node) {
-        switch (node.entity.getClass()) {
-            case Configuration.nodeType.callFunction:
-                return node.entity.bIsPureFunc
-                    ? Configuration.nodeColors.green
-                    : Configuration.nodeColors.blue
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-            case Configuration.nodeType.inputKey:
-            case Configuration.nodeType.inputAxisKeyEvent:
-            case Configuration.nodeType.inputDebugKey:
-                return Configuration.nodeColors.red
-            case Configuration.nodeType.makeArray:
-            case Configuration.nodeType.makeMap:
-            case Configuration.nodeType.select:
-                return Configuration.nodeColors.green
-            case Configuration.nodeType.executionSequence:
-            case Configuration.nodeType.ifThenElse:
-            case Configuration.nodeType.macro:
-                return Configuration.nodeColors.gray
-            case Configuration.nodeType.dynamicCast:
-                return Configuration.nodeColors.turquoise
-        }
-        if (node.entity.bIsPureFunc) {
-            return Configuration.nodeColors.green
-        }
-        if (node.isEvent()) {
-            return Configuration.nodeColors.red
-        }
-        return Configuration.nodeColors.blue
-    }
     static nodeName = (name, counter) => `${name}_${counter}`
-    /** @param {NodeElement} node */
-    static nodeDisplayName(node) {
-        switch (node.getType()) {
-            case Configuration.nodeType.callFunction:
-            case Configuration.nodeType.commutativeAssociativeBinaryOperator:
-                let memberName = node.entity.FunctionReference.MemberName ?? ""
-                const memberParent = node.entity.FunctionReference.MemberParent?.path ?? ""
-                if (memberName === "AddKey") {
-                    const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
-                    let result = memberParent.match(sequencerScriptingNameRegex)
-                    if (result) {
-                        return `Add Key (${Utility.formatStringName(result[1])})`
-                    }
-                }
-                if (memberParent == "/Script/Engine.KismetMathLibrary") {
-                    if (memberName.startsWith("Conv_")) {
-                        return "" // Conversion  nodes do not have visible names
-                    }
-                    if (memberName.startsWith("Percent_")) {
-                        return "%"
-                    }
-                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
-                    if (leadingLetter) {
-                        // Some functions start with B or F (Like FCeil, FMax, BMin)
-                        memberName = leadingLetter[1]
-                    }
-                    switch (memberName) {
-                        case "Abs": return "ABS"
-                        case "Exp": return "e"
-                        case "Max": return "MAX"
-                        case "MaxInt64": return "MAX"
-                        case "Min": return "MIN"
-                        case "MinInt64": return "MIN"
-                    }
-                }
-                if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
-                    const setOperationMatch = memberName.match(/Set_(\w+)/)
-                    if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
-                    }
-                }
-                if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
-                    const setOperationMatch = memberName.match(/Map_(\w+)/)
-                    if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
-                    }
-                }
-                return Utility.formatStringName(memberName)
-            case Configuration.nodeType.dynamicCast:
-                return `Cast To ${node.entity.TargetType.getName()}`
-            case Configuration.nodeType.event:
-                return `Event ${(node.entity.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
-            case Configuration.nodeType.executionSequence:
-                return "Sequence"
-            case Configuration.nodeType.forEachElementInEnum:
-                return `For Each ${node.entity.Enum.getName()}`
-            case Configuration.nodeType.forEachLoopWithBreak:
-                return "For Each Loop with Break"
-            case Configuration.nodeType.ifThenElse:
-                return "Branch"
-            case Configuration.nodeType.variableGet:
-                return ""
-            case Configuration.nodeType.variableSet:
-                return "SET"
-        }
-        const keyNameSymbol = Configuration.hidAttribute(node)
-        if (keyNameSymbol) {
-            const keyName = keyNameSymbol.toString()
-            let title = Configuration.keyName(keyName) ?? Utility.formatStringName(keyName)
-            if (node.entity.getClass() === Configuration.nodeType.inputDebugKey) {
-                title = "Debug Key " + title
-            }
-            return title
-        }
-        if (node.entity.getClass() === Configuration.nodeType.macro) {
-            return Utility.formatStringName(node.entity.MacroGraphReference.getMacroName())
-        } else {
-            return Utility.formatStringName(node.entity.getNameAndCounter()[0])
-        }
-    }
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
@@ -306,14 +99,27 @@ export default class Configuration {
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
-    /**
-     * @param {PinElement} pin
-     * @return {CSSResult}
-     */
-    static pinColor(pin) {
-        return Configuration.#pinColor[pin.entity.getType()]
-            ?? Configuration.#pinColor[pin.entity.PinType.PinCategory]
-            ?? Configuration.#pinColor["default"]
+    static pinColor = {
+        "/Script/CoreUObject.Rotator": css`157, 177, 251`,
+        "/Script/CoreUObject.Transform": css`227, 103, 0`,
+        "/Script/CoreUObject.Vector": css`251, 198, 34`,
+        "bool": css`147, 0, 0`,
+        "byte": css`0, 109, 99`,
+        "class": css`88, 0, 186`,
+        "default": css`255, 255, 255`,
+        "delegate": css`255, 56, 56`,
+        "enum": css`0, 109, 99`,
+        "exec": css`240, 240, 240`,
+        "int": css`31, 224, 172`,
+        "int64": css`169, 223, 172`,
+        "interface": css`238, 252, 168`,
+        "name": css`201, 128, 251`,
+        "object": css`0, 167, 240`,
+        "real": css`54, 208, 0`,
+        "string": css`251, 0, 209`,
+        "struct": css`0, 88, 201`,
+        "text": css`226, 121, 167`,
+        "wildcard": css`128, 120, 120`,
     }
     static removeEventName = "ueb-element-delete"
     static scale = {

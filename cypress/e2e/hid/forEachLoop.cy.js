@@ -36,10 +36,10 @@ describe("For Each Loop", () => {
                 `))
                 .then(() => node = blueprint.querySelector("ueb-node"))
         })
-        it("is gray", () => expect(Configuration.nodeColor(node)).to.be.equal(Configuration.nodeColors.gray))
+        it("is gray", () => expect(node.entity.nodeColor()).to.be.deep.equal(Configuration.nodeColors.gray))
         it("has no delegate", () => expect(node.querySelector('.ueb-node-top ueb-pin[data-type="delegate"]')).to.be.null)
         it("is called For Each Loop", () => expect(node.getNodeDisplayName()).to.be.equal("For Each Loop"))
-        it("has a specific icon", () => expect(Configuration.nodeIcon(node)).to.be.equal(SVGIcon.forEachLoop))
+        it("has a specific icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(SVGIcon.forEachLoop))
         it("has 6 pins", () => expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(6))
         it("is not development only", () => expect(node.entity.isDevelopmentOnly()).to.be.false)
         it("maintains the order of attributes", () => {

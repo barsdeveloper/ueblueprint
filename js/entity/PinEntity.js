@@ -22,7 +22,10 @@ import Utility from "../Utility"
 import Vector2DEntity from "./Vector2DEntity"
 import VectorEntity from "./VectorEntity"
 
-/** @typedef {import("./IEntity").AnyValue} AnyValue */
+/**
+ * @typedef {import("./IEntity").AnyValue} AnyValue
+ * @typedef {import("lit").CSSResult} CSSResult
+ */
 
 /** @template {AnyValue} T */
 export default class PinEntity extends IEntity {
@@ -277,5 +280,12 @@ export default class PinEntity extends IEntity {
 
     getSubCategory() {
         return this.PinType.PinSubCategoryObject.path
+    }
+
+    /** @return {CSSResult} */
+    pinColor() {
+        return Configuration.pinColor[this.getType()]
+            ?? Configuration.pinColor[this.PinType.PinCategory]
+            ?? Configuration.pinColor["default"]
     }
 }

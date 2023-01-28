@@ -1,5 +1,4 @@
 import BoolPinTemplate from "../template/pin/BoolPinTemplate"
-import Configuration from "../Configuration"
 import ElementFactory from "./ElementFactory"
 import ExecPinTemplate from "../template/pin/ExecPinTemplate"
 import GuidEntity from "../entity/GuidEntity"
@@ -175,7 +174,7 @@ export default class PinElement extends IElement {
 
     /** @return {CSSResult} */
     getColor() {
-        return Configuration.pinColor(this)
+        return this.entity.pinColor()
     }
 
     isInput() {

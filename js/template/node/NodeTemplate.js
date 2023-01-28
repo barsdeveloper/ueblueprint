@@ -1,5 +1,4 @@
 import { html, nothing } from "lit"
-import Configuration from "../../Configuration"
 import ElementFactory from "../../element/ElementFactory"
 import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate"
 import SVGIcon from "../../SVGIcon"
@@ -34,7 +33,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     getColor() {
-        return Configuration.nodeColor(this.element)
+        return this.element.entity.nodeColor()
     }
 
     render() {
@@ -62,7 +61,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     renderNodeIcon() {
-        return Configuration.nodeIcon(this.element)
+        return this.element.entity.nodeIcon()
     }
 
     renderNodeName() {

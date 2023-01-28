@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rollup --config && sass scss/export.scss:dist/css/ueb-style.css && sass scss/export.scss:dist/css/ueb-style.min.css --style=compressed",
     "test": "npm run build && export UEBLUEPRINT_TEST_SERVER_PORT=8181 && npx concurrently -k \"http-server -s -p $UEBLUEPRINT_TEST_SERVER_PORT\" \"npx cypress run --env UEBLUEPRINT_TEST_SERVER_PORT=8181\"",
-    "cypress": "export UEBLUEPRINT_TEST_SERVER_PORT=8181 && npx concurrently -k \"http-server -p $UEBLUEPRINT_TEST_SERVER_PORT\" \"npx cypress open --env UEBLUEPRINT_TEST_SERVER_PORT=8181\""
+    "cypress": "export UEBLUEPRINT_TEST_SERVER_PORT=8181 && npx concurrently -k \"http-server -c-1 -p $UEBLUEPRINT_TEST_SERVER_PORT\" \"npx cypress open --env UEBLUEPRINT_TEST_SERVER_PORT=8181\""
   },
   "repository": {
     "type": "git",

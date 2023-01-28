@@ -35,10 +35,10 @@ describe("Acceleration", () => {
                 `))
                 .then(() => node = blueprint.querySelector("ueb-node"))
         })
-        it("is red", () => expect(Configuration.nodeColor(node)).to.be.equal(Configuration.nodeColors.red))
+        it("is red", () => expect(node.entity.nodeColor()).to.be.deep.equal(Configuration.nodeColors.red))
         it("has a delegate", () => expect(node.querySelector('.ueb-node-top ueb-pin[data-type="delegate"]')).to.not.be.null)
         it("is called Acceleration", () => expect(node.getNodeDisplayName()).to.be.equal("Acceleration"))
-        it("has a keyboard icon", () => expect(Configuration.nodeIcon(node)).to.be.equal(SVGIcon.keyboard))
+        it("has a keyboard icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(SVGIcon.keyboard))
         it("has 3 pins", () => expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(3))
         it("is not development only", () => expect(node.entity.isDevelopmentOnly()).to.be.false)
         it("maintains the order of attributes", () => {

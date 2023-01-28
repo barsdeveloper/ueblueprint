@@ -36,10 +36,10 @@ describe("Get Mouse Wheel Axis", () => {
                 `))
                 .then(() => node = blueprint.querySelector("ueb-node"))
         })
-        it("is green", () => expect(Configuration.nodeColor(node)).to.be.equal(Configuration.nodeColors.green))
+        it("is green", () => expect(node.entity.nodeColor()).to.be.deep.equal(Configuration.nodeColors.green))
         it("has no delegate", () => expect(node.querySelector('.ueb-node-top ueb-pin[data-type="delegate"]')).to.be.null)
         it("is called Get Mouse Wheel Axis", () => expect(node.getNodeDisplayName()).to.be.equal("Get Mouse Wheel Axis"))
-        it("has a mouse icon", () => expect(Configuration.nodeIcon(node)).to.be.equal(SVGIcon.mouse))
+        it("has a mouse icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(SVGIcon.mouse))
         it("has 1 pin", () => expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(1))
         it("is not development only", () => expect(node.entity.isDevelopmentOnly()).to.be.false)
         it("maintains the order of attributes", () => {
