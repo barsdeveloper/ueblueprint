@@ -24,269 +24,363 @@ var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html
  * SPDX-License-Identifier: BSD-3-Clause
  */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=Z(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
-class SVGIcon {
+/**
+ * @typedef {import("./element/NodeElement").default} NodeElement
+ * @typedef {import("./element/PinElement").default} PinElement
+ * @typedef {import("lit").CSSResult} CSSResult
+ */
 
-    static array = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 0H0V4H4V0Z" fill="currentColor" />
-            <path d="M10 0H6V4H10V0Z" fill="currentColor" />
-            <path d="M16 0H12V4H16V0Z" fill="currentColor" />
-            <path d="M4 6H0V10H4V6Z" fill="currentColor" />
-            <path class="ueb-pin-tofill" d="M10 6H6V10H10V6Z" fill="black" />
-            <path d="M16 6H12V10H16V6Z" fill="currentColor" />
-            <path d="M4 12H0V16H4V12Z" fill="currentColor" />
-            <path d="M10 12H6V16H10V12Z" fill="currentColor" />
-            <path d="M16 12H12V16H16V12Z" fill="currentColor" />
-        </svg>
-    `
+class Configuration {
+    static nodeColors = {
+        blue: i$3`84, 122, 156`,
+        gray: i$3`150,150,150`,
+        green: i$3`95, 129, 90`,
+        red: i$3`151, 33, 32`,
+        turquoise: i$3`46, 104, 106`,
+    }
+    static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
+    static colorDragEventName = "ueb-color-drag"
+    static colorPickEventName = "ueb-color-pick"
+    static colorWindowEventName = "ueb-color-window"
+    static defaultCommentHeight = 96
+    static defaultCommentWidth = 400
+    static deleteNodesKeyboardKey = "Delete"
+    static distanceThreshold = 5 // px
+    static dragEventName = "ueb-drag"
+    static dragGeneralEventName = "ueb-drag-general"
+    static editTextEventName = {
+        begin: "ueb-edit-text-begin",
+        end: "ueb-edit-text-end",
+    }
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    static expandGridSize = 400
+    static focusEventName = {
+        begin: "blueprint-focus",
+        end: "blueprint-unfocus",
+    }
+    static fontSize = i$3`12.5px`
+    static gridAxisLineColor = i$3`black`
+    static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
+    static gridLineColor = i$3`#353535`
+    static gridLineWidth = 1 // px
+    static gridSet = 8
+    static gridSetLineColor = i$3`#161616`
+    static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
+    static gridSize = 16 // px
+    static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
+    static keysSeparator = "+"
+    static linkCurveHeight = 15 // px
+    static linkCurveWidth = 80 // px
+    static linkMinWidth = 100 // px
+    /**
+     * @param {Number} start
+     * @param {Number} c1
+     * @param {Number} c2
+     */
+    static linkRightSVGPath = (start, c1, c2) => {
+        let end = 100 - start;
+        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
+    }
+    static maxZoom = 7
+    static minZoom = -12
+    static mouseWheelFactor = 0.2
+    static nodeDragGeneralEventName = "ueb-node-drag-general"
+    static nodeDragEventName = "ueb-node-drag"
+    static nodeName = (name, counter) => `${name}_${counter}`
+    static nodeRadius = 8 // px
+    static nodeReflowEventName = "ueb-node-reflow"
+    static nodeType = {
+        callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
+        comment: "/Script/UnrealEd.EdGraphNode_Comment",
+        commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
+        customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
+        doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
+        dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        enum: "/Script/CoreUObject.Enum",
+        event: "/Script/BlueprintGraph.K2Node_Event",
+        executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
+        forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
+        forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",
+        forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
+        forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
+        forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
+        functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
+        getInputAxisKeyValue: "/Script/BlueprintGraph.K2Node_GetInputAxisKeyValue",
+        ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
+        inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
+        inputDebugKey: "/Script/InputBlueprintNodes.K2Node_InputDebugKey",
+        inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
+        knot: "/Script/BlueprintGraph.K2Node_Knot",
+        macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
+        makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
+        makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
+        makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
+        pawn: "/Script/Engine.Pawn",
+        reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
+        select: "/Script/BlueprintGraph.K2Node_Select",
+        userDefinedEnum: "/Script/Engine.UserDefinedEnum",
+        variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
+        variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
+        whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
+    }
+    static pinColor = {
+        "/Script/CoreUObject.Rotator": i$3`157, 177, 251`,
+        "/Script/CoreUObject.Transform": i$3`227, 103, 0`,
+        "/Script/CoreUObject.Vector": i$3`251, 198, 34`,
+        "bool": i$3`147, 0, 0`,
+        "byte": i$3`0, 109, 99`,
+        "class": i$3`88, 0, 186`,
+        "default": i$3`255, 255, 255`,
+        "delegate": i$3`255, 56, 56`,
+        "enum": i$3`0, 109, 99`,
+        "exec": i$3`240, 240, 240`,
+        "int": i$3`31, 224, 172`,
+        "int64": i$3`169, 223, 172`,
+        "interface": i$3`238, 252, 168`,
+        "name": i$3`201, 128, 251`,
+        "object": i$3`0, 167, 240`,
+        "real": i$3`54, 208, 0`,
+        "string": i$3`251, 0, 209`,
+        "struct": i$3`0, 88, 201`,
+        "text": i$3`226, 121, 167`,
+        "wildcard": i$3`128, 120, 120`,
+    }
+    static removeEventName = "ueb-element-delete"
+    static scale = {
+        [-12]: 0.133333,
+        [-11]: 0.166666,
+        [-10]: 0.2,
+        [-9]: 0.233333,
+        [-8]: 0.266666,
+        [-7]: 0.3,
+        [-6]: 0.333333,
+        [-5]: 0.375,
+        [-4]: 0.5,
+        [-3]: 0.675,
+        [-2]: 0.75,
+        [-1]: 0.875,
+        0: 1,
+        1: 1.25,
+        2: 1.375,
+        3: 1.5,
+        4: 1.675,
+        5: 1.75,
+        6: 1.875,
+        7: 2,
+    }
+    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
+    static smoothScrollTime = 1000 // ms
+    static trackingMouseEventName = {
+        begin: "ueb-tracking-mouse-begin",
+        end: "ueb-tracking-mouse-end",
+    }
+    static windowApplyEventName = "ueb-window-apply"
+    static windowCancelEventName = "ueb-window-cancel"
+    static windowCloseEventName = "ueb-window-close"
+    static ModifierKeys = [
+        "Ctrl",
+        "Shift",
+        "Alt",
+        "Meta",
+    ]
+    static Keys = {
+        /* UE name: JS name */
+        "Backspace": "Backspace",
+        "Tab": "Tab",
+        "LeftControl": "ControlLeft",
+        "RightControl": "ControlRight",
+        "LeftShift": "ShiftLeft",
+        "RightShift": "ShiftRight",
+        "LeftAlt": "AltLeft",
+        "RightAlt": "AltRight",
+        "Enter": "Enter",
+        "Pause": "Pause",
+        "CapsLock": "CapsLock",
+        "Escape": "Escape",
+        "Space": "Space",
+        "PageUp": "PageUp",
+        "PageDown": "PageDown",
+        "End": "End",
+        "Home": "Home",
+        "ArrowLeft": "Left",
+        "ArrowUp": "Up",
+        "ArrowRight": "Right",
+        "ArrowDown": "Down",
+        "PrintScreen": "PrintScreen",
+        "Insert": "Insert",
+        "Delete": "Delete",
+        "Zero": "Digit0",
+        "One": "Digit1",
+        "Two": "Digit2",
+        "Three": "Digit3",
+        "Four": "Digit4",
+        "Five": "Digit5",
+        "Six": "Digit6",
+        "Seven": "Digit7",
+        "Eight": "Digit8",
+        "Nine": "Digit9",
+        "A": "KeyA",
+        "B": "KeyB",
+        "C": "KeyC",
+        "D": "KeyD",
+        "E": "KeyE",
+        "F": "KeyF",
+        "G": "KeyG",
+        "H": "KeyH",
+        "I": "KeyI",
+        "K": "KeyK",
+        "L": "KeyL",
+        "M": "KeyM",
+        "N": "KeyN",
+        "O": "KeyO",
+        "P": "KeyP",
+        "Q": "KeyQ",
+        "R": "KeyR",
+        "S": "KeyS",
+        "T": "KeyT",
+        "U": "KeyU",
+        "V": "KeyV",
+        "W": "KeyW",
+        "X": "KeyX",
+        "Y": "KeyY",
+        "Z": "KeyZ",
+        "NumPadZero": "Numpad0",
+        "NumPadOne": "Numpad1",
+        "NumPadTwo": "Numpad2",
+        "NumPadThree": "Numpad3",
+        "NumPadFour": "Numpad4",
+        "NumPadFive": "Numpad5",
+        "NumPadSix": "Numpad6",
+        "NumPadSeven": "Numpad7",
+        "NumPadEight": "Numpad8",
+        "NumPadNine": "Numpad9",
+        "Multiply": "NumpadMultiply",
+        "Add": "NumpadAdd",
+        "Subtract": "NumpadSubtract",
+        "Decimal": "NumpadDecimal",
+        "Divide": "NumpadDivide",
+        "F1": "F1",
+        "F2": "F2",
+        "F3": "F3",
+        "F4": "F4",
+        "F5": "F5",
+        "F6": "F6",
+        "F7": "F7",
+        "F8": "F8",
+        "F9": "F9",
+        "F10": "F10",
+        "F11": "F11",
+        "F12": "F12",
+        "NumLock": "NumLock",
+        "ScrollLock": "ScrollLock",
+    }
+}
 
-    static branchNode = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2H6C5.44772 2 5 2.44772 5 3V13C5 13.5523 5.44772 14 6 14H11V12H7V4H11V2Z" fill="white" />
-            <rect x="1" y="7" width="4" height="2" fill="white" />
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 6L15 3L11 0V6Z" fill="white" />
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 16L15 13L11 10V16Z" fill="white" />
-        </svg>
-    `
+/** @typedef {import("../Blueprint").default} Blueprint */
 
-    static breakStruct = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 14L10 12L11 11L13 13L14 12L14 15L11 15L12 14Z" fill="white" />
-            <path d="M13 3L11 5L10 4L12 2L11 1L14 1L14 4L13 3Z" fill="white" />
-            <path d="M7.975 6H3.025C1.90662 6 1 6.90662 1 8.025V8.475C1 9.59338 1.90662 10.5 3.025 10.5H7.975C9.09338 10.5 10 9.59338 10 8.475V8.025C10 6.90662 9.09338 6 7.975 6Z" fill="white" />
-        </svg>
-    `
+/** @template {HTMLElement} T */
+class IInput {
 
-    static cast = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 12L16 7.5L12 3V12Z" fill="white" />
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 11L4 7.5L0 4V11Z" fill="white" />
-            <rect opacity="0.5" x="5" y="6" width="1" height="3" fill="white" />
-            <rect opacity="0.5" x="7" y="6" width="1" height="3" fill="white" />
-            <rect opacity="0.5" x="9" y="6" width="1" height="3" fill="white" />
-            <rect x="9" y="6" width="3" height="3" fill="white" />
-        </svg>
-    `
+    /** @type {T} */
+    #target
+    get target() {
+        return this.#target
+    }
 
-    static close = y`
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
-            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
-        </svg>
-    `
+    /** @type {Blueprint} */
+    #blueprint
+    get blueprint() {
+        return this.#blueprint
+    }
 
-    static correct = y`
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#2da800" d="M 2 16 L 14 30 L 30 2 L 13 22 Z" />
-        </svg>
-    `
+    /** @type {Object} */
+    options
 
-    static delegate = y`
-        <svg viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
-            <rect class="ueb-pin-tofill" fill="black" width="28" height="28" rx="4" stroke="currentColor" stroke-width="5" />
-        </svg>
-    `
 
-    static doN = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white" />
-            <path d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" fill="white" />
-        </svg>
-    `
+    listenHandler = () => this.listenEvents()
+    unlistenHandler = () => this.unlistenEvents()
 
-    static event = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0.929031" y="8" width="10" height="10" rx="0.5" transform="rotate(-45 0.929031 8)" stroke="white" />
-            <path d="M5 4.00024L8 1.00024V6.00024H3L5 4.00024Z" fill="white" />
-            <path d="M6 13.0002L3 10.0002L8 10.0002L8 15.0002L6 13.0002Z" fill="white" />
-            <path d="M4.53551 6.82854L4.53551 11.0712L0.999977 7.53564L4.53551 4.00011L4.53551 6.82854Z" fill="white" />
-        </svg>
-    `
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.consumeEvent ??= false;
+        options.listenOnFocus ??= false;
+        options.unlistenOnTextEdit ??= false;
+        this.#target = target;
+        this.#blueprint = blueprint;
+        this.options = options;
+    }
 
-    static execPin = y`
-        <svg viewBox="-2 0 16 16" xmlns="http://www.w3.org/2000/svg">
-            <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
-                d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
-        </svg>
-    `
+    setup() {
+        if (this.options.listenOnFocus) {
+            this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler);
+            this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler);
+        }
+        if (this.options.unlistenOnTextEdit) {
+            this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
+            this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler);
+        }
+        if (this.blueprint.focused) {
+            this.listenEvents();
+        }
+    }
 
-    static expandIcon = y`
-        <svg fill="currentColor" viewBox="4 4 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
-        </svg>
-    `
+    cleanup() {
+        this.unlistenEvents();
+        this.blueprint.removeEventListener(Configuration.focusEventName.begin, this.listenHandler);
+        this.blueprint.removeEventListener(Configuration.focusEventName.end, this.unlistenHandler);
+        this.blueprint.removeEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
+        this.blueprint.removeEventListener(Configuration.editTextEventName.end, this.listenHandler);
+    }
 
-    static forEachLoop = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M4 2C1.8 2 0 3.8 0 6V9C0 11.2 2 13 4 13H10V11H5C3.2 11 2 9.7 2 8V7C2 5.63882 2.76933 4.53408 4 4.14779V2ZM12 4C13.8 4 14 5.3 14 7V8C14 8.8 13.7 9.5 13.3 10L15.2 11.4C15.7 10.7 16 9.9 16 9V6C16 3.8 14.2 2 12 2V4Z" fill="white" />
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16L13 12L8 8V16Z" fill="white" />
-            <rect x="5" y="1" width="1" height="4" fill="white" />
-            <rect x="7" y="1" width="1" height="4" fill="white" />
-            <rect x="9" y="1" width="1" height="4" fill="white" />
-            <rect x="11" y="2" width="1" height="2" fill="white" />
-        </svg>
-    `
+    /* Subclasses will probabily override the following methods */
+    listenEvents() {
+    }
 
-    static functionSymbol = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M9.72002 6.0699C9.88111 4.96527 10.299 3.9138 10.94 2.99991C10.94 2.99991 10.94 3.05991 10.94 3.08991C10.94 3.36573 11.0496 3.63026 11.2446 3.8253C11.4397 4.02033 11.7042 4.12991 11.98 4.12991C12.2558 4.12991 12.5204 4.02033 12.7154 3.8253C12.9105 3.63026 13.02 3.36573 13.02 3.08991C13.0204 2.90249 12.9681 2.71873 12.8691 2.5596C12.7701 2.40047 12.6283 2.27237 12.46 2.18991H12.37C11.8725 2.00961 11.3275 2.00961 10.83 2.18991C9.21002 2.63991 8.58002 4.99991 8.58002 4.99991L8.40002 5.1199H5.40002L5.15002 6.1199H8.27002L7.27002 11.4199C7.11348 12.0161 6.79062 12.5555 6.33911 12.9751C5.8876 13.3948 5.32607 13.6773 4.72002 13.7899C4.78153 13.655 4.81227 13.5081 4.81002 13.3599C4.81002 13.0735 4.69624 12.7988 4.4937 12.5962C4.29116 12.3937 4.01646 12.2799 3.73002 12.2799C3.44359 12.2799 3.16889 12.3937 2.96635 12.5962C2.76381 12.7988 2.65002 13.0735 2.65002 13.3599C2.66114 13.605 2.75692 13.8386 2.92104 14.021C3.08517 14.2033 3.30746 14.3231 3.55002 14.3599C7.91002 15.1999 8.55002 11.4499 8.55002 11.4499L9.55002 7.05991H12.55L12.8 6.05991H9.64002L9.72002 6.0699Z"
-                fill="currentColor"
-            />
-        </svg>
-    `
+    unlistenEvents() {
+    }
+}
 
-    static genericPin = y`
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <circle class="ueb-pin-tofill" cx="16" cy="16" r="13" fill="black" stroke="currentColor" stroke-width="5" />
-            <path fill="currentColor" d="M 34 6 L 34 26 L 42 16 Z" />
-        </svg>
-    `
+/**
+ * @typedef {import("../entity/IEntity").default} IEntity
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ */
 
-    static keyboard = y `
-        <svg viewBox="0 -3 16 16" xmlns="http://www.w3.org/2000/svg">
-            <path fill="white" d="M 1 10 H 15 c 0.2652 0 0.5195 -0.1054 0.707 -0.293 c 0.1875 -0.1875 0.293 -0.4418 0.293 -0.707 v -8 c 0 -0.2652 -0.1054 -0.5195 -0.293 -0.707 c -0.1875 -0.1875 -0.4418 -0.293 -0.707 -0.293 H 1 c -0.2652 0 -0.5195 0.1054 -0.707 0.293 c -0.1875 0.1875 -0.293 0.4418 -0.293 0.707 V 9 c 0 0.2652 0.1054 0.5195 0.293 0.707 c 0.1875 0.1875 0.4418 0.293 0.707 0.293 Z M 14 6 h -3 v -2 h 3 v 2 Z M 13 1 h 2 v 2 h -2 v -2 Z M 10 1 h 2 v 2 h -2 v -2 Z M 10 6 h -2 v -2 h 2 v 2 Z M 7 1 h 2 v 2 h -2 v -2 Z M 7 6 h -2 v -2 h 2 v 2 Z M 4 1 h 2 v 2 h -2 v -2 Z M 4 6 h -2 v -2 h 2 v 2 Z M 1 1 h 2 v 2 h -2 v -2 Z M 1 7 h 2 v 2 h -2 v -2 M 4 7 h 8 v 2 h -8 v -2 M 13 7 h 2 v 2 h -2 v -2 Z" />
-        </svg>
-    `
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("./ISerializer").default<T>} ISerializer
+ */
 
-    static loop = y`
-        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <style>
-                    .cls-1 {
-                        fill: #fff;
-                        fill-rule: evenodd;
-                    }
-                    .cls-2 {
-                        fill: none;
-                    }
-                </style>
-            </defs>
-            <g id="Layer_2" data-name="Layer 2">
-                <g id="Layer_4" data-name="Layer 4">
-                    <path class="cls-1" d="M16,2H4A4,4,0,0,0,0,6v4a4.14,4.14,0,0,0,4,4H9v5l8-6L9,7v5H4.5A2.36,2.36,0,0,1,2,9.5v-3A2.36,2.36,0,0,1,4.5,4h11A2.36,2.36,0,0,1,18,6.5V9a3,3,0,0,1-.69,2l1.88,1.41A4,4,0,0,0,20,10V6A4,4,0,0,0,16,2Z" />
-                    <rect class="cls-2" width="20" height="20" />
-                </g>
-            </g>
-        </svg>
-    `
+class SerializerFactory {
 
-    static macro = y`
-        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 2.92L10 12.29L14.55 2.61C14.662 2.4259 14.8189 2.27332 15.0061 2.16661C15.1933 2.05989 15.4045 2.00256 15.62 2H19L18.66 2.89C18.66 2.89 17.17 3.04 17.11 3.63C17.05 4.22 16 15.34 15.93 16.13C15.86 16.92 17.33 17.13 17.33 17.13L17.17 17.99H13.84C13.7241 17.9764 13.612 17.9399 13.5103 17.8826C13.4086 17.8253 13.3194 17.7484 13.2477 17.6562C13.176 17.5641 13.1234 17.4586 13.0929 17.346C13.0624 17.2333 13.0546 17.1157 13.07 17L14.43 5.52L10 14.57C9.8 15.03 9.07 15.72 8.63 15.71H7.75L6.05 4.86L3.54 17.39C3.51941 17.5514 3.44327 17.7005 3.32465 17.8118C3.20603 17.9232 3.05235 17.9897 2.89 18H1L1.11 17.09C1.11 17.09 2.21 17.09 2.3 16.69C2.39 16.29 5.3 3.76 5.41 3.32C5.52 2.88 4.19 2.81 4.19 2.81L4.46 2H6.62C7.09 2 7.92 2.38 8 2.92Z" fill="white" />
-        </svg>
-    `
+    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
+    static #serializers = new Map()
 
-    static map = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 0H0V4H4V0Z" fill="currentColor"/>
-            <path d="M4 6H0V10H4V6Z" fill="currentColor"/>
-            <path d="M4 12H0V16H4V12Z" fill="currentColor"/>
-            <path d="M16 0H6V4H16V0Z" fill="white"/>
-            <path d="M16 6H6V10H16V6Z" fill="white"/>
-            <path d="M16 12H6V16H16V12Z" fill="white"/>
-        </svg>
-    `
+    /**
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entity
+     * @param {ISerializer<T>} object
+     */
+    static registerSerializer(entity, object) {
+        SerializerFactory.#serializers.set(entity, object);
+    }
 
-    static makeArray = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 4H13V6H15V4Z" fill="white" />
-            <path d="M15 7H13V9H15V7Z" fill="white" />
-            <path d="M15 10H13V12H15V10Z" fill="white" />
-            <path d="M12 4H10V6H12V4Z" fill="white" />
-            <path d="M12 7H10V9H12V7Z" fill="white" />
-            <path d="M12 10H10V12H12V10Z" fill="white" />
-            <path d="M9 4H7V6H9V4Z" fill="white" />
-            <path d="M9 7H7V9H9V7Z" fill="white" />
-            <path d="M9 10H7V12H9V10Z" fill="white" />
-            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
-            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
-        </svg>
-    `
-
-    static makeMap = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 4H10V6H15V4Z" fill="white" />
-            <path d="M15 7H10V9H15V7Z" fill="white" />
-            <path d="M15 10H10V12H15V10Z" fill="white" />
-            <path d="M9 4H7V6H9V4Z" fill="white" />
-            <path d="M9 7H7V9H9V7Z" fill="white" />
-            <path d="M9 10H7V12H9V10Z" fill="white" />
-            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
-            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
-        </svg>
-    `
-
-    static makeSet = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
-            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
-            <path d="M6 8.00205V7.43062C6.40147 7.37088 6.79699 7.28299 7.18286 7.16777C7.30414 7.11578 7.40659 7.03462 7.47858 6.93348C7.57165 6.81021 7.63108 6.66933 7.65215 6.52205C7.6832 6.31181 7.69609 6.09976 7.69072 5.88777C7.67539 5.53753 7.70341 5.18685 7.77429 4.84205C7.81918 4.66059 7.92446 4.49533 8.07643 4.36777C8.26269 4.22923 8.48285 4.13138 8.71929 4.08205C9.01252 4.02392 9.31249 3.99706 9.61287 4.00205H9.85715V4.57348C9.66398 4.58307 9.47806 4.64211 9.32179 4.7435C9.16552 4.84489 9.04559 4.9843 8.97644 5.14491C8.92057 5.24999 8.89621 5.36613 8.90572 5.48205C8.90572 5.64205 8.90572 5.95062 8.86715 6.40205C8.85805 6.6136 8.81697 6.8231 8.74501 7.02491C8.69216 7.17345 8.60697 7.3113 8.49429 7.43062C8.33135 7.64 8.1415 7.83177 7.92858 8.00205" fill="white"/>
-            <path d="M7.92858 8.00195C8.14537 8.18165 8.33547 8.3852 8.49429 8.60767C8.60419 8.72229 8.6892 8.85404 8.74501 8.99624C8.81697 9.19805 8.85805 9.40755 8.86715 9.6191C8.89286 10.0724 8.90572 10.381 8.90572 10.5448C8.89679 10.6607 8.92112 10.7767 8.97644 10.882C9.05077 11.0375 9.17272 11.1714 9.32842 11.2683C9.48411 11.3653 9.66731 11.4215 9.85715 11.4305V12.002H9.61287C9.31086 12.0112 9.0087 11.9881 8.71286 11.9334C8.47744 11.8816 8.25788 11.784 8.07001 11.6477C7.91926 11.5193 7.81421 11.3543 7.76786 11.1734C7.69764 10.8285 7.66962 10.4779 7.68429 10.1277C7.69081 9.91186 7.67791 9.69593 7.64572 9.48195C7.62465 9.33468 7.56522 9.1938 7.47215 9.07052C7.40016 8.96939 7.29771 8.88822 7.17643 8.83624C6.79266 8.72131 6.3993 8.63342 6 8.57338V8.00195" fill="white"/>
-            <path d="M13.0712 8.00197C12.8582 7.83169 12.6684 7.63992 12.5054 7.43054C12.3942 7.31461 12.3091 7.18076 12.2547 7.03626C12.1828 6.83445 12.1417 6.62495 12.1326 6.4134C12.1326 5.96197 12.094 5.6534 12.094 5.4934C12.1058 5.37369 12.0814 5.25334 12.0233 5.14483C11.9541 4.98422 11.8342 4.84481 11.6779 4.74342C11.5217 4.64203 11.3357 4.58299 11.1426 4.5734V4.00197H11.3869C11.6889 3.99277 11.991 4.01579 12.2869 4.07054C12.5233 4.11987 12.7435 4.21772 12.9297 4.35626C13.0817 4.48382 13.187 4.64908 13.2319 4.83054C13.3027 5.17534 13.3308 5.52602 13.3154 5.87626C13.3094 6.09206 13.3223 6.30795 13.354 6.52197C13.3751 6.66925 13.4345 6.81013 13.5276 6.9334C13.5996 7.03454 13.702 7.1157 13.8233 7.16769C14.2071 7.28262 14.6004 7.37051 14.9997 7.43054V8.00197" fill="white"/>
-            <path d="M14.9997 8.00195V8.57338C14.5983 8.63312 14.2027 8.72102 13.8169 8.83624C13.6956 8.88822 13.5931 8.96939 13.5212 9.07052C13.4281 9.1938 13.3686 9.33468 13.3476 9.48195C13.3154 9.69593 13.3025 9.91186 13.309 10.1277C13.3237 10.4779 13.2957 10.8285 13.2254 11.1734C13.1791 11.3543 13.074 11.5193 12.9233 11.6477C12.7354 11.784 12.5159 11.8816 12.2804 11.9334C11.9846 11.9881 11.6824 12.0112 11.3804 12.002H11.1426V11.4305C11.3353 11.4196 11.5205 11.36 11.6765 11.2588C11.8325 11.1576 11.9528 11.0189 12.0233 10.8591C12.0786 10.7539 12.1029 10.6378 12.094 10.522C12.094 10.3543 12.1069 10.0458 12.1326 9.59624C12.1417 9.38469 12.1828 9.17519 12.2547 8.97338C12.3105 8.83119 12.3955 8.69943 12.5054 8.58481C12.666 8.37037 12.856 8.17457 13.0712 8.00195" fill="white"/>
-        </svg>
-    `
-
-    static makeStruct = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
-            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
-            <path d="M12.975 6H8.025C6.90662 6 6 6.90662 6 8.025V8.475C6 9.59338 6.90662 10.5 8.025 10.5H12.975C14.0934 10.5 15 9.59338 15 8.475V8.025C15 6.90662 14.0934 6 12.975 6Z" fill="white" />
-        </svg>
-    `
-
-    static mouse = y`
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white"/>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 0C11 0.595745 13.4 3.31915 13.9143 6.6383H8.85714V0ZM7.14286 0C5 0.595745 2.6 3.31915 2.08571 6.6383H7.14286V0ZM8.85714 8.34043H7.14286H2C2 12.5957 3.02857 16 8 16C12.9714 16 14 12.5957 14 8.34043H8.85714Z" fill="white"/>
-        </svg>
-    `
-
-    static referencePin = y`
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
-        </svg>
-    `
-
-    static reject = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path stroke="red" stroke-width="2" stroke-miterlimit="10" d="M12.5 3.5L3.5 12.5" />
-            <path fill="red" d="M8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2ZM8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5Z" />
-        </svg>
-    `
-
-    static set = y`
-        <svg viewBox="2 2 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 7.99956V6.99956C1.62451 6.89501 2.23976 6.7412 2.84 6.53956C3.02865 6.44859 3.18802 6.30655 3.3 6.12956C3.44478 5.91383 3.53723 5.6673 3.57 5.40956C3.6183 5.04164 3.63836 4.67055 3.63 4.29956C3.60615 3.68664 3.64974 3.07296 3.76 2.46956C3.82982 2.152 3.99359 1.86279 4.23 1.63956C4.51974 1.39713 4.86221 1.22589 5.23 1.13956C5.68612 1.03782 6.15275 0.990826 6.62 0.999563H7V1.99956C6.69952 2.01634 6.4103 2.11967 6.16722 2.2971C5.92414 2.47453 5.73757 2.71849 5.63 2.99956C5.5431 3.18346 5.5052 3.3867 5.52 3.58956C5.52 3.86956 5.52 4.40956 5.46 5.19956C5.44584 5.56977 5.38194 5.9364 5.27 6.28956C5.18779 6.5495 5.05527 6.79074 4.88 6.99956C4.62654 7.36597 4.33121 7.70157 4 7.99956" fill="currentColor" />
-            <path d="M4 7.99951C4.33723 8.31397 4.63295 8.67019 4.88 9.05951C5.05095 9.2601 5.18319 9.49067 5.27 9.73951C5.38194 10.0927 5.44584 10.4593 5.46 10.8295C5.5 11.6228 5.52 12.1628 5.52 12.4495C5.5061 12.6523 5.54395 12.8553 5.63 13.0395C5.74563 13.3117 5.93533 13.546 6.17752 13.7157C6.41972 13.8854 6.70468 13.9837 7 13.9995V14.9995H6.62C6.15021 15.0156 5.68019 14.9753 5.22 14.8795C4.85378 14.7889 4.51224 14.6181 4.22 14.3795C3.98551 14.1548 3.8221 13.8662 3.75 13.5495C3.64077 12.946 3.59718 12.3324 3.62 11.7195C3.63014 11.3418 3.61007 10.964 3.56 10.5895C3.52723 10.3318 3.43478 10.0852 3.29 9.86951C3.17802 9.69252 3.01865 9.55048 2.83 9.45951C2.23302 9.25838 1.62113 9.10457 1 8.99951V7.99951" fill="currentColor" />
-            <path d="M12 7.99955C11.6688 7.70156 11.3735 7.36596 11.12 6.99955C10.947 6.79667 10.8146 6.56242 10.73 6.30955C10.6181 5.95638 10.5542 5.58976 10.54 5.21954C10.54 4.42954 10.48 3.88955 10.48 3.60955C10.4983 3.40004 10.4604 3.18944 10.37 2.99955C10.2624 2.71847 10.0759 2.47452 9.83278 2.29708C9.5897 2.11965 9.30048 2.01632 9 1.99955V0.999545H9.38C9.84979 0.983442 10.3198 1.02373 10.78 1.11955C11.1478 1.20587 11.4903 1.37711 11.78 1.61955C12.0164 1.84278 12.1802 2.13198 12.25 2.44955C12.3603 3.05294 12.4039 3.66662 12.38 4.27955C12.3706 4.6572 12.3907 5.03501 12.44 5.40954C12.4728 5.66728 12.5652 5.91382 12.71 6.12955C12.822 6.30653 12.9813 6.44858 13.17 6.53955C13.767 6.74067 14.3789 6.89448 15 6.99955V7.99955" fill="currentColor" />
-            <path d="M15 7.99951V8.99951C14.3755 9.10406 13.7602 9.25787 13.16 9.45951C12.9713 9.55048 12.812 9.69252 12.7 9.86951C12.5552 10.0852 12.4628 10.3318 12.43 10.5895C12.3799 10.964 12.3599 11.3418 12.37 11.7195C12.3928 12.3324 12.3492 12.946 12.24 13.5495C12.1679 13.8662 12.0045 14.1548 11.77 14.3795C11.4778 14.6181 11.1362 14.7889 10.77 14.8795C10.3098 14.9753 9.83979 15.0156 9.37 14.9995H9V13.9995C9.2998 13.9803 9.58791 13.876 9.83056 13.6989C10.0732 13.5218 10.2603 13.2792 10.37 12.9995C10.456 12.8153 10.4939 12.6123 10.48 12.4095C10.48 12.1162 10.5 11.5762 10.54 10.7895C10.5542 10.4193 10.6181 10.0527 10.73 9.69951C10.8168 9.45067 10.9491 9.2201 11.12 9.01951C11.3698 8.64424 11.6654 8.30159 12 7.99951" fill="currentColor" />
-        </svg>
-    `
-
-    static select = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="2" width="6" height="2" fill="white" />
-            <rect x="10" y="7" width="3" height="2" fill="white" />
-            <path d="M12 5L15 8L12 11V5Z" fill="white" />
-            <rect x="1" y="7" width="8" height="2" fill="white" />
-            <rect x="5" y="4" width="2" height="9" fill="white" />
-            <rect x="1" y="12" width="6" height="2" fill="white" />
-        </svg>
-    `
-
-    static sequence = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="2" width="5" height="2" fill="white" />
-            <rect y="7" width="8" height="2" fill="white" />
-            <rect x="3" y="4" width="2" height="9" fill="white" />
-            <rect x="3" y="12" width="5" height="2" fill="white" />
-            <rect x="10" y="2" width="6" height="2" fill="white" />
-            <rect x="10" y="7" width="4" height="2" fill="white" />
-            <rect x="10" y="12" width="2" height="2" fill="white" />
-        </svg>
-    `
+    /**
+     * @template {AnyValue} T
+     * @param {new () => T} entity
+     * @returns {ISerializer<T>}
+     */
+    static getSerializer(entity) {
+        // @ts-expect-error
+        return SerializerFactory.#serializers.get(entity)
+    }
 }
 
 /** @typedef {import("./IEntity").AttributeDeclarations} AttributeDeclarations */
@@ -736,365 +830,6 @@ class Utility {
     /** @param {String} value */
     static warn(value) {
         console.warn("UEBlueprint: " + value);
-    }
-}
-
-/**
- * @typedef {import("./element/NodeElement").default} NodeElement
- * @typedef {import("./element/PinElement").default} PinElement
- * @typedef {import("lit").CSSResult} CSSResult
- */
-
-class Configuration {
-    static nodeColors = {
-        blue: i$3`84, 122, 156`,
-        gray: i$3`150,150,150`,
-        green: i$3`95, 129, 90`,
-        red: i$3`151, 33, 32`,
-        turquoise: i$3`46, 104, 106`,
-    }
-    static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
-    static colorDragEventName = "ueb-color-drag"
-    static colorPickEventName = "ueb-color-pick"
-    static colorWindowEventName = "ueb-color-window"
-    static defaultCommentHeight = 96
-    static defaultCommentWidth = 400
-    static deleteNodesKeyboardKey = "Delete"
-    static distanceThreshold = 5 // px
-    static dragEventName = "ueb-drag"
-    static dragGeneralEventName = "ueb-drag-general"
-    static editTextEventName = {
-        begin: "ueb-edit-text-begin",
-        end: "ueb-edit-text-end",
-    }
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
-    static expandGridSize = 400
-    static focusEventName = {
-        begin: "blueprint-focus",
-        end: "blueprint-unfocus",
-    }
-    static fontSize = i$3`12.5px`
-    static gridAxisLineColor = i$3`black`
-    static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
-    static gridLineColor = i$3`#353535`
-    static gridLineWidth = 1 // px
-    static gridSet = 8
-    static gridSetLineColor = i$3`#161616`
-    static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
-    static gridSize = 16 // px
-    static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
-    static keysSeparator = "+"
-    static linkCurveHeight = 15 // px
-    static linkCurveWidth = 80 // px
-    static linkMinWidth = 100 // px
-    /**
-     * @param {Number} start
-     * @param {Number} c1
-     * @param {Number} c2
-     */
-    static linkRightSVGPath = (start, c1, c2) => {
-        let end = 100 - start;
-        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
-    }
-    static maxZoom = 7
-    static minZoom = -12
-    static mouseWheelFactor = 0.2
-    static nodeDragGeneralEventName = "ueb-node-drag-general"
-    static nodeDragEventName = "ueb-node-drag"
-    static nodeName = (name, counter) => `${name}_${counter}`
-    static nodeRadius = 8 // px
-    static nodeReflowEventName = "ueb-node-reflow"
-    static nodeType = {
-        callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
-        comment: "/Script/UnrealEd.EdGraphNode_Comment",
-        commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
-        customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
-        doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
-        dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
-        enum: "/Script/CoreUObject.Enum",
-        event: "/Script/BlueprintGraph.K2Node_Event",
-        executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
-        forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
-        forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",
-        forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
-        forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
-        forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
-        functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
-        getInputAxisKeyValue: "/Script/BlueprintGraph.K2Node_GetInputAxisKeyValue",
-        ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
-        inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
-        inputDebugKey: "/Script/InputBlueprintNodes.K2Node_InputDebugKey",
-        inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
-        knot: "/Script/BlueprintGraph.K2Node_Knot",
-        macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
-        makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
-        makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
-        makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
-        pawn: "/Script/Engine.Pawn",
-        reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
-        select: "/Script/BlueprintGraph.K2Node_Select",
-        userDefinedEnum: "/Script/Engine.UserDefinedEnum",
-        variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
-        variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
-        whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
-    }
-    static pinColor = {
-        "/Script/CoreUObject.Rotator": i$3`157, 177, 251`,
-        "/Script/CoreUObject.Transform": i$3`227, 103, 0`,
-        "/Script/CoreUObject.Vector": i$3`251, 198, 34`,
-        "bool": i$3`147, 0, 0`,
-        "byte": i$3`0, 109, 99`,
-        "class": i$3`88, 0, 186`,
-        "default": i$3`255, 255, 255`,
-        "delegate": i$3`255, 56, 56`,
-        "enum": i$3`0, 109, 99`,
-        "exec": i$3`240, 240, 240`,
-        "int": i$3`31, 224, 172`,
-        "int64": i$3`169, 223, 172`,
-        "interface": i$3`238, 252, 168`,
-        "name": i$3`201, 128, 251`,
-        "object": i$3`0, 167, 240`,
-        "real": i$3`54, 208, 0`,
-        "string": i$3`251, 0, 209`,
-        "struct": i$3`0, 88, 201`,
-        "text": i$3`226, 121, 167`,
-        "wildcard": i$3`128, 120, 120`,
-    }
-    static removeEventName = "ueb-element-delete"
-    static scale = {
-        [-12]: 0.133333,
-        [-11]: 0.166666,
-        [-10]: 0.2,
-        [-9]: 0.233333,
-        [-8]: 0.266666,
-        [-7]: 0.3,
-        [-6]: 0.333333,
-        [-5]: 0.375,
-        [-4]: 0.5,
-        [-3]: 0.675,
-        [-2]: 0.75,
-        [-1]: 0.875,
-        0: 1,
-        1: 1.25,
-        2: 1.375,
-        3: 1.5,
-        4: 1.675,
-        5: 1.75,
-        6: 1.875,
-        7: 2,
-    }
-    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
-    static smoothScrollTime = 1000 // ms
-    static trackingMouseEventName = {
-        begin: "ueb-tracking-mouse-begin",
-        end: "ueb-tracking-mouse-end",
-    }
-    static windowApplyEventName = "ueb-window-apply"
-    static windowCancelEventName = "ueb-window-cancel"
-    static windowCloseEventName = "ueb-window-close"
-    static ModifierKeys = [
-        "Ctrl",
-        "Shift",
-        "Alt",
-        "Meta",
-    ]
-    static Keys = {
-        /* UE name: JS name */
-        "Backspace": "Backspace",
-        "Tab": "Tab",
-        "LeftControl": "ControlLeft",
-        "RightControl": "ControlRight",
-        "LeftShift": "ShiftLeft",
-        "RightShift": "ShiftRight",
-        "LeftAlt": "AltLeft",
-        "RightAlt": "AltRight",
-        "Enter": "Enter",
-        "Pause": "Pause",
-        "CapsLock": "CapsLock",
-        "Escape": "Escape",
-        "Space": "Space",
-        "PageUp": "PageUp",
-        "PageDown": "PageDown",
-        "End": "End",
-        "Home": "Home",
-        "ArrowLeft": "Left",
-        "ArrowUp": "Up",
-        "ArrowRight": "Right",
-        "ArrowDown": "Down",
-        "PrintScreen": "PrintScreen",
-        "Insert": "Insert",
-        "Delete": "Delete",
-        "Zero": "Digit0",
-        "One": "Digit1",
-        "Two": "Digit2",
-        "Three": "Digit3",
-        "Four": "Digit4",
-        "Five": "Digit5",
-        "Six": "Digit6",
-        "Seven": "Digit7",
-        "Eight": "Digit8",
-        "Nine": "Digit9",
-        "A": "KeyA",
-        "B": "KeyB",
-        "C": "KeyC",
-        "D": "KeyD",
-        "E": "KeyE",
-        "F": "KeyF",
-        "G": "KeyG",
-        "H": "KeyH",
-        "I": "KeyI",
-        "K": "KeyK",
-        "L": "KeyL",
-        "M": "KeyM",
-        "N": "KeyN",
-        "O": "KeyO",
-        "P": "KeyP",
-        "Q": "KeyQ",
-        "R": "KeyR",
-        "S": "KeyS",
-        "T": "KeyT",
-        "U": "KeyU",
-        "V": "KeyV",
-        "W": "KeyW",
-        "X": "KeyX",
-        "Y": "KeyY",
-        "Z": "KeyZ",
-        "NumPadZero": "Numpad0",
-        "NumPadOne": "Numpad1",
-        "NumPadTwo": "Numpad2",
-        "NumPadThree": "Numpad3",
-        "NumPadFour": "Numpad4",
-        "NumPadFive": "Numpad5",
-        "NumPadSix": "Numpad6",
-        "NumPadSeven": "Numpad7",
-        "NumPadEight": "Numpad8",
-        "NumPadNine": "Numpad9",
-        "Multiply": "NumpadMultiply",
-        "Add": "NumpadAdd",
-        "Subtract": "NumpadSubtract",
-        "Decimal": "NumpadDecimal",
-        "Divide": "NumpadDivide",
-        "F1": "F1",
-        "F2": "F2",
-        "F3": "F3",
-        "F4": "F4",
-        "F5": "F5",
-        "F6": "F6",
-        "F7": "F7",
-        "F8": "F8",
-        "F9": "F9",
-        "F10": "F10",
-        "F11": "F11",
-        "F12": "F12",
-        "NumLock": "NumLock",
-        "ScrollLock": "ScrollLock",
-    }
-}
-
-/** @typedef {import("../Blueprint").default} Blueprint */
-
-/** @template {HTMLElement} T */
-class IInput {
-
-    /** @type {T} */
-    #target
-    get target() {
-        return this.#target
-    }
-
-    /** @type {Blueprint} */
-    #blueprint
-    get blueprint() {
-        return this.#blueprint
-    }
-
-    /** @type {Object} */
-    options
-
-
-    listenHandler = () => this.listenEvents()
-    unlistenHandler = () => this.unlistenEvents()
-
-    /**
-     * @param {T} target
-     * @param {Blueprint} blueprint
-     * @param {Object} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options.consumeEvent ??= false;
-        options.listenOnFocus ??= false;
-        options.unlistenOnTextEdit ??= false;
-        this.#target = target;
-        this.#blueprint = blueprint;
-        this.options = options;
-    }
-
-    setup() {
-        if (this.options.listenOnFocus) {
-            this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler);
-            this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler);
-        }
-        if (this.options.unlistenOnTextEdit) {
-            this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
-            this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler);
-        }
-        if (this.blueprint.focused) {
-            this.listenEvents();
-        }
-    }
-
-    cleanup() {
-        this.unlistenEvents();
-        this.blueprint.removeEventListener(Configuration.focusEventName.begin, this.listenHandler);
-        this.blueprint.removeEventListener(Configuration.focusEventName.end, this.unlistenHandler);
-        this.blueprint.removeEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
-        this.blueprint.removeEventListener(Configuration.editTextEventName.end, this.listenHandler);
-    }
-
-    /* Subclasses will probabily override the following methods */
-    listenEvents() {
-    }
-
-    unlistenEvents() {
-    }
-}
-
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- */
-
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("./ISerializer").default<T>} ISerializer
- */
-
-class SerializerFactory {
-
-    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
-    static #serializers = new Map()
-
-    /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entity
-     * @param {ISerializer<T>} object
-     */
-    static registerSerializer(entity, object) {
-        SerializerFactory.#serializers.set(entity, object);
-    }
-
-    /**
-     * @template {AnyValue} T
-     * @param {new () => T} entity
-     * @returns {ISerializer<T>}
-     */
-    static getSerializer(entity) {
-        // @ts-expect-error
-        return SerializerFactory.#serializers.get(entity)
     }
 }
 
@@ -2129,7 +1864,6 @@ class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
 /**
- * @typedef {import("../element/PinElement").default} PinElement
  * @typedef {import("./IEntity").AnyValue} AnyValue
  * @typedef {import("lit").CSSResult} CSSResult
  */
@@ -2395,6 +2129,271 @@ class PinEntity extends IEntity {
             ?? Configuration.pinColor[this.PinType.PinCategory]
             ?? Configuration.pinColor["default"]
     }
+}
+
+class SVGIcon {
+
+    static array = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 0H0V4H4V0Z" fill="currentColor" />
+            <path d="M10 0H6V4H10V0Z" fill="currentColor" />
+            <path d="M16 0H12V4H16V0Z" fill="currentColor" />
+            <path d="M4 6H0V10H4V6Z" fill="currentColor" />
+            <path class="ueb-pin-tofill" d="M10 6H6V10H10V6Z" fill="black" />
+            <path d="M16 6H12V10H16V6Z" fill="currentColor" />
+            <path d="M4 12H0V16H4V12Z" fill="currentColor" />
+            <path d="M10 12H6V16H10V12Z" fill="currentColor" />
+            <path d="M16 12H12V16H16V12Z" fill="currentColor" />
+        </svg>
+    `
+
+    static branchNode = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2H6C5.44772 2 5 2.44772 5 3V13C5 13.5523 5.44772 14 6 14H11V12H7V4H11V2Z" fill="white" />
+            <rect x="1" y="7" width="4" height="2" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 6L15 3L11 0V6Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 16L15 13L11 10V16Z" fill="white" />
+        </svg>
+    `
+
+    static breakStruct = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14L10 12L11 11L13 13L14 12L14 15L11 15L12 14Z" fill="white" />
+            <path d="M13 3L11 5L10 4L12 2L11 1L14 1L14 4L13 3Z" fill="white" />
+            <path d="M7.975 6H3.025C1.90662 6 1 6.90662 1 8.025V8.475C1 9.59338 1.90662 10.5 3.025 10.5H7.975C9.09338 10.5 10 9.59338 10 8.475V8.025C10 6.90662 9.09338 6 7.975 6Z" fill="white" />
+        </svg>
+    `
+
+    static cast = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 12L16 7.5L12 3V12Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 11L4 7.5L0 4V11Z" fill="white" />
+            <rect opacity="0.5" x="5" y="6" width="1" height="3" fill="white" />
+            <rect opacity="0.5" x="7" y="6" width="1" height="3" fill="white" />
+            <rect opacity="0.5" x="9" y="6" width="1" height="3" fill="white" />
+            <rect x="9" y="6" width="3" height="3" fill="white" />
+        </svg>
+    `
+
+    static close = y`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
+            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
+        </svg>
+    `
+
+    static correct = y`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#2da800" d="M 2 16 L 14 30 L 30 2 L 13 22 Z" />
+        </svg>
+    `
+
+    static delegate = y`
+        <svg viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
+            <rect class="ueb-pin-tofill" fill="black" width="28" height="28" rx="4" stroke="currentColor" stroke-width="5" />
+        </svg>
+    `
+
+    static doN = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white" />
+            <path d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" fill="white" />
+        </svg>
+    `
+
+    static event = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.929031" y="8" width="10" height="10" rx="0.5" transform="rotate(-45 0.929031 8)" stroke="white" />
+            <path d="M5 4.00024L8 1.00024V6.00024H3L5 4.00024Z" fill="white" />
+            <path d="M6 13.0002L3 10.0002L8 10.0002L8 15.0002L6 13.0002Z" fill="white" />
+            <path d="M4.53551 6.82854L4.53551 11.0712L0.999977 7.53564L4.53551 4.00011L4.53551 6.82854Z" fill="white" />
+        </svg>
+    `
+
+    static execPin = y`
+        <svg viewBox="-2 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
+                d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
+        </svg>
+    `
+
+    static expandIcon = y`
+        <svg fill="currentColor" viewBox="4 4 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
+        </svg>
+    `
+
+    static forEachLoop = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M4 2C1.8 2 0 3.8 0 6V9C0 11.2 2 13 4 13H10V11H5C3.2 11 2 9.7 2 8V7C2 5.63882 2.76933 4.53408 4 4.14779V2ZM12 4C13.8 4 14 5.3 14 7V8C14 8.8 13.7 9.5 13.3 10L15.2 11.4C15.7 10.7 16 9.9 16 9V6C16 3.8 14.2 2 12 2V4Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16L13 12L8 8V16Z" fill="white" />
+            <rect x="5" y="1" width="1" height="4" fill="white" />
+            <rect x="7" y="1" width="1" height="4" fill="white" />
+            <rect x="9" y="1" width="1" height="4" fill="white" />
+            <rect x="11" y="2" width="1" height="2" fill="white" />
+        </svg>
+    `
+
+    static functionSymbol = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M9.72002 6.0699C9.88111 4.96527 10.299 3.9138 10.94 2.99991C10.94 2.99991 10.94 3.05991 10.94 3.08991C10.94 3.36573 11.0496 3.63026 11.2446 3.8253C11.4397 4.02033 11.7042 4.12991 11.98 4.12991C12.2558 4.12991 12.5204 4.02033 12.7154 3.8253C12.9105 3.63026 13.02 3.36573 13.02 3.08991C13.0204 2.90249 12.9681 2.71873 12.8691 2.5596C12.7701 2.40047 12.6283 2.27237 12.46 2.18991H12.37C11.8725 2.00961 11.3275 2.00961 10.83 2.18991C9.21002 2.63991 8.58002 4.99991 8.58002 4.99991L8.40002 5.1199H5.40002L5.15002 6.1199H8.27002L7.27002 11.4199C7.11348 12.0161 6.79062 12.5555 6.33911 12.9751C5.8876 13.3948 5.32607 13.6773 4.72002 13.7899C4.78153 13.655 4.81227 13.5081 4.81002 13.3599C4.81002 13.0735 4.69624 12.7988 4.4937 12.5962C4.29116 12.3937 4.01646 12.2799 3.73002 12.2799C3.44359 12.2799 3.16889 12.3937 2.96635 12.5962C2.76381 12.7988 2.65002 13.0735 2.65002 13.3599C2.66114 13.605 2.75692 13.8386 2.92104 14.021C3.08517 14.2033 3.30746 14.3231 3.55002 14.3599C7.91002 15.1999 8.55002 11.4499 8.55002 11.4499L9.55002 7.05991H12.55L12.8 6.05991H9.64002L9.72002 6.0699Z"
+                fill="currentColor"
+            />
+        </svg>
+    `
+
+    static genericPin = y`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <circle class="ueb-pin-tofill" cx="16" cy="16" r="13" fill="black" stroke="currentColor" stroke-width="5" />
+            <path fill="currentColor" d="M 34 6 L 34 26 L 42 16 Z" />
+        </svg>
+    `
+
+    static keyboard = y `
+        <svg viewBox="0 -3 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path fill="white" d="M 1 10 H 15 c 0.2652 0 0.5195 -0.1054 0.707 -0.293 c 0.1875 -0.1875 0.293 -0.4418 0.293 -0.707 v -8 c 0 -0.2652 -0.1054 -0.5195 -0.293 -0.707 c -0.1875 -0.1875 -0.4418 -0.293 -0.707 -0.293 H 1 c -0.2652 0 -0.5195 0.1054 -0.707 0.293 c -0.1875 0.1875 -0.293 0.4418 -0.293 0.707 V 9 c 0 0.2652 0.1054 0.5195 0.293 0.707 c 0.1875 0.1875 0.4418 0.293 0.707 0.293 Z M 14 6 h -3 v -2 h 3 v 2 Z M 13 1 h 2 v 2 h -2 v -2 Z M 10 1 h 2 v 2 h -2 v -2 Z M 10 6 h -2 v -2 h 2 v 2 Z M 7 1 h 2 v 2 h -2 v -2 Z M 7 6 h -2 v -2 h 2 v 2 Z M 4 1 h 2 v 2 h -2 v -2 Z M 4 6 h -2 v -2 h 2 v 2 Z M 1 1 h 2 v 2 h -2 v -2 Z M 1 7 h 2 v 2 h -2 v -2 M 4 7 h 8 v 2 h -8 v -2 M 13 7 h 2 v 2 h -2 v -2 Z" />
+        </svg>
+    `
+
+    static loop = y`
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <style>
+                    .cls-1 {
+                        fill: #fff;
+                        fill-rule: evenodd;
+                    }
+                    .cls-2 {
+                        fill: none;
+                    }
+                </style>
+            </defs>
+            <g id="Layer_2" data-name="Layer 2">
+                <g id="Layer_4" data-name="Layer 4">
+                    <path class="cls-1" d="M16,2H4A4,4,0,0,0,0,6v4a4.14,4.14,0,0,0,4,4H9v5l8-6L9,7v5H4.5A2.36,2.36,0,0,1,2,9.5v-3A2.36,2.36,0,0,1,4.5,4h11A2.36,2.36,0,0,1,18,6.5V9a3,3,0,0,1-.69,2l1.88,1.41A4,4,0,0,0,20,10V6A4,4,0,0,0,16,2Z" />
+                    <rect class="cls-2" width="20" height="20" />
+                </g>
+            </g>
+        </svg>
+    `
+
+    static macro = y`
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 2.92L10 12.29L14.55 2.61C14.662 2.4259 14.8189 2.27332 15.0061 2.16661C15.1933 2.05989 15.4045 2.00256 15.62 2H19L18.66 2.89C18.66 2.89 17.17 3.04 17.11 3.63C17.05 4.22 16 15.34 15.93 16.13C15.86 16.92 17.33 17.13 17.33 17.13L17.17 17.99H13.84C13.7241 17.9764 13.612 17.9399 13.5103 17.8826C13.4086 17.8253 13.3194 17.7484 13.2477 17.6562C13.176 17.5641 13.1234 17.4586 13.0929 17.346C13.0624 17.2333 13.0546 17.1157 13.07 17L14.43 5.52L10 14.57C9.8 15.03 9.07 15.72 8.63 15.71H7.75L6.05 4.86L3.54 17.39C3.51941 17.5514 3.44327 17.7005 3.32465 17.8118C3.20603 17.9232 3.05235 17.9897 2.89 18H1L1.11 17.09C1.11 17.09 2.21 17.09 2.3 16.69C2.39 16.29 5.3 3.76 5.41 3.32C5.52 2.88 4.19 2.81 4.19 2.81L4.46 2H6.62C7.09 2 7.92 2.38 8 2.92Z" fill="white" />
+        </svg>
+    `
+
+    static map = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 0H0V4H4V0Z" fill="currentColor"/>
+            <path d="M4 6H0V10H4V6Z" fill="currentColor"/>
+            <path d="M4 12H0V16H4V12Z" fill="currentColor"/>
+            <path d="M16 0H6V4H16V0Z" fill="white"/>
+            <path d="M16 6H6V10H16V6Z" fill="white"/>
+            <path d="M16 12H6V16H16V12Z" fill="white"/>
+        </svg>
+    `
+
+    static makeArray = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 4H13V6H15V4Z" fill="white" />
+            <path d="M15 7H13V9H15V7Z" fill="white" />
+            <path d="M15 10H13V12H15V10Z" fill="white" />
+            <path d="M12 4H10V6H12V4Z" fill="white" />
+            <path d="M12 7H10V9H12V7Z" fill="white" />
+            <path d="M12 10H10V12H12V10Z" fill="white" />
+            <path d="M9 4H7V6H9V4Z" fill="white" />
+            <path d="M9 7H7V9H9V7Z" fill="white" />
+            <path d="M9 10H7V12H9V10Z" fill="white" />
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
+        </svg>
+    `
+
+    static makeMap = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 4H10V6H15V4Z" fill="white" />
+            <path d="M15 7H10V9H15V7Z" fill="white" />
+            <path d="M15 10H10V12H15V10Z" fill="white" />
+            <path d="M9 4H7V6H9V4Z" fill="white" />
+            <path d="M9 7H7V9H9V7Z" fill="white" />
+            <path d="M9 10H7V12H9V10Z" fill="white" />
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
+        </svg>
+    `
+
+    static makeSet = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
+            <path d="M6 8.00205V7.43062C6.40147 7.37088 6.79699 7.28299 7.18286 7.16777C7.30414 7.11578 7.40659 7.03462 7.47858 6.93348C7.57165 6.81021 7.63108 6.66933 7.65215 6.52205C7.6832 6.31181 7.69609 6.09976 7.69072 5.88777C7.67539 5.53753 7.70341 5.18685 7.77429 4.84205C7.81918 4.66059 7.92446 4.49533 8.07643 4.36777C8.26269 4.22923 8.48285 4.13138 8.71929 4.08205C9.01252 4.02392 9.31249 3.99706 9.61287 4.00205H9.85715V4.57348C9.66398 4.58307 9.47806 4.64211 9.32179 4.7435C9.16552 4.84489 9.04559 4.9843 8.97644 5.14491C8.92057 5.24999 8.89621 5.36613 8.90572 5.48205C8.90572 5.64205 8.90572 5.95062 8.86715 6.40205C8.85805 6.6136 8.81697 6.8231 8.74501 7.02491C8.69216 7.17345 8.60697 7.3113 8.49429 7.43062C8.33135 7.64 8.1415 7.83177 7.92858 8.00205" fill="white"/>
+            <path d="M7.92858 8.00195C8.14537 8.18165 8.33547 8.3852 8.49429 8.60767C8.60419 8.72229 8.6892 8.85404 8.74501 8.99624C8.81697 9.19805 8.85805 9.40755 8.86715 9.6191C8.89286 10.0724 8.90572 10.381 8.90572 10.5448C8.89679 10.6607 8.92112 10.7767 8.97644 10.882C9.05077 11.0375 9.17272 11.1714 9.32842 11.2683C9.48411 11.3653 9.66731 11.4215 9.85715 11.4305V12.002H9.61287C9.31086 12.0112 9.0087 11.9881 8.71286 11.9334C8.47744 11.8816 8.25788 11.784 8.07001 11.6477C7.91926 11.5193 7.81421 11.3543 7.76786 11.1734C7.69764 10.8285 7.66962 10.4779 7.68429 10.1277C7.69081 9.91186 7.67791 9.69593 7.64572 9.48195C7.62465 9.33468 7.56522 9.1938 7.47215 9.07052C7.40016 8.96939 7.29771 8.88822 7.17643 8.83624C6.79266 8.72131 6.3993 8.63342 6 8.57338V8.00195" fill="white"/>
+            <path d="M13.0712 8.00197C12.8582 7.83169 12.6684 7.63992 12.5054 7.43054C12.3942 7.31461 12.3091 7.18076 12.2547 7.03626C12.1828 6.83445 12.1417 6.62495 12.1326 6.4134C12.1326 5.96197 12.094 5.6534 12.094 5.4934C12.1058 5.37369 12.0814 5.25334 12.0233 5.14483C11.9541 4.98422 11.8342 4.84481 11.6779 4.74342C11.5217 4.64203 11.3357 4.58299 11.1426 4.5734V4.00197H11.3869C11.6889 3.99277 11.991 4.01579 12.2869 4.07054C12.5233 4.11987 12.7435 4.21772 12.9297 4.35626C13.0817 4.48382 13.187 4.64908 13.2319 4.83054C13.3027 5.17534 13.3308 5.52602 13.3154 5.87626C13.3094 6.09206 13.3223 6.30795 13.354 6.52197C13.3751 6.66925 13.4345 6.81013 13.5276 6.9334C13.5996 7.03454 13.702 7.1157 13.8233 7.16769C14.2071 7.28262 14.6004 7.37051 14.9997 7.43054V8.00197" fill="white"/>
+            <path d="M14.9997 8.00195V8.57338C14.5983 8.63312 14.2027 8.72102 13.8169 8.83624C13.6956 8.88822 13.5931 8.96939 13.5212 9.07052C13.4281 9.1938 13.3686 9.33468 13.3476 9.48195C13.3154 9.69593 13.3025 9.91186 13.309 10.1277C13.3237 10.4779 13.2957 10.8285 13.2254 11.1734C13.1791 11.3543 13.074 11.5193 12.9233 11.6477C12.7354 11.784 12.5159 11.8816 12.2804 11.9334C11.9846 11.9881 11.6824 12.0112 11.3804 12.002H11.1426V11.4305C11.3353 11.4196 11.5205 11.36 11.6765 11.2588C11.8325 11.1576 11.9528 11.0189 12.0233 10.8591C12.0786 10.7539 12.1029 10.6378 12.094 10.522C12.094 10.3543 12.1069 10.0458 12.1326 9.59624C12.1417 9.38469 12.1828 9.17519 12.2547 8.97338C12.3105 8.83119 12.3955 8.69943 12.5054 8.58481C12.666 8.37037 12.856 8.17457 13.0712 8.00195" fill="white"/>
+        </svg>
+    `
+
+    static makeStruct = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
+            <path d="M12.975 6H8.025C6.90662 6 6 6.90662 6 8.025V8.475C6 9.59338 6.90662 10.5 8.025 10.5H12.975C14.0934 10.5 15 9.59338 15 8.475V8.025C15 6.90662 14.0934 6 12.975 6Z" fill="white" />
+        </svg>
+    `
+
+    static mouse = y`
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 0C11 0.595745 13.4 3.31915 13.9143 6.6383H8.85714V0ZM7.14286 0C5 0.595745 2.6 3.31915 2.08571 6.6383H7.14286V0ZM8.85714 8.34043H7.14286H2C2 12.5957 3.02857 16 8 16C12.9714 16 14 12.5957 14 8.34043H8.85714Z" fill="white"/>
+        </svg>
+    `
+
+    static referencePin = y`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
+        </svg>
+    `
+
+    static reject = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="red" stroke-width="2" stroke-miterlimit="10" d="M12.5 3.5L3.5 12.5" />
+            <path fill="red" d="M8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2ZM8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5Z" />
+        </svg>
+    `
+
+    static set = y`
+        <svg viewBox="2 2 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 7.99956V6.99956C1.62451 6.89501 2.23976 6.7412 2.84 6.53956C3.02865 6.44859 3.18802 6.30655 3.3 6.12956C3.44478 5.91383 3.53723 5.6673 3.57 5.40956C3.6183 5.04164 3.63836 4.67055 3.63 4.29956C3.60615 3.68664 3.64974 3.07296 3.76 2.46956C3.82982 2.152 3.99359 1.86279 4.23 1.63956C4.51974 1.39713 4.86221 1.22589 5.23 1.13956C5.68612 1.03782 6.15275 0.990826 6.62 0.999563H7V1.99956C6.69952 2.01634 6.4103 2.11967 6.16722 2.2971C5.92414 2.47453 5.73757 2.71849 5.63 2.99956C5.5431 3.18346 5.5052 3.3867 5.52 3.58956C5.52 3.86956 5.52 4.40956 5.46 5.19956C5.44584 5.56977 5.38194 5.9364 5.27 6.28956C5.18779 6.5495 5.05527 6.79074 4.88 6.99956C4.62654 7.36597 4.33121 7.70157 4 7.99956" fill="currentColor" />
+            <path d="M4 7.99951C4.33723 8.31397 4.63295 8.67019 4.88 9.05951C5.05095 9.2601 5.18319 9.49067 5.27 9.73951C5.38194 10.0927 5.44584 10.4593 5.46 10.8295C5.5 11.6228 5.52 12.1628 5.52 12.4495C5.5061 12.6523 5.54395 12.8553 5.63 13.0395C5.74563 13.3117 5.93533 13.546 6.17752 13.7157C6.41972 13.8854 6.70468 13.9837 7 13.9995V14.9995H6.62C6.15021 15.0156 5.68019 14.9753 5.22 14.8795C4.85378 14.7889 4.51224 14.6181 4.22 14.3795C3.98551 14.1548 3.8221 13.8662 3.75 13.5495C3.64077 12.946 3.59718 12.3324 3.62 11.7195C3.63014 11.3418 3.61007 10.964 3.56 10.5895C3.52723 10.3318 3.43478 10.0852 3.29 9.86951C3.17802 9.69252 3.01865 9.55048 2.83 9.45951C2.23302 9.25838 1.62113 9.10457 1 8.99951V7.99951" fill="currentColor" />
+            <path d="M12 7.99955C11.6688 7.70156 11.3735 7.36596 11.12 6.99955C10.947 6.79667 10.8146 6.56242 10.73 6.30955C10.6181 5.95638 10.5542 5.58976 10.54 5.21954C10.54 4.42954 10.48 3.88955 10.48 3.60955C10.4983 3.40004 10.4604 3.18944 10.37 2.99955C10.2624 2.71847 10.0759 2.47452 9.83278 2.29708C9.5897 2.11965 9.30048 2.01632 9 1.99955V0.999545H9.38C9.84979 0.983442 10.3198 1.02373 10.78 1.11955C11.1478 1.20587 11.4903 1.37711 11.78 1.61955C12.0164 1.84278 12.1802 2.13198 12.25 2.44955C12.3603 3.05294 12.4039 3.66662 12.38 4.27955C12.3706 4.6572 12.3907 5.03501 12.44 5.40954C12.4728 5.66728 12.5652 5.91382 12.71 6.12955C12.822 6.30653 12.9813 6.44858 13.17 6.53955C13.767 6.74067 14.3789 6.89448 15 6.99955V7.99955" fill="currentColor" />
+            <path d="M15 7.99951V8.99951C14.3755 9.10406 13.7602 9.25787 13.16 9.45951C12.9713 9.55048 12.812 9.69252 12.7 9.86951C12.5552 10.0852 12.4628 10.3318 12.43 10.5895C12.3799 10.964 12.3599 11.3418 12.37 11.7195C12.3928 12.3324 12.3492 12.946 12.24 13.5495C12.1679 13.8662 12.0045 14.1548 11.77 14.3795C11.4778 14.6181 11.1362 14.7889 10.77 14.8795C10.3098 14.9753 9.83979 15.0156 9.37 14.9995H9V13.9995C9.2998 13.9803 9.58791 13.876 9.83056 13.6989C10.0732 13.5218 10.2603 13.2792 10.37 12.9995C10.456 12.8153 10.4939 12.6123 10.48 12.4095C10.48 12.1162 10.5 11.5762 10.54 10.7895C10.5542 10.4193 10.6181 10.0527 10.73 9.69951C10.8168 9.45067 10.9491 9.2201 11.12 9.01951C11.3698 8.64424 11.6654 8.30159 12 7.99951" fill="currentColor" />
+        </svg>
+    `
+
+    static select = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="2" width="6" height="2" fill="white" />
+            <rect x="10" y="7" width="3" height="2" fill="white" />
+            <path d="M12 5L15 8L12 11V5Z" fill="white" />
+            <rect x="1" y="7" width="8" height="2" fill="white" />
+            <rect x="5" y="4" width="2" height="9" fill="white" />
+            <rect x="1" y="12" width="6" height="2" fill="white" />
+        </svg>
+    `
+
+    static sequence = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="2" width="5" height="2" fill="white" />
+            <rect y="7" width="8" height="2" fill="white" />
+            <rect x="3" y="4" width="2" height="9" fill="white" />
+            <rect x="3" y="12" width="5" height="2" fill="white" />
+            <rect x="10" y="2" width="6" height="2" fill="white" />
+            <rect x="10" y="7" width="4" height="2" fill="white" />
+            <rect x="10" y="12" width="2" height="2" fill="white" />
+        </svg>
+    `
 }
 
 class VariableReferenceEntity extends IEntity {
@@ -2857,6 +2856,8 @@ class ObjectEntity extends IEntity {
             let title = ObjectEntity.keyName(keyName) ?? Utility.formatStringName(keyName);
             if (this.getClass() === Configuration.nodeType.inputDebugKey) {
                 title = "Debug Key " + title;
+            } else if (this.getClass() === Configuration.nodeType.getInputAxisKeyValue) {
+                title = "Get " + title;
             }
             return title
         }

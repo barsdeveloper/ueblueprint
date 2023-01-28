@@ -444,6 +444,8 @@ export default class ObjectEntity extends IEntity {
             let title = ObjectEntity.keyName(keyName) ?? Utility.formatStringName(keyName)
             if (this.getClass() === Configuration.nodeType.inputDebugKey) {
                 title = "Debug Key " + title
+            } else if (this.getClass() === Configuration.nodeType.getInputAxisKeyValue) {
+                title = "Get " + title
             }
             return title
         }
