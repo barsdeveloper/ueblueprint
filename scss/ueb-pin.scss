@@ -198,3 +198,7 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
         background: #575757;
     }
 }
+
+ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-input-content:hover {
+    cursor: text;
+}

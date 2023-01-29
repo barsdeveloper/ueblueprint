@@ -190,15 +190,31 @@ export default class ObjectEntity extends IEntity {
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
     static #keyName = {
         "A_AccentGrave": "à",
-        "E_AccentGrave": "è",
-        "E_AccentAigu": "é",
         "Add": "Num +",
+        "C_Cedille": "ç",
         "Decimal": "Num .",
         "Divide": "Num /",
+        "E_AccentAigu": "é",
+        "E_AccentGrave": "è",
+        "F1": "F1", // Otherwise F and number will be separated
+        "F10": "F10",
+        "F11": "F11",
+        "F12": "F12",
+        "F2": "F2",
+        "F3": "F3",
+        "F4": "F4",
+        "F5": "F5",
+        "F6": "F6",
+        "F7": "F7",
+        "F8": "F8",
+        "F9": "F9",
+        "Gamepad_Special_Left_X": "Touchpad Button X Axis",
+        "Gamepad_Special_Left_Y": "Touchpad Button Y Axis",
+        "Mouse2D": "Mouse XY 2D-Axis",
         "Multiply": "Num *",
-        "Subtract": "Num -",
         "Section": "§",
-        "C_Cedille": "ç",
+        "Subtract": "Num -",
+        "Tilde": "`",
     }
 
     static {
@@ -514,10 +530,16 @@ export default class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.nodeType.macro) {
             return SVGIcon.macro
         }
-        const hidValue = this.hasHIDAttribute()
+        const hidValue = this.hasHIDAttribute()?.toString()
         if (hidValue) {
-            if (hidValue.toString().includes("Mouse")) {
+            if (hidValue.includes("Mouse")) {
                 return SVGIcon.mouse
+            } else if (hidValue.includes("Gamepad_Special")) {
+                return SVGIcon.keyboard // This is called Touchpad in Unreal Engine
+            } else if (hidValue.includes("Gamepad") || hidValue.includes("Steam")) {
+                return SVGIcon.gamepad
+            } else if (hidValue.includes("Touch")) {
+                return SVGIcon.touchpad
             } else {
                 return SVGIcon.keyboard
             }
