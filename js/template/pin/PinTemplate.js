@@ -21,6 +21,8 @@ import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate
  */
 export default class PinTemplate extends ITemplate {
 
+    static canWrapInput = true
+
     /** @type {HTMLElement} */
     #iconElement
     get iconElement() {

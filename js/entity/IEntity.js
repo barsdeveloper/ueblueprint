@@ -71,8 +71,8 @@ export default class IEntity {
 
                 if (!suppressWarns) {
                     if (!(attributeName in attributes)) {
-                        Utility.warn(
-                            `Attribute ${prefix}${attributeName} in the serialized data is not defined in `
+                        console.warn(
+                            `UEBlueprint: Attribute ${prefix}${attributeName} in the serialized data is not defined in `
                             + `${this.constructor.name}.attributes`
                         )
                     } else if (
@@ -80,9 +80,9 @@ export default class IEntity {
                         && !(attributeName in values)
                         && !(!attribute.showDefault || attribute.ignored)
                     ) {
-                        Utility.warn(
-                            `${this.constructor.name} will add attribute ${prefix}${attributeName} not defined in the `
-                            + "serialized data"
+                        console.warn(
+                            `UEBlueprint: ${this.constructor.name} will add attribute ${prefix}${attributeName} not `
+                            + "defined in the serialized data"
                         )
                     }
                 }

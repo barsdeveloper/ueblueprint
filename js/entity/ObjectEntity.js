@@ -438,6 +438,9 @@ export default class ObjectEntity extends IEntity {
                 }
                 return Utility.formatStringName(memberName)
             case Configuration.nodeType.dynamicCast:
+                if (!this.TargetType) {
+                    return "Bad cast node" // Target type not found
+                }
                 return `Cast To ${this.TargetType.getName()}`
             case Configuration.nodeType.event:
                 return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
@@ -506,11 +509,10 @@ export default class ObjectEntity extends IEntity {
 
     nodeIcon() {
         switch (this.getType()) {
+            case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.dynamicCast: return SVGIcon.cast
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-                return SVGIcon.event
+            case Configuration.nodeType.event: return SVGIcon.event
             case Configuration.nodeType.executionSequence: return SVGIcon.sequence
             case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
             case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
@@ -518,6 +520,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.forLoop: return SVGIcon.loop
             case Configuration.nodeType.forLoopWithBreak: return SVGIcon.loop
             case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
+            case Configuration.nodeType.isValid: return SVGIcon.questionMark
             case Configuration.nodeType.makeArray: return SVGIcon.makeArray
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet

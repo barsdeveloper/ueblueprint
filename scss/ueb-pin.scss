@@ -17,6 +17,10 @@ ueb-pin {
     min-height: 30px;
 }
 
+ueb-pin.ueb-pin-input-wrap .ueb-pin-input {
+    display: block;
+}
+
 .ueb-node-top ueb-pin {
     min-height: 0;
 }

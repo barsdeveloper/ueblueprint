@@ -86,6 +86,7 @@ export default class Configuration {
         inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
         inputDebugKey: "/Script/InputBlueprintNodes.K2Node_InputDebugKey",
         inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
+        isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
@@ -121,6 +122,7 @@ export default class Configuration {
         "text": css`226, 121, 167`,
         "wildcard": css`128, 120, 120`,
     }
+    static pinInputWrapWidth = 134 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,

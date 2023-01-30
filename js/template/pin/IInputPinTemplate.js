@@ -1,4 +1,5 @@
 import { html } from "lit"
+import Configuration from "../../Configuration"
 import MouseIgnore from "../../input/mouse/MouseIgnore"
 import PinTemplate from "./PinTemplate"
 import Utility from "../../Utility"
@@ -35,25 +36,46 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
+    /** @param {InputEvent} event */
+    #onInputCheckWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
+
+    /** @param {HTMLElement}  inputElement*/
+    #updateWrapClass(inputElement) {
+        const width = inputElement.getBoundingClientRect().width + this.nameWidth
+        const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap")
+        if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
+            this.element.classList.add("ueb-pin-input-wrap")
+        } else if (inputWrapped && width <= Configuration.pinInputWrapWidth) {
+            this.element.classList.remove("ueb-pin-input-wrap")
+        }
+    }
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
+        if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+            this.nameWidth = this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
+            this.inputContentElements.forEach(inputElement => this.#updateWrapClass(inputElement))
+        }
     }
 
     setup() {
         super.setup()
-        this.#inputContentElements.forEach(element =>
+        this.#inputContentElements.forEach(element => {
             element.addEventListener("focusout", this.#onFocusOutHandler)
-        )
+            if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+                element.addEventListener("input", this.#onInputCheckWrapHandler)
+            }
+        })
     }
 
     cleanup() {
         super.cleanup()
-        this.#inputContentElements.forEach(element =>
+        this.#inputContentElements.forEach(element => {
             element.removeEventListener("focusout", this.#onFocusOutHandler)
-        )
+            element.removeEventListener("input", this.#onInputCheckWrapHandler)
+        })
     }
 
     createInputObjects() {

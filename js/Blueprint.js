@@ -374,6 +374,24 @@ export default class Blueprint extends IElement {
 
     /** @param  {...IElement} graphElements */
     addGraphElement(...graphElements) {
+        /** @param {CustomEvent} event */
+        const removeEventHandler = event => {
+            const target = event.currentTarget
+            target.removeEventListener(Configuration.removeEventName, removeEventHandler)
+            const graphElementsArray = target instanceof NodeElement
+                ? this.nodes
+                : target instanceof LinkElement
+                    ? this.links
+                    : null
+            // @ts-expect-error
+            const index = graphElementsArray?.indexOf(target)
+            if (index >= 0) {
+                const last = graphElementsArray.pop()
+                if (index < graphElementsArray.length) {
+                    graphElementsArray[index] = last
+                }
+            }
+        }
         for (const element of graphElements) {
             element.blueprint = this
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
@@ -391,23 +409,11 @@ export default class Blueprint extends IElement {
                     homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]))
                 }
                 this.nodes.push(element)
-                element.addEventListener(Configuration.removeEventName, () => {
-                    const index = this.nodes.indexOf(element)
-                    const last = this.nodes.pop()
-                    if (this.nodes.length > 0) {
-                        this.nodes[index] = last
-                    }
-                })
+                element.addEventListener(Configuration.removeEventName, removeEventHandler)
                 this.template.nodesContainerElement?.appendChild(element)
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
-                element.addEventListener(Configuration.removeEventName, () => {
-                    const index = this.links.indexOf(element)
-                    const last = this.links.pop()
-                    if (this.nodes.length > 0) {
-                        this.links[index] = last
-                    }
-                })
+                element.addEventListener(Configuration.removeEventName, removeEventHandler)
                 if (this.template.linksContainerElement && !this.template.linksContainerElement.contains(element)) {
                     this.template.linksContainerElement.appendChild(element)
                 }
@@ -426,18 +432,10 @@ export default class Blueprint extends IElement {
     /** @param  {...IElement} graphElements */
     removeGraphElement(...graphElements) {
         for (let element of graphElements) {
-            if (element.closest("ueb-blueprint") == this) {
-                element.remove()
-                let elementsArray = element instanceof NodeElement
-                    ? this.nodes
-                    : element instanceof LinkElement
-                        ? this.links
-                        : null
-                elementsArray?.splice(
-                    elementsArray.findIndex(v => v === element),
-                    1
-                )
+            if (element.closest("ueb-blueprint") !== this) {
+                return
             }
+            element.remove()
         }
     }
 

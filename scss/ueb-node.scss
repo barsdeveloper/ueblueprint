@@ -147,9 +147,13 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 
 .ueb-node-content {
     display: flex;
-    padding: 6px 0 2px 0;
+    padding: 2px 0;
     font-weight: 100;
     white-space: nowrap;
+}
+
+.ueb-node-style-default .ueb-node-content {
+    padding-top: 5px;
 }
 
 .ueb-node-has-inputs .ueb-node-inputs {
@@ -222,6 +226,7 @@ ueb-node[data-advanced-display="Shown"] .ueb-node-expansion>svg {
 ueb-node.ueb-node-style-glass .ueb-node-wrapper,
 ueb-node.ueb-node-style-glass .ueb-node-border,
 ueb-node.ueb-node-style-glass {
+    min-width: 128px;
     border-radius: 15px;
 }
 

@@ -66,7 +66,7 @@ export default class Utility {
     /** @param {String} value */
     static numberFromText(value = "") {
         value = value.toLowerCase()
-        switch(value) {
+        switch (value) {
             case "zero": return 0
             case "one": return 1
             case "two": return 2
@@ -415,10 +415,5 @@ export default class Utility {
             callback(currentValue)
         }
         requestAnimationFrame(doAnimation)
-    }
-
-    /** @param {String} value */
-    static warn(value) {
-        console.warn("UEBlueprint: " + value)
     }
 }

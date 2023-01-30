@@ -110,6 +110,7 @@ class Configuration {
         inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
         inputDebugKey: "/Script/InputBlueprintNodes.K2Node_InputDebugKey",
         inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
+        isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
@@ -145,6 +146,7 @@ class Configuration {
         "text": i$3`226, 121, 167`,
         "wildcard": i$3`128, 120, 120`,
     }
+    static pinInputWrapWidth = 134 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
@@ -476,7 +478,7 @@ class Utility {
     /** @param {String} value */
     static numberFromText(value = "") {
         value = value.toLowerCase();
-        switch(value) {
+        switch (value) {
             case "zero": return 0
             case "one": return 1
             case "two": return 2
@@ -826,11 +828,6 @@ class Utility {
         };
         requestAnimationFrame(doAnimation);
     }
-
-    /** @param {String} value */
-    static warn(value) {
-        console.warn("UEBlueprint: " + value);
-    }
 }
 
 /**
@@ -901,8 +898,8 @@ class IEntity {
 
                 if (!suppressWarns) {
                     if (!(attributeName in attributes)) {
-                        Utility.warn(
-                            `Attribute ${prefix}${attributeName} in the serialized data is not defined in `
+                        console.warn(
+                            `UEBlueprint: Attribute ${prefix}${attributeName} in the serialized data is not defined in `
                             + `${this.constructor.name}.attributes`
                         );
                     } else if (
@@ -910,9 +907,9 @@ class IEntity {
                         && !(attributeName in values)
                         && !(!attribute.showDefault || attribute.ignored)
                     ) {
-                        Utility.warn(
-                            `${this.constructor.name} will add attribute ${prefix}${attributeName} not defined in the `
-                            + "serialized data"
+                        console.warn(
+                            `UEBlueprint: ${this.constructor.name} will add attribute ${prefix}${attributeName} not `
+                            + "defined in the serialized data"
                         );
                     }
                 }
@@ -1159,6 +1156,45 @@ class EnumEntity extends SymbolEntity {
 
 }
 
+class GuidEntity extends IEntity {
+
+    static attributes = {
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    static generateGuid(random = true) {
+        let values = new Uint32Array(4);
+        if (random === true) {
+            crypto.getRandomValues(values);
+        }
+        let guid = "";
+        values.forEach(n => {
+            guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
+        });
+        return new GuidEntity({ value: guid })
+    }
+
+    constructor(values) {
+        if (!values) {
+            values = GuidEntity.generateGuid().value;
+        }
+        super(values);
+        /** @type {String} */ this.value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
 class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
@@ -1197,6 +1233,10 @@ class FunctionReferenceEntity extends IEntity {
             type: String,
             showDefault: false,
         },
+        MemberGuid: {
+            type: GuidEntity,
+            showDefault: false,
+        },
     }
 
     static {
@@ -1207,45 +1247,6 @@ class FunctionReferenceEntity extends IEntity {
         super(values);
         /** @type {ObjectReferenceEntity} */ this.MemberParent;
         /** @type {String} */ this.MemberName;
-    }
-}
-
-class GuidEntity extends IEntity {
-
-    static attributes = {
-        value: "",
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    static generateGuid(random = true) {
-        let values = new Uint32Array(4);
-        if (random === true) {
-            crypto.getRandomValues(values);
-        }
-        let guid = "";
-        values.forEach(n => {
-            guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
-        });
-        return new GuidEntity({ value: guid })
-    }
-
-    constructor(values) {
-        if (!values) {
-            values = GuidEntity.generateGuid().value;
-        }
-        super(values);
-        /** @type {String} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value
     }
 }
 
@@ -2356,6 +2357,13 @@ class SVGIcon {
         </svg>
     `
 
+    static questionMark = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 15C9.10456 15 10 14.1046 10 13C10 11.8954 9.10456 11 8 11C6.89544 11 6 11.8954 6 13C6 14.1046 6.89544 15 8 15Z" fill="white" />
+            <path d="M5 4.86697C5.15 3.33619 6.5 2.26465 8 2.26465C9.65 2.26465 11 3.64235 11 5.3262C11 7.01005 8 7.92852 8 9.00006" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    `
+
     static referencePin = y`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
@@ -2863,6 +2871,9 @@ class ObjectEntity extends IEntity {
                 }
                 return Utility.formatStringName(memberName)
             case Configuration.nodeType.dynamicCast:
+                if (!this.TargetType) {
+                    return "Bad cast node" // Target type not found
+                }
                 return `Cast To ${this.TargetType.getName()}`
             case Configuration.nodeType.event:
                 return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
@@ -2931,11 +2942,10 @@ class ObjectEntity extends IEntity {
 
     nodeIcon() {
         switch (this.getType()) {
+            case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.dynamicCast: return SVGIcon.cast
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-                return SVGIcon.event
+            case Configuration.nodeType.event: return SVGIcon.event
             case Configuration.nodeType.executionSequence: return SVGIcon.sequence
             case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
             case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
@@ -2943,6 +2953,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.forLoop: return SVGIcon.loop
             case Configuration.nodeType.forLoopWithBreak: return SVGIcon.loop
             case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
+            case Configuration.nodeType.isValid: return SVGIcon.questionMark
             case Configuration.nodeType.makeArray: return SVGIcon.makeArray
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
@@ -6596,6 +6607,8 @@ class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
  */
 class PinTemplate extends ITemplate {
 
+    static canWrapInput = true
+
     /** @type {HTMLElement} */
     #iconElement
     get iconElement() {
@@ -7613,6 +7626,24 @@ class Blueprint extends IElement {
 
     /** @param  {...IElement} graphElements */
     addGraphElement(...graphElements) {
+        /** @param {CustomEvent} event */
+        const removeEventHandler = event => {
+            const target = event.currentTarget;
+            target.removeEventListener(Configuration.removeEventName, removeEventHandler);
+            const graphElementsArray = target instanceof NodeElement
+                ? this.nodes
+                : target instanceof LinkElement
+                    ? this.links
+                    : null;
+            // @ts-expect-error
+            const index = graphElementsArray?.indexOf(target);
+            if (index >= 0) {
+                const last = graphElementsArray.pop();
+                if (index < graphElementsArray.length) {
+                    graphElementsArray[index] = last;
+                }
+            }
+        };
         for (const element of graphElements) {
             element.blueprint = this;
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
@@ -7630,23 +7661,11 @@ class Blueprint extends IElement {
                     homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]));
                 }
                 this.nodes.push(element);
-                element.addEventListener(Configuration.removeEventName, () => {
-                    const index = this.nodes.indexOf(element);
-                    const last = this.nodes.pop();
-                    if (this.nodes.length > 0) {
-                        this.nodes[index] = last;
-                    }
-                });
+                element.addEventListener(Configuration.removeEventName, removeEventHandler);
                 this.template.nodesContainerElement?.appendChild(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element);
-                element.addEventListener(Configuration.removeEventName, () => {
-                    const index = this.links.indexOf(element);
-                    const last = this.links.pop();
-                    if (this.nodes.length > 0) {
-                        this.links[index] = last;
-                    }
-                });
+                element.addEventListener(Configuration.removeEventName, removeEventHandler);
                 if (this.template.linksContainerElement && !this.template.linksContainerElement.contains(element)) {
                     this.template.linksContainerElement.appendChild(element);
                 }
@@ -7665,18 +7684,10 @@ class Blueprint extends IElement {
     /** @param  {...IElement} graphElements */
     removeGraphElement(...graphElements) {
         for (let element of graphElements) {
-            if (element.closest("ueb-blueprint") == this) {
-                element.remove();
-                let elementsArray = element instanceof NodeElement
-                    ? this.nodes
-                    : element instanceof LinkElement
-                        ? this.links
-                        : null;
-                elementsArray?.splice(
-                    elementsArray.findIndex(v => v === element),
-                    1
-                );
+            if (element.closest("ueb-blueprint") !== this) {
+                return
             }
+            element.remove();
         }
     }
 
@@ -8072,25 +8083,46 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
+    /** @param {InputEvent} event */
+    #onInputCheckWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
+
+    /** @param {HTMLElement}  inputElement*/
+    #updateWrapClass(inputElement) {
+        const width = inputElement.getBoundingClientRect().width + this.nameWidth;
+        const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap");
+        if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
+            this.element.classList.add("ueb-pin-input-wrap");
+        } else if (inputWrapped && width <= Configuration.pinInputWrapWidth) {
+            this.element.classList.remove("ueb-pin-input-wrap");
+        }
+    }
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
+        if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+            this.nameWidth = this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width;
+            this.inputContentElements.forEach(inputElement => this.#updateWrapClass(inputElement));
+        }
     }
 
     setup() {
         super.setup();
-        this.#inputContentElements.forEach(element =>
-            element.addEventListener("focusout", this.#onFocusOutHandler)
-        );
+        this.#inputContentElements.forEach(element => {
+            element.addEventListener("focusout", this.#onFocusOutHandler);
+            if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+                element.addEventListener("input", this.#onInputCheckWrapHandler);
+            }
+        });
     }
 
     cleanup() {
         super.cleanup();
-        this.#inputContentElements.forEach(element =>
-            element.removeEventListener("focusout", this.#onFocusOutHandler)
-        );
+        this.#inputContentElements.forEach(element => {
+            element.removeEventListener("focusout", this.#onFocusOutHandler);
+            element.removeEventListener("input", this.#onInputCheckWrapHandler);
+        });
     }
 
     createInputObjects() {

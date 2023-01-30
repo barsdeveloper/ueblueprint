@@ -1,3 +1,4 @@
+import GuidEntity from "./GuidEntity"
 import IEntity from "./IEntity"
 import ObjectReferenceEntity from "./ObjectReferenceEntity"
 
@@ -10,6 +11,10 @@ export default class FunctionReferenceEntity extends IEntity {
         },
         MemberName: {
             type: String,
+            showDefault: false,
+        },
+        MemberGuid: {
+            type: GuidEntity,
             showDefault: false,
         },
     }
