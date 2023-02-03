@@ -90,7 +90,11 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
                 this.blueprint,
                 undefined,
                 /** @param {[Number, Number]} location */
-                location => this.#createKnot(location)
+                location => {
+                    location[0] += Configuration.knotOffset[0]
+                    location[1] += Configuration.knotOffset[1]
+                    this.#createKnot(location)
+                }
             )
         ]
     }

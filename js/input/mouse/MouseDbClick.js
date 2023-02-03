@@ -8,23 +8,21 @@ import IPointing from "./IPointing"
  */
 export default class MouseDbClick extends IPointing {
 
-    static ignoreDbClick =
-        /** @param {Number[]} location */
-        location => { }
+    /** @param {Number[]} location */
+    static ignoreDbClick = location => { }
 
-    #mouseDbClickHandler =
-        /** @param {MouseEvent} e */
-        e => {
-            if (!this.options.strictTarget || e.target === e.currentTarget) {
-                if (this.options.consumeEvent) {
-                    e.stopImmediatePropagation() // Captured, don't call anyone else
-                }
-                this.clickedPosition = this.locationFromEvent(e)
-                this.blueprint.mousePosition[0] = this.clickedPosition[0]
-                this.blueprint.mousePosition[1] = this.clickedPosition[1]
-                this.dbclicked(this.clickedPosition)
+    /** @param {MouseEvent} e */
+    #mouseDbClickHandler = e => {
+        if (!this.options.strictTarget || e.target === e.currentTarget) {
+            if (this.options.consumeEvent) {
+                e.stopImmediatePropagation() // Captured, don't call anyone else
             }
+            this.clickedPosition = this.locationFromEvent(e)
+            this.blueprint.mousePosition[0] = this.clickedPosition[0]
+            this.blueprint.mousePosition[1] = this.clickedPosition[1]
+            this.dbclicked(this.clickedPosition)
         }
+    }
 
     #onDbClick
     get onDbClick() {

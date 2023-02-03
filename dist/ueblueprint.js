@@ -69,6 +69,7 @@ class Configuration {
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = "+"
+    static knotOffset = [-26, -16]
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
@@ -4029,17 +4030,15 @@ class IPointing extends IInput {
 
 class IMouseWheel extends IPointing {
 
-    #mouseWheelHandler =
-        /** @param {WheelEvent} e */
-        e => {
-            e.preventDefault();
-            const location = this.locationFromEvent(e);
-            this.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location);
-        }
+    /** @param {WheelEvent} e */
+    #mouseWheelHandler = e => {
+        e.preventDefault();
+        const location = this.locationFromEvent(e);
+        this.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location);
+    }
 
-    #mouseParentWheelHandler =
-        /** @param {WheelEvent} e */
-        e => e.preventDefault()
+    /** @param {WheelEvent} e */
+    #mouseParentWheelHandler = e => e.preventDefault()
 
     /**
      * @param {HTMLElement} target
@@ -4071,12 +4070,10 @@ class IMouseWheel extends IPointing {
 class Zoom extends IMouseWheel {
 
     #enableZoonIn = false
-
     get enableZoonIn() {
         return this.#enableZoonIn
     }
     set enableZoonIn(value) {
-        value = Boolean(value);
         if (value == this.#enableZoonIn) {
             return
         }
@@ -4342,10 +4339,9 @@ class IDraggableElement extends IElement {
     }
 
     computeSizes() {
-        const scaleCorrection = 1 / this.blueprint.getScale();
         const bounding = this.getBoundingClientRect();
-        this.sizeX = bounding.width * scaleCorrection;
-        this.sizeY = bounding.height * scaleCorrection;
+        this.sizeX = this.blueprint.scaleCorrect(bounding.width);
+        this.sizeY = this.blueprint.scaleCorrect(bounding.height);
     }
 
     /** @param {PropertyValues} changedProperties */
@@ -4615,41 +4611,33 @@ class MouseTracking extends IPointing {
     /** @type {IPointing} */
     #mouseTracker = null
 
-    /** @type {(e: MouseEvent) => void} */
-    #mousemoveHandler
+    /** @param {MouseEvent} e */
+    #mousemoveHandler= e => {
+        e.preventDefault();
+        this.blueprint.mousePosition = this.locationFromEvent(e);
+    }
 
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseStolenHandler
+    /** @param {CustomEvent} e */
+    #trackingMouseStolenHandler = e => {
+        if (!this.#mouseTracker) {
+            e.preventDefault();
+            this.#mouseTracker = e.detail.tracker;
+            this.unlistenMouseMove();
+        }
+    }
 
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseGaveBackHandler
+    /** @param {CustomEvent} e */
+    #trackingMouseGaveBackHandler = e => {
+        if (this.#mouseTracker == e.detail.tracker) {
+            e.preventDefault();
+            this.#mouseTracker = null;
+            this.listenMouseMove();
+        }
+    }
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
         super(target, blueprint, options);
-
-        let self = this;
-
-        this.#mousemoveHandler = e => {
-            e.preventDefault();
-            self.blueprint.mousePosition = self.locationFromEvent(e);
-        };
-
-        this.#trackingMouseStolenHandler = e => {
-            if (!self.#mouseTracker) {
-                e.preventDefault();
-                this.#mouseTracker = e.detail.tracker;
-                self.unlistenMouseMove();
-            }
-        };
-
-        this.#trackingMouseGaveBackHandler = e => {
-            if (self.#mouseTracker == e.detail.tracker) {
-                e.preventDefault();
-                self.#mouseTracker = null;
-                self.listenMouseMove();
-            }
-        };
     }
 
     listenMouseMove() {
@@ -4790,15 +4778,13 @@ class Select extends IMouseClickDrag {
 
 class Unfocus extends IInput {
 
-    /** @type {(e: MouseEvent) => void} */
-    #clickHandler
+    /** @param {MouseEvent} e */
+    #clickHandler = e => this.clickedSomewhere(/** @type {HTMLElement} */(e.target))
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
         super(target, blueprint, options);
 
-        let self = this;
-        this.#clickHandler = e => self.clickedSomewhere(/** @type {HTMLElement} */(e.target));
         if (this.blueprint.focus) {
             document.addEventListener("click", this.#clickHandler);
         }
@@ -5192,23 +5178,21 @@ class KnotEntity extends ObjectEntity {
  */
 class MouseDbClick extends IPointing {
 
-    static ignoreDbClick =
-        /** @param {Number[]} location */
-        location => { }
+    /** @param {Number[]} location */
+    static ignoreDbClick = location => { }
 
-    #mouseDbClickHandler =
-        /** @param {MouseEvent} e */
-        e => {
-            if (!this.options.strictTarget || e.target === e.currentTarget) {
-                if (this.options.consumeEvent) {
-                    e.stopImmediatePropagation(); // Captured, don't call anyone else
-                }
-                this.clickedPosition = this.locationFromEvent(e);
-                this.blueprint.mousePosition[0] = this.clickedPosition[0];
-                this.blueprint.mousePosition[1] = this.clickedPosition[1];
-                this.dbclicked(this.clickedPosition);
+    /** @param {MouseEvent} e */
+    #mouseDbClickHandler = e => {
+        if (!this.options.strictTarget || e.target === e.currentTarget) {
+            if (this.options.consumeEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
+            this.clickedPosition = this.locationFromEvent(e);
+            this.blueprint.mousePosition[0] = this.clickedPosition[0];
+            this.blueprint.mousePosition[1] = this.clickedPosition[1];
+            this.dbclicked(this.clickedPosition);
         }
+    }
 
     #onDbClick
     get onDbClick() {
@@ -5326,7 +5310,11 @@ class LinkTemplate extends IFromToPositionedTemplate {
                 this.blueprint,
                 undefined,
                 /** @param {[Number, Number]} location */
-                location => this.#createKnot(location)
+                location => {
+                    location[0] += Configuration.knotOffset[0];
+                    location[1] += Configuration.knotOffset[1];
+                    this.#createKnot(location);
+                }
             )
         ]
     }
@@ -6473,9 +6461,8 @@ class MouseCreateLink extends IMouseClickDrag {
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin");
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
-                const clickableElement = pin.template.getClickableElement();
-                clickableElement.addEventListener("mouseenter", this.#mouseenterHandler);
-                clickableElement.addEventListener("mouseleave", this.#mouseleaveHandler);
+                pin.addEventListener("mouseenter", this.#mouseenterHandler);
+                pin.addEventListener("mouseleave", this.#mouseleaveHandler);
             }
         });
         this.link.startDragging();
@@ -6615,6 +6602,12 @@ class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
+    /** @type {HTMLElement} */
+    #wrapperElement
+    get wrapperElement() {
+        return this.#wrapperElement
+    }
+
     isNameRendered = true
 
     setup() {
@@ -6633,8 +6626,9 @@ class PinTemplate extends ITemplate {
     /** @returns {IInput[]} */
     createInputObjects() {
         return [
-            new MouseCreateLink(this.getClickableElement(), this.blueprint, {
+            new MouseCreateLink(this.element, this.blueprint, {
                 moveEverywhere: true,
+                draggableElement: this.#wrapperElement,
             })
         ]
     }
@@ -6692,6 +6686,7 @@ class PinTemplate extends ITemplate {
         super.firstUpdated(changedProperties);
         this.element.style.setProperty("--ueb-pin-color-rgb", this.element.entity.pinColor().cssText);
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element;
+        this.#wrapperElement = this.element.querySelector(".ueb-pin-wrapper");
     }
 
     getLinkLocation() {
@@ -6702,7 +6697,7 @@ class PinTemplate extends ITemplate {
     }
 
     getClickableElement() {
-        return this.element
+        return this.#wrapperElement ?? this.element
     }
 }
 
@@ -8088,7 +8083,7 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
-        const width = inputElement.getBoundingClientRect().width + this.nameWidth;
+        const width = this.blueprint.scaleCorrect(inputElement.getBoundingClientRect().width) + this.nameWidth;
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap");
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
             this.element.classList.add("ueb-pin-input-wrap");
@@ -8102,7 +8097,9 @@ class IInputPinTemplate extends PinTemplate {
         super.firstUpdated(changedProperties);
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
-            this.nameWidth = this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width;
+            this.nameWidth = this.blueprint.scaleCorrect(
+                this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
+            );
             this.inputContentElements.forEach(inputElement => this.#updateWrapClass(inputElement));
         }
     }

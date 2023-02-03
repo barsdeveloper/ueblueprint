@@ -29,6 +29,12 @@ export default class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
+    /** @type {HTMLElement} */
+    #wrapperElement
+    get wrapperElement() {
+        return this.#wrapperElement
+    }
+
     isNameRendered = true
 
     setup() {
@@ -47,8 +53,9 @@ export default class PinTemplate extends ITemplate {
     /** @returns {IInput[]} */
     createInputObjects() {
         return [
-            new MouseCreateLink(this.getClickableElement(), this.blueprint, {
+            new MouseCreateLink(this.element, this.blueprint, {
                 moveEverywhere: true,
+                draggableElement: this.#wrapperElement,
             })
         ]
     }
@@ -106,6 +113,7 @@ export default class PinTemplate extends ITemplate {
         super.firstUpdated(changedProperties)
         this.element.style.setProperty("--ueb-pin-color-rgb", this.element.entity.pinColor().cssText)
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element
+        this.#wrapperElement = this.element.querySelector(".ueb-pin-wrapper")
     }
 
     getLinkLocation() {
@@ -116,6 +124,6 @@ export default class PinTemplate extends ITemplate {
     }
 
     getClickableElement() {
-        return this.element
+        return this.#wrapperElement ?? this.element
     }
 }

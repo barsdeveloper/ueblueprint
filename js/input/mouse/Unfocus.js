@@ -2,15 +2,13 @@ import IInput from "../IInput"
 
 export default class Unfocus extends IInput {
 
-    /** @type {(e: MouseEvent) => void} */
-    #clickHandler
+    /** @param {MouseEvent} e */
+    #clickHandler = e => this.clickedSomewhere(/** @type {HTMLElement} */(e.target))
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true
         super(target, blueprint, options)
 
-        let self = this
-        this.#clickHandler = e => self.clickedSomewhere(/** @type {HTMLElement} */(e.target))
         if (this.blueprint.focus) {
             document.addEventListener("click", this.#clickHandler)
         }

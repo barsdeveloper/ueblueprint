@@ -3,17 +3,15 @@ import IPointing from "./IPointing"
 
 export default class IMouseWheel extends IPointing {
 
-    #mouseWheelHandler =
-        /** @param {WheelEvent} e */
-        e => {
-            e.preventDefault()
-            const location = this.locationFromEvent(e)
-            this.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location)
-        }
+    /** @param {WheelEvent} e */
+    #mouseWheelHandler = e => {
+        e.preventDefault()
+        const location = this.locationFromEvent(e)
+        this.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location)
+    }
 
-    #mouseParentWheelHandler =
-        /** @param {WheelEvent} e */
-        e => e.preventDefault()
+    /** @param {WheelEvent} e */
+    #mouseParentWheelHandler = e => e.preventDefault()
 
     /**
      * @param {HTMLElement} target

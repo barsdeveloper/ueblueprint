@@ -49,10 +49,9 @@ export default class IDraggableElement extends IElement {
     }
 
     computeSizes() {
-        const scaleCorrection = 1 / this.blueprint.getScale()
         const bounding = this.getBoundingClientRect()
-        this.sizeX = bounding.width * scaleCorrection
-        this.sizeY = bounding.height * scaleCorrection
+        this.sizeX = this.blueprint.scaleCorrect(bounding.width)
+        this.sizeY = this.blueprint.scaleCorrect(bounding.height)
     }
 
     /** @param {PropertyValues} changedProperties */

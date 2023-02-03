@@ -80,9 +80,8 @@ export default class MouseCreateLink extends IMouseClickDrag {
         this.#listenedPins = this.blueprint.querySelectorAll("ueb-pin")
         this.#listenedPins.forEach(pin => {
             if (pin != this.target) {
-                const clickableElement = pin.template.getClickableElement()
-                clickableElement.addEventListener("mouseenter", this.#mouseenterHandler)
-                clickableElement.addEventListener("mouseleave", this.#mouseleaveHandler)
+                pin.addEventListener("mouseenter", this.#mouseenterHandler)
+                pin.addEventListener("mouseleave", this.#mouseleaveHandler)
             }
         })
         this.link.startDragging()

@@ -6,41 +6,33 @@ export default class MouseTracking extends IPointing {
     /** @type {IPointing} */
     #mouseTracker = null
 
-    /** @type {(e: MouseEvent) => void} */
-    #mousemoveHandler
+    /** @param {MouseEvent} e */
+    #mousemoveHandler= e => {
+        e.preventDefault()
+        this.blueprint.mousePosition = this.locationFromEvent(e)
+    }
 
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseStolenHandler
+    /** @param {CustomEvent} e */
+    #trackingMouseStolenHandler = e => {
+        if (!this.#mouseTracker) {
+            e.preventDefault()
+            this.#mouseTracker = e.detail.tracker
+            this.unlistenMouseMove()
+        }
+    }
 
-    /** @type {(e: CustomEvent) => void} */
-    #trackingMouseGaveBackHandler
+    /** @param {CustomEvent} e */
+    #trackingMouseGaveBackHandler = e => {
+        if (this.#mouseTracker == e.detail.tracker) {
+            e.preventDefault()
+            this.#mouseTracker = null
+            this.listenMouseMove()
+        }
+    }
 
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true
         super(target, blueprint, options)
-
-        let self = this
-
-        this.#mousemoveHandler = e => {
-            e.preventDefault()
-            self.blueprint.mousePosition = self.locationFromEvent(e)
-        }
-
-        this.#trackingMouseStolenHandler = e => {
-            if (!self.#mouseTracker) {
-                e.preventDefault()
-                this.#mouseTracker = e.detail.tracker
-                self.unlistenMouseMove()
-            }
-        }
-
-        this.#trackingMouseGaveBackHandler = e => {
-            if (self.#mouseTracker == e.detail.tracker) {
-                e.preventDefault()
-                self.#mouseTracker = null
-                self.listenMouseMove()
-            }
-        }
     }
 
     listenMouseMove() {

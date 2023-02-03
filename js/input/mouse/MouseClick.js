@@ -8,45 +8,43 @@ import IPointing from "./IPointing"
  */
 export default class MouseClick extends IPointing {
 
-    #mouseDownHandler =
-        /** @param {MouseEvent} e */
-        e => {
-            this.blueprint.setFocused(true)
-            switch (e.button) {
-                case this.options.clickButton:
-                    // Either doesn't matter or consider the click only when clicking on the target, not descandants
-                    if (!this.options.strictTarget || e.target === e.currentTarget) {
-                        if (this.options.consumeEvent) {
-                            e.stopImmediatePropagation() // Captured, don't call anyone else
-                        }
-                        // Attach the listeners
-                        document.addEventListener("mouseup", this.#mouseUpHandler)
-                        this.clickedPosition = this.locationFromEvent(e)
-                        this.blueprint.mousePosition[0] = this.clickedPosition[0]
-                        this.blueprint.mousePosition[1] = this.clickedPosition[1]
-                        this.clicked(this.clickedPosition)
+    /** @param {MouseEvent} e */
+    #mouseDownHandler = e => {
+        this.blueprint.setFocused(true)
+        switch (e.button) {
+            case this.options.clickButton:
+                // Either doesn't matter or consider the click only when clicking on the target, not descandants
+                if (!this.options.strictTarget || e.target === e.currentTarget) {
+                    if (this.options.consumeEvent) {
+                        e.stopImmediatePropagation() // Captured, don't call anyone else
                     }
-                    break
-                default:
-                    if (!this.options.exitAnyButton) {
-                        this.#mouseUpHandler(e)
-                    }
-                    break
-            }
-        }
-
-    #mouseUpHandler =
-        /** @param {MouseEvent} e */
-        e => {
-            if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
-                if (this.options.consumeEvent) {
-                    e.stopImmediatePropagation() // Captured, don't call anyone else
+                    // Attach the listeners
+                    document.addEventListener("mouseup", this.#mouseUpHandler)
+                    this.clickedPosition = this.locationFromEvent(e)
+                    this.blueprint.mousePosition[0] = this.clickedPosition[0]
+                    this.blueprint.mousePosition[1] = this.clickedPosition[1]
+                    this.clicked(this.clickedPosition)
                 }
-                // Remove the handlers of "mousemove" and "mouseup"
-                document.removeEventListener("mouseup", this.#mouseUpHandler)
-                this.unclicked()
-            }
+                break
+            default:
+                if (!this.options.exitAnyButton) {
+                    this.#mouseUpHandler(e)
+                }
+                break
         }
+    }
+
+    /** @param {MouseEvent} e */
+    #mouseUpHandler = e => {
+        if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
+            if (this.options.consumeEvent) {
+                e.stopImmediatePropagation() // Captured, don't call anyone else
+            }
+            // Remove the handlers of "mousemove" and "mouseup"
+            document.removeEventListener("mouseup", this.#mouseUpHandler)
+            this.unclicked()
+        }
+    }
 
     clickedPosition = [0, 0]
 

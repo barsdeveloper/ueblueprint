@@ -41,7 +41,7 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
-        const width = inputElement.getBoundingClientRect().width + this.nameWidth
+        const width = this.blueprint.scaleCorrect(inputElement.getBoundingClientRect().width) + this.nameWidth
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap")
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
             this.element.classList.add("ueb-pin-input-wrap")
@@ -55,7 +55,9 @@ export default class IInputPinTemplate extends PinTemplate {
         super.firstUpdated(changedProperties)
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
-            this.nameWidth = this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
+            this.nameWidth = this.blueprint.scaleCorrect(
+                this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
+            )
             this.inputContentElements.forEach(inputElement => this.#updateWrapClass(inputElement))
         }
     }
