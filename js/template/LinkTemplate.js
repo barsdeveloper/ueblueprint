@@ -61,7 +61,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
 
     static c2DecreasingValue = LinkTemplate.decreasingValue(-0.05, [500, 130])
 
-    static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 40])
+    static c2Clamped = LinkTemplate.clampedLine([0, 80], [200, 40])
 
     #uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
 
@@ -120,9 +120,11 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             }
             if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
                 if (destinationPin?.isInput() && to < from - Configuration.distanceThreshold) {
-                    this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin
+                    this.element.destinationPin =
+                        /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin
                 } else if (destinationPin?.isOutput() && to > from + Configuration.distanceThreshold) {
-                    this.element.destinationPin = /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin
+                    this.element.destinationPin =
+                        /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin
                 }
             }
         }
@@ -131,7 +133,6 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         const width = Math.max(dx, Configuration.linkMinWidth)
         // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
         const fillRatio = dx / width
-        const aspectRatio = dy / dx
         const xInverted = this.element.originatesFromInput
             ? this.element.fromX < this.element.toX
             : this.element.toX < this.element.fromX
@@ -146,8 +147,11 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
                 : 10
             )
             * fillRatio
-        let c2 = LinkTemplate.c2Clamped(dx) * Utility.sigmoidPositive(fillRatio + aspectRatio * 0.5, 1.5, 2) + this.element.startPercentage
-        c2 = xInverted ? Math.min(c2, LinkTemplate.c2DecreasingValue(width)) : c2
+        const aspectRatio = dy / Math.max(30, dx)
+        const c2 =
+            LinkTemplate.c2Clamped(dx)
+            * Utility.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
+            + this.element.startPercentage
         this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2)
     }
 
