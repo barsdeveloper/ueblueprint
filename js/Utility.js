@@ -35,6 +35,11 @@ export default class Utility {
         return 1 / (1 + (x / (1 - x) ** -curvature))
     }
 
+    /** @param {Number} x */
+    static sigmoidPositive(x, curvature = 3.7, length = 1.1) {
+        return 1 - Math.exp(-((x / length) ** curvature))
+    }
+
     /** @param {Number} value */
     static clamp(value, min = -Infinity, max = Infinity) {
         return Math.min(Math.max(value, min), max)

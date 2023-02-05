@@ -80,7 +80,7 @@ class Configuration {
      */
     static linkRightSVGPath = (start, c1, c2) => {
         let end = 100 - start;
-        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
+        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, ${end.toFixed(3)} 100`
     }
     static maxZoom = 7
     static minZoom = -12
@@ -446,6 +446,11 @@ class Utility {
     /** @param {Number} x */
     static sigmoid(x, curvature = 1.7) {
         return 1 / (1 + (x / (1 - x) ** -curvature))
+    }
+
+    /** @param {Number} x */
+    static sigmoidPositive(x, curvature = 3.7, length = 1.1) {
+        return 1 - Math.exp(-((x / length) ** curvature))
     }
 
     /** @param {Number} value */
@@ -5279,9 +5284,11 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
     static c1DecreasingValue = LinkTemplate.decreasingValue(-0.15, [100, 15])
 
-    static c2DecreasingValue = LinkTemplate.decreasingValue(-0.06, [500, 130])
+    static c2DecreasingValue = LinkTemplate.decreasingValue(-0.05, [500, 130])
 
-    static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
+    static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 40])
+
+    #uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
 
     /** @param {[Number, Number]} location */
     #createKnot = location => {
@@ -5345,11 +5352,11 @@ class LinkTemplate extends IFromToPositionedTemplate {
             }
         }
         const dx = Math.max(Math.abs(this.element.fromX - this.element.toX), 1);
-        Math.max(Math.abs(this.element.fromY - this.element.toY), 1);
+        const dy = Math.max(Math.abs(this.element.fromY - this.element.toY), 1);
         const width = Math.max(dx, Configuration.linkMinWidth);
         // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
         const fillRatio = dx / width;
-        // const aspectRatio = width / height
+        const aspectRatio = dy / dx;
         const xInverted = this.element.originatesFromInput
             ? this.element.fromX < this.element.toX
             : this.element.toX < this.element.fromX;
@@ -5357,15 +5364,15 @@ class LinkTemplate extends IFromToPositionedTemplate {
             ? (width - dx) / 2 // Start from half the empty space
             : 0; // Otherwise start from the beginning
         this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels;
-        const c1
-            = this.element.startPercentage
+        const c1 =
+            this.element.startPercentage
             + (xInverted
                 ? LinkTemplate.c1DecreasingValue(width)
                 : 10
             )
             * fillRatio;
-        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + this.element.startPercentage;
-        c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width));
+        let c2 = LinkTemplate.c2Clamped(dx) * Utility.sigmoidPositive(fillRatio + aspectRatio * 0.5, 1.5, 2) + this.element.startPercentage;
+        c2 = xInverted ? Math.min(c2, LinkTemplate.c2DecreasingValue(width)) : c2;
         this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2);
     }
 
@@ -5385,12 +5392,11 @@ class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     render() {
-        const uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`;
         return y`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <g class="ueb-link-area">
-                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
-                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="20" />
+                    <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
+                    <use href="#${this.#uniqueId}" pointer-events="stroke" stroke-width="20" />
                 </g>
             </svg>
             ${this.element.linkMessageIcon || this.element.linkMessageText ? y`

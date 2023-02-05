@@ -56,7 +56,7 @@ export default class Configuration {
      */
     static linkRightSVGPath = (start, c1, c2) => {
         let end = 100 - start
-        return `M ${start} 0 C ${c1} 0, ${c2} 0, 50 50 S ${end - c1 + start} 100, ${end} 100`
+        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, ${end.toFixed(3)} 100`
     }
     static maxZoom = 7
     static minZoom = -12

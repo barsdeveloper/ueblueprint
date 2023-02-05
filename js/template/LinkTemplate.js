@@ -59,9 +59,11 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
 
     static c1DecreasingValue = LinkTemplate.decreasingValue(-0.15, [100, 15])
 
-    static c2DecreasingValue = LinkTemplate.decreasingValue(-0.06, [500, 130])
+    static c2DecreasingValue = LinkTemplate.decreasingValue(-0.05, [500, 130])
 
-    static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 30])
+    static c2Clamped = LinkTemplate.clampedLine([0, 100], [200, 40])
+
+    #uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
 
     /** @param {[Number, Number]} location */
     #createKnot = location => {
@@ -129,7 +131,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         const width = Math.max(dx, Configuration.linkMinWidth)
         // const height = Math.max(Math.abs(link.fromY - link.toY), 1)
         const fillRatio = dx / width
-        // const aspectRatio = width / height
+        const aspectRatio = dy / dx
         const xInverted = this.element.originatesFromInput
             ? this.element.fromX < this.element.toX
             : this.element.toX < this.element.fromX
@@ -137,15 +139,15 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             ? (width - dx) / 2 // Start from half the empty space
             : 0 // Otherwise start from the beginning
         this.element.startPercentage = xInverted ? this.element.startPixels + fillRatio * 100 : this.element.startPixels
-        const c1
-            = this.element.startPercentage
+        const c1 =
+            this.element.startPercentage
             + (xInverted
                 ? LinkTemplate.c1DecreasingValue(width)
                 : 10
             )
             * fillRatio
-        let c2 = LinkTemplate.c2Clamped(xInverted ? -dx : dx) + this.element.startPercentage
-        c2 = Math.min(c2, LinkTemplate.c2DecreasingValue(width))
+        let c2 = LinkTemplate.c2Clamped(dx) * Utility.sigmoidPositive(fillRatio + aspectRatio * 0.5, 1.5, 2) + this.element.startPercentage
+        c2 = xInverted ? Math.min(c2, LinkTemplate.c2DecreasingValue(width)) : c2
         this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2)
     }
 
@@ -165,12 +167,11 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     render() {
-        const uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
         return html`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <g class="ueb-link-area">
-                    <path id="${uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
-                    <use href="#${uniqueId}" pointer-events="stroke" stroke-width="20" />
+                    <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
+                    <use href="#${this.#uniqueId}" pointer-events="stroke" stroke-width="20" />
                 </g>
             </svg>
             ${this.element.linkMessageIcon || this.element.linkMessageText ? html`
