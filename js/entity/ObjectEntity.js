@@ -46,6 +46,18 @@ export default class ObjectEntity extends IEntity {
             value: null,
             showDefault: false,
         },
+        DelegatePropertyName: {
+            type: String,
+            showDefault: false,
+        },
+        DelegateOwnerClass: {
+            type: ObjectReferenceEntity,
+            showDefault: false,
+        },
+        ComponentPropertyName: {
+            type: String,
+            showDefault: false,
+        },
         EventReference: {
             type: FunctionReferenceEntity,
             value: null,
@@ -246,17 +258,29 @@ export default class ObjectEntity extends IEntity {
         /** @type {String} */ this.Name
         /** @type {SymbolEntity?} */ this.AxisKey
         /** @type {SymbolEntity?} */ this.InputAxisKey
-        /** @type {SymbolEntity?} */ this.InputKey
         /** @type {Boolean?} */ this.bIsPureFunc
         /** @type {Boolean?} */ this.bIsConstFunc
         /** @type {VariableReferenceEntity?} */ this.VariableReference
         /** @type {SymbolEntity?} */ this.SelfContextInfo
+        /** @type {String?} */ this.DelegatePropertyName
+        /** @type {ObjectReferenceEntity?} */ this.DelegateOwnerClass
+        /** @type {FunctionReferenceEntity?} */ this.ComponentPropertyName
+        /** @type {FunctionReferenceEntity?} */ this.EventReference
         /** @type {FunctionReferenceEntity?} */ this.FunctionReference
         /** @type {String} */ this.CustomFunctionName
-        /** @type {FunctionReferenceEntity?} */ this.EventReference
         /** @type {ObjectReferenceEntity?} */ this.TargetType
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference
         /** @type {ObjectReferenceEntity?} */ this.Enum
+        /** @type {SymbolEntity?} */ this.InputKey
+        /** @type {Boolean?} */ this.bOverrideFunction
+        /** @type {Boolean?} */ this.bInternalEvent
+        /** @type {Boolean?} */ this.bConsumeInput
+        /** @type {Boolean?} */ this.bExecuteWhenPaused
+        /** @type {Boolean?} */ this.bOverrideParentBinding
+        /** @type {Boolean?} */ this.bControl
+        /** @type {Boolean?} */ this.bAlt
+        /** @type {Boolean?} */ this.bShift
+        /** @type {Boolean?} */ this.bCommand
         /** @type {LinearColorEntity?} */ this.CommentColor
         /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel
         /** @type {IntegerEntity} */ this.NodePosX
@@ -395,6 +419,7 @@ export default class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.nodeType.callFunction:
             case Configuration.nodeType.commutativeAssociativeBinaryOperator:
+            case Configuration.nodeType.promotableOperator:
                 let memberName = this.FunctionReference.MemberName ?? ""
                 const memberParent = this.FunctionReference.MemberParent?.path ?? ""
                 if (memberName === "AddKey") {
@@ -409,6 +434,9 @@ export default class ObjectEntity extends IEntity {
                     }
                     if (memberName.startsWith("Percent_")) {
                         return "%"
+                    }
+                    if (memberName.startsWith("EqualEqual_")) {
+                        return "=="
                     }
                     const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
                     if (leadingLetter) {
@@ -437,6 +465,8 @@ export default class ObjectEntity extends IEntity {
                     }
                 }
                 return Utility.formatStringName(memberName)
+            case Configuration.nodeType.componentBoundEvent:
+                return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
             case Configuration.nodeType.dynamicCast:
                 if (!this.TargetType) {
                     return "Bad cast node" // Target type not found
@@ -546,6 +576,9 @@ export default class ObjectEntity extends IEntity {
             } else {
                 return SVGIcon.keyboard
             }
+        }
+        if (this.getDelegatePin()) {
+            return SVGIcon.event
         }
         return SVGIcon.functionSymbol
     }

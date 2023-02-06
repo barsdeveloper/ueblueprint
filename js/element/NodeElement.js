@@ -101,9 +101,13 @@ export default class NodeElement extends ISelectableDraggableElement {
         if (
             nodeEntity.getClass() === Configuration.nodeType.callFunction
             || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
+            || nodeEntity.getClass() === Configuration.nodeType.callArrayFunction
         ) {
             const memberParent = nodeEntity.FunctionReference.MemberParent?.path ?? ""
-            if (memberParent === "/Script/Engine.KismetMathLibrary") {
+            if (
+                memberParent === "/Script/Engine.KismetMathLibrary"
+                || memberParent === "/Script/Engine.KismetArrayLibrary"
+            ) {
                 if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
                     return VariableConversionNodeTemplate
                 }
@@ -111,7 +115,10 @@ export default class NodeElement extends ISelectableDraggableElement {
                     return VariableOperationNodeTemplate
                 }
                 switch (nodeEntity.FunctionReference.MemberName) {
+                    case "Array_Add":
+                    case "Array_Identical":
                     case "Abs":
+                    case "Array_Add":
                     case "BMax":
                     case "BMin":
                     case "Exp":
@@ -137,6 +144,8 @@ export default class NodeElement extends ISelectableDraggableElement {
             case Configuration.nodeType.event:
             case Configuration.nodeType.customEvent:
                 return EventNodeTemplate
+            case Configuration.nodeType.promotableOperator:
+                return VariableOperationNodeTemplate
             case Configuration.nodeType.knot: return KnotNodeTemplate
             case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
             case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate

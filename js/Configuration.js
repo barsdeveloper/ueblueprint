@@ -67,9 +67,11 @@ export default class Configuration {
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
+        callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
+        componentBoundEvent: "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
         customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
@@ -94,6 +96,7 @@ export default class Configuration {
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
         pawn: "/Script/Engine.Pawn",
+        promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         select: "/Script/BlueprintGraph.K2Node_Select",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",

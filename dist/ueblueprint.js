@@ -91,9 +91,11 @@ class Configuration {
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
+        callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
+        componentBoundEvent: "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
         customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
@@ -118,6 +120,7 @@ class Configuration {
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
         pawn: "/Script/Engine.Pawn",
+        promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         select: "/Script/BlueprintGraph.K2Node_Select",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
@@ -2485,6 +2488,18 @@ class ObjectEntity extends IEntity {
             value: null,
             showDefault: false,
         },
+        DelegatePropertyName: {
+            type: String,
+            showDefault: false,
+        },
+        DelegateOwnerClass: {
+            type: ObjectReferenceEntity,
+            showDefault: false,
+        },
+        ComponentPropertyName: {
+            type: String,
+            showDefault: false,
+        },
         EventReference: {
             type: FunctionReferenceEntity,
             value: null,
@@ -2685,17 +2700,29 @@ class ObjectEntity extends IEntity {
         /** @type {String} */ this.Name;
         /** @type {SymbolEntity?} */ this.AxisKey;
         /** @type {SymbolEntity?} */ this.InputAxisKey;
-        /** @type {SymbolEntity?} */ this.InputKey;
         /** @type {Boolean?} */ this.bIsPureFunc;
         /** @type {Boolean?} */ this.bIsConstFunc;
         /** @type {VariableReferenceEntity?} */ this.VariableReference;
         /** @type {SymbolEntity?} */ this.SelfContextInfo;
+        /** @type {String?} */ this.DelegatePropertyName;
+        /** @type {ObjectReferenceEntity?} */ this.DelegateOwnerClass;
+        /** @type {FunctionReferenceEntity?} */ this.ComponentPropertyName;
+        /** @type {FunctionReferenceEntity?} */ this.EventReference;
         /** @type {FunctionReferenceEntity?} */ this.FunctionReference;
         /** @type {String} */ this.CustomFunctionName;
-        /** @type {FunctionReferenceEntity?} */ this.EventReference;
         /** @type {ObjectReferenceEntity?} */ this.TargetType;
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference;
         /** @type {ObjectReferenceEntity?} */ this.Enum;
+        /** @type {SymbolEntity?} */ this.InputKey;
+        /** @type {Boolean?} */ this.bOverrideFunction;
+        /** @type {Boolean?} */ this.bInternalEvent;
+        /** @type {Boolean?} */ this.bConsumeInput;
+        /** @type {Boolean?} */ this.bExecuteWhenPaused;
+        /** @type {Boolean?} */ this.bOverrideParentBinding;
+        /** @type {Boolean?} */ this.bControl;
+        /** @type {Boolean?} */ this.bAlt;
+        /** @type {Boolean?} */ this.bShift;
+        /** @type {Boolean?} */ this.bCommand;
         /** @type {LinearColorEntity?} */ this.CommentColor;
         /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel;
         /** @type {IntegerEntity} */ this.NodePosX;
@@ -2834,6 +2861,7 @@ class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.nodeType.callFunction:
             case Configuration.nodeType.commutativeAssociativeBinaryOperator:
+            case Configuration.nodeType.promotableOperator:
                 let memberName = this.FunctionReference.MemberName ?? "";
                 const memberParent = this.FunctionReference.MemberParent?.path ?? "";
                 if (memberName === "AddKey") {
@@ -2848,6 +2876,9 @@ class ObjectEntity extends IEntity {
                     }
                     if (memberName.startsWith("Percent_")) {
                         return "%"
+                    }
+                    if (memberName.startsWith("EqualEqual_")) {
+                        return "=="
                     }
                     const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
                     if (leadingLetter) {
@@ -2876,6 +2907,8 @@ class ObjectEntity extends IEntity {
                     }
                 }
                 return Utility.formatStringName(memberName)
+            case Configuration.nodeType.componentBoundEvent:
+                return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
             case Configuration.nodeType.dynamicCast:
                 if (!this.TargetType) {
                     return "Bad cast node" // Target type not found
@@ -2985,6 +3018,9 @@ class ObjectEntity extends IEntity {
             } else {
                 return SVGIcon.keyboard
             }
+        }
+        if (this.getDelegatePin()) {
+            return SVGIcon.event
         }
         return SVGIcon.functionSymbol
     }
@@ -7067,9 +7103,13 @@ class NodeElement extends ISelectableDraggableElement {
         if (
             nodeEntity.getClass() === Configuration.nodeType.callFunction
             || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
+            || nodeEntity.getClass() === Configuration.nodeType.callArrayFunction
         ) {
             const memberParent = nodeEntity.FunctionReference.MemberParent?.path ?? "";
-            if (memberParent === "/Script/Engine.KismetMathLibrary") {
+            if (
+                memberParent === "/Script/Engine.KismetMathLibrary"
+                || memberParent === "/Script/Engine.KismetArrayLibrary"
+            ) {
                 if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
                     return VariableConversionNodeTemplate
                 }
@@ -7077,7 +7117,10 @@ class NodeElement extends ISelectableDraggableElement {
                     return VariableOperationNodeTemplate
                 }
                 switch (nodeEntity.FunctionReference.MemberName) {
+                    case "Array_Add":
+                    case "Array_Identical":
                     case "Abs":
+                    case "Array_Add":
                     case "BMax":
                     case "BMin":
                     case "Exp":
@@ -7103,6 +7146,8 @@ class NodeElement extends ISelectableDraggableElement {
             case Configuration.nodeType.event:
             case Configuration.nodeType.customEvent:
                 return EventNodeTemplate
+            case Configuration.nodeType.promotableOperator:
+                return VariableOperationNodeTemplate
             case Configuration.nodeType.knot: return KnotNodeTemplate
             case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
             case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
