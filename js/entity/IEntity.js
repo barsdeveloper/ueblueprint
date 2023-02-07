@@ -105,15 +105,6 @@ export default class IEntity {
                 if (defaultValue instanceof Function) {
                     defaultValue = defaultValue(this)
                 }
-                if (defaultType instanceof UnionType) {
-                    if (defaultValue != undefined) {
-                        defaultType = defaultType.types.find(
-                            type => defaultValue instanceof type || defaultValue.constructor == type
-                        ) ?? defaultType.getFirstType()
-                    } else {
-                        defaultType = defaultType.getFirstType()
-                    }
-                }
                 if (defaultType === undefined) {
                     defaultType = Utility.getType(defaultValue)
                 }
@@ -135,7 +126,6 @@ export default class IEntity {
                                         console.warn(
                                             `UEBlueprint: Tried to assign attribute ${prefix}${attributeName} to `
                                             + `${this.constructor.name} not satisfying the predicate`
-
                                         )
                                         return
                                     }
@@ -155,6 +145,15 @@ export default class IEntity {
                     }
                     assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
                     continue // We have a value, need nothing more
+                }
+                if (defaultType instanceof UnionType) {
+                    if (defaultValue != undefined) {
+                        defaultType = defaultType.types.find(
+                            type => defaultValue instanceof type || defaultValue.constructor == type
+                        ) ?? defaultType.getFirstType()
+                    } else {
+                        defaultType = defaultType.getFirstType()
+                    }
                 }
                 if (defaultValue === undefined) {
                     defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())

@@ -257,7 +257,7 @@ ueb-node {
   position: absolute;
   min-width: 100px;
   border-radius: var(--ueb-node-radius);
-  box-shadow: 0 0 1px 0 black, 1px 4px 6px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 1px 0 black, 1px 4px 6px 0 rgba(0, 0, 0, 0.6);
   font-weight: lighter;
 }
 
@@ -468,9 +468,9 @@ ueb-node.ueb-node-style-glass {
 
 ueb-node.ueb-node-style-glass .ueb-node-wrapper {
   border: 1px solid black;
-  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 -2px 2px 1px rgba(0, 0, 0, 0.5) inset;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.6) inset;
   padding: 3px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.188) 0%, rgba(255, 255, 255, 0.063) 14px, rgba(0, 0, 0, 0.251) 14px), linear-gradient(to right, transparent 10%, rgba(var(--ueb-node-color), 0.3) 50%, transparent 90%);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0, rgba(255, 255, 255, 0.2) 4px, rgba(0, 0, 0, 0.3) 14px), linear-gradient(to right, transparent 10%, rgba(var(--ueb-node-color), 0.3) 50%, transparent 90%);
   background-size: 100%, 100% 28px;
   background-repeat: repeat, no-repeat;
 }
@@ -531,7 +531,7 @@ ueb-node.ueb-node-style-comment .ueb-node-wrapper {
   padding: 0;
   height: 100%;
   border-radius: 0;
-  background: rgba(var(--ueb-node-color), 0.5);
+  background: rgba(var(--ueb-node-color), 0.35);
   box-shadow: none;
 }
 ueb-node.ueb-node-style-comment .ueb-node-wrapper::after {
@@ -551,7 +551,7 @@ ueb-node.ueb-node-style-comment .ueb-node-top {
   padding: 3px 10px;
   box-shadow: none;
   border-radius: 0;
-  background: rgb(var(--ueb-node-color));
+  background: rgb(var(--ueb-node-color)) linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3));
   color: white;
   font-size: 24px;
   text-shadow: 2px 1px 1px #444, 0 0 2px #bbb;

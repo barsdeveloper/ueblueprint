@@ -76,6 +76,7 @@ export default class Configuration {
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         enum: "/Script/CoreUObject.Enum",
+        enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",

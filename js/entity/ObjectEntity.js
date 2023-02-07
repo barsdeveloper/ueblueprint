@@ -417,54 +417,6 @@ export default class ObjectEntity extends IEntity {
 
     nodeDisplayName() {
         switch (this.getType()) {
-            case Configuration.nodeType.callFunction:
-            case Configuration.nodeType.commutativeAssociativeBinaryOperator:
-            case Configuration.nodeType.promotableOperator:
-                let memberName = this.FunctionReference.MemberName ?? ""
-                const memberParent = this.FunctionReference.MemberParent?.path ?? ""
-                if (memberName === "AddKey") {
-                    let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex)
-                    if (result) {
-                        return `Add Key (${Utility.formatStringName(result[1])})`
-                    }
-                }
-                if (memberParent == "/Script/Engine.KismetMathLibrary") {
-                    if (memberName.startsWith("Conv_")) {
-                        return "" // Conversion  nodes do not have visible names
-                    }
-                    if (memberName.startsWith("Percent_")) {
-                        return "%"
-                    }
-                    if (memberName.startsWith("EqualEqual_")) {
-                        return "=="
-                    }
-                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
-                    if (leadingLetter) {
-                        // Some functions start with B or F (Like FCeil, FMax, BMin)
-                        memberName = leadingLetter[1]
-                    }
-                    switch (memberName) {
-                        case "Abs": return "ABS"
-                        case "Exp": return "e"
-                        case "Max": return "MAX"
-                        case "MaxInt64": return "MAX"
-                        case "Min": return "MIN"
-                        case "MinInt64": return "MIN"
-                    }
-                }
-                if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
-                    const setOperationMatch = memberName.match(/Set_(\w+)/)
-                    if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
-                    }
-                }
-                if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
-                    const setOperationMatch = memberName.match(/Map_(\w+)/)
-                    if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
-                    }
-                }
-                return Utility.formatStringName(memberName)
             case Configuration.nodeType.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
             case Configuration.nodeType.dynamicCast:
@@ -472,6 +424,8 @@ export default class ObjectEntity extends IEntity {
                     return "Bad cast node" // Target type not found
                 }
                 return `Cast To ${this.TargetType.getName()}`
+            case Configuration.nodeType.enumLiteral:
+                return `Literal enum ${this.Enum.getName()}`
             case Configuration.nodeType.event:
                 return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
             case Configuration.nodeType.executionSequence:
@@ -500,9 +454,70 @@ export default class ObjectEntity extends IEntity {
         }
         if (this.getClass() === Configuration.nodeType.macro) {
             return Utility.formatStringName(this.MacroGraphReference.getMacroName())
-        } else {
-            return Utility.formatStringName(this.getNameAndCounter()[0])
         }
+        let memberName = this.FunctionReference.MemberName
+        if (memberName) {
+            const memberParent = this.FunctionReference.MemberParent?.path ?? ""
+            switch (memberName) {
+                case "AddKey":
+                    {
+                        let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex)
+                        if (result) {
+                            return `Add Key (${Utility.formatStringName(result[1])})`
+                        }
+                    }
+                    break
+                case "LineTraceSingle":
+                    return "Line Trace By Channel"
+                case "LineTraceSingleByProfile":
+                    return "Line Trace By Profile"
+            }
+            switch (memberParent) {
+                case "/Script/Engine.KismetMathLibrary":
+                    if (memberName.startsWith("Conv_")) {
+                        return "" // Conversion  nodes do not have visible names
+                    }
+                    if (memberName.startsWith("Percent_")) {
+                        return "%"
+                    }
+                    if (memberName.startsWith("EqualEqual_")) {
+                        return "=="
+                    }
+                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
+                    if (leadingLetter) {
+                        // Some functions start with B or F (Like FCeil, FMax, BMin)
+                        memberName = leadingLetter[1]
+                    }
+                    switch (memberName) {
+                        case "Abs": return "ABS"
+                        case "Exp": return "e"
+                        case "LineTraceSingle": return "Line Trace By Channel"
+                        case "Max": return "MAX"
+                        case "MaxInt64": return "MAX"
+                        case "Min": return "MIN"
+                        case "MinInt64": return "MIN"
+                    }
+                    break
+                case "/Script/Engine.BlueprintSetLibrary":
+                    {
+                        const setOperationMatch = memberName.match(/Set_(\w+)/)
+                        if (setOperationMatch) {
+                            return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        }
+                    }
+                    break
+                case "/Script/Engine.BlueprintMapLibrary":
+                    {
+                        const setOperationMatch = memberName.match(/Map_(\w+)/)
+                        if (setOperationMatch) {
+                            return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        }
+                    }
+                    break
+            }
+            return Utility.formatStringName(memberName)
+        }
+        return Utility.formatStringName(this.getNameAndCounter()[0])
     }
 
     nodeColor() {
@@ -517,6 +532,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.inputAxisKeyEvent:
             case Configuration.nodeType.inputDebugKey:
                 return Configuration.nodeColors.red
+            case Configuration.nodeType.enumLiteral:
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
@@ -542,6 +558,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.dynamicCast: return SVGIcon.cast
+            case Configuration.nodeType.enumLiteral: return SVGIcon.enum
             case Configuration.nodeType.event: return SVGIcon.event
             case Configuration.nodeType.executionSequence: return SVGIcon.sequence
             case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop

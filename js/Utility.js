@@ -325,9 +325,8 @@ export default class Utility {
     /** @param {String} value */
     static formatStringName(value) {
         return value
-            .trim()
             // Remove leading b (for boolean values) or newlines
-            .replace(/^b/, "")
+            .replace(/^\s*b/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
             .replaceAll(
                 /^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z0-9])|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])|(?<=[014-9]|(?:2|3)(?!D(?:[^a-z]|$)))(?=[a-zA-Z])|\s*_+\s*|\s{2,}/g,
@@ -336,6 +335,7 @@ export default class Utility {
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
+            .trim()
     }
 
     /** @param {String} value */

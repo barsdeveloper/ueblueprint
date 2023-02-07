@@ -100,6 +100,7 @@ class Configuration {
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         enum: "/Script/CoreUObject.Enum",
+        enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
@@ -741,9 +742,8 @@ class Utility {
     /** @param {String} value */
     static formatStringName(value) {
         return value
-            .trim()
             // Remove leading b (for boolean values) or newlines
-            .replace(/^b/, "")
+            .replace(/^\s*b/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
             .replaceAll(
                 /^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z0-9])|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])|(?<=[014-9]|(?:2|3)(?!D(?:[^a-z]|$)))(?=[a-zA-Z])|\s*_+\s*|\s{2,}/g,
@@ -752,6 +752,7 @@ class Utility {
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
+            .trim()
     }
 
     /** @param {String} value */
@@ -941,15 +942,6 @@ class IEntity {
                 if (defaultValue instanceof Function) {
                     defaultValue = defaultValue(this);
                 }
-                if (defaultType instanceof UnionType) {
-                    if (defaultValue != undefined) {
-                        defaultType = defaultType.types.find(
-                            type => defaultValue instanceof type || defaultValue.constructor == type
-                        ) ?? defaultType.getFirstType();
-                    } else {
-                        defaultType = defaultType.getFirstType();
-                    }
-                }
                 if (defaultType === undefined) {
                     defaultType = Utility.getType(defaultValue);
                 }
@@ -971,7 +963,6 @@ class IEntity {
                                         console.warn(
                                             `UEBlueprint: Tried to assign attribute ${prefix}${attributeName} to `
                                             + `${this.constructor.name} not satisfying the predicate`
-
                                         );
                                         return
                                     }
@@ -991,6 +982,15 @@ class IEntity {
                     }
                     assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)));
                     continue // We have a value, need nothing more
+                }
+                if (defaultType instanceof UnionType) {
+                    if (defaultValue != undefined) {
+                        defaultType = defaultType.types.find(
+                            type => defaultValue instanceof type || defaultValue.constructor == type
+                        ) ?? defaultType.getFirstType();
+                    } else {
+                        defaultType = defaultType.getFirstType();
+                    }
                 }
                 if (defaultValue === undefined) {
                     defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)());
@@ -2206,8 +2206,15 @@ class SVGIcon {
 
     static doN = y`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white" />
-            <path d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" fill="white" />
+            <path fill="white" d="M1 12V8H9V4L16 10L9 16V12H1Z" />
+            <path fill="white" d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" />
+        </svg>
+    `
+
+    static enum = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="white" d="M9 5V0H2V16H14V5H9ZM3.2 4.4L4.5 4H4.6V7H4V4.7L3.2 4.9V4.4ZM4.7 14.8C4.6 14.9 4.3 15 4 15C3.7 15 3.5 14.9 3.3 14.8C3.1 14.6 3 14.4 3 14.2H3.6C3.6 14.3 3.6 14.4 3.7 14.5C3.8 14.6 3.9 14.6 4 14.6C4.1 14.6 4.2 14.6 4.3 14.5C4.4 14.4 4.4 14.3 4.4 14.2C4.4 13.9 4.2 13.8 3.9 13.8H3.7V13.3H4C4.1 13.3 4.3 13.3 4.3 13.2C4.4 13.1 4.4 13 4.4 12.9C4.4 12.8 4.4 12.7 4.3 12.6C4.2 12.5 4.1 12.5 4 12.5C3.9 12.5 3.8 12.5 3.7 12.6C3.6 12.7 3.6 12.7 3.6 12.8H3C3 12.6 3 12.5 3.1 12.4C3.2 12.3 3.3 12.2 3.4 12.1C3.7 12 3.8 12 4 12C4.3 12 4.6 12.1 4.7 12.2C4.9 12.4 5 12.6 5 12.8C5 12.9 5 13.1 4.9 13.2C4.8 13.3 4.7 13.4 4.6 13.5C4.8 13.6 4.9 13.6 5 13.8C5 13.8 5 14 5 14.1C5 14.4 4.9 14.6 4.7 14.8ZM5.1 11H3.1V10.6L4.1 9.6C4.2 9.5 4.3 9.3 4.4 9.2C4.4 9.1 4.4 9 4.4 8.9C4.4 8.8 4.4 8.7 4.3 8.6C4.2 8.5 4.1 8.5 4 8.5C3.9 8.5 3.8 8.5 3.7 8.6C3.6 8.7 3.6 8.8 3.6 9H3C3 8.8 3 8.7 3.1 8.5C3.2 8.4 3.3 8.2 3.5 8.1C3.7 8 3.8 8 4 8C4.3 8 4.5 8.1 4.7 8.2C4.9 8.4 5 8.6 5 8.8C5 9 5 9.1 4.9 9.3C4.8 9.4 4.7 9.6 4.5 9.8L3.8 10.5H5.1V11ZM12 15H6V14H12V15ZM12 11H6V10H12V11ZM12 7H6V6H12V7Z" />
+            <path d="M9 0H8L14 6V5L9 0Z" fill="white"/>
         </svg>
     `
 
@@ -2859,54 +2866,6 @@ class ObjectEntity extends IEntity {
 
     nodeDisplayName() {
         switch (this.getType()) {
-            case Configuration.nodeType.callFunction:
-            case Configuration.nodeType.commutativeAssociativeBinaryOperator:
-            case Configuration.nodeType.promotableOperator:
-                let memberName = this.FunctionReference.MemberName ?? "";
-                const memberParent = this.FunctionReference.MemberParent?.path ?? "";
-                if (memberName === "AddKey") {
-                    let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex);
-                    if (result) {
-                        return `Add Key (${Utility.formatStringName(result[1])})`
-                    }
-                }
-                if (memberParent == "/Script/Engine.KismetMathLibrary") {
-                    if (memberName.startsWith("Conv_")) {
-                        return "" // Conversion  nodes do not have visible names
-                    }
-                    if (memberName.startsWith("Percent_")) {
-                        return "%"
-                    }
-                    if (memberName.startsWith("EqualEqual_")) {
-                        return "=="
-                    }
-                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
-                    if (leadingLetter) {
-                        // Some functions start with B or F (Like FCeil, FMax, BMin)
-                        memberName = leadingLetter[1];
-                    }
-                    switch (memberName) {
-                        case "Abs": return "ABS"
-                        case "Exp": return "e"
-                        case "Max": return "MAX"
-                        case "MaxInt64": return "MAX"
-                        case "Min": return "MIN"
-                        case "MinInt64": return "MIN"
-                    }
-                }
-                if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
-                    const setOperationMatch = memberName.match(/Set_(\w+)/);
-                    if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
-                    }
-                }
-                if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
-                    const setOperationMatch = memberName.match(/Map_(\w+)/);
-                    if (setOperationMatch) {
-                        return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
-                    }
-                }
-                return Utility.formatStringName(memberName)
             case Configuration.nodeType.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
             case Configuration.nodeType.dynamicCast:
@@ -2914,6 +2873,8 @@ class ObjectEntity extends IEntity {
                     return "Bad cast node" // Target type not found
                 }
                 return `Cast To ${this.TargetType.getName()}`
+            case Configuration.nodeType.enumLiteral:
+                return `Literal enum ${this.Enum.getName()}`
             case Configuration.nodeType.event:
                 return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
             case Configuration.nodeType.executionSequence:
@@ -2942,9 +2903,70 @@ class ObjectEntity extends IEntity {
         }
         if (this.getClass() === Configuration.nodeType.macro) {
             return Utility.formatStringName(this.MacroGraphReference.getMacroName())
-        } else {
-            return Utility.formatStringName(this.getNameAndCounter()[0])
         }
+        let memberName = this.FunctionReference.MemberName;
+        if (memberName) {
+            const memberParent = this.FunctionReference.MemberParent?.path ?? "";
+            switch (memberName) {
+                case "AddKey":
+                    {
+                        let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex);
+                        if (result) {
+                            return `Add Key (${Utility.formatStringName(result[1])})`
+                        }
+                    }
+                    break
+                case "LineTraceSingle":
+                    return "Line Trace By Channel"
+                case "LineTraceSingleByProfile":
+                    return "Line Trace By Profile"
+            }
+            switch (memberParent) {
+                case "/Script/Engine.KismetMathLibrary":
+                    if (memberName.startsWith("Conv_")) {
+                        return "" // Conversion  nodes do not have visible names
+                    }
+                    if (memberName.startsWith("Percent_")) {
+                        return "%"
+                    }
+                    if (memberName.startsWith("EqualEqual_")) {
+                        return "=="
+                    }
+                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
+                    if (leadingLetter) {
+                        // Some functions start with B or F (Like FCeil, FMax, BMin)
+                        memberName = leadingLetter[1];
+                    }
+                    switch (memberName) {
+                        case "Abs": return "ABS"
+                        case "Exp": return "e"
+                        case "LineTraceSingle": return "Line Trace By Channel"
+                        case "Max": return "MAX"
+                        case "MaxInt64": return "MAX"
+                        case "Min": return "MIN"
+                        case "MinInt64": return "MIN"
+                    }
+                    break
+                case "/Script/Engine.BlueprintSetLibrary":
+                    {
+                        const setOperationMatch = memberName.match(/Set_(\w+)/);
+                        if (setOperationMatch) {
+                            return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        }
+                    }
+                    break
+                case "/Script/Engine.BlueprintMapLibrary":
+                    {
+                        const setOperationMatch = memberName.match(/Map_(\w+)/);
+                        if (setOperationMatch) {
+                            return Utility.formatStringName(setOperationMatch[1]).toUpperCase()
+                        }
+                    }
+                    break
+            }
+            return Utility.formatStringName(memberName)
+        }
+        return Utility.formatStringName(this.getNameAndCounter()[0])
     }
 
     nodeColor() {
@@ -2959,6 +2981,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.inputAxisKeyEvent:
             case Configuration.nodeType.inputDebugKey:
                 return Configuration.nodeColors.red
+            case Configuration.nodeType.enumLiteral:
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
             case Configuration.nodeType.select:
@@ -2984,6 +3007,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.dynamicCast: return SVGIcon.cast
+            case Configuration.nodeType.enumLiteral: return SVGIcon.enum
             case Configuration.nodeType.event: return SVGIcon.event
             case Configuration.nodeType.executionSequence: return SVGIcon.sequence
             case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
