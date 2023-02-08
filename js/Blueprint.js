@@ -81,7 +81,6 @@ export default class Blueprint extends IElement {
         node.setSelected(selected)
     }
 
-    #avoidScrolling = false
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
     /** @type {NodeElement[]}" */
@@ -126,14 +125,14 @@ export default class Blueprint extends IElement {
         this.scrollY = y
     }
 
-    scrollDelta(x = 0, y = 0, smooth = false) {
+    scrollDelta(x = 0, y = 0, smooth = false, scrollTime = Configuration.smoothScrollTime) {
         if (smooth) {
             let previousScrollDelta = [0, 0]
-            Utility.animate(0, x, Configuration.smoothScrollTime, x => {
+            Utility.animate(0, x, scrollTime, x => {
                 this.scrollDelta(x - previousScrollDelta[0], 0, false)
                 previousScrollDelta[0] = x
             })
-            Utility.animate(0, y, Configuration.smoothScrollTime, y => {
+            Utility.animate(0, y, scrollTime, y => {
                 this.scrollDelta(0, y - previousScrollDelta[1], false)
                 previousScrollDelta[1] = y
             })

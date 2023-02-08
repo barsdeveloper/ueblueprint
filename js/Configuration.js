@@ -24,6 +24,7 @@ export default class Configuration {
     static distanceThreshold = 5 // px
     static dragEventName = "ueb-drag"
     static dragGeneralEventName = "ueb-drag-general"
+    static edgeScrollThreshold = 50
     static editTextEventName = {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",

@@ -455,7 +455,7 @@ export default class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.nodeType.macro) {
             return Utility.formatStringName(this.MacroGraphReference.getMacroName())
         }
-        let memberName = this.FunctionReference.MemberName
+        let memberName = this.FunctionReference?.MemberName
         if (memberName) {
             const memberParent = this.FunctionReference.MemberParent?.path ?? ""
             switch (memberName) {

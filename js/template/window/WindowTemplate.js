@@ -1,10 +1,10 @@
 import { html } from "lit"
-import Configuration from "../Configuration"
-import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate"
-import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
-import SVGIcon from "../SVGIcon"
+import Configuration from "../../Configuration"
+import IDraggablePositionedTemplate from "../IDraggablePositionedTemplate"
+import MouseMoveDraggable from "../../input/mouse/MouseMoveDraggable"
+import SVGIcon from "../../SVGIcon"
 
-/** @typedef {import("../element/WindowElement").default} WindowElement */
+/** @typedef {import("../../element/WindowElement").default} WindowElement */
 
 /** @extends {IDraggablePositionedTemplate<WindowElement>} */
 export default class WindowTemplate extends IDraggablePositionedTemplate {
@@ -22,6 +22,24 @@ export default class WindowTemplate extends IDraggablePositionedTemplate {
             ignoreTranslateCompensate: false,
             movementSpace: this.blueprint,
             stepSize: 1,
+        })
+    }
+
+    setup() {
+        const leftBoundary = this.blueprint.template.gridLeftVisibilityBoundary()
+        const topBoundary = this.blueprint.template.gridTopVisibilityBoundary()
+        this.element.locationX = this.blueprint.scaleCorrectReverse(this.blueprint.mousePosition[0] - leftBoundary)
+        this.element.locationY = this.blueprint.scaleCorrectReverse(this.blueprint.mousePosition[1] - topBoundary)
+        this.element.updateComplete.then(() => {
+            const bounding = this.blueprint.getBoundingClientRect()
+            if (this.element.locationX + this.element.sizeX > bounding.width) {
+                this.element.locationX = bounding.width - this.element.sizeX
+            }
+            this.element.locationX = Math.max(0, this.element.locationX)
+            if (this.element.locationY + this.element.sizeY > bounding.height) {
+                this.element.locationY = bounding.height - this.element.sizeY
+            }
+            this.element.locationY = Math.max(0, this.element.locationY)
         })
     }
 

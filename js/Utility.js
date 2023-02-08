@@ -108,10 +108,10 @@ export default class Utility {
      */
     static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
         const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement)
-        const targetOffset = movementElement.getBoundingClientRect()
+        const bounding = movementElement.getBoundingClientRect()
         let location = [
-            Math.round((viewportLocation[0] - targetOffset.x) * scaleCorrection),
-            Math.round((viewportLocation[1] - targetOffset.y) * scaleCorrection)
+            Math.round((viewportLocation[0] - bounding.x) * scaleCorrection),
+            Math.round((viewportLocation[1] - bounding.y) * scaleCorrection)
         ]
         return location
     }

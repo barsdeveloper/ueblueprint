@@ -1,7 +1,7 @@
-import ColorPickerWindowTemplate from "../template/ColorPickerWindowTemplate"
+import ColorPickerWindowTemplate from "../template/window/ColorPickerWindowTemplate"
 import Configuration from "../Configuration"
 import IDraggableElement from "./IDraggableElement"
-import WindowTemplate from "../template/WindowTemplate"
+import WindowTemplate from "../template/window/WindowTemplate"
 
 /** @typedef {typeof WindowElement} WindowElementConstructor */
 
@@ -43,10 +43,10 @@ export default class WindowElement extends IDraggableElement {
         super.initialize(entity, template)
     }
 
-    setup() {
-        super.setup()
-        this.locationX = this.blueprint.mousePosition[0]
-        this.locationY = this.blueprint.mousePosition[1]
+    computeSizes() {
+        const bounding = this.getBoundingClientRect()
+        this.sizeX = bounding.width
+        this.sizeY = bounding.height
     }
 
     cleanup() {

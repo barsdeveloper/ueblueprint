@@ -3,6 +3,7 @@ import ElementFactory from "../../element/ElementFactory"
 import IMouseClickDrag from "./IMouseClickDrag"
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
  * @typedef {import("../../element/LinkElement").default} LinkElement
  * @typedef {import("../../element/LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("../../element/PinElement").default} PinElement
@@ -67,6 +68,16 @@ export default class MouseCreateLink extends IMouseClickDrag {
     enteredPin
 
     linkValid = false
+
+    /**
+     * @param {PinElement} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.scrollGraphEdge ??= true
+        super(target, blueprint, options)
+    }
 
     startDrag(location) {
         if (this.target.nodeElement.getType() == Configuration.nodeType.knot) {

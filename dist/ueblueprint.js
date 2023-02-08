@@ -48,6 +48,7 @@ class Configuration {
     static distanceThreshold = 5 // px
     static dragEventName = "ueb-drag"
     static dragGeneralEventName = "ueb-drag-general"
+    static edgeScrollThreshold = 50
     static editTextEventName = {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
@@ -525,10 +526,10 @@ class Utility {
      */
     static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
         const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement);
-        const targetOffset = movementElement.getBoundingClientRect();
+        const bounding = movementElement.getBoundingClientRect();
         let location = [
-            Math.round((viewportLocation[0] - targetOffset.x) * scaleCorrection),
-            Math.round((viewportLocation[1] - targetOffset.y) * scaleCorrection)
+            Math.round((viewportLocation[0] - bounding.x) * scaleCorrection),
+            Math.round((viewportLocation[1] - bounding.y) * scaleCorrection)
         ];
         return location
     }
@@ -2904,7 +2905,7 @@ class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.nodeType.macro) {
             return Utility.formatStringName(this.MacroGraphReference.getMacroName())
         }
-        let memberName = this.FunctionReference.MemberName;
+        let memberName = this.FunctionReference?.MemberName;
         if (memberName) {
             const memberParent = this.FunctionReference.MemberParent?.path ?? "";
             switch (memberName) {
@@ -4557,7 +4558,30 @@ class IMouseClickDrag extends IPointing {
         const movement = [e.movementX, e.movementY];
         this.dragTo(location, movement);
         if (this.#trackingMouse) {
-            this.blueprint.mousePosition = this.locationFromEvent(e);
+            this.blueprint.mousePosition = location;
+        }
+        if (this.options.scrollGraphEdge) {
+            const movementNorm = Math.sqrt(movement[0] * movement[0] + movement[1] * movement[1]);
+            const threshold = this.blueprint.scaleCorrect(Configuration.edgeScrollThreshold);
+            const leftThreshold = this.blueprint.template.gridLeftVisibilityBoundary() + threshold;
+            const rightThreshold = this.blueprint.template.gridRightVisibilityBoundary() - threshold;
+            let scrollX = 0;
+            if (location[0] < leftThreshold) {
+                scrollX = location[0] - leftThreshold;
+            } else if (location[0] > rightThreshold) {
+                scrollX = location[0] - rightThreshold;
+            }
+            const topThreshold = this.blueprint.template.gridTopVisibilityBoundary() + threshold;
+            const bottomThreshold = this.blueprint.template.gridBottomVisibilityBoundary() - threshold;
+            let scrollY = 0;
+            if (location[1] < topThreshold) {
+                scrollY = location[1] - topThreshold;
+            } else if (location[1] > bottomThreshold) {
+                scrollY = location[1] - bottomThreshold;
+            }
+            scrollX = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollX) ** 3 * movementNorm * 0.6, -20, 20);
+            scrollY = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollY) ** 3 * movementNorm * 0.6, -20, 20);
+            this.blueprint.scrollDelta(scrollX, scrollY);
         }
     }
 
@@ -4607,6 +4631,7 @@ class IMouseClickDrag extends IPointing {
         options.moveEverywhere ??= false;
         options.movementSpace ??= blueprint?.getGridDOMElement();
         options.repositionOnClick ??= false;
+        options.scrollGraphEdge ??= false;
         options.strictTarget ??= false;
         super(target, blueprint, options);
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
@@ -4815,7 +4840,8 @@ class Paste extends IInput {
 
 class Select extends IMouseClickDrag {
 
-    constructor(target, blueprint, options) {
+    constructor(target, blueprint, options = {}) {
+        options.scrollGraphEdge ??= true;
         super(target, blueprint, options);
         this.selectorElement = this.blueprint.template.selectorElement;
     }
@@ -6032,6 +6058,7 @@ class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
     createDraggableObject() {
         return /** @type {MouseMoveDraggable} */(new MouseMoveNodes(this.element, this.blueprint, {
             draggableElement: this.getDraggableElement(),
+            scrollGraphEdge: true,
         }))
     }
 
@@ -6454,6 +6481,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
 }
 
 /**
+ * @typedef {import("../../Blueprint").default} Blueprint
  * @typedef {import("../../element/LinkElement").default} LinkElement
  * @typedef {import("../../element/LinkElement").LinkElementConstructor} LinkElementConstructor
  * @typedef {import("../../element/PinElement").default} PinElement
@@ -6518,6 +6546,16 @@ class MouseCreateLink extends IMouseClickDrag {
     enteredPin
 
     linkValid = false
+
+    /**
+     * @param {PinElement} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.scrollGraphEdge ??= true;
+        super(target, blueprint, options);
+    }
 
     startDrag(location) {
         if (this.target.nodeElement.getType() == Configuration.nodeType.knot) {
@@ -7356,6 +7394,13 @@ class Blueprint extends IElement {
             reflect: true,
             converter: Utility.booleanConverter,
         },
+        resting: {
+            type: Boolean,
+            attribute: "data-resting",
+            reflect: true,
+            converter: Utility.booleanConverter,
+            noAccessor: true,
+        },
         focused: {
             type: Boolean,
             attribute: "data-focused",
@@ -7407,7 +7452,6 @@ class Blueprint extends IElement {
         node.setSelected(selected);
     }
 
-    #avoidScrolling = false
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
     /** @type {NodeElement[]}" */
@@ -7417,6 +7461,12 @@ class Blueprint extends IElement {
     /** @type {Number[]} */
     mousePosition = [0, 0]
     waitingExpandUpdate = false
+
+    get resting() {
+        return !this.selecting && !this.scrolling
+    }
+    set resting(value) {
+    }
 
     constructor() {
         super();
@@ -7452,14 +7502,14 @@ class Blueprint extends IElement {
         this.scrollY = y;
     }
 
-    scrollDelta(x = 0, y = 0, smooth = false) {
+    scrollDelta(x = 0, y = 0, smooth = false, scrollTime = Configuration.smoothScrollTime) {
         if (smooth) {
             let previousScrollDelta = [0, 0];
-            Utility.animate(0, x, Configuration.smoothScrollTime, x => {
+            Utility.animate(0, x, scrollTime, x => {
                 this.scrollDelta(x - previousScrollDelta[0], 0, false);
                 previousScrollDelta[0] = x;
             });
-            Utility.animate(0, y, Configuration.smoothScrollTime, y => {
+            Utility.animate(0, y, scrollTime, y => {
                 this.scrollDelta(0, y - previousScrollDelta[1], false);
                 previousScrollDelta[1] = y;
             });
@@ -8343,7 +8393,7 @@ const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e
  * SPDX-License-Identifier: BSD-3-Clause
  */const i=e(class extends i$1{constructor(t$1){var e;if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||(null===(e=t$1.strings)||void 0===e?void 0:e.length)>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce(((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`}),"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.vt){this.vt=new Set;for(const t in r)this.vt.add(t);return this.render(r)}this.vt.forEach((t=>{null==r[t]&&(this.vt.delete(t),t.includes("-")?s.removeProperty(t):s[t]="");}));for(const t in r){const e=r[t];null!=e&&(this.vt.add(t),t.includes("-")?s.setProperty(t,e):s[t]=e);}return x}});
 
-/** @typedef {import("../element/WindowElement").default} WindowElement */
+/** @typedef {import("../../element/WindowElement").default} WindowElement */
 
 /** @extends {IDraggablePositionedTemplate<WindowElement>} */
 class WindowTemplate extends IDraggablePositionedTemplate {
@@ -8362,6 +8412,24 @@ class WindowTemplate extends IDraggablePositionedTemplate {
             movementSpace: this.blueprint,
             stepSize: 1,
         })
+    }
+
+    setup() {
+        const leftBoundary = this.blueprint.template.gridLeftVisibilityBoundary();
+        const topBoundary = this.blueprint.template.gridTopVisibilityBoundary();
+        this.element.locationX = this.blueprint.scaleCorrectReverse(this.blueprint.mousePosition[0] - leftBoundary);
+        this.element.locationY = this.blueprint.scaleCorrectReverse(this.blueprint.mousePosition[1] - topBoundary);
+        this.element.updateComplete.then(() => {
+            const bounding = this.blueprint.getBoundingClientRect();
+            if (this.element.locationX + this.element.sizeX > bounding.width) {
+                this.element.locationX = bounding.width - this.element.sizeX;
+            }
+            this.element.locationX = Math.max(0, this.element.locationX);
+            if (this.element.locationY + this.element.sizeY > bounding.height) {
+                this.element.locationY = bounding.height - this.element.sizeY;
+            }
+            this.element.locationY = Math.max(0, this.element.locationY);
+        });
     }
 
     render() {
@@ -8400,7 +8468,7 @@ class WindowTemplate extends IDraggablePositionedTemplate {
 }
 
 /**
- * @typedef {import("../element/WindowElement").default} WindowElement
+ * @typedef {import("../../element/WindowElement").default} WindowElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -9619,10 +9687,10 @@ class WindowElement extends IDraggableElement {
         super.initialize(entity, template);
     }
 
-    setup() {
-        super.setup();
-        this.locationX = this.blueprint.mousePosition[0];
-        this.locationY = this.blueprint.mousePosition[1];
+    computeSizes() {
+        const bounding = this.getBoundingClientRect();
+        this.sizeX = bounding.width;
+        this.sizeY = bounding.height;
     }
 
     cleanup() {

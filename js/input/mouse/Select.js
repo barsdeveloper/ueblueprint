@@ -2,7 +2,8 @@ import IMouseClickDrag from "./IMouseClickDrag"
 
 export default class Select extends IMouseClickDrag {
 
-    constructor(target, blueprint, options) {
+    constructor(target, blueprint, options = {}) {
+        options.scrollGraphEdge ??= true
         super(target, blueprint, options)
         this.selectorElement = this.blueprint.template.selectorElement
     }

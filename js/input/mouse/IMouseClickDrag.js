@@ -74,7 +74,30 @@ export default class IMouseClickDrag extends IPointing {
         const movement = [e.movementX, e.movementY]
         this.dragTo(location, movement)
         if (this.#trackingMouse) {
-            this.blueprint.mousePosition = this.locationFromEvent(e)
+            this.blueprint.mousePosition = location
+        }
+        if (this.options.scrollGraphEdge) {
+            const movementNorm = Math.sqrt(movement[0] * movement[0] + movement[1] * movement[1])
+            const threshold = this.blueprint.scaleCorrect(Configuration.edgeScrollThreshold)
+            const leftThreshold = this.blueprint.template.gridLeftVisibilityBoundary() + threshold
+            const rightThreshold = this.blueprint.template.gridRightVisibilityBoundary() - threshold
+            let scrollX = 0
+            if (location[0] < leftThreshold) {
+                scrollX = location[0] - leftThreshold
+            } else if (location[0] > rightThreshold) {
+                scrollX = location[0] - rightThreshold
+            }
+            const topThreshold = this.blueprint.template.gridTopVisibilityBoundary() + threshold
+            const bottomThreshold = this.blueprint.template.gridBottomVisibilityBoundary() - threshold
+            let scrollY = 0
+            if (location[1] < topThreshold) {
+                scrollY = location[1] - topThreshold
+            } else if (location[1] > bottomThreshold) {
+                scrollY = location[1] - bottomThreshold
+            }
+            scrollX = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollX) ** 3 * movementNorm * 0.6, -20, 20)
+            scrollY = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollY) ** 3 * movementNorm * 0.6, -20, 20)
+            this.blueprint.scrollDelta(scrollX, scrollY)
         }
     }
 
@@ -124,6 +147,7 @@ export default class IMouseClickDrag extends IPointing {
         options.moveEverywhere ??= false
         options.movementSpace ??= blueprint?.getGridDOMElement()
         options.repositionOnClick ??= false
+        options.scrollGraphEdge ??= false
         options.strictTarget ??= false
         super(target, blueprint, options)
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize)

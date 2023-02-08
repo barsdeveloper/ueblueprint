@@ -1,5 +1,5 @@
 import { html, nothing } from "lit"
-import ColorPickerWindowTemplate from "../ColorPickerWindowTemplate"
+import ColorPickerWindowTemplate from "../window/ColorPickerWindowTemplate"
 import Configuration from "../../Configuration"
 import ElementFactory from "../../element/ElementFactory"
 import PinTemplate from "./PinTemplate"

@@ -66,10 +66,6 @@ ueb-blueprint svg {
   scrollbar-width: 0;
 }
 
-ueb-blueprint[data-focused=true] .ueb-viewport-body {
-  overflow: scroll;
-}
-
 .ueb-grid {
   --ueb-grid-line-actual-width: calc(var(--ueb-grid-line-width) / var(--ueb-scale));
   position: absolute;
@@ -206,7 +202,7 @@ ueb-link > svg {
 ueb-link .ueb-link-area path {
   visibility: visible;
   stroke: var(--ueb-link-color);
-  stroke-width: calc(3px / var(--ueb-scale));
+  stroke-width: calc(2px / var(--ueb-scale));
 }
 
 ueb-link[data-dragging=true] .ueb-link-area path,
