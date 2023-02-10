@@ -2,7 +2,7 @@
 
 import Blueprint from "../../js/Blueprint"
 import Configuration from "../../js/Configuration"
-import { generateNodeTest } from "../fixtures/getFirstWordOrder"
+import { generateNodeTest } from "../fixtures/testUtilities"
 import SVGIcon from "../../js/SVGIcon"
 
 const tests = [

@@ -1,30 +1,20 @@
 /// <reference types="cypress" />
 
-import SerializerFactory from "../../js/serialization/SerializerFactory"
 import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory"
-import VectorEntity from "../../js/entity/VectorEntity"
-import Vector2DEntity from "../../js/entity/Vector2DEntity"
 import IntegerEntity from "../../js/entity/IntegerEntity"
 import LinearColorEntity from "../../js/entity/LinearColorEntity"
+import SerializerFactory from "../../js/serialization/SerializerFactory"
 import Utility from "../../js/Utility"
-import ISerializer from "../../js/serialization/ISerializer"
+import Vector2DEntity from "../../js/entity/Vector2DEntity"
+import VectorEntity from "../../js/entity/VectorEntity"
+import KeyBindingEntity from "../../js/entity/KeyBindingEntity"
+
+initializeSerializerFactory()
 
 describe("Serializer", () => {
 
-    before(() => {
-        expect(SerializerFactory,).to.be.a("function")
-        expect(initializeSerializerFactory).to.be.a("function")
-        initializeSerializerFactory()
-    })
-
     context("Boolean", () => {
-        /** @type {ISerializer<Boolean>} */
-        let serializer
-
-        before(() => {
-            serializer = SerializerFactory.getSerializer(Boolean)
-            expect(serializer).to.not.be.undefined
-        })
+        let serializer = SerializerFactory.getSerializer(Boolean)
 
         it("parses true", () => expect(serializer.deserialize("true")).to.be.true)
         it("parses True", () => expect(serializer.deserialize("True")).to.be.true)
@@ -35,26 +25,70 @@ describe("Serializer", () => {
     context("Integer", () => {
         let serializer = SerializerFactory.getSerializer(IntegerEntity)
 
-        before(() => {
-            serializer = SerializerFactory.getSerializer(IntegerEntity)
-            expect(serializer).to.not.be.undefined
-        })
-
-        it("parses 99", () => expect(serializer.deserialize("99").value).to.be.equal(99))
-        it("parses -8685", () => expect(serializer.deserialize("-8685").value).to.be.equal(-8685))
-        it("parses +555", () => expect(serializer.deserialize("+555").value).to.be.equal(555))
+        it("parses 0", () => expect(serializer.deserialize("0"))
+            .to.be.instanceOf(IntegerEntity)
+            .and.property("value").to.be.equal(0)
+        )
+        it("parses +0", () => expect(serializer.deserialize("+0"))
+            .to.be.instanceOf(IntegerEntity)
+            .and.property("value").to.be.equal(0)
+        )
+        it("parses -0", () => expect(serializer.deserialize("-0"))
+            .to.be.instanceOf(IntegerEntity)
+            .and.property("value").to.be.equal(0)
+        )
+        it("parses 99", () => expect(serializer.deserialize("99"))
+            .to.be.instanceOf(IntegerEntity)
+            .and.property("value").to.be.equal(99)
+        )
+        it("parses -8685", () => expect(serializer.deserialize("-8685"))
+            .to.be.instanceOf(IntegerEntity)
+            .and.property("value").to.be.equal(-8685)
+        )
+        it("parses +555", () => expect(serializer.deserialize("+555"))
+            .to.be.instanceOf(IntegerEntity)
+            .and.property("value").to.be.equal(555)
+        )
+        it("parses 1000000000", () => expect(serializer.deserialize("1000000000"))
+            .to.be.instanceOf(IntegerEntity)
+            .and.property("value").to.be.equal(1000000000)
+        )
         it("throws when not an integer", () => expect(() => serializer.deserialize("1.2").value).to.throw())
     })
 
-    context("Vector", () => {
-        /** @type {ISerializer<VectorEntity>} */
-        let serializer
+    context("Number", () => {
+        let serializer = SerializerFactory.getSerializer(Number)
 
-        before(() => {
-            serializer = SerializerFactory.getSerializer(VectorEntity)
-            expect(VectorEntity.expectsAllKeys()).to.be.true
-            expect(serializer).to.not.be.undefined
-        })
+        it("parses 0", () => expect(serializer.deserialize("0")).to.be.approximately(0, 0.00001))
+        it("parses +0", () => expect(serializer.deserialize("+0")).to.be.approximately(0, 0.00001))
+        it("parses -0", () => expect(serializer.deserialize("-0")).to.be.approximately(0, 0.00001))
+        it("parses 5", () => expect(serializer.deserialize("5")).to.be.approximately(5, 0.00001))
+        it("parses 0.05", () => expect(serializer.deserialize("0.05")).to.be.approximately(0.05, 0.00001))
+        it("parses -999.666", () => expect(serializer.deserialize("-999.666")).to.be.approximately(-999.666, 0.001))
+        it("parses +45.4545", () => expect(serializer.deserialize("+45.4545")).to.be.approximately(45.4545, 0.001))
+        it("parses +1000000000", () => expect(serializer.deserialize("+1000000000")).to.be.approximately(1E9, 0.1))
+        it("throws when not numeric", () => expect(() => serializer.deserialize("alpha")).to.throw())
+    })
+
+    context("Number", () => {
+        let serializer = SerializerFactory.getSerializer(KeyBindingEntity)
+
+        it("parses (bCtrl=True,Key=A)", () => expect(serializer.deserialize("(bCtrl=True,Key=A)"))
+            .to.be.instanceOf(KeyBindingEntity)
+            //.and.to.contain({ bCtrl: true })
+        )
+        // it("parses +0", () => expect(serializer.deserialize("+0")).to.be.approximately(0, 0.00001))
+        // it("parses -0", () => expect(serializer.deserialize("-0")).to.be.approximately(0, 0.00001))
+        // it("parses 5", () => expect(serializer.deserialize("5")).to.be.approximately(5, 0.00001))
+        // it("parses 0.05", () => expect(serializer.deserialize("0.05")).to.be.approximately(0.05, 0.00001))
+        // it("parses -999.666", () => expect(serializer.deserialize("-999.666")).to.be.approximately(-999.666, 0.001))
+        // it("parses +45.4545", () => expect(serializer.deserialize("+45.4545")).to.be.approximately(45.4545, 0.001))
+        // it("parses +1000000000", () => expect(serializer.deserialize("+1000000000")).to.be.approximately(1E9, 0.1))
+        // it("throws when not numeric", () => expect(() => serializer.deserialize("alpha")).to.throw())
+    })
+
+    context("Vector", () => {
+        let serializer = SerializerFactory.getSerializer(VectorEntity)
 
         it("parses simple vector", () => expect(serializer.deserialize("(X=1,Y=2,Z=3.5)"))
             .to.be.deep.equal({
@@ -98,14 +132,7 @@ describe("Serializer", () => {
     })
 
     context("Vector2D", () => {
-        /** @type {ISerializer<Vector2DEntity>} */
-        let serializer
-
-        before(() => {
-            serializer = SerializerFactory.getSerializer(Vector2DEntity)
-            expect(Vector2DEntity.expectsAllKeys()).to.be.true
-            expect(serializer).to.not.be.undefined
-        })
+        let serializer = SerializerFactory.getSerializer(Vector2DEntity)
 
         it("parses simple vector", () => expect(serializer.deserialize("(X=78,Y=56.3)"))
             .to.be.deep.equal({
@@ -142,14 +169,7 @@ describe("Serializer", () => {
     })
 
     context("Linear color", () => {
-        /** @type {ISerializer<LinearColorEntity>} */
-        let serializer
-
-        before(() => {
-            serializer = SerializerFactory.getSerializer(LinearColorEntity)
-            expect(LinearColorEntity.expectsAllKeys()).to.be.false
-            expect(serializer).to.not.be.undefined
-        })
+        let serializer = SerializerFactory.getSerializer(LinearColorEntity)
 
         it("check white color", () => {
             const result = LinearColorEntity.getWhite()

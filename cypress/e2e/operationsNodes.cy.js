@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-import { generateNodeTest } from "../fixtures/getFirstWordOrder"
+import { generateNodeTest } from "../fixtures/testUtilities"
 import Configuration from "../../js/Configuration"
 import SVGIcon from "../../js/SVGIcon"
 
