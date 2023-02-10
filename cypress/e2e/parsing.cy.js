@@ -1,13 +1,14 @@
 /// <reference types="cypress" />
 
+import GuidEntity from "../../js/entity/GuidEntity"
 import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory"
 import IntegerEntity from "../../js/entity/IntegerEntity"
+import KeyBindingEntity from "../../js/entity/KeyBindingEntity"
 import LinearColorEntity from "../../js/entity/LinearColorEntity"
 import SerializerFactory from "../../js/serialization/SerializerFactory"
 import Utility from "../../js/Utility"
 import Vector2DEntity from "../../js/entity/Vector2DEntity"
 import VectorEntity from "../../js/entity/VectorEntity"
-import KeyBindingEntity from "../../js/entity/KeyBindingEntity"
 
 initializeSerializerFactory()
 
@@ -70,21 +71,62 @@ describe("Serializer", () => {
         it("throws when not numeric", () => expect(() => serializer.deserialize("alpha")).to.throw())
     })
 
-    context("Number", () => {
+    context("KeyBindingEntity", () => {
         let serializer = SerializerFactory.getSerializer(KeyBindingEntity)
 
-        it("parses (bCtrl=True,Key=A)", () => expect(serializer.deserialize("(bCtrl=True,Key=A)"))
-            .to.be.instanceOf(KeyBindingEntity)
-            //.and.to.contain({ bCtrl: true })
+
+        it("parses A", () =>
+            expect(serializer.deserialize("A"))
+                .to.be.instanceOf(KeyBindingEntity)
+                .and.to.deep.contain({ Key: { value: "A" } })
         )
-        // it("parses +0", () => expect(serializer.deserialize("+0")).to.be.approximately(0, 0.00001))
-        // it("parses -0", () => expect(serializer.deserialize("-0")).to.be.approximately(0, 0.00001))
-        // it("parses 5", () => expect(serializer.deserialize("5")).to.be.approximately(5, 0.00001))
-        // it("parses 0.05", () => expect(serializer.deserialize("0.05")).to.be.approximately(0.05, 0.00001))
-        // it("parses -999.666", () => expect(serializer.deserialize("-999.666")).to.be.approximately(-999.666, 0.001))
-        // it("parses +45.4545", () => expect(serializer.deserialize("+45.4545")).to.be.approximately(45.4545, 0.001))
-        // it("parses +1000000000", () => expect(serializer.deserialize("+1000000000")).to.be.approximately(1E9, 0.1))
-        // it("throws when not numeric", () => expect(() => serializer.deserialize("alpha")).to.throw())
+        it("parses (bCtrl=True,Key=A)", () =>
+            expect(serializer.deserialize("(bCtrl=True,Key=A)"))
+                .to.be.instanceOf(KeyBindingEntity)
+                .and.to.deep.contain({ Key: { value: "A" }, bCtrl: true })
+        )
+        it("parses (bCtrl=false,bShift=false,bCmd=false,bAlt=false,Key=X)", () =>
+            expect(serializer.deserialize("(bCtrl=false,bShift=false,bCmd=true,bAlt=false,Key=X)"))
+                .to.be.instanceOf(KeyBindingEntity)
+                .and.to.deep.contain({ Key: { value: "X" }, bAlt: false, bCtrl: false, bCmd: true })
+        )
+        it("parses spaces correctly", () =>
+            expect(serializer.deserialize("(       bCtrl=  false  \n,       Key \n\n\n  =Y ,bAlt=true     )"))
+                .to.be.instanceOf(KeyBindingEntity)
+                .and.to.deep.contain({ Key: { value: "Y" }, bAlt: true, bCtrl: false })
+        )
+    })
+
+    context("Guid", () => {
+        let serializer = SerializerFactory.getSerializer(GuidEntity)
+
+        it("parses 0556a3ecabf648d0a5c07b2478e9dd32", () =>
+            expect(serializer.deserialize("0556a3ecabf648d0a5c07b2478e9dd32"))
+                .to.be.instanceOf(GuidEntity)
+                .and.property("value").to.be.equal("0556a3ecabf648d0a5c07b2478e9dd32")
+        )
+        it("parses 64023BC344E0453DBB583FAC411489BC", () =>
+            expect(serializer.deserialize("64023BC344E0453DBB583FAC411489BC"))
+                .to.be.instanceOf(GuidEntity)
+                .and.property("value").to.be.equal("64023BC344E0453DBB583FAC411489BC")
+        )
+        it("parses 6edC4a425ca948da8bC78bA52DED6C6C", () =>
+            expect(serializer.deserialize("6edC4a425ca948da8bC78bA52DED6C6C"))
+                .to.be.instanceOf(GuidEntity)
+                .and.property("value").to.be.equal("6edC4a425ca948da8bC78bA52DED6C6C")
+        )
+        it("throws when finding space", () =>
+            expect(() => serializer.deserialize("172087193 9B04362973544B3564FDB2C"))
+                .to.throw()
+        )
+        it("throws when shorter by 1", () =>
+            expect(() => serializer.deserialize("E25F14F8F3E9441AB07153E7DA2BA2B"))
+                .to.throw()
+        )
+        it("throws when longer by 1", () =>
+            expect(() => serializer.deserialize("A78988B0097E48418C8CB87EC5A67ABF7"))
+                .to.throw()
+        )
     })
 
     context("Vector", () => {

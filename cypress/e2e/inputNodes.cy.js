@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 
+import { generateNodeTest } from "../fixtures/testUtilities"
 import Blueprint from "../../js/Blueprint"
 import Configuration from "../../js/Configuration"
-import { generateNodeTest } from "../fixtures/testUtilities"
 import SVGIcon from "../../js/SVGIcon"
 
 const tests = [
