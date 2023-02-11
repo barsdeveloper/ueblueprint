@@ -18,6 +18,7 @@ export default class Configuration {
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
     static colorWindowEventName = "ueb-color-window"
+    static colorWindowName = "Color Picker"
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
     static deleteNodesKeyboardKey = "Delete"
@@ -159,7 +160,9 @@ export default class Configuration {
         end: "ueb-tracking-mouse-end",
     }
     static windowApplyEventName = "ueb-window-apply"
+    static windowApplyButtonText = "OK"
     static windowCancelEventName = "ueb-window-cancel"
+    static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static ModifierKeys = [
         "Ctrl",

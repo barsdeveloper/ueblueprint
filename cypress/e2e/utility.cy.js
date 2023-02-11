@@ -144,5 +144,50 @@ describe("Utility class", () => {
             expect(Utility.range(0, -3)).to.be.deep.equal([0, -1, -2])
             expect(Utility.range(7, -7, -4)).to.be.deep.equal([7, 3, -1, -5])
         })
+        it("String escaping methods test", () => {
+            expect(Utility.escapeString("")).to.be.equal("")
+            expect(Utility.unescapeString("")).to.be.equal("")
+
+            expect(Utility.escapeString(String.raw`\"`)).to.be.equal(String.raw`\\\"`)
+            expect(Utility.unescapeString(String.raw`\"`)).to.be.equal('"')
+
+            expect(Utility.escapeString(String.raw`Hello \"World\"`)).to.be.equal(String.raw`Hello \\\"World\\\"`)
+            expect(Utility.unescapeString(String.raw`Hello \"World\"`)).to.be.equal('Hello "World"')
+
+            expect(Utility.escapeString(String.raw`Those "\\" are two backslash`))
+                .to.be.equal(String.raw`Those \"\\\\\" are two backslash`)
+            expect(Utility.unescapeString(String.raw`Those "\\" are two backslash`))
+                .to.be.equal(String.raw`Those "\" are two backslash`)
+
+            expect(Utility.escapeString(String.raw`Alpha\Beta`)).to.be.equal(String.raw`Alpha\\Beta`)
+            expect(Utility.unescapeString(String.raw`Alpha\Beta`)).to.be.equal(String.raw`Alpha\Beta`)
+
+            expect(Utility.escapeString(String.raw`Alpha\\Beta`)).to.be.equal(String.raw`Alpha\\\\Beta`)
+            expect(Utility.unescapeString(String.raw`Alpha\\Beta`)).to.be.equal(String.raw`Alpha\Beta`)
+
+            expect(Utility.escapeString(String.raw`Alpha\\\Beta`)).to.be.equal(String.raw`Alpha\\\\\\Beta`)
+            expect(Utility.unescapeString(String.raw`Alpha\\\Beta`)).to.be.equal(String.raw`Alpha\\Beta`)
+
+            expect(Utility.escapeString(String.raw`Alpha\\\\Beta`)).to.be.equal(String.raw`Alpha\\\\\\\\Beta`)
+            expect(Utility.unescapeString(String.raw`Alpha\\\\Beta`)).to.be.equal(String.raw`Alpha\\Beta`)
+
+            expect(Utility.escapeString(String.raw`Alpha\\\\\Beta`)).to.be.equal(String.raw`Alpha\\\\\\\\\\Beta`)
+            expect(Utility.unescapeString(String.raw`Alpha\\\\\Beta`)).to.be.equal(String.raw`Alpha\\\Beta`)
+
+            expect(Utility.escapeString(String.raw`Alpha\\\\\\Beta`)).to.be.equal(String.raw`Alpha\\\\\\\\\\\\Beta`)
+            expect(Utility.unescapeString(String.raw`Alpha\\\\\\Beta`)).to.be.equal(String.raw`Alpha\\\Beta`)
+
+            expect(Utility.escapeString(String.raw`Alpha \"Beta\"`)).to.be.equal(String.raw`Alpha \\\"Beta\\\"`)
+            expect(Utility.unescapeString(String.raw`Alpha \"Beta\"`)).to.be.equal(String.raw`Alpha "Beta"`)
+
+            expect(Utility.escapeString(String.raw`Alpha \\"Beta\\"`)).to.be.equal(String.raw`Alpha \\\\\"Beta\\\\\"`)
+            expect(Utility.unescapeString(String.raw`Alpha \\"Beta\\"`)).to.be.equal(String.raw`Alpha \"Beta\"`)
+
+            expect(Utility.escapeString('Alpha\nBravo\\Charlie\n"Delta"'))
+                .to.equal(String.raw`Alpha\nBravo\\Charlie\n\"Delta\"`)
+            expect(Utility.unescapeString(String.raw`Alpha\nBravo\\Charlie\n\"Delta\"`)).to.equal(
+                `Alpha\nBravo\\Charlie\n"Delta"`
+            )
+        })
     })
 })

@@ -346,14 +346,18 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                     </div>
                 </div>
                 <div class="ueb-buttons">
-                    <div class="ueb-color-picker-ok ueb-button" @click="${() => this.apply()}">OK</div>
-                    <div class="ueb-color-picker-cancel ueb-button" @click="${() => this.cancel()}">Cancel</div>
+                    <div class="ueb-color-picker-ok ueb-button" @click="${() => this.apply()}">
+                        ${Configuration.windowApplyButtonText}
+                    </div>
+                    <div class="ueb-color-picker-cancel ueb-button" @click="${() => this.cancel()}">
+                        ${Configuration.windowCancelButtonText}
+                    </div>
                 </div>
             </div>
         `
     }
 
     renderWindowName() {
-        return html`Color Picker`
+        return html`${Configuration.colorWindowName}`
     }
 }

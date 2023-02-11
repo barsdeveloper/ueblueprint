@@ -293,17 +293,21 @@ export default class Utility {
     }
 
     /** @param {String} value */
-    static escapeString(value, input = false) {
+    static escapeString(value) {
         return value
+            .replaceAll('\\', '\\\\') // Escape \
             .replaceAll('"', '\\"') // Escape "
             .replaceAll("\n", "\\n") // Replace newline with \n
+            .replaceAll("\t", "\\t") // Replace tab with \t
     }
 
     /** @param {String} value */
-    static unescapeString(value, input = false) {
+    static unescapeString(value) {
         return value
-            .replaceAll('\\"', '"')
-            .replaceAll("\\n", "\n")
+            .replaceAll("\\t", "\t") // Replace tab with \t
+            .replaceAll("\\n", "\n") // Replace newline with \n
+            .replaceAll('\\"', '"') // Escape "
+            .replaceAll('\\\\', '\\') // Escape \
     }
 
     /** @param {String} value */
