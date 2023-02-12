@@ -323,7 +323,7 @@ export default class Utility {
     }
 
     /** @param {String} value */
-    static formatStringName(value) {
+    static formatStringName(value = "") {
         return value
             // Remove leading b (for boolean values) or newlines
             .replace(/^\s*b/, "")

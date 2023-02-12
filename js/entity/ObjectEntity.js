@@ -304,7 +304,7 @@ export default class ObjectEntity extends IEntity {
 
     getType() {
         let classValue = this.getClass()
-        if (classValue === Configuration.nodeType.macro) {
+        if (this.MacroGraphReference?.MacroGraph?.path) {
             return this.MacroGraphReference.MacroGraph.path
         }
         return classValue
@@ -407,7 +407,7 @@ export default class ObjectEntity extends IEntity {
             || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
     }
 
-    hasHIDAttribute() {
+    getHIDAttribute() {
         return this.InputKey ?? this.AxisKey ?? this.InputAxisKey
     }
 
@@ -423,15 +423,15 @@ export default class ObjectEntity extends IEntity {
                 if (!this.TargetType) {
                     return "Bad cast node" // Target type not found
                 }
-                return `Cast To ${this.TargetType.getName()}`
+                return `Cast To ${this.TargetType?.getName()}`
             case Configuration.nodeType.enumLiteral:
-                return `Literal enum ${this.Enum.getName()}`
+                return `Literal enum ${this.Enum?.getName()}`
             case Configuration.nodeType.event:
                 return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
             case Configuration.nodeType.executionSequence:
                 return "Sequence"
             case Configuration.nodeType.forEachElementInEnum:
-                return `For Each ${this.Enum.getName()}`
+                return `For Each ${this.Enum?.getName()}`
             case Configuration.nodeType.forEachLoopWithBreak:
                 return "For Each Loop with Break"
             case Configuration.nodeType.ifThenElse:
@@ -441,7 +441,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.variableSet:
                 return "SET"
         }
-        const keyNameSymbol = this.hasHIDAttribute()
+        const keyNameSymbol = this.getHIDAttribute()
         if (keyNameSymbol) {
             const keyName = keyNameSymbol.toString()
             let title = ObjectEntity.keyName(keyName) ?? Utility.formatStringName(keyName)
@@ -453,7 +453,7 @@ export default class ObjectEntity extends IEntity {
             return title
         }
         if (this.getClass() === Configuration.nodeType.macro) {
-            return Utility.formatStringName(this.MacroGraphReference.getMacroName())
+            return Utility.formatStringName(this.MacroGraphReference?.getMacroName())
         }
         let memberName = this.FunctionReference?.MemberName
         if (memberName) {
@@ -580,7 +580,7 @@ export default class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.nodeType.macro) {
             return SVGIcon.macro
         }
-        const hidValue = this.hasHIDAttribute()?.toString()
+        const hidValue = this.getHIDAttribute()?.toString()
         if (hidValue) {
             if (hidValue.includes("Mouse")) {
                 return SVGIcon.mouse
