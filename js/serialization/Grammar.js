@@ -56,6 +56,37 @@ export default class Grammar {
 
     /*   ---   Factory   ---   */
 
+    /**
+     * @template T
+     * @param {RegExp} re
+     * @param {(execResult) => T} mapper
+     */
+    static regexMap(re, mapper) {
+        const anchored = RegExp("^(?:" + re.source + ")", re.flags)
+        const expected = "" + re
+        /** @param {Grammar} r */
+        return P((input, i) => {
+            const match = anchored.exec(input.slice(i))
+            if (match) {
+                return P.makeSuccess(i + match[0].length, mapper(match))
+            }
+            return P.makeFailure(i, expected)
+        })
+    }
+
+    /** @param {String} str */
+    static getStringParser(str) {
+        return P((input, i) => {
+            var j = i + str.length
+            var head = input.slice(i, j)
+            if (head === str) {
+                return makeSuccess(j, head)
+            } else {
+                return makeFailure(i, expected)
+            }
+        })
+    }
+
     /** @param {Grammar} r */
     static getGrammarForType(r, attribute, defaultGrammar = r.AttributeAnyValue) {
         if (attribute.constructor === Object) {
@@ -237,8 +268,7 @@ export default class Grammar {
     Null = r => P.regex(new RegExp(String.raw`\(${Grammar.Regex.InlineOptWhitespace.source}\)`)).map(() => null).desc("null: ()")
 
     /** @param {Grammar} r */
-    Boolean = r => P.regex(/true|false/i).map(v => v.toLocaleLowerCase() === "true" ? true : false)
-        .desc("either True or False")
+    Boolean = r => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false).desc("either True or False")
 
     /** @param {Grammar} r */
     Number = r => P.regex(Grammar.Regex.Number).map(Number).desc("a number")
@@ -250,7 +280,7 @@ export default class Grammar {
     RealUnit = r => P.regex(Grammar.Regex.RealUnit).map(Number).desc("a number between 0 and 1")
 
     /** @param {Grammar} r */
-    NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
+    NaturalNumber = r => Grammar.regexMap(/\d+/, v => parseInt(v[0])).desc("a natural number")
 
     /** @param {Grammar} r */
     ColorNumber = r => P.regexp(Grammar.Regex.ByteInteger).desc("a number between 0 and 255")
@@ -324,20 +354,21 @@ export default class Grammar {
     )
 
     /** @param {Grammar} r */
-    LocalizedText = r => P.seqMap(
-        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _0 (ignored)
-        r.String.trim(P.optWhitespace), // Goes into namespace
-        P.string(","), // Goes into _2 (ignored)
-        r.String.trim(P.optWhitespace), // Goes into key
-        P.string(","), // Goes into _4 (ignored)
-        r.String.trim(P.optWhitespace), // Goes into value
-        P.string(")"), // Goes into _6 (ignored)
-        (_0, namespace, _2, key, _4, value, _6) => new LocalizedTextEntity({
-            namespace: namespace,
-            key: key,
-            value: value
-        })
-    )
+    LocalizedText = r =>
+        Grammar.regexMap(
+            new RegExp(
+                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*\)`
+            ),
+            matchResult => new LocalizedTextEntity({
+                namespace: matchResult[1],
+                key: matchResult[2],
+                value: matchResult[3]
+            }
+            )
+        )
 
     /** @param {Grammar} r */
     InvariantText = r => r.String.trim(P.optWhitespace).wrap(
