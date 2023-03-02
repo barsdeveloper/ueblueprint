@@ -42,6 +42,7 @@ class Configuration {
     static colorDragEventName = "ueb-color-drag"
     static colorPickEventName = "ueb-color-pick"
     static colorWindowEventName = "ueb-color-window"
+    static colorWindowName = "Color Picker"
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
     static deleteNodesKeyboardKey = "Delete"
@@ -183,7 +184,9 @@ class Configuration {
         end: "ueb-tracking-mouse-end",
     }
     static windowApplyEventName = "ueb-window-apply"
+    static windowApplyButtonText = "OK"
     static windowCancelEventName = "ueb-window-cancel"
+    static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static ModifierKeys = [
         "Ctrl",
@@ -711,17 +714,21 @@ class Utility {
     }
 
     /** @param {String} value */
-    static escapeString(value, input = false) {
+    static escapeString(value) {
         return value
+            .replaceAll('\\', '\\\\') // Escape \
             .replaceAll('"', '\\"') // Escape "
             .replaceAll("\n", "\\n") // Replace newline with \n
+            .replaceAll("\t", "\\t") // Replace tab with \t
     }
 
     /** @param {String} value */
-    static unescapeString(value, input = false) {
+    static unescapeString(value) {
         return value
-            .replaceAll('\\"', '"')
-            .replaceAll("\\n", "\n")
+            .replaceAll("\\t", "\t") // Replace tab with \t
+            .replaceAll("\\n", "\n") // Replace newline with \n
+            .replaceAll('\\"', '"') // Escape "
+            .replaceAll('\\\\', '\\') // Escape \
     }
 
     /** @param {String} value */
@@ -3035,7 +3042,7 @@ class ObjectEntity extends IEntity {
             if (hidValue.includes("Mouse")) {
                 return SVGIcon.mouse
             } else if (hidValue.includes("Gamepad_Special")) {
-                return SVGIcon.keyboard // This is called Touchpad in Unreal Engine
+                return SVGIcon.keyboard // This is called Touchpad in UE
             } else if (hidValue.includes("Gamepad") || hidValue.includes("Steam")) {
                 return SVGIcon.gamepad
             } else if (hidValue.includes("Touch")) {
@@ -3097,7 +3104,52 @@ let P = Parsimmon;
 
 class Grammar {
 
+    static Regex = {
+        ByteInteger: /0*(?:25[0-5]|2[0-4]\d|1?\d?\d|)(?!\d)/, // A integer between 0 and 255
+        HexDigit: /[0-9a-fA-F]/,
+        InlineOptWhitespace: /[^\S\n]*/,
+        InlineWhitespace: /[^\S\n]+/,
+        InsideString: /(?:[^"\\]|\\.)*/,
+        Integer: /[\-\+]?\d+/,
+        MultilineWhitespace: /\s*\n\s*/,
+        Number: /[-\+]?\d+(?:\.\d+)?/,
+        RealUnit: /^\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/, // A number between 0 and 1 included
+        Symbol: /[a-zA-Z_]\w*/,
+        Word: /[a-zA-Z_]+/,
+    }
+
     /*   ---   Factory   ---   */
+
+    /**
+     * @template T
+     * @param {RegExp} re
+     * @param {(execResult) => T} mapper
+     */
+    static regexMap(re, mapper) {
+        const anchored = RegExp("^(?:" + re.source + ")", re.flags);
+        const expected = "" + re;
+        /** @param {Grammar} r */
+        return P((input, i) => {
+            const match = anchored.exec(input.slice(i));
+            if (match) {
+                return P.makeSuccess(i + match[0].length, mapper(match))
+            }
+            return P.makeFailure(i, expected)
+        })
+    }
+
+    /** @param {String} str */
+    static getStringParser(str) {
+        return P((input, i) => {
+            var j = i + str.length;
+            var head = input.slice(i, j);
+            if (head === str) {
+                return makeSuccess(j, head)
+            } else {
+                return makeFailure(i, expected)
+            }
+        })
+    }
 
     /** @param {Grammar} r */
     static getGrammarForType(r, attribute, defaultGrammar = r.AttributeAnyValue) {
@@ -3149,6 +3201,8 @@ class Grammar {
                 return r.Integer
             case InvariantTextEntity:
                 return r.InvariantText
+            case KeyBindingEntity:
+                return r.KeyBinding
             case LinearColorEntity:
                 return r.LinearColor
             case LocalizedTextEntity:
@@ -3275,56 +3329,36 @@ class Grammar {
     /*   ---   General   ---   */
 
     /** @param {Grammar} r */
-    InlineWhitespace = r => P.regex(/[^\S\n]+/).desc("single line whitespace")
+    Null = r => P.regex(new RegExp(String.raw`\(${Grammar.Regex.InlineOptWhitespace.source}\)`)).map(() => null).desc("null: ()")
 
     /** @param {Grammar} r */
-    InlineOptWhitespace = r => P.regex(/[^\S\n]*/).desc("single line optional whitespace")
+    Boolean = r => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false).desc("either True or False")
 
     /** @param {Grammar} r */
-    MultilineWhitespace = r => P.regex(/[^\S\n]*\n\s*/).desc("whitespace with at least a newline")
+    Number = r => P.regex(Grammar.Regex.Number).map(Number).desc("a number")
 
     /** @param {Grammar} r */
-    Null = r => P.seq(P.string("("), r.InlineOptWhitespace, P.string(")")).map(() => null).desc("null: ()")
+    BigInt = r => P.regex(Grammar.Regex.Integer).map(v => BigInt(v)).desc("a big integer")
 
     /** @param {Grammar} r */
-    Boolean = r => P.alt(
-        P.string("True"),
-        P.string("true"),
-        P.string("False"),
-        P.string("false"),
-    ).map(v => v.toLocaleLowerCase() === "true" ? true : false)
-        .desc("either True or False")
+    RealUnit = r => P.regex(Grammar.Regex.RealUnit).map(Number).desc("a number between 0 and 1")
 
     /** @param {Grammar} r */
-    HexDigit = r => P.regex(/[0-9a-fA-f]/).desc("hexadecimal digit")
+    NaturalNumber = r => Grammar.regexMap(/\d+/, v => parseInt(v[0])).desc("a natural number")
 
     /** @param {Grammar} r */
-    Number = r => P.regex(/[-\+]?[0-9]+(?:\.[0-9]+)?/).map(Number).desc("a number")
+    ColorNumber = r => P.regexp(Grammar.Regex.ByteInteger).desc("a number between 0 and 255")
 
     /** @param {Grammar} r */
-    BigInt = r => P.regex(/[\-\+]?[0-9]+/).map(v => BigInt(v)).desc("a big integer")
+    Word = r => P.regexp(Grammar.Regex.Word).desc("a word")
 
     /** @param {Grammar} r */
-    RealNumber = r => P.regex(/[-\+]?[0-9]+\.[0-9]+/).map(Number).desc("a number written as real")
-
-    /** @param {Grammar} r */
-    RealUnit = r => P.regex(/\+?[0-9]+(?:\.[0-9]+)?/).map(Number).assert(v => v >= 0 && v <= 1).desc("a number between 0 and 1")
-
-    /** @param {Grammar} r */
-    NaturalNumber = r => P.regex(/0|[1-9]\d*/).map(Number).desc("a natural number")
-
-    /** @param {Grammar} r */
-    ColorNumber = r => r.NaturalNumber.assert(n => 0 <= n && n < 256, "the color must be between 0 and 256 excluded")
-
-    /** @param {Grammar} r */
-    Word = r => P.regex(/[a-zA-Z_]+/).desc("a word")
-
-    /** @param {Grammar} r */
-    String = r => P.regex(/(?:[^"\\]|\\.)*/).wrap(P.string('"'), P.string('"')).map(Utility.unescapeString)
+    String = r => P.regexp(new RegExp(`"(${Grammar.Regex.InsideString.source})"`), 1).map(Utility.unescapeString)
         .desc('string (with possibility to escape the quote using \")')
 
     /** @param {Grammar} r */
-    AttributeName = r => r.Word.sepBy1(P.string(".")).tieWith(".").desc("dot-separated words")
+    AttributeName = r => P.regexp(new RegExp(String.raw`(?:(?:^|(?<!^)\.)${Grammar.Regex.Word.source})+`))
+        .desc("dot-separated words")
 
     /*   ---   Entity   ---   */
 
@@ -3335,32 +3369,30 @@ class Grammar {
     Integer64 = r => r.BigInt.map(v => new Integer64Entity(v)).desc("an integer64")
 
     /** @param {Grammar} r */
-    Integer = r => P.regex(/[\-\+]?[0-9]+/).map(v => new IntegerEntity(v)).desc("an integer")
+    Integer = r => P.regex(Grammar.Regex.Integer).map(v => new IntegerEntity(v)).desc("an integer")
 
     /** @param {Grammar} r */
-    Byte = r => P.regex(/\+?[0-9]+/)
-        .map(v => parseInt(v))
-        .assert(v => v >= 0 && v < 1 << 8)
-        .map(v => new ByteEntity(v))
-        .desc("a Byte")
+    Byte = r => P.regex(Grammar.Regex.ByteInteger).map(v => new ByteEntity(parseInt(v))).desc("a Byte")
 
     /** @param {Grammar} r */
-    Guid = r => r.HexDigit.times(32).tie().map(v => new GuidEntity({ value: v })).desc("32 digit hexadecimal value")
+    Guid = r => P.regexp(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
+        .map(v => new GuidEntity({ value: v }))
+        .desc("32 digit hexadecimal value")
 
     /** @param {Grammar} r */
     Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
 
     /** @param {Grammar} r */
-    PathSymbol = r => P.regex(/[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
+    PathSymbol = r => P.regex(/\w+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
-    PathSymbolOptSpaces = r => P.regex(/[0-9\w]+(?: [0-9\w]+)+|[0-9\w]+/).map(v => new PathSymbolEntity({ value: v }))
+    PathSymbolOptSpaces = r => P.regex(/(?:(?:^|(?<!^) )\w+)+/).map(v => new PathSymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
-    Symbol = r => P.regex(/[a-zA-Z_]\w*/).map(v => new SymbolEntity({ value: v }))
+    Symbol = r => P.regex(Grammar.Regex.Symbol).map(v => new SymbolEntity({ value: v }))
 
     /** @param {Grammar} r */
-    Enum = r => P.regex(/[a-zA-Z_]\w*/).map(v => new EnumEntity({ value: v }))
+    Enum = r => P.regex(Grammar.Regex.Symbol).map(v => new EnumEntity({ value: v }))
 
     /** @param {Grammar} r */
     ObjectReference = r => P.alt(
@@ -3386,20 +3418,20 @@ class Grammar {
     )
 
     /** @param {Grammar} r */
-    LocalizedText = r => P.seqMap(
-        P.string(LocalizedTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")), // Goes into _0 (ignored)
-        r.String.trim(P.optWhitespace), // Goes into namespace
-        P.string(","), // Goes into _2 (ignored)
-        r.String.trim(P.optWhitespace), // Goes into key
-        P.string(","), // Goes into _4 (ignored)
-        r.String.trim(P.optWhitespace), // Goes into value
-        P.string(")"), // Goes into _6 (ignored)
-        (_0, namespace, _2, key, _4, value, _6) => new LocalizedTextEntity({
-            namespace: namespace,
-            key: key,
-            value: value
-        })
-    )
+    LocalizedText = r =>
+        Grammar.regexMap(
+            new RegExp(
+                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*\)`
+            ),
+            matchResult => new LocalizedTextEntity({
+                namespace: matchResult[1],
+                key: matchResult[2],
+                value: matchResult[3]
+            }
+            ))
 
     /** @param {Grammar} r */
     InvariantText = r => r.String.trim(P.optWhitespace).wrap(
@@ -3515,8 +3547,7 @@ class Grammar {
 
     /** @param {Grammar} r */
     CustomProperties = r =>
-        P.string("CustomProperties")
-            .then(P.whitespace)
+        P.regex(/CustomProperties\s+/)
             .then(r.Pin)
             .map(pin => entity => {
                 /** @type {Array} */
@@ -3527,14 +3558,14 @@ class Grammar {
 
     /** @param {Grammar} r */
     Object = r => P.seqMap(
-        P.seq(P.string("Begin"), P.whitespace, P.string("Object"), P.whitespace),
+        P.regexp(/Begin\s+Object\s+/),
         P
             .alt(
                 r.CustomProperties,
                 Grammar.createAttributeGrammar(r, ObjectEntity)
             )
             .sepBy1(P.whitespace),
-        P.seq(r.MultilineWhitespace, P.string("End"), P.whitespace, P.string("Object")),
+        P.regexp(/\s+End\s+Object/),
         (_0, attributes, _2) => {
             let values = {};
             attributes.forEach(attributeSetter => attributeSetter(values));
@@ -7394,13 +7425,6 @@ class Blueprint extends IElement {
             reflect: true,
             converter: Utility.booleanConverter,
         },
-        resting: {
-            type: Boolean,
-            attribute: "data-resting",
-            reflect: true,
-            converter: Utility.booleanConverter,
-            noAccessor: true,
-        },
         focused: {
             type: Boolean,
             attribute: "data-focused",
@@ -7461,12 +7485,6 @@ class Blueprint extends IElement {
     /** @type {Number[]} */
     mousePosition = [0, 0]
     waitingExpandUpdate = false
-
-    get resting() {
-        return !this.selecting && !this.scrolling
-    }
-    set resting(value) {
-    }
 
     constructor() {
         super();
@@ -8806,15 +8824,19 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                     </div>
                 </div>
                 <div class="ueb-buttons">
-                    <div class="ueb-color-picker-ok ueb-button" @click="${() => this.apply()}">OK</div>
-                    <div class="ueb-color-picker-cancel ueb-button" @click="${() => this.cancel()}">Cancel</div>
+                    <div class="ueb-color-picker-ok ueb-button" @click="${() => this.apply()}">
+                        ${Configuration.windowApplyButtonText}
+                    </div>
+                    <div class="ueb-color-picker-cancel ueb-button" @click="${() => this.cancel()}">
+                        ${Configuration.windowCancelButtonText}
+                    </div>
                 </div>
             </div>
         `
     }
 
     renderWindowName() {
-        return y`Color Picker`
+        return y`${Configuration.colorWindowName}`
     }
 }
 

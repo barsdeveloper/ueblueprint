@@ -1,7 +1,7 @@
 {
   "name": "ueblueprint",
   "version": "1.0.0",
-  "description": "Unreal Engine's Blueprint visualisation library",
+  "description": "UE's Blueprint visualisation library",
   "main": "ueblueprint.js",
   "scripts": {
     "build": "rollup --config && sass scss/export.scss:dist/css/ueb-style.css && sass scss/export.scss:dist/css/ueb-style.min.css --style=compressed",
@@ -27,6 +27,7 @@
     "@rollup/plugin-commonjs": "^21.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-terser": "^0.1.0",
+    "@types/parsimmon": "^1.10.6",
     "concurrently": "^7.6.0",
     "cypress": "^12.1.0",
     "http-server": "^14.1.1",
