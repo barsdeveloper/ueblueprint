@@ -1,6 +1,6 @@
 # UEBlueprint
 
-A stand alone editor implementation of the Unreal Engine's Blueprint visual language. (WIP)
+A stand alone editor implementation of the UE's Blueprint visual language. (WIP)
 
 ## Features:
 

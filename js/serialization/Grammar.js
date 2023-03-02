@@ -371,11 +371,13 @@ export default class Grammar {
         )
 
     /** @param {Grammar} r */
-    InvariantText = r => r.String.trim(P.optWhitespace).wrap(
-        P.string(InvariantTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")),
-        P.string(")")
-    )
-        .map(value => new InvariantTextEntity({ value: value }))
+    InvariantText = r =>
+        Grammar.regexMap(
+            new RegExp(
+                String.raw`${InvariantTextEntity.lookbehind}\s*\("(${Grammar.Regex.InsideString.source})"\)`,
+                matchResult => new InvariantTextEntity({ value: matchResult[1] })
+            )
+        )
 
     /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(

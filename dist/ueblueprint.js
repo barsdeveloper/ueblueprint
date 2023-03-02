@@ -3042,7 +3042,7 @@ class ObjectEntity extends IEntity {
             if (hidValue.includes("Mouse")) {
                 return SVGIcon.mouse
             } else if (hidValue.includes("Gamepad_Special")) {
-                return SVGIcon.keyboard // This is called Touchpad in Unreal Engine
+                return SVGIcon.keyboard // This is called Touchpad in UE
             } else if (hidValue.includes("Gamepad") || hidValue.includes("Steam")) {
                 return SVGIcon.gamepad
             } else if (hidValue.includes("Touch")) {
