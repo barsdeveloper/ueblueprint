@@ -1,6 +1,7 @@
 // @ts-nocheck
 import ByteEntity from "../entity/ByteEntity"
 import EnumEntity from "../entity/EnumEntity"
+import FormatTextEntity from "../entity/FormatTextEntity"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity"
 import GuidEntity from "../entity/GuidEntity"
 import IdentifierEntity from "../entity/IdentifierEntity"
@@ -89,33 +90,6 @@ export default class Grammar {
 
     /** @param {Grammar} r */
     static getGrammarForType(r, attribute, defaultGrammar = r.AttributeAnyValue) {
-        if (attribute.constructor === Object) {
-            attribute = /** @type {AttributeInformation} */(attribute)
-            let type = attribute.type
-            let result
-            if (type instanceof Array) {
-                result = Grammar.getGrammarForType(r, type[0])
-                    .trim(P.optWhitespace)
-                    .sepBy(P.string(","))
-                    .skip(P.regex(/,?\s*/))
-                    .wrap(P.string("("), P.string(")"))
-            } else if (type instanceof UnionType) {
-                result = type.types
-                    .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
-                    .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
-                        ? r.AttributeAnyValue
-                        : accum.or(cur))
-            } else {
-                result = Grammar.getGrammarForType(r, type, defaultGrammar)
-            }
-            if (attribute.serialized && !(type instanceof String)) {
-                result = result.wrap(P.string('"'), P.string('"'))
-            }
-            if (attribute.nullable) {
-                result = result.or(r.Null)
-            }
-            return result
-        }
         switch (attribute) {
             case BigInt:
                 return r.BigInt
@@ -125,6 +99,8 @@ export default class Grammar {
                 return r.Byte
             case EnumEntity:
                 return r.Enum
+            case FormatTextEntity:
+                return r.FormatText
             case FunctionReferenceEntity:
                 return r.FunctionReference
             case GuidEntity:
@@ -177,9 +153,35 @@ export default class Grammar {
                 return r.Vector2D
             case VectorEntity:
                 return r.Vector
-            default:
-                return defaultGrammar
         }
+        let result = defaultGrammar
+        const type = attribute.constructor === Object
+            ? attribute.type
+            : attribute.constructor
+        if (type instanceof Array) {
+            result = Grammar.getGrammarForType(r, type[0])
+                .trim(P.optWhitespace)
+                .sepBy(P.string(","))
+                .skip(P.regex(/,?\s*/))
+                .wrap(P.string("("), P.string(")"))
+        } else if (type instanceof UnionType) {
+            result = type.types
+                .map(v => Grammar.getGrammarForType(r, v))
+                .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
+                    ? r.AttributeAnyValue
+                    : accum.or(cur))
+        } else if (attribute.constructor === Object) {
+            result = Grammar.getGrammarForType(r, type, defaultGrammar)
+        }
+        if (attribute.constructor === Object) {
+            if (attribute.serialized && type.constructor !== String) {
+                result = result.wrap(P.string('"'), P.string('"'))
+            }
+            if (attribute.nullable) {
+                result = result.or(r.Null)
+            }
+        }
+        return result
     }
 
     /** @param {Grammar} r */
@@ -222,7 +224,7 @@ export default class Grammar {
     /**
      * @param {Grammar} r
      * @param {EntityConstructor} entityType
-     * @param {Boolean | Number} acceptUnknownKeys can be anumber to specify the limit or true, to let it be a reasonable value
+     * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      */
     static createEntityGrammar = (r, entityType, acceptUnknownKeys = true) =>
         P.seqMap(
@@ -366,18 +368,19 @@ export default class Grammar {
                 namespace: matchResult[1],
                 key: matchResult[2],
                 value: matchResult[3]
-            }
-            )
+            })
         )
 
     /** @param {Grammar} r */
     InvariantText = r =>
         Grammar.regexMap(
-            new RegExp(
-                String.raw`${InvariantTextEntity.lookbehind}\s*\("(${Grammar.Regex.InsideString.source})"\)`,
-                matchResult => new InvariantTextEntity({ value: matchResult[1] })
-            )
+            new RegExp(String.raw`${InvariantTextEntity.lookbehind}\s*\("(${Grammar.Regex.InsideString.source})"\)`),
+            matchResult => new InvariantTextEntity({ value: matchResult[1] })
         )
+
+    FormatText = r => P.string(FormatTextEntity.lookbehind).then(P.optWhitespace).then(
+        Grammar.getGrammarForType(r, FormatTextEntity.attributes.value).wrap(P.string("("), P.string(")"))
+    )
 
     /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(

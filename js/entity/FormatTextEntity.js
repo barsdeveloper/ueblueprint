@@ -7,7 +7,9 @@ export default class FormatTextEntity extends IEntity {
 
     static lookbehind = "LOCGEN_FORMAT_NAMED"
     static attributes = {
-        value: [new UnionType(LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
+        value: {
+            type: [new UnionType(LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)]
+        },
     }
 
     static {
@@ -18,4 +20,4 @@ export default class FormatTextEntity extends IEntity {
         super(values)
         /** @type {String} */ this.value
     }
-} 1
+}

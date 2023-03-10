@@ -64,9 +64,17 @@ export default class SVGIcon {
     `
 
     static doN = html`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
             <path fill="white" d="M1 12V8H9V4L16 10L9 16V12H1Z" />
             <path fill="white" d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" />
+        </svg>
+    `
+
+    static doOnce = html`
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white"/>
+            <path d="M6 6H5L4.98752 2.42387L4 2.8642V1.893L5.89305 1H6V6Z" fill="white"/>
+            <rect x="4" y="5" width="3" height="1" fill="white"/>
         </svg>
     `
 

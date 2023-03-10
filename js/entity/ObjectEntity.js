@@ -540,6 +540,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.executionSequence:
             case Configuration.nodeType.ifThenElse:
             case Configuration.nodeType.macro:
+            case Configuration.nodeType.multiGate:
                 return Configuration.nodeColors.gray
             case Configuration.nodeType.dynamicCast:
                 return Configuration.nodeColors.turquoise
@@ -557,22 +558,27 @@ export default class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
+            case Configuration.nodeType.doOnce: return SVGIcon.doOnce
             case Configuration.nodeType.dynamicCast: return SVGIcon.cast
             case Configuration.nodeType.enumLiteral: return SVGIcon.enum
             case Configuration.nodeType.event: return SVGIcon.event
-            case Configuration.nodeType.executionSequence: return SVGIcon.sequence
-            case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
-            case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
-            case Configuration.nodeType.forEachLoopWithBreak: return SVGIcon.forEachLoop
-            case Configuration.nodeType.forLoop: return SVGIcon.loop
-            case Configuration.nodeType.forLoopWithBreak: return SVGIcon.loop
+            case Configuration.nodeType.executionSequence:
+            case Configuration.nodeType.multiGate:
+                return SVGIcon.sequence
+            case Configuration.nodeType.forEachElementInEnum:
+            case Configuration.nodeType.forLoop:
+            case Configuration.nodeType.forLoopWithBreak:
+            case Configuration.nodeType.whileLoop:
+                return SVGIcon.loop
+            case Configuration.nodeType.forEachLoop:
+            case Configuration.nodeType.forEachLoopWithBreak:
+                return SVGIcon.forEachLoop
             case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
             case Configuration.nodeType.isValid: return SVGIcon.questionMark
             case Configuration.nodeType.makeArray: return SVGIcon.makeArray
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
-            case Configuration.nodeType.whileLoop: return SVGIcon.loop
         }
         if (this.nodeDisplayName().startsWith("Break")) {
             return SVGIcon.breakStruct

@@ -100,6 +100,7 @@ class Configuration {
         componentBoundEvent: "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
         customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
+        doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
@@ -122,6 +123,7 @@ class Configuration {
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
+        multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
@@ -748,7 +750,7 @@ class Utility {
     }
 
     /** @param {String} value */
-    static formatStringName(value) {
+    static formatStringName(value = "") {
         return value
             // Remove leading b (for boolean values) or newlines
             .replace(/^\s*b/, "")
@@ -1173,6 +1175,67 @@ class EnumEntity extends SymbolEntity {
 
 }
 
+class InvariantTextEntity extends IEntity {
+
+    static lookbehind = "INVTEXT"
+    static attributes = {
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.value;
+    }
+}
+
+class LocalizedTextEntity extends IEntity {
+
+    static lookbehind = "NSLOCTEXT"
+    static attributes = {
+        namespace: "",
+        key: "",
+        value: "",
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.namespace;
+        /** @type {String} */ this.key;
+        /** @type {String} */ this.value;
+    }
+
+    toString() {
+        return Utility.capitalFirstLetter(this.value)
+    }
+}
+
+class FormatTextEntity extends IEntity {
+
+    static lookbehind = "LOCGEN_FORMAT_NAMED"
+    static attributes = {
+        value: {
+            type: [new UnionType(LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)]
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.value;
+    }
+}
+
 class GuidEntity extends IEntity {
 
     static attributes = {
@@ -1321,23 +1384,6 @@ class Integer64Entity extends IEntity {
 
     toString() {
         return this.value.toString()
-    }
-}
-
-class InvariantTextEntity extends IEntity {
-
-    static lookbehind = "INVTEXT"
-    static attributes = {
-        value: "",
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.value;
     }
 }
 
@@ -1640,31 +1686,6 @@ class LinearColorEntity extends IEntity {
     }
 }
 
-class LocalizedTextEntity extends IEntity {
-
-    static lookbehind = "NSLOCTEXT"
-    static attributes = {
-        namespace: "",
-        key: "",
-        value: "",
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.namespace;
-        /** @type {String} */ this.key;
-        /** @type {String} */ this.value;
-    }
-
-    toString() {
-        return Utility.capitalFirstLetter(this.value)
-    }
-}
-
 class MacroGraphReferenceEntity extends IEntity {
 
     static attributes = {
@@ -1916,7 +1937,7 @@ class PinEntity extends IEntity {
         },
         PinName: "",
         PinFriendlyName: {
-            type: new UnionType(LocalizedTextEntity, String),
+            type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
             showDefault: false,
         },
         PinToolTip: {
@@ -2213,9 +2234,17 @@ class SVGIcon {
     `
 
     static doN = y`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
             <path fill="white" d="M1 12V8H9V4L16 10L9 16V12H1Z" />
             <path fill="white" d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" />
+        </svg>
+    `
+
+    static doOnce = y`
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white"/>
+            <path d="M6 6H5L4.98752 2.42387L4 2.8642V1.893L5.89305 1H6V6Z" fill="white"/>
+            <rect x="4" y="5" width="3" height="1" fill="white"/>
         </svg>
     `
 
@@ -2761,7 +2790,7 @@ class ObjectEntity extends IEntity {
 
     getType() {
         let classValue = this.getClass();
-        if (classValue === Configuration.nodeType.macro) {
+        if (this.MacroGraphReference?.MacroGraph?.path) {
             return this.MacroGraphReference.MacroGraph.path
         }
         return classValue
@@ -2864,7 +2893,7 @@ class ObjectEntity extends IEntity {
             || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
     }
 
-    hasHIDAttribute() {
+    getHIDAttribute() {
         return this.InputKey ?? this.AxisKey ?? this.InputAxisKey
     }
 
@@ -2880,15 +2909,15 @@ class ObjectEntity extends IEntity {
                 if (!this.TargetType) {
                     return "Bad cast node" // Target type not found
                 }
-                return `Cast To ${this.TargetType.getName()}`
+                return `Cast To ${this.TargetType?.getName()}`
             case Configuration.nodeType.enumLiteral:
-                return `Literal enum ${this.Enum.getName()}`
+                return `Literal enum ${this.Enum?.getName()}`
             case Configuration.nodeType.event:
                 return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
             case Configuration.nodeType.executionSequence:
                 return "Sequence"
             case Configuration.nodeType.forEachElementInEnum:
-                return `For Each ${this.Enum.getName()}`
+                return `For Each ${this.Enum?.getName()}`
             case Configuration.nodeType.forEachLoopWithBreak:
                 return "For Each Loop with Break"
             case Configuration.nodeType.ifThenElse:
@@ -2898,7 +2927,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.variableSet:
                 return "SET"
         }
-        const keyNameSymbol = this.hasHIDAttribute();
+        const keyNameSymbol = this.getHIDAttribute();
         if (keyNameSymbol) {
             const keyName = keyNameSymbol.toString();
             let title = ObjectEntity.keyName(keyName) ?? Utility.formatStringName(keyName);
@@ -2910,7 +2939,7 @@ class ObjectEntity extends IEntity {
             return title
         }
         if (this.getClass() === Configuration.nodeType.macro) {
-            return Utility.formatStringName(this.MacroGraphReference.getMacroName())
+            return Utility.formatStringName(this.MacroGraphReference?.getMacroName())
         }
         let memberName = this.FunctionReference?.MemberName;
         if (memberName) {
@@ -2997,6 +3026,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.executionSequence:
             case Configuration.nodeType.ifThenElse:
             case Configuration.nodeType.macro:
+            case Configuration.nodeType.multiGate:
                 return Configuration.nodeColors.gray
             case Configuration.nodeType.dynamicCast:
                 return Configuration.nodeColors.turquoise
@@ -3014,22 +3044,27 @@ class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
+            case Configuration.nodeType.doOnce: return SVGIcon.doOnce
             case Configuration.nodeType.dynamicCast: return SVGIcon.cast
             case Configuration.nodeType.enumLiteral: return SVGIcon.enum
             case Configuration.nodeType.event: return SVGIcon.event
-            case Configuration.nodeType.executionSequence: return SVGIcon.sequence
-            case Configuration.nodeType.forEachElementInEnum: return SVGIcon.loop
-            case Configuration.nodeType.forEachLoop: return SVGIcon.forEachLoop
-            case Configuration.nodeType.forEachLoopWithBreak: return SVGIcon.forEachLoop
-            case Configuration.nodeType.forLoop: return SVGIcon.loop
-            case Configuration.nodeType.forLoopWithBreak: return SVGIcon.loop
+            case Configuration.nodeType.executionSequence:
+            case Configuration.nodeType.multiGate:
+                return SVGIcon.sequence
+            case Configuration.nodeType.forEachElementInEnum:
+            case Configuration.nodeType.forLoop:
+            case Configuration.nodeType.forLoopWithBreak:
+            case Configuration.nodeType.whileLoop:
+                return SVGIcon.loop
+            case Configuration.nodeType.forEachLoop:
+            case Configuration.nodeType.forEachLoopWithBreak:
+                return SVGIcon.forEachLoop
             case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
             case Configuration.nodeType.isValid: return SVGIcon.questionMark
             case Configuration.nodeType.makeArray: return SVGIcon.makeArray
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
-            case Configuration.nodeType.whileLoop: return SVGIcon.loop
         }
         if (this.nodeDisplayName().startsWith("Break")) {
             return SVGIcon.breakStruct
@@ -3037,7 +3072,7 @@ class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.nodeType.macro) {
             return SVGIcon.macro
         }
-        const hidValue = this.hasHIDAttribute()?.toString();
+        const hidValue = this.getHIDAttribute()?.toString();
         if (hidValue) {
             if (hidValue.includes("Mouse")) {
                 return SVGIcon.mouse
@@ -3153,33 +3188,6 @@ class Grammar {
 
     /** @param {Grammar} r */
     static getGrammarForType(r, attribute, defaultGrammar = r.AttributeAnyValue) {
-        if (attribute.constructor === Object) {
-            attribute = /** @type {AttributeInformation} */(attribute);
-            let type = attribute.type;
-            let result;
-            if (type instanceof Array) {
-                result = Grammar.getGrammarForType(r, type[0])
-                    .trim(P.optWhitespace)
-                    .sepBy(P.string(","))
-                    .skip(P.regex(/,?\s*/))
-                    .wrap(P.string("("), P.string(")"));
-            } else if (type instanceof UnionType) {
-                result = type.types
-                    .map(v => Grammar.getGrammarForType(r, Utility.getType(v)))
-                    .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
-                        ? r.AttributeAnyValue
-                        : accum.or(cur));
-            } else {
-                result = Grammar.getGrammarForType(r, type, defaultGrammar);
-            }
-            if (attribute.serialized && !(type instanceof String)) {
-                result = result.wrap(P.string('"'), P.string('"'));
-            }
-            if (attribute.nullable) {
-                result = result.or(r.Null);
-            }
-            return result
-        }
         switch (attribute) {
             case BigInt:
                 return r.BigInt
@@ -3189,6 +3197,8 @@ class Grammar {
                 return r.Byte
             case EnumEntity:
                 return r.Enum
+            case FormatTextEntity:
+                return r.FormatText
             case FunctionReferenceEntity:
                 return r.FunctionReference
             case GuidEntity:
@@ -3241,9 +3251,35 @@ class Grammar {
                 return r.Vector2D
             case VectorEntity:
                 return r.Vector
-            default:
-                return defaultGrammar
         }
+        let result = defaultGrammar;
+        const type = attribute.constructor === Object
+            ? attribute.type
+            : attribute.constructor;
+        if (type instanceof Array) {
+            result = Grammar.getGrammarForType(r, type[0])
+                .trim(P.optWhitespace)
+                .sepBy(P.string(","))
+                .skip(P.regex(/,?\s*/))
+                .wrap(P.string("("), P.string(")"));
+        } else if (type instanceof UnionType) {
+            result = type.types
+                .map(v => Grammar.getGrammarForType(r, v))
+                .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
+                    ? r.AttributeAnyValue
+                    : accum.or(cur));
+        } else if (attribute.constructor === Object) {
+            result = Grammar.getGrammarForType(r, type, defaultGrammar);
+        }
+        if (attribute.constructor === Object) {
+            if (attribute.serialized && type.constructor !== String) {
+                result = result.wrap(P.string('"'), P.string('"'));
+            }
+            if (attribute.nullable) {
+                result = result.or(r.Null);
+            }
+        }
+        return result
     }
 
     /** @param {Grammar} r */
@@ -3286,7 +3322,7 @@ class Grammar {
     /**
      * @param {Grammar} r
      * @param {EntityConstructor} entityType
-     * @param {Boolean | Number} acceptUnknownKeys can be anumber to specify the limit or true, to let it be a reasonable value
+     * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      */
     static createEntityGrammar = (r, entityType, acceptUnknownKeys = true) =>
         P.seqMap(
@@ -3430,15 +3466,19 @@ class Grammar {
                 namespace: matchResult[1],
                 key: matchResult[2],
                 value: matchResult[3]
-            }
-            ))
+            })
+        )
 
     /** @param {Grammar} r */
-    InvariantText = r => r.String.trim(P.optWhitespace).wrap(
-        P.string(InvariantTextEntity.lookbehind).skip(P.optWhitespace).skip(P.string("(")),
-        P.string(")")
+    InvariantText = r =>
+        Grammar.regexMap(
+            new RegExp(String.raw`${InvariantTextEntity.lookbehind}\s*\("(${Grammar.Regex.InsideString.source})"\)`),
+            matchResult => new InvariantTextEntity({ value: matchResult[1] })
+        )
+
+    FormatText = r => P.string(FormatTextEntity.lookbehind).then(P.optWhitespace).then(
+        Grammar.getGrammarForType(r, FormatTextEntity.attributes.value).wrap(P.string("("), P.string(")"))
     )
-        .map(value => new InvariantTextEntity({ value: value }))
 
     /** @param {Grammar} r */
     AttributeAnyValue = r => P.alt(

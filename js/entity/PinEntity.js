@@ -1,6 +1,7 @@
 import ByteEntity from "./ByteEntity"
 import Configuration from "../Configuration"
 import EnumEntity from "./EnumEntity"
+import FormatTextEntity from "./FormatTextEntity"
 import FunctionReferenceEntity from "./FunctionReferenceEntity"
 import GuidEntity from "./GuidEntity"
 import IEntity from "./IEntity"
@@ -57,7 +58,7 @@ export default class PinEntity extends IEntity {
         },
         PinName: "",
         PinFriendlyName: {
-            type: new UnionType(LocalizedTextEntity, String),
+            type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
             showDefault: false,
         },
         PinToolTip: {
