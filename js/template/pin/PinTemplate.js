@@ -1,10 +1,10 @@
 import { html, nothing } from "lit"
-import ITemplate from "../ITemplate"
-import MouseCreateLink from "../../input/mouse/MouseCreateLink"
-import SVGIcon from "../../SVGIcon"
-import Utility from "../../Utility"
-import VariableConversionNodeTemplate from "../node/VariableConversionNodeTemplate"
-import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate"
+import ITemplate from "../ITemplate.js"
+import MouseCreateLink from "../../input/mouse/MouseCreateLink.js"
+import SVGIcon from "../../SVGIcon.js"
+import Utility from "../../Utility.js"
+import VariableConversionNodeTemplate from "../node/VariableConversionNodeTemplate.js"
+import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate.js"
 
 /**
  * @typedef {import("../../input/IInput").default} IInput

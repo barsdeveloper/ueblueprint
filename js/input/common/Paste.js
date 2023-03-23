@@ -1,6 +1,6 @@
-import ElementFactory from "../../element/ElementFactory"
-import IInput from "../IInput"
-import ObjectSerializer from "../../serialization/ObjectSerializer"
+import ElementFactory from "../../element/ElementFactory.js"
+import IInput from "../IInput.js"
+import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 
 /** @typedef {import("../../element/NodeElement").NodeElementConstructor} NodeElementConstructor */
 

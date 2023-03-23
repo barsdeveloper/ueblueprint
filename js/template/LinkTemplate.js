@@ -1,10 +1,10 @@
 import { html, nothing } from "lit"
-import Configuration from "../Configuration"
-import ElementFactory from "../element/ElementFactory"
-import IFromToPositionedTemplate from "./IFromToPositionedTemplate"
-import KnotEntity from "../entity/objects/KnotEntity"
-import MouseDbClick from "../input/mouse/MouseDbClick"
-import Utility from "../Utility"
+import Configuration from "../Configuration.js"
+import ElementFactory from "../element/ElementFactory.js"
+import IFromToPositionedTemplate from "./IFromToPositionedTemplate.js"
+import KnotEntity from "../entity/objects/KnotEntity.js"
+import MouseDbClick from "../input/mouse/MouseDbClick.js"
+import Utility from "../Utility.js"
 
 /**
  * @typedef {import("../element/LinkElement").default} LinkElement

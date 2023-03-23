@@ -1,4 +1,4 @@
-import IntegerEntity from "./IntegerEntity"
+import IntegerEntity from "./IntegerEntity.js"
 
 export default class ByteEntity extends IntegerEntity {
 

@@ -1,5 +1,5 @@
 import { html } from "lit"
-import INumericPinTemplate from "./INumericPinTemplate"
+import INumericPinTemplate from "./INumericPinTemplate.js"
 
 /** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 

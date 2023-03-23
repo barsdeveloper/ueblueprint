@@ -1,5 +1,5 @@
-import Configuration from "../../Configuration"
-import IKeyboardShortcut from "./IKeyboardShortcut"
+import Configuration from "../../Configuration.js"
+import IKeyboardShortcut from "./IKeyboardShortcut.js"
 
 export default class KeyboardCanc extends IKeyboardShortcut {
 

@@ -1,4 +1,4 @@
-import IMouseClickDrag from "./IMouseClickDrag"
+import IMouseClickDrag from "./IMouseClickDrag.js"
 
 /**
  * @typedef {import("../../element/IDraggableElement").default} IDraggableElement

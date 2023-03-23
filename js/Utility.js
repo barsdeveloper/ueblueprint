@@ -1,5 +1,5 @@
-import SubAttributesDeclaration from "./entity/SubObject"
-import UnionType from "./entity/UnionType"
+import SubAttributesDeclaration from "./entity/SubObject.js"
+import UnionType from "./entity/UnionType.js"
 
 /**
  * @typedef {import("./element/IElement").default} IElement

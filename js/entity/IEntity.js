@@ -1,7 +1,7 @@
-import SerializerFactory from "../serialization/SerializerFactory"
-import SubAttributesDeclaration from "./SubObject"
-import UnionType from "./UnionType"
-import Utility from "../Utility"
+import SerializerFactory from "../serialization/SerializerFactory.js"
+import SubAttributesDeclaration from "./SubObject.js"
+import UnionType from "./UnionType.js"
+import Utility from "../Utility.js"
 
 /**
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
@@ -32,7 +32,6 @@ import Utility from "../Utility"
 
 export default class IEntity {
 
-    /** @type {AttributeDeclarations} */
     static attributes = {}
     static defaultAttribute = {
         showDefault: true,
@@ -57,17 +56,6 @@ export default class IEntity {
                 let value = Utility.objectGet(values, [attributeName])
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName]
-
-                if (attribute instanceof SubAttributesDeclaration) {
-                    target[attributeName] = {}
-                    defineAllAttributes(
-                        target[attributeName],
-                        attribute.attributes,
-                        values[attributeName],
-                        attributeName + "."
-                    )
-                    continue
-                }
 
                 if (!suppressWarns) {
                     if (!(attributeName in attributes)) {

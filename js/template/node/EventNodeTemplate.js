@@ -1,7 +1,7 @@
 import { html, nothing } from "lit"
-import ElementFactory from "../../element/ElementFactory"
-import MinimalPinTemplate from "../pin/MinimalPinTemplate"
-import NodeTemplate from "./NodeTemplate"
+import ElementFactory from "../../element/ElementFactory.js"
+import MinimalPinTemplate from "../pin/MinimalPinTemplate.js"
+import NodeTemplate from "./NodeTemplate.js"
 
 /**
  * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor

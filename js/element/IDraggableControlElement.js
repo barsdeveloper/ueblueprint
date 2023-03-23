@@ -1,4 +1,4 @@
-import IDraggableElement from "./IDraggableElement"
+import IDraggableElement from "./IDraggableElement.js"
 
 /**
  * @typedef {import("../element/WindowElement").default} WindowElement

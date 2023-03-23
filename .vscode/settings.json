@@ -1,11 +1,13 @@
 {
-    "files.trimFinalNewlines": true,
-    "files.insertFinalNewline": true,
-    "javascript.format.semicolons": "remove",
     "editor.formatOnSaveMode": "modificationsIfAvailable",
     "editor.rulers": [
         120
     ],
-    "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "javascript.format.semicolons": "remove",
+    "javascript.preferences.importModuleSpecifier": "relative",
+    "javascript.preferences.importModuleSpecifierEnding": "js",
     "js/ts.implicitProjectConfig.target": "ES2022",
+    "typescript.tsserver.experimental.enableProjectDiagnostics": true
 }

@@ -1,4 +1,4 @@
-import IMouseWheel from "./IMouseWheel"
+import IMouseWheel from "./IMouseWheel.js"
 
 export default class Zoom extends IMouseWheel {
 

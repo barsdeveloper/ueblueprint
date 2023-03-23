@@ -1,5 +1,5 @@
-import ITemplate from "./ITemplate"
-import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable"
+import ITemplate from "./ITemplate.js"
+import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable.js"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity

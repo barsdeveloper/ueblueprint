@@ -1,7 +1,7 @@
 import { html } from "lit"
-import PinTemplate from "./PinTemplate"
-import SVGIcon from "../../SVGIcon"
-import Utility from "../../Utility"
+import PinTemplate from "./PinTemplate.js"
+import SVGIcon from "../../SVGIcon.js"
+import Utility from "../../Utility.js"
 
 /** @typedef {import("../../element/PinElement").default} PinElement */
 

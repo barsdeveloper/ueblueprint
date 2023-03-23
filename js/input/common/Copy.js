@@ -1,5 +1,5 @@
-import IInput from "../IInput"
-import ObjectSerializer from "../../serialization/ObjectSerializer"
+import IInput from "../IInput.js"
+import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 
 export default class Copy extends IInput {
 

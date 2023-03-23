@@ -1,6 +1,6 @@
 import { html } from "lit"
-import INumericPinTemplate from "./INumericPinTemplate"
-import Utility from "../../Utility"
+import INumericPinTemplate from "./INumericPinTemplate.js"
+import Utility from "../../Utility.js"
 
 /**
  * @template {Number} T

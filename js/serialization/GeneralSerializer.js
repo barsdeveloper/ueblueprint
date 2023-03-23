@@ -1,5 +1,5 @@
-import Grammar from "./Grammar"
-import ISerializer from "./ISerializer"
+import { parse } from "../../build/Grammar.js"
+import ISerializer from "./ISerializer.js"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity

@@ -1,4 +1,4 @@
-import IElement from "./IElement"
+import IElement from "./IElement.js"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity

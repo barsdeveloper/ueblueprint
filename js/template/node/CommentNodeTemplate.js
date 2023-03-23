@@ -1,7 +1,7 @@
 import { css, html } from "lit"
-import Configuration from "../../Configuration"
-import IResizeableTemplate from "../IResizeableTemplate"
-import LinearColorEntity from "../../entity/LinearColorEntity"
+import Configuration from "../../Configuration.js"
+import IResizeableTemplate from "../IResizeableTemplate.js"
+import LinearColorEntity from "../../entity/LinearColorEntity.js"
 
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement

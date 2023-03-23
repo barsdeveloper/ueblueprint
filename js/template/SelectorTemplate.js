@@ -1,4 +1,4 @@
-import IFromToPositionedTemplate from "./IFromToPositionedTemplate"
+import IFromToPositionedTemplate from "./IFromToPositionedTemplate.js"
 
 /** @typedef {import("../element/SelectorElement").default} SelectorElement */
 

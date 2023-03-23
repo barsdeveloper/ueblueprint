@@ -1,5 +1,5 @@
 import { html } from "lit"
-import PinTemplate from "./PinTemplate"
+import PinTemplate from "./PinTemplate.js"
 
 /**
  * @template T

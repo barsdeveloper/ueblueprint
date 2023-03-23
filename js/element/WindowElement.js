@@ -1,7 +1,7 @@
-import ColorPickerWindowTemplate from "../template/window/ColorPickerWindowTemplate"
-import Configuration from "../Configuration"
-import IDraggableElement from "./IDraggableElement"
-import WindowTemplate from "../template/window/WindowTemplate"
+import ColorPickerWindowTemplate from "../template/window/ColorPickerWindowTemplate.js"
+import Configuration from "../Configuration.js"
+import IDraggableElement from "./IDraggableElement.js"
+import WindowTemplate from "../template/window/WindowTemplate.js"
 
 /** @typedef {typeof WindowElement} WindowElementConstructor */
 

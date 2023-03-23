@@ -1,5 +1,5 @@
-import IEntity from "./IEntity"
-import Utility from "../Utility"
+import IEntity from "./IEntity.js"
+import Utility from "../Utility.js"
 
 export default class RealUnitEntity extends IEntity {
 

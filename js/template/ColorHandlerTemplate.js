@@ -1,5 +1,5 @@
-import IDraggableControlTemplate from "./IDraggableControlTemplate"
-import Utility from "../Utility"
+import IDraggableControlTemplate from "./IDraggableControlTemplate.js"
+import Utility from "../Utility.js"
 
 /** @typedef {import("../element/ColorHandlerElement").default} ColorHandlerElement */
 

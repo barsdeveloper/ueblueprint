@@ -1,4 +1,4 @@
-import MouseMoveDraggable from "./MouseMoveDraggable"
+import MouseMoveDraggable from "./MouseMoveDraggable.js"
 
 /** @typedef {import("../../Blueprint").default} Blueprint */
 

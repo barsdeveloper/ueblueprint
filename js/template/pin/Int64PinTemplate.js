@@ -1,4 +1,4 @@
-import IntPinTemplate from "./IntPinTemplate"
+import IntPinTemplate from "./IntPinTemplate.js"
 
 /** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 

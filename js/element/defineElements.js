@@ -1,12 +1,12 @@
-import ColorHandlerElement from "./ColorHandlerElement"
-import ColorSliderElement from "./ColorSliderElement"
-import ElementFactory from "./ElementFactory"
-import InputElement from "./InputElement"
-import LinkElement from "./LinkElement"
-import NodeElement from "./NodeElement"
-import PinElement from "./PinElement"
-import SelectorElement from "./SelectorElement"
-import WindowElement from "./WindowElement"
+import ColorHandlerElement from "./ColorHandlerElement.js"
+import ColorSliderElement from "./ColorSliderElement.js"
+import ElementFactory from "./ElementFactory.js"
+import InputElement from "./InputElement.js"
+import LinkElement from "./LinkElement.js"
+import NodeElement from "./NodeElement.js"
+import PinElement from "./PinElement.js"
+import SelectorElement from "./SelectorElement.js"
+import WindowElement from "./WindowElement.js"
 
 export default function defineElements() {
     customElements.define("ueb-color-handler", ColorHandlerElement)

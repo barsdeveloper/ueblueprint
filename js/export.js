@@ -1,10 +1,10 @@
-import Blueprint from "./Blueprint"
-import Configuration from "./Configuration"
-import defineElements from "./element/defineElements"
-import initializeSerializerFactory from "./serialization/initializeSerializerFactory"
-import LinkElement from "./element/LinkElement"
-import NodeElement from "./element/NodeElement"
-import Utility from "./Utility"
+import Blueprint from "./Blueprint.js"
+import Configuration from "./Configuration.js"
+import defineElements from "./element/defineElements.js"
+import initializeSerializerFactory from "./serialization/initializeSerializerFactory.js"
+import LinkElement from "./element/LinkElement.js"
+import NodeElement from "./element/NodeElement.js"
+import Utility from "./Utility.js"
 
 initializeSerializerFactory()
 defineElements()

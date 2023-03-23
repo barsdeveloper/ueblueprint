@@ -1,8 +1,8 @@
 import { html } from "lit"
-import Configuration from "../../Configuration"
-import ElementFactory from "../../element/ElementFactory"
-import KnotPinTemplate from "../pin/KnotPinTemplate"
-import NodeTemplate from "./NodeTemplate"
+import Configuration from "../../Configuration.js"
+import ElementFactory from "../../element/ElementFactory.js"
+import KnotPinTemplate from "../pin/KnotPinTemplate.js"
+import NodeTemplate from "./NodeTemplate.js"
 
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement

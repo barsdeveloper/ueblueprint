@@ -1,7 +1,7 @@
-import Configuration from "../../Configuration"
-import IDraggableElement from "../../element/IDraggableElement"
-import IPointing from "./IPointing"
-import Utility from "../../Utility"
+import Configuration from "../../Configuration.js"
+import IDraggableElement from "../../element/IDraggableElement.js"
+import IPointing from "./IPointing.js"
+import Utility from "../../Utility.js"
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint

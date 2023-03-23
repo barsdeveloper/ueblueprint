@@ -1,8 +1,7 @@
-import Grammar from "./Grammar"
-import Parsimmon from "parsimmon"
-import SerializerFactory from "./SerializerFactory"
-import Utility from "../Utility"
-import IEntity from "../entity/IEntity"
+import { parse } from "../../build/Grammar"
+import SerializerFactory from "./SerializerFactory.js"
+import Utility from "../Utility.js"
+import IEntity from "../entity/IEntity.js"
 
 /**
  * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
@@ -13,7 +12,7 @@ import IEntity from "../entity/IEntity"
 /** @template {AnyValue} T */
 export default class ISerializer {
 
-    static grammar = Parsimmon.createLanguage(new Grammar())
+    static grammar = parse
 
     /** @param {AnyValueConstructor} entityType */
     constructor(

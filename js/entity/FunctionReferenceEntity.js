@@ -1,6 +1,6 @@
-import GuidEntity from "./GuidEntity"
-import IEntity from "./IEntity"
-import ObjectReferenceEntity from "./ObjectReferenceEntity"
+import GuidEntity from "./GuidEntity.js"
+import IEntity from "./IEntity.js"
+import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 
 export default class FunctionReferenceEntity extends IEntity {
 

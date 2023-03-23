@@ -1,5 +1,5 @@
-import IMouseClickDrag from "./IMouseClickDrag"
-import Utility from "../../Utility"
+import IMouseClickDrag from "./IMouseClickDrag.js"
+import Utility from "../../Utility.js"
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint

@@ -1,5 +1,5 @@
-import Configuration from "../../Configuration"
-import IPointing from "./IPointing"
+import Configuration from "../../Configuration.js"
+import IPointing from "./IPointing.js"
 
 export default class IMouseWheel extends IPointing {
 
