@@ -1,5 +1,5 @@
-import IdentifierEntity from "./IdentifierEntity"
-import IEntity from "./IEntity"
+import IdentifierEntity from "./IdentifierEntity.js"
+import IEntity from "./IEntity.js"
 
 export default class KeyBindingEntity extends IEntity {
 

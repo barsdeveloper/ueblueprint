@@ -1,9 +1,9 @@
 import { html, nothing } from "lit"
-import Configuration from "../Configuration"
-import IFromToPositionedElement from "./IFromToPositionedElement"
-import LinkTemplate from "../template/LinkTemplate"
-import SVGIcon from "../SVGIcon"
-import Utility from "../Utility"
+import Configuration from "../Configuration.js"
+import IFromToPositionedElement from "./IFromToPositionedElement.js"
+import LinkTemplate from "../template/LinkTemplate.js"
+import SVGIcon from "../SVGIcon.js"
+import Utility from "../Utility.js"
 
 /**
  * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent

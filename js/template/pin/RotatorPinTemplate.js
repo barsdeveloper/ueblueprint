@@ -1,7 +1,7 @@
 import { html } from "lit"
-import INumericPinTemplate from "./INumericPinTemplate"
-import RotatorEntity from "../../entity/RotatorEntity"
-import Utility from "../../Utility"
+import INumericPinTemplate from "./INumericPinTemplate.js"
+import RotatorEntity from "../../entity/RotatorEntity.js"
+import Utility from "../../Utility.js"
 
 /** @typedef {import("../../entity/RotatorEntity").default} Rotator */
 

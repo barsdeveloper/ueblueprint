@@ -1,4 +1,4 @@
-import VariableManagementNodeTemplate from "./VariableMangementNodeTemplate"
+import VariableManagementNodeTemplate from "./VariableMangementNodeTemplate.js"
 
 /** @typedef {import("../../element/NodeElement").default} NodeElement */
 

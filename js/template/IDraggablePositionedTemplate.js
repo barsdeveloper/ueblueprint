@@ -1,4 +1,4 @@
-import IDraggableTemplate from "./IDraggableTemplate"
+import IDraggableTemplate from "./IDraggableTemplate.js"
 
 /**
  * @typedef {import("../element/IDraggableElement").default} IDraggableElement

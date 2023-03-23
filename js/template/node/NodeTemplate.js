@@ -1,8 +1,8 @@
 import { html, nothing } from "lit"
-import ElementFactory from "../../element/ElementFactory"
-import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate"
-import SVGIcon from "../../SVGIcon"
-import Utility from "../../Utility"
+import ElementFactory from "../../element/ElementFactory.js"
+import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate.js"
+import SVGIcon from "../../SVGIcon.js"
+import Utility from "../../Utility.js"
 
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement

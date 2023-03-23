@@ -1,6 +1,6 @@
 import { html } from "lit"
-import MinimalPinTemplate from "./MinimalPinTemplate"
-import Utility from "../../Utility"
+import MinimalPinTemplate from "./MinimalPinTemplate.js"
+import Utility from "../../Utility.js"
 
 /**
  * @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate

@@ -1,6 +1,6 @@
 import { html } from "lit"
-import MouseIgnore from "../../input/mouse/MouseIgnore"
-import PinTemplate from "./PinTemplate"
+import MouseIgnore from "../../input/mouse/MouseIgnore.js"
+import PinTemplate from "./PinTemplate.js"
 
 /** @typedef {import("lit").PropertyValues} PropertyValues */
 

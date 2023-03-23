@@ -1,5 +1,5 @@
-import PinTemplate from "./PinTemplate"
-import SVGIcon from "../../SVGIcon"
+import PinTemplate from "./PinTemplate.js"
+import SVGIcon from "../../SVGIcon.js"
 
 export default class ReferencePinTemplate extends PinTemplate {
 

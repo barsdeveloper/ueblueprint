@@ -1,5 +1,5 @@
-import IInput from "../IInput"
-import Utility from "../../Utility"
+import IInput from "../IInput.js"
+import Utility from "../../Utility.js"
 
 /**
  * @template {HTMLElement} T

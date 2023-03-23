@@ -1,4 +1,4 @@
-import OrderedIndexArray from "./OrderedIndexArray"
+import OrderedIndexArray from "./OrderedIndexArray.js"
 
 /**
  * @typedef {import("../element/NodeElement").default} NodeElement

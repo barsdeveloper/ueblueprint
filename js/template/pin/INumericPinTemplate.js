@@ -1,4 +1,4 @@
-import IInputPinTemplate from "./IInputPinTemplate"
+import IInputPinTemplate from "./IInputPinTemplate.js"
 
 /**
  * @template T

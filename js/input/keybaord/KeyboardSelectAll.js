@@ -1,5 +1,5 @@
-import Configuration from "../../Configuration"
-import IKeyboardShortcut from "./IKeyboardShortcut"
+import Configuration from "../../Configuration.js"
+import IKeyboardShortcut from "./IKeyboardShortcut.js"
 
 /** @typedef {import("../../Blueprint").default} Blueprint */
 export default class KeyboardSelectAll extends IKeyboardShortcut {

@@ -1,6 +1,6 @@
-import Configuration from "../../Configuration"
-import ElementFactory from "../../element/ElementFactory"
-import IMouseClickDrag from "./IMouseClickDrag"
+import Configuration from "../../Configuration.js"
+import ElementFactory from "../../element/ElementFactory.js"
+import IMouseClickDrag from "./IMouseClickDrag.js"
 
 /**
  * @typedef {import("../../Blueprint").default} Blueprint

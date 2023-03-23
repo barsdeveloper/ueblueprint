@@ -1,8 +1,8 @@
 import { html, nothing } from "lit"
-import ColorPickerWindowTemplate from "../window/ColorPickerWindowTemplate"
-import Configuration from "../../Configuration"
-import ElementFactory from "../../element/ElementFactory"
-import PinTemplate from "./PinTemplate"
+import ColorPickerWindowTemplate from "../window/ColorPickerWindowTemplate.js"
+import Configuration from "../../Configuration.js"
+import ElementFactory from "../../element/ElementFactory.js"
+import PinTemplate from "./PinTemplate.js"
 
 /**
  * @typedef {import("../../element/WindowElement").default} WindowElement

@@ -1,4 +1,4 @@
-import IMouseClickDrag from "./IMouseClickDrag"
+import IMouseClickDrag from "./IMouseClickDrag.js"
 
 export default class Select extends IMouseClickDrag {
 

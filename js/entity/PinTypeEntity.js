@@ -1,4 +1,4 @@
-import IEntity from "./IEntity"
+import IEntity from "./IEntity.js"
 
 export default class PinTypeEntity extends IEntity {
 

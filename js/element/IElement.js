@@ -1,5 +1,5 @@
 import { LitElement } from "lit"
-import Configuration from "../Configuration"
+import Configuration from "../Configuration.js"
 
 /**
  * @typedef {import("../Blueprint").default} Blueprint

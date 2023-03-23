@@ -1,6 +1,6 @@
-import FastSelectionModel from "../selection/FastSelectionModel"
-import IFromToPositionedElement from "./IFromToPositionedElement"
-import SelectorTemplate from "../template/SelectorTemplate"
+import FastSelectionModel from "../selection/FastSelectionModel.js"
+import IFromToPositionedElement from "./IFromToPositionedElement.js"
+import SelectorTemplate from "../template/SelectorTemplate.js"
 
 /** @typedef {import("../Blueprint").BlueprintConstructor} BlueprintConstructor */
 

@@ -1,4 +1,4 @@
-import GeneralSerializer from "./GeneralSerializer"
+import GeneralSerializer from "./GeneralSerializer.js"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity

@@ -1,7 +1,7 @@
-import Configuration from "../../Configuration"
-import IInput from "../IInput"
-import ISerializer from "../../serialization/ISerializer"
-import KeyBindingEntity from "../../entity/KeyBindingEntity"
+import Configuration from "../../Configuration.js"
+import IInput from "../IInput.js"
+import ISerializer from "../../serialization/ISerializer.js"
+import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 
 /** @typedef {import("../../Blueprint").default} Blueprint */
 

@@ -1,4 +1,4 @@
-import IInput from "../IInput"
+import IInput from "../IInput.js"
 
 export default class Unfocus extends IInput {
 

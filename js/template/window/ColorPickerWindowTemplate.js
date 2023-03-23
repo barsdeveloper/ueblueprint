@@ -1,11 +1,11 @@
 import { html } from "lit"
 import { styleMap } from "lit/directives/style-map.js"
-import ColorHandlerElement from "../../element/ColorHandlerElement"
-import ColorSliderElement from "../../element/ColorSliderElement"
-import Configuration from "../../Configuration"
-import LinearColorEntity from "../../entity/LinearColorEntity"
-import Utility from "../../Utility"
-import WindowTemplate from "./WindowTemplate"
+import ColorHandlerElement from "../../element/ColorHandlerElement.js"
+import ColorSliderElement from "../../element/ColorSliderElement.js"
+import Configuration from "../../Configuration.js"
+import LinearColorEntity from "../../entity/LinearColorEntity.js"
+import Utility from "../../Utility.js"
+import WindowTemplate from "./WindowTemplate.js"
 
 /**
  * @typedef {import("../../element/WindowElement").default} WindowElement

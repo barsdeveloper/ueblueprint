@@ -1,5 +1,5 @@
-import IntegerEntity from "./IntegerEntity"
-import Utility from "../Utility"
+import IntegerEntity from "./IntegerEntity.js"
+import Utility from "../Utility.js"
 
 export default class NaturalNumberEntity extends IntegerEntity {
 

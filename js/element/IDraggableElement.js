@@ -1,6 +1,6 @@
-import Configuration from "../Configuration"
-import IElement from "./IElement"
-import Utility from "../Utility"
+import Configuration from "../Configuration.js"
+import IElement from "./IElement.js"
+import Utility from "../Utility.js"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity

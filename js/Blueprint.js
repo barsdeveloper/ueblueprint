@@ -1,9 +1,9 @@
-import BlueprintTemplate from "./template/BlueprintTemplate"
-import Configuration from "./Configuration"
-import IElement from "./element/IElement"
-import LinkElement from "./element/LinkElement"
-import NodeElement from "./element/NodeElement"
-import Utility from "./Utility"
+import BlueprintTemplate from "./template/BlueprintTemplate.js"
+import Configuration from "./Configuration.js"
+import IElement from "./element/IElement.js"
+import LinkElement from "./element/LinkElement.js"
+import NodeElement from "./element/NodeElement.js"
+import Utility from "./Utility.js"
 
 /**
  * @typedef {import("./element/PinElement").default} PinElement

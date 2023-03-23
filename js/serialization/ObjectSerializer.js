@@ -1,7 +1,7 @@
-import ISerializer from "./ISerializer"
-import ObjectEntity from "../entity/ObjectEntity"
-import PinEntity from "../entity/PinEntity"
-import SerializerFactory from "./SerializerFactory"
+import ISerializer from "./ISerializer.js"
+import ObjectEntity from "../entity/ObjectEntity.js"
+import PinEntity from "../entity/PinEntity.js"
+import SerializerFactory from "./SerializerFactory.js"
 
 export default class ObjectSerializer extends ISerializer {
 

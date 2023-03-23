@@ -1,6 +1,6 @@
-import Configuration from "../../Configuration"
-import IKeyboardShortcut from "./IKeyboardShortcut"
-import Zoom from "../mouse/Zoom"
+import Configuration from "../../Configuration.js"
+import IKeyboardShortcut from "./IKeyboardShortcut.js"
+import Zoom from "../mouse/Zoom.js"
 
 export default class KeyboardEnableZoom extends IKeyboardShortcut {
 

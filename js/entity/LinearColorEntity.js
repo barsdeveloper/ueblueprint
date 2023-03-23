@@ -1,6 +1,6 @@
-import IEntity from "./IEntity"
-import RealUnitEntity from "./UnitRealEntity"
-import Utility from "../Utility"
+import IEntity from "./IEntity.js"
+import RealUnitEntity from "./UnitRealEntity.js"
+import Utility from "../Utility.js"
 
 export default class LinearColorEntity extends IEntity {
 

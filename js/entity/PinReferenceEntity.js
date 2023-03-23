@@ -1,6 +1,6 @@
-import GuidEntity from "./GuidEntity"
-import IEntity from "./IEntity"
-import PathSymbolEntity from "./PathSymbolEntity"
+import GuidEntity from "./GuidEntity.js"
+import IEntity from "./IEntity.js"
+import PathSymbolEntity from "./PathSymbolEntity.js"
 
 export default class PinReferenceEntity extends IEntity {
 

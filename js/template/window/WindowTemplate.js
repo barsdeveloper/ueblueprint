@@ -1,8 +1,8 @@
 import { html } from "lit"
-import Configuration from "../../Configuration"
-import IDraggablePositionedTemplate from "../IDraggablePositionedTemplate"
-import MouseMoveDraggable from "../../input/mouse/MouseMoveDraggable"
-import SVGIcon from "../../SVGIcon"
+import Configuration from "../../Configuration.js"
+import IDraggablePositionedTemplate from "../IDraggablePositionedTemplate.js"
+import MouseMoveDraggable from "../../input/mouse/MouseMoveDraggable.js"
+import SVGIcon from "../../SVGIcon.js"
 
 /** @typedef {import("../../element/WindowElement").default} WindowElement */
 

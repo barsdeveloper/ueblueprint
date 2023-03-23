@@ -1,5 +1,5 @@
-import Configuration from "../../Configuration"
-import VariableManagementNodeTemplate from "./VariableMangementNodeTemplate"
+import Configuration from "../../Configuration.js"
+import VariableManagementNodeTemplate from "./VariableMangementNodeTemplate.js"
 
 /** @typedef {import("../../element/NodeElement").default} NodeElement */
 

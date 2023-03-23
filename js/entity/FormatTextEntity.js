@@ -1,7 +1,7 @@
-import IEntity from "./IEntity"
-import InvariantTextEntity from "./InvariantTextEntity"
-import LocalizedTextEntity from "./LocalizedTextEntity"
-import UnionType from "./UnionType"
+import IEntity from "./IEntity.js"
+import InvariantTextEntity from "./InvariantTextEntity.js"
+import LocalizedTextEntity from "./LocalizedTextEntity.js"
+import UnionType from "./UnionType.js"
 
 export default class FormatTextEntity extends IEntity {
 

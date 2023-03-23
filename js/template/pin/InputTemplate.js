@@ -1,4 +1,4 @@
-import ITemplate from "../ITemplate"
+import ITemplate from "../ITemplate.js"
 
 /** @typedef {import ("../../element/InputElement").default} InputElement */
 

@@ -1,6 +1,6 @@
-import ObjectEntity from "../ObjectEntity"
-import ObjectReferenceEntity from "../ObjectReferenceEntity"
-import PinEntity from "../PinEntity"
+import ObjectEntity from "../ObjectEntity.js"
+import ObjectReferenceEntity from "../ObjectReferenceEntity.js"
+import PinEntity from "../PinEntity.js"
 
 export default class KnotEntity extends ObjectEntity {
 

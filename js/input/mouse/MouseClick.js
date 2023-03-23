@@ -1,4 +1,4 @@
-import IPointing from "./IPointing"
+import IPointing from "./IPointing.js"
 
 /** @typedef {import("../../Blueprint").default} Blueprint */
 

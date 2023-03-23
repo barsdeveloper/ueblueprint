@@ -1,5 +1,5 @@
-import IEntity from "./IEntity"
-import GuidEntity from "./GuidEntity"
+import IEntity from "./IEntity.js"
+import GuidEntity from "./GuidEntity.js"
 
 export default class VariableReferenceEntity extends IEntity {
 

@@ -1,6 +1,6 @@
 import { html, nothing } from "lit"
-import ElementFactory from "../../element/ElementFactory"
-import NodeTemplate from "./NodeTemplate"
+import ElementFactory from "../../element/ElementFactory.js"
+import NodeTemplate from "./NodeTemplate.js"
 
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
