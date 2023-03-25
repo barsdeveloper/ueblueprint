@@ -1,8 +1,8 @@
 import Utility from "../Utility.js"
 import GeneralSerializer from "./GeneralSerializer.js"
 
-/** 
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue 
+/**
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 

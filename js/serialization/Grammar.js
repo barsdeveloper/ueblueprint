@@ -36,6 +36,14 @@ import VectorEntity from "../entity/VectorEntity.js"
  * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
  * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
  */
+/**
+ * @template T
+ * @typedef {import ("arcsecond").Parser<T>} Parser
+ */
+/**
+ * @template T
+ * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
+ */
 
 export default class Grammar {
 
@@ -73,6 +81,10 @@ export default class Grammar {
 
     /*   ---   Factory   ---   */
 
+    /**
+     * @param {AnyValueConstructor<any>} type
+     * @param {Parser<any>} defaultGrammar
+     */
     static grammarFor(
         attribute,
         type = attribute?.constructor === Object
@@ -196,7 +208,11 @@ export default class Grammar {
         }
         if (attribute?.constructor === Object) {
             if (attribute.serialized && type.constructor !== String) {
-                result = arcsecond.sequenceOf([arcsecond.char('"'), result, arcsecond.char('"')])
+                if (result == this.unknownValue) {
+                    result = this.string
+                } else {
+                    result = arcsecond.sequenceOf([arcsecond.char('"'), result, arcsecond.char('"')])
+                }
             }
             if (attribute.nullable) {
                 result = arcsecond.choice([result, this.null])

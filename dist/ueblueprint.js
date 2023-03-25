@@ -1179,7 +1179,7 @@ class Utility {
         return false
     }
 
-    /** 
+    /**
      * @param {null | AnyValue | TypeInformation} value
      * @returns {AnyValueConstructor}
      */
@@ -1429,7 +1429,7 @@ class Utility {
 
 /**
  * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor 
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
  *     | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
@@ -3659,6 +3659,14 @@ class UnknownKeysEntity extends IEntity {
  * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
  * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
  */
+/**
+ * @template T
+ * @typedef {import ("arcsecond").Parser<T>} Parser
+ */
+/**
+ * @template T
+ * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
+ */
 
 class Grammar {
 
@@ -3696,6 +3704,10 @@ class Grammar {
 
     /*   ---   Factory   ---   */
 
+    /**
+     * @param {AnyValueConstructor<any>} type
+     * @param {Parser<any>} defaultGrammar
+     */
     static grammarFor(
         attribute,
         type = attribute?.constructor === Object
@@ -3819,7 +3831,11 @@ class Grammar {
         }
         if (attribute?.constructor === Object) {
             if (attribute.serialized && type.constructor !== String) {
-                result = sequenceOf([char('"'), result, char('"')]);
+                if (result == this.unknownValue) {
+                    result = this.string;
+                } else {
+                    result = sequenceOf([char('"'), result, char('"')]);
+                }
             }
             if (attribute.nullable) {
                 result = choice([result, this.null]);
@@ -10293,6 +10309,10 @@ function defineElements() {
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
+/**
+ * @template T
+ * @typedef {import("arcsecond").Ok<T, any>} Ok
+ */
 
 /**
  * @template {AnyValue} T
@@ -10316,11 +10336,11 @@ class GeneralSerializer extends ISerializer {
      */
     read(value) {
         const grammar = Grammar.grammarFor(undefined, this.entityType);
-        const parseResult = grammar.parse(value);
-        if (!parseResult.status) {
+        const parseResult = grammar.run(value);
+        if (parseResult.isError) {
             throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`)
         }
-        return parseResult.value
+        return /** @type {Ok<T>} */(parseResult).result
     }
 
     /**
@@ -10368,8 +10388,8 @@ class CustomSerializer extends GeneralSerializer {
     }
 }
 
-/** 
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue 
+/**
+ * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 

@@ -6,6 +6,10 @@ import ISerializer from "./ISerializer.js"
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
+/**
+ * @template T
+ * @typedef {import("arcsecond").Ok<T, any>} Ok
+ */
 
 /**
  * @template {AnyValue} T
@@ -29,11 +33,11 @@ export default class GeneralSerializer extends ISerializer {
      */
     read(value) {
         const grammar = Grammar.grammarFor(undefined, this.entityType)
-        const parseResult = grammar.parse(value)
-        if (!parseResult.status) {
+        const parseResult = grammar.run(value)
+        if (parseResult.isError) {
             throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`)
         }
-        return parseResult.value
+        return /** @type {Ok<T>} */(parseResult).result
     }
 
     /**

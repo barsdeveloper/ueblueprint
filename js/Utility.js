@@ -196,7 +196,7 @@ export default class Utility {
         return false
     }
 
-    /** 
+    /**
      * @param {null | AnyValue | TypeInformation} value
      * @returns {AnyValueConstructor}
      */

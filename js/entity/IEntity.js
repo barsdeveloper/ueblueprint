@@ -25,7 +25,7 @@ import Utility from "../Utility.js"
 
 /**
  * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor 
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
  *     | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
