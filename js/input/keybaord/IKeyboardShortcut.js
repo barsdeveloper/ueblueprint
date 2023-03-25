@@ -1,9 +1,13 @@
 import Configuration from "../../Configuration.js"
+import Grammar from "../../serialization/Grammar.js"
 import IInput from "../IInput.js"
-import ISerializer from "../../serialization/ISerializer.js"
 import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 
 /** @typedef {import("../../Blueprint").default} Blueprint */
+/**
+ * @template T
+ * @typedef {import("arcsecond").Ok<T, any>} Ok
+ */
 
 /**
  * @template {HTMLElement} T
@@ -33,9 +37,9 @@ export default class IKeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
-                const parsed = ISerializer.grammar.KeyBinding.parse(v)
-                if (parsed.status) {
-                    return parsed.value
+                const parsed = Grammar.keyBindingEntity.run(v.valueOf())
+                if (!parsed.isError) {
+                    return /** @type {Ok<KeyBindingEntity>} */(parsed).result
                 }
             }
             throw new Error("Unexpected key value")

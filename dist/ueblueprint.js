@@ -16,7 +16,7 @@ const t$2=window,e$3=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.native
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$1="?"+o$1,l$1=`<${n$1}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p=/"/g,$=/^(?:script|style|textarea|title)$/i,g=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g(1),x=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A=h.createTreeWalker(h,129,null,!1),E=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p:m):d===p||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e$1?e$1.createHTML(u):u,n]};class C{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=E(t,i);if(this.el=C.createElement(v,e),A.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),A.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$1)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function P$1(t,i,s=t,e){var o,n,l,h;if(i===x)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=P$1(t,r._$AS(t,i.values),r,e)),i}class V{constructor(t,i){this.u=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}v(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);A.currentNode=o;let n=A.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I(n,this,t)),this.u.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=A.nextNode(),l++);}return o}p(t){let i=0;for(const s of this.u)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cm=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cm}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=P$1(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x&&this.g(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):c(t)?this.k(t):this.g(t);}O(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}g(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.T(h.createTextNode(t)),this._$AH=t;}$(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=C.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.p(s);else {const t=new V(o,this),i=t.v(this.options);t.p(s),this.T(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new C(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.O(r()),this.O(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cm=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=P$1(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=P$1(this,e[s+l],i,l),h===x&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===b?void 0:t;}}const R=s$1?s$1.emptyScript:"";class k extends S{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==b?this.element.setAttribute(this.name,R):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=P$1(this,t,i,0))&&void 0!==s?s:b)===x)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){P$1(this,t);}}const z=i$2.litHtmlPolyfillSupport;null==z||z(C,N),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.4.0");const Z=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
+var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$1="?"+o$1,l$1=`<${n$1}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p=/"/g,$=/^(?:script|style|textarea|title)$/i,g=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g(1),x=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A=h.createTreeWalker(h,129,null,!1),E=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p:m):d===p||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e$1?e$1.createHTML(u):u,n]};class C{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=E(t,i);if(this.el=C.createElement(v,e),A.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),A.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$1)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function P(t,i,s=t,e){var o,n,l,h;if(i===x)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=P(t,r._$AS(t,i.values),r,e)),i}class V{constructor(t,i){this.u=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}v(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);A.currentNode=o;let n=A.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I(n,this,t)),this.u.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=A.nextNode(),l++);}return o}p(t){let i=0;for(const s of this.u)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cm=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cm}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=P(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x&&this.g(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):c(t)?this.k(t):this.g(t);}O(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}g(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.T(h.createTextNode(t)),this._$AH=t;}$(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=C.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.p(s);else {const t=new V(o,this),i=t.v(this.options);t.p(s),this.T(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new C(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.O(r()),this.O(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cm=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=P(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=P(this,e[s+l],i,l),h===x&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===b?void 0:t;}}const R=s$1?s$1.emptyScript:"";class k extends S{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==b?this.element.setAttribute(this.name,R):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=P(this,t,i,0))&&void 0!==s?s:b)===x)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){P(this,t);}}const z=i$2.litHtmlPolyfillSupport;null==z||z(C,N),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.4.0");const Z=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
 
 /**
  * @license
@@ -357,6 +357,575 @@ class IInput {
     }
 }
 
+let text;
+if (typeof TextEncoder !== 'undefined') {
+    text = { Encoder: TextEncoder, Decoder: TextDecoder };
+}
+else {
+    try {
+        const util = require('util');
+        text = { Encoder: util.TextEncoder, Decoder: util.TextDecoder };
+    }
+    catch (ex) {
+        throw new Error('Arcsecond requires TextEncoder and TextDecoder to be polyfilled.');
+    }
+}
+const encoder = new text.Encoder();
+const decoder = new text.Decoder();
+const getString = (index, length, dataView) => {
+    const bytes = Uint8Array.from({ length }, (_, i) => dataView.getUint8(index + i));
+    const decodedString = decoder.decode(bytes);
+    return decodedString;
+};
+const getNextCharWidth = (index, dataView) => {
+    const byte = dataView.getUint8(index);
+    if ((byte & 0x80) >> 7 === 0)
+        return 1;
+    else if ((byte & 0xe0) >> 5 === 0b110)
+        return 2;
+    else if ((byte & 0xf0) >> 4 === 0b1110)
+        return 3;
+    else if ((byte & 0xf0) >> 4 === 0b1111)
+        return 4;
+    return 1;
+};
+const getUtf8Char = (index, length, dataView) => {
+    const bytes = Uint8Array.from({ length }, (_, i) => dataView.getUint8(index + i));
+    return decoder.decode(bytes);
+};
+const getCharacterLength = (str) => {
+    let cp;
+    let total = 0;
+    let i = 0;
+    while (i < str.length) {
+        cp = str.codePointAt(i);
+        while (cp) {
+            cp = cp >> 8;
+            i++;
+        }
+        total++;
+    }
+    return total;
+};
+
+const isTypedArray = (x) => x instanceof Uint8Array ||
+    x instanceof Uint8ClampedArray ||
+    x instanceof Int8Array ||
+    x instanceof Uint16Array ||
+    x instanceof Int16Array ||
+    x instanceof Uint32Array ||
+    x instanceof Int32Array ||
+    x instanceof Float32Array ||
+    x instanceof Float64Array;
+var InputTypes;
+(function (InputTypes) {
+    InputTypes["STRING"] = "string";
+    InputTypes["ARRAY_BUFFER"] = "arrayBuffer";
+    InputTypes["TYPED_ARRAY"] = "typedArray";
+    InputTypes["DATA_VIEW"] = "dataView";
+})(InputTypes || (InputTypes = {}));
+
+// createParserState :: x -> s -> ParserState e a s
+const createParserState = (target, data = null) => {
+    let dataView;
+    let inputType;
+    if (typeof target === 'string') {
+        const bytes = encoder.encode(target);
+        dataView = new DataView(bytes.buffer);
+        inputType = InputTypes.STRING;
+    }
+    else if (target instanceof ArrayBuffer) {
+        dataView = new DataView(target);
+        inputType = InputTypes.ARRAY_BUFFER;
+    }
+    else if (isTypedArray(target)) {
+        dataView = new DataView(target.buffer);
+        inputType = InputTypes.TYPED_ARRAY;
+    }
+    else if (target instanceof DataView) {
+        dataView = target;
+        inputType = InputTypes.DATA_VIEW;
+    }
+    else {
+        throw new Error(`Cannot process input. Must be a string, ArrayBuffer, TypedArray, or DataView. but got ${typeof target}`);
+    }
+    return {
+        dataView,
+        inputType,
+        isError: false,
+        error: null,
+        result: null,
+        data,
+        index: 0,
+    };
+};
+// updateError :: (ParserState e a s, f) -> ParserState f a s
+const updateError = (state, error) => ({ ...state, isError: true, error });
+// updateResult :: (ParserState e a s, b) -> ParserState e b s
+const updateResult = (state, result) => ({ ...state, result });
+// updateData :: (ParserState e a s, t) -> ParserState e b t
+const updateData = (state, data) => ({ ...state, data });
+// updateResult :: (ParserState e a s, b, Integer) -> ParserState e b s
+const updateParserState = (state, result, index) => ({
+    ...state,
+    result,
+    index,
+});
+class Parser {
+    constructor(p) {
+        this.p = p;
+    }
+    // run :: Parser e a s ~> x -> Either e a
+    run(target) {
+        const state = createParserState(target);
+        const resultState = this.p(state);
+        if (resultState.isError) {
+            return {
+                isError: true,
+                error: resultState.error,
+                index: resultState.index,
+                data: resultState.data,
+            };
+        }
+        return {
+            isError: false,
+            result: resultState.result,
+            index: resultState.index,
+            data: resultState.data,
+        };
+    }
+    // fork :: Parser e a s ~> x -> (e -> ParserState e a s -> f) -> (a -> ParserState e a s -> b)
+    fork(target, errorFn, successFn) {
+        const state = createParserState(target);
+        const newState = this.p(state);
+        if (newState.isError) {
+            return errorFn(newState.error, newState);
+        }
+        return successFn(newState.result, newState);
+    }
+    // map :: Parser e a s ~> (a -> b) -> Parser e b s
+    map(fn) {
+        const p = this.p;
+        return new Parser(function Parser$map$state(state) {
+            const newState = p(state);
+            if (newState.isError)
+                return newState;
+            return updateResult(newState, fn(newState.result));
+        });
+    }
+    // chain :: Parser e a s ~> (a -> Parser e b s) -> Parser e b s
+    chain(fn) {
+        const p = this.p;
+        return new Parser(function Parser$chain$state(state) {
+            const newState = p(state);
+            if (newState.isError)
+                return newState;
+            return fn(newState.result).p(newState);
+        });
+    }
+    // ap :: Parser e a s ~> Parser e (a -> b) s -> Parser e b s
+    ap(parserOfFunction) {
+        const p = this.p;
+        return new Parser(function Parser$ap$state(state) {
+            if (state.isError)
+                return state;
+            const argumentState = p(state);
+            if (argumentState.isError)
+                return argumentState;
+            const fnState = parserOfFunction.p(argumentState);
+            if (fnState.isError)
+                return fnState;
+            return updateResult(fnState, fnState.result(argumentState.result));
+        });
+    }
+    // errorMap :: Parser e a s ~> (e -> f) -> Parser f a s
+    errorMap(fn) {
+        const p = this.p;
+        return new Parser(function Parser$errorMap$state(state) {
+            const nextState = p(state);
+            if (!nextState.isError)
+                return nextState;
+            return updateError(nextState, fn({
+                isError: true,
+                error: nextState.error,
+                index: nextState.index,
+                data: nextState.data,
+            }));
+        });
+    }
+    // errorChain :: Parser e a s ~> ((e, Integer, s) -> Parser f a s) -> Parser f a s
+    errorChain(fn) {
+        const p = this.p;
+        return new Parser(function Parser$errorChain$state(state) {
+            const nextState = p(state);
+            if (nextState.isError) {
+                const { error, index, data } = nextState;
+                const nextParser = fn({ isError: true, error, index, data });
+                return nextParser.p({ ...nextState, isError: false });
+            }
+            return nextState;
+        });
+    }
+    // mapFromData :: Parser e a s ~> (StateData a s -> b) -> Parser e b s
+    mapFromData(fn) {
+        const p = this.p;
+        return new Parser((state) => {
+            const newState = p(state);
+            if (newState.isError && newState.error)
+                return newState;
+            return updateResult(newState, fn({
+                isError: false,
+                result: newState.result,
+                data: newState.data,
+                index: newState.index,
+            }));
+        });
+    }
+    // chainFromData :: Parser e a s ~> (StateData a s -> Parser f b t) -> Parser f b t
+    chainFromData(fn) {
+        const p = this.p;
+        return new Parser(function Parser$chainFromData$state(state) {
+            const newState = p(state);
+            if (newState.isError && newState.error)
+                return newState;
+            return fn({ result: newState.result, data: newState.data }).p(newState);
+        });
+    }
+    // mapData :: Parser e a s ~> (s -> t) -> Parser e a t
+    mapData(fn) {
+        const p = this.p;
+        return new Parser(function mapData$state(state) {
+            const newState = p(state);
+            return updateData(newState, fn(newState.data));
+        });
+    }
+    // of :: a -> Parser e a s
+    static of(x) {
+        return new Parser(state => updateResult(state, x));
+    }
+}
+
+// Caching compiled regexs for better performance
+const reDigit = /[0-9]/;
+const reDigits = /^[0-9]+/;
+const reLetter = /[a-zA-Z]/;
+const reLetters = /^[a-zA-Z]+/;
+const reWhitespaces = /^\s+/;
+const reErrorExpectation = /ParseError.+Expecting/;
+// getData :: Parser e a s
+new Parser(function getData$state(state) {
+    if (state.isError)
+        return state;
+    return updateResult(state, state.data);
+});
+function exactly(n) {
+    if (typeof n !== 'number' || n <= 0) {
+        throw new TypeError(`exactly must be called with a number > 0, but got ${n}`);
+    }
+    return function exactly$factory(parser) {
+        return new Parser(function exactly$factory$state(state) {
+            if (state.isError)
+                return state;
+            const results = [];
+            let nextState = state;
+            for (let i = 0; i < n; i++) {
+                const out = parser.p(nextState);
+                if (out.isError) {
+                    return out;
+                }
+                else {
+                    nextState = out;
+                    results.push(nextState.result);
+                }
+            }
+            return updateResult(nextState, results);
+        }).errorMap(({ index, error }) => `ParseError (position ${index}): Expecting ${n}${error.replace(reErrorExpectation, '')}`);
+    };
+}
+// many :: Parser e s a -> Parser e s [a]
+const many = function many(parser) {
+    return new Parser(function many$state(state) {
+        if (state.isError)
+            return state;
+        const results = [];
+        let nextState = state;
+        while (true) {
+            const out = parser.p(nextState);
+            if (out.isError) {
+                break;
+            }
+            else {
+                nextState = out;
+                results.push(nextState.result);
+                if (nextState.index >= nextState.dataView.byteLength) {
+                    break;
+                }
+            }
+        }
+        return updateResult(nextState, results);
+    });
+};
+// many1 :: Parser e s a -> Parser e s [a]
+const many1 = function many1(parser) {
+    return new Parser(function many1$state(state) {
+        if (state.isError)
+            return state;
+        const resState = many(parser).p(state);
+        if (resState.result.length)
+            return resState;
+        return updateError(state, `ParseError 'many1' (position ${state.index}): Expecting to match at least one value`);
+    });
+};
+// char :: Char -> Parser e Char s
+const char = function char(c) {
+    if (!c || getCharacterLength(c) !== 1) {
+        throw new TypeError(`char must be called with a single character, but got ${c}`);
+    }
+    return new Parser(function char$state(state) {
+        if (state.isError)
+            return state;
+        const { index, dataView } = state;
+        if (index < dataView.byteLength) {
+            const charWidth = getNextCharWidth(index, dataView);
+            if (index + charWidth <= dataView.byteLength) {
+                const char = getUtf8Char(index, charWidth, dataView);
+                return char === c
+                    ? updateParserState(state, c, index + charWidth)
+                    : updateError(state, `ParseError (position ${index}): Expecting character '${c}', got '${char}'`);
+            }
+        }
+        return updateError(state, `ParseError (position ${index}): Expecting character '${c}', but got end of input.`);
+    });
+};
+// anyChar :: Parser e Char s
+new Parser(function anyChar$state(state) {
+    if (state.isError)
+        return state;
+    const { index, dataView } = state;
+    if (index < dataView.byteLength) {
+        const charWidth = getNextCharWidth(index, dataView);
+        if (index + charWidth <= dataView.byteLength) {
+            const char = getUtf8Char(index, charWidth, dataView);
+            return updateParserState(state, char, index + charWidth);
+        }
+    }
+    return updateError(state, `ParseError (position ${index}): Expecting a character, but got end of input.`);
+});
+// peek :: Parser e Char s
+new Parser(function peek$state(state) {
+    if (state.isError)
+        return state;
+    const { index, dataView } = state;
+    if (index < dataView.byteLength) {
+        return updateParserState(state, dataView.getUint8(index), index);
+    }
+    return updateError(state, `ParseError (position ${index}): Unexpected end of input.`);
+});
+// str :: String -> Parser e String s
+function str(s) {
+    if (!s || getCharacterLength(s) < 1) {
+        throw new TypeError(`str must be called with a string with length > 1, but got ${s}`);
+    }
+    const encodedStr = encoder.encode(s);
+    return new Parser(function str$state(state) {
+        const { index, dataView } = state;
+        const remainingBytes = dataView.byteLength - index;
+        if (remainingBytes < encodedStr.byteLength) {
+            return updateError(state, `ParseError (position ${index}): Expecting string '${s}', but got end of input.`);
+        }
+        const stringAtIndex = getString(index, encodedStr.byteLength, dataView);
+        return s === stringAtIndex
+            ? updateParserState(state, s, index + encoder.encode(s).byteLength)
+            : updateError(state, `ParseError (position ${index}): Expecting string '${s}', got '${stringAtIndex}...'`);
+    });
+}
+// regex :: RegExp -> Parser e String s
+function regex(re) {
+    const typeofre = Object.prototype.toString.call(re);
+    if (typeofre !== '[object RegExp]') {
+        throw new TypeError(`regex must be called with a Regular Expression, but got ${typeofre}`);
+    }
+    if (re.toString()[1] !== '^') {
+        throw new Error(`regex parsers must contain '^' start assertion.`);
+    }
+    return new Parser(function regex$state(state) {
+        if (state.isError)
+            return state;
+        const { dataView, index } = state;
+        const rest = getString(index, dataView.byteLength - index, dataView);
+        if (rest.length >= 1) {
+            const match = rest.match(re);
+            return match
+                ? updateParserState(state, match[0], index + encoder.encode(match[0]).byteLength)
+                : updateError(state, `ParseError (position ${index}): Expecting string matching '${re}', got '${rest.slice(0, 5)}...'`);
+        }
+        return updateError(state, `ParseError (position ${index}): Expecting string matching '${re}', but got end of input.`);
+    });
+}
+// digit :: Parser e String s
+new Parser(function digit$state(state) {
+    if (state.isError)
+        return state;
+    const { dataView, index } = state;
+    if (dataView.byteLength > index) {
+        const charWidth = getNextCharWidth(index, dataView);
+        if (index + charWidth <= dataView.byteLength) {
+            const char = getUtf8Char(index, charWidth, dataView);
+            return dataView.byteLength && char && reDigit.test(char)
+                ? updateParserState(state, char, index + charWidth)
+                : updateError(state, `ParseError (position ${index}): Expecting digit, got '${char}'`);
+        }
+    }
+    return updateError(state, `ParseError (position ${index}): Expecting digit, but got end of input.`);
+});
+// digits :: Parser e String s
+regex(reDigits).errorMap(({ index }) => `ParseError (position ${index}): Expecting digits`);
+// letter :: Parser e Char s
+new Parser(function letter$state(state) {
+    if (state.isError)
+        return state;
+    const { index, dataView } = state;
+    if (dataView.byteLength > index) {
+        const charWidth = getNextCharWidth(index, dataView);
+        if (index + charWidth <= dataView.byteLength) {
+            const char = getUtf8Char(index, charWidth, dataView);
+            return dataView.byteLength && char && reLetter.test(char)
+                ? updateParserState(state, char, index + charWidth)
+                : updateError(state, `ParseError (position ${index}): Expecting letter, got '${char}'`);
+        }
+    }
+    return updateError(state, `ParseError (position ${index}): Expecting letter, but got end of input.`);
+});
+// letters :: Parser e String s
+regex(reLetters).errorMap(({ index }) => `ParseError (position ${index}): Expecting letters`);
+function sequenceOf(parsers) {
+    return new Parser(function sequenceOf$state(state) {
+        if (state.isError)
+            return state;
+        const length = parsers.length;
+        const results = new Array(length);
+        let nextState = state;
+        for (let i = 0; i < length; i++) {
+            const out = parsers[i].p(nextState);
+            if (out.isError) {
+                return out;
+            }
+            else {
+                nextState = out;
+                results[i] = out.result;
+            }
+        }
+        return updateResult(nextState, results);
+    });
+}
+// sepBy :: Parser e a s -> Parser e b s -> Parser e [b] s
+function sepBy(sepParser) {
+    return function sepBy$valParser(valueParser) {
+        return new Parser(function sepBy$valParser$state(state) {
+            if (state.isError)
+                return state;
+            let nextState = state;
+            let error = null;
+            const results = [];
+            while (true) {
+                const valState = valueParser.p(nextState);
+                const sepState = sepParser.p(valState);
+                if (valState.isError) {
+                    error = valState;
+                    break;
+                }
+                else {
+                    results.push(valState.result);
+                }
+                if (sepState.isError) {
+                    nextState = valState;
+                    break;
+                }
+                nextState = sepState;
+            }
+            if (error) {
+                if (results.length === 0) {
+                    return updateResult(state, results);
+                }
+                return error;
+            }
+            return updateResult(nextState, results);
+        });
+    };
+}
+// sepBy1 :: Parser e a s -> Parser e b s -> Parser e [b] s
+const sepBy1 = function sepBy1(sepParser) {
+    return function sepBy1$valParser(valueParser) {
+        return new Parser(function sepBy1$valParser$state(state) {
+            if (state.isError)
+                return state;
+            const out = sepBy(sepParser)(valueParser).p(state);
+            if (out.isError)
+                return out;
+            if (out.result.length === 0) {
+                return updateError(state, `ParseError 'sepBy1' (position ${state.index}): Expecting to match at least one separated value`);
+            }
+            return out;
+        });
+    };
+};
+function choice(parsers) {
+    if (parsers.length === 0)
+        throw new Error(`List of parsers can't be empty.`);
+    return new Parser(function choice$state(state) {
+        if (state.isError)
+            return state;
+        let error = null;
+        for (const parser of parsers) {
+            const out = parser.p(state);
+            if (!out.isError)
+                return out;
+            if (error === null || (error && out.index > error.index)) {
+                error = out;
+            }
+        }
+        return error;
+    });
+}
+// possibly :: Parser e a s -> Parser e (a | Null) s
+function possibly(parser) {
+    return new Parser(function possibly$state(state) {
+        if (state.isError)
+            return state;
+        const nextState = parser.p(state);
+        return nextState.isError ? updateResult(state, null) : nextState;
+    });
+}
+// startOfInput :: Parser e String s
+new Parser(function startOfInput$state(state) {
+    if (state.isError)
+        return state;
+    const { index } = state;
+    if (index > 0) {
+        return updateError(state, `ParseError 'startOfInput' (position ${index}): Expected start of input'`);
+    }
+    return state;
+});
+// endOfInput :: Parser e Null s
+new Parser(function endOfInput$state(state) {
+    if (state.isError)
+        return state;
+    const { dataView, index, inputType } = state;
+    if (index !== dataView.byteLength) {
+        const errorByte = inputType === InputTypes.STRING
+            ? String.fromCharCode(dataView.getUint8(index))
+            : `0x${dataView.getUint8(index).toString(16).padStart(2, '0')}`;
+        return updateError(state, `ParseError 'endOfInput' (position ${index}): Expected end of input but got '${errorByte}'`);
+    }
+    return updateResult(state, null);
+});
+// whitespace :: Parser e String s
+const whitespace = regex(reWhitespaces)
+    // Keeping this error even though the implementation no longer uses many1. Will change it to something more appropriate in the next major release.
+    .errorMap(({ index }) => `ParseError 'many1' (position ${index}): Expecting to match at least one value`);
+// optionalWhitespace :: Parser e String s
+const optionalWhitespace = possibly(whitespace).map(x => x || '');
+
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
@@ -393,16 +962,6 @@ class SerializerFactory {
     static getSerializer(entity) {
         // @ts-expect-error
         return SerializerFactory.#serializers.get(entity)
-    }
-}
-
-/** @typedef {import("./IEntity").AttributeDeclarations} AttributeDeclarations */
-
-class SubAttributesDeclaration {
-
-    /** @param {AttributeDeclarations} attributes */
-    constructor(attributes) {
-        this.attributes = attributes;
     }
 }
 
@@ -539,22 +1098,6 @@ class Utility {
         return location
     }
 
-    /**
-     * @param {IEntity} entity
-     * @param {String[]} keys
-     * @returns {Boolean}
-     */
-    static isSerialized(
-        entity,
-        keys,
-        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
-    ) {
-        if (attribute?.constructor === Object) {
-            return /** @type {TypeInformation} */(attribute).serialized
-        }
-        return false
-    }
-
     /** @param {String[]} keys */
     static objectGet(target, keys, defaultValue = undefined) {
         if (target === undefined) {
@@ -562,9 +1105,6 @@ class Utility {
         }
         if (!(keys instanceof Array)) {
             throw new TypeError("UEBlueprint: Expected keys to be an array")
-        }
-        if (target instanceof SubAttributesDeclaration) {
-            target = target.attributes;
         }
         if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
             return defaultValue
@@ -594,6 +1134,22 @@ class Utility {
                 target[keys[0]] = new defaultDictType();
             }
             return Utility.objectSet(target[keys[0]], keys.slice(1), value, create, defaultDictType)
+        }
+        return false
+    }
+
+    /**
+     * @param {IEntity} entity
+     * @param {String[]} keys
+     * @returns {Boolean}
+     */
+    static isSerialized(
+        entity,
+        keys,
+        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
+    ) {
+        if (attribute?.constructor === Object) {
+            return /** @type {TypeInformation} */(attribute).serialized
         }
         return false
     }
@@ -856,7 +1412,7 @@ class Utility {
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
- *     [key: String]: AttributeInformation | AnyValue | SubAttributesDeclaration
+ *     [key: String]: AttributeInformation | AnyValue
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  * @typedef {{
@@ -879,6 +1435,7 @@ class Utility {
 
 class IEntity {
 
+    static lookbehind = ""
     /** @type {AttributeDeclarations} */
     static attributes = {}
     static defaultAttribute = {
@@ -901,20 +1458,9 @@ class IEntity {
             const attributesNames = Object.keys(attributes);
             const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames);
             for (let attributeName of allAttributesNames) {
-                let value = Utility.objectGet(values, [attributeName]);
+                let value = values[attributeName];
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName];
-
-                if (attribute instanceof SubAttributesDeclaration) {
-                    target[attributeName] = {};
-                    defineAllAttributes(
-                        target[attributeName],
-                        attribute.attributes,
-                        values[attributeName],
-                        attributeName + "."
-                    );
-                    continue
-                }
 
                 if (!suppressWarns) {
                     if (!(attributeName in attributes)) {
@@ -1035,13 +1581,6 @@ class IEntity {
     /** @param {AttributeDeclarations} attributes */
     static cleanupAttributes(attributes, prefix = "") {
         for (const attributeName in attributes) {
-            if (attributes[attributeName] instanceof SubAttributesDeclaration) {
-                this.cleanupAttributes(
-                    /** @type {SubAttributesDeclaration} */(attributes[attributeName]).attributes,
-                    prefix + "." + attributeName
-                );
-                continue
-            }
             if (attributes[attributeName].constructor !== Object) {
                 attributes[attributeName] = {
                     value: attributes[attributeName],
@@ -1373,9 +1912,10 @@ class Integer64Entity extends IEntity {
         this.cleanupAttributes(this.attributes);
     }
 
+    /** @param {BigInt | Number} value */
     constructor(value = 0) {
         super(value);
-        /** @type {Number} */ this.value;
+        /** @type {BigInt | Number} */ this.value;
     }
 
     valueOf() {
@@ -1717,6 +2257,14 @@ class MacroGraphReferenceEntity extends IEntity {
     }
 }
 
+class NaturalNumberEntity extends IntegerEntity {
+
+    constructor(values = 0) {
+        super(values);
+        this.value = Math.round(Utility.clamp(this.value, 0));
+    }
+}
+
 class PathSymbolEntity extends IEntity {
 
     static attributes = {
@@ -1932,73 +2480,71 @@ class PinEntity extends IEntity {
     }
     static lookbehind = "Pin"
     static attributes = {
-        PinId: {
+        "PinId": {
             type: GuidEntity,
         },
-        PinName: "",
-        PinFriendlyName: {
+        "PinName": "",
+        "PinFriendlyName": {
             type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
             showDefault: false,
         },
-        PinToolTip: {
+        "PinToolTip": {
             type: String,
             showDefault: false,
         },
-        Direction: {
+        "Direction": {
             type: String,
             showDefault: false,
         },
-        PinType: new SubAttributesDeclaration({
-            PinCategory: "",
-            PinSubCategory: "",
-            PinSubCategoryObject: {
-                type: ObjectReferenceEntity,
-            },
-            PinSubCategoryMemberReference: {
-                type: FunctionReferenceEntity,
-                value: null,
-            },
-            PinValueType: {
-                type: PinTypeEntity,
-                value: null,
-            },
-            ContainerType: {
-                type: PathSymbolEntity,
-            },
-            bIsReference: false,
-            bIsConst: false,
-            bIsWeakPointer: false,
-            bIsUObjectWrapper: false,
-            bSerializeAsSinglePrecisionFloat: false,
-        }),
-        LinkedTo: {
+        "PinType.PinCategory": "",
+        "PinType.PinSubCategory": "",
+        "PinType.PinSubCategoryObject": {
+            type: ObjectReferenceEntity,
+        },
+        "PinType.PinSubCategoryMemberReference": {
+            type: FunctionReferenceEntity,
+            value: null,
+        },
+        "PinType.PinValueType": {
+            type: PinTypeEntity,
+            value: null,
+        },
+        "PinType.ContainerType": {
+            type: PathSymbolEntity,
+        },
+        "PinType.bIsReference": false,
+        "PinType.bIsConst": false,
+        "PinType.bIsWeakPointer": false,
+        "PinType.bIsUObjectWrapper": false,
+        "PinType.bSerializeAsSinglePrecisionFloat": false,
+        "LinkedTo": {
             type: [PinReferenceEntity],
             showDefault: false,
         },
-        DefaultValue: {
+        "DefaultValue": {
             /** @param {PinEntity} pinEntity */
             type: pinEntity => pinEntity.getEntityType(true) ?? String,
             serialized: true,
             showDefault: false,
         },
-        AutogeneratedDefaultValue: {
+        "AutogeneratedDefaultValue": {
             type: String,
             showDefault: false,
         },
-        DefaultObject: {
+        "DefaultObject": {
             type: ObjectReferenceEntity,
             showDefault: false,
             value: null,
         },
-        PersistentGuid: {
+        "PersistentGuid": {
             type: GuidEntity,
         },
-        bHidden: false,
-        bNotConnectable: false,
-        bDefaultValueIsReadOnly: false,
-        bDefaultValueIsIgnored: false,
-        bAdvancedView: false,
-        bOrphanedPin: false,
+        "bHidden": false,
+        "bNotConnectable": false,
+        "bDefaultValueIsReadOnly": false,
+        "bDefaultValueIsIgnored": false,
+        "bAdvancedView": false,
+        "bOrphanedPin": false,
     }
 
     static {
@@ -2007,46 +2553,42 @@ class PinEntity extends IEntity {
 
     constructor(values = {}, suppressWarns = false) {
         super(values, suppressWarns);
-        /** @type {GuidEntity} */ this.PinId;
-        /** @type {String} */ this.PinName;
-        /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName;
-        /** @type {String} */ this.PinToolTip;
-        /** @type {String} */ this.Direction;
-        /**
-         * @type {{
-         *     PinCategory: String,
-         *     PinSubCategory: String,
-         *     PinSubCategoryObject: ObjectReferenceEntity,
-         *     PinSubCategoryMemberReference: FunctionReferenceEntity,
-         *     PinValueType: PinTypeEntity,
-         *     ContainerType: PathSymbolEntity,
-         *     bIsReference: Boolean,
-         *     bIsConst: Boolean,
-         *     bIsWeakPointer: Boolean,
-         *     bIsUObjectWrapper: Boolean,
-         *     bSerializeAsSinglePrecisionFloat: Boolean,
-         * }}
-         */ this.PinType;
-        /** @type {PinReferenceEntity[]} */ this.LinkedTo;
-        /** @type {T} */ this.DefaultValue;
-        /** @type {String} */ this.AutogeneratedDefaultValue;
-        /** @type {ObjectReferenceEntity} */ this.DefaultObject;
-        /** @type {GuidEntity} */ this.PersistentGuid;
-        /** @type {Boolean} */ this.bHidden;
-        /** @type {Boolean} */ this.bNotConnectable;
-        /** @type {Boolean} */ this.bDefaultValueIsReadOnly;
-        /** @type {Boolean} */ this.bDefaultValueIsIgnored;
-        /** @type {Boolean} */ this.bAdvancedView;
-        /** @type {Boolean} */ this.bOrphanedPin;
+        this["PinId"] ??= /** @type {GuidEntity} */(undefined);
+        this["PinName"] ??= /** @type {String} */(undefined);
+        this["PinFriendlyName"] ??= /** @type {LocalizedTextEntity | String} */(undefined);
+        this["PinToolTip"] ??= /** @type {String} */(undefined);
+        this["Direction"] ??= /** @type {String} */(undefined);
+        this["PinType.PinCategory"] ??= /** @type {String} */(undefined);
+        this["PinType.PinSubCategory"] ??= /** @type {String} */(undefined);
+        this["PinType.PinSubCategoryObject"] ??= /** @type {ObjectReferenceEntity} */(undefined);
+        this["PinType.PinSubCategoryMemberReference"] ??= /** @type {FunctionReferenceEntity} */(undefined);
+        this["PinType.PinValueType"] ??= /** @type {PinTypeEntity} */(undefined);
+        this["PinType.ContainerType"] ??= /** @type {PathSymbolEntity} */(undefined);
+        this["PinType.bIsReference"] ??= /** @type {Boolean} */(undefined);
+        this["PinType.bIsConst"] ??= /** @type {Boolean} */(undefined);
+        this["PinType.bIsWeakPointer"] ??= /** @type {Boolean} */(undefined);
+        this["PinType.bIsUObjectWrapper"] ??= /** @type {Boolean} */(undefined);
+        this["PinType.bIsUObjectWrapper"] ??= /** @type {Boolean} */(undefined);
+        this["LinkedTo"] ??= /** @type {PinReferenceEntity[]} */(undefined);
+        this["DefaultValue"] ??= /** @type {T} */(undefined);
+        this["AutogeneratedDefaultValue"] ??= /** @type {String} */(undefined);
+        this["DefaultObject"] ??= /** @type {ObjectReferenceEntity} */(undefined);
+        this["PersistentGuid"] ??= /** @type {GuidEntity} */(undefined);
+        this["bHidden"] ??= /** @type {Boolean} */(undefined);
+        this["bNotConnectable"] ??= /** @type {Boolean} */(undefined);
+        this["bDefaultValueIsReadOnly"] ??= /** @type {Boolean} */(undefined);
+        this["bDefaultValueIsIgnored"] ??= /** @type {Boolean} */(undefined);
+        this["bAdvancedView"] ??= /** @type {Boolean} */(undefined);
+        this["bOrphanedPin"] ??= /** @type {Boolean} */(undefined);
     }
 
     getType() {
-        const subCategory = this.PinType.PinSubCategoryObject;
-        if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
+        const subCategory = this["PinType.PinSubCategoryObject"];
+        if (this["PinType.PinCategory"] === "struct" || this["PinType.PinCategory"] === "object") {
             return subCategory.path
         }
         if (
-            this.PinType.PinCategory === "byte"
+            this["PinType.PinCategory"] === "byte"
             && (
                 subCategory.type === Configuration.nodeType.enum
                 || subCategory.type === Configuration.nodeType.userDefinedEnum
@@ -2054,7 +2596,7 @@ class PinEntity extends IEntity {
         ) {
             return "enum"
         }
-        return this.PinType.PinCategory
+        return this["PinType.PinCategory"]
     }
 
     getEntityType(alternative = false) {
@@ -2069,51 +2611,51 @@ class PinEntity extends IEntity {
     getDisplayName() {
         let matchResult = null;
         if (
-            this.PinToolTip
+            this["PinToolTip"]
             // Match up until the first \n excluded or last character
-            && (matchResult = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+            && (matchResult = this["PinToolTip"].match(/\s*(.+?(?=\n)|.+\S)\s*/))
         ) {
             return Utility.formatStringName(matchResult[1])
         }
-        return Utility.formatStringName(this.PinName)
+        return Utility.formatStringName(this["PinName"])
     }
 
     /** @param {PinEntity} other */
     copyTypeFrom(other) {
-        this.PinType.PinCategory = other.PinType.PinCategory;
-        this.PinType.PinSubCategory = other.PinType.PinSubCategory;
-        this.PinType.PinSubCategoryObject = other.PinType.PinSubCategoryObject;
-        this.PinType.PinSubCategoryMemberReference = other.PinType.PinSubCategoryMemberReference;
-        this.PinType.PinValueType = other.PinType.PinValueType;
-        this.PinType.ContainerType = other.PinType.ContainerType;
-        this.PinType.bIsReference = other.PinType.bIsReference;
-        this.PinType.bIsConst = other.PinType.bIsConst;
-        this.PinType.bIsWeakPointer = other.PinType.bIsWeakPointer;
-        this.PinType.bIsUObjectWrapper = other.PinType.bIsUObjectWrapper;
-        this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat;
+        this["PinType.PinCategory"] = other["PinType.PinCategory"];
+        this["PinType.PinSubCategory"] = other["PinType.PinSubCategory"];
+        this["PinType.PinSubCategoryObject"] = other["PinType.PinSubCategoryObject"];
+        this["PinType.PinSubCategoryMemberReference"] = other["PinType.PinSubCategoryMemberReference"];
+        this["PinType.PinValueType"] = other["PinType.PinValueType"];
+        this["PinType.ContainerType"] = other["PinType.ContainerType"];
+        this["PinType.bIsReference"] = other["PinType.bIsReference"];
+        this["PinType.bIsConst"] = other["PinType.bIsConst"];
+        this["PinType.bIsWeakPointer"] = other["PinType.bIsWeakPointer"];
+        this["PinType.bIsUObjectWrapper"] = other["PinType.bIsUObjectWrapper"];
+        this["PinType.bSerializeAsSinglePrecisionFloat"] = other["PinType.bSerializeAsSinglePrecisionFloat"];
     }
 
     getDefaultValue(maybeCreate = false) {
-        if (this.DefaultValue === undefined && maybeCreate) {
-            this.DefaultValue = new (this.getEntityType(true))();
+        if (this["DefaultValue"] === undefined && maybeCreate) {
+            this["DefaultValue"] = new (this.getEntityType(true))();
         }
-        return this.DefaultValue
+        return this["DefaultValue"]
     }
 
     isExecution() {
-        return this.PinType.PinCategory === "exec"
+        return this["PinType.PinCategory"] === "exec"
     }
 
     isHidden() {
-        return this.bHidden
+        return this["bHidden"]
     }
 
     isInput() {
-        return !this.bHidden && this.Direction != "EGPD_Output"
+        return !this["bHidden"] && this["Direction"] != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.bHidden && this.Direction == "EGPD_Output"
+        return !this["bHidden"] && this["Direction"] == "EGPD_Output"
     }
 
     isLinked() {
@@ -2127,12 +2669,12 @@ class PinEntity extends IEntity {
     linkTo(targetObjectName, targetPinEntity) {
         const linkFound = this.LinkedTo?.some(pinReferenceEntity =>
             pinReferenceEntity.objectName.toString() == targetObjectName
-            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity["PinId"].valueOf()
         );
         if (!linkFound) {
             (this.LinkedTo ??= []).push(new PinReferenceEntity({
                 objectName: targetObjectName,
-                pinGuid: targetPinEntity.PinId,
+                pinGuid: targetPinEntity["PinId"],
             }));
             return true
         }
@@ -2146,7 +2688,7 @@ class PinEntity extends IEntity {
     unlinkFrom(targetObjectName, targetPinEntity) {
         const indexElement = this.LinkedTo?.findIndex(pinReferenceEntity => {
             return pinReferenceEntity.objectName.toString() == targetObjectName
-                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity["PinId"].valueOf()
         });
         if (indexElement >= 0) {
             this.LinkedTo.splice(indexElement, 1);
@@ -2159,13 +2701,13 @@ class PinEntity extends IEntity {
     }
 
     getSubCategory() {
-        return this.PinType.PinSubCategoryObject.path
+        return this["PinType.PinSubCategoryObject"].path
     }
 
     /** @return {CSSResult} */
     pinColor() {
         return Configuration.pinColor[this.getType()]
-            ?? Configuration.pinColor[this.PinType.PinCategory]
+            ?? Configuration.pinColor[this["PinType.PinCategory"]]
             ?? Configuration.pinColor["default"]
     }
 }
@@ -2898,7 +3440,7 @@ class ObjectEntity extends IEntity {
     }
 
     getDelegatePin() {
-        return this.CustomProperties?.find(pin => pin.PinType.PinCategory === "delegate")
+        return this.CustomProperties?.find(pin => pin["PinType.PinCategory"] === "delegate")
     }
 
     nodeDisplayName() {
@@ -3093,20 +3635,6 @@ class ObjectEntity extends IEntity {
     }
 }
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
-
-var parsimmon_umd_min = {exports: {}};
-
-(function (module, exports) {
-!function(n,t){module.exports=t();}("undefined"!=typeof self?self:commonjsGlobal,function(){return function(n){var t={};function r(e){if(t[e])return t[e].exports;var u=t[e]={i:e,l:!1,exports:{}};return n[e].call(u.exports,u,u.exports,r),u.l=!0,u.exports}return r.m=n,r.c=t,r.d=function(n,t,e){r.o(n,t)||Object.defineProperty(n,t,{configurable:!1,enumerable:!0,get:e});},r.r=function(n){Object.defineProperty(n,"__esModule",{value:!0});},r.n=function(n){var t=n&&n.__esModule?function(){return n.default}:function(){return n};return r.d(t,"a",t),t},r.o=function(n,t){return Object.prototype.hasOwnProperty.call(n,t)},r.p="",r(r.s=0)}([function(n,t,r){function e(n){if(!(this instanceof e))return new e(n);this._=n;}var u=e.prototype;function o(n,t){for(var r=0;r<n;r++)t(r);}function i(n,t,r){return function(n,t){o(t.length,function(r){n(t[r],r,t);});}(function(r,e,u){t=n(t,r,e,u);},r),t}function a(n,t){return i(function(t,r,e,u){return t.concat([n(r,e,u)])},[],t)}function f(n,t){var r={v:0,buf:t};return o(n,function(){var n;r={v:r.v<<1|(n=r.buf,n[0]>>7),buf:function(n){var t=i(function(n,t,r,e){return n.concat(r===e.length-1?Buffer.from([t,0]).readUInt16BE(0):e.readUInt16BE(r))},[],n);return Buffer.from(a(function(n){return (n<<1&65535)>>8},t))}(r.buf)};}),r}function c(){return "undefined"!=typeof Buffer}function s(){if(!c())throw new Error("Buffer global does not exist; please use webpack if you need to parse Buffers in the browser.")}function l(n){s();var t=i(function(n,t){return n+t},0,n);if(t%8!=0)throw new Error("The bits ["+n.join(", ")+"] add up to "+t+" which is not an even number of bytes; the total should be divisible by 8");var r,u=t/8,o=(r=function(n){return n>48},i(function(n,t){return n||(r(t)?t:n)},null,n));if(o)throw new Error(o+" bit range requested exceeds 48 bit (6 byte) Number max.");return new e(function(t,r){var e=u+r;return e>t.length?x(r,u.toString()+" bytes"):b(e,i(function(n,t){var r=f(t,n.buf);return {coll:n.coll.concat(r.v),buf:r.buf}},{coll:[],buf:t.slice(r,e)},n).coll)})}function h(n,t){return new e(function(r,e){return s(),e+t>r.length?x(e,t+" bytes for "+n):b(e+t,r.slice(e,e+t))})}function p(n,t){if("number"!=typeof(r=t)||Math.floor(r)!==r||t<0||t>6)throw new Error(n+" requires integer length in range [0, 6].");var r;}function d(n){return p("uintBE",n),h("uintBE("+n+")",n).map(function(t){return t.readUIntBE(0,n)})}function v(n){return p("uintLE",n),h("uintLE("+n+")",n).map(function(t){return t.readUIntLE(0,n)})}function g(n){return p("intBE",n),h("intBE("+n+")",n).map(function(t){return t.readIntBE(0,n)})}function m(n){return p("intLE",n),h("intLE("+n+")",n).map(function(t){return t.readIntLE(0,n)})}function y(n){return n instanceof e}function E(n){return "[object Array]"==={}.toString.call(n)}function w(n){return c()&&Buffer.isBuffer(n)}function b(n,t){return {status:!0,index:n,value:t,furthest:-1,expected:[]}}function x(n,t){return E(t)||(t=[t]),{status:!1,index:-1,value:null,furthest:n,expected:t}}function B(n,t){if(!t)return n;if(n.furthest>t.furthest)return n;var r=n.furthest===t.furthest?function(n,t){if(function(){if(void 0!==e._supportsSet)return e._supportsSet;var n="undefined"!=typeof Set;return e._supportsSet=n,n}()&&Array.from){for(var r=new Set(n),u=0;u<t.length;u++)r.add(t[u]);var o=Array.from(r);return o.sort(),o}for(var i={},a=0;a<n.length;a++)i[n[a]]=!0;for(var f=0;f<t.length;f++)i[t[f]]=!0;var c=[];for(var s in i)({}).hasOwnProperty.call(i,s)&&c.push(s);return c.sort(),c}(n.expected,t.expected):t.expected;return {status:n.status,index:n.index,value:n.value,furthest:t.furthest,expected:r}}var j={};function S(n,t){if(w(n))return {offset:t,line:-1,column:-1};n in j||(j[n]={});for(var r=j[n],e=0,u=0,o=0,i=t;i>=0;){if(i in r){e=r[i].line,0===o&&(o=r[i].lineStart);break}("\n"===n.charAt(i)||"\r"===n.charAt(i)&&"\n"!==n.charAt(i+1))&&(u++,0===o&&(o=i+1)),i--;}var a=e+u,f=t-o;return r[t]={line:a,lineStart:o},{offset:t,line:a+1,column:f+1}}function _(n){if(!y(n))throw new Error("not a parser: "+n)}function L(n,t){return "string"==typeof n?n.charAt(t):n[t]}function O(n){if("number"!=typeof n)throw new Error("not a number: "+n)}function k(n){if("function"!=typeof n)throw new Error("not a function: "+n)}function P(n){if("string"!=typeof n)throw new Error("not a string: "+n)}var q=2,A=3,I=8,F=5*I,M=4*I,z="  ";function R(n,t){return new Array(t+1).join(n)}function U(n,t,r){var e=t-n.length;return e<=0?n:R(r,e)+n}function W(n,t,r,e){return {from:n-t>0?n-t:0,to:n+r>e?e:n+r}}function D(n,t){var r,e,u,o,f,c=t.index,s=c.offset,l=1;if(s===n.length)return "Got the end of the input";if(w(n)){var h=s-s%I,p=s-h,d=W(h,F,M+I,n.length),v=a(function(n){return a(function(n){return U(n.toString(16),2,"0")},n)},function(n,t){var r=n.length,e=[],u=0;if(r<=t)return [n.slice()];for(var o=0;o<r;o++)e[u]||e.push([]),e[u].push(n[o]),(o+1)%t==0&&u++;return e}(n.slice(d.from,d.to).toJSON().data,I));o=function(n){return 0===n.from&&1===n.to?{from:n.from,to:n.to}:{from:n.from/I,to:Math.floor(n.to/I)}}(d),e=h/I,r=3*p,p>=4&&(r+=1),l=2,u=a(function(n){return n.length<=4?n.join(" "):n.slice(0,4).join(" ")+"  "+n.slice(4).join(" ")},v),(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2);}else {var g=n.split(/\r\n|[\n\r\u2028\u2029]/);r=c.column-1,e=c.line-1,o=W(e,q,A,g.length),u=g.slice(o.from,o.to),f=o.to.toString().length;}var m=e-o.from;return w(n)&&(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2),i(function(t,e,u){var i,a=u===m,c=a?"> ":z;return i=w(n)?U((8*(o.from+u)).toString(16),f,"0"):U((o.from+u+1).toString(),f," "),[].concat(t,[c+i+" | "+e],a?[z+R(" ",f)+" | "+U("",r," ")+R("^",l)]:[])},[],u).join("\n")}function N(n,t){return ["\n","-- PARSING FAILED "+R("-",50),"\n\n",D(n,t),"\n\n",(r=t.expected,1===r.length?"Expected:\n\n"+r[0]:"Expected one of the following: \n\n"+r.join(", ")),"\n"].join("");var r;}function G(n){return void 0!==n.flags?n.flags:[n.global?"g":"",n.ignoreCase?"i":"",n.multiline?"m":"",n.unicode?"u":"",n.sticky?"y":""].join("")}function C(){for(var n=[].slice.call(arguments),t=n.length,r=0;r<t;r+=1)_(n[r]);return e(function(r,e){for(var u,o=new Array(t),i=0;i<t;i+=1){if(!(u=B(n[i]._(r,e),u)).status)return u;o[i]=u.value,e=u.index;}return B(b(e,o),u)})}function J(){var n=[].slice.call(arguments);if(0===n.length)throw new Error("seqMap needs at least one argument");var t=n.pop();return k(t),C.apply(null,n).map(function(n){return t.apply(null,n)})}function T(){var n=[].slice.call(arguments),t=n.length;if(0===t)return Y("zero alternates");for(var r=0;r<t;r+=1)_(n[r]);return e(function(t,r){for(var e,u=0;u<n.length;u+=1)if((e=B(n[u]._(t,r),e)).status)return e;return e})}function V(n,t){return H(n,t).or(X([]))}function H(n,t){return _(n),_(t),J(n,t.then(n).many(),function(n,t){return [n].concat(t)})}function K(n){P(n);var t="'"+n+"'";return e(function(r,e){var u=e+n.length,o=r.slice(e,u);return o===n?b(u,o):x(e,t)})}function Q(n,t){!function(n){if(!(n instanceof RegExp))throw new Error("not a regexp: "+n);for(var t=G(n),r=0;r<t.length;r++){var e=t.charAt(r);if("i"!==e&&"m"!==e&&"u"!==e&&"s"!==e)throw new Error('unsupported regexp flag "'+e+'": '+n)}}(n),arguments.length>=2?O(t):t=0;var r=function(n){return RegExp("^(?:"+n.source+")",G(n))}(n),u=""+n;return e(function(n,e){var o=r.exec(n.slice(e));if(o){if(0<=t&&t<=o.length){var i=o[0],a=o[t];return b(e+i.length,a)}return x(e,"valid match group (0 to "+o.length+") in "+u)}return x(e,u)})}function X(n){return e(function(t,r){return b(r,n)})}function Y(n){return e(function(t,r){return x(r,n)})}function Z(n){if(y(n))return e(function(t,r){var e=n._(t,r);return e.index=r,e.value="",e});if("string"==typeof n)return Z(K(n));if(n instanceof RegExp)return Z(Q(n));throw new Error("not a string, regexp, or parser: "+n)}function $(n){return _(n),e(function(t,r){var e=n._(t,r),u=t.slice(r,e.index);return e.status?x(r,'not "'+u+'"'):b(r,null)})}function nn(n){return k(n),e(function(t,r){var e=L(t,r);return r<t.length&&n(e)?b(r+1,e):x(r,"a character/byte matching "+n)})}function tn(n,t){arguments.length<2&&(t=n,n=void 0);var r=e(function(n,e){return r._=t()._,r._(n,e)});return n?r.desc(n):r}function rn(){return Y("fantasy-land/empty")}u.parse=function(n){if("string"!=typeof n&&!w(n))throw new Error(".parse must be called with a string or Buffer as its argument");var t,r=this.skip(an)._(n,0);return t=r.status?{status:!0,value:r.value}:{status:!1,index:S(n,r.furthest),expected:r.expected},delete j[n],t},u.tryParse=function(n){var t=this.parse(n);if(t.status)return t.value;var r=N(n,t),e=new Error(r);throw e.type="ParsimmonError",e.result=t,e},u.assert=function(n,t){return this.chain(function(r){return n(r)?X(r):Y(t)})},u.or=function(n){return T(this,n)},u.trim=function(n){return this.wrap(n,n)},u.wrap=function(n,t){return J(n,this,t,function(n,t){return t})},u.thru=function(n){return n(this)},u.then=function(n){return _(n),C(this,n).map(function(n){return n[1]})},u.many=function(){var n=this;return e(function(t,r){for(var e=[],u=void 0;;){if(!(u=B(n._(t,r),u)).status)return B(b(r,e),u);if(r===u.index)throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");r=u.index,e.push(u.value);}})},u.tieWith=function(n){return P(n),this.map(function(t){if(function(n){if(!E(n))throw new Error("not an array: "+n)}(t),t.length){P(t[0]);for(var r=t[0],e=1;e<t.length;e++)P(t[e]),r+=n+t[e];return r}return ""})},u.tie=function(){return this.tieWith("")},u.times=function(n,t){var r=this;return arguments.length<2&&(t=n),O(n),O(t),e(function(e,u){for(var o=[],i=void 0,a=void 0,f=0;f<n;f+=1){if(a=B(i=r._(e,u),a),!i.status)return a;u=i.index,o.push(i.value);}for(;f<t&&(a=B(i=r._(e,u),a),i.status);f+=1)u=i.index,o.push(i.value);return B(b(u,o),a)})},u.result=function(n){return this.map(function(){return n})},u.atMost=function(n){return this.times(0,n)},u.atLeast=function(n){return J(this.times(n),this.many(),function(n,t){return n.concat(t)})},u.map=function(n){k(n);var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(b(u.index,n(u.value)),u):u})},u.contramap=function(n){k(n);var t=this;return e(function(r,e){var u=t.parse(n(r.slice(e)));return u.status?b(e+r.length,u.value):u})},u.promap=function(n,t){return k(n),k(t),this.contramap(n).map(t)},u.skip=function(n){return C(this,n).map(function(n){return n[0]})},u.mark=function(){return J(en,this,en,function(n,t,r){return {start:n,value:t,end:r}})},u.node=function(n){return J(en,this,en,function(t,r,e){return {name:n,value:r,start:t,end:e}})},u.sepBy=function(n){return V(this,n)},u.sepBy1=function(n){return H(this,n)},u.lookahead=function(n){return this.skip(Z(n))},u.notFollowedBy=function(n){return this.skip($(n))},u.desc=function(n){E(n)||(n=[n]);var t=this;return e(function(r,e){var u=t._(r,e);return u.status||(u.expected=n),u})},u.fallback=function(n){return this.or(X(n))},u.ap=function(n){return J(n,this,function(n,t){return n(t)})},u.chain=function(n){var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(n(u.value)._(r,u.index),u):u})},u.concat=u.or,u.empty=rn,u.of=X,u["fantasy-land/ap"]=u.ap,u["fantasy-land/chain"]=u.chain,u["fantasy-land/concat"]=u.concat,u["fantasy-land/empty"]=u.empty,u["fantasy-land/of"]=u.of,u["fantasy-land/map"]=u.map;var en=e(function(n,t){return b(t,S(n,t))}),un=e(function(n,t){return t>=n.length?x(t,"any character/byte"):b(t+1,L(n,t))}),on=e(function(n,t){return b(n.length,n.slice(t))}),an=e(function(n,t){return t<n.length?x(t,"EOF"):b(t,null)}),fn=Q(/[0-9]/).desc("a digit"),cn=Q(/[0-9]*/).desc("optional digits"),sn=Q(/[a-z]/i).desc("a letter"),ln=Q(/[a-z]*/i).desc("optional letters"),hn=Q(/\s*/).desc("optional whitespace"),pn=Q(/\s+/).desc("whitespace"),dn=K("\r"),vn=K("\n"),gn=K("\r\n"),mn=T(gn,vn,dn).desc("newline"),yn=T(mn,an);e.all=on,e.alt=T,e.any=un,e.cr=dn,e.createLanguage=function(n){var t={};for(var r in n)({}).hasOwnProperty.call(n,r)&&function(r){t[r]=tn(function(){return n[r](t)});}(r);return t},e.crlf=gn,e.custom=function(n){return e(n(b,x))},e.digit=fn,e.digits=cn,e.empty=rn,e.end=yn,e.eof=an,e.fail=Y,e.formatError=N,e.index=en,e.isParser=y,e.lazy=tn,e.letter=sn,e.letters=ln,e.lf=vn,e.lookahead=Z,e.makeFailure=x,e.makeSuccess=b,e.newline=mn,e.noneOf=function(n){return nn(function(t){return n.indexOf(t)<0}).desc("none of '"+n+"'")},e.notFollowedBy=$,e.of=X,e.oneOf=function(n){for(var t=n.split(""),r=0;r<t.length;r++)t[r]="'"+t[r]+"'";return nn(function(t){return n.indexOf(t)>=0}).desc(t)},e.optWhitespace=hn,e.Parser=e,e.range=function(n,t){return nn(function(r){return n<=r&&r<=t}).desc(n+"-"+t)},e.regex=Q,e.regexp=Q,e.sepBy=V,e.sepBy1=H,e.seq=C,e.seqMap=J,e.seqObj=function(){for(var n,t={},r=0,u=(n=arguments,Array.prototype.slice.call(n)),o=u.length,i=0;i<o;i+=1){var a=u[i];if(!y(a)){if(E(a)&&2===a.length&&"string"==typeof a[0]&&y(a[1])){var f=a[0];if(Object.prototype.hasOwnProperty.call(t,f))throw new Error("seqObj: duplicate key "+f);t[f]=!0,r++;continue}throw new Error("seqObj arguments must be parsers or [string, parser] array pairs.")}}if(0===r)throw new Error("seqObj expects at least one named parser, found zero");return e(function(n,t){for(var r,e={},i=0;i<o;i+=1){var a,f;if(E(u[i])?(a=u[i][0],f=u[i][1]):(a=null,f=u[i]),!(r=B(f._(n,t),r)).status)return r;a&&(e[a]=r.value),t=r.index;}return B(b(t,e),r)})},e.string=K,e.succeed=X,e.takeWhile=function(n){return k(n),e(function(t,r){for(var e=r;e<t.length&&n(L(t,e));)e++;return b(e,t.slice(r,e))})},e.test=nn,e.whitespace=pn,e["fantasy-land/empty"]=rn,e["fantasy-land/of"]=X,e.Binary={bitSeq:l,bitSeqObj:function(n){s();var t={},r=0,e=a(function(n){if(E(n)){var e=n;if(2!==e.length)throw new Error("["+e.join(", ")+"] should be length 2, got length "+e.length);if(P(e[0]),O(e[1]),Object.prototype.hasOwnProperty.call(t,e[0]))throw new Error("duplicate key in bitSeqObj: "+e[0]);return t[e[0]]=!0,r++,e}return O(n),[null,n]},n);if(r<1)throw new Error("bitSeqObj expects at least one named pair, got ["+n.join(", ")+"]");var u=a(function(n){return n[0]},e);return l(a(function(n){return n[1]},e)).map(function(n){return i(function(n,t){return null!==t[0]&&(n[t[0]]=t[1]),n},{},a(function(t,r){return [t,n[r]]},u))})},byte:function(n){if(s(),O(n),n>255)throw new Error("Value specified to byte constructor ("+n+"=0x"+n.toString(16)+") is larger in value than a single byte.");var t=(n>15?"0x":"0x0")+n.toString(16);return e(function(r,e){var u=L(r,e);return u===n?b(e+1,u):x(e,t)})},buffer:function(n){return h("buffer",n).map(function(n){return Buffer.from(n)})},encodedString:function(n,t){return h("string",t).map(function(t){return t.toString(n)})},uintBE:d,uint8BE:d(1),uint16BE:d(2),uint32BE:d(4),uintLE:v,uint8LE:v(1),uint16LE:v(2),uint32LE:v(4),intBE:g,int8BE:g(1),int16BE:g(2),int32BE:g(4),intLE:m,int8LE:m(1),int16LE:m(2),int32LE:m(4),floatBE:h("floatBE",4).map(function(n){return n.readFloatBE(0)}),floatLE:h("floatLE",4).map(function(n){return n.readFloatLE(0)}),doubleBE:h("doubleBE",8).map(function(n){return n.readDoubleBE(0)}),doubleLE:h("doubleLE",8).map(function(n){return n.readDoubleLE(0)})},n.exports=e;}])});
-}(parsimmon_umd_min));
-
-var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
-
 class UnknownKeysEntity extends IEntity {
 
     static attributes = {
@@ -3114,7 +3642,6 @@ class UnknownKeysEntity extends IEntity {
         {
             value: "",
             showDefault: false,
-            ignore: true,
         },
     }
 
@@ -3128,585 +3655,552 @@ class UnknownKeysEntity extends IEntity {
     }
 }
 
-// @ts-nocheck
-
 /**
  * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
  * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
  */
 
-let P = Parsimmon;
-
 class Grammar {
 
-    static Regex = {
-        ByteInteger: /0*(?:25[0-5]|2[0-4]\d|1?\d?\d|)(?!\d)/, // A integer between 0 and 255
-        HexDigit: /[0-9a-fA-F]/,
-        InlineOptWhitespace: /[^\S\n]*/,
-        InlineWhitespace: /[^\S\n]+/,
-        InsideString: /(?:[^"\\]|\\.)*/,
-        Integer: /[\-\+]?\d+/,
-        MultilineWhitespace: /\s*\n\s*/,
-        Number: /[-\+]?\d+(?:\.\d+)?/,
-        RealUnit: /^\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/, // A number between 0 and 1 included
-        Symbol: /[a-zA-Z_]\w*/,
-        Word: /[a-zA-Z_]+/,
-    }
+    /** @param {String} source */
+    static unanchor = source => source[0] === "^" ? source.substring(1) : source
+
+    static separatedBy = (source, separator, min = 1) =>
+        new RegExp(
+            `^${this.unanchor(source)}(?:${this.unanchor(separator)}${this.unanchor(source)})${min === 1
+                ? "*"
+                : min === 2
+                    ? "+"
+                    : `{${min},}`}`
+        )
+
+    static Regex = class {
+        static ByteInteger = /^0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/ // A integer between 0 and 255
+        static HexDigit = /^[0-9a-fA-F]/
+        static InlineOptWhitespace = /^[^\S\n]*/
+        static InlineWhitespace = /^[^\S\n]+/
+        static InsideString = /^(?:[^"\\]|\\.)*/
+        static Integer = /^[\-\+]?\d+(?!\d|\.)/
+        static MultilineWhitespace = /\s*\n\s*/
+        static Number = /^[-\+]?\d+(?:\.\d+)?(?!\d|\.)/
+        static RealUnit = /^\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
+        static Symbol = /^[a-zA-Z_]\w*/
+        static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
+        static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
+        static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
+        static Path = new RegExp(`^(?:\\/${Grammar.unanchor(this.PathFragment.source)}){2,}`)
+        static PathOptSpace = new RegExp(`^(?:\\/${Grammar.unanchor(this.PathSpaceFragment.source)}){2,}`)
+        static Word = /^[a-zA-Z_]+/
+        static whitespace = whitespace
+    };
 
     /*   ---   Factory   ---   */
 
-    /**
-     * @template T
-     * @param {RegExp} re
-     * @param {(execResult) => T} mapper
-     */
-    static regexMap(re, mapper) {
-        const anchored = RegExp("^(?:" + re.source + ")", re.flags);
-        const expected = "" + re;
-        /** @param {Grammar} r */
-        return P((input, i) => {
-            const match = anchored.exec(input.slice(i));
-            if (match) {
-                return P.makeSuccess(i + match[0].length, mapper(match))
-            }
-            return P.makeFailure(i, expected)
-        })
-    }
-
-    /** @param {String} str */
-    static getStringParser(str) {
-        return P((input, i) => {
-            var j = i + str.length;
-            var head = input.slice(i, j);
-            if (head === str) {
-                return makeSuccess(j, head)
-            } else {
-                return makeFailure(i, expected)
-            }
-        })
-    }
-
-    /** @param {Grammar} r */
-    static getGrammarForType(r, attribute, defaultGrammar = r.AttributeAnyValue) {
-        switch (attribute) {
-            case BigInt:
-                return r.BigInt
-            case Boolean:
-                return r.Boolean
-            case ByteEntity:
-                return r.Byte
-            case EnumEntity:
-                return r.Enum
-            case FormatTextEntity:
-                return r.FormatText
-            case FunctionReferenceEntity:
-                return r.FunctionReference
-            case GuidEntity:
-                return r.Guid
-            case IdentifierEntity:
-                return r.Identifier
-            case Integer64Entity:
-                return r.Integer64
-            case IntegerEntity:
-                return r.Integer
-            case InvariantTextEntity:
-                return r.InvariantText
-            case KeyBindingEntity:
-                return r.KeyBinding
-            case LinearColorEntity:
-                return r.LinearColor
-            case LocalizedTextEntity:
-                return r.LocalizedText
-            case MacroGraphReferenceEntity:
-                return r.MacroGraphReference
-            case Number:
-                return r.Number
-            case ObjectReferenceEntity:
-                return r.ObjectReference
-            case PathSymbolEntity:
-                return r.PathSymbol
-            case PinEntity:
-                return r.Pin
-            case PinReferenceEntity:
-                return r.PinReference
-            case PinTypeEntity:
-                return r.PinType
-            case RealUnitEntity:
-                return r.RealUnit
-            case RotatorEntity:
-                return r.Rotator
-            case SimpleSerializationRotatorEntity:
-                return r.SimpleSerializationRotator
-            case SimpleSerializationVector2DEntity:
-                return r.SimpleSerializationVector2D
-            case SimpleSerializationVectorEntity:
-                return r.SimpleSerializationVector
-            case String:
-                return r.String
-            case SymbolEntity:
-                return r.Symbol
-            case VariableReferenceEntity:
-                return r.VariableReference
-            case Vector2DEntity:
-                return r.Vector2D
-            case VectorEntity:
-                return r.Vector
-        }
-        let result = defaultGrammar;
-        const type = attribute.constructor === Object
+    static grammarFor(
+        attribute,
+        type = attribute?.constructor === Object
             ? attribute.type
-            : attribute.constructor;
+            : attribute?.constructor,
+        defaultGrammar = this.unknownValue
+    ) {
+        let result = defaultGrammar;
         if (type instanceof Array) {
-            result = Grammar.getGrammarForType(r, type[0])
-                .trim(P.optWhitespace)
-                .sepBy(P.string(","))
-                .skip(P.regex(/,?\s*/))
-                .wrap(P.string("("), P.string(")"));
+            result = sequenceOf([
+                str("("),
+                this.grammarFor(undefined, type[0]),
+                possibly(sequenceOf([whitespace, str(",")])),
+                str(")"),
+            ]);
         } else if (type instanceof UnionType) {
             result = type.types
-                .map(v => Grammar.getGrammarForType(r, v))
-                .reduce((accum, cur) => !cur || accum === r.AttributeAnyValue
-                    ? r.AttributeAnyValue
-                    : accum.or(cur));
-        } else if (attribute.constructor === Object) {
-            result = Grammar.getGrammarForType(r, type, defaultGrammar);
+                .map(v => this.grammarFor(undefined, v))
+                .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
+                    ? this.unknownValue
+                    : choice([acc, cur])
+                );
+        } else if (attribute?.constructor === Object) {
+            result = this.grammarFor(undefined, type, defaultGrammar);
+        } else {
+            switch (type) {
+                case BigInt:
+                    result = this.bigInt;
+                    break
+                case Boolean:
+                    result = this.boolean;
+                    break
+                case ByteEntity:
+                    result = this.byteEntity;
+                    break
+                case EnumEntity:
+                    result = this.enumEntity;
+                    break
+                case FormatTextEntity:
+                    result = this.formatTextEntity;
+                    break
+                case FunctionReferenceEntity:
+                    result = this.functionReferenceEntity;
+                    break
+                case GuidEntity:
+                    result = this.guidEntity;
+                    break
+                case IdentifierEntity:
+                    result = this.identifierEntity;
+                    break
+                case Integer64Entity:
+                    result = this.integer64Entity;
+                    break
+                case IntegerEntity:
+                    result = this.integerEntity;
+                    break
+                case InvariantTextEntity:
+                    result = this.invariantTextEntity;
+                    break
+                case KeyBindingEntity:
+                    result = this.keyBindingEntity;
+                    break
+                case LinearColorEntity:
+                    result = this.linearColorEntity;
+                    break
+                case LocalizedTextEntity:
+                    result = this.localizedTextEntity;
+                    break
+                case MacroGraphReferenceEntity:
+                    result = this.macroGraphReferenceEntity;
+                    break
+                case Number:
+                    result = this.number;
+                    break
+                case ObjectReferenceEntity:
+                    result = this.objectReferenceEntity;
+                    break
+                case PathSymbolEntity:
+                    result = this.pathSymbolEntity;
+                    break
+                case PinEntity:
+                    result = this.pinEntity;
+                    break
+                case PinReferenceEntity:
+                    result = this.pinReferenceEntity;
+                    break
+                case PinTypeEntity:
+                    result = this.pinTypeEntity;
+                    break
+                case RealUnitEntity:
+                    result = this.realUnitEntity;
+                    break
+                case RotatorEntity:
+                    result = this.rotatorEntity;
+                    break
+                case SimpleSerializationRotatorEntity:
+                    result = this.simpleSerializationRotatorEntity;
+                    break
+                case SimpleSerializationVector2DEntity:
+                    result = this.simpleSerializationVector2DEntity;
+                    break
+                case SimpleSerializationVectorEntity:
+                    result = this.simpleSerializationVectorEntity;
+                    break
+                case String:
+                    result = this.string;
+                    break
+                case SymbolEntity:
+                    result = this.symbolEntity;
+                    break
+                case VariableReferenceEntity:
+                    result = this.variableReferenceEntity;
+                    break
+                case Vector2DEntity:
+                    result = this.vector2DEntity;
+                    break
+                case VectorEntity:
+                    result = this.vectorEntity;
+                    break
+            }
         }
-        if (attribute.constructor === Object) {
+        if (attribute?.constructor === Object) {
             if (attribute.serialized && type.constructor !== String) {
-                result = result.wrap(P.string('"'), P.string('"'));
+                result = sequenceOf([char('"'), result, char('"')]);
             }
             if (attribute.nullable) {
-                result = result.or(r.Null);
+                result = choice([result, this.null]);
             }
         }
         return result
     }
 
-    /** @param {Grammar} r */
-    static ReferencePath = (r, referencePathGrammar) =>
-        P.alt(
-            referencePathGrammar,
-            P.seq(
-                P.string("/"),
-                referencePathGrammar
-                    .map(v => v.toString())
-                    .sepBy1(P.string("."))
-                    .tieWith(".")
-                    .sepBy1(P.string(":"))
-                    .tieWith(":")
-            )
-                .tie()
-                .atLeast(2)
-                .tie()
-        )
-
-    /** @param {Grammar} r */
-    static createAttributeGrammar = (r, entityType, valueSeparator = P.string("=").trim(P.optWhitespace)) =>
-        r.AttributeName
-            .skip(valueSeparator)
-            .chain(attributeName => {
-                // Once the attribute name is known, look into entityType.attributes to get its type
-                const attributeKey = attributeName.split(".");
-                const attribute = Utility.objectGet(entityType.attributes, attributeKey);
-                const attributeValueGrammar = attribute // Remember attributeKey can not correspond to any attribute
-                    ? attribute.constructor === Object && /** @type {AttributeInformation} */(attribute).serialized
-                        ? r.String
-                        : Grammar.getGrammarForType(r, attribute, r.AttributeAnyValue)
-                    : r.AttributeAnyValue;
-                // Returns a setter function for the attribute
-                return attributeValueGrammar.map(attributeValue =>
-                    entity => Utility.objectSet(entity, attributeKey, attributeValue, true)
-                )
-            })
+    static createAttributeGrammar(
+        entityType,
+        valueSeparator = regex(/^\s*=\s*/)
+    ) {
+        return sequenceOf([
+            this.attributeName,
+            valueSeparator,
+        ]).chain(([attributeName, _1]) => this
+            .grammarFor(entityType.attributes[attributeName], undefined, this.unknownValue)
+            .map(attributeValue =>
+                values => values[attributeName] = attributeValue
+            ))
+    }
 
     /**
-     * @param {Grammar} r
      * @param {EntityConstructor} entityType
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      */
-    static createEntityGrammar = (r, entityType, acceptUnknownKeys = true) =>
-        P.seqMap(
-            entityType.lookbehind
-                ? P.seq(P.string(entityType.lookbehind), P.optWhitespace, P.string("("))
-                : P.string("("),
-            Grammar.createAttributeGrammar(r, entityType)
-                .trim(P.optWhitespace) // Drop spaces around a attribute assignment
-                .sepBy(P.string(",")) // Assignments are separated by comma
-                .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
-            P.string(")"),
-            (_0, attributes, _2) => {
-                let values = {};
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return values
-            }
-        )
-            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
-            .chain(values => {
-                let totalKeys = Object.keys(values);
-                // Check missing values
-                if (
-                    Object.keys(entityType.attributes)
-                        .filter(key => entityType.attributes[key].expected)
-                        .find(key => !totalKeys.includes(key))
-                ) {
-                    return P.fail()
-                }
-                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length;
-                if (
-                    !acceptUnknownKeys && unknownKeys > 0
-                    // Unknown keys must still be limited in number
-                    || acceptUnknownKeys && unknownKeys + 0.5 > Math.sqrt(totalKeys)
-                ) {
-                    return P.fail()
-                }
-                return P.succeed().map(() => new entityType(values))
-            })
+    static createEntityGrammar = (entityType, acceptUnknownKeys = true) =>
+        sequenceOf([
+            entityType.lookbehind.length
+                ? regex(new RegExp(`^${entityType.lookbehind}\\s*\\(\\s*`))
+                : regex(/^\(\s*/),
+            sequenceOf([
+                Grammar.createAttributeGrammar(entityType),
+                many(
+                    sequenceOf([
+                        this.commaSeparation,
+                        Grammar.createAttributeGrammar(entityType),
+                    ]).map(([_0, entry]) => entry)
+                )
+            ]).map(([first, remaining]) => [first, ...remaining]),
+            regex(/^(?:\s*,)?\s*\)/),
+        ]).map(([_0, attributes, _2]) => {
+            let values = {};
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            return new entityType(values)
+            // return values
+        })
+    // // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
+    // .chain(values => {
+    //     let totalKeys = Object.keys(values)
+    //     // Check missing values
+    //     if (
+    //         Object.keys(entityType.attributes)
+    //             .filter(key => entityType.attributes[key].expected)
+    //             .find(key => !totalKeys.includes(key))
+    //     ) {
+    //         return P.fail()
+    //     }
+    //     const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length
+    //     if (
+    //         !acceptUnknownKeys && unknownKeys > 0
+    //         // Unknown keys must still be limited in number
+    //         || acceptUnknownKeys && unknownKeys + 0.5 > Math.sqrt(totalKeys)
+    //     ) {
+    //         return P.fail()
+    //     }
+    //     return P.succeed().map(() => new entityType(values))
+    // })
 
-    /*   ---   General   ---   */
+    /*   ---   Primitive   ---   */
 
-    /** @param {Grammar} r */
-    Null = r => P.regex(new RegExp(String.raw`\(${Grammar.Regex.InlineOptWhitespace.source}\)`)).map(() => null).desc("null: ()")
+    static null = regex(/^\(\s*\)/).map(() => null)
+    static true = regex(/^true/i).map(() => true)
+    static false = regex(/^false/i).map(() => false)
+    static boolean = choice([this.true, this.false])
+    static number = regex(Grammar.Regex.Number).map(Number)
+    static integer = regex(Grammar.Regex.Integer).map(Number)
+    static bigInt = regex(Grammar.Regex.Integer).map(BigInt)
+    static realUnit = regex(Grammar.Regex.RealUnit).map(Number)
+    static naturalNumber = regex(/^\d+/).map(Number)
+    static byteNumber = regex(Grammar.Regex.ByteInteger).map(Number)
 
-    /** @param {Grammar} r */
-    Boolean = r => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false).desc("either True or False")
+    /*   ---   Fragment   ---   */
 
-    /** @param {Grammar} r */
-    Number = r => P.regex(Grammar.Regex.Number).map(Number).desc("a number")
-
-    /** @param {Grammar} r */
-    BigInt = r => P.regex(Grammar.Regex.Integer).map(v => BigInt(v)).desc("a big integer")
-
-    /** @param {Grammar} r */
-    RealUnit = r => P.regex(Grammar.Regex.RealUnit).map(Number).desc("a number between 0 and 1")
-
-    /** @param {Grammar} r */
-    NaturalNumber = r => Grammar.regexMap(/\d+/, v => parseInt(v[0])).desc("a natural number")
-
-    /** @param {Grammar} r */
-    ColorNumber = r => P.regexp(Grammar.Regex.ByteInteger).desc("a number between 0 and 255")
-
-    /** @param {Grammar} r */
-    Word = r => P.regexp(Grammar.Regex.Word).desc("a word")
-
-    /** @param {Grammar} r */
-    String = r => P.regexp(new RegExp(`"(${Grammar.Regex.InsideString.source})"`), 1).map(Utility.unescapeString)
-        .desc('string (with possibility to escape the quote using \")')
-
-    /** @param {Grammar} r */
-    AttributeName = r => P.regexp(new RegExp(String.raw`(?:(?:^|(?<!^)\.)${Grammar.Regex.Word.source})+`))
-        .desc("dot-separated words")
+    static colorValue = this.byteNumber
+    static word = regex(Grammar.Regex.Word)
+    static string = sequenceOf([
+        char('"'),
+        regex(Grammar.Regex.InsideString),
+        char('"')
+    ]).map(([_1, insideString, _2]) => Utility.unescapeString(insideString))
+    static path = choice([
+        regex(this.Regex.Path),
+        sequenceOf([char('"'), regex(this.Regex.PathOptSpace), char('"')])
+            .map(values => values[1]),
+        sequenceOf([str(`'"`), regex(this.Regex.PathOptSpace), str(`"'`)])
+            .map(values => values[1]),
+    ])
+    static symbol = regex(this.Regex.Symbol)
+    static attributeName = regex(this.Regex.DotSeparatedSymbols)
+    static guid = regex(new RegExp(`${this.Regex.HexDigit.source}{32}`))
+    static commaSeparation = regex(/^\s*,\s*/)
+    static typeReference = choice([regex(this.Regex.Path), this.symbol])
+    static hexColorChannel = regex(new RegExp(`^${this.unanchor(Grammar.Regex.HexDigit.source)}{2}`))
 
     /*   ---   Entity   ---   */
 
-    /** @param {Grammar} r */
-    None = r => P.string("None").map(() => new ObjectReferenceEntity({ type: "None", path: "" })).desc("none")
+    static byteEntity = this.byteNumber.map(v => new ByteEntity(v))
 
-    /** @param {Grammar} r */
-    Integer64 = r => r.BigInt.map(v => new Integer64Entity(v)).desc("an integer64")
+    static enumEntity = this.symbol.map(v => new EnumEntity(v))
 
-    /** @param {Grammar} r */
-    Integer = r => P.regex(Grammar.Regex.Integer).map(v => new IntegerEntity(v)).desc("an integer")
+    static formatTextEntity = sequenceOf([
+        regex(new RegExp(`^${FormatTextEntity.lookbehind}\\s*`)),
+        this.grammarFor(FormatTextEntity.attributes.value)
+    ])
 
-    /** @param {Grammar} r */
-    Byte = r => P.regex(Grammar.Regex.ByteInteger).map(v => new ByteEntity(parseInt(v))).desc("a Byte")
+    static functionReferenceEntity = this.createEntityGrammar(FunctionReferenceEntity)
 
-    /** @param {Grammar} r */
-    Guid = r => P.regexp(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
-        .map(v => new GuidEntity({ value: v }))
-        .desc("32 digit hexadecimal value")
+    static guidEntity = this.guid.map(v => new GuidEntity(v))
 
-    /** @param {Grammar} r */
-    Identifier = r => P.regex(/\w+/).map(v => new IdentifierEntity(v))
+    static identifierEntity = this.symbol.map(v => new IdentifierEntity(v))
 
-    /** @param {Grammar} r */
-    PathSymbol = r => P.regex(/\w+/).map(v => new PathSymbolEntity({ value: v }))
+    static integer64Entity = this.bigInt.map(v => new Integer64Entity(v))
 
-    /** @param {Grammar} r */
-    PathSymbolOptSpaces = r => P.regex(/(?:(?:^|(?<!^) )\w+)+/).map(v => new PathSymbolEntity({ value: v }))
+    static integerEntity = this.integer.map(v => new IntegerEntity(v))
 
-    /** @param {Grammar} r */
-    Symbol = r => P.regex(Grammar.Regex.Symbol).map(v => new SymbolEntity({ value: v }))
+    static invariantTextEntity = sequenceOf([
+        regex(new RegExp(`^${InvariantTextEntity.lookbehind}\\s*`)),
+        this.grammarFor(InvariantTextEntity.attributes.value)
+    ])
 
-    /** @param {Grammar} r */
-    Enum = r => P.regex(Grammar.Regex.Symbol).map(v => new EnumEntity({ value: v }))
+    static keyBindingEntity = choice([
+        this.identifierEntity.map(identifier => new KeyBindingEntity({
+            Key: identifier
+        })),
+        Grammar.createEntityGrammar(KeyBindingEntity)
+    ])
 
-    /** @param {Grammar} r */
-    ObjectReference = r => P.alt(
-        r.None,
-        ...[
-            Grammar.ReferencePath(r, r.PathSymbolOptSpaces)
-                .map(path => new ObjectReferenceEntity({ type: "", path: path }))
-        ].flatMap(referencePath => [
-            referencePath.wrap(P.string(`"`), P.string(`"`)),
-            referencePath.wrap(P.string(`'"`), P.string(`"'`)),
-        ]),
-        P.seqMap(
-            Grammar.ReferencePath(r, r.PathSymbolOptSpaces), // Goes into referenceType
-            P.optWhitespace, // Goes into _1 (ignored)
-            P.alt(...[Grammar.ReferencePath(r, r.PathSymbolOptSpaces)].flatMap(referencePath => [
-                referencePath.wrap(P.string(`"`), P.string(`"`)),
-                referencePath.wrap(P.string(`'"`), P.string(`"'`))
-            ])), // Goes into referencePath
-            (referenceType, _1, referencePath) => new ObjectReferenceEntity({ type: referenceType, path: referencePath })
-        ),
-        Grammar.ReferencePath(r, r.PathSymbol).map(path => new ObjectReferenceEntity({ type: "", path: path })),
-        r.Word.map(type => new ObjectReferenceEntity({ type: type, path: "" })),
-    )
+    static linearColorEntity = Grammar.createEntityGrammar(LinearColorEntity, false)
 
-    /** @param {Grammar} r */
-    LocalizedText = r =>
-        Grammar.regexMap(
-            new RegExp(
-                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*\)`
-            ),
-            matchResult => new LocalizedTextEntity({
-                namespace: matchResult[1],
-                key: matchResult[2],
-                value: matchResult[3]
-            })
-        )
-
-    /** @param {Grammar} r */
-    InvariantText = r =>
-        Grammar.regexMap(
-            new RegExp(String.raw`${InvariantTextEntity.lookbehind}\s*\("(${Grammar.Regex.InsideString.source})"\)`),
-            matchResult => new InvariantTextEntity({ value: matchResult[1] })
-        )
-
-    FormatText = r => P.string(FormatTextEntity.lookbehind).then(P.optWhitespace).then(
-        Grammar.getGrammarForType(r, FormatTextEntity.attributes.value).wrap(P.string("("), P.string(")"))
-    )
-
-    /** @param {Grammar} r */
-    AttributeAnyValue = r => P.alt(
-        // Remember to keep the order, otherwise parsing might fail
-        r.Boolean,
-        r.Guid,
-        r.None,
-        r.Null,
-        r.Number,
-        r.String,
-        r.LocalizedText,
-        r.InvariantText,
-        r.PinReference,
-        r.Vector,
-        r.LinearColor,
-        r.Vector2D,
-        r.UnknownKeys,
-        r.ObjectReference,
-        r.Symbol,
-    )
-
-    /** @param {Grammar} r */
-    PinReference = r => P.seqMap(
-        r.PathSymbol, // Goes into objectNAme
-        P.whitespace, // Goes into _1 (ignored)
-        r.Guid, // Goes into pinGuid
-        (objectName, _1, pinGuid) => new PinReferenceEntity({
-            objectName: objectName,
-            pinGuid: pinGuid,
+    static localizedTextEntity = sequenceOf([
+        regex(new RegExp(`^${LocalizedTextEntity.lookbehind}\\s*\\(\\s*"`)),
+        regex(Grammar.Regex.InsideString),
+        regex(/^"\s*,\s*"/),
+        regex(Grammar.Regex.InsideString),
+        regex(/^"\s*,\s*"/),
+        regex(Grammar.Regex.InsideString),
+        regex(/^"\s*\)/),
+    ]).map(([_1, namespace, _2, key, _3, value]) =>
+        new LocalizedTextEntity({
+            namespace: namespace,
+            key: key,
+            value: value,
         })
     )
 
-    /** @param {Grammar} r */
-    PinType = r => Grammar.createEntityGrammar(r, PinTypeEntity, true)
+    static macroGraphReferenceEntity = Grammar.createEntityGrammar(MacroGraphReferenceEntity)
 
-    /** @param {Grammar} r */
-    Vector2D = r => Grammar.createEntityGrammar(r, Vector2DEntity, false)
+    static naturalNumberEntity = this.naturalNumber.map(v => new NaturalNumberEntity(v))
 
-    /** @param {Grammar} r */
-    Vector = r => Grammar.createEntityGrammar(r, VectorEntity, false)
+    static noneReferenceEntity = str("None").map(() =>
+        new ObjectReferenceEntity({ type: "None", path: "" })
+    )
 
-    /** @param {Grammar} r */
-    Rotator = r => Grammar.createEntityGrammar(r, RotatorEntity, false)
+    static typeReferenceEntity = this.typeReference.map(v =>
+        new ObjectReferenceEntity({ type: v, path: "" })
+    )
 
-    /** @param {Grammar} r */
-    SimpleSerializationRotator = r => P.seqMap(
-        r.Number,
-        P.string(",").trim(P.optWhitespace),
-        r.Number,
-        P.string(",").trim(P.optWhitespace),
-        r.Number,
-        (p, _1, y, _3, r) => new SimpleSerializationRotatorEntity({
+    static pathReferenceEntity = this.path.map(path =>
+        new ObjectReferenceEntity({ type: "", path: path })
+    )
+
+    static fullReferenceEntity = sequenceOf([this.typeReference, optionalWhitespace, this.path])
+        .map(([type, _2, path]) =>
+            new ObjectReferenceEntity({ type: type, path: path })
+        )
+
+    static objectReferenceEntity = choice([
+        this.noneReferenceEntity,
+        this.fullReferenceEntity,
+        this.pathReferenceEntity,
+        this.typeReferenceEntity,
+    ])
+
+    static pathSymbolEntity = this.symbol.map(v => new PathSymbolEntity(v))
+
+    static pinEntity = Grammar.createEntityGrammar(PinEntity)
+
+    static pinReferenceEntity = sequenceOf([
+        this.pathSymbolEntity,
+        whitespace,
+        this.guidEntity]).map(
+            ([objectName, _1, pinGuid]) => new PinReferenceEntity({
+                objectName: objectName,
+                pinGuid: pinGuid,
+            })
+        )
+
+    static pinTypeEntity = Grammar.createEntityGrammar(PinTypeEntity)
+
+    static realUnitEntity = this.realUnit.map(value => new RealUnitEntity(value))
+
+    static rotatorEntity = Grammar.createEntityGrammar(RotatorEntity, false)
+
+    static simpleSerializationRotatorEntity = sequenceOf([
+        this.number,
+        this.commaSeparation,
+        this.number,
+        this.commaSeparation,
+        this.number,
+    ]).map(([p, _1, y, _3, r]) =>
+        new SimpleSerializationRotatorEntity({
             R: r,
             P: p,
             Y: y,
         })
     )
 
-    /** @param {Grammar} r */
-    SimpleSerializationVector2D = r => P.seqMap(
-        r.Number,
-        P.string(",").trim(P.optWhitespace),
-        r.Number,
-        (x, _1, y) => new SimpleSerializationVector2DEntity({
-            X: x,
-            Y: y,
-        })
-    )
+    static simpleSerializationVector2DEntity = sequenceOf([
+        this.number,
+        this.commaSeparation,
+        this.number,
+    ]).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
+        X: x,
+        Y: y,
+    }))
 
-    /** @param {Grammar} r */
-    SimpleSerializationVector = r => P.seqMap(
-        r.Number,
-        P.string(",").trim(P.optWhitespace),
-        r.Number,
-        P.string(",").trim(P.optWhitespace),
-        r.Number,
-        (x, _1, y, _3, z) => new SimpleSerializationVectorEntity({
-            X: x,
-            Y: y,
-            Z: z,
-        })
-    )
 
-    /** @param {Grammar} r */
-    LinearColor = r => Grammar.createEntityGrammar(r, LinearColorEntity, false)
+    static simpleSerializationVectorEntity = sequenceOf([
+        this.number,
+        this.commaSeparation,
+        this.number,
+        this.commaSeparation,
+        this.number,
+    ]).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
+        X: x,
+        Y: y,
+        Z: z,
+    }))
 
-    /** @param {Grammar} r */
-    FunctionReference = r => Grammar.createEntityGrammar(r, FunctionReferenceEntity)
+    static symbolEntity = this.symbol.map(v => new SymbolEntity(v))
 
-    /** @param {Grammar} r */
-    VariableReference = r => Grammar.createEntityGrammar(r, VariableReferenceEntity)
+    static variableReferenceEntity = Grammar.createEntityGrammar(VariableReferenceEntity)
 
-    /** @param {Grammar} r */
-    MacroGraphReference = r => Grammar.createEntityGrammar(r, MacroGraphReferenceEntity)
+    static vector2DEntity = Grammar.createEntityGrammar(Vector2DEntity, false)
 
-    /** @param {Grammar} r */
-    KeyBinding = r => P.alt(
-        r.Identifier.map(identifier => new KeyBindingEntity({
-            Key: identifier
-        })),
-        Grammar.createEntityGrammar(r, KeyBindingEntity)
-    )
+    static vectorEntity = Grammar.createEntityGrammar(VectorEntity, false)
 
-    /** @param {Grammar} r */
-    Pin = r => Grammar.createEntityGrammar(r, PinEntity)
+    static unknownKeysEntity = sequenceOf([
+        this.symbol,
+        regex(/^\w*\s*\(\s*/),
+        many1(this.createAttributeGrammar(UnknownKeysEntity)),
+        possibly(regex(/^\s*\,\)/)), // Optional trailing comma
+        regex(/^\s*\)/),
+    ]).map(([lookbehind, _1, attributes, _3, _4]) => {
+        let values = {};
+        attributes.forEach(attributeSetter => attributeSetter(values));
+        let result = new UnknownKeysEntity(values);
+        if (lookbehind) {
+            result.lookbehind = lookbehind;
+        }
+        return result
+    })
 
-    /** @param {Grammar} r */
-    CustomProperties = r =>
-        P.regex(/CustomProperties\s+/)
-            .then(r.Pin)
-            .map(pin => entity => {
-                /** @type {Array} */
-                let properties = Utility.objectGet(entity, ["CustomProperties"], []);
-                properties.push(pin);
-                Utility.objectSet(entity, ["CustomProperties"], properties, true);
-            })
+    static unknownValue = choice([
+        // Remember to keep the order, otherwise parsing might fail
+        this.boolean,
+        this.guidEntity,
+        this.noneReferenceEntity,
+        this.null,
+        this.number,
+        this.string,
+        this.localizedTextEntity,
+        this.invariantTextEntity,
+        this.pinReferenceEntity,
+        this.vectorEntity,
+        this.linearColorEntity,
+        this.vector2DEntity,
+        this.objectReferenceEntity,
+        this.unknownKeysEntity,
+        this.symbol,
+    ])
 
-    /** @param {Grammar} r */
-    Object = r => P.seqMap(
-        P.regexp(/Begin\s+Object\s+/),
-        P
-            .alt(
-                r.CustomProperties,
-                Grammar.createAttributeGrammar(r, ObjectEntity)
-            )
-            .sepBy1(P.whitespace),
-        P.regexp(/\s+End\s+Object/),
-        (_0, attributes, _2) => {
+    static customProperty = sequenceOf([
+        regex(/^CustomProperties\s+/),
+        this.pinEntity,
+    ]).map(([_0, pin]) => values => {
+        if (!values["CustomProperties"]) {
+            values["CustomProperties"] = [];
+        }
+        values["CustomProperties"].push(pin);
+    })
+
+    static objectEntity = sequenceOf([
+        regex(/^Begin\s+Object/),
+        many1(
+            sequenceOf([
+                whitespace,
+                choice([
+                    this.customProperty,
+                    this.createAttributeGrammar(ObjectEntity),
+                ])
+            ]).map(([_0, entry]) => entry)
+        ),
+        regex(/^\s+End\s+Object/),
+    ]).map(
+        ([_0, attributes, _2]) => {
             let values = {};
             attributes.forEach(attributeSetter => attributeSetter(values));
             return new ObjectEntity(values)
         }
     )
 
-    /** @param {Grammar} r */
-    MultipleObject = r => r.Object.sepBy1(P.whitespace).trim(P.optWhitespace)
+    static multipleObject = sequenceOf([
+        optionalWhitespace,
+        sepBy1(whitespace)(this.objectEntity),
+        optionalWhitespace,
+    ]).map(([_0, objects, _2]) => objects)
 
     /*   ---   Others   ---   */
 
     /** @param {Grammar} r */
-    LinearColorFromHex = r => P
-        .string("#")
-        .then(r.HexDigit.times(2).tie().times(3, 4))
-        .trim(P.optWhitespace)
-        .map(([R, G, B, A]) => new LinearColorEntity({
-            R: parseInt(R, 16) / 255,
-            G: parseInt(G, 16) / 255,
-            B: parseInt(B, 16) / 255,
-            A: A ? parseInt(A, 16) / 255 : 1,
-        }))
+    static linearColorFromHex = sequenceOf([
+        char("#"),
+        exactly(3)(
+            this.hexColorChannel
+        ),
+        possibly(this.hexColorChannel)
+    ]).map((_0, [[R, G, B], A]) => new LinearColorEntity({
+        R: parseInt(R, 16) / 255,
+        G: parseInt(G, 16) / 255,
+        B: parseInt(B, 16) / 255,
+        A: A ? parseInt(A, 16) / 255 : 1,
+    }))
 
-    /** @param {Grammar} r */
-    LinearColorFromRGBList = r => P.seqMap(
-        r.ColorNumber,
-        P.string(",").skip(P.optWhitespace),
-        r.ColorNumber,
-        P.string(",").skip(P.optWhitespace),
-        r.ColorNumber.map(Number),
-        (R, _1, G, _3, B) => new LinearColorEntity({
-            R: R / 255,
-            G: G / 255,
-            B: B / 255,
-            A: 1,
-        })
-    )
+    static linearColorRGBList = sequenceOf([
+        this.byteNumber,
+        this.commaSeparation,
+        this.byteNumber,
+        this.commaSeparation,
+        this.byteNumber,
+    ]).map(([R, _1, G, _3, B]) => new LinearColorEntity({
+        R: R / 255,
+        G: G / 255,
+        B: B / 255,
+        A: 1,
+    }))
 
-    /** @param {Grammar} r */
-    LinearColorFromRGB = r => P.string("rgb").then(
-        r.LinearColorFromRGBList.wrap(
-            P.regex(/\(\s*/),
-            P.regex(/\s*\)/)
-        )
-    )
+    static linearColorRGBAList = sequenceOf([
+        this.byteNumber,
+        this.commaSeparation,
+        this.byteNumber,
+        this.commaSeparation,
+        this.byteNumber,
+        this.commaSeparation,
+        this.byteNumber,
+    ]).map(([R, _1, G, _3, B, _5, A]) => new LinearColorEntity({
+        R: R / 255,
+        G: G / 255,
+        B: B / 255,
+        A: A,
+    }))
 
-    /** @param {Grammar} r */
-    LinearColorFromRGBA = r => P.string("rgba").then(
-        P.seqMap(
-            r.ColorNumber,
-            P.string(",").skip(P.optWhitespace),
-            r.ColorNumber,
-            P.string(",").skip(P.optWhitespace),
-            r.ColorNumber.map(Number),
-            P.string(",").skip(P.optWhitespace),
-            P.regex(/0?\.\d+|[01]/).map(Number),
-            (R, _1, G, _3, B, _4, A) => new LinearColorEntity({
-                R: R / 255,
-                G: G / 255,
-                B: B / 255,
-                A: A,
-            })
-        ).wrap(
-            P.regex(/\(\s*/),
-            P.regex(/\s*\)/)
-        )
-    )
+    static linearColorRGB = sequenceOf([
+        regex(/^rgb\s*\(\s*/),
+        this.linearColorRGBList,
+        regex(/^\s*\)/)
+    ]).map(([_0, linearColor, _2]) => linearColor)
 
-    /** @param {Grammar} r */
-    LinearColorFromAnyColor = r => P.alt(
-        r.LinearColorFromRGBList,
-        r.LinearColorFromHex,
-        r.LinearColorFromRGB,
-        r.LinearColorFromRGBA,
-    )
+    static linearColorRGBA = sequenceOf([
+        regex(/^rgba\s*\(\s*/),
+        this.linearColorRGBAList,
+        regex(/^\s*\)/)
+    ]).map(([_0, linearColor, _2]) => linearColor)
 
-    /** @param {Grammar} r */
-    UnknownKeys = r => P.seqMap(
-        P.regex(/\w*\s*/).skip(P.string("(")),
-        P.seqMap(
-            r.AttributeName,
-            P.string("=").trim(P.optWhitespace),
-            r.AttributeAnyValue,
-            (attributeName, separator, attributeValue) =>
-                entity => Utility.objectSet(entity, attributeName.split("."), attributeValue, true)
-        )
-            .trim(P.optWhitespace)
-            .sepBy(P.string(",")) // Assignments are separated by comma
-            .skip(P.regex(/,?/).then(P.optWhitespace)), // Optional trailing comma and maybe additional space
-        P.string(")"),
-        (lookbehind, attributes, _2) => {
-            let values = {};
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            let result = new UnknownKeysEntity(values);
-            if (lookbehind) {
-                result.lookbehind = lookbehind;
-            }
-            return result
-        }
-    )
+    static linearColorFromAnyFormat = choice([
+        this.linearColorFromHex,
+        this.linearColorRGBA,
+        this.linearColorRGB,
+        this.linearColorRGBList,
+    ])
 }
 
 /**
@@ -3717,8 +4211,6 @@ class Grammar {
 
 /** @template {AnyValue} T */
 class ISerializer {
-
-    static grammar = Parsimmon.createLanguage(new Grammar())
 
     /** @param {AnyValueConstructor} entityType */
     constructor(
@@ -3836,7 +4328,7 @@ class ISerializer {
 
     showProperty(entity, object, attributeKey, attributeValue) {
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes;
-        const attribute = Utility.objectGet(attributes, attributeKey);
+        const attribute = attributes[attributeKey];
         if (attribute?.constructor === Object) {
             if (attribute.ignored) {
                 return false
@@ -3846,6 +4338,11 @@ class ISerializer {
         return true
     }
 }
+
+/**
+ * @template T
+ * @typedef {import("arcsecond").Ok<T, any>} Ok
+ */
 
 class ObjectSerializer extends ISerializer {
 
@@ -3866,23 +4363,20 @@ class ObjectSerializer extends ISerializer {
 
     /** @param {String} value */
     read(value) {
-        const parseResult = ISerializer.grammar.Object.parse(value);
-        if (!parseResult.status) {
+        const parseResult = Grammar.objectEntity.run(value);
+        if (parseResult.isError) {
             throw new Error("Error when trying to parse the object.")
         }
-        return parseResult.value
+        return /** @type {Ok<ObjectEntity>} */(parseResult).result
     }
 
-    /**
-     * @param {String} value
-     * @returns {ObjectEntity[]}
-     */
+    /** @param {String} value */
     readMultiple(value) {
-        const parseResult = ISerializer.grammar.MultipleObject.parse(value);
-        if (!parseResult.status) {
+        const parseResult = Grammar.multipleObject.run(value);
+        if (parseResult.isError) {
             throw new Error("Error when trying to parse the object.")
         }
-        return parseResult.value
+        return /** @type {Ok<ObjectEntity[]>} */(parseResult).result
     }
 
     /**
@@ -4014,6 +4508,10 @@ class ITemplate {
 }
 
 /** @typedef {import("../../Blueprint").default} Blueprint */
+/**
+ * @template T
+ * @typedef {import("arcsecond").Ok<T, any>} Ok
+ */
 
 /**
  * @template {HTMLElement} T
@@ -4043,9 +4541,9 @@ class IKeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
-                const parsed = ISerializer.grammar.KeyBinding.parse(v);
-                if (parsed.status) {
-                    return parsed.value
+                const parsed = Grammar.keyBindingEntity.run(v.valueOf());
+                if (!parsed.isError) {
+                    return /** @type {Ok<KeyBindingEntity>} */(parsed).result
                 }
             }
             throw new Error("Unexpected key value")
@@ -6262,7 +6760,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
             .map(pinEntity => {
-                this.hasSubtitle = this.hasSubtitle || pinEntity.PinName === "self" && pinEntity.getDisplayName() === "Target";
+                this.hasSubtitle = this.hasSubtitle
+                    || pinEntity["PinName"] === "self" && pinEntity.getDisplayName() === "Target";
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                     .newObject(pinEntity, undefined, this.element);
                 return pinElement
@@ -6817,7 +7316,7 @@ class PinTemplate extends ITemplate {
         const content = y`
             <div class="ueb-pin-content">
                 ${this.isNameRendered ? this.renderName() : b}
-                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : y``}
+                ${this.element.isInput() && !this.element.entity["bDefaultValueIsIgnored"] ? this.renderInput() : y``}
             </div>
         `;
         return y`
@@ -6828,12 +7327,12 @@ class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
-        switch (this.element.entity.PinType.ContainerType.toString()) {
+        switch (this.element.entity["PinType.ContainerType"].toString()) {
             case "Array": return SVGIcon.array
             case "Set": return SVGIcon.set
             case "Map": return SVGIcon.map
         }
-        if (this.element.entity.PinType.PinCategory === "delegate") {
+        if (this.element.entity["PinType.PinCategory"] === "delegate") {
             return SVGIcon.delegate
         }
         return SVGIcon.genericPin
@@ -6939,7 +7438,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createDelegatePinElement() {
         const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory === "delegate"),
+            this.element.getPinEntities().find(v => !v.isHidden() && v["PinType.PinCategory"] === "delegate"),
             new MinimalPinTemplate(),
             this.element
         );
@@ -6949,7 +7448,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createPinElements() {
         return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType.PinCategory !== "delegate")
+            .filter(v => !v.isHidden() && v["PinType.PinCategory"] !== "delegate")
             .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                 .newObject(pinEntity, undefined, this.element)
             )
@@ -7400,7 +7899,7 @@ class NodeElement extends ISelectableDraggableElement {
             for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
                     objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
+                    pinGuid: sourcePinElement.entity["PinId"],
                 }));
             }
         }
@@ -8223,9 +8722,9 @@ class ExecPinTemplate extends PinTemplate {
     }
 
     renderName() {
-        let pinName = this.element.entity.PinName;
-        if (this.element.entity.PinFriendlyName) {
-            pinName = this.element.entity.PinFriendlyName.toString();
+        let pinName = this.element.entity["PinName"];
+        if (this.element.entity["PinFriendlyName"]) {
+            pinName = this.element.entity["PinFriendlyName"].toString();
         } else if (pinName === "execute" || pinName === "then") {
             return y``
         }
@@ -9121,6 +9620,10 @@ class VectorPinTemplate extends INumericPinTemplate {
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {typeof PinElement} PinElementConstructor
  */
+/**
+ * @template T
+ * @typedef {import("arcsecond").Ok<T, any>} Ok
+ */
 
 /**
  * @template {AnyValue} T
@@ -9148,7 +9651,7 @@ class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? ISerializer.grammar.Guid.parse(value).value
+                    ? /** @type {Ok<GuidEntity>} */(Grammar.guidEntity.run(value)).result
                     : null,
                 toAttribute: (value, type) => value?.toString(),
             },
@@ -9169,7 +9672,7 @@ class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
+                    ? /** @type {Ok<LinearColorEntity>} */(Grammar.linearColorFromAnyFormat.run(value)).result
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
             },
@@ -9201,7 +9704,7 @@ class PinElement extends IElement {
      * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
-        if (pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst) {
+        if (pinEntity["PinType.bIsReference"] && !pinEntity["PinType.bIsConst"]) {
             return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
         }
         if (pinEntity.getType() === "exec") {
@@ -9230,9 +9733,9 @@ class PinElement extends IElement {
         nodeElement = undefined
     ) {
         super.initialize(entity, template);
-        this.pinId = this.entity.PinId;
+        this.pinId = this.entity["PinId"];
         this.pinType = this.entity.getType();
-        this.advancedView = this.entity.bAdvancedView;
+        this.advancedView = this.entity["bAdvancedView"];
         this.defaultValue = this.entity.getDefaultValue();
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString());
         this.isLinked = false;
@@ -9254,12 +9757,12 @@ class PinElement extends IElement {
 
     /** @return {GuidEntity} */
     getPinId() {
-        return this.entity.PinId
+        return this.entity["PinId"]
     }
 
     /** @returns {String} */
     getPinName() {
-        return this.entity.PinName
+        return this.entity["PinName"]
     }
 
     getPinDisplayName() {
@@ -9297,7 +9800,7 @@ class PinElement extends IElement {
 
     /** @param {T} value */
     setDefaultValue(value) {
-        this.entity.DefaultValue = value;
+        this.entity["DefaultValue"] = value;
         this.defaultValue = value;
     }
 
@@ -9363,7 +9866,7 @@ class PinElement extends IElement {
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
             pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
-            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
+            && pinReference.pinGuid.valueOf() == originalPinElement.entity["PinId"].valueOf()
         );
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference;
@@ -9812,11 +10315,10 @@ class GeneralSerializer extends ISerializer {
      * @returns {T}
      */
     read(value) {
-        // @ts-expect-error
-        let grammar = Grammar.getGrammarForType(ISerializer.grammar, this.entityType);
+        const grammar = Grammar.grammarFor(undefined, this.entityType);
         const parseResult = grammar.parse(value);
         if (!parseResult.status) {
-            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
+            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`)
         }
         return parseResult.value
     }

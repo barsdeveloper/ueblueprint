@@ -1,7 +1,13 @@
+import Grammar from "./Grammar.js"
 import ISerializer from "./ISerializer.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
+
+/**
+ * @template T
+ * @typedef {import("arcsecond").Ok<T, any>} Ok
+ */
 
 export default class ObjectSerializer extends ISerializer {
 
@@ -22,23 +28,20 @@ export default class ObjectSerializer extends ISerializer {
 
     /** @param {String} value */
     read(value) {
-        const parseResult = ISerializer.grammar.Object.parse(value)
-        if (!parseResult.status) {
+        const parseResult = Grammar.objectEntity.run(value)
+        if (parseResult.isError) {
             throw new Error("Error when trying to parse the object.")
         }
-        return parseResult.value
+        return /** @type {Ok<ObjectEntity>} */(parseResult).result
     }
 
-    /**
-     * @param {String} value
-     * @returns {ObjectEntity[]}
-     */
+    /** @param {String} value */
     readMultiple(value) {
-        const parseResult = ISerializer.grammar.MultipleObject.parse(value)
-        if (!parseResult.status) {
+        const parseResult = Grammar.multipleObject.run(value)
+        if (parseResult.isError) {
             throw new Error("Error when trying to parse the object.")
         }
-        return parseResult.value
+        return /** @type {Ok<ObjectEntity[]>} */(parseResult).result
     }
 
     /**

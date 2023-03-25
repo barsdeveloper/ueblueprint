@@ -412,7 +412,7 @@ export default class ObjectEntity extends IEntity {
     }
 
     getDelegatePin() {
-        return this.CustomProperties?.find(pin => pin.PinType.PinCategory === "delegate")
+        return this.CustomProperties?.find(pin => pin["PinType.PinCategory"] === "delegate")
     }
 
     nodeDisplayName() {

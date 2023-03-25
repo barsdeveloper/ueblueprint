@@ -39,7 +39,7 @@
     "terser": "^5.14.0"
   },
   "dependencies": {
-    "lit": "^2.2.4",
-    "parsimmon": "^1.18.0"
+    "arcsecond": "^5.0.0",
+    "lit": "^2.2.4"
   }
 }

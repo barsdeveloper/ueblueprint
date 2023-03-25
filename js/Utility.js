@@ -1,4 +1,3 @@
-import SubAttributesDeclaration from "./entity/SubObject.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
@@ -116,22 +115,6 @@ export default class Utility {
         return location
     }
 
-    /**
-     * @param {IEntity} entity
-     * @param {String[]} keys
-     * @returns {Boolean}
-     */
-    static isSerialized(
-        entity,
-        keys,
-        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
-    ) {
-        if (attribute?.constructor === Object) {
-            return /** @type {TypeInformation} */(attribute).serialized
-        }
-        return false
-    }
-
     /** @param {String[]} keys */
     static objectGet(target, keys, defaultValue = undefined) {
         if (target === undefined) {
@@ -139,9 +122,6 @@ export default class Utility {
         }
         if (!(keys instanceof Array)) {
             throw new TypeError("UEBlueprint: Expected keys to be an array")
-        }
-        if (target instanceof SubAttributesDeclaration) {
-            target = target.attributes
         }
         if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
             return defaultValue
@@ -171,6 +151,22 @@ export default class Utility {
                 target[keys[0]] = new defaultDictType()
             }
             return Utility.objectSet(target[keys[0]], keys.slice(1), value, create, defaultDictType)
+        }
+        return false
+    }
+
+    /**
+     * @param {IEntity} entity
+     * @param {String[]} keys
+     * @returns {Boolean}
+     */
+    static isSerialized(
+        entity,
+        keys,
+        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
+    ) {
+        if (attribute?.constructor === Object) {
+            return /** @type {TypeInformation} */(attribute).serialized
         }
         return false
     }

@@ -65,7 +65,7 @@ export default class PinTemplate extends ITemplate {
         const content = html`
             <div class="ueb-pin-content">
                 ${this.isNameRendered ? this.renderName() : nothing}
-                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : html``}
+                ${this.element.isInput() && !this.element.entity["bDefaultValueIsIgnored"] ? this.renderInput() : html``}
             </div>
         `
         return html`
@@ -76,12 +76,12 @@ export default class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
-        switch (this.element.entity.PinType.ContainerType.toString()) {
+        switch (this.element.entity["PinType.ContainerType"].toString()) {
             case "Array": return SVGIcon.array
             case "Set": return SVGIcon.set
             case "Map": return SVGIcon.map
         }
-        if (this.element.entity.PinType.PinCategory === "delegate") {
+        if (this.element.entity["PinType.PinCategory"] === "delegate") {
             return SVGIcon.delegate
         }
         return SVGIcon.genericPin

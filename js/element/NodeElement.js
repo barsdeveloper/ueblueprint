@@ -265,7 +265,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
                     objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
+                    pinGuid: sourcePinElement.entity["PinId"],
                 }))
             }
         }

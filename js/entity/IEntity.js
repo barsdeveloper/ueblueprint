@@ -1,5 +1,4 @@
 import SerializerFactory from "../serialization/SerializerFactory.js"
-import SubAttributesDeclaration from "./SubObject.js"
 import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
 
@@ -9,7 +8,7 @@ import Utility from "../Utility.js"
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
- *     [key: String]: AttributeInformation | AnyValue | SubAttributesDeclaration
+ *     [key: String]: AttributeInformation | AnyValue
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  * @typedef {{
@@ -32,6 +31,7 @@ import Utility from "../Utility.js"
 
 export default class IEntity {
 
+    static lookbehind = ""
     /** @type {AttributeDeclarations} */
     static attributes = {}
     static defaultAttribute = {
@@ -54,20 +54,9 @@ export default class IEntity {
             const attributesNames = Object.keys(attributes)
             const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames)
             for (let attributeName of allAttributesNames) {
-                let value = Utility.objectGet(values, [attributeName])
+                let value = values[attributeName]
                 /** @type {AttributeInformation} */
                 let attribute = attributes[attributeName]
-
-                if (attribute instanceof SubAttributesDeclaration) {
-                    target[attributeName] = {}
-                    defineAllAttributes(
-                        target[attributeName],
-                        attribute.attributes,
-                        values[attributeName],
-                        attributeName + "."
-                    )
-                    continue
-                }
 
                 if (!suppressWarns) {
                     if (!(attributeName in attributes)) {
@@ -188,13 +177,6 @@ export default class IEntity {
     /** @param {AttributeDeclarations} attributes */
     static cleanupAttributes(attributes, prefix = "") {
         for (const attributeName in attributes) {
-            if (attributes[attributeName] instanceof SubAttributesDeclaration) {
-                this.cleanupAttributes(
-                    /** @type {SubAttributesDeclaration} */(attributes[attributeName]).attributes,
-                    prefix + "." + attributeName
-                )
-                continue
-            }
             if (attributes[attributeName].constructor !== Object) {
                 attributes[attributeName] = {
                     value: attributes[attributeName],
