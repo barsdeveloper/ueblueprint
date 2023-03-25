@@ -3,6 +3,7 @@ import ISerializer from "./ISerializer.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
+import Utility from "../Utility.js"
 
 /**
  * @template T
@@ -28,20 +29,12 @@ export default class ObjectSerializer extends ISerializer {
 
     /** @param {String} value */
     read(value) {
-        const parseResult = Grammar.objectEntity.run(value)
-        if (parseResult.isError) {
-            throw new Error("Error when trying to parse the object.")
-        }
-        return /** @type {Ok<ObjectEntity>} */(parseResult).result
+        return Utility.parse(Grammar.objectEntity, value, ObjectEntity)
     }
 
     /** @param {String} value */
     readMultiple(value) {
-        const parseResult = Grammar.multipleObject.run(value)
-        if (parseResult.isError) {
-            throw new Error("Error when trying to parse the object.")
-        }
-        return /** @type {Ok<ObjectEntity[]>} */(parseResult).result
+        return Utility.parse(Grammar.multipleObject, value, ObjectEntity)
     }
 
     /**

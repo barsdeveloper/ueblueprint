@@ -9,6 +9,10 @@ import UnionType from "./entity/UnionType.js"
  * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
  */
+/**
+ * @template T
+ * @typedef {import("arcsecond").Parser<T>} Parser
+ */
 
 export default class Utility {
 
@@ -420,5 +424,30 @@ export default class Utility {
             callback(currentValue)
         }
         requestAnimationFrame(doAnimation)
+    }
+
+    /**
+     * @template T
+     * @param {Parser<T>} parser
+     * @param {String} value
+     * @param {Object} parsedEntity
+     */
+    static parse(parser, value, parsedEntity) {
+        let errorMessage = "Error when trying to parse the entity"
+        if (parsedEntity) {
+            errorMessage += " " + parsedEntity.prototype.constructor.name
+        }
+        return parser.fork(
+            value,
+            msg => {
+                throw new Error(`${errorMessage}: ${msg}`)
+            },
+            (result, state) => {
+                if (state.index < state.dataView.byteLength) {
+                    throw new Error(errorMessage)
+                }
+                return result
+            }
+        )
     }
 }

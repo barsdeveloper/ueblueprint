@@ -1,5 +1,6 @@
 import Grammar from "./Grammar.js"
 import ISerializer from "./ISerializer.js"
+import Utility from "../Utility.js"
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -32,12 +33,8 @@ export default class GeneralSerializer extends ISerializer {
      * @returns {T}
      */
     read(value) {
-        const grammar = Grammar.grammarFor(undefined, this.entityType)
-        const parseResult = grammar.run(value)
-        if (parseResult.isError) {
-            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`)
-        }
-        return /** @type {Ok<T>} */(parseResult).result
+        const parser = Grammar.grammarFor(undefined, this.entityType)
+        return Utility.parse(parser, value, this.entityType)
     }
 
     /**

@@ -1,4 +1,4 @@
-import * as arcsecond from "arcsecond"
+import { char, choice, exactly, many, many1, optionalWhitespace, Parser, possibly, regex, sepBy1, sequenceOf, str, whitespace, } from "arcsecond"
 import ByteEntity from "../entity/ByteEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
@@ -38,10 +38,6 @@ import VectorEntity from "../entity/VectorEntity.js"
  */
 /**
  * @template T
- * @typedef {import ("arcsecond").Parser<T>} Parser
- */
-/**
- * @template T
  * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
  */
 
@@ -76,7 +72,7 @@ export default class Grammar {
         static Path = new RegExp(`^(?:\\/${Grammar.unanchor(this.PathFragment.source)}){2,}`)
         static PathOptSpace = new RegExp(`^(?:\\/${Grammar.unanchor(this.PathSpaceFragment.source)}){2,}`)
         static Word = /^[a-zA-Z_]+/
-        static whitespace = arcsecond.whitespace
+        static whitespace = whitespace
     };
 
     /*   ---   Factory   ---   */
@@ -94,18 +90,18 @@ export default class Grammar {
     ) {
         let result = defaultGrammar
         if (type instanceof Array) {
-            result = arcsecond.sequenceOf([
-                arcsecond.str("("),
+            result = sequenceOf([
+                str("("),
                 this.grammarFor(undefined, type[0]),
-                arcsecond.possibly(arcsecond.sequenceOf([arcsecond.whitespace, arcsecond.str(",")])),
-                arcsecond.str(")"),
+                possibly(sequenceOf([whitespace, str(",")])),
+                str(")"),
             ])
         } else if (type instanceof UnionType) {
             result = type.types
                 .map(v => this.grammarFor(undefined, v))
                 .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
                     ? this.unknownValue
-                    : arcsecond.choice([acc, cur])
+                    : choice([acc, cur])
                 )
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type, defaultGrammar)
@@ -211,11 +207,11 @@ export default class Grammar {
                 if (result == this.unknownValue) {
                     result = this.string
                 } else {
-                    result = arcsecond.sequenceOf([arcsecond.char('"'), result, arcsecond.char('"')])
+                    result = sequenceOf([char('"'), result, char('"')])
                 }
             }
             if (attribute.nullable) {
-                result = arcsecond.choice([result, this.null])
+                result = choice([result, this.null])
             }
         }
         return result
@@ -223,9 +219,9 @@ export default class Grammar {
 
     static createAttributeGrammar(
         entityType,
-        valueSeparator = arcsecond.regex(/^\s*=\s*/)
+        valueSeparator = regex(/^\s*=\s*/)
     ) {
-        return arcsecond.sequenceOf([
+        return sequenceOf([
             this.attributeName,
             valueSeparator,
         ]).chain(([attributeName, _1]) => this
@@ -240,20 +236,20 @@ export default class Grammar {
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      */
     static createEntityGrammar = (entityType, acceptUnknownKeys = true) =>
-        arcsecond.sequenceOf([
+        sequenceOf([
             entityType.lookbehind.length
-                ? arcsecond.regex(new RegExp(`^${entityType.lookbehind}\\s*\\(\\s*`))
-                : arcsecond.regex(/^\(\s*/),
-            arcsecond.sequenceOf([
+                ? regex(new RegExp(`^${entityType.lookbehind}\\s*\\(\\s*`))
+                : regex(/^\(\s*/),
+            sequenceOf([
                 Grammar.createAttributeGrammar(entityType),
-                arcsecond.many(
-                    arcsecond.sequenceOf([
+                many(
+                    sequenceOf([
                         this.commaSeparation,
                         Grammar.createAttributeGrammar(entityType),
                     ]).map(([_0, entry]) => entry)
                 )
             ]).map(([first, remaining]) => [first, ...remaining]),
-            arcsecond.regex(/^(?:\s*,)?\s*\)/),
+            regex(/^(?:\s*,)?\s*\)/),
         ]).map(([_0, attributes, _2]) => {
             let values = {}
             attributes.forEach(attributeSetter => attributeSetter(values))
@@ -284,39 +280,39 @@ export default class Grammar {
 
     /*   ---   Primitive   ---   */
 
-    static null = arcsecond.regex(/^\(\s*\)/).map(() => null)
-    static true = arcsecond.regex(/^true/i).map(() => true)
-    static false = arcsecond.regex(/^false/i).map(() => false)
-    static boolean = arcsecond.choice([this.true, this.false])
-    static number = arcsecond.regex(Grammar.Regex.Number).map(Number)
-    static integer = arcsecond.regex(Grammar.Regex.Integer).map(Number)
-    static bigInt = arcsecond.regex(Grammar.Regex.Integer).map(BigInt)
-    static realUnit = arcsecond.regex(Grammar.Regex.RealUnit).map(Number)
-    static naturalNumber = arcsecond.regex(/^\d+/).map(Number)
-    static byteNumber = arcsecond.regex(Grammar.Regex.ByteInteger).map(Number)
+    static null = regex(/^\(\s*\)/).map(() => null)
+    static true = regex(/^true/i).map(() => true)
+    static false = regex(/^false/i).map(() => false)
+    static boolean = choice([this.true, this.false])
+    static number = regex(Grammar.Regex.Number).map(Number)
+    static integer = regex(Grammar.Regex.Integer).map(Number)
+    static bigInt = regex(Grammar.Regex.Integer).map(BigInt)
+    static realUnit = regex(Grammar.Regex.RealUnit).map(Number)
+    static naturalNumber = regex(/^\d+/).map(Number)
+    static byteNumber = regex(Grammar.Regex.ByteInteger).map(Number)
 
     /*   ---   Fragment   ---   */
 
     static colorValue = this.byteNumber
-    static word = arcsecond.regex(Grammar.Regex.Word)
-    static string = arcsecond.sequenceOf([
-        arcsecond.char('"'),
-        arcsecond.regex(Grammar.Regex.InsideString),
-        arcsecond.char('"')
+    static word = regex(Grammar.Regex.Word)
+    static string = sequenceOf([
+        char('"'),
+        regex(Grammar.Regex.InsideString),
+        char('"')
     ]).map(([_1, insideString, _2]) => Utility.unescapeString(insideString))
-    static path = arcsecond.choice([
-        arcsecond.regex(this.Regex.Path),
-        arcsecond.sequenceOf([arcsecond.char('"'), arcsecond.regex(this.Regex.PathOptSpace), arcsecond.char('"')])
+    static path = choice([
+        regex(this.Regex.Path),
+        sequenceOf([char('"'), regex(this.Regex.PathOptSpace), char('"')])
             .map(values => values[1]),
-        arcsecond.sequenceOf([arcsecond.str(`'"`), arcsecond.regex(this.Regex.PathOptSpace), arcsecond.str(`"'`)])
+        sequenceOf([str(`'"`), regex(this.Regex.PathOptSpace), str(`"'`)])
             .map(values => values[1]),
     ])
-    static symbol = arcsecond.regex(this.Regex.Symbol)
-    static attributeName = arcsecond.regex(this.Regex.DotSeparatedSymbols)
-    static guid = arcsecond.regex(new RegExp(`${this.Regex.HexDigit.source}{32}`))
-    static commaSeparation = arcsecond.regex(/^\s*,\s*/)
-    static typeReference = arcsecond.choice([arcsecond.regex(this.Regex.Path), this.symbol])
-    static hexColorChannel = arcsecond.regex(new RegExp(`^${this.unanchor(Grammar.Regex.HexDigit.source)}{2}`))
+    static symbol = regex(this.Regex.Symbol)
+    static attributeName = regex(this.Regex.DotSeparatedSymbols)
+    static guid = regex(new RegExp(`${this.Regex.HexDigit.source}{32}`))
+    static commaSeparation = regex(/^\s*,\s*/)
+    static typeReference = choice([regex(this.Regex.Path), this.symbol])
+    static hexColorChannel = regex(new RegExp(`^${this.unanchor(Grammar.Regex.HexDigit.source)}{2}`))
 
     /*   ---   Entity   ---   */
 
@@ -324,8 +320,8 @@ export default class Grammar {
 
     static enumEntity = this.symbol.map(v => new EnumEntity(v))
 
-    static formatTextEntity = arcsecond.sequenceOf([
-        arcsecond.regex(new RegExp(`^${FormatTextEntity.lookbehind}\\s*`)),
+    static formatTextEntity = sequenceOf([
+        regex(new RegExp(`^${FormatTextEntity.lookbehind}\\s*`)),
         this.grammarFor(FormatTextEntity.attributes.value)
     ])
 
@@ -339,12 +335,12 @@ export default class Grammar {
 
     static integerEntity = this.integer.map(v => new IntegerEntity(v))
 
-    static invariantTextEntity = arcsecond.sequenceOf([
-        arcsecond.regex(new RegExp(`^${InvariantTextEntity.lookbehind}\\s*`)),
+    static invariantTextEntity = sequenceOf([
+        regex(new RegExp(`^${InvariantTextEntity.lookbehind}\\s*`)),
         this.grammarFor(InvariantTextEntity.attributes.value)
     ])
 
-    static keyBindingEntity = arcsecond.choice([
+    static keyBindingEntity = choice([
         this.identifierEntity.map(identifier => new KeyBindingEntity({
             Key: identifier
         })),
@@ -353,14 +349,14 @@ export default class Grammar {
 
     static linearColorEntity = Grammar.createEntityGrammar(LinearColorEntity, false)
 
-    static localizedTextEntity = arcsecond.sequenceOf([
-        arcsecond.regex(new RegExp(`^${LocalizedTextEntity.lookbehind}\\s*\\(\\s*"`)),
-        arcsecond.regex(Grammar.Regex.InsideString),
-        arcsecond.regex(/^"\s*,\s*"/),
-        arcsecond.regex(Grammar.Regex.InsideString),
-        arcsecond.regex(/^"\s*,\s*"/),
-        arcsecond.regex(Grammar.Regex.InsideString),
-        arcsecond.regex(/^"\s*\)/),
+    static localizedTextEntity = sequenceOf([
+        regex(new RegExp(`^${LocalizedTextEntity.lookbehind}\\s*\\(\\s*"`)),
+        regex(Grammar.Regex.InsideString),
+        regex(/^"\s*,\s*"/),
+        regex(Grammar.Regex.InsideString),
+        regex(/^"\s*,\s*"/),
+        regex(Grammar.Regex.InsideString),
+        regex(/^"\s*\)/),
     ]).map(([_1, namespace, _2, key, _3, value]) =>
         new LocalizedTextEntity({
             namespace: namespace,
@@ -373,7 +369,7 @@ export default class Grammar {
 
     static naturalNumberEntity = this.naturalNumber.map(v => new NaturalNumberEntity(v))
 
-    static noneReferenceEntity = arcsecond.str("None").map(() =>
+    static noneReferenceEntity = str("None").map(() =>
         new ObjectReferenceEntity({ type: "None", path: "" })
     )
 
@@ -385,12 +381,12 @@ export default class Grammar {
         new ObjectReferenceEntity({ type: "", path: path })
     )
 
-    static fullReferenceEntity = arcsecond.sequenceOf([this.typeReference, arcsecond.optionalWhitespace, this.path])
+    static fullReferenceEntity = sequenceOf([this.typeReference, optionalWhitespace, this.path])
         .map(([type, _2, path]) =>
             new ObjectReferenceEntity({ type: type, path: path })
         )
 
-    static objectReferenceEntity = arcsecond.choice([
+    static objectReferenceEntity = choice([
         this.noneReferenceEntity,
         this.fullReferenceEntity,
         this.pathReferenceEntity,
@@ -401,9 +397,9 @@ export default class Grammar {
 
     static pinEntity = Grammar.createEntityGrammar(PinEntity)
 
-    static pinReferenceEntity = arcsecond.sequenceOf([
+    static pinReferenceEntity = sequenceOf([
         this.pathSymbolEntity,
-        arcsecond.whitespace,
+        whitespace,
         this.guidEntity]).map(
             ([objectName, _1, pinGuid]) => new PinReferenceEntity({
                 objectName: objectName,
@@ -417,7 +413,7 @@ export default class Grammar {
 
     static rotatorEntity = Grammar.createEntityGrammar(RotatorEntity, false)
 
-    static simpleSerializationRotatorEntity = arcsecond.sequenceOf([
+    static simpleSerializationRotatorEntity = sequenceOf([
         this.number,
         this.commaSeparation,
         this.number,
@@ -431,7 +427,7 @@ export default class Grammar {
         })
     )
 
-    static simpleSerializationVector2DEntity = arcsecond.sequenceOf([
+    static simpleSerializationVector2DEntity = sequenceOf([
         this.number,
         this.commaSeparation,
         this.number,
@@ -441,7 +437,7 @@ export default class Grammar {
     }))
 
 
-    static simpleSerializationVectorEntity = arcsecond.sequenceOf([
+    static simpleSerializationVectorEntity = sequenceOf([
         this.number,
         this.commaSeparation,
         this.number,
@@ -461,12 +457,12 @@ export default class Grammar {
 
     static vectorEntity = Grammar.createEntityGrammar(VectorEntity, false)
 
-    static unknownKeysEntity = arcsecond.sequenceOf([
+    static unknownKeysEntity = sequenceOf([
         this.symbol,
-        arcsecond.regex(/^\w*\s*\(\s*/),
-        arcsecond.many1(this.createAttributeGrammar(UnknownKeysEntity)),
-        arcsecond.possibly(arcsecond.regex(/^\s*\,\)/)), // Optional trailing comma
-        arcsecond.regex(/^\s*\)/),
+        regex(/^\w*\s*\(\s*/),
+        many1(this.createAttributeGrammar(UnknownKeysEntity)),
+        possibly(regex(/^\s*\,\)/)), // Optional trailing comma
+        regex(/^\s*\)/),
     ]).map(([lookbehind, _1, attributes, _3, _4]) => {
         let values = {}
         attributes.forEach(attributeSetter => attributeSetter(values))
@@ -477,7 +473,7 @@ export default class Grammar {
         return result
     })
 
-    static unknownValue = arcsecond.choice([
+    static unknownValue = choice([
         // Remember to keep the order, otherwise parsing might fail
         this.boolean,
         this.guidEntity,
@@ -496,8 +492,8 @@ export default class Grammar {
         this.symbol,
     ])
 
-    static customProperty = arcsecond.sequenceOf([
-        arcsecond.regex(/^CustomProperties\s+/),
+    static customProperty = sequenceOf([
+        regex(/^CustomProperties\s+/),
         this.pinEntity,
     ]).map(([_0, pin]) => values => {
         if (!values["CustomProperties"]) {
@@ -506,18 +502,18 @@ export default class Grammar {
         values["CustomProperties"].push(pin)
     })
 
-    static objectEntity = arcsecond.sequenceOf([
-        arcsecond.regex(/^Begin\s+Object/),
-        arcsecond.many1(
-            arcsecond.sequenceOf([
-                arcsecond.whitespace,
-                arcsecond.choice([
+    static objectEntity = sequenceOf([
+        regex(/^Begin\s+Object/),
+        many1(
+            sequenceOf([
+                whitespace,
+                choice([
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
                 ])
             ]).map(([_0, entry]) => entry)
         ),
-        arcsecond.regex(/^\s+End\s+Object/),
+        regex(/^\s+End\s+Object/),
     ]).map(
         ([_0, attributes, _2]) => {
             let values = {}
@@ -526,21 +522,21 @@ export default class Grammar {
         }
     )
 
-    static multipleObject = arcsecond.sequenceOf([
-        arcsecond.optionalWhitespace,
-        arcsecond.sepBy1(arcsecond.whitespace)(this.objectEntity),
-        arcsecond.optionalWhitespace,
+    static multipleObject = sequenceOf([
+        optionalWhitespace,
+        sepBy1(whitespace)(this.objectEntity),
+        optionalWhitespace,
     ]).map(([_0, objects, _2]) => objects)
 
     /*   ---   Others   ---   */
 
     /** @param {Grammar} r */
-    static linearColorFromHex = arcsecond.sequenceOf([
-        arcsecond.char("#"),
-        arcsecond.exactly(3)(
+    static linearColorFromHex = sequenceOf([
+        char("#"),
+        exactly(3)(
             this.hexColorChannel
         ),
-        arcsecond.possibly(this.hexColorChannel)
+        possibly(this.hexColorChannel)
     ]).map((_0, [[R, G, B], A]) => new LinearColorEntity({
         R: parseInt(R, 16) / 255,
         G: parseInt(G, 16) / 255,
@@ -548,7 +544,7 @@ export default class Grammar {
         A: A ? parseInt(A, 16) / 255 : 1,
     }))
 
-    static linearColorRGBList = arcsecond.sequenceOf([
+    static linearColorRGBList = sequenceOf([
         this.byteNumber,
         this.commaSeparation,
         this.byteNumber,
@@ -561,7 +557,7 @@ export default class Grammar {
         A: 1,
     }))
 
-    static linearColorRGBAList = arcsecond.sequenceOf([
+    static linearColorRGBAList = sequenceOf([
         this.byteNumber,
         this.commaSeparation,
         this.byteNumber,
@@ -576,19 +572,19 @@ export default class Grammar {
         A: A,
     }))
 
-    static linearColorRGB = arcsecond.sequenceOf([
-        arcsecond.regex(/^rgb\s*\(\s*/),
+    static linearColorRGB = sequenceOf([
+        regex(/^rgb\s*\(\s*/),
         this.linearColorRGBList,
-        arcsecond.regex(/^\s*\)/)
+        regex(/^\s*\)/)
     ]).map(([_0, linearColor, _2]) => linearColor)
 
-    static linearColorRGBA = arcsecond.sequenceOf([
-        arcsecond.regex(/^rgba\s*\(\s*/),
+    static linearColorRGBA = sequenceOf([
+        regex(/^rgba\s*\(\s*/),
         this.linearColorRGBAList,
-        arcsecond.regex(/^\s*\)/)
+        regex(/^\s*\)/)
     ]).map(([_0, linearColor, _2]) => linearColor)
 
-    static linearColorFromAnyFormat = arcsecond.choice([
+    static linearColorFromAnyFormat = choice([
         this.linearColorFromHex,
         this.linearColorRGBA,
         this.linearColorRGB,

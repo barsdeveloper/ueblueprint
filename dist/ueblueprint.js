@@ -1404,6 +1404,10 @@ class Utility {
         };
         requestAnimationFrame(doAnimation);
     }
+
+    static parse(parser, value) {
+
+    }
 }
 
 /**
@@ -3661,10 +3665,6 @@ class UnknownKeysEntity extends IEntity {
  */
 /**
  * @template T
- * @typedef {import ("arcsecond").Parser<T>} Parser
- */
-/**
- * @template T
  * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
  */
 
@@ -4380,8 +4380,8 @@ class ObjectSerializer extends ISerializer {
     /** @param {String} value */
     read(value) {
         const parseResult = Grammar.objectEntity.run(value);
-        if (parseResult.isError) {
-            throw new Error("Error when trying to parse the object.")
+        if (parseResult.isError || parseResult.index != value.length) {
+            throw new Error("Error when trying to parse the object")
         }
         return /** @type {Ok<ObjectEntity>} */(parseResult).result
     }
@@ -4389,8 +4389,8 @@ class ObjectSerializer extends ISerializer {
     /** @param {String} value */
     readMultiple(value) {
         const parseResult = Grammar.multipleObject.run(value);
-        if (parseResult.isError) {
-            throw new Error("Error when trying to parse the object.")
+        if (parseResult.isError || parseResult.index != value.length) {
+            throw new Error("Error when trying to parse the object")
         }
         return /** @type {Ok<ObjectEntity[]>} */(parseResult).result
     }
@@ -10336,11 +10336,11 @@ class GeneralSerializer extends ISerializer {
      */
     read(value) {
         const grammar = Grammar.grammarFor(undefined, this.entityType);
-        const parseResult = grammar.run(value);
-        if (parseResult.isError) {
-            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`)
-        }
-        return /** @type {Ok<T>} */(parseResult).result
+        return grammar.fork(value, msg => {
+            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name} [${msg}]`)
+        }, (result, state) => {
+            return result
+        })
     }
 
     /**
