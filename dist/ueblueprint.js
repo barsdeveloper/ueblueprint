@@ -3706,10 +3706,9 @@ class Grammar {
                 this.grammarFor(undefined, type[0]),
                 many(
                     sequenceOf([
-                        char(","),
-                        optionalWhitespace,
+                        this.commaSeparation,
                         this.grammarFor(undefined, type[0]),
-                    ]).map(([_0, _1, value]) => value)
+                    ]).map(([_0, value]) => value)
                 ),
                 regex(/^\s*(?:,\s*)?\)/),
             ]).map(([_0, first, rest, _3]) => [first, ...rest]);
@@ -3866,7 +3865,7 @@ class Grammar {
                     ]).map(([_0, entry]) => entry)
                 )
             ]).map(([first, remaining]) => [first, ...remaining]),
-            regex(/^(?:\s*,)?\s*\)/),
+            regex(/^\s*(?:,\s*)?\)/),
         ]).map(([_0, attributes, _2]) => {
             let values = {};
             attributes.forEach(attributeSetter => attributeSetter(values));
@@ -3878,18 +3877,14 @@ class Grammar {
                 let missingKey;
                 // Check missing values
                 if (
-                    Object.keys(entityType.attributes)
+                    Object.keys(/** @type {AttributeInformation} */(entityType.attributes))
                         .filter(key => entityType.attributes[key].expected)
                         .find(key => !totalKeys.includes(key) && (missingKey = key))
                 ) {
                     return fail("Missing key " + missingKey)
                 }
                 const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length;
-                if (
-                    !acceptUnknownKeys && unknownKeys > 0
-                    // Unknown keys must still be limited in number
-                    || acceptUnknownKeys && unknownKeys + 0.5 > Math.sqrt(totalKeys.length)
-                ) {
+                if (!acceptUnknownKeys && unknownKeys > 0) {
                     return fail("Too many unknown keys")
                 }
                 return succeedWith(new entityType(values))
@@ -4075,12 +4070,24 @@ class Grammar {
     static vectorEntity = Grammar.createEntityGrammar(VectorEntity, false)
 
     static unknownKeysEntity = sequenceOf([
-        this.symbol,
-        regex(/^\w*\s*\(\s*/),
-        many1(this.createAttributeGrammar(UnknownKeysEntity)),
-        possibly(regex(/^\s*\,\)/)), // Optional trailing comma
-        regex(/^\s*\)/),
-    ]).map(([lookbehind, _1, attributes, _3, _4]) => {
+        possibly(
+            sequenceOf([
+                this.symbol,
+                optionalWhitespace,
+            ]).map(([value, _1]) => value)
+        ),
+        regex(/^\(\s*/),
+        sequenceOf([
+            this.createAttributeGrammar(UnknownKeysEntity),
+            many(
+                sequenceOf([
+                    this.commaSeparation,
+                    this.createAttributeGrammar(UnknownKeysEntity),
+                ]).map(([_0, entry]) => entry)
+            )
+        ]).map(([first, rest]) => [first, ...rest]),
+        regex(/^\s*(?:,\s)?\)/),
+    ]).map(([lookbehind, _1, attributes, _3]) => {
         let values = {};
         attributes.forEach(attributeSetter => attributeSetter(values));
         let result = new UnknownKeysEntity(values);
