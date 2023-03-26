@@ -1,4 +1,4 @@
-import { char, choice, exactly, many, many1, optionalWhitespace, Parser, possibly, regex, sepBy1, sequenceOf, str, whitespace, } from "arcsecond"
+import { char, choice, exactly, fail, many, many1, optionalWhitespace, Parser, possibly, regex, sequenceOf, str, succeedWith, whitespace } from "arcsecond"
 import ByteEntity from "../entity/ByteEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
@@ -91,11 +91,17 @@ export default class Grammar {
         let result = defaultGrammar
         if (type instanceof Array) {
             result = sequenceOf([
-                str("("),
+                regex(/^\(\s*/),
                 this.grammarFor(undefined, type[0]),
-                possibly(sequenceOf([whitespace, str(",")])),
-                str(")"),
-            ])
+                many(
+                    sequenceOf([
+                        char(","),
+                        optionalWhitespace,
+                        this.grammarFor(undefined, type[0]),
+                    ]).map(([_0, _1, value]) => value)
+                ),
+                regex(/^\s*(?:,\s*)?\)/),
+            ]).map(([_0, first, rest, _3]) => [first, ...rest])
         } else if (type instanceof UnionType) {
             result = type.types
                 .map(v => this.grammarFor(undefined, v))
@@ -253,30 +259,30 @@ export default class Grammar {
         ]).map(([_0, attributes, _2]) => {
             let values = {}
             attributes.forEach(attributeSetter => attributeSetter(values))
-            return new entityType(values)
-            // return values
+            return values
         })
-    // // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
-    // .chain(values => {
-    //     let totalKeys = Object.keys(values)
-    //     // Check missing values
-    //     if (
-    //         Object.keys(entityType.attributes)
-    //             .filter(key => entityType.attributes[key].expected)
-    //             .find(key => !totalKeys.includes(key))
-    //     ) {
-    //         return P.fail()
-    //     }
-    //     const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length
-    //     if (
-    //         !acceptUnknownKeys && unknownKeys > 0
-    //         // Unknown keys must still be limited in number
-    //         || acceptUnknownKeys && unknownKeys + 0.5 > Math.sqrt(totalKeys)
-    //     ) {
-    //         return P.fail()
-    //     }
-    //     return P.succeed().map(() => new entityType(values))
-    // })
+            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
+            .chain(values => {
+                let totalKeys = Object.keys(values)
+                let missingKey
+                // Check missing values
+                if (
+                    Object.keys(entityType.attributes)
+                        .filter(key => entityType.attributes[key].expected)
+                        .find(key => !totalKeys.includes(key) && (missingKey = key))
+                ) {
+                    return fail("Missing key " + missingKey)
+                }
+                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length
+                if (
+                    !acceptUnknownKeys && unknownKeys > 0
+                    // Unknown keys must still be limited in number
+                    || acceptUnknownKeys && unknownKeys + 0.5 > Math.sqrt(totalKeys.length)
+                ) {
+                    return fail("Too many unknown keys")
+                }
+                return succeedWith(new entityType(values))
+            })
 
     /*   ---   Primitive   ---   */
 
@@ -524,9 +530,15 @@ export default class Grammar {
 
     static multipleObject = sequenceOf([
         optionalWhitespace,
-        sepBy1(whitespace)(this.objectEntity),
-        optionalWhitespace,
-    ]).map(([_0, objects, _2]) => objects)
+        this.objectEntity,
+        many(
+            sequenceOf([
+                whitespace,
+                this.objectEntity,
+            ]).map(([_0, object]) => object)
+        ),
+        optionalWhitespace
+    ]).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
     /*   ---   Others   ---   */
 

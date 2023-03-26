@@ -618,6 +618,16 @@ new Parser(function getData$state(state) {
         return state;
     return updateResult(state, state.data);
 });
+// fail :: e -> Parser e a s
+function fail(errorMessage) {
+    return new Parser(function fail$state(state) {
+        if (state.isError)
+            return state;
+        return updateError(state, errorMessage);
+    });
+}
+// succeedWith :: a -> Parser e a s
+const succeedWith = Parser.of;
 function exactly(n) {
     if (typeof n !== 'number' || n <= 0) {
         throw new TypeError(`exactly must be called with a number > 0, but got ${n}`);
@@ -818,57 +828,6 @@ function sequenceOf(parsers) {
         return updateResult(nextState, results);
     });
 }
-// sepBy :: Parser e a s -> Parser e b s -> Parser e [b] s
-function sepBy(sepParser) {
-    return function sepBy$valParser(valueParser) {
-        return new Parser(function sepBy$valParser$state(state) {
-            if (state.isError)
-                return state;
-            let nextState = state;
-            let error = null;
-            const results = [];
-            while (true) {
-                const valState = valueParser.p(nextState);
-                const sepState = sepParser.p(valState);
-                if (valState.isError) {
-                    error = valState;
-                    break;
-                }
-                else {
-                    results.push(valState.result);
-                }
-                if (sepState.isError) {
-                    nextState = valState;
-                    break;
-                }
-                nextState = sepState;
-            }
-            if (error) {
-                if (results.length === 0) {
-                    return updateResult(state, results);
-                }
-                return error;
-            }
-            return updateResult(nextState, results);
-        });
-    };
-}
-// sepBy1 :: Parser e a s -> Parser e b s -> Parser e [b] s
-const sepBy1 = function sepBy1(sepParser) {
-    return function sepBy1$valParser(valueParser) {
-        return new Parser(function sepBy1$valParser$state(state) {
-            if (state.isError)
-                return state;
-            const out = sepBy(sepParser)(valueParser).p(state);
-            if (out.isError)
-                return out;
-            if (out.result.length === 0) {
-                return updateError(state, `ParseError 'sepBy1' (position ${state.index}): Expecting to match at least one separated value`);
-            }
-            return out;
-        });
-    };
-};
 function choice(parsers) {
     if (parsers.length === 0)
         throw new Error(`List of parsers can't be empty.`);
@@ -992,6 +951,10 @@ class UnionType {
  * @typedef {import("./entity/IEntity").default} IEntity
  * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
  * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ */
+/**
+ * @template T
+ * @typedef {import("arcsecond").Parser<T>} Parser
  */
 
 class Utility {
@@ -1405,8 +1368,29 @@ class Utility {
         requestAnimationFrame(doAnimation);
     }
 
-    static parse(parser, value) {
-
+    /**
+     * @template T
+     * @param {Parser<T>} parser
+     * @param {String} value
+     * @param {Object} parsedEntity
+     */
+    static parse(parser, value, parsedEntity) {
+        let errorMessage = "Error when trying to parse the entity";
+        if (parsedEntity) {
+            errorMessage += " " + parsedEntity.prototype.constructor.name;
+        }
+        return parser.fork(
+            value,
+            msg => {
+                throw new Error(`${errorMessage}: ${msg}`)
+            },
+            (result, state) => {
+                if (state.index < state.dataView.byteLength) {
+                    throw new Error(errorMessage)
+                }
+                return result
+            }
+        )
     }
 }
 
@@ -3718,11 +3702,17 @@ class Grammar {
         let result = defaultGrammar;
         if (type instanceof Array) {
             result = sequenceOf([
-                str("("),
+                regex(/^\(\s*/),
                 this.grammarFor(undefined, type[0]),
-                possibly(sequenceOf([whitespace, str(",")])),
-                str(")"),
-            ]);
+                many(
+                    sequenceOf([
+                        char(","),
+                        optionalWhitespace,
+                        this.grammarFor(undefined, type[0]),
+                    ]).map(([_0, _1, value]) => value)
+                ),
+                regex(/^\s*(?:,\s*)?\)/),
+            ]).map(([_0, first, rest, _3]) => [first, ...rest]);
         } else if (type instanceof UnionType) {
             result = type.types
                 .map(v => this.grammarFor(undefined, v))
@@ -3880,30 +3870,30 @@ class Grammar {
         ]).map(([_0, attributes, _2]) => {
             let values = {};
             attributes.forEach(attributeSetter => attributeSetter(values));
-            return new entityType(values)
-            // return values
+            return values
         })
-    // // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
-    // .chain(values => {
-    //     let totalKeys = Object.keys(values)
-    //     // Check missing values
-    //     if (
-    //         Object.keys(entityType.attributes)
-    //             .filter(key => entityType.attributes[key].expected)
-    //             .find(key => !totalKeys.includes(key))
-    //     ) {
-    //         return P.fail()
-    //     }
-    //     const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length
-    //     if (
-    //         !acceptUnknownKeys && unknownKeys > 0
-    //         // Unknown keys must still be limited in number
-    //         || acceptUnknownKeys && unknownKeys + 0.5 > Math.sqrt(totalKeys)
-    //     ) {
-    //         return P.fail()
-    //     }
-    //     return P.succeed().map(() => new entityType(values))
-    // })
+            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
+            .chain(values => {
+                let totalKeys = Object.keys(values);
+                let missingKey;
+                // Check missing values
+                if (
+                    Object.keys(entityType.attributes)
+                        .filter(key => entityType.attributes[key].expected)
+                        .find(key => !totalKeys.includes(key) && (missingKey = key))
+                ) {
+                    return fail("Missing key " + missingKey)
+                }
+                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length;
+                if (
+                    !acceptUnknownKeys && unknownKeys > 0
+                    // Unknown keys must still be limited in number
+                    || acceptUnknownKeys && unknownKeys + 0.5 > Math.sqrt(totalKeys.length)
+                ) {
+                    return fail("Too many unknown keys")
+                }
+                return succeedWith(new entityType(values))
+            })
 
     /*   ---   Primitive   ---   */
 
@@ -4151,9 +4141,15 @@ class Grammar {
 
     static multipleObject = sequenceOf([
         optionalWhitespace,
-        sepBy1(whitespace)(this.objectEntity),
-        optionalWhitespace,
-    ]).map(([_0, objects, _2]) => objects)
+        this.objectEntity,
+        many(
+            sequenceOf([
+                whitespace,
+                this.objectEntity,
+            ]).map(([_0, object]) => object)
+        ),
+        optionalWhitespace
+    ]).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
     /*   ---   Others   ---   */
 
@@ -4379,20 +4375,12 @@ class ObjectSerializer extends ISerializer {
 
     /** @param {String} value */
     read(value) {
-        const parseResult = Grammar.objectEntity.run(value);
-        if (parseResult.isError || parseResult.index != value.length) {
-            throw new Error("Error when trying to parse the object")
-        }
-        return /** @type {Ok<ObjectEntity>} */(parseResult).result
+        return Utility.parse(Grammar.objectEntity, value, ObjectEntity)
     }
 
     /** @param {String} value */
     readMultiple(value) {
-        const parseResult = Grammar.multipleObject.run(value);
-        if (parseResult.isError || parseResult.index != value.length) {
-            throw new Error("Error when trying to parse the object")
-        }
-        return /** @type {Ok<ObjectEntity[]>} */(parseResult).result
+        return Utility.parse(Grammar.multipleObject, value, ObjectEntity)
     }
 
     /**
@@ -10335,12 +10323,8 @@ class GeneralSerializer extends ISerializer {
      * @returns {T}
      */
     read(value) {
-        const grammar = Grammar.grammarFor(undefined, this.entityType);
-        return grammar.fork(value, msg => {
-            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name} [${msg}]`)
-        }, (result, state) => {
-            return result
-        })
+        const parser = Grammar.grammarFor(undefined, this.entityType);
+        return Utility.parse(parser, value, this.entityType)
     }
 
     /**
