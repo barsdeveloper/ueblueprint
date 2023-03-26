@@ -884,6 +884,12 @@ const whitespace = regex(reWhitespaces)
     .errorMap(({ index }) => `ParseError 'many1' (position ${index}): Expecting to match at least one value`);
 // optionalWhitespace :: Parser e String s
 const optionalWhitespace = possibly(whitespace).map(x => x || '');
+// recursiveParser :: (() => Parser e a s) -> Parser e a s
+function recursiveParser(parserThunk) {
+    return new Parser(function recursiveParser$state(state) {
+        return parserThunk().p(state);
+    });
+}
 
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
@@ -3703,15 +3709,19 @@ class Grammar {
         if (type instanceof Array) {
             result = sequenceOf([
                 regex(/^\(\s*/),
-                this.grammarFor(undefined, type[0]),
-                many(
+                possibly(
                     sequenceOf([
-                        this.commaSeparation,
                         this.grammarFor(undefined, type[0]),
-                    ]).map(([_0, value]) => value)
+                        many(
+                            sequenceOf([
+                                this.commaSeparation,
+                                this.grammarFor(undefined, type[0]),
+                            ]).map(([_0, value]) => value)
+                        )
+                    ]).map(([first, rest]) => [first, ...rest])
                 ),
                 regex(/^\s*(?:,\s*)?\)/),
-            ]).map(([_0, first, rest, _3]) => [first, ...rest]);
+            ]).map(([_0, values, _3]) => values);
         } else if (type instanceof UnionType) {
             result = type.types
                 .map(v => this.grammarFor(undefined, v))
@@ -4112,7 +4122,7 @@ class Grammar {
         this.linearColorEntity,
         this.vector2DEntity,
         this.objectReferenceEntity,
-        this.unknownKeysEntity,
+        recursiveParser(() => this.unknownKeysEntity),
         this.symbol,
     ])
 

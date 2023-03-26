@@ -1,4 +1,4 @@
-import { char, choice, exactly, fail, many, many1, optionalWhitespace, Parser, possibly, regex, sequenceOf, str, succeedWith, whitespace } from "arcsecond"
+import { char, choice, exactly, fail, many, many1, optionalWhitespace, Parser, possibly, recursiveParser, regex, sequenceOf, str, succeedWith, whitespace } from "arcsecond"
 import ByteEntity from "../entity/ByteEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
@@ -92,15 +92,19 @@ export default class Grammar {
         if (type instanceof Array) {
             result = sequenceOf([
                 regex(/^\(\s*/),
-                this.grammarFor(undefined, type[0]),
-                many(
+                possibly(
                     sequenceOf([
-                        this.commaSeparation,
                         this.grammarFor(undefined, type[0]),
-                    ]).map(([_0, value]) => value)
+                        many(
+                            sequenceOf([
+                                this.commaSeparation,
+                                this.grammarFor(undefined, type[0]),
+                            ]).map(([_0, value]) => value)
+                        )
+                    ]).map(([first, rest]) => [first, ...rest])
                 ),
                 regex(/^\s*(?:,\s*)?\)/),
-            ]).map(([_0, first, rest, _3]) => [first, ...rest])
+            ]).map(([_0, values, _3]) => values)
         } else if (type instanceof UnionType) {
             result = type.types
                 .map(v => this.grammarFor(undefined, v))
@@ -501,7 +505,7 @@ export default class Grammar {
         this.linearColorEntity,
         this.vector2DEntity,
         this.objectReferenceEntity,
-        this.unknownKeysEntity,
+        recursiveParser(() => this.unknownKeysEntity),
         this.symbol,
     ])
 
