@@ -22,7 +22,7 @@ export default class ObjectSerializer extends ISerializer {
 
     /** @param {String} value */
     read(value) {
-        const parseResult = ISerializer.grammar.Object.parse(value)
+        const parseResult = ISerializer.grammar.objectEntity.parse(value)
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }
@@ -34,7 +34,7 @@ export default class ObjectSerializer extends ISerializer {
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
-        const parseResult = ISerializer.grammar.MultipleObject.parse(value)
+        const parseResult = ISerializer.grammar.multipleObject.parse(value)
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }

@@ -32,6 +32,7 @@ import Utility from "../Utility.js"
 
 export default class IEntity {
 
+    static lookbehind = ""
     /** @type {AttributeDeclarations} */
     static attributes = {}
     static defaultAttribute = {

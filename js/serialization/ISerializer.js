@@ -1,8 +1,8 @@
 import Grammar from "./Grammar.js"
-import Parsimmon from "parsimmon"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 import IEntity from "../entity/IEntity.js"
+import Parsimmon from "parsimmon"
 
 /**
  * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
