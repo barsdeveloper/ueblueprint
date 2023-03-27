@@ -3236,7 +3236,7 @@ class Grammar {
         type = attribute?.constructor === Object
             ? attribute.type
             : attribute?.constructor,
-        defaultGrammar = P.lazy(() => this.unknownValue)
+        defaultGrammar = this.unknownValue
     ) {
         let result = defaultGrammar;
         if (type instanceof Array) {
@@ -3253,7 +3253,7 @@ class Grammar {
                     : P.alt(acc, cur)
                 );
         } else if (attribute?.constructor === Object) {
-            result = this.grammarFor(undefined, type, defaultGrammar);
+            result = this.grammarFor(undefined, type);
         } else {
             switch (type) {
                 case BigInt:
@@ -3399,11 +3399,12 @@ class Grammar {
                     .many()
             ).map(([first, remaining]) => [first, ...remaining]),
             this.optTrailingComma,
-        ).map(([_0, attributes, _2]) => {
-            let values = {};
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return values
-        })
+        )
+            .map(([_0, attributes, _2]) => {
+                let values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return values
+            })
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
             .chain(values => {
                 let totalKeys = Object.keys(values);
@@ -3425,298 +3426,346 @@ class Grammar {
 
     /*   ---   Entity   ---   */
 
-    static byteEntity = this.byteNumber.map(v => new ByteEntity(v))
+    static byteEntity = P.lazy(() => this.byteNumber.map(v => new ByteEntity(v)))
 
-    static enumEntity = this.symbol.map(v => new EnumEntity(v))
+    static enumEntity = P.lazy(() => this.symbol.map(v => new EnumEntity(v)))
 
-    static formatTextEntity = P.seq(
-        P.regex(new RegExp(`${FormatTextEntity.lookbehind}\\s*`)),
-        this.grammarFor(FormatTextEntity.attributes.value)
-    )
-
-    static functionReferenceEntity = this.createEntityGrammar(FunctionReferenceEntity)
-
-    static guidEntity = this.guid.map(v => new GuidEntity(v))
-
-    static identifierEntity = this.symbol.map(v => new IdentifierEntity(v))
-
-    static integer64Entity = this.bigInt.map(v => new Integer64Entity(v))
-
-    static integerEntity = this.integer.map(v => new IntegerEntity(v))
-
-    static invariantTextEntity = P.seq(
-        P.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*`)),
-        this.grammarFor(InvariantTextEntity.attributes.value)
-    )
-
-    static keyBindingEntity = P.alt(
-        this.identifierEntity.map(identifier => new KeyBindingEntity({
-            Key: identifier
-        })),
-        this.createEntityGrammar(KeyBindingEntity)
-    )
-
-    static linearColorEntity = this.createEntityGrammar(LinearColorEntity, false)
-
-    static localizedTextEntity = Grammar.regexMap(
-        new RegExp(
-            String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-            + String.raw`(?:,\s+)?`
-            + String.raw`\)`
-        ),
-        matchResult => new LocalizedTextEntity({
-            namespace: matchResult[1],
-            key: matchResult[2],
-            value: matchResult[3]
-        })
-    )
-
-    static macroGraphReferenceEntity = this.createEntityGrammar(MacroGraphReferenceEntity)
-
-    static naturalNumberEntity = this.naturalNumber.map(v => new NaturalNumberEntity(v))
-
-    static noneReferenceEntity = P.string("None").map(() =>
-        new ObjectReferenceEntity({ type: "None", path: "" })
-    )
-
-    static typeReferenceEntity = this.typeReference.map(v =>
-        new ObjectReferenceEntity({ type: v, path: "" })
-    )
-
-    static pathReferenceEntity = this.path.map(path =>
-        new ObjectReferenceEntity({ type: "", path: path })
-    )
-
-    static fullReferenceEntity = P.seq(this.typeReference, P.optWhitespace, this.path)
-        .map(([type, _2, path]) =>
-            new ObjectReferenceEntity({ type: type, path: path })
+    static formatTextEntity = P.lazy(() =>
+        P.seq(
+            P.regex(new RegExp(`${FormatTextEntity.lookbehind}\\s*`)),
+            this.grammarFor(FormatTextEntity.attributes.value)
         )
-
-    static objectReferenceEntity = P.alt(
-        this.noneReferenceEntity,
-        this.fullReferenceEntity,
-        this.pathReferenceEntity,
-        this.typeReferenceEntity,
     )
 
-    static pathSymbolEntity = this.symbol.map(v => new PathSymbolEntity(v))
+    static functionReferenceEntity = P.lazy(() => this.createEntityGrammar(FunctionReferenceEntity))
 
-    static pinEntity = this.createEntityGrammar(PinEntity)
+    static guidEntity = P.lazy(() => this.guid.map(v => new GuidEntity(v)))
 
-    static pinReferenceEntity = P.seq(
-        this.pathSymbolEntity,
-        P.whitespace,
-        this.guidEntity
-    ).map(
-        ([objectName, _1, pinGuid]) => new PinReferenceEntity({
-            objectName: objectName,
-            pinGuid: pinGuid,
-        })
+    static identifierEntity = P.lazy(() => this.symbol.map(v => new IdentifierEntity(v)))
+
+    static integer64Entity = P.lazy(() => this.bigInt.map(v => new Integer64Entity(v)))
+
+    static integerEntity = P.lazy(() => this.integer.map(v => new IntegerEntity(v)))
+
+    static invariantTextEntity = P.lazy(() =>
+        P.seq(
+            P.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*`)),
+            this.grammarFor(InvariantTextEntity.attributes.value)
+        )
     )
 
-    static pinTypeEntity = this.createEntityGrammar(PinTypeEntity)
-
-    static realUnitEntity = this.realUnit.map(value => new RealUnitEntity(value))
-
-    static rotatorEntity = this.createEntityGrammar(RotatorEntity, false)
-
-    static simpleSerializationRotatorEntity = P.seq(
-        this.number,
-        this.commaSeparation,
-        this.number,
-        this.commaSeparation,
-        this.number,
-    ).map(([p, _1, y, _3, r]) =>
-        new SimpleSerializationRotatorEntity({
-            R: r,
-            P: p,
-            Y: y,
-        })
-    )
-
-    static simpleSerializationVector2DEntity = P.seq(
-        this.number,
-        this.commaSeparation,
-        this.number,
-    ).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
-        X: x,
-        Y: y,
-    }))
-
-
-    static simpleSerializationVectorEntity = P.seq(
-        this.number,
-        this.commaSeparation,
-        this.number,
-        this.commaSeparation,
-        this.number,
-    ).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
-        X: x,
-        Y: y,
-        Z: z,
-    }))
-
-    static symbolEntity = this.symbol.map(v => new SymbolEntity(v))
-
-    static variableReferenceEntity = this.createEntityGrammar(VariableReferenceEntity)
-
-    static vector2DEntity = this.createEntityGrammar(Vector2DEntity, false)
-
-    static vectorEntity = this.createEntityGrammar(VectorEntity, false)
-
-    static unknownKeysEntity = P.seq(
+    static keyBindingEntity = P.lazy(() =>
         P.alt(
-            P.seq(
-                this.symbol,
-                P.optWhitespace,
-            ).map(([value, _1]) => value),
-            P.succeed("")
-        ),
-        P.regex(/\(\s*/),
-        P.seq(
-            this.createAttributeGrammar(UnknownKeysEntity),
-            P.seq(
-                this.commaSeparation,
-                this.createAttributeGrammar(UnknownKeysEntity),
-            ).map(([_0, entry]) => entry)
-        ).map(([first, rest]) => [first, ...rest]),
-        P.regex(/\s*(?:,\s)?\)/),
-    ).map(([lookbehind, _1, attributes, _3]) => {
-        let values = {};
-        attributes.forEach(attributeSetter => attributeSetter(values));
-        let result = new UnknownKeysEntity(values);
-        if (lookbehind) {
-            result.lookbehind = lookbehind;
-        }
-        return result
-    })
-
-    static unknownValue = P.alt(
-        // Remember to keep the order, otherwise parsing might fail
-        this.boolean,
-        this.guidEntity,
-        this.noneReferenceEntity,
-        this.null,
-        this.number,
-        this.string,
-        this.localizedTextEntity,
-        this.invariantTextEntity,
-        this.pinReferenceEntity,
-        this.vectorEntity,
-        this.linearColorEntity,
-        this.vector2DEntity,
-        this.objectReferenceEntity,
-        this.unknownKeysEntity,
-        this.symbol,
+            this.identifierEntity.map(identifier => new KeyBindingEntity({
+                Key: identifier
+            })),
+            this.createEntityGrammar(KeyBindingEntity)
+        )
     )
 
-    static customProperty = P.seq(
-        P.regex(/CustomProperties\s+/),
-        this.pinEntity,
-    ).map(([_0, pin]) => values => {
-        if (!values["CustomProperties"]) {
-            values["CustomProperties"] = [];
-        }
-        values["CustomProperties"].push(pin);
-    })
+    static linearColorEntity = P.lazy(() => this.createEntityGrammar(LinearColorEntity, false))
 
-    static objectEntity = P.seq(
-        P.regex(/Begin\s+Object/),
-        P.seq(
-            P.whitespace,
-            P.alt(
-                this.customProperty,
-                this.createAttributeGrammar(ObjectEntity),
-            )
+    static localizedTextEntity = P.lazy(() =>
+        Grammar.regexMap(
+            new RegExp(
+                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
+                + String.raw`(?:,\s+)?`
+                + String.raw`\)`
+            ),
+            matchResult => new LocalizedTextEntity({
+                namespace: matchResult[1],
+                key: matchResult[2],
+                value: matchResult[3]
+            })
         )
-            .map(([_0, entry]) => entry)
-            .many(),
-        P.regex(/\s+End\s+Object/),
-    ).map(
-        ([_0, attributes, _2]) => {
+    )
+
+    static macroGraphReferenceEntity = P.lazy(() => this.createEntityGrammar(MacroGraphReferenceEntity))
+
+    static naturalNumberEntity = P.lazy(() => this.naturalNumber.map(v => new NaturalNumberEntity(v)))
+
+    static noneReferenceEntity = P.lazy(() =>
+        P.string("None").map(() =>
+            new ObjectReferenceEntity({ type: "None", path: "" })
+        )
+    )
+
+    static typeReferenceEntity = P.lazy(() =>
+        this.typeReference.map(v =>
+            new ObjectReferenceEntity({ type: v, path: "" })
+        )
+    )
+
+    static pathReferenceEntity = P.lazy(() =>
+        this.path.map(path =>
+            new ObjectReferenceEntity({ type: "", path: path })
+        )
+    )
+
+    static fullReferenceEntity = P.lazy(() =>
+        P.seq(this.typeReference, P.optWhitespace, this.path)
+            .map(([type, _2, path]) =>
+                new ObjectReferenceEntity({ type: type, path: path })
+            )
+    )
+
+    static objectReferenceEntity = P.lazy(() =>
+        P.alt(
+            this.noneReferenceEntity,
+            this.fullReferenceEntity,
+            this.pathReferenceEntity,
+            this.typeReferenceEntity,
+        )
+    )
+
+    static pathSymbolEntity = P.lazy(() => this.symbol.map(v => new PathSymbolEntity(v)))
+
+    static pinEntity = P.lazy(() => this.createEntityGrammar(PinEntity))
+
+    static pinReferenceEntity = P.lazy(() =>
+        P.seq(
+            this.pathSymbolEntity,
+            P.whitespace,
+            this.guidEntity
+        ).map(
+            ([objectName, _1, pinGuid]) => new PinReferenceEntity({
+                objectName: objectName,
+                pinGuid: pinGuid,
+            })
+        )
+    )
+
+    static pinTypeEntity = P.lazy(() => this.createEntityGrammar(PinTypeEntity))
+
+    static realUnitEntity = P.lazy(() => this.realUnit.map(value => new RealUnitEntity(value)))
+
+    static rotatorEntity = P.lazy(() => this.createEntityGrammar(RotatorEntity, false))
+
+    static simpleSerializationRotatorEntity = P.lazy(() =>
+        P.seq(
+            this.number,
+            this.commaSeparation,
+            this.number,
+            this.commaSeparation,
+            this.number,
+        ).map(([p, _1, y, _3, r]) =>
+            new SimpleSerializationRotatorEntity({
+                R: r,
+                P: p,
+                Y: y,
+            })
+        )
+    )
+
+    static simpleSerializationVector2DEntity = P.lazy(() =>
+        P.seq(
+            this.number,
+            this.commaSeparation,
+            this.number,
+        ).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
+            X: x,
+            Y: y,
+        }))
+    )
+
+
+    static simpleSerializationVectorEntity = P.lazy(() =>
+        P.seq(
+            this.number,
+            this.commaSeparation,
+            this.number,
+            this.commaSeparation,
+            this.number,
+        ).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
+            X: x,
+            Y: y,
+            Z: z,
+        }))
+    )
+
+    static symbolEntity = P.lazy(() => this.symbol.map(v => new SymbolEntity(v)))
+
+    static variableReferenceEntity = P.lazy(() => this.createEntityGrammar(VariableReferenceEntity))
+
+    static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
+
+    static vectorEntity = P.lazy(() => this.createEntityGrammar(VectorEntity, false))
+
+    static unknownKeysEntity = P.lazy(() =>
+        P.seq(
+            P.alt(
+                P.seq(
+                    this.symbol,
+                    P.optWhitespace,
+                ).map(([value, _1]) => value),
+                P.succeed("")
+            ),
+            P.regex(/\(\s*/),
+            P.seq(
+                this.createAttributeGrammar(UnknownKeysEntity),
+                P.seq(
+                    this.commaSeparation,
+                    this.createAttributeGrammar(UnknownKeysEntity),
+                ).map(([_0, entry]) => entry)
+            ).map(([first, rest]) => [first, ...rest]),
+            P.regex(/\s*(?:,\s)?\)/),
+        ).map(([lookbehind, _1, attributes, _3]) => {
             let values = {};
             attributes.forEach(attributeSetter => attributeSetter(values));
-            return new ObjectEntity(values)
-        }
+            let result = new UnknownKeysEntity(values);
+            if (lookbehind) {
+                result.lookbehind = lookbehind;
+            }
+            return result
+        })
     )
 
-    static multipleObject = P.seq(
-        P.optWhitespace,
-        this.objectEntity,
-        P.seq(
-            P.whitespace,
-            this.objectEntity,
+    static unknownValue = P.lazy(() =>
+        P.alt(
+            // Remember to keep the order, otherwise parsing might fail
+            this.boolean,
+            this.guidEntity,
+            this.noneReferenceEntity,
+            this.null,
+            this.number,
+            this.string,
+            this.localizedTextEntity,
+            this.invariantTextEntity,
+            this.pinReferenceEntity,
+            this.vectorEntity,
+            this.linearColorEntity,
+            this.vector2DEntity,
+            this.objectReferenceEntity,
+            this.unknownKeysEntity,
+            this.symbol,
         )
-            .map(([_0, object]) => object)
-            .many(),
-        P.optWhitespace
-    ).map(([_0, first, remaining, _4]) => [first, ...remaining])
+    )
+
+    static customProperty = P.lazy(() =>
+        P.seq(
+            P.regex(/CustomProperties\s+/),
+            this.pinEntity,
+        ).map(([_0, pin]) => values => {
+            if (!values["CustomProperties"]) {
+                values["CustomProperties"] = [];
+            }
+            values["CustomProperties"].push(pin);
+        })
+    )
+
+    static objectEntity = P.lazy(() =>
+        P.seq(
+            P.regex(/Begin\s+Object/),
+            P.seq(
+                P.whitespace,
+                P.alt(
+                    this.customProperty,
+                    this.createAttributeGrammar(ObjectEntity),
+                )
+            )
+                .map(([_0, entry]) => entry)
+                .many(),
+            P.regex(/\s+End\s+Object/),
+        ).map(
+            ([_0, attributes, _2]) => {
+                let values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new ObjectEntity(values)
+            }
+        )
+    )
+
+    static multipleObject = P.lazy(() =>
+        P.seq(
+            P.optWhitespace,
+            this.objectEntity,
+            P.seq(
+                P.whitespace,
+                this.objectEntity,
+            )
+                .map(([_0, object]) => object)
+                .many(),
+            P.optWhitespace
+        ).map(([_0, first, remaining, _4]) => [first, ...remaining])
+    )
 
     /*   ---   Others   ---   */
 
-    static linearColorFromHex = Grammar.regexMap(new RegExp(
-        `#(${Grammar.Regex.HexDigit.source
-        }{2})(${Grammar.Regex.HexDigit.source
-        }{2})(${Grammar.Regex.HexDigit.source
-        }{2})(${this.Regex.HexDigit.source
-        }{2})?`
-    ),
-        v => [v[1], v[2], v[3], v[4] ?? "FF"])
-        .map(([R, G, B, A]) => new LinearColorEntity({
-            R: parseInt(R, 16) / 255,
-            G: parseInt(G, 16) / 255,
-            B: parseInt(B, 16) / 255,
-            A: parseInt(A, 16) / 255,
+    static linearColorFromHex = P.lazy(() =>
+        Grammar.regexMap(new RegExp(
+            `#(${Grammar.Regex.HexDigit.source
+            }{2})(${Grammar.Regex.HexDigit.source
+            }{2})(${Grammar.Regex.HexDigit.source
+            }{2})(${this.Regex.HexDigit.source
+            }{2})?`
+        ),
+            v => [v[1], v[2], v[3], v[4] ?? "FF"])
+            .map(([R, G, B, A]) => new LinearColorEntity({
+                R: parseInt(R, 16) / 255,
+                G: parseInt(G, 16) / 255,
+                B: parseInt(B, 16) / 255,
+                A: parseInt(A, 16) / 255,
+            }))
+    )
+
+    static linearColorRGBList = P.lazy(() =>
+        P.seq(
+            this.byteNumber,
+            this.commaSeparation,
+            this.byteNumber,
+            this.commaSeparation,
+            this.byteNumber,
+        ).map(([R, _1, G, _3, B]) => new LinearColorEntity({
+            R: R / 255,
+            G: G / 255,
+            B: B / 255,
+            A: 1,
         }))
+    )
 
-    static linearColorRGBList = P.seq(
-        this.byteNumber,
-        this.commaSeparation,
-        this.byteNumber,
-        this.commaSeparation,
-        this.byteNumber,
-    ).map(([R, _1, G, _3, B]) => new LinearColorEntity({
-        R: R / 255,
-        G: G / 255,
-        B: B / 255,
-        A: 1,
-    }))
+    static linearColorRGBAList = P.lazy(() =>
+        P.seq(
+            this.byteNumber,
+            this.commaSeparation,
+            this.byteNumber,
+            this.commaSeparation,
+            this.byteNumber,
+            this.commaSeparation,
+            this.byteNumber,
+        ).map(([R, _1, G, _3, B, _5, A]) => new LinearColorEntity({
+            R: R / 255,
+            G: G / 255,
+            B: B / 255,
+            A: A,
+        }))
+    )
 
-    static linearColorRGBAList = P.seq(
-        this.byteNumber,
-        this.commaSeparation,
-        this.byteNumber,
-        this.commaSeparation,
-        this.byteNumber,
-        this.commaSeparation,
-        this.byteNumber,
-    ).map(([R, _1, G, _3, B, _5, A]) => new LinearColorEntity({
-        R: R / 255,
-        G: G / 255,
-        B: B / 255,
-        A: A,
-    }))
+    static linearColorRGB = P.lazy(() =>
+        P.seq(
+            P.regex(/rgb\s*\(\s*/),
+            this.linearColorRGBList,
+            P.regex(/\s*\)/)
+        ).map(([_0, linearColor, _2]) => linearColor)
+    )
 
-    static linearColorRGB = P.seq(
-        P.regex(/rgb\s*\(\s*/),
-        this.linearColorRGBList,
-        P.regex(/\s*\)/)
-    ).map(([_0, linearColor, _2]) => linearColor)
+    static linearColorRGBA = P.lazy(() =>
+        P.seq(
+            P.regex(/rgba\s*\(\s*/),
+            this.linearColorRGBAList,
+            P.regex(/\s*\)/)
+        ).map(([_0, linearColor, _2]) => linearColor)
+    )
 
-    static linearColorRGBA = P.seq(
-        P.regex(/rgba\s*\(\s*/),
-        this.linearColorRGBAList,
-        P.regex(/\s*\)/)
-    ).map(([_0, linearColor, _2]) => linearColor)
-
-    static linearColorFromAnyFormat = P.alt(
-        this.linearColorFromHex,
-        this.linearColorRGBA,
-        this.linearColorRGB,
-        this.linearColorRGBList,
+    static linearColorFromAnyFormat = P.lazy(() =>
+        P.alt(
+            this.linearColorFromHex,
+            this.linearColorRGBA,
+            this.linearColorRGB,
+            this.linearColorRGBList,
+        )
     )
 }
 
