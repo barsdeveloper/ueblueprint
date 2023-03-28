@@ -101,7 +101,7 @@ export default class Grammar {
     static symbol = P.regex(Grammar.Regex.Symbol)
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
     static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
-    static commaSeparation = P.regex(/\s*,\s*/)
+    static commaSeparation = P.regex(/\s*,\s*(?!\))/)
     static optTrailingComma = P.regex(/\s*(?:,\s*)?/)
     static typeReference = P.alt(P.regex(Grammar.Regex.Path), this.symbol)
     static hexColorChannel = P.regex(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
