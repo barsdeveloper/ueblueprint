@@ -1,3 +1,4 @@
+import Grammar from "./Grammar.js"
 import ISerializer from "./ISerializer.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
@@ -22,7 +23,7 @@ export default class ObjectSerializer extends ISerializer {
 
     /** @param {String} value */
     read(value) {
-        const parseResult = ISerializer.grammar.objectEntity.parse(value)
+        const parseResult = Grammar.objectEntity.parse(value)
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }
@@ -34,7 +35,7 @@ export default class ObjectSerializer extends ISerializer {
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
-        const parseResult = ISerializer.grammar.multipleObject.parse(value)
+        const parseResult = Grammar.multipleObject.parse(value)
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }

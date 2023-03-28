@@ -72,28 +72,30 @@ export default class Grammar {
 
     /*   ---   Primitive   ---   */
 
-    static null = P.regex(/\(\s*\)/).map(() => null)
-    static true = P.regex(/true/i).map(() => true)
-    static false = P.regex(/false/i).map(() => false)
-    static boolean = Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false)
-    static number = P.regex(Grammar.Regex.Number).map(Number)
-    static integer = P.regex(Grammar.Regex.Integer).map(Number)
-    static bigInt = P.regex(Grammar.Regex.Integer).map(BigInt)
-    static realUnit = P.regex(Grammar.Regex.RealUnit).map(Number)
-    static naturalNumber = P.regex(/\d+/).map(Number)
-    static byteNumber = P.regex(Grammar.Regex.ByteInteger).map(Number)
+    static null = P.lazy(() => P.regex(/\(\s*\)/).map(() => null))
+    static true = P.lazy(() => P.regex(/true/i).map(() => true))
+    static false = P.lazy(() => P.regex(/false/i).map(() => false))
+    static boolean = P.lazy(() => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false))
+    static number = P.lazy(() => P.regex(Grammar.Regex.Number).map(Number))
+    static integer = P.lazy(() => P.regex(Grammar.Regex.Integer).map(Number))
+    static bigInt = P.lazy(() => P.regex(Grammar.Regex.Integer).map(BigInt))
+    static realUnit = P.lazy(() => P.regex(Grammar.Regex.RealUnit).map(Number))
+    static naturalNumber = P.lazy(() => P.regex(/\d+/).map(Number))
+    static byteNumber = P.lazy(() => P.regex(Grammar.Regex.ByteInteger).map(Number))
+    static string = P.lazy(() =>
+        Grammar.regexMap(
+            new RegExp(`"(${Grammar.Regex.InsideString.source})"`),
+            ([_0, value]) => value
+        )
+            .map((insideString) => Utility.unescapeString(insideString))
+    )
 
     /*   ---   Fragment   ---   */
 
     static colorValue = this.byteNumber
     static word = P.regex(Grammar.Regex.Word)
-    static string = Grammar.regexMap(
-        new RegExp(`"(${Grammar.Regex.InsideString})"`),
-        ([_0, value]) => value
-    )
-        .map(([_1, insideString, _2]) => Utility.unescapeString(insideString))
     static path = Grammar.regexMap(
-        new RegExp(`(${Grammar.Regex.Path})|"(${Grammar.Regex.PathOptSpace})"|'"(${Grammar.Regex.PathOptSpace})"'`),
+        new RegExp(`(${Grammar.Regex.Path.source})|"(${Grammar.Regex.PathOptSpace.source})"|'"(${Grammar.Regex.PathOptSpace.source})"'`),
         ([_0, a, b, c]) => a ?? b ?? c
     )
     static symbol = P.regex(Grammar.Regex.Symbol)
@@ -284,16 +286,8 @@ export default class Grammar {
             entityType.lookbehind.length
                 ? P.regex(new RegExp(`${entityType.lookbehind}\\s*\\(\\s*`))
                 : P.regex(/\(\s*/),
-            P.seq(
-                this.createAttributeGrammar(entityType),
-                P.seq(
-                    this.commaSeparation,
-                    this.createAttributeGrammar(entityType),
-                )
-                    .map(([_0, value]) => value)
-                    .many()
-            ).map(([first, remaining]) => [first, ...remaining]),
-            this.optTrailingComma,
+            this.createAttributeGrammar(entityType).sepBy1(this.commaSeparation),
+            P.regex(/\s*(?:,\s*)?\)/),
         )
             .map(([_0, attributes, _2]) => {
                 let values = {}

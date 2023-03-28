@@ -7,7 +7,6 @@ export default class UnknownKeysEntity extends IEntity {
         {
             value: "",
             showDefault: false,
-            ignore: true,
         },
     }
 

@@ -1,8 +1,6 @@
-import Grammar from "./Grammar.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 import IEntity from "../entity/IEntity.js"
-import Parsimmon from "parsimmon"
 
 /**
  * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
@@ -12,8 +10,6 @@ import Parsimmon from "parsimmon"
 
 /** @template {AnyValue} T */
 export default class ISerializer {
-
-    static grammar = Parsimmon.createLanguage(new Grammar())
 
     /** @param {AnyValueConstructor} entityType */
     constructor(
@@ -131,7 +127,7 @@ export default class ISerializer {
 
     showProperty(entity, object, attributeKey, attributeValue) {
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes
-        const attribute = Utility.objectGet(attributes, attributeKey)
+        const attribute = attributes[attributeKey]
         if (attribute?.constructor === Object) {
             if (attribute.ignored) {
                 return false

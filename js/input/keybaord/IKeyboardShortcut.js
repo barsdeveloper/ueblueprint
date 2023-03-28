@@ -1,6 +1,6 @@
 import Configuration from "../../Configuration.js"
+import Grammar from "../../serialization/Grammar.js"
 import IInput from "../IInput.js"
-import ISerializer from "../../serialization/ISerializer.js"
 import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 
 /** @typedef {import("../../Blueprint").default} Blueprint */
@@ -32,8 +32,8 @@ export default class IKeyboardShortcut extends IInput {
             if (v instanceof KeyBindingEntity) {
                 return v
             }
-            if (v.constructor === String) {
-                const parsed = ISerializer.grammar.KeyBinding.parse(v)
+            if (typeof v === "string") {
+                const parsed = Grammar.keyBindingEntity.parse(v)
                 if (parsed.status) {
                     return parsed.value
                 }

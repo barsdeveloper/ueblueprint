@@ -1,4 +1,3 @@
-import SubAttributesDeclaration from "./entity/SubObject.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
@@ -139,9 +138,6 @@ export default class Utility {
         }
         if (!(keys instanceof Array)) {
             throw new TypeError("UEBlueprint: Expected keys to be an array")
-        }
-        if (target instanceof SubAttributesDeclaration) {
-            target = target.attributes
         }
         if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
             return defaultValue

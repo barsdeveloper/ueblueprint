@@ -1,11 +1,11 @@
 import BoolPinTemplate from "../template/pin/BoolPinTemplate.js"
 import ElementFactory from "./ElementFactory.js"
 import ExecPinTemplate from "../template/pin/ExecPinTemplate.js"
+import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import IElement from "./IElement.js"
 import Int64PinTemplate from "../template/pin/Int64PinTemplate.js"
 import IntPinTemplate from "../template/pin/IntPinTemplate.js"
-import ISerializer from "../serialization/ISerializer.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import LinearColorPinTemplate from "../template/pin/LinearColorPinTemplate.js"
 import NamePinTemplate from "../template/pin/NamePinTemplate.js"
@@ -54,7 +54,7 @@ export default class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? ISerializer.grammar.Guid.parse(value).value
+                    ? Grammar.guidEntity.parse(value).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
             },
@@ -75,7 +75,7 @@ export default class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? ISerializer.grammar.LinearColorFromAnyColor.parse(value).value
+                    ? Grammar.linearColorFromAnyFormat.parse(value).value
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
             },
@@ -107,7 +107,7 @@ export default class PinElement extends IElement {
      * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
-        if (pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst) {
+        if (pinEntity["PinType.bIsReference"] && !pinEntity["PinType.bIsConst"]) {
             return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
         }
         if (pinEntity.getType() === "exec") {
@@ -136,9 +136,9 @@ export default class PinElement extends IElement {
         nodeElement = undefined
     ) {
         super.initialize(entity, template)
-        this.pinId = this.entity.PinId
+        this.pinId = this.entity["PinId"]
         this.pinType = this.entity.getType()
-        this.advancedView = this.entity.bAdvancedView
+        this.advancedView = this.entity["bAdvancedView"]
         this.defaultValue = this.entity.getDefaultValue()
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString())
         this.isLinked = false
@@ -160,12 +160,12 @@ export default class PinElement extends IElement {
 
     /** @return {GuidEntity} */
     getPinId() {
-        return this.entity.PinId
+        return this.entity["PinId"]
     }
 
     /** @returns {String} */
     getPinName() {
-        return this.entity.PinName
+        return this.entity["PinName"]
     }
 
     getPinDisplayName() {
@@ -203,7 +203,7 @@ export default class PinElement extends IElement {
 
     /** @param {T} value */
     setDefaultValue(value) {
-        this.entity.DefaultValue = value
+        this.entity["DefaultValue"] = value
         this.defaultValue = value
     }
 
@@ -269,7 +269,7 @@ export default class PinElement extends IElement {
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
             pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
-            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
+            && pinReference.pinGuid.valueOf() == originalPinElement.entity["PinId"].valueOf()
         )
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference
