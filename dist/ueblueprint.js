@@ -3169,8 +3169,8 @@ class Grammar {
     static symbol = P.regex(Grammar.Regex.Symbol)
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
     static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
-    static commaSeparation = P.regex(/\s*,\s*(?!\s*\))/)
-    static optTrailingComma = P.regex(/\s*(?:,\s*)?/)
+    static commaSeparation = P.regex(/\s*,\s*(?!\))/)
+    static equalSeparation = P.regex(/\s*=\s*/)
     static typeReference = P.alt(P.regex(Grammar.Regex.Path), this.symbol)
     static hexColorChannel = P.regex(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
 
@@ -3333,7 +3333,7 @@ class Grammar {
 
     static createAttributeGrammar(
         entityType,
-        valueSeparator = P.regex(/\s*=\s*/)
+        valueSeparator = this.equalSeparation
     ) {
         return P.seq(
             this.attributeName,
@@ -3553,31 +3553,29 @@ class Grammar {
 
     static unknownKeysEntity = P.lazy(() =>
         P.seq(
-            P.alt(
-                P.seq(
-                    this.symbol,
-                    P.optWhitespace,
-                ).map(([value, _1]) => value),
-                P.succeed("")
+            this.regexMap(
+                new RegExp(`(${this.Regex.Symbol.source}\\s*)?\\(\\s*`),
+                result => result[1] ?? ""
             ),
-            P.regex(/\(\s*/),
-            P.seq(
-                this.createAttributeGrammar(UnknownKeysEntity),
-                P.seq(
-                    this.commaSeparation,
-                    this.createAttributeGrammar(UnknownKeysEntity),
-                ).map(([_0, entry]) => entry)
-            ).map(([first, rest]) => [first, ...rest]),
-            P.regex(/\s*(?:,\s)?\)/),
-        ).map(([lookbehind, _1, attributes, _3]) => {
-            let values = {};
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            let result = new UnknownKeysEntity(values);
-            if (lookbehind) {
-                result.lookbehind = lookbehind;
-            }
-            return result
-        })
+            this.attributeName
+                .skip(this.equalSeparation)
+                .chain((attributeName) =>
+                    this.unknownValue
+                        .map(attributeValue =>
+                            values => values[attributeName] = attributeValue
+                        )
+                )
+                .sepBy1(this.commaSeparation),
+            P.regex(/\s*(?:,\s*)?\)/),
+        )
+            .map(([lookbehind, attributes, _2]) => {
+                let values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                if (lookbehind.length) {
+                    values["lookbehind"] = lookbehind;
+                }
+                return new UnknownKeysEntity(values)
+            })
     )
 
     static unknownValue = P.lazy(() =>
