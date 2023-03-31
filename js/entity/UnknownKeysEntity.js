@@ -15,7 +15,7 @@ export default class UnknownKeysEntity extends IEntity {
     }
 
     constructor(values) {
-        super(values)
+        super(values, true)
         /** @type {String} */ this.lookbehind
     }
 }

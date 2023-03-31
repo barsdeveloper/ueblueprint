@@ -51,6 +51,15 @@ export default class Configuration {
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
+    static nameRegexSpaceReplacement = new RegExp(
+        "^K2(?:[Nn]ode)?_"
+        + "|(?<=[a-z])(?=[A-Z0-9])" // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
+        + "|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])" // ("ALPHABravo", "ALPHA2") => ("ALPHA Bravo", "ALPHA 2")
+        + "|(?<=[014-9]|[23](?!D(?:[^a-z]|$)))(?=[a-zA-Z])" // ("3Times", "3D", "3Delta") => ("3 Times", "3D", "3 Delta")
+        + "|\\s*_+\\s*" // "Alpha__Bravo" => "Alpha Bravo"
+        + "|\\s{2,}",
+        "g"
+    )
     /**
      * @param {Number} start
      * @param {Number} c1

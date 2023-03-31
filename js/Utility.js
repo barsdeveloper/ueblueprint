@@ -1,3 +1,4 @@
+import Configuration from "./Configuration.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
@@ -47,10 +48,7 @@ export default class Utility {
     /** @param {HTMLElement} element */
     static getScale(element) {
         // @ts-expect-error
-        const scale = element.blueprint
-            // @ts-expect-error
-            ? element.blueprint.getScale()
-            : getComputedStyle(element).getPropertyValue("--ueb-scale")
+        const scale = element.blueprint?.getScale() ?? getComputedStyle(element).getPropertyValue("--ueb-scale")
         return scale != "" ? parseFloat(scale) : 1
     }
 
@@ -328,14 +326,21 @@ export default class Utility {
             // Remove leading b (for boolean values) or newlines
             .replace(/^\s*b/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
-            .replaceAll(
-                /^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z0-9])|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])|(?<=[014-9]|(?:2|3)(?!D(?:[^a-z]|$)))(?=[a-zA-Z])|\s*_+\s*|\s{2,}/g,
-                " "
-            )
+            .replaceAll(Configuration.nameRegexSpaceReplacement, " ")
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
             .trim()
+    }
+
+    /** @param {String} value */
+    static encodeKeyName(value) {
+        return value.replaceAll(".", "$")
+    }
+
+    /** @param {String} value */
+    static decodeKeyName(value) {
+        return value.replaceAll("$", ".")
     }
 
     /** @param {String} value */

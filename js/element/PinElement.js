@@ -107,7 +107,7 @@ export default class PinElement extends IElement {
      * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
-        if (pinEntity["PinType.bIsReference"] && !pinEntity["PinType.bIsConst"]) {
+        if (pinEntity.PinType$bIsReference && !pinEntity.PinType$bIsConst) {
             return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
         }
         if (pinEntity.getType() === "exec") {

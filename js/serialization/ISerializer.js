@@ -109,7 +109,7 @@ export default class ISerializer {
                 const isSerialized = Utility.isSerialized(entity, fullKey)
                 result += (result.length ? this.attributeSeparator : "")
                     + this.attributePrefix
-                    + this.attributeKeyPrinter(fullKey)
+                    + Utility.decodeKeyName(this.attributeKeyPrinter(fullKey))
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized

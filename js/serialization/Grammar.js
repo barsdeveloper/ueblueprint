@@ -273,7 +273,7 @@ export default class Grammar {
         ).chain(([attributeName, _1]) => this
             .grammarFor(entityType.attributes[attributeName], undefined)
             .map(attributeValue =>
-                values => values[attributeName] = attributeValue
+                values => values[Utility.encodeKeyName(attributeName)] = attributeValue
             ))
     }
 
@@ -504,7 +504,7 @@ export default class Grammar {
                 let values = {}
                 attributes.forEach(attributeSetter => attributeSetter(values))
                 if (lookbehind.length) {
-                    values["lookbehind"] = lookbehind
+                    values.lookbehind = lookbehind
                 }
                 return new UnknownKeysEntity(values)
             })
@@ -536,10 +536,10 @@ export default class Grammar {
             P.regex(/CustomProperties\s+/),
             this.pinEntity,
         ).map(([_0, pin]) => values => {
-            if (!values["CustomProperties"]) {
-                values["CustomProperties"] = []
+            if (!values.CustomProperties) {
+                values.CustomProperties = []
             }
-            values["CustomProperties"].push(pin)
+            values.CustomProperties.push(pin)
         })
     )
 

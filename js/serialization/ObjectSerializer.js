@@ -15,7 +15,7 @@ export default class ObjectSerializer extends ISerializer {
             case "Class":
             case "Name":
             case "CustomProperties":
-                // Serielized separately
+                // Serielized separately, check write()
                 return false
         }
         return super.showProperty(entity, object, attributeKey, attributeValue)
@@ -47,7 +47,7 @@ export default class ObjectSerializer extends ISerializer {
      * @param {Boolean} insideString
      */
     write(entity, object, insideString) {
-        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(entity, object.Name, ["Name"], insideString)}
+        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(entity, object.Name, "Name", insideString)}
 ${this.subWrite(entity, [], object, insideString)
             + object
                 .CustomProperties.map(pin =>
