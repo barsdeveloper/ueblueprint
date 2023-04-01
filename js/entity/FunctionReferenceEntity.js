@@ -27,5 +27,6 @@ export default class FunctionReferenceEntity extends IEntity {
         super(values)
         /** @type {ObjectReferenceEntity} */ this.MemberParent
         /** @type {String} */ this.MemberName
+        /** @type {GuidEntity} */ this.MemberGuid
     }
 }

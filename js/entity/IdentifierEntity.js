@@ -3,7 +3,9 @@ import IEntity from "./IEntity.js"
 export default class IdentifierEntity extends IEntity {
 
     static attributes = {
-        value: "",
+        value: {
+            default: "",
+        },
     }
 
     static {

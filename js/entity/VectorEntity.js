@@ -4,15 +4,15 @@ export default class VectorEntity extends IEntity {
 
     static attributes = {
         X: {
-            value: 0,
+            default: 0,
             expected: true,
         },
         Y: {
-            value: 0,
+            default: 0,
             expected: true,
         },
         Z: {
-            value: 0,
+            default: 0,
             expected: true,
         },
     }

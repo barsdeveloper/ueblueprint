@@ -4,13 +4,23 @@ import IEntity from "./IEntity.js"
 export default class KeyBindingEntity extends IEntity {
 
     static attributes = {
-        ActionName: "",
-        bShift: false,
-        bCtrl: false,
-        bAlt: false,
-        bCmd: false,
+        ActionName: {
+            default: "",
+        },
+        bShift: {
+            default: false,
+        },
+        bCtrl: {
+            default: false,
+        },
+        bAlt: {
+            default: false,
+        },
+        bCmd: {
+            default: false,
+        },
         Key: {
-            type: IdentifierEntity
+            type: IdentifierEntity,
         },
     }
 
@@ -19,11 +29,6 @@ export default class KeyBindingEntity extends IEntity {
     }
 
     constructor(values = {}) {
-        values.ActionName = values.ActionName ?? ""
-        values.bShift = values.bShift ?? false
-        values.bCtrl = values.bCtrl ?? false
-        values.bAlt = values.bAlt ?? false
-        values.bCmd = values.bCmd ?? false
         super(values)
         /** @type {String} */ this.ActionName
         /** @type {Boolean} */ this.bShift

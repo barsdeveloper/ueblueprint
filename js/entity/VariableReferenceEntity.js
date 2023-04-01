@@ -5,15 +5,17 @@ export default class VariableReferenceEntity extends IEntity {
 
     static attributes = {
         MemberScope: {
-            value: "",
+            default: "",
             showDefault: false,
         },
-        MemberName: "",
+        MemberName: {
+            default: "",
+        },
         MemberGuid: {
             type: GuidEntity,
         },
         bSelfContext: {
-            value: false,
+            default: false,
             showDefault: false,
         },
     }

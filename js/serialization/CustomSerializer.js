@@ -1,7 +1,6 @@
 import GeneralSerializer from "./GeneralSerializer.js"
 
 /**
- * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
@@ -24,12 +23,12 @@ export default class CustomSerializer extends GeneralSerializer {
     }
 
     /**
-     * @param {T} object
+     * @param {T} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, object, insideString = false) {
-        let result = this.#objectWriter(object, insideString)
+    write(entity, insideString = false) {
+        let result = this.#objectWriter(entity, insideString)
         return result
     }
 }

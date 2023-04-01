@@ -4,7 +4,9 @@ import Utility from "../Utility.js"
 export default class RealUnitEntity extends IEntity {
 
     static attributes = {
-        value: 0,
+        value: {
+            default: 0,
+        },
     }
 
     static {

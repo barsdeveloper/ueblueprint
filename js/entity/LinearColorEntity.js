@@ -19,7 +19,7 @@ export default class LinearColorEntity extends IEntity {
         },
         A: {
             type: RealUnitEntity,
-            value: () => new RealUnitEntity(1),
+            default: () => new RealUnitEntity(1),
         },
         H: {
             type: RealUnitEntity,

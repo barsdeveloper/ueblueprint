@@ -1,4 +1,5 @@
-import SubAttributesDeclaration from "./entity/SubObject.js"
+import Configuration from "./Configuration.js"
+import ComputedType from "./entity/ComputedType.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
@@ -48,10 +49,7 @@ export default class Utility {
     /** @param {HTMLElement} element */
     static getScale(element) {
         // @ts-expect-error
-        const scale = element.blueprint
-            // @ts-expect-error
-            ? element.blueprint.getScale()
-            : getComputedStyle(element).getPropertyValue("--ueb-scale")
+        const scale = element.blueprint?.getScale() ?? getComputedStyle(element).getPropertyValue("--ueb-scale")
         return scale != "" ? parseFloat(scale) : 1
     }
 
@@ -118,13 +116,13 @@ export default class Utility {
 
     /**
      * @param {IEntity} entity
-     * @param {String[]} keys
+     * @param {String} key
      * @returns {Boolean}
      */
     static isSerialized(
         entity,
-        keys,
-        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
+        key,
+        attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
     ) {
         if (attribute?.constructor === Object) {
             return /** @type {TypeInformation} */(attribute).serialized
@@ -139,9 +137,6 @@ export default class Utility {
         }
         if (!(keys instanceof Array)) {
             throw new TypeError("UEBlueprint: Expected keys to be an array")
-        }
-        if (target instanceof SubAttributesDeclaration) {
-            target = target.attributes
         }
         if (keys.length == 0 || !(keys[0] in target) || target[keys[0]] === undefined) {
             return defaultValue
@@ -181,7 +176,10 @@ export default class Utility {
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
+        if (
+            /** @type {IEntity?} */(a)?.equals
+            && /** @type {IEntity?} */(b)?.equals
+        ) {
             return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
         }
         a = Utility.sanitize(a)
@@ -224,6 +222,12 @@ export default class Utility {
 
     /** @param {AnyValue} value */
     static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
+        if (targetType instanceof Array) {
+            targetType = targetType[0]
+        }
+        if (targetType instanceof ComputedType) {
+            return value // The type is computed, can't say anything about it
+        }
         if (targetType instanceof UnionType) {
             let type = targetType.types.find(t => Utility.isValueOfType(value, t, false))
             if (!type) {
@@ -332,14 +336,21 @@ export default class Utility {
             // Remove leading b (for boolean values) or newlines
             .replace(/^\s*b/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
-            .replaceAll(
-                /^K2(?:Node|node)?_|(?<=[a-z])(?=[A-Z0-9])|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])|(?<=[014-9]|(?:2|3)(?!D(?:[^a-z]|$)))(?=[a-zA-Z])|\s*_+\s*|\s{2,}/g,
-                " "
-            )
+            .replaceAll(Configuration.nameRegexSpaceReplacement, " ")
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
             .trim()
+    }
+
+    /** @param {String} value */
+    static encodeKeyName(value) {
+        return value.replaceAll(".", "$")
+    }
+
+    /** @param {String} value */
+    static decodeKeyName(value) {
+        return value.replaceAll("$", ".")
     }
 
     /** @param {String} value */

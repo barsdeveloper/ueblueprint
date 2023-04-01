@@ -1,4 +1,5 @@
 import ByteEntity from "./ByteEntity.js"
+import ComputedType from "./ComputedType.js"
 import Configuration from "../Configuration.js"
 import EnumEntity from "./EnumEntity.js"
 import FormatTextEntity from "./FormatTextEntity.js"
@@ -17,7 +18,6 @@ import RotatorEntity from "./RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEntity.js"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity.js"
-import SubAttributesDeclaration from "./SubObject.js"
 import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
 import Vector2DEntity from "./Vector2DEntity.js"
@@ -56,7 +56,9 @@ export default class PinEntity extends IEntity {
         PinId: {
             type: GuidEntity,
         },
-        PinName: "",
+        PinName: {
+            default: "",
+        },
         PinFriendlyName: {
             type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
             showDefault: false,
@@ -69,36 +71,48 @@ export default class PinEntity extends IEntity {
             type: String,
             showDefault: false,
         },
-        PinType: new SubAttributesDeclaration({
-            PinCategory: "",
-            PinSubCategory: "",
-            PinSubCategoryObject: {
-                type: ObjectReferenceEntity,
-            },
-            PinSubCategoryMemberReference: {
-                type: FunctionReferenceEntity,
-                value: null,
-            },
-            PinValueType: {
-                type: PinTypeEntity,
-                value: null,
-            },
-            ContainerType: {
-                type: PathSymbolEntity,
-            },
-            bIsReference: false,
-            bIsConst: false,
-            bIsWeakPointer: false,
-            bIsUObjectWrapper: false,
-            bSerializeAsSinglePrecisionFloat: false,
-        }),
+        PinType$PinCategory: {
+            default: "",
+        },
+        PinType$PinSubCategory: {
+            default: "",
+        },
+        PinType$PinSubCategoryObject: {
+            type: ObjectReferenceEntity,
+        },
+        PinType$PinSubCategoryMemberReference: {
+            type: FunctionReferenceEntity,
+            default: null,
+        },
+        PinType$PinValueType: {
+            type: PinTypeEntity,
+            default: null,
+        },
+        PinType$ContainerType: {
+            type: PathSymbolEntity,
+        },
+        PinType$bIsReference: {
+            default: false,
+        },
+        PinType$bIsConst: {
+            default: false,
+        },
+        PinType$bIsWeakPointer: {
+            default: false,
+        },
+        PinType$bIsUObjectWrapper: {
+            default: false,
+        },
+        PinType$bSerializeAsSinglePrecisionFloat: {
+            default: false,
+        },
         LinkedTo: {
             type: [PinReferenceEntity],
             showDefault: false,
         },
         DefaultValue: {
             /** @param {PinEntity} pinEntity */
-            type: pinEntity => pinEntity.getEntityType(true) ?? String,
+            type: new ComputedType(pinEntity => pinEntity.getEntityType(true) ?? String),
             serialized: true,
             showDefault: false,
         },
@@ -109,17 +123,29 @@ export default class PinEntity extends IEntity {
         DefaultObject: {
             type: ObjectReferenceEntity,
             showDefault: false,
-            value: null,
+            default: null,
         },
         PersistentGuid: {
             type: GuidEntity,
         },
-        bHidden: false,
-        bNotConnectable: false,
-        bDefaultValueIsReadOnly: false,
-        bDefaultValueIsIgnored: false,
-        bAdvancedView: false,
-        bOrphanedPin: false,
+        bHidden: {
+            default: false,
+        },
+        bNotConnectable: {
+            default: false,
+        },
+        bDefaultValueIsReadOnly: {
+            default: false,
+        },
+        bDefaultValueIsIgnored: {
+            default: false,
+        },
+        bAdvancedView: {
+            default: false,
+        },
+        bOrphanedPin: {
+            default: false,
+        },
     }
 
     static {
@@ -133,21 +159,17 @@ export default class PinEntity extends IEntity {
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName
         /** @type {String} */ this.PinToolTip
         /** @type {String} */ this.Direction
-        /**
-         * @type {{
-         *     PinCategory: String,
-         *     PinSubCategory: String,
-         *     PinSubCategoryObject: ObjectReferenceEntity,
-         *     PinSubCategoryMemberReference: FunctionReferenceEntity,
-         *     PinValueType: PinTypeEntity,
-         *     ContainerType: PathSymbolEntity,
-         *     bIsReference: Boolean,
-         *     bIsConst: Boolean,
-         *     bIsWeakPointer: Boolean,
-         *     bIsUObjectWrapper: Boolean,
-         *     bSerializeAsSinglePrecisionFloat: Boolean,
-         * }}
-         */ this.PinType
+        /** @type {String} */ this.PinType$PinCategory
+        /** @type {String} */ this.PinType$PinSubCategory
+        /** @type {ObjectReferenceEntity} */ this.PinType$PinSubCategoryObject
+        /** @type {FunctionReferenceEntity} */ this.PinType$PinSubCategoryMemberReference
+        /** @type {PinTypeEntity} */ this.PinType$PinValueType
+        /** @type {PathSymbolEntity} */ this.PinType$ContainerType
+        /** @type {Boolean} */ this.PinType$bIsReference
+        /** @type {Boolean} */ this.PinType$bIsConst
+        /** @type {Boolean} */ this.PinType$bIsWeakPointer
+        /** @type {Boolean} */ this.PinType$bIsUObjectWrapper
+        /** @type {Boolean} */ this.PinType$bIsUObjectWrapper
         /** @type {PinReferenceEntity[]} */ this.LinkedTo
         /** @type {T} */ this.DefaultValue
         /** @type {String} */ this.AutogeneratedDefaultValue
@@ -162,12 +184,12 @@ export default class PinEntity extends IEntity {
     }
 
     getType() {
-        const subCategory = this.PinType.PinSubCategoryObject
-        if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
+        const subCategory = this.PinType$PinSubCategoryObject
+        if (this.PinType$PinCategory === "struct" || this.PinType$PinCategory === "object") {
             return subCategory.path
         }
         if (
-            this.PinType.PinCategory === "byte"
+            this.PinType$PinCategory === "byte"
             && (
                 subCategory.type === Configuration.nodeType.enum
                 || subCategory.type === Configuration.nodeType.userDefinedEnum
@@ -175,7 +197,7 @@ export default class PinEntity extends IEntity {
         ) {
             return "enum"
         }
-        return this.PinType.PinCategory
+        return this.PinType$PinCategory
     }
 
     getEntityType(alternative = false) {
@@ -201,17 +223,17 @@ export default class PinEntity extends IEntity {
 
     /** @param {PinEntity} other */
     copyTypeFrom(other) {
-        this.PinType.PinCategory = other.PinType.PinCategory
-        this.PinType.PinSubCategory = other.PinType.PinSubCategory
-        this.PinType.PinSubCategoryObject = other.PinType.PinSubCategoryObject
-        this.PinType.PinSubCategoryMemberReference = other.PinType.PinSubCategoryMemberReference
-        this.PinType.PinValueType = other.PinType.PinValueType
-        this.PinType.ContainerType = other.PinType.ContainerType
-        this.PinType.bIsReference = other.PinType.bIsReference
-        this.PinType.bIsConst = other.PinType.bIsConst
-        this.PinType.bIsWeakPointer = other.PinType.bIsWeakPointer
-        this.PinType.bIsUObjectWrapper = other.PinType.bIsUObjectWrapper
-        this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat
+        this.PinType$PinCategory = other.PinType$PinCategory
+        this.PinType$PinSubCategory = other.PinType$PinSubCategory
+        this.PinType$PinSubCategoryObject = other.PinType$PinSubCategoryObject
+        this.PinType$PinSubCategoryMemberReference = other.PinType$PinSubCategoryMemberReference
+        this.PinType$PinValueType = other.PinType$PinValueType
+        this.PinType$ContainerType = other.PinType$ContainerType
+        this.PinType$bIsReference = other.PinType$bIsReference
+        this.PinType$bIsConst = other.PinType$bIsConst
+        this.PinType$bIsWeakPointer = other.PinType$bIsWeakPointer
+        this.PinType$bIsUObjectWrapper = other.PinType$bIsUObjectWrapper
+        this.PinType$bSerializeAsSinglePrecisionFloat = other.PinType$bSerializeAsSinglePrecisionFloat
     }
 
     getDefaultValue(maybeCreate = false) {
@@ -222,7 +244,7 @@ export default class PinEntity extends IEntity {
     }
 
     isExecution() {
-        return this.PinType.PinCategory === "exec"
+        return this.PinType$PinCategory === "exec"
     }
 
     isHidden() {
@@ -280,13 +302,13 @@ export default class PinEntity extends IEntity {
     }
 
     getSubCategory() {
-        return this.PinType.PinSubCategoryObject.path
+        return this.PinType$PinSubCategoryObject.path
     }
 
     /** @return {CSSResult} */
     pinColor() {
         return Configuration.pinColor[this.getType()]
-            ?? Configuration.pinColor[this.PinType.PinCategory]
+            ?? Configuration.pinColor[this.PinType$PinCategory]
             ?? Configuration.pinColor["default"]
     }
 }

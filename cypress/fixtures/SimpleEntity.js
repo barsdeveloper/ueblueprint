@@ -3,14 +3,30 @@ import IEntity from "../../js/entity/IEntity"
 export default class SimpleEntity extends IEntity {
 
     static attributes = {
-        someNumber: 567,
-        someString: "alpha",
-        someString2: "beta",
-        someBoolean: true,
-        someBoolean2: false,
-        someObjectString: new String("gamma"),
-        someArray: [400, 500, 600, 700, 800],
-        someSet: new Set([10, 20, 30, 40, 50, 60, 70]),
+        someNumber: {
+            default: 567,
+        },
+        someString: {
+            default: "alpha",
+        },
+        someString2: {
+            default: "beta",
+        },
+        someBoolean: {
+            default: true,
+        },
+        someBoolean2: {
+            default: false,
+        },
+        someObjectString: {
+            default: new String("gamma"),
+        },
+        someArray: {
+            default: [400, 500, 600, 700, 800],
+        },
+        someSet: {
+            default: new Set([10, 20, 30, 40, 50, 60, 70]),
+        },
     }
 
     static {

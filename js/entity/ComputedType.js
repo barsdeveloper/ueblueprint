@@ -1,6 +1,6 @@
 /** @typedef {import("./IEntity").default} IEntity */
 
-export default class CalculatedType {
+export default class ComputedType {
 
     #f
 
@@ -10,7 +10,7 @@ export default class CalculatedType {
     }
 
     /** @param {IEntity} entity */
-    calculate(entity) {
+    compute(entity) {
         return this.#f(entity)
     }
 }

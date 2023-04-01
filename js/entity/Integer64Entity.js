@@ -5,7 +5,7 @@ export default class Integer64Entity extends IEntity {
     static attributes = {
         ...super.attributes,
         value: {
-            value: 0n,
+            default: 0n,
             predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
         },
     }
@@ -14,9 +14,10 @@ export default class Integer64Entity extends IEntity {
         this.cleanupAttributes(this.attributes)
     }
 
+    /** @param {BigInt | Number} value */
     constructor(value = 0) {
         super(value)
-        /** @type {Number} */ this.value
+        /** @type {BigInt | Number} */ this.value
     }
 
     valueOf() {
