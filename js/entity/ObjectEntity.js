@@ -88,6 +88,7 @@ export default class ObjectEntity extends IEntity {
         },
         InputKey: {
             type: SymbolEntity,
+            value: null,
             showDefault: false,
         },
         bOverrideFunction: {

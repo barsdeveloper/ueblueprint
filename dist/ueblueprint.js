@@ -366,6 +366,23 @@ class IInput {
     }
 }
 
+/** @typedef {import("./IEntity").default} IEntity */
+
+class ComputedType {
+
+    #f
+
+    /** @param {Function} f */
+    constructor(f) {
+        this.#f = f;
+    }
+
+    /** @param {IEntity} entity */
+    compute(entity) {
+        return this.#f(entity)
+    }
+}
+
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
@@ -537,13 +554,13 @@ class Utility {
 
     /**
      * @param {IEntity} entity
-     * @param {String[]} keys
+     * @param {String} key
      * @returns {Boolean}
      */
     static isSerialized(
         entity,
-        keys,
-        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
+        key,
+        attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
     ) {
         if (attribute?.constructor === Object) {
             return /** @type {TypeInformation} */(attribute).serialized
@@ -597,7 +614,10 @@ class Utility {
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
+        if (
+            /** @type {IEntity?} */(a)?.equals
+            && /** @type {IEntity?} */(b)?.equals
+        ) {
             return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
         }
         a = Utility.sanitize(a);
@@ -640,6 +660,12 @@ class Utility {
 
     /** @param {AnyValue} value */
     static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
+        if (targetType instanceof Array) {
+            targetType = targetType[0];
+        }
+        if (targetType instanceof ComputedType) {
+            return value // The type is computed, can't say anything about it
+        }
         if (targetType instanceof UnionType) {
             let type = targetType.types.find(t => Utility.isValueOfType(value, t, false));
             if (!type) {
@@ -926,15 +952,15 @@ class IEntity {
 
                 if (!attribute) {
                     // Remember attributeName can come from the values and be not defined in the attributes
+                    // In that case just assign it and skip the rest
                     target[attributeName] = value;
                     continue
                 }
 
                 let defaultValue = attribute.value;
                 let defaultType = attribute.type;
-                if (attribute.serialized && defaultType instanceof Function) {
-                    // If the attribute is serialized, the type must contain a function providing the type
-                    defaultType = /** @type {TypeSupplier} */(defaultType)(this);
+                if (defaultType instanceof ComputedType) {
+                    defaultType = defaultType.compute(this);
                 }
                 if (defaultType instanceof Array) {
                     defaultType = Array;
@@ -1038,11 +1064,14 @@ class IEntity {
                 ...IEntity.defaultAttribute,
                 ...attribute,
             };
-            if (attribute.value === undefined && attribute.type === undefined) {
-                throw new Error(
-                    `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
-                    + attributeName
-                )
+            if (attribute.value === undefined) {
+                if (attribute.type === undefined) {
+                    throw new Error(
+                        `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
+                        + attributeName
+                    )
+                }
+                attribute[attributeName] = Utility.sanitize(undefined, attribute.type);
             }
             if (attribute.value === null) {
                 attributes[attributeName].nullable = true;
@@ -1920,71 +1949,71 @@ class PinEntity extends IEntity {
     }
     static lookbehind = "Pin"
     static attributes = {
-        "PinId": {
+        PinId: {
             type: GuidEntity,
         },
-        "PinName": "",
-        "PinFriendlyName": {
+        PinName: "",
+        PinFriendlyName: {
             type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
             showDefault: false,
         },
-        "PinToolTip": {
+        PinToolTip: {
             type: String,
             showDefault: false,
         },
-        "Direction": {
+        Direction: {
             type: String,
             showDefault: false,
         },
-        "PinType.PinCategory": "",
-        "PinType.PinSubCategory": "",
-        "PinType.PinSubCategoryObject": {
+        PinType$PinCategory: "",
+        PinType$PinSubCategory: "",
+        PinType$PinSubCategoryObject: {
             type: ObjectReferenceEntity,
         },
-        "PinType.PinSubCategoryMemberReference": {
+        PinType$PinSubCategoryMemberReference: {
             type: FunctionReferenceEntity,
             value: null,
         },
-        "PinType.PinValueType": {
+        PinType$PinValueType: {
             type: PinTypeEntity,
             value: null,
         },
-        "PinType.ContainerType": {
+        PinType$ContainerType: {
             type: PathSymbolEntity,
         },
-        "PinType.bIsReference": false,
-        "PinType.bIsConst": false,
-        "PinType.bIsWeakPointer": false,
-        "PinType.bIsUObjectWrapper": false,
-        "PinType.bSerializeAsSinglePrecisionFloat": false,
-        "LinkedTo": {
+        PinType$bIsReference: false,
+        PinType$bIsConst: false,
+        PinType$bIsWeakPointer: false,
+        PinType$bIsUObjectWrapper: false,
+        PinType$bSerializeAsSinglePrecisionFloat: false,
+        LinkedTo: {
             type: [PinReferenceEntity],
             showDefault: false,
         },
-        "DefaultValue": {
+        DefaultValue: {
             /** @param {PinEntity} pinEntity */
-            type: pinEntity => pinEntity.getEntityType(true) ?? String,
+            type: new ComputedType(pinEntity => pinEntity.getEntityType(true) ?? String),
             serialized: true,
             showDefault: false,
         },
-        "AutogeneratedDefaultValue": {
+        AutogeneratedDefaultValue: {
             type: String,
             showDefault: false,
         },
-        "DefaultObject": {
+        DefaultObject: {
             type: ObjectReferenceEntity,
             showDefault: false,
             value: null,
         },
-        "PersistentGuid": {
+        PersistentGuid: {
             type: GuidEntity,
         },
-        "bHidden": false,
-        "bNotConnectable": false,
-        "bDefaultValueIsReadOnly": false,
-        "bDefaultValueIsIgnored": false,
-        "bAdvancedView": false,
-        "bOrphanedPin": false,
+        bHidden: false,
+        bNotConnectable: false,
+        bDefaultValueIsReadOnly: false,
+        bDefaultValueIsIgnored: false,
+        bAdvancedView: false,
+        bOrphanedPin: false,
     }
 
     static {
@@ -1998,17 +2027,17 @@ class PinEntity extends IEntity {
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName;
         /** @type {String} */ this.PinToolTip;
         /** @type {String} */ this.Direction;
-        this.PinType$PinCategory ??= /** @type {String} */(undefined);
-        this.PinType$PinSubCategory ??= /** @type {String} */(undefined);
-        this.PinType$PinSubCategoryObject ??= /** @type {ObjectReferenceEntity} */(undefined);
-        this.PinType$PinSubCategoryMemberReference ??= /** @type {FunctionReferenceEntity} */(undefined);
-        this.PinType$PinValueType ??= /** @type {PinTypeEntity} */(undefined);
-        this.PinType$ContainerType ??= /** @type {PathSymbolEntity} */(undefined);
-        this.PinType$bIsReference ??= /** @type {Boolean} */(undefined);
-        this.PinType$bIsConst ??= /** @type {Boolean} */(undefined);
-        this.PinType$bIsWeakPointer ??= /** @type {Boolean} */(undefined);
-        this.PinType$bIsUObjectWrapper ??= /** @type {Boolean} */(undefined);
-        this.PinType$bIsUObjectWrapper ??= /** @type {Boolean} */(undefined);
+        /** @type {String} */ this.PinType$PinCategory;
+        /** @type {String} */ this.PinType$PinSubCategory;
+        /** @type {ObjectReferenceEntity} */ this.PinType$PinSubCategoryObject;
+        /** @type {FunctionReferenceEntity} */ this.PinType$PinSubCategoryMemberReference;
+        /** @type {PinTypeEntity} */ this.PinType$PinValueType;
+        /** @type {PathSymbolEntity} */ this.PinType$ContainerType;
+        /** @type {Boolean} */ this.PinType$bIsReference;
+        /** @type {Boolean} */ this.PinType$bIsConst;
+        /** @type {Boolean} */ this.PinType$bIsWeakPointer;
+        /** @type {Boolean} */ this.PinType$bIsUObjectWrapper;
+        /** @type {Boolean} */ this.PinType$bIsUObjectWrapper;
         /** @type {PinReferenceEntity[]} */ this.LinkedTo;
         /** @type {T} */ this.DefaultValue;
         /** @type {String} */ this.AutogeneratedDefaultValue;
@@ -2556,6 +2585,7 @@ class ObjectEntity extends IEntity {
         },
         InputKey: {
             type: SymbolEntity,
+            value: null,
             showDefault: false,
         },
         bOverrideFunction: {
@@ -3347,11 +3377,14 @@ class Grammar {
         return P.seq(
             this.attributeName,
             valueSeparator,
-        ).chain(([attributeName, _1]) => this
-            .grammarFor(entityType.attributes[attributeName], undefined)
-            .map(attributeValue =>
-                values => values[Utility.encodeKeyName(attributeName)] = attributeValue
-            ))
+        ).chain(([attributeName, _1]) => {
+            attributeName = Utility.encodeKeyName(attributeName);
+            return this
+                .grammarFor(entityType.attributes[attributeName], undefined)
+                .map(attributeValue =>
+                    values => values[attributeName] = attributeValue
+                )
+        })
     }
 
     /**
@@ -3749,7 +3782,7 @@ class ISerializer {
         attributeSeparator = ",",
         trailingSeparator = false,
         attributeValueConjunctionSign = "=",
-        attributeKeyPrinter = k => k.join(".")
+        attributeKeyPrinter = k => k
     ) {
         this.entityType = entityType;
         this.attributePrefix = attributePrefix;
@@ -3767,9 +3800,9 @@ class ISerializer {
         return this.read(value)
     }
 
-    /** @param {T} object */
-    serialize(object, insideString = false, entity = object) {
-        return this.write(entity, object, insideString)
+    /** @param {T} value */
+    serialize(value, insideString = false) {
+        return this.write(value, insideString)
     }
 
     /**
@@ -3783,21 +3816,46 @@ class ISerializer {
 
     /**
      * @protected
-     * @param {T} object
+     * @param {T} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, object, insideString) {
-        throw new Error("Not implemented")
+    write(entity, insideString) {
+        let result = "";
+        const attributes = /** @type {EntityConstructor} */(entity.constructor).attributes ?? {};
+        const keys = Utility.mergeArrays(
+            Object.keys(attributes),
+            Object.keys(entity)
+        );
+        for (const key of keys) {
+            const value = entity[key];
+            if (value !== undefined && this.showProperty(entity, key)) {
+                const isSerialized = Utility.isSerialized(entity, key);
+                result += (result.length ? this.attributeSeparator : "")
+                    + this.attributePrefix
+                    + Utility.decodeKeyName(this.attributeKeyPrinter(key))
+                    + this.attributeValueConjunctionSign
+                    + (
+                        isSerialized
+                            ? `"${this.writeValue(entity, key, true)}"`
+                            : this.writeValue(entity, key, insideString)
+                    );
+            }
+        }
+        if (this.trailingSeparator && result.length) {
+            // append separator at the end if asked and there was printed content
+            result += this.attributeSeparator;
+        }
+        return result
     }
 
     /**
      * @protected
-     * @param {AnyValue} value
-     * @param {String[]} fullKey
+     * @param {String} key
      * @param {Boolean} insideString
      */
-    writeValue(entity, value, fullKey, insideString) {
+    writeValue(entity, key, insideString) {
+        const value = entity[key];
         const type = Utility.getType(value);
         // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type);
@@ -3805,65 +3863,20 @@ class ISerializer {
             throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
         }
         return serializer.write(
-            value instanceof IEntity ? value : entity,
-            value,
+            entity[key],
             insideString
         )
     }
 
-    /**
-     * @protected
-     * @param {String[]} key
-     * @param {Object} object
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    subWrite(entity, key, object, insideString) {
-        let result = "";
-        let fullKey = key.concat("");
-        const last = fullKey.length - 1;
-        const attributes = /** @type {EntityConstructor} */(object.constructor).attributes;
-        const keys = attributes
-            ? Utility.mergeArrays(
-                Object.keys(attributes),
-                Object.keys(object)
-            )
-            : Object.keys(object);
-        for (const property of keys) {
-            fullKey[last] = property;
-            const value = object[property];
-            if (value?.constructor === Object) {
-                // Recursive call when finding an object
-                result += (result.length ? this.attributeSeparator : "")
-                    + this.subWrite(entity, fullKey, value, insideString);
-            } else if (value !== undefined && this.showProperty(entity, object, fullKey, value)) {
-                const isSerialized = Utility.isSerialized(entity, fullKey);
-                result += (result.length ? this.attributeSeparator : "")
-                    + this.attributePrefix
-                    + Utility.decodeKeyName(this.attributeKeyPrinter(fullKey))
-                    + this.attributeValueConjunctionSign
-                    + (
-                        isSerialized
-                            ? `"${this.writeValue(entity, value, fullKey, true)}"`
-                            : this.writeValue(entity, value, fullKey, insideString)
-                    );
-            }
-        }
-        if (this.trailingSeparator && result.length && fullKey.length === 1) {
-            // append separator at the end if asked and there was printed content
-            result += this.attributeSeparator;
-        }
-        return result
-    }
-
-    showProperty(entity, object, attributeKey, attributeValue) {
+    showProperty(entity, key) {
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes;
-        const attribute = attributes[attributeKey];
+        const attribute = attributes[key];
+        const value = entity[key];
         if (attribute?.constructor === Object) {
             if (attribute.ignored) {
                 return false
             }
-            return !Utility.equals(attribute.value, attributeValue) || attribute.showDefault
+            return !Utility.equals(attribute.value, value) || attribute.showDefault
         }
         return true
     }
@@ -3875,15 +3888,15 @@ class ObjectSerializer extends ISerializer {
         super(ObjectEntity, "   ", "\n", false);
     }
 
-    showProperty(entity, object, attributeKey, attributeValue) {
-        switch (attributeKey.toString()) {
+    showProperty(entity, key) {
+        switch (key) {
             case "Class":
             case "Name":
             case "CustomProperties":
                 // Serielized separately, check write()
                 return false
         }
-        return super.showProperty(entity, object, attributeKey, attributeValue)
+        return super.showProperty(entity, key)
     }
 
     /** @param {String} value */
@@ -3908,21 +3921,20 @@ class ObjectSerializer extends ISerializer {
     }
 
     /**
-     * @param {ObjectEntity} object
+     * @param {ObjectEntity} entity
      * @param {Boolean} insideString
      */
-    write(entity, object, insideString) {
-        let result = `Begin Object Class=${object.Class.path} Name=${this.writeValue(entity, object.Name, "Name", insideString)}
-${this.subWrite(entity, [], object, insideString)
-            + object
-                .CustomProperties.map(pin =>
-                    this.attributeSeparator
-                    + this.attributePrefix
-                    + "CustomProperties "
-                    + SerializerFactory.getSerializer(PinEntity).serialize(pin)
-                )
-                .join("")}
-End Object\n`;
+    write(entity, insideString) {
+        let result = `Begin Object Class=${entity.Class.path} Name=${this.writeValue(entity, "Name", insideString)}\n`
+            + super.write(entity, insideString)
+            + entity.CustomProperties.map(pin =>
+                this.attributeSeparator
+                + this.attributePrefix
+                + "CustomProperties "
+                + SerializerFactory.getSerializer(PinEntity).serialize(pin)
+            )
+                .join("")
+            + "\nEnd Object\n";
         return result
     }
 }
@@ -9844,18 +9856,17 @@ class GeneralSerializer extends ISerializer {
     }
 
     /**
-     * @param {T} object
+     * @param {T} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, object, insideString = false) {
-        let result = this.wrap(this.subWrite(entity, [], object, insideString), object);
+    write(entity, insideString = false) {
+        let result = this.wrap(super.write(entity, insideString), entity);
         return result
     }
 }
 
 /**
- * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
@@ -9878,12 +9889,12 @@ class CustomSerializer extends GeneralSerializer {
     }
 
     /**
-     * @param {T} object
+     * @param {T} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, object, insideString = false) {
-        let result = this.#objectWriter(object, insideString);
+    write(entity, insideString = false) {
+        let result = this.#objectWriter(entity, insideString);
         return result
     }
 }
@@ -9905,13 +9916,13 @@ class ToStringSerializer extends GeneralSerializer {
     }
 
     /**
-     * @param {T} object
+     * @param {T} entity
      * @param {Boolean} insideString
      */
-    write(entity, object, insideString) {
-        return !insideString && object.constructor === String
-            ? `"${Utility.escapeString(object.toString())}"` // String will have quotes if not inside a string already
-            : Utility.escapeString(object.toString())
+    write(entity, insideString) {
+        return !insideString && entity.constructor === String
+            ? `"${Utility.escapeString(entity.toString())}"` // String will have quotes if not inside a string already
+            : Utility.escapeString(entity.toString())
     }
 }
 

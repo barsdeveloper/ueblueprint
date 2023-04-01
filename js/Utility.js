@@ -1,4 +1,5 @@
 import Configuration from "./Configuration.js"
+import ComputedType from "./entity/ComputedType.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
@@ -115,13 +116,13 @@ export default class Utility {
 
     /**
      * @param {IEntity} entity
-     * @param {String[]} keys
+     * @param {String} key
      * @returns {Boolean}
      */
     static isSerialized(
         entity,
-        keys,
-        attribute = Utility.objectGet(/** @type {EntityConstructor} */(entity.constructor).attributes, keys)
+        key,
+        attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
     ) {
         if (attribute?.constructor === Object) {
             return /** @type {TypeInformation} */(attribute).serialized
@@ -175,7 +176,10 @@ export default class Utility {
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
+        if (
+            /** @type {IEntity?} */(a)?.equals
+            && /** @type {IEntity?} */(b)?.equals
+        ) {
             return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
         }
         a = Utility.sanitize(a)
@@ -218,6 +222,12 @@ export default class Utility {
 
     /** @param {AnyValue} value */
     static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
+        if (targetType instanceof Array) {
+            targetType = targetType[0]
+        }
+        if (targetType instanceof ComputedType) {
+            return value // The type is computed, can't say anything about it
+        }
         if (targetType instanceof UnionType) {
             let type = targetType.types.find(t => Utility.isValueOfType(value, t, false))
             if (!type) {

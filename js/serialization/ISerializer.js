@@ -18,7 +18,7 @@ export default class ISerializer {
         attributeSeparator = ",",
         trailingSeparator = false,
         attributeValueConjunctionSign = "=",
-        attributeKeyPrinter = k => k.join(".")
+        attributeKeyPrinter = k => k
     ) {
         this.entityType = entityType
         this.attributePrefix = attributePrefix
@@ -36,9 +36,9 @@ export default class ISerializer {
         return this.read(value)
     }
 
-    /** @param {T} object */
-    serialize(object, insideString = false, entity = object) {
-        return this.write(entity, object, insideString)
+    /** @param {T} value */
+    serialize(value, insideString = false) {
+        return this.write(value, insideString)
     }
 
     /**
@@ -52,21 +52,46 @@ export default class ISerializer {
 
     /**
      * @protected
-     * @param {T} object
+     * @param {T} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, object, insideString) {
-        throw new Error("Not implemented")
+    write(entity, insideString) {
+        let result = ""
+        const attributes = /** @type {EntityConstructor} */(entity.constructor).attributes ?? {}
+        const keys = Utility.mergeArrays(
+            Object.keys(attributes),
+            Object.keys(entity)
+        )
+        for (const key of keys) {
+            const value = entity[key]
+            if (value !== undefined && this.showProperty(entity, key)) {
+                const isSerialized = Utility.isSerialized(entity, key)
+                result += (result.length ? this.attributeSeparator : "")
+                    + this.attributePrefix
+                    + Utility.decodeKeyName(this.attributeKeyPrinter(key))
+                    + this.attributeValueConjunctionSign
+                    + (
+                        isSerialized
+                            ? `"${this.writeValue(entity, key, true)}"`
+                            : this.writeValue(entity, key, insideString)
+                    )
+            }
+        }
+        if (this.trailingSeparator && result.length) {
+            // append separator at the end if asked and there was printed content
+            result += this.attributeSeparator
+        }
+        return result
     }
 
     /**
      * @protected
-     * @param {AnyValue} value
-     * @param {String[]} fullKey
+     * @param {String} key
      * @param {Boolean} insideString
      */
-    writeValue(entity, value, fullKey, insideString) {
+    writeValue(entity, key, insideString) {
+        const value = entity[key]
         const type = Utility.getType(value)
         // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type)
@@ -74,65 +99,20 @@ export default class ISerializer {
             throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
         }
         return serializer.write(
-            value instanceof IEntity ? value : entity,
-            value,
+            entity[key],
             insideString
         )
     }
 
-    /**
-     * @protected
-     * @param {String[]} key
-     * @param {Object} object
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    subWrite(entity, key, object, insideString) {
-        let result = ""
-        let fullKey = key.concat("")
-        const last = fullKey.length - 1
-        const attributes = /** @type {EntityConstructor} */(object.constructor).attributes
-        const keys = attributes
-            ? Utility.mergeArrays(
-                Object.keys(attributes),
-                Object.keys(object)
-            )
-            : Object.keys(object)
-        for (const property of keys) {
-            fullKey[last] = property
-            const value = object[property]
-            if (value?.constructor === Object) {
-                // Recursive call when finding an object
-                result += (result.length ? this.attributeSeparator : "")
-                    + this.subWrite(entity, fullKey, value, insideString)
-            } else if (value !== undefined && this.showProperty(entity, object, fullKey, value)) {
-                const isSerialized = Utility.isSerialized(entity, fullKey)
-                result += (result.length ? this.attributeSeparator : "")
-                    + this.attributePrefix
-                    + Utility.decodeKeyName(this.attributeKeyPrinter(fullKey))
-                    + this.attributeValueConjunctionSign
-                    + (
-                        isSerialized
-                            ? `"${this.writeValue(entity, value, fullKey, true)}"`
-                            : this.writeValue(entity, value, fullKey, insideString)
-                    )
-            }
-        }
-        if (this.trailingSeparator && result.length && fullKey.length === 1) {
-            // append separator at the end if asked and there was printed content
-            result += this.attributeSeparator
-        }
-        return result
-    }
-
-    showProperty(entity, object, attributeKey, attributeValue) {
+    showProperty(entity, key) {
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes
-        const attribute = attributes[attributeKey]
+        const attribute = attributes[key]
+        const value = entity[key]
         if (attribute?.constructor === Object) {
             if (attribute.ignored) {
                 return false
             }
-            return !Utility.equals(attribute.value, attributeValue) || attribute.showDefault
+            return !Utility.equals(attribute.value, value) || attribute.showDefault
         }
         return true
     }

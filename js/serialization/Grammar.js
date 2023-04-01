@@ -270,11 +270,14 @@ export default class Grammar {
         return P.seq(
             this.attributeName,
             valueSeparator,
-        ).chain(([attributeName, _1]) => this
-            .grammarFor(entityType.attributes[attributeName], undefined)
-            .map(attributeValue =>
-                values => values[Utility.encodeKeyName(attributeName)] = attributeValue
-            ))
+        ).chain(([attributeName, _1]) => {
+            attributeName = Utility.encodeKeyName(attributeName)
+            return this
+                .grammarFor(entityType.attributes[attributeName], undefined)
+                .map(attributeValue =>
+                    values => values[attributeName] = attributeValue
+                )
+        })
     }
 
     /**

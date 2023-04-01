@@ -37,12 +37,12 @@ export default class GeneralSerializer extends ISerializer {
     }
 
     /**
-     * @param {T} object
+     * @param {T} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, object, insideString = false) {
-        let result = this.wrap(this.subWrite(entity, [], object, insideString), object)
+    write(entity, insideString = false) {
+        let result = this.wrap(super.write(entity, insideString), entity)
         return result
     }
 }

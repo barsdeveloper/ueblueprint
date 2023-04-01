@@ -1,3 +1,4 @@
+import ComputedType from "./ComputedType.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
 import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
@@ -78,15 +79,15 @@ export default class IEntity {
 
                 if (!attribute) {
                     // Remember attributeName can come from the values and be not defined in the attributes
+                    // In that case just assign it and skip the rest
                     target[attributeName] = value
                     continue
                 }
 
                 let defaultValue = attribute.value
                 let defaultType = attribute.type
-                if (attribute.serialized && defaultType instanceof Function) {
-                    // If the attribute is serialized, the type must contain a function providing the type
-                    defaultType = /** @type {TypeSupplier} */(defaultType)(this)
+                if (defaultType instanceof ComputedType) {
+                    defaultType = defaultType.compute(this)
                 }
                 if (defaultType instanceof Array) {
                     defaultType = Array
@@ -190,11 +191,14 @@ export default class IEntity {
                 ...IEntity.defaultAttribute,
                 ...attribute,
             }
-            if (attribute.value === undefined && attribute.type === undefined) {
-                throw new Error(
-                    `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
-                    + attributeName
-                )
+            if (attribute.value === undefined) {
+                if (attribute.type === undefined) {
+                    throw new Error(
+                        `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
+                        + attributeName
+                    )
+                }
+                attribute[attributeName] = Utility.sanitize(undefined, attribute.type)
             }
             if (attribute.value === null) {
                 attributes[attributeName].nullable = true
