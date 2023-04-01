@@ -322,6 +322,10 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node.ueb-node-styl
   white-space: nowrap;
 }
 
+ueb-node.ueb-node-style-comment .ueb-node-top {
+  white-space: normal;
+}
+
 ueb-node.ueb-node-style-event .ueb-node-top {
   display: flex;
   justify-content: space-between;
