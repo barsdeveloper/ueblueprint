@@ -16,7 +16,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     /** @typedef {typeof NodeTemplate} NodeTemplateConstructor */
 
-    hasSubtitle = false
+    #hasSubtitle = false
 
     static nodeStyleClasses = ["ueb-node-style-default"]
 
@@ -79,7 +79,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 ${name ? html`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.hasSubtitle && this.getTargetType().length > 0 ? html`
+                        ${this.#hasSubtitle && this.getTargetType().length > 0 ? html`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
                                 Target is ${Utility.formatStringName(this.getTargetType())}
                             </div>
@@ -124,7 +124,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
             .map(pinEntity => {
-                this.hasSubtitle = this.hasSubtitle
+                this.#hasSubtitle = this.#hasSubtitle
                     || pinEntity.PinName === "self" && pinEntity.getDisplayName() === "Target"
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                     .newObject(pinEntity, undefined, this.element)

@@ -141,6 +141,8 @@ export default class NodeElement extends ISelectableDraggableElement {
         switch (nodeEntity.getClass()) {
             case Configuration.nodeType.comment:
                 return CommentNodeTemplate
+            case Configuration.nodeType.createDelegate:
+                return NodeTemplate
             case Configuration.nodeType.event:
             case Configuration.nodeType.customEvent:
                 return EventNodeTemplate

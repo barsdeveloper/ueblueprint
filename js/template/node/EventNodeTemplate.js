@@ -1,4 +1,5 @@
 import { html, nothing } from "lit"
+import Configuration from "../../Configuration.js"
 import ElementFactory from "../../element/ElementFactory.js"
 import MinimalPinTemplate from "../pin/MinimalPinTemplate.js"
 import NodeTemplate from "./NodeTemplate.js"
@@ -21,6 +22,8 @@ export default class EventNodeTemplate extends NodeTemplate {
     renderTop() {
         const icon = this.renderNodeIcon()
         const name = this.renderNodeName()
+        const customEvent = this.element.getType() === Configuration.nodeType.customEvent
+            && (this.element.entity.CustomFunctionName || this.element.entity.FunctionReference.MemberParent)
         return html`
             <div class="ueb-node-name">
                 ${icon ? html`
@@ -29,7 +32,7 @@ export default class EventNodeTemplate extends NodeTemplate {
                 ${name ? html`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.hasSubtitle && this.element.entity.FunctionReference.MemberParent ? html`
+                        ${customEvent ? html`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
                                 Custom Event
                             </div>

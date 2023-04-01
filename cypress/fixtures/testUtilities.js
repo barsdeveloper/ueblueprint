@@ -29,6 +29,7 @@ export function generateNodeTest(nodeTest, getBlueprint) {
             }
         })
         it("It's called " + nodeTest.name, () => expect(node.getNodeDisplayName()).to.be.equal(nodeTest.name))
+        it("Has expected subtitle " + nodeTest.subtitle, () => expect(node.querySelector(".ueb-node-subtitle-text")?.innerText).to.be.equal(nodeTest.subtitle))
         it("Has the correct icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(nodeTest.icon))
         it(`Has ${nodeTest.pins} pins`, () => expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(nodeTest.pins))
         it("Expected development", () => expect(node.entity.isDevelopmentOnly()).equals(nodeTest.development))

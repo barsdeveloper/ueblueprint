@@ -78,7 +78,7 @@ class Configuration {
     static nameRegexSpaceReplacement = new RegExp(
         "^K2(?:[Nn]ode)?_"
         + "|(?<=[a-z])(?=[A-Z0-9])" // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
-        + "|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])" // ("ALPHABravo", "ALPHA2") => ("ALPHA Bravo", "ALPHA 2")
+        + "|(?<=[A-Z])(?=[A-Z][a-z](?![a-z]+_)|[0-9])" // ("ALPHABravo", "ALPHA2", "BTTask_") => ("ALPHA Bravo", "ALPHA 2", "BTTask")
         + "|(?<=[014-9]|[23](?!D(?:[^a-z]|$)))(?=[a-zA-Z])" // ("3Times", "3D", "3Delta") => ("3 Times", "3D", "3 Delta")
         + "|\\s*_+\\s*" // "Alpha__Bravo" => "Alpha Bravo"
         + "|\\s{2,}",
@@ -107,6 +107,7 @@ class Configuration {
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
         componentBoundEvent: "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
+        createDelegate: "/Script/BlueprintGraph.K2Node_CreateDelegate",
         customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
@@ -2465,6 +2466,14 @@ class SVGIcon {
         </svg>
     `
 
+    static node = y`
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="16" height="15" rx="1" fill="white" fill-opacity="0.5"/>
+            <rect x="0.5" y="0.5" width="15" height="14" rx="0.5" stroke="white"/>
+            <rect x="1" width="14" height="5" fill="white"/>
+        </svg>
+    `
+
     static questionMark = y`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 15C9.10456 15 10 14.1046 10 13C10 11.8954 9.10456 11 8 11C6.89544 11 6 11.8954 6 13C6 14.1046 6.89544 15 8 15Z" fill="white" />
@@ -2964,6 +2973,12 @@ class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.nodeType.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
+            case Configuration.nodeType.createDelegate:
+                return "Create Event"
+            case Configuration.nodeType.customEvent:
+                if (this.CustomFunctionName) {
+                    return this.CustomFunctionName
+                }
             case Configuration.nodeType.dynamicCast:
                 if (!this.TargetType) {
                     return "Bad cast node" // Target type not found
@@ -3077,6 +3092,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.inputAxisKeyEvent:
             case Configuration.nodeType.inputDebugKey:
                 return Configuration.nodeColors.red
+            case Configuration.nodeType.createDelegate:
             case Configuration.nodeType.enumLiteral:
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
@@ -3101,6 +3117,7 @@ class ObjectEntity extends IEntity {
 
     nodeIcon() {
         switch (this.getType()) {
+            case Configuration.nodeType.createDelegate: return SVGIcon.node
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.doOnce: return SVGIcon.doOnce
@@ -6235,7 +6252,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     /** @typedef {typeof NodeTemplate} NodeTemplateConstructor */
 
-    hasSubtitle = false
+    #hasSubtitle = false
 
     static nodeStyleClasses = ["ueb-node-style-default"]
 
@@ -6298,7 +6315,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 ${name ? y`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.hasSubtitle && this.getTargetType().length > 0 ? y`
+                        ${this.#hasSubtitle && this.getTargetType().length > 0 ? y`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
                                 Target is ${Utility.formatStringName(this.getTargetType())}
                             </div>
@@ -6343,7 +6360,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         return this.element.getPinEntities()
             .filter(v => !v.isHidden())
             .map(pinEntity => {
-                this.hasSubtitle = this.hasSubtitle
+                this.#hasSubtitle = this.#hasSubtitle
                     || pinEntity.PinName === "self" && pinEntity.getDisplayName() === "Target";
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                     .newObject(pinEntity, undefined, this.element);
@@ -6985,6 +7002,7 @@ class MinimalPinTemplate extends PinTemplate {
 /**
  * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
  * @typedef {import("lit").PropertyValues} PropertyValues
+ * @typedef {import ("../../element/NodeElement.js").default} NodeElement
  */
 
 class EventNodeTemplate extends NodeTemplate {
@@ -7000,6 +7018,8 @@ class EventNodeTemplate extends NodeTemplate {
     renderTop() {
         const icon = this.renderNodeIcon();
         const name = this.renderNodeName();
+        const customEvent = this.element.getType() === Configuration.nodeType.customEvent
+            && (this.element.entity.CustomFunctionName || this.element.entity.FunctionReference.MemberParent);
         return y`
             <div class="ueb-node-name">
                 ${icon ? y`
@@ -7008,7 +7028,7 @@ class EventNodeTemplate extends NodeTemplate {
                 ${name ? y`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.hasSubtitle && this.element.entity.FunctionReference.MemberParent ? y`
+                        ${customEvent ? y`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
                                 Custom Event
                             </div>
@@ -7358,6 +7378,8 @@ class NodeElement extends ISelectableDraggableElement {
         switch (nodeEntity.getClass()) {
             case Configuration.nodeType.comment:
                 return CommentNodeTemplate
+            case Configuration.nodeType.createDelegate:
+                return NodeTemplate
             case Configuration.nodeType.event:
             case Configuration.nodeType.customEvent:
                 return EventNodeTemplate

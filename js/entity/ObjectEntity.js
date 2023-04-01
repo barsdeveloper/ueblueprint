@@ -421,6 +421,12 @@ export default class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.nodeType.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
+            case Configuration.nodeType.createDelegate:
+                return "Create Event"
+            case Configuration.nodeType.customEvent:
+                if (this.CustomFunctionName) {
+                    return this.CustomFunctionName
+                }
             case Configuration.nodeType.dynamicCast:
                 if (!this.TargetType) {
                     return "Bad cast node" // Target type not found
@@ -534,6 +540,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.inputAxisKeyEvent:
             case Configuration.nodeType.inputDebugKey:
                 return Configuration.nodeColors.red
+            case Configuration.nodeType.createDelegate:
             case Configuration.nodeType.enumLiteral:
             case Configuration.nodeType.makeArray:
             case Configuration.nodeType.makeMap:
@@ -558,6 +565,7 @@ export default class ObjectEntity extends IEntity {
 
     nodeIcon() {
         switch (this.getType()) {
+            case Configuration.nodeType.createDelegate: return SVGIcon.node
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.doOnce: return SVGIcon.doOnce

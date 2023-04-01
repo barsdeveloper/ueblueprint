@@ -54,7 +54,7 @@ export default class Configuration {
     static nameRegexSpaceReplacement = new RegExp(
         "^K2(?:[Nn]ode)?_"
         + "|(?<=[a-z])(?=[A-Z0-9])" // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
-        + "|(?<=[A-Z])(?=[A-Z][a-z]|[0-9])" // ("ALPHABravo", "ALPHA2") => ("ALPHA Bravo", "ALPHA 2")
+        + "|(?<=[A-Z])(?=[A-Z][a-z](?![a-z]+_)|[0-9])" // ("ALPHABravo", "ALPHA2", "BTTask_") => ("ALPHA Bravo", "ALPHA 2", "BTTask")
         + "|(?<=[014-9]|[23](?!D(?:[^a-z]|$)))(?=[a-zA-Z])" // ("3Times", "3D", "3Delta") => ("3 Times", "3D", "3 Delta")
         + "|\\s*_+\\s*" // "Alpha__Bravo" => "Alpha Bravo"
         + "|\\s{2,}",
@@ -83,6 +83,7 @@ export default class Configuration {
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
         componentBoundEvent: "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
+        createDelegate: "/Script/BlueprintGraph.K2Node_CreateDelegate",
         customEvent: "/Script/BlueprintGraph.K2Node_CustomEvent",
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",

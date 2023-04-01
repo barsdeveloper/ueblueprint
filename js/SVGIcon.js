@@ -240,6 +240,14 @@ export default class SVGIcon {
         </svg>
     `
 
+    static node = html`
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="16" height="15" rx="1" fill="white" fill-opacity="0.5"/>
+            <rect x="0.5" y="0.5" width="15" height="14" rx="0.5" stroke="white"/>
+            <rect x="1" width="14" height="5" fill="white"/>
+        </svg>
+    `
+
     static questionMark = html`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 15C9.10456 15 10 14.1046 10 13C10 11.8954 9.10456 11 8 11C6.89544 11 6 11.8954 6 13C6 14.1046 6.89544 15 8 15Z" fill="white" />
