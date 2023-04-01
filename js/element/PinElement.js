@@ -136,9 +136,9 @@ export default class PinElement extends IElement {
         nodeElement = undefined
     ) {
         super.initialize(entity, template)
-        this.pinId = this.entity["PinId"]
+        this.pinId = this.entity.PinId
         this.pinType = this.entity.getType()
-        this.advancedView = this.entity["bAdvancedView"]
+        this.advancedView = this.entity.bAdvancedView
         this.defaultValue = this.entity.getDefaultValue()
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString())
         this.isLinked = false
@@ -160,12 +160,12 @@ export default class PinElement extends IElement {
 
     /** @return {GuidEntity} */
     getPinId() {
-        return this.entity["PinId"]
+        return this.entity.PinId
     }
 
     /** @returns {String} */
     getPinName() {
-        return this.entity["PinName"]
+        return this.entity.PinName
     }
 
     getPinDisplayName() {
@@ -203,7 +203,7 @@ export default class PinElement extends IElement {
 
     /** @param {T} value */
     setDefaultValue(value) {
-        this.entity["DefaultValue"] = value
+        this.entity.DefaultValue = value
         this.defaultValue = value
     }
 
@@ -269,7 +269,7 @@ export default class PinElement extends IElement {
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
             pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
-            && pinReference.pinGuid.valueOf() == originalPinElement.entity["PinId"].valueOf()
+            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
         )
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference

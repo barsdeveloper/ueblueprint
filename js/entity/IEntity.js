@@ -5,7 +5,6 @@ import Utility from "../Utility.js"
 
 /**
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {(entity: IEntity) => AnyValueConstructor<AnyValue>} TypeSupplier
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
@@ -13,7 +12,7 @@ import Utility from "../Utility.js"
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  * @typedef {{
- *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | TypeSupplier,
+ *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | ComputedType,
  *     value?: AnyValue | ValueSupplier,
  *     showDefault?: Boolean,
  *     nullable?: Boolean,

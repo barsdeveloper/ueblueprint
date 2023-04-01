@@ -878,7 +878,6 @@ class Utility {
 
 /**
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {(entity: IEntity) => AnyValueConstructor<AnyValue>} TypeSupplier
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
@@ -886,7 +885,7 @@ class Utility {
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  * @typedef {{
- *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | TypeSupplier,
+ *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | ComputedType,
  *     value?: AnyValue | ValueSupplier,
  *     showDefault?: Boolean,
  *     nullable?: Boolean,
@@ -2138,12 +2137,12 @@ class PinEntity extends IEntity {
     linkTo(targetObjectName, targetPinEntity) {
         const linkFound = this.LinkedTo?.some(pinReferenceEntity =>
             pinReferenceEntity.objectName.toString() == targetObjectName
-            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity["PinId"].valueOf()
+            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         );
         if (!linkFound) {
             (this.LinkedTo ??= []).push(new PinReferenceEntity({
                 objectName: targetObjectName,
-                pinGuid: targetPinEntity["PinId"],
+                pinGuid: targetPinEntity.PinId,
             }));
             return true
         }
@@ -2157,7 +2156,7 @@ class PinEntity extends IEntity {
     unlinkFrom(targetObjectName, targetPinEntity) {
         const indexElement = this.LinkedTo?.findIndex(pinReferenceEntity => {
             return pinReferenceEntity.objectName.toString() == targetObjectName
-                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity["PinId"].valueOf()
+                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
         if (indexElement >= 0) {
             this.LinkedTo.splice(indexElement, 1);
@@ -7435,7 +7434,7 @@ class NodeElement extends ISelectableDraggableElement {
             for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
                     objectName: name,
-                    pinGuid: sourcePinElement.entity["PinId"],
+                    pinGuid: sourcePinElement.entity.PinId,
                 }));
             }
         }
@@ -9265,9 +9264,9 @@ class PinElement extends IElement {
         nodeElement = undefined
     ) {
         super.initialize(entity, template);
-        this.pinId = this.entity["PinId"];
+        this.pinId = this.entity.PinId;
         this.pinType = this.entity.getType();
-        this.advancedView = this.entity["bAdvancedView"];
+        this.advancedView = this.entity.bAdvancedView;
         this.defaultValue = this.entity.getDefaultValue();
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString());
         this.isLinked = false;
@@ -9289,12 +9288,12 @@ class PinElement extends IElement {
 
     /** @return {GuidEntity} */
     getPinId() {
-        return this.entity["PinId"]
+        return this.entity.PinId
     }
 
     /** @returns {String} */
     getPinName() {
-        return this.entity["PinName"]
+        return this.entity.PinName
     }
 
     getPinDisplayName() {
@@ -9332,7 +9331,7 @@ class PinElement extends IElement {
 
     /** @param {T} value */
     setDefaultValue(value) {
-        this.entity["DefaultValue"] = value;
+        this.entity.DefaultValue = value;
         this.defaultValue = value;
     }
 
@@ -9398,7 +9397,7 @@ class PinElement extends IElement {
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
             pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
-            && pinReference.pinGuid.valueOf() == originalPinElement.entity["PinId"].valueOf()
+            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
         );
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference;

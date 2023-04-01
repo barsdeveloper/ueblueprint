@@ -1,4 +1,5 @@
 import ByteEntity from "./ByteEntity.js"
+import ComputedType from "./ComputedType.js"
 import Configuration from "../Configuration.js"
 import EnumEntity from "./EnumEntity.js"
 import FormatTextEntity from "./FormatTextEntity.js"
@@ -21,7 +22,6 @@ import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import VectorEntity from "./VectorEntity.js"
-import ComputedType from "./ComputedType.js"
 
 /**
  * @typedef {import("./IEntity").AnyValue} AnyValue
@@ -242,12 +242,12 @@ export default class PinEntity extends IEntity {
     linkTo(targetObjectName, targetPinEntity) {
         const linkFound = this.LinkedTo?.some(pinReferenceEntity =>
             pinReferenceEntity.objectName.toString() == targetObjectName
-            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity["PinId"].valueOf()
+            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         )
         if (!linkFound) {
             (this.LinkedTo ??= []).push(new PinReferenceEntity({
                 objectName: targetObjectName,
-                pinGuid: targetPinEntity["PinId"],
+                pinGuid: targetPinEntity.PinId,
             }))
             return true
         }
@@ -261,7 +261,7 @@ export default class PinEntity extends IEntity {
     unlinkFrom(targetObjectName, targetPinEntity) {
         const indexElement = this.LinkedTo?.findIndex(pinReferenceEntity => {
             return pinReferenceEntity.objectName.toString() == targetObjectName
-                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity["PinId"].valueOf()
+                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         })
         if (indexElement >= 0) {
             this.LinkedTo.splice(indexElement, 1)

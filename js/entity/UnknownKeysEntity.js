@@ -3,10 +3,10 @@ import IEntity from "./IEntity.js"
 export default class UnknownKeysEntity extends IEntity {
 
     static attributes = {
-        lookbehind:
-        {
+        lookbehind: {
             value: "",
             showDefault: false,
+            ignore: true,
         },
     }
 

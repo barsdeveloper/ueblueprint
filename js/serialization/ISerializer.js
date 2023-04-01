@@ -1,6 +1,5 @@
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
-import IEntity from "../entity/IEntity.js"
 
 /**
  * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
