@@ -1040,11 +1040,6 @@ class IEntity {
     /** @param {AttributeDeclarations} attributes */
     static cleanupAttributes(attributes, prefix = "") {
         for (const attributeName in attributes) {
-            if (attributes[attributeName].constructor !== Object) {
-                attributes[attributeName] = {
-                    default: attributes[attributeName],
-                };
-            }
             const attribute = /** @type {AttributeInformation} */(attributes[attributeName]);
             if (attribute.type === undefined && !(attribute.default instanceof Function)) {
                 attribute.type = Utility.getType(attribute.default);
@@ -1489,7 +1484,7 @@ class LinearColorEntity extends IEntity {
         },
         A: {
             type: RealUnitEntity,
-            value: () => new RealUnitEntity(1),
+            default: () => new RealUnitEntity(1),
         },
         H: {
             type: RealUnitEntity,
@@ -2638,7 +2633,6 @@ class ObjectEntity extends IEntity {
         },
         InputKey: {
             type: SymbolEntity,
-            default: null,
             showDefault: false,
         },
         bOverrideFunction: {
@@ -3301,7 +3295,7 @@ class Grammar {
                 P.regex(/\(\s*/),
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
                 P.regex(/\s*(?:,\s*)?\)/),
-            ).map((_0, values, _3) => values);
+            ).map(([_0, values, _3]) => values);
         } else if (type instanceof UnionType) {
             result = type.types
                 .map(v => this.grammarFor(undefined, v))
@@ -8311,7 +8305,7 @@ class ExecPinTemplate extends PinTemplate {
     }
 
     renderName() {
-        let pinName = this.element.entity.PinName
+        let pinName = this.element.entity.PinName;
         if (this.element.entity.PinFriendlyName) {
             pinName = this.element.entity.PinFriendlyName.toString();
         } else if (pinName === "execute" || pinName === "then") {

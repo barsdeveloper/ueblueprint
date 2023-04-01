@@ -141,7 +141,7 @@ export default class Grammar {
                 P.regex(/\(\s*/),
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
                 P.regex(/\s*(?:,\s*)?\)/),
-            ).map((_0, values, _3) => values)
+            ).map(([_0, values, _3]) => values)
         } else if (type instanceof UnionType) {
             result = type.types
                 .map(v => this.grammarFor(undefined, v))
