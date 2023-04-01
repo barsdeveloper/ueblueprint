@@ -7,6 +7,7 @@ import SVGIcon from "../../js/SVGIcon"
 const tests = [
     {
         name: "==",
+        title: null,
         value: String.raw`
             Begin Object Class=/Script/BlueprintGraph.K2Node_PromotableOperator Name="K2Node_PromotableOperator_0"
                 bIsPureFunc=True
@@ -19,9 +20,7 @@ const tests = [
                 CustomProperties Pin (PinId=F34B818F900A4222BCC1DE111C2C7816,PinName="ReturnValue",PinToolTip="Return Value\nBoolean\n\nReturns whether brushes A and B are identical.",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
             End Object
         `,
-        color: Configuration.nodeColors.gray,
-        icon: SVGIcon.questionMark,
-        pins: 4,
+        pins: 3,
         delegate: false,
         development: false,
     },

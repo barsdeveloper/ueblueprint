@@ -2124,6 +2124,9 @@ class PinEntity extends IEntity {
 
     getDisplayName() {
         let matchResult = null;
+        if (this.PinFriendlyName) {
+            return Utility.formatStringName(this.PinFriendlyName.toString())
+        }
         if (
             this.PinToolTip
             // Match up until the first \n excluded or last character
@@ -7002,7 +7005,6 @@ class MinimalPinTemplate extends PinTemplate {
 /**
  * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
  * @typedef {import("lit").PropertyValues} PropertyValues
- * @typedef {import ("../../element/NodeElement.js").default} NodeElement
  */
 
 class EventNodeTemplate extends NodeTemplate {

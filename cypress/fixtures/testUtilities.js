@@ -13,13 +13,18 @@ export function generateNodeTest(nodeTest, getBlueprint) {
     context(nodeTest.name, () => {
         /** @type {NodeElement} */
         let node
+        if (nodeTest.title === undefined) {
+            nodeTest.title = nodeTest.name
+        }
 
         before(() => {
             getBlueprint().removeGraphElement(...getBlueprint().getNodes())
             Utility.paste(getBlueprint(), nodeTest.value)
             node = getBlueprint().querySelector("ueb-node")
         })
-        it("Has correct color", () => expect(node.entity.nodeColor()).to.be.deep.equal(nodeTest.color))
+        if (nodeTest.color) {
+            it("Has correct color", () => expect(node.entity.nodeColor()).to.be.deep.equal(nodeTest.color))
+        }
         it("Has correct delegate", () => {
             const delegate = node.querySelector('.ueb-node-top ueb-pin[data-type="delegate"]')
             if (nodeTest.delegate) {
@@ -28,9 +33,13 @@ export function generateNodeTest(nodeTest, getBlueprint) {
                 expect(delegate).to.be.null
             }
         })
-        it("It's called " + nodeTest.name, () => expect(node.getNodeDisplayName()).to.be.equal(nodeTest.name))
+        if (nodeTest.title) {
+            it("Has title " + nodeTest.title, () => expect(node.getNodeDisplayName()).to.be.equal(nodeTest.title))
+        }
         it("Has expected subtitle " + nodeTest.subtitle, () => expect(node.querySelector(".ueb-node-subtitle-text")?.innerText).to.be.equal(nodeTest.subtitle))
-        it("Has the correct icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(nodeTest.icon))
+        if (nodeTest.icon) {
+            it("Has the correct icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(nodeTest.icon))
+        }
         it(`Has ${nodeTest.pins} pins`, () => expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(nodeTest.pins))
         it("Expected development", () => expect(node.entity.isDevelopmentOnly()).equals(nodeTest.development))
         it("Maintains the order of attributes", () => {

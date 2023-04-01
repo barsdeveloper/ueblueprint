@@ -211,6 +211,9 @@ export default class PinEntity extends IEntity {
 
     getDisplayName() {
         let matchResult = null
+        if (this.PinFriendlyName) {
+            return Utility.formatStringName(this.PinFriendlyName.toString())
+        }
         if (
             this.PinToolTip
             // Match up until the first \n excluded or last character
