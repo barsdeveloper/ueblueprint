@@ -881,12 +881,12 @@ class Utility {
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
- *     [key: String]: AttributeInformation | AnyValue
+ *     [key: String]: AttributeInformation
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  * @typedef {{
  *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | ComputedType,
- *     value?: AnyValue | ValueSupplier,
+ *     default?: AnyValue | ValueSupplier,
  *     showDefault?: Boolean,
  *     nullable?: Boolean,
  *     ignored?: Boolean,
@@ -955,7 +955,7 @@ class IEntity {
                 continue
             }
 
-            let defaultValue = attribute.value;
+            let defaultValue = attribute.default;
             let defaultType = attribute.type;
             if (defaultType instanceof ComputedType) {
                 defaultType = defaultType.compute(this);
@@ -1042,18 +1042,18 @@ class IEntity {
         for (const attributeName in attributes) {
             if (attributes[attributeName].constructor !== Object) {
                 attributes[attributeName] = {
-                    value: attributes[attributeName],
+                    default: attributes[attributeName],
                 };
             }
             const attribute = /** @type {AttributeInformation} */(attributes[attributeName]);
-            if (attribute.type === undefined && !(attribute.value instanceof Function)) {
-                attribute.type = Utility.getType(attribute.value);
+            if (attribute.type === undefined && !(attribute.default instanceof Function)) {
+                attribute.type = Utility.getType(attribute.default);
             }
             attributes[attributeName] = {
                 ...IEntity.defaultAttribute,
                 ...attribute,
             };
-            if (attribute.value === undefined) {
+            if (attribute.default === undefined) {
                 if (attribute.type === undefined) {
                     throw new Error(
                         `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
@@ -1062,7 +1062,7 @@ class IEntity {
                 }
                 attribute[attributeName] = Utility.sanitize(undefined, attribute.type);
             }
-            if (attribute.value === null) {
+            if (attribute.default === null) {
                 attributes[attributeName].nullable = true;
             }
         }
@@ -1106,7 +1106,7 @@ class IntegerEntity extends IEntity {
     static attributes = {
         ...super.attributes,
         value: {
-            value: 0,
+            default: 0,
             predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
         },
     }
@@ -1151,7 +1151,9 @@ class ByteEntity extends IntegerEntity {
 class SymbolEntity extends IEntity {
 
     static attributes = {
-        value: "",
+        value: {
+            default: "",
+        },
     }
 
     static {
@@ -1180,7 +1182,9 @@ class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
     static attributes = {
-        value: "",
+        value: {
+            default: "",
+        },
     }
 
     static {
@@ -1197,9 +1201,15 @@ class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
     static attributes = {
-        namespace: "",
-        key: "",
-        value: "",
+        namespace: {
+            default: "",
+        },
+        key: {
+            default: "",
+        },
+        value: {
+            default: "",
+        },
     }
 
     static {
@@ -1223,7 +1233,7 @@ class FormatTextEntity extends IEntity {
     static lookbehind = "LOCGEN_FORMAT_NAMED"
     static attributes = {
         value: {
-            type: [new UnionType(LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)]
+            type: [new UnionType(LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
         },
     }
 
@@ -1240,7 +1250,9 @@ class FormatTextEntity extends IEntity {
 class GuidEntity extends IEntity {
 
     static attributes = {
-        value: "",
+        value: {
+            default: "",
+        },
     }
 
     static {
@@ -1279,8 +1291,12 @@ class GuidEntity extends IEntity {
 class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
-        type: "",
-        path: "",
+        type: {
+            default: "",
+        },
+        path: {
+            default: "",
+        },
     }
 
     static {
@@ -1335,7 +1351,9 @@ class FunctionReferenceEntity extends IEntity {
 class IdentifierEntity extends IEntity {
 
     static attributes = {
-        value: "",
+        value: {
+            default: "",
+        },
     }
 
     static {
@@ -1366,7 +1384,7 @@ class Integer64Entity extends IEntity {
     static attributes = {
         ...super.attributes,
         value: {
-            value: 0n,
+            default: 0n,
             predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
         },
     }
@@ -1393,13 +1411,23 @@ class Integer64Entity extends IEntity {
 class KeyBindingEntity extends IEntity {
 
     static attributes = {
-        ActionName: "",
-        bShift: false,
-        bCtrl: false,
-        bAlt: false,
-        bCmd: false,
+        ActionName: {
+            default: "",
+        },
+        bShift: {
+            default: false,
+        },
+        bCtrl: {
+            default: false,
+        },
+        bAlt: {
+            default: false,
+        },
+        bCmd: {
+            default: false,
+        },
         Key: {
-            type: IdentifierEntity
+            type: IdentifierEntity,
         },
     }
 
@@ -1421,7 +1449,9 @@ class KeyBindingEntity extends IEntity {
 class RealUnitEntity extends IEntity {
 
     static attributes = {
-        value: 0,
+        value: {
+            default: 0,
+        },
     }
 
     static {
@@ -1726,7 +1756,9 @@ class NaturalNumberEntity extends IntegerEntity {
 class PathSymbolEntity extends IEntity {
 
     static attributes = {
-        value: "",
+        value: {
+            default: "",
+        },
     }
 
     static {
@@ -1773,23 +1805,23 @@ class PinTypeEntity extends IEntity {
 
     static attributes = {
         TerminalCategory: {
-            value: "",
+            default: "",
             showDefault: false,
         },
         TerminalSubCategory: {
-            value: "",
+            default: "",
             showDefault: false,
         },
         bTerminalIsConst: {
-            value: false,
+            default: false,
             showDefault: false,
         },
         bTerminalIsWeakPointer: {
-            value: false,
+            default: false,
             showDefault: false,
         },
         bTerminalIsUObjectWrapper: {
-            value: false,
+            default: false,
             showDefault: false,
         },
     }
@@ -1812,13 +1844,13 @@ class RotatorEntity extends IEntity {
 
     static attributes = {
         R: {
-            value: 0,
+            default: 0,
         },
         P: {
-            value: 0,
+            default: 0,
         },
         Y: {
-            value: 0,
+            default: 0,
         },
     }
 
@@ -1853,11 +1885,11 @@ class Vector2DEntity extends IEntity {
 
     static attributes = {
         X: {
-            value: 0,
+            default: 0,
             expected: true,
         },
         Y: {
-            value: 0,
+            default: 0,
             expected: true,
         },
     }
@@ -1880,15 +1912,15 @@ class VectorEntity extends IEntity {
 
     static attributes = {
         X: {
-            value: 0,
+            default: 0,
             expected: true,
         },
         Y: {
-            value: 0,
+            default: 0,
             expected: true,
         },
         Z: {
-            value: 0,
+            default: 0,
             expected: true,
         },
     }
@@ -1941,7 +1973,9 @@ class PinEntity extends IEntity {
         PinId: {
             type: GuidEntity,
         },
-        PinName: "",
+        PinName: {
+            default: "",
+        },
         PinFriendlyName: {
             type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
             showDefault: false,
@@ -1954,27 +1988,41 @@ class PinEntity extends IEntity {
             type: String,
             showDefault: false,
         },
-        PinType$PinCategory: "",
-        PinType$PinSubCategory: "",
+        PinType$PinCategory: {
+            default: "",
+        },
+        PinType$PinSubCategory: {
+            default: "",
+        },
         PinType$PinSubCategoryObject: {
             type: ObjectReferenceEntity,
         },
         PinType$PinSubCategoryMemberReference: {
             type: FunctionReferenceEntity,
-            value: null,
+            default: null,
         },
         PinType$PinValueType: {
             type: PinTypeEntity,
-            value: null,
+            default: null,
         },
         PinType$ContainerType: {
             type: PathSymbolEntity,
         },
-        PinType$bIsReference: false,
-        PinType$bIsConst: false,
-        PinType$bIsWeakPointer: false,
-        PinType$bIsUObjectWrapper: false,
-        PinType$bSerializeAsSinglePrecisionFloat: false,
+        PinType$bIsReference: {
+            default: false,
+        },
+        PinType$bIsConst: {
+            default: false,
+        },
+        PinType$bIsWeakPointer: {
+            default: false,
+        },
+        PinType$bIsUObjectWrapper: {
+            default: false,
+        },
+        PinType$bSerializeAsSinglePrecisionFloat: {
+            default: false,
+        },
         LinkedTo: {
             type: [PinReferenceEntity],
             showDefault: false,
@@ -1992,17 +2040,29 @@ class PinEntity extends IEntity {
         DefaultObject: {
             type: ObjectReferenceEntity,
             showDefault: false,
-            value: null,
+            default: null,
         },
         PersistentGuid: {
             type: GuidEntity,
         },
-        bHidden: false,
-        bNotConnectable: false,
-        bDefaultValueIsReadOnly: false,
-        bDefaultValueIsIgnored: false,
-        bAdvancedView: false,
-        bOrphanedPin: false,
+        bHidden: {
+            default: false,
+        },
+        bNotConnectable: {
+            default: false,
+        },
+        bDefaultValueIsReadOnly: {
+            default: false,
+        },
+        bDefaultValueIsIgnored: {
+            default: false,
+        },
+        bAdvancedView: {
+            default: false,
+        },
+        bOrphanedPin: {
+            default: false,
+        },
     }
 
     static {
@@ -2474,15 +2534,17 @@ class VariableReferenceEntity extends IEntity {
 
     static attributes = {
         MemberScope: {
-            value: "",
+            default: "",
             showDefault: false,
         },
-        MemberName: "",
+        MemberName: {
+            default: "",
+        },
         MemberGuid: {
             type: GuidEntity,
         },
         bSelfContext: {
-            value: false,
+            default: false,
             showDefault: false,
         },
     }
@@ -2505,7 +2567,9 @@ class ObjectEntity extends IEntity {
         Class: {
             type: ObjectReferenceEntity,
         },
-        Name: "",
+        Name: {
+            default: "",
+        },
         AxisKey: {
             type: SymbolEntity,
             showDefault: false,
@@ -2515,21 +2579,21 @@ class ObjectEntity extends IEntity {
             showDefault: false,
         },
         bIsPureFunc: {
-            value: false,
+            default: false,
             showDefault: false,
         },
         bIsConstFunc: {
-            value: false,
+            default: false,
             showDefault: false,
         },
         VariableReference: {
             type: VariableReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         SelfContextInfo: {
             type: SymbolEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         DelegatePropertyName: {
@@ -2546,12 +2610,12 @@ class ObjectEntity extends IEntity {
         },
         EventReference: {
             type: FunctionReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         FunctionReference: {
             type: FunctionReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         CustomFunctionName: {
@@ -2560,12 +2624,12 @@ class ObjectEntity extends IEntity {
         },
         TargetType: {
             type: ObjectReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         MacroGraphReference: {
             type: MacroGraphReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         Enum: {
@@ -2574,7 +2638,7 @@ class ObjectEntity extends IEntity {
         },
         InputKey: {
             type: SymbolEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         bOverrideFunction: {
@@ -2623,7 +2687,7 @@ class ObjectEntity extends IEntity {
         },
         bColorCommentBubble: {
             type: Boolean,
-            value: false,
+            default: false,
             showDefault: false,
         },
         MoveMode: {
@@ -2660,12 +2724,12 @@ class ObjectEntity extends IEntity {
         },
         AdvancedPinDisplay: {
             type: IdentifierEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         EnabledState: {
             type: IdentifierEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         NodeGuid: {
@@ -2677,7 +2741,7 @@ class ObjectEntity extends IEntity {
         },
         ErrorMsg: {
             type: String,
-            value: "",
+            default: "",
             showDefault: false,
         },
         CustomProperties: {
@@ -3112,7 +3176,7 @@ class UnknownKeysEntity extends IEntity {
 
     static attributes = {
         lookbehind: {
-            value: "",
+            default: "",
             showDefault: false,
             ignore: true,
         },
@@ -9145,6 +9209,10 @@ class VectorPinTemplate extends INumericPinTemplate {
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {typeof PinElement} PinElementConstructor
  */
+/** 
+ * @template T
+ * @typedef {import("parsimmon").Success<T>} Success
+ */
 
 /**
  * @template {AnyValue} T
@@ -9172,7 +9240,7 @@ class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? Grammar.guidEntity.parse(value).value
+                    ? /** @type {Success<GuidEntity>} */(Grammar.guidEntity.parse(value)).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
             },
@@ -9193,7 +9261,7 @@ class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? Grammar.linearColorFromAnyFormat.parse(value).value
+                    ? /** @type {Success<LinearColorEntity>} */(Grammar.linearColorFromAnyFormat.parse(value)).value
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
             },

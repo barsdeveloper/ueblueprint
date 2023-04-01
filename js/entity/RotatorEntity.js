@@ -4,13 +4,13 @@ export default class RotatorEntity extends IEntity {
 
     static attributes = {
         R: {
-            value: 0,
+            default: 0,
         },
         P: {
-            value: 0,
+            default: 0,
         },
         Y: {
-            value: 0,
+            default: 0,
         },
     }
 

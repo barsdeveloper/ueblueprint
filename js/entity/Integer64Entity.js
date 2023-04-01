@@ -5,7 +5,7 @@ export default class Integer64Entity extends IEntity {
     static attributes = {
         ...super.attributes,
         value: {
-            value: 0n,
+            default: 0n,
             predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
         },
     }

@@ -4,13 +4,23 @@ import IEntity from "./IEntity.js"
 export default class KeyBindingEntity extends IEntity {
 
     static attributes = {
-        ActionName: "",
-        bShift: false,
-        bCtrl: false,
-        bAlt: false,
-        bCmd: false,
+        ActionName: {
+            default: "",
+        },
+        bShift: {
+            default: false,
+        },
+        bCtrl: {
+            default: false,
+        },
+        bAlt: {
+            default: false,
+        },
+        bCmd: {
+            default: false,
+        },
         Key: {
-            type: IdentifierEntity
+            type: IdentifierEntity,
         },
     }
 

@@ -3,8 +3,12 @@ import IEntity from "./IEntity.js"
 export default class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
-        type: "",
-        path: "",
+        type: {
+            default: "",
+        },
+        path: {
+            default: "",
+        },
     }
 
     static {

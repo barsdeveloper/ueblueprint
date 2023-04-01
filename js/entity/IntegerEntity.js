@@ -5,7 +5,7 @@ export default class IntegerEntity extends IEntity {
     static attributes = {
         ...super.attributes,
         value: {
-            value: 0,
+            default: 0,
             predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
         },
     }

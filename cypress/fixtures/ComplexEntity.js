@@ -6,59 +6,65 @@ import SimpleObject from "./SimpleObject"
 export default class ComplexEntity extends IEntity {
 
     static attributes = {
-        alpha: 32,
+        alpha: {
+            default: 32,
+        },
         bravo: {
             type: Number,
-            value: 78,
+            default: 78,
         },
         charlie: {
             type: String,
-            value: "Charlie",
+            default: "Charlie",
         },
         delta: {
             type: String,
-            value: null,
+            default: null,
         },
-        echo: "echo",
+        echo: {
+            default: "echo",
+        },
         foxtrot: {
-            value: false,
+            default: false,
         },
         golf: {
             type: Array,
         },
         hotel: {
             type: Array,
-            value: null,
+            default: null,
         },
         india: {
-            type: [Number]
+            type: [Number],
         },
         juliett: {
             type: [String],
-            value: ["a", "b", "c", "d", "e"],
+            default: ["a", "b", "c", "d", "e"],
         },
         kilo: {
             type: [Boolean],
-            value: () => [true, false, false, true, true],
+            default: () => [true, false, false, true, true],
         },
         lima: {
             type: String,
-            value: "Foo",
+            default: "Foo",
             showDefault: false,
         },
         mike: {
             type: new UnionType(Number, String, Array),
-            value: "Bar",
+            default: "Bar",
         },
         november: {
             type: new UnionType(Number, String, Array),
         },
         oscar: {
-            type: SimpleObject
+            type: SimpleObject,
         },
-        papa: () => new SimpleObject(12, 13),
+        papa: {
+            default: () => new SimpleObject(12, 13),
+        },
         quebec: {
-            value: 0, // will assign undefined because it does not satisfy the predicate
+            default: 0, // will assign undefined because it does not satisfy the predicate
             predicate: v => v >= 1 && v <= 10,
         },
     }

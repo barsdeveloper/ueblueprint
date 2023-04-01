@@ -19,7 +19,9 @@ export default class ObjectEntity extends IEntity {
         Class: {
             type: ObjectReferenceEntity,
         },
-        Name: "",
+        Name: {
+            default: "",
+        },
         AxisKey: {
             type: SymbolEntity,
             showDefault: false,
@@ -29,21 +31,21 @@ export default class ObjectEntity extends IEntity {
             showDefault: false,
         },
         bIsPureFunc: {
-            value: false,
+            default: false,
             showDefault: false,
         },
         bIsConstFunc: {
-            value: false,
+            default: false,
             showDefault: false,
         },
         VariableReference: {
             type: VariableReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         SelfContextInfo: {
             type: SymbolEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         DelegatePropertyName: {
@@ -60,12 +62,12 @@ export default class ObjectEntity extends IEntity {
         },
         EventReference: {
             type: FunctionReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         FunctionReference: {
             type: FunctionReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         CustomFunctionName: {
@@ -74,12 +76,12 @@ export default class ObjectEntity extends IEntity {
         },
         TargetType: {
             type: ObjectReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         MacroGraphReference: {
             type: MacroGraphReferenceEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         Enum: {
@@ -88,7 +90,7 @@ export default class ObjectEntity extends IEntity {
         },
         InputKey: {
             type: SymbolEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         bOverrideFunction: {
@@ -137,7 +139,7 @@ export default class ObjectEntity extends IEntity {
         },
         bColorCommentBubble: {
             type: Boolean,
-            value: false,
+            default: false,
             showDefault: false,
         },
         MoveMode: {
@@ -174,12 +176,12 @@ export default class ObjectEntity extends IEntity {
         },
         AdvancedPinDisplay: {
             type: IdentifierEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         EnabledState: {
             type: IdentifierEntity,
-            value: null,
+            default: null,
             showDefault: false,
         },
         NodeGuid: {
@@ -191,7 +193,7 @@ export default class ObjectEntity extends IEntity {
         },
         ErrorMsg: {
             type: String,
-            value: "",
+            default: "",
             showDefault: false,
         },
         CustomProperties: {

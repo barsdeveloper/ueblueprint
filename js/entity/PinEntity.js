@@ -56,7 +56,9 @@ export default class PinEntity extends IEntity {
         PinId: {
             type: GuidEntity,
         },
-        PinName: "",
+        PinName: {
+            default: "",
+        },
         PinFriendlyName: {
             type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
             showDefault: false,
@@ -69,27 +71,41 @@ export default class PinEntity extends IEntity {
             type: String,
             showDefault: false,
         },
-        PinType$PinCategory: "",
-        PinType$PinSubCategory: "",
+        PinType$PinCategory: {
+            default: "",
+        },
+        PinType$PinSubCategory: {
+            default: "",
+        },
         PinType$PinSubCategoryObject: {
             type: ObjectReferenceEntity,
         },
         PinType$PinSubCategoryMemberReference: {
             type: FunctionReferenceEntity,
-            value: null,
+            default: null,
         },
         PinType$PinValueType: {
             type: PinTypeEntity,
-            value: null,
+            default: null,
         },
         PinType$ContainerType: {
             type: PathSymbolEntity,
         },
-        PinType$bIsReference: false,
-        PinType$bIsConst: false,
-        PinType$bIsWeakPointer: false,
-        PinType$bIsUObjectWrapper: false,
-        PinType$bSerializeAsSinglePrecisionFloat: false,
+        PinType$bIsReference: {
+            default: false,
+        },
+        PinType$bIsConst: {
+            default: false,
+        },
+        PinType$bIsWeakPointer: {
+            default: false,
+        },
+        PinType$bIsUObjectWrapper: {
+            default: false,
+        },
+        PinType$bSerializeAsSinglePrecisionFloat: {
+            default: false,
+        },
         LinkedTo: {
             type: [PinReferenceEntity],
             showDefault: false,
@@ -107,17 +123,29 @@ export default class PinEntity extends IEntity {
         DefaultObject: {
             type: ObjectReferenceEntity,
             showDefault: false,
-            value: null,
+            default: null,
         },
         PersistentGuid: {
             type: GuidEntity,
         },
-        bHidden: false,
-        bNotConnectable: false,
-        bDefaultValueIsReadOnly: false,
-        bDefaultValueIsIgnored: false,
-        bAdvancedView: false,
-        bOrphanedPin: false,
+        bHidden: {
+            default: false,
+        },
+        bNotConnectable: {
+            default: false,
+        },
+        bDefaultValueIsReadOnly: {
+            default: false,
+        },
+        bDefaultValueIsIgnored: {
+            default: false,
+        },
+        bAdvancedView: {
+            default: false,
+        },
+        bOrphanedPin: {
+            default: false,
+        },
     }
 
     static {

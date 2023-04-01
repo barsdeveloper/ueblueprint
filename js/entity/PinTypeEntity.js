@@ -4,23 +4,23 @@ export default class PinTypeEntity extends IEntity {
 
     static attributes = {
         TerminalCategory: {
-            value: "",
+            default: "",
             showDefault: false,
         },
         TerminalSubCategory: {
-            value: "",
+            default: "",
             showDefault: false,
         },
         bTerminalIsConst: {
-            value: false,
+            default: false,
             showDefault: false,
         },
         bTerminalIsWeakPointer: {
-            value: false,
+            default: false,
             showDefault: false,
         },
         bTerminalIsUObjectWrapper: {
-            value: false,
+            default: false,
             showDefault: false,
         },
     }

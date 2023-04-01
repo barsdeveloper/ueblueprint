@@ -8,12 +8,12 @@ import Utility from "../Utility.js"
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {{
- *     [key: String]: AttributeInformation | AnyValue
+ *     [key: String]: AttributeInformation
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  * @typedef {{
  *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | ComputedType,
- *     value?: AnyValue | ValueSupplier,
+ *     default?: AnyValue | ValueSupplier,
  *     showDefault?: Boolean,
  *     nullable?: Boolean,
  *     ignored?: Boolean,
@@ -43,8 +43,6 @@ export default class IEntity {
     }
 
     constructor(values = {}, suppressWarns = false) {
-        const defineAllAttributes = (target, attributes, values = {}) => {
-        }
         const attributes = /** @type {typeof IEntity} */(this.constructor).attributes
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
@@ -84,7 +82,7 @@ export default class IEntity {
                 continue
             }
 
-            let defaultValue = attribute.value
+            let defaultValue = attribute.default
             let defaultType = attribute.type
             if (defaultType instanceof ComputedType) {
                 defaultType = defaultType.compute(this)
@@ -169,20 +167,15 @@ export default class IEntity {
     /** @param {AttributeDeclarations} attributes */
     static cleanupAttributes(attributes, prefix = "") {
         for (const attributeName in attributes) {
-            if (attributes[attributeName].constructor !== Object) {
-                attributes[attributeName] = {
-                    value: attributes[attributeName],
-                }
-            }
             const attribute = /** @type {AttributeInformation} */(attributes[attributeName])
-            if (attribute.type === undefined && !(attribute.value instanceof Function)) {
-                attribute.type = Utility.getType(attribute.value)
+            if (attribute.type === undefined && !(attribute.default instanceof Function)) {
+                attribute.type = Utility.getType(attribute.default)
             }
             attributes[attributeName] = {
                 ...IEntity.defaultAttribute,
                 ...attribute,
             }
-            if (attribute.value === undefined) {
+            if (attribute.default === undefined) {
                 if (attribute.type === undefined) {
                     throw new Error(
                         `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
@@ -191,7 +184,7 @@ export default class IEntity {
                 }
                 attribute[attributeName] = Utility.sanitize(undefined, attribute.type)
             }
-            if (attribute.value === null) {
+            if (attribute.default === null) {
                 attributes[attributeName].nullable = true
             }
         }

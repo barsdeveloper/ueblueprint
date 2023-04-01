@@ -5,9 +5,15 @@ export default class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
     static attributes = {
-        namespace: "",
-        key: "",
-        value: "",
+        namespace: {
+            default: "",
+        },
+        key: {
+            default: "",
+        },
+        value: {
+            default: "",
+        },
     }
 
     static {

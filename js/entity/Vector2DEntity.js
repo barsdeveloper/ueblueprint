@@ -4,11 +4,11 @@ export default class Vector2DEntity extends IEntity {
 
     static attributes = {
         X: {
-            value: 0,
+            default: 0,
             expected: true,
         },
         Y: {
-            value: 0,
+            default: 0,
             expected: true,
         },
     }
