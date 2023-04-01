@@ -27,6 +27,10 @@ import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {typeof PinElement} PinElementConstructor
  */
+/** 
+ * @template T
+ * @typedef {import("parsimmon").Success<T>} Success
+ */
 
 /**
  * @template {AnyValue} T
@@ -54,7 +58,7 @@ export default class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? Grammar.guidEntity.parse(value).value
+                    ? /** @type {Success<GuidEntity>} */(Grammar.guidEntity.parse(value)).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
             },
@@ -75,7 +79,7 @@ export default class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? Grammar.linearColorFromAnyFormat.parse(value).value
+                    ? /** @type {Success<LinearColorEntity>} */(Grammar.linearColorFromAnyFormat.parse(value)).value
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
             },
