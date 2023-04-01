@@ -1432,7 +1432,7 @@ class KeyBindingEntity extends IEntity {
     }
 
     constructor(values = {}) {
-        super(values);
+        super(values, true);
         /** @type {String} */ this.ActionName;
         /** @type {Boolean} */ this.bShift;
         /** @type {Boolean} */ this.bCtrl;
