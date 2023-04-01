@@ -65,7 +65,7 @@ export default class PinTemplate extends ITemplate {
         const content = html`
             <div class="ueb-pin-content">
                 ${this.isNameRendered ? this.renderName() : nothing}
-                ${this.element.isInput() && !this.element.entity["bDefaultValueIsIgnored"] ? this.renderInput() : html``}
+                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : html``}
             </div>
         `
         return html`

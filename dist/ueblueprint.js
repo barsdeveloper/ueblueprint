@@ -6350,7 +6350,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
             .filter(v => !v.isHidden())
             .map(pinEntity => {
                 this.hasSubtitle = this.hasSubtitle
-                    || pinEntity["PinName"] === "self" && pinEntity.getDisplayName() === "Target";
+                    || pinEntity.PinName === "self" && pinEntity.getDisplayName() === "Target";
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                     .newObject(pinEntity, undefined, this.element);
                 return pinElement
@@ -6905,7 +6905,7 @@ class PinTemplate extends ITemplate {
         const content = y`
             <div class="ueb-pin-content">
                 ${this.isNameRendered ? this.renderName() : b}
-                ${this.element.isInput() && !this.element.entity["bDefaultValueIsIgnored"] ? this.renderInput() : y``}
+                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : y``}
             </div>
         `;
         return y`
@@ -8311,9 +8311,9 @@ class ExecPinTemplate extends PinTemplate {
     }
 
     renderName() {
-        let pinName = this.element.entity["PinName"];
-        if (this.element.entity["PinFriendlyName"]) {
-            pinName = this.element.entity["PinFriendlyName"].toString();
+        let pinName = this.element.entity.PinName
+        if (this.element.entity.PinFriendlyName) {
+            pinName = this.element.entity.PinFriendlyName.toString();
         } else if (pinName === "execute" || pinName === "then") {
             return y``
         }

@@ -125,7 +125,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             .filter(v => !v.isHidden())
             .map(pinEntity => {
                 this.hasSubtitle = this.hasSubtitle
-                    || pinEntity["PinName"] === "self" && pinEntity.getDisplayName() === "Target"
+                    || pinEntity.PinName === "self" && pinEntity.getDisplayName() === "Target"
                 let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                     .newObject(pinEntity, undefined, this.element)
                 return pinElement
