@@ -143,16 +143,14 @@ export default class NodeElement extends ISelectableDraggableElement {
                 return CommentNodeTemplate
             case Configuration.nodeType.createDelegate:
                 return NodeTemplate
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-            case Configuration.nodeType.inputAxisKeyEvent:
-            case Configuration.nodeType.inputVectorAxisEvent:
-                return EventNodeTemplate
             case Configuration.nodeType.promotableOperator:
                 return VariableOperationNodeTemplate
             case Configuration.nodeType.knot: return KnotNodeTemplate
             case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
             case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
+        }
+        if (nodeEntity.isEvent()) {
+            return EventNodeTemplate
         }
         return NodeTemplate
     }

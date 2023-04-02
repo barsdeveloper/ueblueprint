@@ -102,6 +102,7 @@ class Configuration {
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
+        addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
@@ -2947,14 +2948,12 @@ class ObjectEntity extends IEntity {
     }
 
     isEvent() {
-        if (
-            this.getClass() === Configuration.nodeType.event
-            || this.getClass() === Configuration.nodeType.customEvent
-        ) {
-            return true
-        }
-        if (this.getDelegatePin()) {
-            return true
+        switch (this.getClass()) {
+            case Configuration.nodeType.customEvent:
+            case Configuration.nodeType.event:
+            case Configuration.nodeType.inputAxisKeyEvent:
+            case Configuration.nodeType.inputVectorAxisEvent:
+                return true
         }
         return false
     }
@@ -3090,11 +3089,8 @@ class ObjectEntity extends IEntity {
                 return this.bIsPureFunc
                     ? Configuration.nodeColors.green
                     : Configuration.nodeColors.blue
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-            case Configuration.nodeType.inputKey:
-            case Configuration.nodeType.inputAxisKeyEvent:
             case Configuration.nodeType.inputDebugKey:
+            case Configuration.nodeType.inputKey:
                 return Configuration.nodeColors.red
             case Configuration.nodeType.createDelegate:
             case Configuration.nodeType.enumLiteral:
@@ -3110,18 +3106,20 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.dynamicCast:
                 return Configuration.nodeColors.turquoise
         }
-        if (this.bIsPureFunc) {
-            return Configuration.nodeColors.green
-        }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
+        }
+        if (this.bIsPureFunc) {
+            return Configuration.nodeColors.green
         }
         return Configuration.nodeColors.blue
     }
 
     nodeIcon() {
         switch (this.getType()) {
-            case Configuration.nodeType.createDelegate: return SVGIcon.node
+            case Configuration.nodeType.addDelegate:
+            case Configuration.nodeType.createDelegate:
+                return SVGIcon.node
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.doOnce: return SVGIcon.doOnce
@@ -7383,16 +7381,14 @@ class NodeElement extends ISelectableDraggableElement {
                 return CommentNodeTemplate
             case Configuration.nodeType.createDelegate:
                 return NodeTemplate
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-            case Configuration.nodeType.inputAxisKeyEvent:
-            case Configuration.nodeType.inputVectorAxisEvent:
-                return EventNodeTemplate
             case Configuration.nodeType.promotableOperator:
                 return VariableOperationNodeTemplate
             case Configuration.nodeType.knot: return KnotNodeTemplate
             case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
             case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
+        }
+        if (nodeEntity.isEvent()) {
+            return EventNodeTemplate
         }
         return NodeTemplate
     }

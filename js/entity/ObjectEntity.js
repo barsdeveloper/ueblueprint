@@ -391,14 +391,12 @@ export default class ObjectEntity extends IEntity {
     }
 
     isEvent() {
-        if (
-            this.getClass() === Configuration.nodeType.event
-            || this.getClass() === Configuration.nodeType.customEvent
-        ) {
-            return true
-        }
-        if (this.getDelegatePin()) {
-            return true
+        switch (this.getClass()) {
+            case Configuration.nodeType.customEvent:
+            case Configuration.nodeType.event:
+            case Configuration.nodeType.inputAxisKeyEvent:
+            case Configuration.nodeType.inputVectorAxisEvent:
+                return true
         }
         return false
     }
@@ -534,11 +532,8 @@ export default class ObjectEntity extends IEntity {
                 return this.bIsPureFunc
                     ? Configuration.nodeColors.green
                     : Configuration.nodeColors.blue
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.customEvent:
-            case Configuration.nodeType.inputKey:
-            case Configuration.nodeType.inputAxisKeyEvent:
             case Configuration.nodeType.inputDebugKey:
+            case Configuration.nodeType.inputKey:
                 return Configuration.nodeColors.red
             case Configuration.nodeType.createDelegate:
             case Configuration.nodeType.enumLiteral:
@@ -554,18 +549,20 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.dynamicCast:
                 return Configuration.nodeColors.turquoise
         }
-        if (this.bIsPureFunc) {
-            return Configuration.nodeColors.green
-        }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
+        }
+        if (this.bIsPureFunc) {
+            return Configuration.nodeColors.green
         }
         return Configuration.nodeColors.blue
     }
 
     nodeIcon() {
         switch (this.getType()) {
-            case Configuration.nodeType.createDelegate: return SVGIcon.node
+            case Configuration.nodeType.addDelegate:
+            case Configuration.nodeType.createDelegate:
+                return SVGIcon.node
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
             case Configuration.nodeType.doOnce: return SVGIcon.doOnce
