@@ -127,6 +127,7 @@ class Configuration {
         inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
         inputDebugKey: "/Script/InputBlueprintNodes.K2Node_InputDebugKey",
         inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
+        inputVectorAxisEvent: "/Script/BlueprintGraph.K2Node_InputVectorAxisEvent",
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
@@ -7384,15 +7385,14 @@ class NodeElement extends ISelectableDraggableElement {
                 return NodeTemplate
             case Configuration.nodeType.event:
             case Configuration.nodeType.customEvent:
+            case Configuration.nodeType.inputAxisKeyEvent:
+            case Configuration.nodeType.inputVectorAxisEvent:
                 return EventNodeTemplate
             case Configuration.nodeType.promotableOperator:
                 return VariableOperationNodeTemplate
             case Configuration.nodeType.knot: return KnotNodeTemplate
             case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
             case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
-        }
-        if (nodeEntity.getDelegatePin()) {
-            return EventNodeTemplate
         }
         return NodeTemplate
     }

@@ -103,6 +103,7 @@ export default class Configuration {
         inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
         inputDebugKey: "/Script/InputBlueprintNodes.K2Node_InputDebugKey",
         inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
+        inputVectorAxisEvent: "/Script/BlueprintGraph.K2Node_InputVectorAxisEvent",
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
