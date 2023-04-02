@@ -776,10 +776,10 @@ class Utility {
             .replace(/^\s*b/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
             .replaceAll(Configuration.nameRegexSpaceReplacement, " ")
+            .trim()
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
-            .trim()
     }
 
     /** @param {String} value */
@@ -2124,15 +2124,15 @@ class PinEntity extends IEntity {
 
     getDisplayName() {
         let matchResult = null;
-        if (this.PinFriendlyName) {
-            return Utility.formatStringName(this.PinFriendlyName.toString())
-        }
         if (
             this.PinToolTip
             // Match up until the first \n excluded or last character
             && (matchResult = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
         ) {
-            return Utility.formatStringName(matchResult[1])
+            return matchResult[1]
+        }
+        if (this.PinFriendlyName) {
+            return Utility.formatStringName(this.PinFriendlyName.toString())
         }
         return Utility.formatStringName(this.PinName)
     }

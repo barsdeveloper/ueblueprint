@@ -337,10 +337,10 @@ export default class Utility {
             .replace(/^\s*b/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
             .replaceAll(Configuration.nameRegexSpaceReplacement, " ")
+            .trim()
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
-            .trim()
     }
 
     /** @param {String} value */

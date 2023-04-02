@@ -36,11 +36,24 @@ export function generateNodeTest(nodeTest, getBlueprint) {
         if (nodeTest.title) {
             it("Has title " + nodeTest.title, () => expect(node.getNodeDisplayName()).to.be.equal(nodeTest.title))
         }
-        it("Has expected subtitle " + nodeTest.subtitle, () => expect(node.querySelector(".ueb-node-subtitle-text")?.innerText).to.be.equal(nodeTest.subtitle))
+        it(
+            "Has expected subtitle " + nodeTest.subtitle,
+            () => expect(node.querySelector(".ueb-node-subtitle-text")?.innerText).to.be.equal(nodeTest.subtitle))
         if (nodeTest.icon) {
             it("Has the correct icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(nodeTest.icon))
         }
         it(`Has ${nodeTest.pins} pins`, () => expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(nodeTest.pins))
+        if (nodeTest.pinNames) {
+            it(
+                "Has correct pin names",
+                () => expect(
+                    [...node.querySelectorAll(".ueb-pin-content")]
+                        .map(elem => elem.querySelector(".ueb-pin-name") ?? elem)
+                        .map(elem => elem.innerText)
+                        .filter(name => name.length)
+                )
+                    .to.be.deep.equal(nodeTest.pinNames))
+        }
         it("Expected development", () => expect(node.entity.isDevelopmentOnly()).equals(nodeTest.development))
         it("Maintains the order of attributes", () => {
             getBlueprint().selectAll()
