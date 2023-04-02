@@ -311,7 +311,7 @@ export default class PinEntity extends IEntity {
     /** @return {CSSResult} */
     pinColor() {
         return Configuration.pinColor[this.getType()]
-            ?? Configuration.pinColor[this.PinType$PinCategory]
+            ?? Configuration.pinColor[this.PinType$PinCategory.toLowerCase()]
             ?? Configuration.pinColor["default"]
     }
 }

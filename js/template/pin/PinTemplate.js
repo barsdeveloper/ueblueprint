@@ -81,7 +81,7 @@ export default class PinTemplate extends ITemplate {
             case "Set": return SVGIcon.set
             case "Map": return SVGIcon.map
         }
-        if (this.element.entity.PinType$PinCategory === "delegate") {
+        if (this.element.entity.PinType$PinCategory.toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         return SVGIcon.genericPin
