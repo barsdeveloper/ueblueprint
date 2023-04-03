@@ -169,6 +169,7 @@ export default class Configuration {
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
+    static stringEscapedCharacters = /['"\\]/g
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",

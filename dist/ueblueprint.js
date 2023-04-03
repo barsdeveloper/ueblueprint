@@ -193,6 +193,7 @@ class Configuration {
     }
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
+    static stringEscapedCharacters = /['"\\]/g
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
@@ -740,8 +741,7 @@ class Utility {
     /** @param {String} value */
     static escapeString(value) {
         return value
-            .replaceAll('\\', '\\\\') // Escape \
-            .replaceAll('"', '\\"') // Escape "
+            .replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')
             .replaceAll("\n", "\\n") // Replace newline with \n
             .replaceAll("\t", "\\t") // Replace tab with \t
     }
@@ -751,8 +751,7 @@ class Utility {
         return value
             .replaceAll("\\t", "\t") // Replace tab with \t
             .replaceAll("\\n", "\n") // Replace newline with \n
-            .replaceAll('\\"', '"') // Escape "
-            .replaceAll('\\\\', '\\') // Escape \
+            .replaceAll(new RegExp(`\\\\(${Configuration.stringEscapedCharacters.source})`, "g"), "$1")
     }
 
     /** @param {String} value */

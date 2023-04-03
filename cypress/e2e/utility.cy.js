@@ -148,8 +148,17 @@ describe("Utility class", () => {
             expect(Utility.escapeString("")).to.be.equal("")
             expect(Utility.unescapeString("")).to.be.equal("")
 
+            expect(Utility.escapeString('"')).to.be.equal('\\"')
+            expect(Utility.unescapeString('\\"')).to.be.equal('"')
+
+            expect(Utility.escapeString("'")).to.be.equal("\\'")
+            expect(Utility.unescapeString("\\'")).to.be.equal("'")
+
             expect(Utility.escapeString(String.raw`\"`)).to.be.equal(String.raw`\\\"`)
             expect(Utility.unescapeString(String.raw`\"`)).to.be.equal('"')
+
+            expect(Utility.escapeString(String.raw`\'`)).to.be.equal(String.raw`\\\'`)
+            expect(Utility.unescapeString(String.raw`\'`)).to.be.equal("'")
 
             expect(Utility.escapeString(String.raw`Hello \"World\"`)).to.be.equal(String.raw`Hello \\\"World\\\"`)
             expect(Utility.unescapeString(String.raw`Hello \"World\"`)).to.be.equal('Hello "World"')

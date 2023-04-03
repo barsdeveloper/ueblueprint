@@ -299,8 +299,7 @@ export default class Utility {
     /** @param {String} value */
     static escapeString(value) {
         return value
-            .replaceAll('\\', '\\\\') // Escape \
-            .replaceAll('"', '\\"') // Escape "
+            .replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')
             .replaceAll("\n", "\\n") // Replace newline with \n
             .replaceAll("\t", "\\t") // Replace tab with \t
     }
@@ -310,8 +309,7 @@ export default class Utility {
         return value
             .replaceAll("\\t", "\t") // Replace tab with \t
             .replaceAll("\\n", "\n") // Replace newline with \n
-            .replaceAll('\\"', '"') // Escape "
-            .replaceAll('\\\\', '\\') // Escape \
+            .replaceAll(new RegExp(`\\\\(${Configuration.stringEscapedCharacters.source})`, "g"), "$1")
     }
 
     /** @param {String} value */
