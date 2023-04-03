@@ -231,7 +231,7 @@ const tests = [
         icon: SVGIcon.node,
         pins: 2,
         pinNames: ["Object", "Event"],
-        delete: false,
+        delegate: false,
         development: false,
     },
 ]

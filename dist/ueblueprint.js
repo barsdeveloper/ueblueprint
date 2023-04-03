@@ -35,6 +35,7 @@ class Configuration {
         blue: i$3`84, 122, 156`,
         gray: i$3`150,150,150`,
         green: i$3`95, 129, 90`,
+        lime: i$3`150, 160, 30`,
         red: i$3`151, 33, 32`,
         turquoise: i$3`46, 104, 106`,
     }
@@ -140,6 +141,7 @@ class Configuration {
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         select: "/Script/BlueprintGraph.K2Node_Select",
+        switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
@@ -2367,7 +2369,7 @@ class SVGIcon {
     `
 
     static gamepad = y`
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill="white" d="m 15.2107 8.525 c -0.6619 -1.7207 -1.9856 -4.8978 -3.3094 -4.8978 c -1.9856 0 -1.9856 1.8532 -2.7799 1.8532 c -0.3971 0 -1.8532 0 -2.3827 0 c -0.7943 0 -0.7943 -1.8532 -2.6475 -1.8532 c -1.3238 0 -2.6475 3.0446 -3.3094 4.8978 c -1.059 3.3094 -1.1914 4.8979 1.1914 4.8979 c 2.6475 0 2.6475 -3.0445 5.9569 -3.0445 c 3.3094 0 3.4418 3.0445 5.9569 3.0445 c 2.5151 0 2.5151 -1.5885 1.3238 -4.8979 z m -8.472 0 h -1.3238 v 1.3238 h -1.3238 v -1.3238 h -1.3238 v -1.3238 h 1.3238 v -1.3238 h 1.3238 v 1.3238 h 1.3238 v 1.3238 z m 4.6331 1.5887 c -1.1914 0 -2.2504 -0.9268 -2.2504 -2.2505 c 0 -1.1913 0.9267 -2.2503 2.2504 -2.2503 c 1.3238 0 2.2504 0.9266 2.2504 2.2503 c 0 1.1915 -1.059 2.2505 -2.2504 2.2505 z m -0.0001 -2.9124 c -0.3971 0 -0.6619 0.2648 -0.6619 0.6619 c 0 0.3971 0.2648 0.6619 0.6619 0.6619 c 0.3971 0 0.6619 -0.2648 0.6619 -0.6619 c 0 -0.3971 -0.2648 -0.6619 -0.6619 -0.6619 z" />
         </svg>
     `
@@ -2473,14 +2475,14 @@ class SVGIcon {
     `
 
     static mouse = y`
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white"/>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 0C11 0.595745 13.4 3.31915 13.9143 6.6383H8.85714V0ZM7.14286 0C5 0.595745 2.6 3.31915 2.08571 6.6383H7.14286V0ZM8.85714 8.34043H7.14286H2C2 12.5957 3.02857 16 8 16C12.9714 16 14 12.5957 14 8.34043H8.85714Z" fill="white"/>
         </svg>
     `
 
     static node = y`
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="16" height="15" rx="1" fill="white" fill-opacity="0.5"/>
             <rect x="0.5" y="0.5" width="15" height="14" rx="0.5" stroke="white"/>
             <rect x="1" width="14" height="5" fill="white"/>
@@ -2536,6 +2538,17 @@ class SVGIcon {
             <rect x="10" y="2" width="6" height="2" fill="white" />
             <rect x="10" y="7" width="4" height="2" fill="white" />
             <rect x="10" y="12" width="2" height="2" fill="white" />
+        </svg>
+    `
+
+    static switch = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="2" width="6" height="2" fill="white" />
+            <rect y="7" width="9" height="2" fill="white" />
+            <rect x="3" y="4" width="2" height="9" fill="white" />
+            <rect x="3" y="12" width="6" height="2" fill="white" />
+            <rect x="10" y="2" width="3" height="2" fill="white" />
+            <path d="M12 0L15 3L12 6V0Z" fill="white" />
         </svg>
     `
 
@@ -3011,6 +3024,8 @@ class ObjectEntity extends IEntity {
                 return ""
             case Configuration.nodeType.variableSet:
                 return "SET"
+            case Configuration.nodeType.switchEnum:
+                return `Switch on ${this.Enum?.getName()}`
         }
         const keyNameSymbol = this.getHIDAttribute();
         if (keyNameSymbol) {
@@ -3113,6 +3128,8 @@ class ObjectEntity extends IEntity {
                 return Configuration.nodeColors.gray
             case Configuration.nodeType.dynamicCast:
                 return Configuration.nodeColors.turquoise
+            case Configuration.nodeType.switchEnum:
+                return Configuration.nodeColors.lime
         }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
@@ -3151,6 +3168,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
+            case Configuration.nodeType.switchEnum: return SVGIcon.switch
         }
         if (this.nodeDisplayName().startsWith("Break")) {
             return SVGIcon.breakStruct
@@ -3275,6 +3293,10 @@ class Grammar {
 
     static colorValue = this.byteNumber
     static word = P.regex(Grammar.Regex.Word)
+    static pathQuotes = Grammar.regexMap(
+        new RegExp(`"(${Grammar.Regex.PathOptSpace.source}|${Grammar.Regex.Symbol.source})"|'"(${Grammar.Regex.PathOptSpace.source}|${Grammar.Regex.Symbol.source})"'`),
+        ([_0, a, b, c]) => a ?? b ?? c
+    )
     static path = Grammar.regexMap(
         new RegExp(`(${Grammar.Regex.Path.source})|"(${Grammar.Regex.PathOptSpace.source})"|'"(${Grammar.Regex.PathOptSpace.source})"'`),
         ([_0, a, b, c]) => a ?? b ?? c
@@ -3308,6 +3330,7 @@ class Grammar {
 
     /**
       * @param {AnyValueConstructor<any>} type
+      * @returns {Parsimmon.Parser<any>}
       */
     static grammarFor(
         attribute,
@@ -3444,10 +3467,7 @@ class Grammar {
         return result
     }
 
-    static createAttributeGrammar(
-        entityType,
-        valueSeparator = this.equalSeparation
-    ) {
+    static createAttributeGrammar(entityType, valueSeparator = this.equalSeparation) {
         return P.seq(
             this.attributeName,
             valueSeparator,
@@ -3579,7 +3599,7 @@ class Grammar {
     )
 
     static fullReferenceEntity = P.lazy(() =>
-        P.seq(this.typeReference, P.optWhitespace, this.path)
+        P.seq(this.typeReference, P.optWhitespace, this.pathQuotes)
             .map(([type, _2, path]) =>
                 new ObjectReferenceEntity({ type: type, path: path })
             )
@@ -3728,6 +3748,26 @@ class Grammar {
         })
     )
 
+    static indexedArrayEntry = P.lazy(() => {
+        return P.seq(
+            this.symbol,
+            this.regexMap(
+                new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
+                v => v[1]
+            )
+        )
+            .chain(([symbol, _1]) =>
+                this.grammarFor(ObjectEntity.attributes[symbol])
+                    .map(currentValue =>
+                        values => {
+                            if (!values[symbol]) {
+                                values[symbol] = [];
+                            }
+                            values[symbol].push(currentValue);
+                        })
+            )
+    })
+
     static objectEntity = P.lazy(() =>
         P.seq(
             P.regex(/Begin\s+Object/),
@@ -3736,6 +3776,7 @@ class Grammar {
                 P.alt(
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
+                    this.indexedArrayEntry
                 )
             )
                 .map(([_0, entry]) => entry)

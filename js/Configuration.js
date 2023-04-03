@@ -11,6 +11,7 @@ export default class Configuration {
         blue: css`84, 122, 156`,
         gray: css`150,150,150`,
         green: css`95, 129, 90`,
+        lime: css`150, 160, 30`,
         red: css`151, 33, 32`,
         turquoise: css`46, 104, 106`,
     }
@@ -116,6 +117,7 @@ export default class Configuration {
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         select: "/Script/BlueprintGraph.K2Node_Select",
+        switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",

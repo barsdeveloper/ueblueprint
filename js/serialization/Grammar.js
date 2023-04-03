@@ -94,6 +94,10 @@ export default class Grammar {
 
     static colorValue = this.byteNumber
     static word = P.regex(Grammar.Regex.Word)
+    static pathQuotes = Grammar.regexMap(
+        new RegExp(`"(${Grammar.Regex.PathOptSpace.source}|${Grammar.Regex.Symbol.source})"|'"(${Grammar.Regex.PathOptSpace.source}|${Grammar.Regex.Symbol.source})"'`),
+        ([_0, a, b, c]) => a ?? b ?? c
+    )
     static path = Grammar.regexMap(
         new RegExp(`(${Grammar.Regex.Path.source})|"(${Grammar.Regex.PathOptSpace.source})"|'"(${Grammar.Regex.PathOptSpace.source})"'`),
         ([_0, a, b, c]) => a ?? b ?? c
@@ -127,6 +131,7 @@ export default class Grammar {
 
     /**
       * @param {AnyValueConstructor<any>} type
+      * @returns {Parsimmon.Parser<any>}
       */
     static grammarFor(
         attribute,
@@ -263,10 +268,7 @@ export default class Grammar {
         return result
     }
 
-    static createAttributeGrammar(
-        entityType,
-        valueSeparator = this.equalSeparation
-    ) {
+    static createAttributeGrammar(entityType, valueSeparator = this.equalSeparation) {
         return P.seq(
             this.attributeName,
             valueSeparator,
@@ -398,7 +400,7 @@ export default class Grammar {
     )
 
     static fullReferenceEntity = P.lazy(() =>
-        P.seq(this.typeReference, P.optWhitespace, this.path)
+        P.seq(this.typeReference, P.optWhitespace, this.pathQuotes)
             .map(([type, _2, path]) =>
                 new ObjectReferenceEntity({ type: type, path: path })
             )
@@ -547,6 +549,26 @@ export default class Grammar {
         })
     )
 
+    static indexedArrayEntry = P.lazy(() => {
+        return P.seq(
+            this.symbol,
+            this.regexMap(
+                new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
+                v => v[1]
+            )
+        )
+            .chain(([symbol, _1]) =>
+                this.grammarFor(ObjectEntity.attributes[symbol])
+                    .map(currentValue =>
+                        values => {
+                            if (!values[symbol]) {
+                                values[symbol] = []
+                            }
+                            values[symbol].push(currentValue)
+                        })
+            )
+    })
+
     static objectEntity = P.lazy(() =>
         P.seq(
             P.regex(/Begin\s+Object/),
@@ -555,6 +577,7 @@ export default class Grammar {
                 P.alt(
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
+                    this.indexedArrayEntry
                 )
             )
                 .map(([_0, entry]) => entry)

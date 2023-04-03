@@ -446,6 +446,8 @@ export default class ObjectEntity extends IEntity {
                 return ""
             case Configuration.nodeType.variableSet:
                 return "SET"
+            case Configuration.nodeType.switchEnum:
+                return `Switch on ${this.Enum?.getName() ?? "Enum"}`
         }
         const keyNameSymbol = this.getHIDAttribute()
         if (keyNameSymbol) {
@@ -548,6 +550,8 @@ export default class ObjectEntity extends IEntity {
                 return Configuration.nodeColors.gray
             case Configuration.nodeType.dynamicCast:
                 return Configuration.nodeColors.turquoise
+            case Configuration.nodeType.switchEnum:
+                return Configuration.nodeColors.lime
         }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
@@ -586,6 +590,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
+            case Configuration.nodeType.switchEnum: return SVGIcon.switch
         }
         if (this.nodeDisplayName().startsWith("Break")) {
             return SVGIcon.breakStruct
