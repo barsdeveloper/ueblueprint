@@ -110,6 +110,14 @@ export default class PinEntity extends IEntity {
             type: [PinReferenceEntity],
             showDefault: false,
         },
+        SubPins: {
+            type: [PinReferenceEntity],
+            showDefault: false,
+        },
+        ParentPin: {
+            type: PinReferenceEntity,
+            showDefault: false,
+        },
         DefaultValue: {
             /** @param {PinEntity} pinEntity */
             type: new ComputedType(pinEntity => pinEntity.getEntityType(true) ?? String),

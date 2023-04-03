@@ -935,8 +935,9 @@ class IEntity {
 
             if (!suppressWarns) {
                 if (!(attributeName in attributes)) {
+                    const typeName = value instanceof Array ? `[${value[0].constructor.name}]` : value.constructor.name;
                     console.warn(
-                        `UEBlueprint: Attribute ${attributeName} in the serialized data is not defined in `
+                        `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not defined in `
                         + `${this.constructor.name}.attributes`
                     );
                 } else if (
@@ -1231,7 +1232,7 @@ class FormatTextEntity extends IEntity {
     static lookbehind = "LOCGEN_FORMAT_NAMED"
     static attributes = {
         value: {
-            type: [new UnionType(LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
+            type: [new UnionType(LocalizedTextEntity, String, InvariantTextEntity, FormatTextEntity)],
         },
     }
 
@@ -2023,6 +2024,14 @@ class PinEntity extends IEntity {
         },
         LinkedTo: {
             type: [PinReferenceEntity],
+            showDefault: false,
+        },
+        SubPins: {
+            type: [PinReferenceEntity],
+            showDefault: false,
+        },
+        ParentPin: {
+            type: PinReferenceEntity,
             showDefault: false,
         },
         DefaultValue: {
@@ -3704,6 +3713,7 @@ class Grammar {
             this.objectReferenceEntity,
             this.unknownKeysEntity,
             this.symbol,
+            this.grammarFor(undefined, [PinReferenceEntity]),
         )
     )
 

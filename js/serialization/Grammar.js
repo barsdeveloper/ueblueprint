@@ -531,6 +531,7 @@ export default class Grammar {
             this.objectReferenceEntity,
             this.unknownKeysEntity,
             this.symbol,
+            this.grammarFor(undefined, [PinReferenceEntity]),
         )
     )
 
