@@ -47,7 +47,7 @@ export default class ObjectSerializer extends ISerializer {
      * @param {Boolean} insideString
      */
     write(entity, insideString) {
-        let result = `Begin Object Class=${entity.Class.path} Name=${this.writeValue(entity, "Name", insideString)}\n`
+        let result = `Begin Object Class=${entity.Class.path} Name=${this.writeValue(entity.Name, insideString)}\n`
             + super.write(entity, insideString)
             + entity.CustomProperties.map(pin =>
                 this.attributeSeparator

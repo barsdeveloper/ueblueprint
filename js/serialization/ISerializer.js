@@ -1,3 +1,4 @@
+import IndexedArray from "../entity/IndexedArray.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
@@ -66,14 +67,29 @@ export default class ISerializer {
             const value = entity[key]
             if (value !== undefined && this.showProperty(entity, key)) {
                 const isSerialized = Utility.isSerialized(entity, key)
+                if (value instanceof IndexedArray) {
+                    value.value.forEach((value, i) =>
+                        result += (result.length ? this.attributeSeparator : "")
+                        + this.attributePrefix
+                        + Utility.decodeKeyName(this.attributeKeyPrinter(key))
+                        + `(${i})`
+                        + this.attributeValueConjunctionSign
+                        + (
+                            isSerialized
+                                ? `"${this.writeValue(value, true)}"`
+                                : this.writeValue(value, insideString)
+                        )
+                    )
+                    continue
+                }
                 result += (result.length ? this.attributeSeparator : "")
                     + this.attributePrefix
                     + Utility.decodeKeyName(this.attributeKeyPrinter(key))
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
-                            ? `"${this.writeValue(entity, key, true)}"`
-                            : this.writeValue(entity, key, insideString)
+                        ? `"${this.writeValue(value, true)}"`
+                        : this.writeValue(value, insideString)
                     )
             }
         }
@@ -86,19 +102,20 @@ export default class ISerializer {
 
     /**
      * @protected
-     * @param {String} key
      * @param {Boolean} insideString
      */
-    writeValue(entity, key, insideString) {
-        const value = entity[key]
+    writeValue(value, insideString) {
         const type = Utility.getType(value)
         // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type)
         if (!serializer) {
-            throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
+            throw new Error(
+                `Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, `
+                + "check initializeSerializerFactory.js"
+            )
         }
         return serializer.write(
-            entity[key],
+            value,
             insideString
         )
     }

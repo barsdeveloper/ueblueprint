@@ -4,6 +4,7 @@ import FormatTextEntity from "../entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import IdentifierEntity from "../entity/IdentifierEntity.js"
+import IndexedArray from "../entity/IndexedArray.js"
 import Integer64Entity from "../entity/Integer64Entity.js"
 import IntegerEntity from "../entity/IntegerEntity.js"
 import InvariantTextEntity from "../entity/InvariantTextEntity.js"
@@ -27,6 +28,7 @@ import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVector
 import SymbolEntity from "../entity/SymbolEntity.js"
 import UnionType from "../entity/UnionType.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
+import UserDefinedPinEntity from "../entity/UserDefinedPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
@@ -242,6 +244,9 @@ export default class Grammar {
                 case SymbolEntity:
                     result = this.symbolEntity
                     break
+                case UserDefinedPinEntity:
+                    result = this.userDefinedPinEntity
+                    break
                 case VariableReferenceEntity:
                     result = this.variableReferenceEntity
                     break
@@ -342,10 +347,16 @@ export default class Grammar {
     static integerEntity = P.lazy(() => this.integer.map(v => new IntegerEntity(v)))
 
     static invariantTextEntity = P.lazy(() =>
-        P.seq(
-            P.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*`)),
-            this.grammarFor(InvariantTextEntity.attributes.value)
-        )
+        P.alt(
+            P.seq(
+                P.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*\\(`)),
+                this.grammarFor(InvariantTextEntity.attributes.value),
+                P.regex(/\s*\)/)
+            )
+                .map(([_0, value, _2]) => value),
+            P.regex(new RegExp(InvariantTextEntity.lookbehind)) // InvariantTextEntity can not have arguments
+                .map(() => "")
+        ).map(value => new InvariantTextEntity(value))
     )
 
     static keyBindingEntity = P.lazy(() =>
@@ -482,6 +493,8 @@ export default class Grammar {
 
     static symbolEntity = P.lazy(() => this.symbol.map(v => new SymbolEntity(v)))
 
+    static userDefinedPinEntity = P.lazy(() => this.createEntityGrammar(UserDefinedPinEntity))
+
     static variableReferenceEntity = P.lazy(() => this.createEntityGrammar(VariableReferenceEntity))
 
     static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
@@ -526,6 +539,7 @@ export default class Grammar {
             this.string,
             this.localizedTextEntity,
             this.invariantTextEntity,
+            this.formatTextEntity,
             this.pinReferenceEntity,
             this.vectorEntity,
             this.linearColorEntity,
@@ -540,7 +554,7 @@ export default class Grammar {
     static customProperty = P.lazy(() =>
         P.seq(
             P.regex(/CustomProperties\s+/),
-            this.pinEntity,
+            this.grammarFor(undefined, ObjectEntity.attributes.CustomProperties.type[0]),
         ).map(([_0, pin]) => values => {
             if (!values.CustomProperties) {
                 values.CustomProperties = []
@@ -560,12 +574,9 @@ export default class Grammar {
             .chain(([symbol, _1]) =>
                 this.grammarFor(ObjectEntity.attributes[symbol])
                     .map(currentValue =>
-                        values => {
-                            if (!values[symbol]) {
-                                values[symbol] = []
-                            }
-                            values[symbol].push(currentValue)
-                        })
+                        values => (values[symbol] ??= new IndexedArray(currentValue.constructor))
+                            .value.push(currentValue)
+                    )
             )
     })
 

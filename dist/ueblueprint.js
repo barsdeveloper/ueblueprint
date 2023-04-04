@@ -1379,6 +1379,24 @@ class IdentifierEntity extends IEntity {
     }
 }
 
+/** @typedef {import("./IEntity").AnyValueConstructor<*>} AnyValueConstructor */
+
+class IndexedArray {
+
+    #type
+    get type() {
+        return this.#type
+    }
+
+    value = []
+
+    /** @param {AnyValueConstructor} type */
+    constructor(type, value = []) {
+        this.#type = type;
+        this.value = value;
+    }
+}
+
 class Integer64Entity extends IEntity {
 
     static attributes = {
@@ -2591,6 +2609,13 @@ class VariableReferenceEntity extends IEntity {
     }
 }
 
+/** @typedef {import("./IEntity.js").AnyValue} AnyValue */
+
+class UserDefinedPinEntity extends IEntity {
+
+    static lookbehind = "UserDefinedPin"
+}
+
 class ObjectEntity extends IEntity {
 
     static attributes = {
@@ -2774,7 +2799,7 @@ class ObjectEntity extends IEntity {
             showDefault: false,
         },
         CustomProperties: {
-            type: [PinEntity]
+            type: [new UnionType(PinEntity, UserDefinedPinEntity)]
         },
     }
 
@@ -3025,7 +3050,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.variableSet:
                 return "SET"
             case Configuration.nodeType.switchEnum:
-                return `Switch on ${this.Enum?.getName()}`
+                return `Switch on ${this.Enum?.getName() ?? "Enum"}`
         }
         const keyNameSymbol = this.getHIDAttribute();
         if (keyNameSymbol) {
@@ -3441,6 +3466,9 @@ class Grammar {
                 case SymbolEntity:
                     result = this.symbolEntity;
                     break
+                case UserDefinedPinEntity:
+                    result = this.userDefinedPinEntity;
+                    break
                 case VariableReferenceEntity:
                     result = this.variableReferenceEntity;
                     break
@@ -3541,10 +3569,16 @@ class Grammar {
     static integerEntity = P.lazy(() => this.integer.map(v => new IntegerEntity(v)))
 
     static invariantTextEntity = P.lazy(() =>
-        P.seq(
-            P.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*`)),
-            this.grammarFor(InvariantTextEntity.attributes.value)
-        )
+        P.alt(
+            P.seq(
+                P.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*\\(`)),
+                this.grammarFor(InvariantTextEntity.attributes.value),
+                P.regex(/\s*\)/)
+            )
+                .map(([_0, value, _2]) => value),
+            P.regex(new RegExp(InvariantTextEntity.lookbehind)) // InvariantTextEntity can not have arguments
+                .map(() => "")
+        ).map(value => new InvariantTextEntity(value))
     )
 
     static keyBindingEntity = P.lazy(() =>
@@ -3681,6 +3715,8 @@ class Grammar {
 
     static symbolEntity = P.lazy(() => this.symbol.map(v => new SymbolEntity(v)))
 
+    static userDefinedPinEntity = P.lazy(() => this.createEntityGrammar(UserDefinedPinEntity))
+
     static variableReferenceEntity = P.lazy(() => this.createEntityGrammar(VariableReferenceEntity))
 
     static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
@@ -3725,6 +3761,7 @@ class Grammar {
             this.string,
             this.localizedTextEntity,
             this.invariantTextEntity,
+            this.formatTextEntity,
             this.pinReferenceEntity,
             this.vectorEntity,
             this.linearColorEntity,
@@ -3739,7 +3776,7 @@ class Grammar {
     static customProperty = P.lazy(() =>
         P.seq(
             P.regex(/CustomProperties\s+/),
-            this.pinEntity,
+            this.grammarFor(undefined, ObjectEntity.attributes.CustomProperties.type[0]),
         ).map(([_0, pin]) => values => {
             if (!values.CustomProperties) {
                 values.CustomProperties = [];
@@ -3759,12 +3796,9 @@ class Grammar {
             .chain(([symbol, _1]) =>
                 this.grammarFor(ObjectEntity.attributes[symbol])
                     .map(currentValue =>
-                        values => {
-                            if (!values[symbol]) {
-                                values[symbol] = [];
-                            }
-                            values[symbol].push(currentValue);
-                        })
+                        values => (values[symbol] ??= new IndexedArray(currentValue.constructor))
+                            .value.push(currentValue)
+                    )
             )
     })
 
@@ -3947,14 +3981,29 @@ class ISerializer {
             const value = entity[key];
             if (value !== undefined && this.showProperty(entity, key)) {
                 const isSerialized = Utility.isSerialized(entity, key);
+                if (value instanceof IndexedArray) {
+                    value.value.forEach((value, i) =>
+                        result += (result.length ? this.attributeSeparator : "")
+                        + this.attributePrefix
+                        + Utility.decodeKeyName(this.attributeKeyPrinter(key))
+                        + `(${i})`
+                        + this.attributeValueConjunctionSign
+                        + (
+                            isSerialized
+                                ? `"${this.writeValue(value, true)}"`
+                                : this.writeValue(value, insideString)
+                        )
+                    );
+                    continue
+                }
                 result += (result.length ? this.attributeSeparator : "")
                     + this.attributePrefix
                     + Utility.decodeKeyName(this.attributeKeyPrinter(key))
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
-                            ? `"${this.writeValue(entity, key, true)}"`
-                            : this.writeValue(entity, key, insideString)
+                        ? `"${this.writeValue(value, true)}"`
+                        : this.writeValue(value, insideString)
                     );
             }
         }
@@ -3967,19 +4016,20 @@ class ISerializer {
 
     /**
      * @protected
-     * @param {String} key
      * @param {Boolean} insideString
      */
-    writeValue(entity, key, insideString) {
-        const value = entity[key];
+    writeValue(value, insideString) {
         const type = Utility.getType(value);
         // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type);
         if (!serializer) {
-            throw new Error(`Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, check initializeSerializerFactory.js`)
+            throw new Error(
+                `Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, `
+                + "check initializeSerializerFactory.js"
+            )
         }
         return serializer.write(
-            entity[key],
+            value,
             insideString
         )
     }
@@ -4041,7 +4091,7 @@ class ObjectSerializer extends ISerializer {
      * @param {Boolean} insideString
      */
     write(entity, insideString) {
-        let result = `Begin Object Class=${entity.Class.path} Name=${this.writeValue(entity, "Name", insideString)}\n`
+        let result = `Begin Object Class=${entity.Class.path} Name=${this.writeValue(entity.Name, insideString)}\n`
             + super.write(entity, insideString)
             + entity.CustomProperties.map(pin =>
                 this.attributeSeparator

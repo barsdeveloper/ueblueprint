@@ -10,6 +10,8 @@ import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PinEntity from "./PinEntity.js"
 import SVGIcon from "../SVGIcon.js"
 import SymbolEntity from "./SymbolEntity.js"
+import UnionType from "./UnionType.js"
+import UserDefinedPinEntity from "./UserDefinedPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
 
@@ -196,7 +198,7 @@ export default class ObjectEntity extends IEntity {
             showDefault: false,
         },
         CustomProperties: {
-            type: [PinEntity]
+            type: [new UnionType(PinEntity, UserDefinedPinEntity)]
         },
     }
 
