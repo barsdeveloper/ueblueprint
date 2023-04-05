@@ -18,7 +18,6 @@ import ObjectSerializer from "./ObjectSerializer.js"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
-import PinTypeEntity from "../entity/PinTypeEntity.js"
 import RealUnitEntity from "../entity/UnitRealEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
@@ -26,6 +25,7 @@ import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotat
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity.js"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
+import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
 import ToStringSerializer from "./ToStringSerializer.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import Utility from "../Utility.js"
@@ -184,8 +184,8 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
-        PinTypeEntity,
-        new GeneralSerializer(bracketsWrapped, PinTypeEntity)
+        TerminalTypeEntity,
+        new GeneralSerializer(bracketsWrapped, TerminalTypeEntity)
     )
 
     SerializerFactory.registerSerializer(

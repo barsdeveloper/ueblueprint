@@ -1,6 +1,6 @@
 import IEntity from "./IEntity.js"
 
-export default class PinTypeEntity extends IEntity {
+export default class TerminalTypeEntity extends IEntity {
 
     static attributes = {
         TerminalCategory: {

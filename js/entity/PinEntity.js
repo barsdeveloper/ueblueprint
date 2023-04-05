@@ -13,11 +13,11 @@ import LocalizedTextEntity from "./LocalizedTextEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PathSymbolEntity from "./PathSymbolEntity.js"
 import PinReferenceEntity from "./PinReferenceEntity.js"
-import PinTypeEntity from "./PinTypeEntity.js"
 import RotatorEntity from "./RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEntity.js"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity.js"
+import TerminalTypeEntity from "./TerminalTypeEntity.js"
 import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
 import Vector2DEntity from "./Vector2DEntity.js"
@@ -85,7 +85,7 @@ export default class PinEntity extends IEntity {
             default: null,
         },
         PinType$PinValueType: {
-            type: PinTypeEntity,
+            type: TerminalTypeEntity,
             default: null,
         },
         PinType$ContainerType: {
@@ -171,7 +171,7 @@ export default class PinEntity extends IEntity {
         /** @type {String} */ this.PinType$PinSubCategory
         /** @type {ObjectReferenceEntity} */ this.PinType$PinSubCategoryObject
         /** @type {FunctionReferenceEntity} */ this.PinType$PinSubCategoryMemberReference
-        /** @type {PinTypeEntity} */ this.PinType$PinValueType
+        /** @type {TerminalTypeEntity} */ this.PinType$PinValueType
         /** @type {PathSymbolEntity} */ this.PinType$ContainerType
         /** @type {Boolean} */ this.PinType$bIsReference
         /** @type {Boolean} */ this.PinType$bIsConst

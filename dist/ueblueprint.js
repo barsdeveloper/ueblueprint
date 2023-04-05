@@ -1819,45 +1819,6 @@ class PinReferenceEntity extends IEntity {
     }
 }
 
-class PinTypeEntity extends IEntity {
-
-    static attributes = {
-        TerminalCategory: {
-            default: "",
-            showDefault: false,
-        },
-        TerminalSubCategory: {
-            default: "",
-            showDefault: false,
-        },
-        bTerminalIsConst: {
-            default: false,
-            showDefault: false,
-        },
-        bTerminalIsWeakPointer: {
-            default: false,
-            showDefault: false,
-        },
-        bTerminalIsUObjectWrapper: {
-            default: false,
-            showDefault: false,
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.TerminalCategory;
-        /** @type {String} */ this.TerminalSubCategory;
-        /** @type {Boolean} */ this.bTerminalIsConst;
-        /** @type {Boolean} */ this.bTerminalIsWeakPointer;
-        /** @type {Boolean} */ this.bTerminalIsUObjectWrapper;
-    }
-}
-
 class RotatorEntity extends IEntity {
 
     static attributes = {
@@ -1958,6 +1919,45 @@ class VectorEntity extends IEntity {
 class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
+class TerminalTypeEntity extends IEntity {
+
+    static attributes = {
+        TerminalCategory: {
+            default: "",
+            showDefault: false,
+        },
+        TerminalSubCategory: {
+            default: "",
+            showDefault: false,
+        },
+        bTerminalIsConst: {
+            default: false,
+            showDefault: false,
+        },
+        bTerminalIsWeakPointer: {
+            default: false,
+            showDefault: false,
+        },
+        bTerminalIsUObjectWrapper: {
+            default: false,
+            showDefault: false,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.TerminalCategory;
+        /** @type {String} */ this.TerminalSubCategory;
+        /** @type {Boolean} */ this.bTerminalIsConst;
+        /** @type {Boolean} */ this.bTerminalIsWeakPointer;
+        /** @type {Boolean} */ this.bTerminalIsUObjectWrapper;
+    }
+}
+
 /**
  * @typedef {import("./IEntity").AnyValue} AnyValue
  * @typedef {import("lit").CSSResult} CSSResult
@@ -2020,7 +2020,7 @@ class PinEntity extends IEntity {
             default: null,
         },
         PinType$PinValueType: {
-            type: PinTypeEntity,
+            type: TerminalTypeEntity,
             default: null,
         },
         PinType$ContainerType: {
@@ -2106,7 +2106,7 @@ class PinEntity extends IEntity {
         /** @type {String} */ this.PinType$PinSubCategory;
         /** @type {ObjectReferenceEntity} */ this.PinType$PinSubCategoryObject;
         /** @type {FunctionReferenceEntity} */ this.PinType$PinSubCategoryMemberReference;
-        /** @type {PinTypeEntity} */ this.PinType$PinValueType;
+        /** @type {TerminalTypeEntity} */ this.PinType$PinValueType;
         /** @type {PathSymbolEntity} */ this.PinType$ContainerType;
         /** @type {Boolean} */ this.PinType$bIsReference;
         /** @type {Boolean} */ this.PinType$bIsConst;
@@ -2578,6 +2578,13 @@ class SVGIcon {
     `
 }
 
+/** @typedef {import("./IEntity.js").AnyValue} AnyValue */
+
+class UserDefinedPinEntity extends IEntity {
+
+    static lookbehind = "UserDefinedPin"
+}
+
 class VariableReferenceEntity extends IEntity {
 
     static attributes = {
@@ -2607,13 +2614,6 @@ class VariableReferenceEntity extends IEntity {
         /** @type {GuidEntity} */ this.GuidEntity;
         /** @type {Boolean} */ this.bSelfContext;
     }
-}
-
-/** @typedef {import("./IEntity.js").AnyValue} AnyValue */
-
-class UserDefinedPinEntity extends IEntity {
-
-    static lookbehind = "UserDefinedPin"
 }
 
 class ObjectEntity extends IEntity {
@@ -3442,7 +3442,7 @@ class Grammar {
                 case PinReferenceEntity:
                     result = this.pinReferenceEntity;
                     break
-                case PinTypeEntity:
+                case TerminalTypeEntity:
                     result = this.pinTypeEntity;
                     break
                 case RealUnitEntity:
@@ -3665,7 +3665,7 @@ class Grammar {
         )
     )
 
-    static pinTypeEntity = P.lazy(() => this.createEntityGrammar(PinTypeEntity))
+    static pinTypeEntity = P.lazy(() => this.createEntityGrammar(TerminalTypeEntity))
 
     static realUnitEntity = P.lazy(() => this.realUnit.map(value => new RealUnitEntity(value)))
 
@@ -10248,8 +10248,8 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
-        PinTypeEntity,
-        new GeneralSerializer(bracketsWrapped, PinTypeEntity)
+        TerminalTypeEntity,
+        new GeneralSerializer(bracketsWrapped, TerminalTypeEntity)
     );
 
     SerializerFactory.registerSerializer(

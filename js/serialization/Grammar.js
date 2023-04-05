@@ -19,13 +19,13 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
-import PinTypeEntity from "../entity/PinTypeEntity.js"
 import RealUnitEntity from "../entity/UnitRealEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity.js"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
+import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
 import UnionType from "../entity/UnionType.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import UserDefinedPinEntity from "../entity/UserDefinedPinEntity.js"
@@ -220,7 +220,7 @@ export default class Grammar {
                 case PinReferenceEntity:
                     result = this.pinReferenceEntity
                     break
-                case PinTypeEntity:
+                case TerminalTypeEntity:
                     result = this.pinTypeEntity
                     break
                 case RealUnitEntity:
@@ -443,7 +443,7 @@ export default class Grammar {
         )
     )
 
-    static pinTypeEntity = P.lazy(() => this.createEntityGrammar(PinTypeEntity))
+    static pinTypeEntity = P.lazy(() => this.createEntityGrammar(TerminalTypeEntity))
 
     static realUnitEntity = P.lazy(() => this.realUnit.map(value => new RealUnitEntity(value)))
 
