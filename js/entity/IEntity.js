@@ -40,6 +40,7 @@ export default class IEntity {
         ignored: false,
         serialized: false,
         expected: false,
+        inline: false,
     }
 
     constructor(values = {}, suppressWarns = false) {

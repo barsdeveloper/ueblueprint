@@ -1,7 +1,6 @@
 import IEntity from "../../js/entity/IEntity"
-import UnionType from "../../js/entity/UnionType"
-import Utility from "../../js/Utility"
 import SimpleObject from "./SimpleObject"
+import UnionType from "../../js/entity/UnionType"
 
 export default class ComplexEntity extends IEntity {
 
@@ -61,11 +60,15 @@ export default class ComplexEntity extends IEntity {
             type: SimpleObject,
         },
         papa: {
-            default: () => new SimpleObject(12, 13),
+            default: () => new SimpleObject({ a: 12, b: 13 }),
         },
         quebec: {
             default: 0, // will assign undefined because it does not satisfy the predicate
             predicate: v => v >= 1 && v <= 10,
+        },
+        romeo: {
+            type: SimpleObject,
+            inline: true,
         },
     }
 

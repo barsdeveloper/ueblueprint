@@ -24,9 +24,6 @@ export default class SimpleEntity extends IEntity {
         someArray: {
             default: [400, 500, 600, 700, 800],
         },
-        someSet: {
-            default: new Set([10, 20, 30, 40, 50, 60, 70]),
-        },
     }
 
     static {

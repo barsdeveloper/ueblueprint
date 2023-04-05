@@ -1,7 +1,19 @@
-export default class SimpleObject {
+import IEntity from "../../js/entity/IEntity.js"
 
-    constructor(a = 8, b = 9) {
-        this.a = a
-        this.b = b
+export default class SimpleObject extends IEntity {
+
+    static attributes = {
+        a: {
+            type: Number,
+        },
+        b: {
+            type: Number,
+        },
+    }
+
+    constructor(values = {}) {
+        values.a ??= 8
+        values.b ??= 9
+        super(values)
     }
 }

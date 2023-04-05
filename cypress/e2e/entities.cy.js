@@ -1,6 +1,9 @@
 /// <reference types="cypress" />
 
 import ComplexEntity from "../fixtures/ComplexEntity"
+import GeneralSerializer from "../../js/serialization/GeneralSerializer.js"
+import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory.js"
+import SerializerFactory from "../../js/serialization/SerializerFactory.js"
 import SimpleEntity from "../fixtures/SimpleEntity"
 import SimpleObject from "../fixtures/SimpleObject"
 
@@ -12,7 +15,22 @@ describe("Entity initialization", () => {
 
     context("SimpleEntity", () => {
         const entity = new SimpleEntity()
-        it("has 8 keys", () => expect(Object.keys(entity).length).to.equal(8))
+        before(() => {
+            initializeSerializerFactory()
+            SerializerFactory.registerSerializer(
+                SimpleEntity,
+                new GeneralSerializer(
+                    v => `{\n${v}\n}`,
+                    SimpleEntity,
+                    "    ",
+                    "\n",
+                    false,
+                    ": ",
+                    undefined
+                )
+            )
+        })
+        it("has 7 keys", () => expect(Object.keys(entity).length).to.equal(7))
         it("has someNumber equal to 567", () => expect(entity)
             .to.have.property("someNumber")
             .which.is.a("number")
@@ -78,6 +96,19 @@ describe("Entity initialization", () => {
         it("compares equal entities as equal", () => expect(other1.equals(other2))
             .to.be.true
         )
+        it("can serialize", () => {
+            expect(SerializerFactory.getSerializer(SimpleEntity).serialize(entity))
+                .to.equal(`{
+    someNumber: 567
+    someString: "alpha"
+    someString2: "beta"
+    someBoolean: True
+    someBoolean2: False
+    someObjectString: "gamma"
+    someArray: (400,500,600,700,800,)
+}`
+                )
+        })
     })
 
     context("ComplexEntity", () => {
@@ -100,7 +131,35 @@ describe("Entity initialization", () => {
             "oscar",
             "papa",
             "quebec",
+            "romeo",
         ]
+        before(() => {
+            initializeSerializerFactory()
+            SerializerFactory.registerSerializer(
+                ComplexEntity,
+                new GeneralSerializer(
+                    v => `[[\n${v}\n]]`,
+                    ComplexEntity,
+                    "    ",
+                    "\n",
+                    false,
+                    ": ",
+                    undefined
+                )
+            )
+            SerializerFactory.registerSerializer(
+                SimpleObject,
+                new GeneralSerializer(
+                    v => `SimpleObject(${v})`,
+                    SimpleObject,
+                    "",
+                    ", ",
+                    false,
+                    "=",
+                    undefined
+                )
+            )
+        })
         it(`has ${keys.length} keys`, () => expect(Object.keys(entity).length).to.equal(keys.length))
         it("has specific keys names", () => expect(Object.keys(entity)).to.be.deep.equal(keys))
         it("has alpha equal to 32", () => expect(entity)
@@ -202,6 +261,29 @@ describe("Entity initialization", () => {
             expect(entity.quebec, "assigned -1").to.be.equal(10)
             entity.quebec = 6
             expect(entity.quebec, "assigned 6").to.be.equal(6)
+        })
+        it("can serialize", () => {
+            expect(SerializerFactory.getSerializer(ComplexEntity).serialize(entity))
+                .to.equal(`[[
+    alpha: 32
+    bravo: 78
+    charlie: "Charlie"
+    delta: ()
+    echo: "echo"
+    foxtrot: False
+    golf: ()
+    hotel: ()
+    india: ()
+    juliett: ("a","b","c","d","e",)
+    kilo: (True,False,False,True,True,)
+    mike: "Bar"
+    november: 0
+    oscar: SimpleObject(a=8, b=9)
+    papa: SimpleObject(a=12, b=13)
+    romeo.a: 8
+    romeo.b: 9
+]]`
+                )
         })
     })
 })
