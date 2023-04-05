@@ -15,14 +15,14 @@ export default class ObjectSerializer extends ISerializer {
             case "Class":
             case "Name":
             case "CustomProperties":
-                // Serielized separately, check write()
+                // Serielized separately, check doWrite()
                 return false
         }
         return super.showProperty(entity, key)
     }
 
     /** @param {String} value */
-    read(value) {
+    doRead(value) {
         const parseResult = Grammar.objectEntity.parse(value)
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
@@ -46,14 +46,14 @@ export default class ObjectSerializer extends ISerializer {
      * @param {ObjectEntity} entity
      * @param {Boolean} insideString
      */
-    write(entity, insideString) {
-        let result = `Begin Object Class=${entity.Class.path} Name=${this.writeValue(entity.Name, insideString)}\n`
-            + super.write(entity, insideString)
+    doWrite(entity, insideString) {
+        let result = `Begin Object Class=${entity.Class.path} Name=${this.doWriteValue(entity.Name, insideString)}\n`
+            + super.doWrite(entity, insideString)
             + entity.CustomProperties.map(pin =>
                 this.attributeSeparator
                 + this.attributePrefix
                 + "CustomProperties "
-                + SerializerFactory.getSerializer(PinEntity).serialize(pin)
+                + SerializerFactory.getSerializer(PinEntity).write(pin)
             )
                 .join("")
             + "\nEnd Object\n"

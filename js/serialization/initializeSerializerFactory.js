@@ -58,7 +58,7 @@ export default function initializeSerializerFactory() {
                 `(${array
                     .map(v =>
                         // @ts-expect-error
-                        SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
+                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString) + ","
                     )
                     .join("")
                 })`,

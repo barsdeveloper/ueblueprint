@@ -27,7 +27,7 @@ export default class CustomSerializer extends GeneralSerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, insideString = false) {
+    doWrite(entity, insideString = false) {
         let result = this.#objectWriter(entity, insideString)
         return result
     }

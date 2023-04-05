@@ -21,7 +21,7 @@ export default class ToStringSerializer extends GeneralSerializer {
      * @param {T} entity
      * @param {Boolean} insideString
      */
-    write(entity, insideString) {
+    doWrite(entity, insideString) {
         return !insideString && entity.constructor === String
             ? `"${Utility.escapeString(entity.toString())}"` // String will have quotes if not inside a string already
             : Utility.escapeString(entity.toString())

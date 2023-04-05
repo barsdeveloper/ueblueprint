@@ -27,7 +27,7 @@ export default class Copy extends IInput {
     getSerializedText() {
         return this.blueprint
             .getNodes(true)
-            .map(node => Copy.#serializer.serialize(node.entity, false))
+            .map(node => Copy.#serializer.write(node.entity, false))
             .join("")
     }
 

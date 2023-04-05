@@ -97,7 +97,7 @@ describe("Entity initialization", () => {
             .to.be.true
         )
         it("can serialize", () => {
-            expect(SerializerFactory.getSerializer(SimpleEntity).serialize(entity))
+            expect(SerializerFactory.getSerializer(SimpleEntity).write(entity))
                 .to.equal(`{
     someNumber: 567
     someString: "alpha"
@@ -263,7 +263,7 @@ describe("Entity initialization", () => {
             expect(entity.quebec, "assigned 6").to.be.equal(6)
         })
         it("can serialize", () => {
-            expect(SerializerFactory.getSerializer(ComplexEntity).serialize(entity))
+            expect(SerializerFactory.getSerializer(ComplexEntity).write(entity))
                 .to.equal(`[[
     alpha: 32
     bravo: 78

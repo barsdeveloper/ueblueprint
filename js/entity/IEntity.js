@@ -131,7 +131,7 @@ export default class IEntity {
                 if (value?.constructor === String && attribute.serialized && defaultType !== String) {
                     value = SerializerFactory
                         .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
-                        .deserialize(/** @type {String} */(value))
+                        .read(/** @type {String} */(value))
                 }
                 assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
                 continue // We have a value, need nothing more
@@ -156,7 +156,7 @@ export default class IEntity {
                 if (defaultType !== String && defaultValue.constructor === String) {
                     defaultValue = SerializerFactory
                         .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
-                        .deserialize(defaultValue)
+                        .read(defaultValue)
                 }
             }
             assignAttribute(Utility.sanitize(

@@ -27,7 +27,7 @@ export default class GeneralSerializer extends ISerializer {
      * @param {String} value
      * @returns {T}
      */
-    read(value) {
+    doRead(value) {
         let grammar = Grammar.grammarFor(undefined, this.entityType)
         const parseResult = grammar.parse(value)
         if (!parseResult.status) {
@@ -41,8 +41,8 @@ export default class GeneralSerializer extends ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, insideString = false) {
-        let result = this.wrap(super.write(entity, insideString), entity)
+    doWrite(entity, insideString = false) {
+        let result = this.wrap(super.doWrite(entity, insideString), entity)
         return result
     }
 }

@@ -32,13 +32,13 @@ export default class ISerializer {
      * @param {String} value
      * @returns {T}
      */
-    deserialize(value) {
-        return this.read(value)
+    read(value) {
+        return this.doRead(value)
     }
 
     /** @param {T} value */
-    serialize(value, insideString = false) {
-        return this.write(value, insideString)
+    write(value, insideString = false) {
+        return this.doWrite(value, insideString)
     }
 
     /**
@@ -46,7 +46,7 @@ export default class ISerializer {
      * @param {String} value
      * @returns {T}
      */
-    read(value) {
+    doRead(value) {
         throw new Error("Not implemented")
     }
 
@@ -56,7 +56,7 @@ export default class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, insideString) {
+    doWrite(entity, insideString) {
         let result = ""
         const attributes = /** @type {EntityConstructor} */(entity.constructor).attributes ?? {}
         const keys = Utility.mergeArrays(
@@ -76,8 +76,8 @@ export default class ISerializer {
                         + this.attributeValueConjunctionSign
                         + (
                             isSerialized
-                                ? `"${this.writeValue(value, true)}"`
-                                : this.writeValue(value, insideString)
+                                ? `"${this.doWriteValue(value, true)}"`
+                                : this.doWriteValue(value, insideString)
                         )
                     )
                     continue
@@ -88,8 +88,8 @@ export default class ISerializer {
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
-                        ? `"${this.writeValue(value, true)}"`
-                        : this.writeValue(value, insideString)
+                        ? `"${this.doWriteValue(value, true)}"`
+                        : this.doWriteValue(value, insideString)
                     )
             }
         }
@@ -104,7 +104,7 @@ export default class ISerializer {
      * @protected
      * @param {Boolean} insideString
      */
-    writeValue(value, insideString) {
+    doWriteValue(value, insideString) {
         const type = Utility.getType(value)
         // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type)
@@ -114,7 +114,7 @@ export default class ISerializer {
                 + "check initializeSerializerFactory.js"
             )
         }
-        return serializer.write(
+        return serializer.doWrite(
             value,
             insideString
         )
