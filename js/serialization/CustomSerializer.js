@@ -1,4 +1,4 @@
-import GeneralSerializer from "./GeneralSerializer.js"
+import ISerializer from "./ISerializer.js"
 
 /**
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
@@ -7,9 +7,9 @@ import GeneralSerializer from "./GeneralSerializer.js"
 
 /**
  * @template {AnyValue} T
- * @extends {GeneralSerializer<T>}
+ * @extends {ISerializer<T>}
  */
-export default class CustomSerializer extends GeneralSerializer {
+export default class CustomSerializer extends ISerializer {
 
     #objectWriter
 
@@ -18,7 +18,7 @@ export default class CustomSerializer extends GeneralSerializer {
      * @param {AnyValueConstructor} entityType
      */
     constructor(objectWriter, entityType) {
-        super(undefined, entityType)
+        super(entityType)
         this.#objectWriter = objectWriter
     }
 

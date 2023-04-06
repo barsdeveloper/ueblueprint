@@ -1,11 +1,11 @@
 /// <reference types="cypress" />
 
 import ComplexEntity from "../fixtures/ComplexEntity"
-import GeneralSerializer from "../../js/serialization/GeneralSerializer.js"
 import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory.js"
 import SerializerFactory from "../../js/serialization/SerializerFactory.js"
 import SimpleEntity from "../fixtures/SimpleEntity"
 import SimpleObject from "../fixtures/SimpleObject"
+import ISerializer from "../../js/serialization/ISerializer.js"
 
 describe("Entity initialization", () => {
     before(() => {
@@ -19,9 +19,9 @@ describe("Entity initialization", () => {
             initializeSerializerFactory()
             SerializerFactory.registerSerializer(
                 SimpleEntity,
-                new GeneralSerializer(
-                    v => `{\n${v}\n}`,
+                new ISerializer(
                     SimpleEntity,
+                    v => `{\n${v}\n}`,
                     "    ",
                     "\n",
                     false,
@@ -137,9 +137,9 @@ describe("Entity initialization", () => {
             initializeSerializerFactory()
             SerializerFactory.registerSerializer(
                 ComplexEntity,
-                new GeneralSerializer(
-                    v => `[[\n${v}\n]]`,
+                new ISerializer(
                     ComplexEntity,
+                    v => `[[\n${v}\n]]`,
                     "    ",
                     "\n",
                     false,
@@ -149,9 +149,9 @@ describe("Entity initialization", () => {
             )
             SerializerFactory.registerSerializer(
                 SimpleObject,
-                new GeneralSerializer(
-                    v => `SimpleObject(${v})`,
+                new ISerializer(
                     SimpleObject,
+                    v => `SimpleObject(${v})`,
                     "",
                     ", ",
                     false,

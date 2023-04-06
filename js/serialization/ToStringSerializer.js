@@ -1,5 +1,5 @@
+import ISerializer from "./ISerializer.js"
 import Utility from "../Utility.js"
-import GeneralSerializer from "./GeneralSerializer.js"
 
 /**
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
@@ -8,13 +8,13 @@ import GeneralSerializer from "./GeneralSerializer.js"
 
 /**
  * @template {AnyValue} T
- * @extends {GeneralSerializer<T>}
+ * @extends {ISerializer<T>}
  */
-export default class ToStringSerializer extends GeneralSerializer {
+export default class ToStringSerializer extends ISerializer {
 
     /** @param {AnyValueConstructor} entityType */
     constructor(entityType) {
-        super(undefined, entityType)
+        super(entityType)
     }
 
     /**

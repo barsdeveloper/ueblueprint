@@ -7,7 +7,7 @@ import SerializerFactory from "./SerializerFactory.js"
 export default class ObjectSerializer extends ISerializer {
 
     constructor() {
-        super(ObjectEntity, "   ", "\n", false)
+        super(ObjectEntity, undefined, "   ", "\n", false)
     }
 
     showProperty(entity, key) {
@@ -43,10 +43,24 @@ export default class ObjectSerializer extends ISerializer {
     }
 
     /**
+     * @protected
      * @param {ObjectEntity} entity
      * @param {Boolean} insideString
+     * @returns {String}
      */
-    doWrite(entity, insideString) {
+    doWrite(
+        entity,
+        insideString,
+        wrap = this.wrap,
+        attributePrefix = this.attributePrefix,
+        attributeSeparator = this.attributeSeparator,
+        trailingSeparator = this.trailingSeparator,
+        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
+        attributeKeyPrinter = this.attributeKeyPrinter
+    ) {
+        if (!(entity instanceof ObjectEntity)) {
+            return super.doWrite(entity, insideString)
+        }
         let result = `Begin Object Class=${entity.Class.path} Name=${this.doWriteValue(entity.Name, insideString)}\n`
             + super.doWrite(entity, insideString)
             + entity.CustomProperties.map(pin =>

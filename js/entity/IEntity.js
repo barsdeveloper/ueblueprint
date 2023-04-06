@@ -19,6 +19,7 @@ import Utility from "../Utility.js"
  *     ignored?: Boolean,
  *     serialized?: Boolean,
  *     expected?: Boolean,
+ *     inlined?: Boolean,
  *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
  */
@@ -40,7 +41,7 @@ export default class IEntity {
         ignored: false,
         serialized: false,
         expected: false,
-        inline: false,
+        inlined: false,
     }
 
     constructor(values = {}, suppressWarns = false) {

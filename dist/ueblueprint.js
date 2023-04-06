@@ -896,6 +896,7 @@ class Utility {
  *     ignored?: Boolean,
  *     serialized?: Boolean,
  *     expected?: Boolean,
+ *     inlined?: Boolean,
  *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
  */
@@ -917,6 +918,7 @@ class IEntity {
         ignored: false,
         serialized: false,
         expected: false,
+        inlined: false,
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -1007,7 +1009,7 @@ class IEntity {
                 if (value?.constructor === String && attribute.serialized && defaultType !== String) {
                     value = SerializerFactory
                         .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
-                        .deserialize(/** @type {String} */(value));
+                        .read(/** @type {String} */(value));
                 }
                 assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)));
                 continue // We have a value, need nothing more
@@ -1032,7 +1034,7 @@ class IEntity {
                 if (defaultType !== String && defaultValue.constructor === String) {
                     defaultValue = SerializerFactory
                         .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
-                        .deserialize(defaultValue);
+                        .read(defaultValue);
                 }
             }
             assignAttribute(Utility.sanitize(
@@ -3925,9 +3927,15 @@ class Grammar {
 /** @template {AnyValue} T */
 class ISerializer {
 
+    /** @type {(v: String, entityType: AnyValueConstructor) => String} */
+    static bracketsWrapped = ((v, entityType) => `(${v})`)
+    /** @type {(v: String, entityType: AnyValueConstructor) => String} */
+    static notWrapped = ((v, entityType) => v)
+
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
+        wrap = ISerializer.bracketsWrapped,
         attributePrefix = "",
         attributeSeparator = ",",
         trailingSeparator = false,
@@ -3935,6 +3943,7 @@ class ISerializer {
         attributeKeyPrinter = k => k
     ) {
         this.entityType = entityType;
+        this.wrap = wrap;
         this.attributePrefix = attributePrefix;
         this.attributeSeparator = attributeSeparator;
         this.trailingSeparator = trailingSeparator;
@@ -3946,13 +3955,13 @@ class ISerializer {
      * @param {String} value
      * @returns {T}
      */
-    deserialize(value) {
-        return this.read(value)
+    read(value) {
+        return this.doRead(value)
     }
 
     /** @param {T} value */
-    serialize(value, insideString = false) {
-        return this.write(value, insideString)
+    write(value, insideString = false) {
+        return this.doWrite(value, insideString)
     }
 
     /**
@@ -3960,8 +3969,13 @@ class ISerializer {
      * @param {String} value
      * @returns {T}
      */
-    read(value) {
-        throw new Error("Not implemented")
+    doRead(value) {
+        let grammar = Grammar.grammarFor(undefined, this.entityType);
+        const parseResult = grammar.parse(value);
+        if (!parseResult.status) {
+            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
+        }
+        return parseResult.value
     }
 
     /**
@@ -3970,7 +3984,16 @@ class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, insideString) {
+    doWrite(
+        entity,
+        insideString,
+        wrap = this.wrap,
+        attributePrefix = this.attributePrefix,
+        attributeSeparator = this.attributeSeparator,
+        trailingSeparator = this.trailingSeparator,
+        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
+        attributeKeyPrinter = this.attributeKeyPrinter
+    ) {
         let result = "";
         const attributes = /** @type {EntityConstructor} */(entity.constructor).attributes ?? {};
         const keys = Utility.mergeArrays(
@@ -3981,29 +4004,41 @@ class ISerializer {
             const value = entity[key];
             if (value !== undefined && this.showProperty(entity, key)) {
                 const isSerialized = Utility.isSerialized(entity, key);
-                if (value instanceof IndexedArray) {
-                    value.value.forEach((value, i) =>
-                        result += (result.length ? this.attributeSeparator : "")
-                        + this.attributePrefix
-                        + Utility.decodeKeyName(this.attributeKeyPrinter(key))
-                        + `(${i})`
-                        + this.attributeValueConjunctionSign
-                        + (
-                            isSerialized
-                                ? `"${this.writeValue(value, true)}"`
-                                : this.writeValue(value, insideString)
-                        )
+                result += (result.length ? attributeSeparator : "");
+                if (attributes[key]?.inlined) {
+                    result += this.doWrite(
+                        value,
+                        insideString,
+                        ISerializer.notWrapped,
+                        `${attributePrefix}${key}.`,
+                        attributeSeparator,
+                        trailingSeparator,
+                        attributeValueConjunctionSign,
+                        attributeKeyPrinter
                     );
                     continue
                 }
-                result += (result.length ? this.attributeSeparator : "")
-                    + this.attributePrefix
+                if (value instanceof IndexedArray) {
+                    result += this.doWrite(
+                        value,
+                        insideString,
+                        wrap,
+                        attributePrefix,
+                        attributeSeparator,
+                        trailingSeparator,
+                        attributeValueConjunctionSign,
+                        index => `(${index})`
+                    );
+                    continue
+                }
+                result +=
+                    attributePrefix
                     + Utility.decodeKeyName(this.attributeKeyPrinter(key))
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
-                        ? `"${this.writeValue(value, true)}"`
-                        : this.writeValue(value, insideString)
+                        ? `"${this.doWriteValue(value, true)}"`
+                        : this.doWriteValue(value, insideString)
                     );
             }
         }
@@ -4011,14 +4046,14 @@ class ISerializer {
             // append separator at the end if asked and there was printed content
             result += this.attributeSeparator;
         }
-        return result
+        return wrap(result, entity.constructor)
     }
 
     /**
      * @protected
      * @param {Boolean} insideString
      */
-    writeValue(value, insideString) {
+    doWriteValue(value, insideString) {
         const type = Utility.getType(value);
         // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type);
@@ -4028,7 +4063,7 @@ class ISerializer {
                 + "check initializeSerializerFactory.js"
             )
         }
-        return serializer.write(
+        return serializer.doWrite(
             value,
             insideString
         )
@@ -4051,7 +4086,7 @@ class ISerializer {
 class ObjectSerializer extends ISerializer {
 
     constructor() {
-        super(ObjectEntity, "   ", "\n", false);
+        super(ObjectEntity, undefined, "   ", "\n", false);
     }
 
     showProperty(entity, key) {
@@ -4059,14 +4094,14 @@ class ObjectSerializer extends ISerializer {
             case "Class":
             case "Name":
             case "CustomProperties":
-                // Serielized separately, check write()
+                // Serielized separately, check doWrite()
                 return false
         }
         return super.showProperty(entity, key)
     }
 
     /** @param {String} value */
-    read(value) {
+    doRead(value) {
         const parseResult = Grammar.objectEntity.parse(value);
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
@@ -4087,17 +4122,31 @@ class ObjectSerializer extends ISerializer {
     }
 
     /**
+     * @protected
      * @param {ObjectEntity} entity
      * @param {Boolean} insideString
+     * @returns {String}
      */
-    write(entity, insideString) {
-        let result = `Begin Object Class=${entity.Class.path} Name=${this.writeValue(entity.Name, insideString)}\n`
-            + super.write(entity, insideString)
+    doWrite(
+        entity,
+        insideString,
+        wrap = this.wrap,
+        attributePrefix = this.attributePrefix,
+        attributeSeparator = this.attributeSeparator,
+        trailingSeparator = this.trailingSeparator,
+        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
+        attributeKeyPrinter = this.attributeKeyPrinter
+    ) {
+        if (!(entity instanceof ObjectEntity)) {
+            return super.doWrite(entity, insideString)
+        }
+        let result = `Begin Object Class=${entity.Class.path} Name=${this.doWriteValue(entity.Name, insideString)}\n`
+            + super.doWrite(entity, insideString)
             + entity.CustomProperties.map(pin =>
                 this.attributeSeparator
                 + this.attributePrefix
                 + "CustomProperties "
-                + SerializerFactory.getSerializer(PinEntity).serialize(pin)
+                + SerializerFactory.getSerializer(PinEntity).write(pin)
             )
                 .join("")
             + "\nEnd Object\n";
@@ -4131,7 +4180,7 @@ class Copy extends IInput {
     getSerializedText() {
         return this.blueprint
             .getNodes(true)
-            .map(node => Copy.#serializer.serialize(node.entity, false))
+            .map(node => Copy.#serializer.write(node.entity, false))
             .join("")
     }
 
@@ -7496,7 +7545,7 @@ class NodeElement extends ISelectableDraggableElement {
     /** @param {String} str */
     static fromSerializedObject(str) {
         str = str.trim();
-        let entity = SerializerFactory.getSerializer(ObjectEntity).deserialize(str);
+        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
         return NodeElement.newObject(/** @type {ObjectEntity} */(entity))
     }
 
@@ -9992,61 +10041,15 @@ function defineElements() {
 }
 
 /**
- * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /**
  * @template {AnyValue} T
- * @extends ISerializer<T>
+ * @extends {ISerializer<T>}
  */
-class GeneralSerializer extends ISerializer {
-
-    /**
-     * @param {(value: String, entity: T) => String} wrap
-     * @param {AnyValueConstructor} entityType
-     */
-    constructor(wrap, entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter) {
-        wrap = wrap ?? (v => `(${v})`);
-        super(entityType, attributePrefix, attributeSeparator, trailingSeparator, attributeValueConjunctionSign, attributeKeyPrinter);
-        this.wrap = wrap;
-    }
-
-    /**
-     * @param {String} value
-     * @returns {T}
-     */
-    read(value) {
-        let grammar = Grammar.grammarFor(undefined, this.entityType);
-        const parseResult = grammar.parse(value);
-        if (!parseResult.status) {
-            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
-        }
-        return parseResult.value
-    }
-
-    /**
-     * @param {T} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    write(entity, insideString = false) {
-        let result = this.wrap(super.write(entity, insideString), entity);
-        return result
-    }
-}
-
-/**
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
- */
-
-/**
- * @template {AnyValue} T
- * @extends {GeneralSerializer<T>}
- */
-class CustomSerializer extends GeneralSerializer {
+class CustomSerializer extends ISerializer {
 
     #objectWriter
 
@@ -10055,7 +10058,7 @@ class CustomSerializer extends GeneralSerializer {
      * @param {AnyValueConstructor} entityType
      */
     constructor(objectWriter, entityType) {
-        super(undefined, entityType);
+        super(entityType);
         this.#objectWriter = objectWriter;
     }
 
@@ -10064,7 +10067,7 @@ class CustomSerializer extends GeneralSerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    write(entity, insideString = false) {
+    doWrite(entity, insideString = false) {
         let result = this.#objectWriter(entity, insideString);
         return result
     }
@@ -10077,20 +10080,20 @@ class CustomSerializer extends GeneralSerializer {
 
 /**
  * @template {AnyValue} T
- * @extends {GeneralSerializer<T>}
+ * @extends {ISerializer<T>}
  */
-class ToStringSerializer extends GeneralSerializer {
+class ToStringSerializer extends ISerializer {
 
     /** @param {AnyValueConstructor} entityType */
     constructor(entityType) {
-        super(undefined, entityType);
+        super(entityType);
     }
 
     /**
      * @param {T} entity
      * @param {Boolean} insideString
      */
-    write(entity, insideString) {
+    doWrite(entity, insideString) {
         return !insideString && entity.constructor === String
             ? `"${Utility.escapeString(entity.toString())}"` // String will have quotes if not inside a string already
             : Utility.escapeString(entity.toString())
@@ -10103,8 +10106,6 @@ class ToStringSerializer extends GeneralSerializer {
  */
 
 function initializeSerializerFactory() {
-
-    const bracketsWrapped = v => `(${v})`;
 
     SerializerFactory.registerSerializer(
         null,
@@ -10122,7 +10123,7 @@ function initializeSerializerFactory() {
                 `(${array
                     .map(v =>
                         // @ts-expect-error
-                        SerializerFactory.getSerializer(Utility.getType(v)).serialize(v, insideString) + ","
+                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString) + ","
                     )
                     .join("")
                 })`,
@@ -10162,7 +10163,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
-        new GeneralSerializer(bracketsWrapped, FunctionReferenceEntity)
+        new ISerializer(FunctionReferenceEntity, ISerializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
@@ -10187,27 +10188,27 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new GeneralSerializer(v => `${InvariantTextEntity.lookbehind}(${v})`, InvariantTextEntity, "", ", ", false, "", _ => "")
+        new ISerializer(InvariantTextEntity, v => `${InvariantTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
         KeyBindingEntity,
-        new GeneralSerializer(bracketsWrapped, KeyBindingEntity)
+        new ISerializer(KeyBindingEntity, ISerializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
         LinearColorEntity,
-        new GeneralSerializer(bracketsWrapped, LinearColorEntity)
+        new ISerializer(LinearColorEntity, ISerializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new GeneralSerializer(v => `${LocalizedTextEntity.lookbehind}(${v})`, LocalizedTextEntity, "", ", ", false, "", _ => "")
+        new ISerializer(LocalizedTextEntity, v => `${LocalizedTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
         MacroGraphReferenceEntity,
-        new GeneralSerializer(bracketsWrapped, MacroGraphReferenceEntity)
+        new ISerializer(MacroGraphReferenceEntity, ISerializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
@@ -10239,17 +10240,17 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new GeneralSerializer(v => `${PinEntity.lookbehind} (${v})`, PinEntity, "", ",", true)
+        new ISerializer(PinEntity, v => `${PinEntity.lookbehind} (${v})`, "", ",", true)
     );
 
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
-        new GeneralSerializer(v => v, PinReferenceEntity, "", " ", false, "", _ => "")
+        new ISerializer(PinReferenceEntity, v => v, "", " ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
         TerminalTypeEntity,
-        new GeneralSerializer(bracketsWrapped, TerminalTypeEntity)
+        new ISerializer(TerminalTypeEntity, ISerializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
@@ -10259,7 +10260,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         RotatorEntity,
-        new GeneralSerializer(bracketsWrapped, RotatorEntity)
+        new ISerializer(RotatorEntity, ISerializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
@@ -10305,22 +10306,22 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         UnknownKeysEntity,
-        new GeneralSerializer((string, entity) => `${entity.lookbehind ?? ""}(${string})`, UnknownKeysEntity)
+        new ISerializer(UnknownKeysEntity, (string, entity) => `${entity.lookbehind ?? ""}(${string})`)
     );
 
     SerializerFactory.registerSerializer(
         VariableReferenceEntity,
-        new GeneralSerializer(bracketsWrapped, VariableReferenceEntity)
+        new ISerializer(VariableReferenceEntity, ISerializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
         Vector2DEntity,
-        new GeneralSerializer(bracketsWrapped, Vector2DEntity)
+        new ISerializer(Vector2DEntity, ISerializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
         VectorEntity,
-        new GeneralSerializer(bracketsWrapped, VectorEntity)
+        new ISerializer(VectorEntity, ISerializer.bracketsWrapped)
     );
 }
 

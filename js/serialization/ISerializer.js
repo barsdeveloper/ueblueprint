@@ -1,3 +1,4 @@
+import Grammar from "./Grammar.js"
 import IndexedArray from "../entity/IndexedArray.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
@@ -11,9 +12,15 @@ import Utility from "../Utility.js"
 /** @template {AnyValue} T */
 export default class ISerializer {
 
+    /** @type {(v: String, entityType: AnyValueConstructor) => String} */
+    static bracketsWrapped = ((v, entityType) => `(${v})`)
+    /** @type {(v: String, entityType: AnyValueConstructor) => String} */
+    static notWrapped = ((v, entityType) => v)
+
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
+        wrap = ISerializer.bracketsWrapped,
         attributePrefix = "",
         attributeSeparator = ",",
         trailingSeparator = false,
@@ -21,6 +28,7 @@ export default class ISerializer {
         attributeKeyPrinter = k => k
     ) {
         this.entityType = entityType
+        this.wrap = wrap
         this.attributePrefix = attributePrefix
         this.attributeSeparator = attributeSeparator
         this.trailingSeparator = trailingSeparator
@@ -47,7 +55,12 @@ export default class ISerializer {
      * @returns {T}
      */
     doRead(value) {
-        throw new Error("Not implemented")
+        let grammar = Grammar.grammarFor(undefined, this.entityType)
+        const parseResult = grammar.parse(value)
+        if (!parseResult.status) {
+            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
+        }
+        return parseResult.value
     }
 
     /**
@@ -56,7 +69,16 @@ export default class ISerializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    doWrite(entity, insideString) {
+    doWrite(
+        entity,
+        insideString,
+        wrap = this.wrap,
+        attributePrefix = this.attributePrefix,
+        attributeSeparator = this.attributeSeparator,
+        trailingSeparator = this.trailingSeparator,
+        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
+        attributeKeyPrinter = this.attributeKeyPrinter
+    ) {
         let result = ""
         const attributes = /** @type {EntityConstructor} */(entity.constructor).attributes ?? {}
         const keys = Utility.mergeArrays(
@@ -67,23 +89,35 @@ export default class ISerializer {
             const value = entity[key]
             if (value !== undefined && this.showProperty(entity, key)) {
                 const isSerialized = Utility.isSerialized(entity, key)
-                if (value instanceof IndexedArray) {
-                    value.value.forEach((value, i) =>
-                        result += (result.length ? this.attributeSeparator : "")
-                        + this.attributePrefix
-                        + Utility.decodeKeyName(this.attributeKeyPrinter(key))
-                        + `(${i})`
-                        + this.attributeValueConjunctionSign
-                        + (
-                            isSerialized
-                                ? `"${this.doWriteValue(value, true)}"`
-                                : this.doWriteValue(value, insideString)
-                        )
+                result += (result.length ? attributeSeparator : "")
+                if (attributes[key]?.inlined) {
+                    result += this.doWrite(
+                        value,
+                        insideString,
+                        ISerializer.notWrapped,
+                        `${attributePrefix}${key}.`,
+                        attributeSeparator,
+                        trailingSeparator,
+                        attributeValueConjunctionSign,
+                        attributeKeyPrinter
                     )
                     continue
                 }
-                result += (result.length ? this.attributeSeparator : "")
-                    + this.attributePrefix
+                if (value instanceof IndexedArray) {
+                    result += this.doWrite(
+                        value,
+                        insideString,
+                        wrap,
+                        attributePrefix,
+                        attributeSeparator,
+                        trailingSeparator,
+                        attributeValueConjunctionSign,
+                        index => `(${index})`
+                    )
+                    continue
+                }
+                result +=
+                    attributePrefix
                     + Utility.decodeKeyName(this.attributeKeyPrinter(key))
                     + this.attributeValueConjunctionSign
                     + (
@@ -97,7 +131,7 @@ export default class ISerializer {
             // append separator at the end if asked and there was printed content
             result += this.attributeSeparator
         }
-        return result
+        return wrap(result, entity.constructor)
     }
 
     /**

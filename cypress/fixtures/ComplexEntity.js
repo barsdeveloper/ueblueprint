@@ -68,7 +68,7 @@ export default class ComplexEntity extends IEntity {
         },
         romeo: {
             type: SimpleObject,
-            inline: true,
+            inlined: true,
         },
     }
 
