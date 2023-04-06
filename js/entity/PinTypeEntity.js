@@ -62,7 +62,7 @@ export default class PinTypeEntity extends IEntity {
         /** @type {Boolean} */ this.bIsUObjectWrapper
     }
 
-    /** @param {PinCategoryEntity} other */
+    /** @param {PinTypeEntity} other */
     copyTypeFrom(other) {
         this.PinCategory = other.PinCategory
         this.PinSubCategory = other.PinSubCategory

@@ -1,4 +1,4 @@
-import ISerializer from "./ISerializer.js"
+import Serializer from "./Serializer.js"
 import Utility from "../Utility.js"
 
 /**
@@ -8,9 +8,9 @@ import Utility from "../Utility.js"
 
 /**
  * @template {AnyValue} T
- * @extends {ISerializer<T>}
+ * @extends {Serializer<T>}
  */
-export default class ToStringSerializer extends ISerializer {
+export default class ToStringSerializer extends Serializer {
 
     /** @param {AnyValueConstructor} entityType */
     constructor(entityType) {

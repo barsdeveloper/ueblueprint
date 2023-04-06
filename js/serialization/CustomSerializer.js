@@ -1,4 +1,4 @@
-import ISerializer from "./ISerializer.js"
+import Serializer from "./Serializer.js"
 
 /**
  * @typedef {import("../entity/IEntity").AnyValue} AnyValue
@@ -7,9 +7,9 @@ import ISerializer from "./ISerializer.js"
 
 /**
  * @template {AnyValue} T
- * @extends {ISerializer<T>}
+ * @extends {Serializer<T>}
  */
-export default class CustomSerializer extends ISerializer {
+export default class CustomSerializer extends Serializer {
 
     #objectWriter
 

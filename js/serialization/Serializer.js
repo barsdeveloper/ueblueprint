@@ -4,13 +4,13 @@ import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
+ * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /** @template {AnyValue} T */
-export default class ISerializer {
+export default class Serializer {
 
     /** @type {(v: String, entityType: AnyValueConstructor) => String} */
     static bracketsWrapped = ((v, entityType) => `(${v})`)
@@ -20,7 +20,7 @@ export default class ISerializer {
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
-        wrap = ISerializer.bracketsWrapped,
+        wrap = Serializer.bracketsWrapped,
         attributePrefix = "",
         attributeSeparator = ",",
         trailingSeparator = false,
@@ -94,7 +94,7 @@ export default class ISerializer {
                     result += this.doWrite(
                         value,
                         insideString,
-                        ISerializer.notWrapped,
+                        Serializer.notWrapped,
                         `${attributePrefix}${key}.`,
                         attributeSeparator,
                         trailingSeparator,
@@ -122,8 +122,8 @@ export default class ISerializer {
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
-                        ? `"${this.doWriteValue(value, true)}"`
-                        : this.doWriteValue(value, insideString)
+                            ? `"${this.doWriteValue(value, true)}"`
+                            : this.doWriteValue(value, insideString)
                     )
             }
         }

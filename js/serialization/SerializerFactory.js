@@ -9,18 +9,18 @@
  */
 /**
  * @template {AnyValue} T
- * @typedef {import("./ISerializer").default<T>} ISerializer
+ * @typedef {import("./Serializer").default<T>} Serializer
  */
 
 export default class SerializerFactory {
 
-    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
+    /** @type {Map<AnyValueConstructor<AnyValue>, Serializer<AnyValue>>} */
     static #serializers = new Map()
 
     /**
      * @template {AnyValue} T
      * @param {AnyValueConstructor<T>} entity
-     * @param {ISerializer<T>} object
+     * @param {Serializer<T>} object
      */
     static registerSerializer(entity, object) {
         SerializerFactory.#serializers.set(entity, object)
@@ -29,7 +29,7 @@ export default class SerializerFactory {
     /**
      * @template {AnyValue} T
      * @param {new () => T} entity
-     * @returns {ISerializer<T>}
+     * @returns {Serializer<T>}
      */
     static getSerializer(entity) {
         // @ts-expect-error

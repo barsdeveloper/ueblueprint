@@ -400,18 +400,18 @@ class ComputedType {
  */
 /**
  * @template {AnyValue} T
- * @typedef {import("./ISerializer").default<T>} ISerializer
+ * @typedef {import("./Serializer").default<T>} Serializer
  */
 
 class SerializerFactory {
 
-    /** @type {Map<AnyValueConstructor<AnyValue>, ISerializer<AnyValue>>} */
+    /** @type {Map<AnyValueConstructor<AnyValue>, Serializer<AnyValue>>} */
     static #serializers = new Map()
 
     /**
      * @template {AnyValue} T
      * @param {AnyValueConstructor<T>} entity
-     * @param {ISerializer<T>} object
+     * @param {Serializer<T>} object
      */
     static registerSerializer(entity, object) {
         SerializerFactory.#serializers.set(entity, object);
@@ -420,7 +420,7 @@ class SerializerFactory {
     /**
      * @template {AnyValue} T
      * @param {new () => T} entity
-     * @returns {ISerializer<T>}
+     * @returns {Serializer<T>}
      */
     static getSerializer(entity) {
         // @ts-expect-error
@@ -3919,13 +3919,13 @@ class Grammar {
 }
 
 /**
- * @typedef {import("../entity/IEntity").EntityConstructor} EntityConstructor
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
+ * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /** @template {AnyValue} T */
-class ISerializer {
+class Serializer {
 
     /** @type {(v: String, entityType: AnyValueConstructor) => String} */
     static bracketsWrapped = ((v, entityType) => `(${v})`)
@@ -3935,7 +3935,7 @@ class ISerializer {
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
-        wrap = ISerializer.bracketsWrapped,
+        wrap = Serializer.bracketsWrapped,
         attributePrefix = "",
         attributeSeparator = ",",
         trailingSeparator = false,
@@ -4009,7 +4009,7 @@ class ISerializer {
                     result += this.doWrite(
                         value,
                         insideString,
-                        ISerializer.notWrapped,
+                        Serializer.notWrapped,
                         `${attributePrefix}${key}.`,
                         attributeSeparator,
                         trailingSeparator,
@@ -4037,8 +4037,8 @@ class ISerializer {
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
-                        ? `"${this.doWriteValue(value, true)}"`
-                        : this.doWriteValue(value, insideString)
+                            ? `"${this.doWriteValue(value, true)}"`
+                            : this.doWriteValue(value, insideString)
                     );
             }
         }
@@ -4083,7 +4083,7 @@ class ISerializer {
     }
 }
 
-class ObjectSerializer extends ISerializer {
+class ObjectSerializer extends Serializer {
 
     constructor() {
         super(ObjectEntity, undefined, "   ", "\n", false);
@@ -10047,9 +10047,9 @@ function defineElements() {
 
 /**
  * @template {AnyValue} T
- * @extends {ISerializer<T>}
+ * @extends {Serializer<T>}
  */
-class CustomSerializer extends ISerializer {
+class CustomSerializer extends Serializer {
 
     #objectWriter
 
@@ -10080,9 +10080,9 @@ class CustomSerializer extends ISerializer {
 
 /**
  * @template {AnyValue} T
- * @extends {ISerializer<T>}
+ * @extends {Serializer<T>}
  */
-class ToStringSerializer extends ISerializer {
+class ToStringSerializer extends Serializer {
 
     /** @param {AnyValueConstructor} entityType */
     constructor(entityType) {
@@ -10163,7 +10163,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
-        new ISerializer(FunctionReferenceEntity, ISerializer.bracketsWrapped)
+        new Serializer(FunctionReferenceEntity, Serializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
@@ -10188,27 +10188,27 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new ISerializer(InvariantTextEntity, v => `${InvariantTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
+        new Serializer(InvariantTextEntity, v => `${InvariantTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
         KeyBindingEntity,
-        new ISerializer(KeyBindingEntity, ISerializer.bracketsWrapped)
+        new Serializer(KeyBindingEntity, Serializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
         LinearColorEntity,
-        new ISerializer(LinearColorEntity, ISerializer.bracketsWrapped)
+        new Serializer(LinearColorEntity, Serializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new ISerializer(LocalizedTextEntity, v => `${LocalizedTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
+        new Serializer(LocalizedTextEntity, v => `${LocalizedTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
         MacroGraphReferenceEntity,
-        new ISerializer(MacroGraphReferenceEntity, ISerializer.bracketsWrapped)
+        new Serializer(MacroGraphReferenceEntity, Serializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
@@ -10240,17 +10240,17 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new ISerializer(PinEntity, v => `${PinEntity.lookbehind} (${v})`, "", ",", true)
+        new Serializer(PinEntity, v => `${PinEntity.lookbehind} (${v})`, "", ",", true)
     );
 
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
-        new ISerializer(PinReferenceEntity, v => v, "", " ", false, "", _ => "")
+        new Serializer(PinReferenceEntity, v => v, "", " ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
         TerminalTypeEntity,
-        new ISerializer(TerminalTypeEntity, ISerializer.bracketsWrapped)
+        new Serializer(TerminalTypeEntity, Serializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
@@ -10260,7 +10260,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         RotatorEntity,
-        new ISerializer(RotatorEntity, ISerializer.bracketsWrapped)
+        new Serializer(RotatorEntity, Serializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
@@ -10306,22 +10306,22 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         UnknownKeysEntity,
-        new ISerializer(UnknownKeysEntity, (string, entity) => `${entity.lookbehind ?? ""}(${string})`)
+        new Serializer(UnknownKeysEntity, (string, entity) => `${entity.lookbehind ?? ""}(${string})`)
     );
 
     SerializerFactory.registerSerializer(
         VariableReferenceEntity,
-        new ISerializer(VariableReferenceEntity, ISerializer.bracketsWrapped)
+        new Serializer(VariableReferenceEntity, Serializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
         Vector2DEntity,
-        new ISerializer(Vector2DEntity, ISerializer.bracketsWrapped)
+        new Serializer(Vector2DEntity, Serializer.bracketsWrapped)
     );
 
     SerializerFactory.registerSerializer(
         VectorEntity,
-        new ISerializer(VectorEntity, ISerializer.bracketsWrapped)
+        new Serializer(VectorEntity, Serializer.bracketsWrapped)
     );
 }
 

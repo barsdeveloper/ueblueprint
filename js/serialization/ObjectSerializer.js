@@ -1,10 +1,10 @@
 import Grammar from "./Grammar.js"
-import ISerializer from "./ISerializer.js"
+import Serializer from "./Serializer.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
 
-export default class ObjectSerializer extends ISerializer {
+export default class ObjectSerializer extends Serializer {
 
     constructor() {
         super(ObjectEntity, undefined, "   ", "\n", false)

@@ -7,7 +7,7 @@ import IdentifierEntity from "../entity/IdentifierEntity.js"
 import Integer64Entity from "../entity/Integer64Entity.js"
 import IntegerEntity from "../entity/IntegerEntity.js"
 import InvariantTextEntity from "../entity/InvariantTextEntity.js"
-import ISerializer from "./ISerializer.js"
+import Serializer from "./Serializer.js"
 import KeyBindingEntity from "../entity/KeyBindingEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity.js"
@@ -96,7 +96,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         FunctionReferenceEntity,
-        new ISerializer(FunctionReferenceEntity, ISerializer.bracketsWrapped)
+        new Serializer(FunctionReferenceEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
@@ -121,27 +121,27 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new ISerializer(InvariantTextEntity, v => `${InvariantTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
+        new Serializer(InvariantTextEntity, v => `${InvariantTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
     )
 
     SerializerFactory.registerSerializer(
         KeyBindingEntity,
-        new ISerializer(KeyBindingEntity, ISerializer.bracketsWrapped)
+        new Serializer(KeyBindingEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
         LinearColorEntity,
-        new ISerializer(LinearColorEntity, ISerializer.bracketsWrapped)
+        new Serializer(LinearColorEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new ISerializer(LocalizedTextEntity, v => `${LocalizedTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
+        new Serializer(LocalizedTextEntity, v => `${LocalizedTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
     )
 
     SerializerFactory.registerSerializer(
         MacroGraphReferenceEntity,
-        new ISerializer(MacroGraphReferenceEntity, ISerializer.bracketsWrapped)
+        new Serializer(MacroGraphReferenceEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
@@ -173,17 +173,17 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new ISerializer(PinEntity, v => `${PinEntity.lookbehind} (${v})`, "", ",", true)
+        new Serializer(PinEntity, v => `${PinEntity.lookbehind} (${v})`, "", ",", true)
     )
 
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
-        new ISerializer(PinReferenceEntity, v => v, "", " ", false, "", _ => "")
+        new Serializer(PinReferenceEntity, v => v, "", " ", false, "", _ => "")
     )
 
     SerializerFactory.registerSerializer(
         TerminalTypeEntity,
-        new ISerializer(TerminalTypeEntity, ISerializer.bracketsWrapped)
+        new Serializer(TerminalTypeEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
@@ -193,7 +193,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         RotatorEntity,
-        new ISerializer(RotatorEntity, ISerializer.bracketsWrapped)
+        new Serializer(RotatorEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
@@ -239,21 +239,21 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         UnknownKeysEntity,
-        new ISerializer(UnknownKeysEntity, (string, entity) => `${entity.lookbehind ?? ""}(${string})`)
+        new Serializer(UnknownKeysEntity, (string, entity) => `${entity.lookbehind ?? ""}(${string})`)
     )
 
     SerializerFactory.registerSerializer(
         VariableReferenceEntity,
-        new ISerializer(VariableReferenceEntity, ISerializer.bracketsWrapped)
+        new Serializer(VariableReferenceEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
         Vector2DEntity,
-        new ISerializer(Vector2DEntity, ISerializer.bracketsWrapped)
+        new Serializer(Vector2DEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
         VectorEntity,
-        new ISerializer(VectorEntity, ISerializer.bracketsWrapped)
+        new Serializer(VectorEntity, Serializer.bracketsWrapped)
     )
 }

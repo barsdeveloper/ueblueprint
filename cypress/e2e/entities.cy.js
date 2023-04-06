@@ -2,10 +2,10 @@
 
 import ComplexEntity from "../fixtures/ComplexEntity"
 import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory.js"
+import Serializer from "../../js/serialization/Serializer.js"
 import SerializerFactory from "../../js/serialization/SerializerFactory.js"
 import SimpleEntity from "../fixtures/SimpleEntity"
 import SimpleObject from "../fixtures/SimpleObject"
-import ISerializer from "../../js/serialization/ISerializer.js"
 
 describe("Entity initialization", () => {
     before(() => {
@@ -19,7 +19,7 @@ describe("Entity initialization", () => {
             initializeSerializerFactory()
             SerializerFactory.registerSerializer(
                 SimpleEntity,
-                new ISerializer(
+                new Serializer(
                     SimpleEntity,
                     v => `{\n${v}\n}`,
                     "    ",
@@ -137,7 +137,7 @@ describe("Entity initialization", () => {
             initializeSerializerFactory()
             SerializerFactory.registerSerializer(
                 ComplexEntity,
-                new ISerializer(
+                new Serializer(
                     ComplexEntity,
                     v => `[[\n${v}\n]]`,
                     "    ",
@@ -149,7 +149,7 @@ describe("Entity initialization", () => {
             )
             SerializerFactory.registerSerializer(
                 SimpleObject,
-                new ISerializer(
+                new Serializer(
                     SimpleObject,
                     v => `SimpleObject(${v})`,
                     "",
