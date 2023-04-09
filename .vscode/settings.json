@@ -2,7 +2,6 @@
     "files.trimFinalNewlines": true,
     "files.insertFinalNewline": true,
     "javascript.format.semicolons": "remove",
-    "editor.formatOnSaveMode": "modificationsIfAvailable",
     "editor.rulers": [
         120
     ],

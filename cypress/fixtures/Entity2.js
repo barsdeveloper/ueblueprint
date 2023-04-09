@@ -1,6 +1,7 @@
+import Entity1 from "./Entity1.js"
 import IEntity from "../../js/entity/IEntity"
 
-export default class SimpleEntity extends IEntity {
+export default class Entity2 extends IEntity {
 
     static attributes = {
         someNumber: {
@@ -23,6 +24,9 @@ export default class SimpleEntity extends IEntity {
         },
         someArray: {
             default: [400, 500, 600, 700, 800],
+        },
+        someEntity: {
+            type: Entity1,
         },
     }
 

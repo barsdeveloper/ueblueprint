@@ -71,7 +71,7 @@ class Configuration {
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
-    static keysSeparator = "+"
+    static keysSeparator = /[\.\(\)]/
     static knotOffset = [-26, -16]
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
@@ -419,7 +419,7 @@ class SerializerFactory {
 
     /**
      * @template {AnyValue} T
-     * @param {new () => T} entity
+     * @param {new (...any) => T} entity
      * @returns {Serializer<T>}
      */
     static getSerializer(entity) {
@@ -881,13 +881,9 @@ class Utility {
 }
 
 /**
- * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
- * @typedef {{
- *     [key: String]: AttributeInformation
- * }} AttributeDeclarations
- * @typedef {typeof IEntity} EntityConstructor
+ * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
  * @typedef {{
  *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | ComputedType,
  *     default?: AnyValue | ValueSupplier,
@@ -899,6 +895,10 @@ class Utility {
  *     inlined?: Boolean,
  *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
+ * @typedef {{
+ *     [key: String]: AttributeInformation
+ * }} AttributeDeclarations
+ * @typedef {typeof IEntity} EntityConstructor
  */
 
 /**
@@ -922,7 +922,8 @@ class IEntity {
     }
 
     constructor(values = {}, suppressWarns = false) {
-        const attributes = /** @type {typeof IEntity} */(this.constructor).attributes;
+        const Self = /** @type {EntityConstructor} */(this.constructor);
+        const attributes = Self.attributes;
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {
@@ -934,14 +935,14 @@ class IEntity {
         const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames);
         for (let attributeName of allAttributesNames) {
             let value = values[attributeName];
-            let attribute = /** @type {AttributeInformation} */(attributes[attributeName]);
+            let attribute = attributes[attributeName];
 
             if (!suppressWarns) {
                 if (!(attributeName in attributes)) {
                     const typeName = value instanceof Array ? `[${value[0].constructor.name}]` : value.constructor.name;
                     console.warn(
-                        `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not defined in `
-                        + `${this.constructor.name}.attributes`
+                        `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
+                        + `defined in ${Self.name}.attributes`
                     );
                 } else if (
                     valuesNames.length > 0
@@ -949,8 +950,7 @@ class IEntity {
                     && !(!attribute.showDefault || attribute.ignored)
                 ) {
                     console.warn(
-                        `UEBlueprint: ${this.constructor.name} will add attribute ${attributeName} not `
-                        + "defined in the serialized data"
+                        `UEBlueprint: ${Self.name} will add attribute ${attributeName} missing from the serialized data`
                     );
                 }
             }
@@ -992,8 +992,8 @@ class IEntity {
                             set(v) {
                                 if (!attribute.predicate?.(v)) {
                                     console.warn(
-                                        `UEBlueprint: Tried to assign attribute ${attributeName} to `
-                                        + `${this.constructor.name} not satisfying the predicate`
+                                        `UEBlueprint: Tried to assign attribute ${attributeName} to`
+                                        + `${Self.name} not satisfying the predicate`
                                     );
                                     return
                                 }
@@ -1049,7 +1049,9 @@ class IEntity {
         for (const attributeName in attributes) {
             const attribute = /** @type {AttributeInformation} */(attributes[attributeName]);
             if (attribute.type === undefined && !(attribute.default instanceof Function)) {
-                attribute.type = Utility.getType(attribute.default);
+                attribute.type = attribute.default instanceof Array
+                    ? [Utility.getType(attribute.default[0])]
+                    : Utility.getType(attribute.default);
             }
             attributes[attributeName] = {
                 ...IEntity.defaultAttribute,
@@ -1378,24 +1380,6 @@ class IdentifierEntity extends IEntity {
 
     toString() {
         return this.value
-    }
-}
-
-/** @typedef {import("./IEntity").AnyValueConstructor<*>} AnyValueConstructor */
-
-class IndexedArray {
-
-    #type
-    get type() {
-        return this.#type
-    }
-
-    value = []
-
-    /** @param {AnyValueConstructor} type */
-    constructor(type, value = []) {
-        this.#type = type;
-        this.value = value;
     }
 }
 
@@ -1821,6 +1805,81 @@ class PinReferenceEntity extends IEntity {
     }
 }
 
+class PinTypeEntity extends IEntity {
+
+    static attributes = {
+        PinCategory: {
+            default: "",
+        },
+        PinSubCategory: {
+            default: "",
+        },
+        PinSubCategoryObject: {
+            type: ObjectReferenceEntity,
+        },
+        PinSubCategoryMemberReference: {
+            type: FunctionReferenceEntity,
+            default: null,
+        },
+        PinValueType: {
+            type: PinTypeEntity,
+            default: null,
+        },
+        ContainerType: {
+            type: PathSymbolEntity,
+        },
+        bIsReference: {
+            default: false,
+        },
+        bIsConst: {
+            default: false,
+        },
+        bIsWeakPointer: {
+            default: false,
+        },
+        bIsUObjectWrapper: {
+            default: false,
+        },
+        bSerializeAsSinglePrecisionFloat: {
+            default: false,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values = {}, suppressWarns = false) {
+        super(values, suppressWarns);
+        /** @type {String} */ this.PinCategory;
+        /** @type {String} */ this.PinSubCategory;
+        /** @type {ObjectReferenceEntity} */ this.PinSubCategoryObject;
+        /** @type {FunctionReferenceEntity} */ this.PinSubCategoryMemberReference;
+        /** @type {PinTypeEntity} */ this.PinValueType;
+        /** @type {PathSymbolEntity} */ this.ContainerType;
+        /** @type {Boolean} */ this.bIsReference;
+        /** @type {Boolean} */ this.bIsConst;
+        /** @type {Boolean} */ this.bIsWeakPointer;
+        /** @type {Boolean} */ this.bIsUObjectWrapper;
+        /** @type {Boolean} */ this.bIsUObjectWrapper;
+    }
+
+    /** @param {PinTypeEntity} other */
+    copyTypeFrom(other) {
+        this.PinCategory = other.PinCategory;
+        this.PinSubCategory = other.PinSubCategory;
+        this.PinSubCategoryObject = other.PinSubCategoryObject;
+        this.PinSubCategoryMemberReference = other.PinSubCategoryMemberReference;
+        this.PinValueType = other.PinValueType;
+        this.ContainerType = other.ContainerType;
+        this.bIsReference = other.bIsReference;
+        this.bIsConst = other.bIsConst;
+        this.bIsWeakPointer = other.bIsWeakPointer;
+        this.bIsUObjectWrapper = other.bIsUObjectWrapper;
+        this.bSerializeAsSinglePrecisionFloat = other.bSerializeAsSinglePrecisionFloat;
+    }
+}
+
 class RotatorEntity extends IEntity {
 
     static attributes = {
@@ -1921,45 +1980,6 @@ class VectorEntity extends IEntity {
 class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
-class TerminalTypeEntity extends IEntity {
-
-    static attributes = {
-        TerminalCategory: {
-            default: "",
-            showDefault: false,
-        },
-        TerminalSubCategory: {
-            default: "",
-            showDefault: false,
-        },
-        bTerminalIsConst: {
-            default: false,
-            showDefault: false,
-        },
-        bTerminalIsWeakPointer: {
-            default: false,
-            showDefault: false,
-        },
-        bTerminalIsUObjectWrapper: {
-            default: false,
-            showDefault: false,
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.TerminalCategory;
-        /** @type {String} */ this.TerminalSubCategory;
-        /** @type {Boolean} */ this.bTerminalIsConst;
-        /** @type {Boolean} */ this.bTerminalIsWeakPointer;
-        /** @type {Boolean} */ this.bTerminalIsUObjectWrapper;
-    }
-}
-
 /**
  * @typedef {import("./IEntity").AnyValue} AnyValue
  * @typedef {import("lit").CSSResult} CSSResult
@@ -2008,40 +2028,9 @@ class PinEntity extends IEntity {
             type: String,
             showDefault: false,
         },
-        PinType$PinCategory: {
-            default: "",
-        },
-        PinType$PinSubCategory: {
-            default: "",
-        },
-        PinType$PinSubCategoryObject: {
-            type: ObjectReferenceEntity,
-        },
-        PinType$PinSubCategoryMemberReference: {
-            type: FunctionReferenceEntity,
-            default: null,
-        },
-        PinType$PinValueType: {
-            type: TerminalTypeEntity,
-            default: null,
-        },
-        PinType$ContainerType: {
-            type: PathSymbolEntity,
-        },
-        PinType$bIsReference: {
-            default: false,
-        },
-        PinType$bIsConst: {
-            default: false,
-        },
-        PinType$bIsWeakPointer: {
-            default: false,
-        },
-        PinType$bIsUObjectWrapper: {
-            default: false,
-        },
-        PinType$bSerializeAsSinglePrecisionFloat: {
-            default: false,
+        PinType: {
+            type: PinTypeEntity,
+            inlined: true,
         },
         LinkedTo: {
             type: [PinReferenceEntity],
@@ -2104,17 +2093,7 @@ class PinEntity extends IEntity {
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName;
         /** @type {String} */ this.PinToolTip;
         /** @type {String} */ this.Direction;
-        /** @type {String} */ this.PinType$PinCategory;
-        /** @type {String} */ this.PinType$PinSubCategory;
-        /** @type {ObjectReferenceEntity} */ this.PinType$PinSubCategoryObject;
-        /** @type {FunctionReferenceEntity} */ this.PinType$PinSubCategoryMemberReference;
-        /** @type {TerminalTypeEntity} */ this.PinType$PinValueType;
-        /** @type {PathSymbolEntity} */ this.PinType$ContainerType;
-        /** @type {Boolean} */ this.PinType$bIsReference;
-        /** @type {Boolean} */ this.PinType$bIsConst;
-        /** @type {Boolean} */ this.PinType$bIsWeakPointer;
-        /** @type {Boolean} */ this.PinType$bIsUObjectWrapper;
-        /** @type {Boolean} */ this.PinType$bIsUObjectWrapper;
+        /** @type {PinTypeEntity} */ this.PinType;
         /** @type {PinReferenceEntity[]} */ this.LinkedTo;
         /** @type {T} */ this.DefaultValue;
         /** @type {String} */ this.AutogeneratedDefaultValue;
@@ -2129,12 +2108,12 @@ class PinEntity extends IEntity {
     }
 
     getType() {
-        const subCategory = this.PinType$PinSubCategoryObject;
-        if (this.PinType$PinCategory === "struct" || this.PinType$PinCategory === "object") {
+        const subCategory = this.PinType.PinSubCategoryObject;
+        if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
             return subCategory.path
         }
         if (
-            this.PinType$PinCategory === "byte"
+            this.PinType.PinCategory === "byte"
             && (
                 subCategory.type === Configuration.nodeType.enum
                 || subCategory.type === Configuration.nodeType.userDefinedEnum
@@ -2142,7 +2121,7 @@ class PinEntity extends IEntity {
         ) {
             return "enum"
         }
-        return this.PinType$PinCategory
+        return this.PinType.PinCategory
     }
 
     getEntityType(alternative = false) {
@@ -2171,16 +2150,16 @@ class PinEntity extends IEntity {
 
     /** @param {PinEntity} other */
     copyTypeFrom(other) {
-        this.PinType$PinCategory = other.PinType$PinCategory;
-        this.PinType$PinSubCategory = other.PinType$PinSubCategory;
-        this.PinType$PinSubCategoryObject = other.PinType$PinSubCategoryObject;
-        this.PinType$PinSubCategoryMemberReference = other.PinType$PinSubCategoryMemberReference;
-        this.PinType$PinValueType = other.PinType$PinValueType;
-        this.PinType$ContainerType = other.PinType$ContainerType;
-        this.PinType$bIsReference = other.PinType$bIsReference;
-        this.PinType$bIsConst = other.PinType$bIsConst;
-        this.PinType$bIsWeakPointer = other.PinType$bIsWeakPointer;
-        this.PinType$bIsUObjectWrapper = other.PinType$bIsUObjectWrapper;
+        this.PinType.PinCategory = other.PinType.PinCategory;
+        this.PinType.PinSubCategory = other.PinType.PinSubCategory;
+        this.PinType.PinSubCategoryObject = other.PinType.PinSubCategoryObject;
+        this.PinType.PinSubCategoryMemberReference = other.PinType.PinSubCategoryMemberReference;
+        this.PinType.PinValueType = other.PinType.PinValueType;
+        this.PinType.ContainerType = other.PinType.ContainerType;
+        this.PinType.bIsReference = other.PinType.bIsReference;
+        this.PinType.bIsConst = other.PinType.bIsConst;
+        this.PinType.bIsWeakPointer = other.PinType.bIsWeakPointer;
+        this.PinType.bIsUObjectWrapper = other.PinType.bIsUObjectWrapper;
         this.PinType$bSerializeAsSinglePrecisionFloat = other.PinType$bSerializeAsSinglePrecisionFloat;
     }
 
@@ -2192,7 +2171,7 @@ class PinEntity extends IEntity {
     }
 
     isExecution() {
-        return this.PinType$PinCategory === "exec"
+        return this.PinType.PinCategory === "exec"
     }
 
     isHidden() {
@@ -2250,13 +2229,13 @@ class PinEntity extends IEntity {
     }
 
     getSubCategory() {
-        return this.PinType$PinSubCategoryObject.path
+        return this.PinType.PinSubCategoryObject.path
     }
 
     /** @return {CSSResult} */
     pinColor() {
         return Configuration.pinColor[this.getType()]
-            ?? Configuration.pinColor[this.PinType$PinCategory.toLowerCase()]
+            ?? Configuration.pinColor[this.PinType.PinCategory.toLowerCase()]
             ?? Configuration.pinColor["default"]
     }
 }
@@ -3017,7 +2996,7 @@ class ObjectEntity extends IEntity {
     }
 
     getDelegatePin() {
-        return this.CustomProperties?.find(pin => pin.PinType$PinCategory === "delegate")
+        return this.CustomProperties?.find(pin => pin.PinType.PinCategory === "delegate")
     }
 
     nodeDisplayName() {
@@ -3237,6 +3216,45 @@ var parsimmon_umd_min = {exports: {}};
 }(parsimmon_umd_min));
 
 var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
+
+class TerminalTypeEntity extends IEntity {
+
+    static attributes = {
+        TerminalCategory: {
+            default: "",
+            showDefault: false,
+        },
+        TerminalSubCategory: {
+            default: "",
+            showDefault: false,
+        },
+        bTerminalIsConst: {
+            default: false,
+            showDefault: false,
+        },
+        bTerminalIsWeakPointer: {
+            default: false,
+            showDefault: false,
+        },
+        bTerminalIsUObjectWrapper: {
+            default: false,
+            showDefault: false,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.TerminalCategory;
+        /** @type {String} */ this.TerminalSubCategory;
+        /** @type {Boolean} */ this.bTerminalIsConst;
+        /** @type {Boolean} */ this.bTerminalIsWeakPointer;
+        /** @type {Boolean} */ this.bTerminalIsUObjectWrapper;
+    }
+}
 
 class UnknownKeysEntity extends IEntity {
 
@@ -3497,16 +3515,44 @@ class Grammar {
         return result
     }
 
+    /**
+     * @param {EntityConstructor} entityType
+     * @param {String[]} key
+     * @returns {AttributeInformation}
+     */
+    static getAttribute(entityType, key) {
+        let result;
+        let type;
+        if (entityType instanceof UnionType) {
+            for (let t of entityType.types) {
+                if (result = this.getAttribute(t, key)) {
+                    return result
+                }
+            }
+        }
+        if (entityType instanceof IEntity.constructor) {
+            result = entityType.attributes[key[0]];
+            type = result?.type;
+        } else if (entityType instanceof Array) {
+            result = entityType[key[0]];
+            type = result;
+        }
+        if (key.length > 1) {
+            return this.getAttribute(type, key.slice(1))
+        }
+        return result
+    }
+
     static createAttributeGrammar(entityType, valueSeparator = this.equalSeparation) {
         return P.seq(
             this.attributeName,
             valueSeparator,
         ).chain(([attributeName, _1]) => {
-            attributeName = Utility.encodeKeyName(attributeName);
+            const attributeKey = attributeName.split(Configuration.keysSeparator);
             return this
-                .grammarFor(entityType.attributes[attributeName], undefined)
+                .grammarFor(this.getAttribute(entityType, attributeKey))
                 .map(attributeValue =>
-                    values => values[attributeName] = attributeValue
+                    values => Utility.objectSet(values, attributeKey, attributeValue, true)
                 )
         })
     }
@@ -3787,7 +3833,7 @@ class Grammar {
         })
     )
 
-    static indexedArrayEntry = P.lazy(() => {
+    static inlinedArrayEntry = P.lazy(() => {
         return P.seq(
             this.symbol,
             this.regexMap(
@@ -3798,8 +3844,7 @@ class Grammar {
             .chain(([symbol, _1]) =>
                 this.grammarFor(ObjectEntity.attributes[symbol])
                     .map(currentValue =>
-                        values => (values[symbol] ??= new IndexedArray(currentValue.constructor))
-                            .value.push(currentValue)
+                        values => (values[symbol] ??= []).push(currentValue)
                     )
             )
     })
@@ -3812,7 +3857,7 @@ class Grammar {
                 P.alt(
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
-                    this.indexedArrayEntry
+                    this.inlinedArrayEntry
                 )
             )
                 .map(([_0, entry]) => entry)
@@ -3929,13 +3974,13 @@ class Serializer {
 
     /** @type {(v: String, entityType: AnyValueConstructor) => String} */
     static bracketsWrapped = ((v, entityType) => `(${v})`)
-    /** @type {(v: String, entityType: AnyValueConstructor) => String} */
-    static notWrapped = ((v, entityType) => v)
+    /** @type {(v: String) => String} */
+    static same = (v => v)
 
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
-        wrap = Serializer.bracketsWrapped,
+        wrap = Serializer.same,
         attributePrefix = "",
         attributeSeparator = ",",
         trailingSeparator = false,
@@ -4000,40 +4045,34 @@ class Serializer {
             Object.keys(attributes),
             Object.keys(entity)
         );
+        let first = true;
         for (const key of keys) {
             const value = entity[key];
             if (value !== undefined && this.showProperty(entity, key)) {
                 const isSerialized = Utility.isSerialized(entity, key);
-                result += (result.length ? attributeSeparator : "");
+                if (first) {
+                    first = false;
+                } else {
+                    result += attributeSeparator;
+                }
                 if (attributes[key]?.inlined) {
                     result += this.doWrite(
                         value,
                         insideString,
-                        Serializer.notWrapped,
-                        `${attributePrefix}${key}.`,
-                        attributeSeparator,
-                        trailingSeparator,
-                        attributeValueConjunctionSign,
-                        attributeKeyPrinter
-                    );
-                    continue
-                }
-                if (value instanceof IndexedArray) {
-                    result += this.doWrite(
-                        value,
-                        insideString,
-                        wrap,
+                        Serializer.same,
                         attributePrefix,
                         attributeSeparator,
-                        trailingSeparator,
+                        false,
                         attributeValueConjunctionSign,
-                        index => `(${index})`
+                        attributes[key].type instanceof Array
+                            ? k => attributeKeyPrinter(`${key}(${k})`)
+                            : k => attributeKeyPrinter(`${key}.${k}`),
                     );
                     continue
                 }
                 result +=
                     attributePrefix
-                    + Utility.decodeKeyName(this.attributeKeyPrinter(key))
+                    + attributeKeyPrinter(key)
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
@@ -4042,7 +4081,7 @@ class Serializer {
                     );
             }
         }
-        if (this.trailingSeparator && result.length) {
+        if (trailingSeparator && result.length) {
             // append separator at the end if asked and there was printed content
             result += this.attributeSeparator;
         }
@@ -7078,12 +7117,12 @@ class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
-        switch (this.element.entity.PinType$ContainerType.toString()) {
+        switch (this.element.entity.PinType.ContainerType.toString()) {
             case "Array": return SVGIcon.array
             case "Set": return SVGIcon.set
             case "Map": return SVGIcon.map
         }
-        if (this.element.entity.PinType$PinCategory.toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType.PinCategory.toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         return SVGIcon.genericPin
@@ -7191,7 +7230,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createDelegatePinElement() {
         const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType$PinCategory === "delegate"),
+            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory === "delegate"),
             new MinimalPinTemplate(),
             this.element
         );
@@ -7201,7 +7240,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createPinElements() {
         return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType$PinCategory !== "delegate")
+            .filter(v => !v.isHidden() && v.PinType.PinCategory !== "delegate")
             .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                 .newObject(pinEntity, undefined, this.element)
             )
@@ -9456,7 +9495,7 @@ class PinElement extends IElement {
      * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
-        if (pinEntity.PinType$bIsReference && !pinEntity.PinType$bIsConst) {
+        if (pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst) {
             return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
         }
         if (pinEntity.getType() === "exec") {

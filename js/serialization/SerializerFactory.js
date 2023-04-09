@@ -28,7 +28,7 @@ export default class SerializerFactory {
 
     /**
      * @template {AnyValue} T
-     * @param {new () => T} entity
+     * @param {new (...any) => T} entity
      * @returns {Serializer<T>}
      */
     static getSerializer(entity) {

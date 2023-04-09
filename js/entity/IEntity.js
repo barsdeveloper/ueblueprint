@@ -4,13 +4,9 @@ import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
- * @typedef {{
- *     [key: String]: AttributeInformation
- * }} AttributeDeclarations
- * @typedef {typeof IEntity} EntityConstructor
+ * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
  * @typedef {{
  *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | ComputedType,
  *     default?: AnyValue | ValueSupplier,
@@ -22,6 +18,10 @@ import Utility from "../Utility.js"
  *     inlined?: Boolean,
  *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
+ * @typedef {{
+ *     [key: String]: AttributeInformation
+ * }} AttributeDeclarations
+ * @typedef {typeof IEntity} EntityConstructor
  */
 
 /**
@@ -45,7 +45,8 @@ export default class IEntity {
     }
 
     constructor(values = {}, suppressWarns = false) {
-        const attributes = /** @type {typeof IEntity} */(this.constructor).attributes
+        const Self = /** @type {EntityConstructor} */(this.constructor)
+        const attributes = Self.attributes
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {
@@ -57,14 +58,14 @@ export default class IEntity {
         const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames)
         for (let attributeName of allAttributesNames) {
             let value = values[attributeName]
-            let attribute = /** @type {AttributeInformation} */(attributes[attributeName])
+            let attribute = attributes[attributeName]
 
             if (!suppressWarns) {
                 if (!(attributeName in attributes)) {
                     const typeName = value instanceof Array ? `[${value[0].constructor.name}]` : value.constructor.name
                     console.warn(
-                        `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not defined in `
-                        + `${this.constructor.name}.attributes`
+                        `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
+                        + `defined in ${Self.name}.attributes`
                     )
                 } else if (
                     valuesNames.length > 0
@@ -72,8 +73,7 @@ export default class IEntity {
                     && !(!attribute.showDefault || attribute.ignored)
                 ) {
                     console.warn(
-                        `UEBlueprint: ${this.constructor.name} will add attribute ${attributeName} not `
-                        + "defined in the serialized data"
+                        `UEBlueprint: ${Self.name} will add attribute ${attributeName} missing from the serialized data`
                     )
                 }
             }
@@ -115,8 +115,8 @@ export default class IEntity {
                             set(v) {
                                 if (!attribute.predicate?.(v)) {
                                     console.warn(
-                                        `UEBlueprint: Tried to assign attribute ${attributeName} to `
-                                        + `${this.constructor.name} not satisfying the predicate`
+                                        `UEBlueprint: Tried to assign attribute ${attributeName} to`
+                                        + `${Self.name} not satisfying the predicate`
                                     )
                                     return
                                 }
@@ -172,7 +172,9 @@ export default class IEntity {
         for (const attributeName in attributes) {
             const attribute = /** @type {AttributeInformation} */(attributes[attributeName])
             if (attribute.type === undefined && !(attribute.default instanceof Function)) {
-                attribute.type = Utility.getType(attribute.default)
+                attribute.type = attribute.default instanceof Array
+                    ? [Utility.getType(attribute.default[0])]
+                    : Utility.getType(attribute.default)
             }
             attributes[attributeName] = {
                 ...IEntity.defaultAttribute,

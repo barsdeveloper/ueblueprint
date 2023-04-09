@@ -1,8 +1,9 @@
+import Entity1 from "./Entity1"
+import Entity2 from "./Entity2.js"
 import IEntity from "../../js/entity/IEntity"
-import SimpleObject from "./SimpleObject"
 import UnionType from "../../js/entity/UnionType"
 
-export default class ComplexEntity extends IEntity {
+export default class Entity3 extends IEntity {
 
     static attributes = {
         alpha: {
@@ -57,19 +58,23 @@ export default class ComplexEntity extends IEntity {
             type: new UnionType(Number, String, Array),
         },
         oscar: {
-            type: SimpleObject,
+            type: Entity1,
         },
         papa: {
-            default: () => new SimpleObject({ a: 12, b: 13 }),
+            default: () => new Entity1({ a: 12, b: 13 }),
         },
         quebec: {
             default: 0, // will assign undefined because it does not satisfy the predicate
             predicate: v => v >= 1 && v <= 10,
         },
         romeo: {
-            type: SimpleObject,
+            type: Entity1,
             inlined: true,
         },
+        sierra: {
+            type: Entity2,
+            inlined: true,
+        }
     }
 
     static {

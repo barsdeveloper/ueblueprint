@@ -1,6 +1,6 @@
 import IEntity from "../../js/entity/IEntity.js"
 
-export default class SimpleObject extends IEntity {
+export default class Entity1 extends IEntity {
 
     static attributes = {
         a: {

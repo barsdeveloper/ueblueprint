@@ -1,26 +1,31 @@
 /// <reference types="cypress" />
 
-import ComplexEntity from "../fixtures/ComplexEntity"
+import Entity1 from "../fixtures/Entity1"
+import Entity2 from "../fixtures/Entity2"
+import entity2Value from "../fixtures/serializedEntity2.js"
+import Entity3 from "../fixtures/Entity3"
+import entity3Value from "../fixtures/serializedEntity3.js"
+import Entity4 from "../fixtures/Entity4.js"
+import entity4Value from "../fixtures/serializedEntity4.js"
+import Grammar from "../../js/serialization/Grammar.js"
 import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory.js"
 import Serializer from "../../js/serialization/Serializer.js"
 import SerializerFactory from "../../js/serialization/SerializerFactory.js"
-import SimpleEntity from "../fixtures/SimpleEntity"
-import SimpleObject from "../fixtures/SimpleObject"
 
 describe("Entity initialization", () => {
     before(() => {
-        expect(SimpleEntity).to.be.a("function")
-        expect(ComplexEntity).to.be.a("function")
+        expect(Entity2).to.be.a("function")
+        expect(Entity3).to.be.a("function")
     })
 
-    context("SimpleEntity", () => {
-        const entity = new SimpleEntity()
+    context("Entity2", () => {
+        const entity = new Entity2()
         before(() => {
             initializeSerializerFactory()
             SerializerFactory.registerSerializer(
-                SimpleEntity,
+                Entity2,
                 new Serializer(
-                    SimpleEntity,
+                    Entity2,
                     v => `{\n${v}\n}`,
                     "    ",
                     "\n",
@@ -29,8 +34,20 @@ describe("Entity initialization", () => {
                     undefined
                 )
             )
+            SerializerFactory.registerSerializer(
+                Entity1,
+                new Serializer(
+                    Entity1,
+                    v => `Entity1(${v})`,
+                    "",
+                    ", ",
+                    false,
+                    "=",
+                    undefined
+                )
+            )
         })
-        it("has 7 keys", () => expect(Object.keys(entity).length).to.equal(7))
+        it("has 8 keys", () => expect(Object.keys(entity).length).to.equal(8))
         it("has someNumber equal to 567", () => expect(entity)
             .to.have.property("someNumber")
             .which.is.a("number")
@@ -66,16 +83,16 @@ describe("Entity initialization", () => {
             .which.is.an("array")
             .and.is.deep.equal([400, 500, 600, 700, 800])
         )
-        it("is equal to another empty SimpleEntity", () => expect(entity.equals(new SimpleEntity()))
-            .to.be.true
+        it("is equal to another empty Entity2", () =>
+            expect(entity.equals(new Entity2())).to.be.true
         )
-        const other = new SimpleEntity({
+        const other = new Entity2({
             someString2: "gamma"
         })
-        it("is not equal to another empty SimpleEntity", () => expect(entity.equals(other))
-            .to.be.false
+        it("is not equal to another empty Entity2", () =>
+            expect(entity.equals(other)).to.be.false
         )
-        const other1 = new SimpleEntity({
+        const other1 = new Entity2({
             someNumber: 123,
             someString: "a",
             someString2: "b",
@@ -84,7 +101,7 @@ describe("Entity initialization", () => {
             someObjectString: new String("delta"),
             someArray: [-1, -2, -3],
         })
-        const other2 = new SimpleEntity({
+        const other2 = new Entity2({
             someNumber: 123,
             someString: "a",
             someString2: "b",
@@ -93,26 +110,19 @@ describe("Entity initialization", () => {
             someObjectString: "delta",
             someArray: [-1, -2, -3],
         })
-        it("compares equal entities as equal", () => expect(other1.equals(other2))
-            .to.be.true
+        it("compares equal entities as equal", () =>
+            expect(other1.equals(other2)).to.be.true
         )
-        it("can serialize", () => {
-            expect(SerializerFactory.getSerializer(SimpleEntity).write(entity))
-                .to.equal(`{
-    someNumber: 567
-    someString: "alpha"
-    someString2: "beta"
-    someBoolean: True
-    someBoolean2: False
-    someObjectString: "gamma"
-    someArray: (400,500,600,700,800,)
-}`
-                )
-        })
+        it("can serialize", () =>
+            expect(SerializerFactory.getSerializer(Entity2).write(entity)).to.equal(entity2Value)
+        )
+        it("has correct nested property", () =>
+            expect(Grammar.getAttribute(Entity2, ["someEntity", "a"]).type).to.equal(Number)
+        )
     })
 
-    context("ComplexEntity", () => {
-        const entity = new ComplexEntity()
+    context("Entity3", () => {
+        const entity = new Entity3()
         const keys = [
             "alpha",
             "bravo",
@@ -132,13 +142,14 @@ describe("Entity initialization", () => {
             "papa",
             "quebec",
             "romeo",
+            "sierra",
         ]
         before(() => {
             initializeSerializerFactory()
             SerializerFactory.registerSerializer(
-                ComplexEntity,
+                Entity3,
                 new Serializer(
-                    ComplexEntity,
+                    Entity3,
                     v => `[[\n${v}\n]]`,
                     "    ",
                     "\n",
@@ -148,10 +159,10 @@ describe("Entity initialization", () => {
                 )
             )
             SerializerFactory.registerSerializer(
-                SimpleObject,
+                Entity1,
                 new Serializer(
-                    SimpleObject,
-                    v => `SimpleObject(${v})`,
+                    Entity1,
+                    v => `Entity1(${v})`,
                     "",
                     ", ",
                     false,
@@ -229,14 +240,14 @@ describe("Entity initialization", () => {
             .which.is.a("number")
             .and.is.equal(0)
         )
-        it("has oscar a SimpleObject", () => expect(entity)
+        it("has oscar a Entity1", () => expect(entity)
             .to.have.property("oscar")
-            .which.is.instanceOf(SimpleObject)
+            .which.is.instanceOf(Entity1)
             .and.is.deep.equal({ a: 8, b: 9 })
         )
-        it("has papa a SimpleObject", () => expect(entity)
+        it("has papa a Entity1", () => expect(entity)
             .to.have.property("papa")
-            .which.is.instanceOf(SimpleObject)
+            .which.is.instanceOf(Entity1)
             .and.is.deep.equal({ a: 12, b: 13 })
         )
         it("has quebec undefined", () => expect(entity)
@@ -244,7 +255,7 @@ describe("Entity initialization", () => {
             .which.is.undefined
         )
         it("quebec can be assigned and it always filtered", () => {
-            const entity = new ComplexEntity()
+            const entity = new Entity3()
             entity.quebec = 2
             expect(entity.quebec, "assigned 2").to.be.equal(2)
             entity["quebec"] = 7
@@ -262,28 +273,40 @@ describe("Entity initialization", () => {
             entity.quebec = 6
             expect(entity.quebec, "assigned 6").to.be.equal(6)
         })
-        it("can serialize", () => {
-            expect(SerializerFactory.getSerializer(ComplexEntity).write(entity))
-                .to.equal(`[[
-    alpha: 32
-    bravo: 78
-    charlie: "Charlie"
-    delta: ()
-    echo: "echo"
-    foxtrot: False
-    golf: ()
-    hotel: ()
-    india: ()
-    juliett: ("a","b","c","d","e",)
-    kilo: (True,False,False,True,True,)
-    mike: "Bar"
-    november: 0
-    oscar: SimpleObject(a=8, b=9)
-    papa: SimpleObject(a=12, b=13)
-    romeo.a: 8
-    romeo.b: 9
-]]`
-                )
+        it("can serialize", () =>
+            expect(SerializerFactory.getSerializer(Entity3).write(entity)).to.equal(entity3Value)
+        )
+        it("has correct nested property", () => {
+            expect(Grammar.getAttribute(Entity3, ["romeo", "b"]).type).to.equal(Number)
+            expect(Grammar.getAttribute(Entity3, ["sierra", "someString2"]).type).to.equal(String)
+            expect(Grammar.getAttribute(Entity3, ["sierra", "someObjectString"]).type).to.equal(String)
+            expect(Grammar.getAttribute(Entity3, ["sierra", "someObjectString"]).type).to.equal(String)
+            expect(Grammar.getAttribute(Entity3, ["sierra", "someEntity", "b"]).type).to.equal(Number)
         })
+    })
+
+    context("Entity4", () => {
+        const entity = new Entity4()
+        before(() => {
+            initializeSerializerFactory()
+            SerializerFactory.registerSerializer(
+                Entity4,
+                new Serializer(
+                    Entity4,
+                    v => `Begin\n${v}\nEnd`,
+                    "  ",
+                    "\n",
+                    false,
+                    " => ",
+                    k => `\${${k}}`
+                )
+            )
+        })
+        it("has array of Entity1", () =>
+            expect(Entity4.attributes.second.type).to.deep.equal([Entity1])
+        )
+        it("can serialize", () =>
+            expect(SerializerFactory.getSerializer(Entity4).write(entity)).to.equal(entity4Value)
+        )
     })
 })

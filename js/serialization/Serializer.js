@@ -1,5 +1,4 @@
 import Grammar from "./Grammar.js"
-import IndexedArray from "../entity/IndexedArray.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
@@ -14,13 +13,13 @@ export default class Serializer {
 
     /** @type {(v: String, entityType: AnyValueConstructor) => String} */
     static bracketsWrapped = ((v, entityType) => `(${v})`)
-    /** @type {(v: String, entityType: AnyValueConstructor) => String} */
-    static notWrapped = ((v, entityType) => v)
+    /** @type {(v: String) => String} */
+    static same = (v => v)
 
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
-        wrap = Serializer.bracketsWrapped,
+        wrap = Serializer.same,
         attributePrefix = "",
         attributeSeparator = ",",
         trailingSeparator = false,
@@ -85,40 +84,34 @@ export default class Serializer {
             Object.keys(attributes),
             Object.keys(entity)
         )
+        let first = true
         for (const key of keys) {
             const value = entity[key]
             if (value !== undefined && this.showProperty(entity, key)) {
                 const isSerialized = Utility.isSerialized(entity, key)
-                result += (result.length ? attributeSeparator : "")
+                if (first) {
+                    first = false
+                } else {
+                    result += attributeSeparator
+                }
                 if (attributes[key]?.inlined) {
                     result += this.doWrite(
                         value,
                         insideString,
-                        Serializer.notWrapped,
-                        `${attributePrefix}${key}.`,
-                        attributeSeparator,
-                        trailingSeparator,
-                        attributeValueConjunctionSign,
-                        attributeKeyPrinter
-                    )
-                    continue
-                }
-                if (value instanceof IndexedArray) {
-                    result += this.doWrite(
-                        value,
-                        insideString,
-                        wrap,
+                        Serializer.same,
                         attributePrefix,
                         attributeSeparator,
-                        trailingSeparator,
+                        false,
                         attributeValueConjunctionSign,
-                        index => `(${index})`
+                        attributes[key].type instanceof Array
+                            ? k => attributeKeyPrinter(`${key}(${k})`)
+                            : k => attributeKeyPrinter(`${key}.${k}`),
                     )
                     continue
                 }
                 result +=
                     attributePrefix
-                    + Utility.decodeKeyName(this.attributeKeyPrinter(key))
+                    + attributeKeyPrinter(key)
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
@@ -127,7 +120,7 @@ export default class Serializer {
                     )
             }
         }
-        if (this.trailingSeparator && result.length) {
+        if (trailingSeparator && result.length) {
             // append separator at the end if asked and there was printed content
             result += this.attributeSeparator
         }

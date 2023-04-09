@@ -1,10 +1,11 @@
 import ByteEntity from "../entity/ByteEntity.js"
+import Configuration from "../Configuration.js"
 import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import IdentifierEntity from "../entity/IdentifierEntity.js"
-import IndexedArray from "../entity/IndexedArray.js"
+import IEntity from "../entity/IEntity.js"
 import Integer64Entity from "../entity/Integer64Entity.js"
 import IntegerEntity from "../entity/IntegerEntity.js"
 import InvariantTextEntity from "../entity/InvariantTextEntity.js"
@@ -273,16 +274,44 @@ export default class Grammar {
         return result
     }
 
+    /**
+     * @param {EntityConstructor} entityType
+     * @param {String[]} key
+     * @returns {AttributeInformation}
+     */
+    static getAttribute(entityType, key) {
+        let result
+        let type
+        if (entityType instanceof UnionType) {
+            for (let t of entityType.types) {
+                if (result = this.getAttribute(t, key)) {
+                    return result
+                }
+            }
+        }
+        if (entityType instanceof IEntity.constructor) {
+            result = entityType.attributes[key[0]]
+            type = result?.type
+        } else if (entityType instanceof Array) {
+            result = entityType[key[0]]
+            type = result
+        }
+        if (key.length > 1) {
+            return this.getAttribute(type, key.slice(1))
+        }
+        return result
+    }
+
     static createAttributeGrammar(entityType, valueSeparator = this.equalSeparation) {
         return P.seq(
             this.attributeName,
             valueSeparator,
         ).chain(([attributeName, _1]) => {
-            attributeName = Utility.encodeKeyName(attributeName)
+            const attributeKey = attributeName.split(Configuration.keysSeparator)
             return this
-                .grammarFor(entityType.attributes[attributeName], undefined)
+                .grammarFor(this.getAttribute(entityType, attributeKey))
                 .map(attributeValue =>
-                    values => values[attributeName] = attributeValue
+                    values => Utility.objectSet(values, attributeKey, attributeValue, true)
                 )
         })
     }
@@ -563,7 +592,7 @@ export default class Grammar {
         })
     )
 
-    static indexedArrayEntry = P.lazy(() => {
+    static inlinedArrayEntry = P.lazy(() => {
         return P.seq(
             this.symbol,
             this.regexMap(
@@ -574,8 +603,7 @@ export default class Grammar {
             .chain(([symbol, _1]) =>
                 this.grammarFor(ObjectEntity.attributes[symbol])
                     .map(currentValue =>
-                        values => (values[symbol] ??= new IndexedArray(currentValue.constructor))
-                            .value.push(currentValue)
+                        values => (values[symbol] ??= []).push(currentValue)
                     )
             )
     })
@@ -588,7 +616,7 @@ export default class Grammar {
                 P.alt(
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
-                    this.indexedArrayEntry
+                    this.inlinedArrayEntry
                 )
             )
                 .map(([_0, entry]) => entry)
