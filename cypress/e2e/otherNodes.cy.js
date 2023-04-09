@@ -253,7 +253,7 @@ const tests = [
         `,
         color: Configuration.nodeColors.blue,
         icon: SVGIcon.spawnActor,
-        pins: 8,
+        pins: 7,
         pinNames: ["Class", "Spawn Transform", "Collision Handling Override", "Owner", "Return Value"],
         delegate: false,
         development: false,

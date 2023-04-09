@@ -171,18 +171,18 @@ export default class PinEntity extends IEntity {
     }
 
     getDisplayName() {
-        let matchResult = null
+        let result = Utility.formatStringName(this.PinFriendlyName?.toString() ?? this.PinName)
+        let match
         if (
             this.PinToolTip
             // Match up until the first \n excluded or last character
-            && (matchResult = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+            && (match = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
         ) {
-            return matchResult[1]
+            if (match[1].toLowerCase() === result.toLowerCase()) {
+                return match[1]
+            }
         }
-        if (this.PinFriendlyName) {
-            return Utility.formatStringName(this.PinFriendlyName.toString())
-        }
-        return Utility.formatStringName(this.PinName)
+        return result
     }
 
     /** @param {PinEntity} other */
@@ -197,7 +197,7 @@ export default class PinEntity extends IEntity {
         this.PinType.bIsConst = other.PinType.bIsConst
         this.PinType.bIsWeakPointer = other.PinType.bIsWeakPointer
         this.PinType.bIsUObjectWrapper = other.PinType.bIsUObjectWrapper
-        this.PinType$bSerializeAsSinglePrecisionFloat = other.PinType$bSerializeAsSinglePrecisionFloat
+        this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat
     }
 
     getDefaultValue(maybeCreate = false) {

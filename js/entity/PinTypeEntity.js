@@ -60,6 +60,7 @@ export default class PinTypeEntity extends IEntity {
         /** @type {Boolean} */ this.bIsWeakPointer
         /** @type {Boolean} */ this.bIsUObjectWrapper
         /** @type {Boolean} */ this.bIsUObjectWrapper
+        /** @type {Boolean} */ this.bSerializeAsSinglePrecisionFloat
     }
 
     /** @param {PinTypeEntity} other */
