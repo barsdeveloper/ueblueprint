@@ -1,9 +1,9 @@
 /// <reference types="cypress" />
 
-import Entity1 from "../fixtures/Entity1"
-import Entity2 from "../fixtures/Entity2"
+import Entity1 from "../fixtures/Entity1.js"
+import Entity2 from "../fixtures/Entity2.js"
 import entity2Value from "../fixtures/serializedEntity2.js"
-import Entity3 from "../fixtures/Entity3"
+import Entity3 from "../fixtures/Entity3.js"
 import entity3Value from "../fixtures/serializedEntity3.js"
 import Entity4 from "../fixtures/Entity4.js"
 import entity4Value from "../fixtures/serializedEntity4.js"

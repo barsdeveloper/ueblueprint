@@ -13,14 +13,6 @@ export default class Entity4 extends IEntity {
             default: [new Entity1({ a: 1, b: 2 }), new Entity1({ a: 11, b: 22 })],
             inlined: true,
         },
-        third: {
-            type: [{
-                type: Entity1,
-                inlined: true,
-            }],
-            default: [new Entity1({ a: -1, b: -2 })],
-            inlined: true,
-        }
     }
 
     static {

@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
-import Blueprint from "../../js/Blueprint"
-import Utility from "../../js/Utility"
+import Blueprint from "../../js/Blueprint.js"
+import Utility from "../../js/Utility.js"
 
 /** @param {String[]} words */
 export function getFirstWordOrder(words) {

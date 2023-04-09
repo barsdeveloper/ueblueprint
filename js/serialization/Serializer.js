@@ -115,7 +115,7 @@ export default class Serializer {
         }
         if (trailingSeparator && result.length) {
             // append separator at the end if asked and there was printed content
-            result += this.attributeSeparator
+            result += attributeSeparator
         }
         return wrap(result, entity.constructor)
     }

@@ -1016,7 +1016,7 @@ class IEntity {
             if (defaultValue === undefined) {
                 defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)());
             }
-            if (!attribute.showDefault) {
+            if (!attribute.showDefault && !attribute.ignored) {
                 assignAttribute(undefined); // Declare undefined to preserve the order of attributes
                 continue
             }
@@ -1080,7 +1080,7 @@ class IEntity {
     /** @param {IEntity} other */
     equals(other) {
         const thisKeys = Object.keys(this);
-        const otherKeys = Object.keys(this);
+        const otherKeys = Object.keys(other);
         if (thisKeys.length != otherKeys.length) {
             return false
         }
@@ -1154,6 +1154,7 @@ class SymbolEntity extends IEntity {
         this.cleanupAttributes(this.attributes);
     }
 
+    /** @param {String | Object} values */
     constructor(values) {
         super(values);
         /** @type {String} */ this.value;
@@ -3252,7 +3253,7 @@ class UnknownKeysEntity extends IEntity {
         lookbehind: {
             default: "",
             showDefault: false,
-            ignore: true,
+            ignored: true,
         },
     }
 
@@ -3475,6 +3476,9 @@ class Grammar {
                     break
                 case SymbolEntity:
                     result = this.symbolEntity;
+                    break
+                case UnknownKeysEntity:
+                    result = this.unknownKeysEntity;
                     break
                 case UserDefinedPinEntity:
                     result = this.userDefinedPinEntity;
@@ -3797,17 +3801,19 @@ class Grammar {
             this.null,
             this.number,
             this.string,
+            this.fullReferenceEntity,
             this.localizedTextEntity,
             this.invariantTextEntity,
             this.formatTextEntity,
             this.pinReferenceEntity,
             this.vectorEntity,
+            this.rotatorEntity,
             this.linearColorEntity,
             this.vector2DEntity,
-            this.objectReferenceEntity,
             this.unknownKeysEntity,
-            this.symbol,
+            this.symbolEntity,
             this.grammarFor(undefined, [PinReferenceEntity]),
+            this.grammarFor(undefined, [new UnionType(Number, String, SymbolEntity)]),
         )
     )
 
@@ -4066,7 +4072,7 @@ class Serializer {
         }
         if (trailingSeparator && result.length) {
             // append separator at the end if asked and there was printed content
-            result += this.attributeSeparator;
+            result += attributeSeparator;
         }
         return wrap(result, entity.constructor)
     }

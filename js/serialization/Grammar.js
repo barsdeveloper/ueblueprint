@@ -245,6 +245,9 @@ export default class Grammar {
                 case SymbolEntity:
                     result = this.symbolEntity
                     break
+                case UnknownKeysEntity:
+                    result = this.unknownKeysEntity
+                    break
                 case UserDefinedPinEntity:
                     result = this.userDefinedPinEntity
                     break
@@ -566,17 +569,19 @@ export default class Grammar {
             this.null,
             this.number,
             this.string,
+            this.fullReferenceEntity,
             this.localizedTextEntity,
             this.invariantTextEntity,
             this.formatTextEntity,
             this.pinReferenceEntity,
             this.vectorEntity,
+            this.rotatorEntity,
             this.linearColorEntity,
             this.vector2DEntity,
-            this.objectReferenceEntity,
             this.unknownKeysEntity,
-            this.symbol,
+            this.symbolEntity,
             this.grammarFor(undefined, [PinReferenceEntity]),
+            this.grammarFor(undefined, [new UnionType(Number, String, SymbolEntity)]),
         )
     )
 

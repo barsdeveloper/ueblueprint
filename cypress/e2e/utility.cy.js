@@ -1,7 +1,6 @@
 /// <reference types="cypress" />
 
-import IEntity from "../../js/entity/IEntity"
-import Utility from "../../js/Utility"
+import Utility from "../../js/Utility.js"
 
 describe("Utility class", () => {
     before(() => {

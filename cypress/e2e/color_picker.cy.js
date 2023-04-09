@@ -1,9 +1,9 @@
 /// <reference types="cypress" />
 
-import Configuration from "../../js/Configuration"
-import Utility from "../../js/Utility"
-import PinElement from "../../js/element/PinElement"
-import LinearColorEntity from "../../js/entity/LinearColorEntity"
+import Configuration from "../../js/Configuration.js"
+import LinearColorEntity from "../../js/entity/LinearColorEntity.js"
+import PinElement from "../../js/element/PinElement.js"
+import Utility from "../../js/Utility.js"
 
 /** @type {Blueprint} */
 let blueprint

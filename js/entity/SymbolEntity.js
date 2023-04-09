@@ -12,6 +12,7 @@ export default class SymbolEntity extends IEntity {
         this.cleanupAttributes(this.attributes)
     }
 
+    /** @param {String | Object} values */
     constructor(values) {
         super(values)
         /** @type {String} */ this.value

@@ -149,7 +149,7 @@ export default class IEntity {
             if (defaultValue === undefined) {
                 defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())
             }
-            if (!attribute.showDefault) {
+            if (!attribute.showDefault && !attribute.ignored) {
                 assignAttribute(undefined) // Declare undefined to preserve the order of attributes
                 continue
             }
@@ -213,7 +213,7 @@ export default class IEntity {
     /** @param {IEntity} other */
     equals(other) {
         const thisKeys = Object.keys(this)
-        const otherKeys = Object.keys(this)
+        const otherKeys = Object.keys(other)
         if (thisKeys.length != otherKeys.length) {
             return false
         }

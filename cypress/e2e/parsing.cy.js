@@ -1,14 +1,19 @@
 /// <reference types="cypress" />
 
-import GuidEntity from "../../js/entity/GuidEntity"
-import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory"
-import IntegerEntity from "../../js/entity/IntegerEntity"
-import KeyBindingEntity from "../../js/entity/KeyBindingEntity"
-import LinearColorEntity from "../../js/entity/LinearColorEntity"
-import SerializerFactory from "../../js/serialization/SerializerFactory"
-import Utility from "../../js/Utility"
-import Vector2DEntity from "../../js/entity/Vector2DEntity"
-import VectorEntity from "../../js/entity/VectorEntity"
+import Grammar from "../../js/serialization/Grammar.js"
+import GuidEntity from "../../js/entity/GuidEntity.js"
+import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory.js"
+import IntegerEntity from "../../js/entity/IntegerEntity.js"
+import KeyBindingEntity from "../../js/entity/KeyBindingEntity.js"
+import LinearColorEntity from "../../js/entity/LinearColorEntity.js"
+import ObjectReferenceEntity from "../../js/entity/ObjectReferenceEntity.js"
+import RotatorEntity from "../../js/entity/RotatorEntity.js"
+import SerializerFactory from "../../js/serialization/SerializerFactory.js"
+import SymbolEntity from "../../js/entity/SymbolEntity.js"
+import UnknownKeysEntity from "../../js/entity/UnknownKeysEntity.js"
+import Utility from "../../js/Utility.js"
+import Vector2DEntity from "../../js/entity/Vector2DEntity.js"
+import VectorEntity from "../../js/entity/VectorEntity.js"
 
 initializeSerializerFactory()
 
@@ -23,7 +28,7 @@ describe("Serializer", () => {
         it("Parses False", () => expect(serializer.read("False")).to.be.false)
     })
 
-    context("Integer", () => {
+    context("IntegerEntity", () => {
         let serializer = SerializerFactory.getSerializer(IntegerEntity)
 
         it("Parses 0", () => expect(serializer.read("0"))
@@ -80,7 +85,8 @@ describe("Serializer", () => {
             expect(serializer.read('"hello world 123 - éèàò@ç ^ ^^^"'))
                 .to.be.equal("hello world 123 - éèàò@ç ^ ^^^")
         )
-        it(String.raw`Parses "\""`, () => expect(serializer.read(String.raw`"\""`)).to.be.equal('"'))
+        it('Parses "\\""', () => expect(serializer.read('"\\""')).to.be.equal('"'))
+        it('Throws when not a string', () => expect(() => serializer.read("Hello")).to.throw())
     })
 
     context("KeyBindingEntity", () => {
@@ -109,7 +115,7 @@ describe("Serializer", () => {
         )
     })
 
-    context("Guid", () => {
+    context("GuidEntity", () => {
         let serializer = SerializerFactory.getSerializer(GuidEntity)
 
         it("Parses 0556a3ecabf648d0a5c07b2478e9dd32", () =>
@@ -141,7 +147,7 @@ describe("Serializer", () => {
         )
     })
 
-    context("Vector", () => {
+    context("VectorEntity", () => {
         let serializer = SerializerFactory.getSerializer(VectorEntity)
 
         it("Parses simple vector", () => expect(serializer.read("(X=1,Y=2,Z=3.5)"))
@@ -185,7 +191,7 @@ describe("Serializer", () => {
         )
     })
 
-    context("Vector2D", () => {
+    context("Vector2DEntity", () => {
         let serializer = SerializerFactory.getSerializer(Vector2DEntity)
 
         it("Parses simple vector", () => expect(serializer.read("(X=78,Y=56.3)"))
@@ -222,7 +228,7 @@ describe("Serializer", () => {
         )
     })
 
-    context("Linear color", () => {
+    context("LinearColorEntity", () => {
         let serializer = SerializerFactory.getSerializer(LinearColorEntity)
 
         it("check white color", () => {
@@ -269,6 +275,76 @@ describe("Serializer", () => {
         )
         it("Throws when unexpected types", () => expect(() => serializer.read("(R=0.000000,G=\"hello\",A=1.000000)"))
             .to.throw()
+        )
+    })
+
+    context("UnknownKeysValue", () => {
+        let parser = Grammar.unknownValue
+
+        it("Parses String", () => expect(parser.parse('"Hello"').value.constructor).equals(String))
+        it("Parses null", () => expect(parser.parse("()").value).to.be.null)
+        it("Parses Number", () => expect(parser.parse("8345").value.constructor).equals(Number))
+        it("Parses Boolean", () => expect(parser.parse("True").value.constructor).equals(Boolean))
+        it("Parses Boolean 2", () => expect(parser.parse("False").value.constructor).equals(Boolean))
+        it("Parses GuidEntity", () =>
+            expect(parser.parse("F0223D3742E67C0D9FEFB2A64946B7F0").value.constructor).equals(GuidEntity)
+        )
+        it("Parses SymbolEntity", () => expect(parser.parse("SYMBOL1").value.constructor).equals(SymbolEntity))
+        it("Parses SymbolEntity 2", () => expect(parser.parse("Symbol_2_3_4").value.constructor).equals(SymbolEntity))
+        it("Parses Vector2DEntity", () =>
+            expect(parser.parse("(X=-0.495,  Y=0, )").value.constructor).equals(Vector2DEntity)
+        )
+        it("Parses VectorEntity", () =>
+            expect(parser.parse("(X=-0.495,Y=+765.0,Z=7)").value.constructor).equals(VectorEntity)
+        )
+        it("Parses RotatorEntity", () =>
+            expect(parser.parse("(R=1.000000,P=7.6,Y=+88.99)").value.constructor).equals(RotatorEntity)
+        )
+        it("Parses LinearColorEntity", () =>
+            expect(parser.parse("(R=0.000000,G=0.660000,B=1.000000,A=1.000000)").value.constructor)
+                .equals(LinearColorEntity)
+        )
+        it("Parses ObjectReferenceEntity", () =>
+            expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`).value.constructor)
+                .equals(ObjectReferenceEntity)
+        )
+        it("Parses Numbers array", () =>
+            expect(parser.parse("(1,2,3,4,5,6,7,8,9)").value).to.be.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        )
+        it("Parses Strings array", () =>
+            expect(parser.parse(`( "Hello",  "World",  )`).value).to.be.deep.equal(["Hello", "World"])
+        )
+        it("Parses Heterogeneous array", () =>
+            expect(parser.parse(`( "Alpha", 123, Beta, "Gamma", "Delta", 99  )`).value)
+                .to.be.deep.equal(["Alpha", 123, { value: "Beta" }, "Gamma", "Delta", 99])
+        )
+    })
+
+    context("UnknownKeysEntity", () => {
+        let serializer = SerializerFactory.getSerializer(UnknownKeysEntity)
+
+        it('Parses LookbehindValue(FirstKey=1,SecondKey=SOME_SYMBOL2,ThirdKey="Hello")', () =>
+            expect(serializer.read('LookbehindValue(FirstKey=1,SecondKey=SOME_SYMBOL2,ThirdKey="Hello")').equals(
+                new UnknownKeysEntity({
+                    lookbehind: "LookbehindValue",
+                    FirstKey: 1,
+                    SecondKey: new SymbolEntity("SOME_SYMBOL2"),
+                    ThirdKey: "Hello",
+                })
+            )).to.be.true
+        )
+        it('Parses (A = (-1,-2,-3),  B = SomeFunction(B1 = "b1", B2 = (X=101,Y=102,Z=103)))', () =>
+            expect(serializer.read('(A = (-1,-2,-3),  B = SomeFunction(B1 = "b1", B2 = (X=101,Y=102,Z=103)))').equals(
+                new UnknownKeysEntity({
+                    lookbehind: "",
+                    A: [-1, -2, -3],
+                    B: new UnknownKeysEntity({
+                        lookbehind: "SomeFunction",
+                        B1: "b1",
+                        B2: new VectorEntity({ X: 101, Y: 102, Z: 103 }),
+                    }),
+                })
+            )).to.be.true
         )
     })
 })

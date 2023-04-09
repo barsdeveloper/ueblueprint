@@ -1,5 +1,5 @@
 import Entity1 from "./Entity1.js"
-import IEntity from "../../js/entity/IEntity"
+import IEntity from "../../js/entity/IEntity.js"
 
 export default class Entity2 extends IEntity {
 

@@ -1,7 +1,7 @@
-import Entity1 from "./Entity1"
+import Entity1 from "./Entity1.js"
 import Entity2 from "./Entity2.js"
-import IEntity from "../../js/entity/IEntity"
-import UnionType from "../../js/entity/UnionType"
+import IEntity from "../../js/entity/IEntity.js"
+import UnionType from "../../js/entity/UnionType.js"
 
 export default class Entity3 extends IEntity {
 
