@@ -141,6 +141,7 @@ class Configuration {
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         select: "/Script/BlueprintGraph.K2Node_Select",
+        spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
@@ -2036,8 +2037,10 @@ class PinEntity extends IEntity {
             showDefault: false,
         },
         DefaultValue: {
-            /** @param {PinEntity} pinEntity */
-            type: new ComputedType(pinEntity => pinEntity.getEntityType(true) ?? String),
+            type: new ComputedType(
+                /** @param {PinEntity} pinEntity */
+                pinEntity => pinEntity.getEntityType(true) ?? String
+            ),
             serialized: true,
             showDefault: false,
         },
@@ -2103,13 +2106,7 @@ class PinEntity extends IEntity {
         if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
             return subCategory.path
         }
-        if (
-            this.PinType.PinCategory === "byte"
-            && (
-                subCategory.type === Configuration.nodeType.enum
-                || subCategory.type === Configuration.nodeType.userDefinedEnum
-            )
-        ) {
+        if (this.isEnum()) {
             return "enum"
         }
         return this.PinType.PinCategory
@@ -2159,6 +2156,13 @@ class PinEntity extends IEntity {
             this.DefaultValue = new (this.getEntityType(true))();
         }
         return this.DefaultValue
+    }
+
+    isEnum() {
+        const type = this.PinType.PinSubCategoryObject.type;
+        return type === Configuration.nodeType.enum
+            || type === Configuration.nodeType.userDefinedEnum
+            || type.toLowerCase() === "enum"
     }
 
     isExecution() {
@@ -2528,6 +2532,16 @@ class SVGIcon {
             <rect x="10" y="2" width="6" height="2" fill="white" />
             <rect x="10" y="7" width="4" height="2" fill="white" />
             <rect x="10" y="12" width="2" height="2" fill="white" />
+        </svg>
+    `
+
+    static spawnActor = y`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.38 12.62L7 11.5L10.38 10.38L11.5 7L12.63 10.38L16 11.5L12.63 12.62L11.5 16L10.38 12.62Z" fill="white"/>
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4 14H2L3 10L0 14V16H10L9 14H4Z" fill="white"/>
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M2 6C1.9996 7.10384 2.30372 8.1864 2.87889 9.12854C3.45406 10.0707 4.27798 10.8359 5.26 11.34L9 9L11.5 5L13.78 7.6C13.9251 7.07902 13.9991 6.54081 14 6C14 4.4087 13.3679 2.88258 12.2426 1.75736C11.1174 0.63214 9.5913 0 8 0C6.4087 0 4.88258 0.63214 3.75736 1.75736C2.63214 2.88258 2 4.4087 2 6V6Z" fill="white"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.22005 0.810059H8.00005C6.62265 0.810056 5.30153 1.35654 4.32663 2.32957C3.35172 3.30259 2.8027 4.62266 2.80005 6.00006C2.79984 7.03987 3.11257 8.05567 3.69756 8.91532C4.28255 9.77497 5.11271 10.4387 6.08005 10.8201L7.17005 10.1401C6.16687 9.86642 5.28119 9.27116 4.64894 8.44562C4.01669 7.62008 3.6728 6.60989 3.67005 5.57006C3.66886 4.34318 4.14143 3.16323 4.98917 2.27635C5.83692 1.38948 6.99437 0.864185 8.22005 0.810059V0.810059Z" fill="white"/>
+            <path d="M10.0401 5.16001C10.7028 5.16001 11.2401 4.62275 11.2401 3.96001C11.2401 3.29727 10.7028 2.76001 10.0401 2.76001C9.37735 2.76001 8.84009 3.29727 8.84009 3.96001C8.84009 4.62275 9.37735 5.16001 10.0401 5.16001Z" fill="white"/>
         </svg>
     `
 
@@ -3017,12 +3031,17 @@ class ObjectEntity extends IEntity {
                 return "For Each Loop with Break"
             case Configuration.nodeType.ifThenElse:
                 return "Branch"
+            case Configuration.nodeType.spawnActorFromClass:
+                return `SpawnActor ${Utility.formatStringName(
+                    this.CustomProperties.find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
+                    ?? "NONE"
+                )}`
+            case Configuration.nodeType.switchEnum:
+                return `Switch on ${this.Enum?.getName() ?? "Enum"}`
             case Configuration.nodeType.variableGet:
                 return ""
             case Configuration.nodeType.variableSet:
                 return "SET"
-            case Configuration.nodeType.switchEnum:
-                return `Switch on ${this.Enum?.getName() ?? "Enum"}`
         }
         const keyNameSymbol = this.getHIDAttribute();
         if (keyNameSymbol) {
@@ -3165,6 +3184,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
+            case Configuration.nodeType.spawnActorFromClass: return SVGIcon.spawnActor
             case Configuration.nodeType.switchEnum: return SVGIcon.switch
         }
         if (this.nodeDisplayName().startsWith("Break")) {

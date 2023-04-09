@@ -86,8 +86,10 @@ export default class PinEntity extends IEntity {
             showDefault: false,
         },
         DefaultValue: {
-            /** @param {PinEntity} pinEntity */
-            type: new ComputedType(pinEntity => pinEntity.getEntityType(true) ?? String),
+            type: new ComputedType(
+                /** @param {PinEntity} pinEntity */
+                pinEntity => pinEntity.getEntityType(true) ?? String
+            ),
             serialized: true,
             showDefault: false,
         },
@@ -153,13 +155,7 @@ export default class PinEntity extends IEntity {
         if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
             return subCategory.path
         }
-        if (
-            this.PinType.PinCategory === "byte"
-            && (
-                subCategory.type === Configuration.nodeType.enum
-                || subCategory.type === Configuration.nodeType.userDefinedEnum
-            )
-        ) {
+        if (this.isEnum()) {
             return "enum"
         }
         return this.PinType.PinCategory
@@ -209,6 +205,13 @@ export default class PinEntity extends IEntity {
             this.DefaultValue = new (this.getEntityType(true))()
         }
         return this.DefaultValue
+    }
+
+    isEnum() {
+        const type = this.PinType.PinSubCategoryObject.type
+        return type === Configuration.nodeType.enum
+            || type === Configuration.nodeType.userDefinedEnum
+            || type.toLowerCase() === "enum"
     }
 
     isExecution() {

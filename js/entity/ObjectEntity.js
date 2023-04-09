@@ -444,12 +444,17 @@ export default class ObjectEntity extends IEntity {
                 return "For Each Loop with Break"
             case Configuration.nodeType.ifThenElse:
                 return "Branch"
+            case Configuration.nodeType.spawnActorFromClass:
+                return `SpawnActor ${Utility.formatStringName(
+                    this.CustomProperties.find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
+                    ?? "NONE"
+                )}`
+            case Configuration.nodeType.switchEnum:
+                return `Switch on ${this.Enum?.getName() ?? "Enum"}`
             case Configuration.nodeType.variableGet:
                 return ""
             case Configuration.nodeType.variableSet:
                 return "SET"
-            case Configuration.nodeType.switchEnum:
-                return `Switch on ${this.Enum?.getName() ?? "Enum"}`
         }
         const keyNameSymbol = this.getHIDAttribute()
         if (keyNameSymbol) {
@@ -592,6 +597,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.makeMap: return SVGIcon.makeMap
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
+            case Configuration.nodeType.spawnActorFromClass: return SVGIcon.spawnActor
             case Configuration.nodeType.switchEnum: return SVGIcon.switch
         }
         if (this.nodeDisplayName().startsWith("Break")) {
