@@ -555,6 +555,7 @@ ueb-node.ueb-node-style-comment .ueb-node-top {
   color: white;
   font-size: 24px;
   text-shadow: 2px 1px 1px #444, 0 0 2px #bbb;
+  line-height: 1.22;
   z-index: 1;
 }
 

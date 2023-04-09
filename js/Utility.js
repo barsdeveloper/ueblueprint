@@ -1,5 +1,5 @@
-import Configuration from "./Configuration.js"
 import ComputedType from "./entity/ComputedType.js"
+import Configuration from "./Configuration.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
@@ -316,8 +316,13 @@ export default class Utility {
     static clearHTMLWhitespace(value) {
         return value
             .replaceAll("&nbsp;", "\u00A0") // whitespace
-            .replaceAll("<br>", "\n") // newlines
+            .replaceAll(/<br\s*\/>|<br>/, "\n") // newlines
             .replaceAll(/(\<!--.*?\-->)/g, "") // html comments
+    }
+
+    /** @param {String} value */
+    static encodeHTMLWhitespace(value) {
+        return value.replaceAll(" ", "\u00A0")
     }
 
     /** @param {String} value */

@@ -761,8 +761,14 @@ class Utility {
     static clearHTMLWhitespace(value) {
         return value
             .replaceAll("&nbsp;", "\u00A0") // whitespace
-            .replaceAll("<br>", "\n") // newlines
+            .replaceAll(/<br\s*\/>|<br>/, "\n") // newlines
             .replaceAll(/(\<!--.*?\-->)/g, "") // html comments
+    }
+
+    /** @param {String} value */
+    static encodeHTMLWhitespace(value) {
+        return value
+            .replaceAll(" ", "\u00A0")
     }
 
     /** @param {String} value */
@@ -2131,7 +2137,7 @@ class PinEntity extends IEntity {
             && (match = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
         ) {
             if (match[1].toLowerCase() === result.toLowerCase()) {
-                return match[1]
+                return match[1] // In case they match, then keep the case of the PinToolTip...
             }
         }
         return result
@@ -6770,8 +6776,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
         return y`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
-                    <div class="ueb-node-top">
-                        ${this.element.entity.NodeComment}
+                    <div class="ueb-node-top" .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment)}">
                     </div>
                 </div>
             </div>

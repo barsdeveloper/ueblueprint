@@ -2,6 +2,7 @@ import { css, html } from "lit"
 import Configuration from "../../Configuration.js"
 import IResizeableTemplate from "../IResizeableTemplate.js"
 import LinearColorEntity from "../../entity/LinearColorEntity.js"
+import Utility from "../../Utility.js"
 
 /**
  * @typedef {import("../../element/NodeElement").default} NodeElement
@@ -42,8 +43,8 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
         return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
-                    <div class="ueb-node-top">
-                        ${this.element.entity.NodeComment}
+                    <div class="ueb-node-top"
+                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment)}">
                     </div>
                 </div>
             </div>

@@ -79,6 +79,7 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] ueb-node.ueb-node-
 ueb-node.ueb-node-style-comment .ueb-node-top {
     white-space: normal;
 }
+
 ueb-node.ueb-node-style-event .ueb-node-top {
     display: flex;
     justify-content: space-between;
@@ -337,6 +338,7 @@ ueb-node.ueb-node-style-comment .ueb-node-top {
     color: white;
     font-size: 24px;
     text-shadow: 2px 1px 1px #444, 0 0 2px #bbb;
+    line-height: 1.22;
     z-index: 1;
 }
 

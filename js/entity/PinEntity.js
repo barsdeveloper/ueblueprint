@@ -179,7 +179,7 @@ export default class PinEntity extends IEntity {
             && (match = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
         ) {
             if (match[1].toLowerCase() === result.toLowerCase()) {
-                return match[1]
+                return match[1] // In case they match, then keep the case of the PinToolTip
             }
         }
         return result
