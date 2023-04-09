@@ -642,7 +642,7 @@ class Utility {
         return false
     }
 
-    /** 
+    /**
      * @param {null | AnyValue | TypeInformation} value
      * @returns {AnyValueConstructor}
      */
@@ -786,16 +786,6 @@ class Utility {
     }
 
     /** @param {String} value */
-    static encodeKeyName(value) {
-        return value.replaceAll(".", "$")
-    }
-
-    /** @param {String} value */
-    static decodeKeyName(value) {
-        return value.replaceAll("$", ".")
-    }
-
-    /** @param {String} value */
     static getIdFromReference(value) {
         return value
             .replace(/(?:.+\.)?([^\.]+)$/, "$1")
@@ -903,7 +893,7 @@ class Utility {
 
 /**
  * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor 
+ * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
  *     | BooleanConstructor | ArrayConstructor} AnyValueConstructor
  */
 
@@ -3972,24 +3962,22 @@ class Grammar {
 /** @template {AnyValue} T */
 class Serializer {
 
-    /** @type {(v: String, entityType: AnyValueConstructor) => String} */
-    static bracketsWrapped = ((v, entityType) => `(${v})`)
     /** @type {(v: String) => String} */
-    static same = (v => v)
+    static bracketsWrapped = (v => `(${v})`)
+    /** @type {(v: String) => String} */
+    static same = v => v
 
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
         wrap = Serializer.same,
-        attributePrefix = "",
         attributeSeparator = ",",
         trailingSeparator = false,
         attributeValueConjunctionSign = "=",
-        attributeKeyPrinter = k => k
+        attributeKeyPrinter = Serializer.same
     ) {
         this.entityType = entityType;
         this.wrap = wrap;
-        this.attributePrefix = attributePrefix;
         this.attributeSeparator = attributeSeparator;
         this.trailingSeparator = trailingSeparator;
         this.attributeValueConjunctionSign = attributeValueConjunctionSign;
@@ -4010,7 +3998,6 @@ class Serializer {
     }
 
     /**
-     * @protected
      * @param {String} value
      * @returns {T}
      */
@@ -4024,7 +4011,6 @@ class Serializer {
     }
 
     /**
-     * @protected
      * @param {T} entity
      * @param {Boolean} insideString
      * @returns {String}
@@ -4033,7 +4019,6 @@ class Serializer {
         entity,
         insideString,
         wrap = this.wrap,
-        attributePrefix = this.attributePrefix,
         attributeSeparator = this.attributeSeparator,
         trailingSeparator = this.trailingSeparator,
         attributeValueConjunctionSign = this.attributeValueConjunctionSign,
@@ -4060,7 +4045,6 @@ class Serializer {
                         value,
                         insideString,
                         Serializer.same,
-                        attributePrefix,
                         attributeSeparator,
                         false,
                         attributeValueConjunctionSign,
@@ -4071,8 +4055,7 @@ class Serializer {
                     continue
                 }
                 result +=
-                    attributePrefix
-                    + attributeKeyPrinter(key)
+                    attributeKeyPrinter(key)
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
@@ -4088,10 +4071,7 @@ class Serializer {
         return wrap(result, entity.constructor)
     }
 
-    /**
-     * @protected
-     * @param {Boolean} insideString
-     */
+    /** @param {Boolean} insideString */
     doWriteValue(value, insideString) {
         const type = Utility.getType(value);
         // @ts-expect-error
@@ -4125,7 +4105,7 @@ class Serializer {
 class ObjectSerializer extends Serializer {
 
     constructor() {
-        super(ObjectEntity, undefined, "   ", "\n", false);
+        super(ObjectEntity, undefined, "\n", false, undefined, k => `   ${k}`);
     }
 
     showProperty(entity, key) {
@@ -4161,7 +4141,6 @@ class ObjectSerializer extends Serializer {
     }
 
     /**
-     * @protected
      * @param {ObjectEntity} entity
      * @param {Boolean} insideString
      * @returns {String}
@@ -4170,7 +4149,6 @@ class ObjectSerializer extends Serializer {
         entity,
         insideString,
         wrap = this.wrap,
-        attributePrefix = this.attributePrefix,
         attributeSeparator = this.attributeSeparator,
         trailingSeparator = this.trailingSeparator,
         attributeValueConjunctionSign = this.attributeValueConjunctionSign,
@@ -4183,9 +4161,8 @@ class ObjectSerializer extends Serializer {
             + super.doWrite(entity, insideString)
             + entity.CustomProperties.map(pin =>
                 this.attributeSeparator
-                + this.attributePrefix
-                + "CustomProperties "
-                + SerializerFactory.getSerializer(PinEntity).write(pin)
+                + "   CustomProperties "
+                + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
             )
                 .join("")
             + "\nEnd Object\n";
@@ -9411,7 +9388,7 @@ class VectorPinTemplate extends INumericPinTemplate {
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {typeof PinElement} PinElementConstructor
  */
-/** 
+/**
  * @template T
  * @typedef {import("parsimmon").Success<T>} Success
  */
@@ -10227,7 +10204,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new Serializer(InvariantTextEntity, v => `${InvariantTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
+        new Serializer(InvariantTextEntity, v => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -10242,7 +10219,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new Serializer(LocalizedTextEntity, v => `${LocalizedTextEntity.lookbehind}(${v})`, "", ", ", false, "", _ => "")
+        new Serializer(LocalizedTextEntity, v => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -10279,12 +10256,12 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new Serializer(PinEntity, v => `${PinEntity.lookbehind} (${v})`, "", ",", true)
+        new Serializer(PinEntity, v => `${PinEntity.lookbehind} (${v})`, ",", true)
     );
 
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
-        new Serializer(PinReferenceEntity, v => v, "", " ", false, "", _ => "")
+        new Serializer(PinReferenceEntity, Serializer.same, " ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(

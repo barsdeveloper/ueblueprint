@@ -27,7 +27,7 @@ import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {typeof PinElement} PinElementConstructor
  */
-/** 
+/**
  * @template T
  * @typedef {import("parsimmon").Success<T>} Success
  */

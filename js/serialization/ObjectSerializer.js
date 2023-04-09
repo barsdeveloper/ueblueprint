@@ -7,7 +7,7 @@ import SerializerFactory from "./SerializerFactory.js"
 export default class ObjectSerializer extends Serializer {
 
     constructor() {
-        super(ObjectEntity, undefined, "   ", "\n", false)
+        super(ObjectEntity, undefined, "\n", false, undefined, k => `   ${k}`)
     }
 
     showProperty(entity, key) {
@@ -43,7 +43,6 @@ export default class ObjectSerializer extends Serializer {
     }
 
     /**
-     * @protected
      * @param {ObjectEntity} entity
      * @param {Boolean} insideString
      * @returns {String}
@@ -52,7 +51,6 @@ export default class ObjectSerializer extends Serializer {
         entity,
         insideString,
         wrap = this.wrap,
-        attributePrefix = this.attributePrefix,
         attributeSeparator = this.attributeSeparator,
         trailingSeparator = this.trailingSeparator,
         attributeValueConjunctionSign = this.attributeValueConjunctionSign,
@@ -65,9 +63,8 @@ export default class ObjectSerializer extends Serializer {
             + super.doWrite(entity, insideString)
             + entity.CustomProperties.map(pin =>
                 this.attributeSeparator
-                + this.attributePrefix
-                + "CustomProperties "
-                + SerializerFactory.getSerializer(PinEntity).write(pin)
+                + "   CustomProperties "
+                + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
             )
                 .join("")
             + "\nEnd Object\n"

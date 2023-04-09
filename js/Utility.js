@@ -198,7 +198,7 @@ export default class Utility {
         return false
     }
 
-    /** 
+    /**
      * @param {null | AnyValue | TypeInformation} value
      * @returns {AnyValueConstructor}
      */
@@ -339,16 +339,6 @@ export default class Utility {
             .split(" ")
             .map(v => Utility.capitalFirstLetter(v))
             .join(" ")
-    }
-
-    /** @param {String} value */
-    static encodeKeyName(value) {
-        return value.replaceAll(".", "$")
-    }
-
-    /** @param {String} value */
-    static decodeKeyName(value) {
-        return value.replaceAll("$", ".")
     }
 
     /** @param {String} value */

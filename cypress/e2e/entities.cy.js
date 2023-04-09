@@ -27,11 +27,10 @@ describe("Entity initialization", () => {
                 new Serializer(
                     Entity2,
                     v => `{\n${v}\n}`,
-                    "    ",
                     "\n",
                     false,
                     ": ",
-                    undefined
+                    k => `    ${k}`
                 )
             )
             SerializerFactory.registerSerializer(
@@ -39,11 +38,9 @@ describe("Entity initialization", () => {
                 new Serializer(
                     Entity1,
                     v => `Entity1(${v})`,
-                    "",
                     ", ",
                     false,
                     "=",
-                    undefined
                 )
             )
         })
@@ -151,11 +148,10 @@ describe("Entity initialization", () => {
                 new Serializer(
                     Entity3,
                     v => `[[\n${v}\n]]`,
-                    "    ",
                     "\n",
                     false,
                     ": ",
-                    undefined
+                    k => `    ${k}`
                 )
             )
             SerializerFactory.registerSerializer(
@@ -163,11 +159,9 @@ describe("Entity initialization", () => {
                 new Serializer(
                     Entity1,
                     v => `Entity1(${v})`,
-                    "",
                     ", ",
                     false,
                     "=",
-                    undefined
                 )
             )
         })
@@ -294,11 +288,10 @@ describe("Entity initialization", () => {
                 new Serializer(
                     Entity4,
                     v => `Begin\n${v}\nEnd`,
-                    "  ",
                     "\n",
                     false,
                     " => ",
-                    k => `\${${k}}`
+                    k => `  \${${k}}`
                 )
             )
         })

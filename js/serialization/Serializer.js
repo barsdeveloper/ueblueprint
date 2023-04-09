@@ -11,24 +11,22 @@ import Utility from "../Utility.js"
 /** @template {AnyValue} T */
 export default class Serializer {
 
-    /** @type {(v: String, entityType: AnyValueConstructor) => String} */
-    static bracketsWrapped = ((v, entityType) => `(${v})`)
     /** @type {(v: String) => String} */
-    static same = (v => v)
+    static bracketsWrapped = (v => `(${v})`)
+    /** @type {(v: String) => String} */
+    static same = v => v
 
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
         wrap = Serializer.same,
-        attributePrefix = "",
         attributeSeparator = ",",
         trailingSeparator = false,
         attributeValueConjunctionSign = "=",
-        attributeKeyPrinter = k => k
+        attributeKeyPrinter = Serializer.same
     ) {
         this.entityType = entityType
         this.wrap = wrap
-        this.attributePrefix = attributePrefix
         this.attributeSeparator = attributeSeparator
         this.trailingSeparator = trailingSeparator
         this.attributeValueConjunctionSign = attributeValueConjunctionSign
@@ -49,7 +47,6 @@ export default class Serializer {
     }
 
     /**
-     * @protected
      * @param {String} value
      * @returns {T}
      */
@@ -63,7 +60,6 @@ export default class Serializer {
     }
 
     /**
-     * @protected
      * @param {T} entity
      * @param {Boolean} insideString
      * @returns {String}
@@ -72,7 +68,6 @@ export default class Serializer {
         entity,
         insideString,
         wrap = this.wrap,
-        attributePrefix = this.attributePrefix,
         attributeSeparator = this.attributeSeparator,
         trailingSeparator = this.trailingSeparator,
         attributeValueConjunctionSign = this.attributeValueConjunctionSign,
@@ -99,7 +94,6 @@ export default class Serializer {
                         value,
                         insideString,
                         Serializer.same,
-                        attributePrefix,
                         attributeSeparator,
                         false,
                         attributeValueConjunctionSign,
@@ -110,8 +104,7 @@ export default class Serializer {
                     continue
                 }
                 result +=
-                    attributePrefix
-                    + attributeKeyPrinter(key)
+                    attributeKeyPrinter(key)
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized
@@ -127,10 +120,7 @@ export default class Serializer {
         return wrap(result, entity.constructor)
     }
 
-    /**
-     * @protected
-     * @param {Boolean} insideString
-     */
+    /** @param {Boolean} insideString */
     doWriteValue(value, insideString) {
         const type = Utility.getType(value)
         // @ts-expect-error
