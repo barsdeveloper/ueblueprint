@@ -231,10 +231,10 @@ class Configuration {
         "PageDown": "PageDown",
         "End": "End",
         "Home": "Home",
-        "ArrowLeft": "Left",
-        "ArrowUp": "Up",
-        "ArrowRight": "Right",
-        "ArrowDown": "Down",
+        "ArrowLeft": "ArrowLeft",
+        "ArrowUp": "ArrowUp",
+        "ArrowRight": "ArrowRight",
+        "ArrowDown": "ArrowDown",
         "PrintScreen": "PrintScreen",
         "Insert": "Insert",
         "Delete": "Delete",
@@ -767,8 +767,7 @@ class Utility {
 
     /** @param {String} value */
     static encodeHTMLWhitespace(value) {
-        return value
-            .replaceAll(" ", "\u00A0")
+        return value.replaceAll(" ", "\u00A0")
     }
 
     /** @param {String} value */
@@ -2137,7 +2136,7 @@ class PinEntity extends IEntity {
             && (match = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
         ) {
             if (match[1].toLowerCase() === result.toLowerCase()) {
-                return match[1] // In case they match, then keep the case of the PinToolTip...
+                return match[1] // In case they match, then keep the case of the PinToolTip
             }
         }
         return result
@@ -4322,6 +4321,8 @@ class IKeyboardShortcut extends IInput {
     /** @type {KeyBindingEntity[]} */
     #activationKeys
 
+    pressedKey = ""
+
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
@@ -4373,6 +4374,7 @@ class IKeyboardShortcut extends IInput {
                     e.preventDefault();
                     e.stopImmediatePropagation();
                 }
+                this.pressedKey = e.code;
                 self.fire();
                 document.removeEventListener("keydown", self.keyDownHandler);
                 document.addEventListener("keyup", self.keyUpHandler);
@@ -4395,6 +4397,7 @@ class IKeyboardShortcut extends IInput {
                     e.stopImmediatePropagation();
                 }
                 self.unfire();
+                this.pressedKey = "";
                 document.removeEventListener("keyup", this.keyUpHandler);
                 document.addEventListener("keydown", this.keyDownHandler);
             }
@@ -6289,6 +6292,46 @@ class MouseClickDrag extends MouseMoveDraggable {
     }
 }
 
+/** @typedef {import("../../Blueprint").default} Blueprint */
+
+/**
+ * @template {HTMLElement} T
+ * @extends IKeyboardShortcut<T>
+ */
+class KeyboardShortcutAction extends IKeyboardShortcut {
+
+    static #ignoreEvent =
+        /** @param {KeyboardShortcutAction} self */
+        self => { }
+
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     * @param {(self: KeyboardShortcutAction<T>) => void} onKeyDown
+     * @param {(self: KeyboardShortcutAction<T>) => void} onKeyUp
+     */
+    constructor(
+        target,
+        blueprint,
+        options,
+        onKeyDown = KeyboardShortcutAction.#ignoreEvent,
+        onKeyUp = KeyboardShortcutAction.#ignoreEvent
+    ) {
+        super(target, blueprint, options);
+        this.onKeyDown = onKeyDown;
+        this.onKeyUp = onKeyUp;
+    }
+
+    fire() {
+        this.onKeyDown(this);
+    }
+
+    unfire() {
+        this.onKeyUp(this);
+    }
+}
+
 /**
  * @typedef {import("../entity/IEntity").default} IEntity
  * @typedef {import("../element/IDraggableElement").default} IDraggableElement
@@ -6314,6 +6357,30 @@ class IDraggableTemplate extends ITemplate {
         return [
             ...super.createInputObjects(),
             this.createDraggableObject(),
+            new KeyboardShortcutAction(
+                this.element,
+                this.blueprint,
+                {
+                    activationKeys: [
+                        Configuration.Keys.ArrowUp,
+                        Configuration.Keys.ArrowRight,
+                        Configuration.Keys.ArrowDown,
+                        Configuration.Keys.ArrowLeft,
+                    ]
+                },
+                self => self.target.acknowledgeDrag([
+                    self.pressedKey === Configuration.Keys.ArrowLeft
+                        ? -Configuration.gridSize
+                        : self.pressedKey === Configuration.Keys.ArrowRight
+                            ? Configuration.gridSize
+                            : 0,
+                    self.pressedKey === Configuration.Keys.ArrowUp
+                        ? -Configuration.gridSize
+                        : self.pressedKey === Configuration.Keys.ArrowDown
+                            ? Configuration.gridSize
+                            : 0,
+                ])
+            )
         ]
     }
 
@@ -6776,7 +6843,8 @@ class CommentNodeTemplate extends IResizeableTemplate {
         return y`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
-                    <div class="ueb-node-top" .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment)}">
+                    <div class="ueb-node-top"
+                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment)}">
                     </div>
                 </div>
             </div>

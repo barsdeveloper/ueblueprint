@@ -1,4 +1,6 @@
+import Configuration from "../Configuration.js"
 import ITemplate from "./ITemplate.js"
+import KeyboardShortcutAction from "../input/keybaord/KeyboardShortcutAction.js"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable.js"
 
 /**
@@ -26,6 +28,30 @@ export default class IDraggableTemplate extends ITemplate {
         return [
             ...super.createInputObjects(),
             this.createDraggableObject(),
+            new KeyboardShortcutAction(
+                this.element,
+                this.blueprint,
+                {
+                    activationKeys: [
+                        Configuration.Keys.ArrowUp,
+                        Configuration.Keys.ArrowRight,
+                        Configuration.Keys.ArrowDown,
+                        Configuration.Keys.ArrowLeft,
+                    ]
+                },
+                self => self.target.acknowledgeDrag([
+                    self.pressedKey === Configuration.Keys.ArrowLeft
+                        ? -Configuration.gridSize
+                        : self.pressedKey === Configuration.Keys.ArrowRight
+                            ? Configuration.gridSize
+                            : 0,
+                    self.pressedKey === Configuration.Keys.ArrowUp
+                        ? -Configuration.gridSize
+                        : self.pressedKey === Configuration.Keys.ArrowDown
+                            ? Configuration.gridSize
+                            : 0,
+                ])
+            )
         ]
     }
 

@@ -14,6 +14,8 @@ export default class IKeyboardShortcut extends IInput {
     /** @type {KeyBindingEntity[]} */
     #activationKeys
 
+    pressedKey = ""
+
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
@@ -65,6 +67,7 @@ export default class IKeyboardShortcut extends IInput {
                     e.preventDefault()
                     e.stopImmediatePropagation()
                 }
+                this.pressedKey = e.code
                 self.fire()
                 document.removeEventListener("keydown", self.keyDownHandler)
                 document.addEventListener("keyup", self.keyUpHandler)
@@ -87,6 +90,7 @@ export default class IKeyboardShortcut extends IInput {
                     e.stopImmediatePropagation()
                 }
                 self.unfire()
+                this.pressedKey = ""
                 document.removeEventListener("keyup", this.keyUpHandler)
                 document.addEventListener("keydown", this.keyDownHandler)
             }
