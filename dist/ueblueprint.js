@@ -880,8 +880,9 @@ class Utility {
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
+ * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | UnionType[] | ComputedType} AttributeType
  * @typedef {{
- *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | ComputedType,
+ *     type?: AttributeType,
  *     default?: AnyValue | ValueSupplier,
  *     showDefault?: Boolean,
  *     nullable?: Boolean,
@@ -919,7 +920,16 @@ class IEntity {
 
     constructor(values = {}, suppressWarns = false) {
         const Self = /** @type {EntityConstructor} */(this.constructor);
-        const attributes = Self.attributes;
+        let attributes = Self.attributes;
+        if (values.attributes) {
+            Utility.mergeArrays(Object.keys(attributes), Object.keys(values.attributes))
+                .forEach(k => attributes[k] = {
+                    ...attributes[k],
+                    ...values.attributes[k]
+                });
+            IEntity.defineAttributes(this, attributes);
+        }
+        /** @type {AttributeDeclarations?} */ this.attributes;
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {
@@ -1076,6 +1086,22 @@ class IEntity {
         return !Object.values(this.attributes)
             .filter(/** @param {AttributeInformation} attribute */attribute => !attribute.ignored)
             .some(/** @param {AttributeInformation} attribute */attribute => !attribute.expected)
+    }
+
+    static getAttribute(object, attribute) {
+        return this.getAttributes(object)[attribute]
+    }
+
+    static getAttributes(object) {
+        return object.attributes ?? object.constructor?.attributes ?? {}
+    }
+
+    static defineAttributes(object, attributes) {
+        Object.defineProperty(object, "attributes", {
+            writable: true,
+            configurable: false,
+        });
+        object.attributes = attributes;
     }
 
     unexpectedKeys() {
@@ -3294,11 +3320,13 @@ class UnknownKeysEntity extends IEntity {
 }
 
 /**
+ * @typedef {import ("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import ("../entity/IEntity").AttributeType} AttributeType
  * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
  * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
  */
 /**
- * @template T
+ * @template {AnyValue} T
  * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
  */
 
@@ -3391,7 +3419,7 @@ class Grammar {
     }
 
     /**
-      * @param {AnyValueConstructor<any>} type
+      * @param {AttributeType} type
       * @returns {Parsimmon.Parser<any>}
       */
     static grammarFor(
@@ -3855,8 +3883,8 @@ class Grammar {
         })
     )
 
-    static inlinedArrayEntry = P.lazy(() => {
-        return P.seq(
+    static inlinedArrayEntry = P.lazy(() =>
+        P.seq(
             this.symbol,
             this.regexMap(
                 new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
@@ -3869,8 +3897,16 @@ class Grammar {
                         values => (values[symbol] ??= []).push(currentValue)
                     )
             )
-    })
+    )
 
+    static subObjectEntity = P.lazy(() =>
+        this.objectEntity
+            .map(object =>
+                values => values["SubObject_" + object.Name] = object
+            )
+    )
+
+    /** @type {Parsimmon.Parser<ObjectEntity>} */
     static objectEntity = P.lazy(() =>
         P.seq(
             P.regex(/Begin\s+Object/),
@@ -3879,7 +3915,9 @@ class Grammar {
                 P.alt(
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
-                    this.inlinedArrayEntry
+                    this.inlinedArrayEntry,
+                    // Legacy subobject
+                    this.subObjectEntity
                 )
             )
                 .map(([_0, entry]) => entry)
@@ -4043,7 +4081,7 @@ class Serializer {
     }
 
     /**
-     * @param {T} entity
+     * @param {T & IEntity} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
@@ -4057,7 +4095,7 @@ class Serializer {
         attributeKeyPrinter = this.attributeKeyPrinter
     ) {
         let result = "";
-        const attributes = /** @type {EntityConstructor} */(entity.constructor).attributes ?? {};
+        const attributes = IEntity.getAttributes(entity);
         const keys = Utility.mergeArrays(
             Object.keys(attributes),
             Object.keys(entity)
@@ -4073,6 +4111,7 @@ class Serializer {
                     result += attributeSeparator;
                 }
                 if (attributes[key]?.inlined) {
+                    const keyValue = entity instanceof Array ? `(${key})` : key;
                     result += this.doWrite(
                         value,
                         insideString,
@@ -4081,8 +4120,8 @@ class Serializer {
                         false,
                         attributeValueConjunctionSign,
                         attributes[key].type instanceof Array
-                            ? k => attributeKeyPrinter(`${key}(${k})`)
-                            : k => attributeKeyPrinter(`${key}.${k}`),
+                            ? k => attributeKeyPrinter(`${keyValue}${k}`)
+                            : k => attributeKeyPrinter(`${keyValue}.${k}`)
                     );
                     continue
                 }

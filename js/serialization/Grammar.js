@@ -36,11 +36,13 @@ import Vector2DEntity from "../entity/Vector2DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
 
 /**
+ * @typedef {import ("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import ("../entity/IEntity").AttributeType} AttributeType
  * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
  * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
  */
 /**
- * @template T
+ * @template {AnyValue} T
  * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
  */
 
@@ -133,7 +135,7 @@ export default class Grammar {
     }
 
     /**
-      * @param {AnyValueConstructor<any>} type
+      * @param {AttributeType} type
       * @returns {Parsimmon.Parser<any>}
       */
     static grammarFor(
@@ -597,8 +599,8 @@ export default class Grammar {
         })
     )
 
-    static inlinedArrayEntry = P.lazy(() => {
-        return P.seq(
+    static inlinedArrayEntry = P.lazy(() =>
+        P.seq(
             this.symbol,
             this.regexMap(
                 new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
@@ -611,8 +613,16 @@ export default class Grammar {
                         values => (values[symbol] ??= []).push(currentValue)
                     )
             )
-    })
+    )
 
+    static subObjectEntity = P.lazy(() =>
+        this.objectEntity
+            .map(object =>
+                values => values["SubObject_" + object.Name] = object
+            )
+    )
+
+    /** @type {Parsimmon.Parser<ObjectEntity>} */
     static objectEntity = P.lazy(() =>
         P.seq(
             P.regex(/Begin\s+Object/),
@@ -621,7 +631,9 @@ export default class Grammar {
                 P.alt(
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
-                    this.inlinedArrayEntry
+                    this.inlinedArrayEntry,
+                    // Legacy subobject
+                    this.subObjectEntity
                 )
             )
                 .map(([_0, entry]) => entry)

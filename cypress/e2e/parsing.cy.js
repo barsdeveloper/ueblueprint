@@ -308,6 +308,11 @@ describe("Serializer", () => {
             expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`).value.constructor)
                 .equals(ObjectReferenceEntity)
         )
+        it("Parses ObjectReferenceEntity 2", () =>
+            expect(parser.parse(`Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`)
+                .value.constructor)
+                .equals(ObjectReferenceEntity)
+        )
         it("Parses Numbers array", () =>
             expect(parser.parse("(1,2,3,4,5,6,7,8,9)").value).to.be.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 9])
         )

@@ -24,6 +24,7 @@ export default `Begin
   \${first.sierra.someObjectString} => "gamma"
   \${first.sierra.someArray} => (400,500,600,700,800,)
   \${first.sierra.someEntity} => Entity1(a=8, b=9)
-  \${second(0)} => Entity1(a=1, b=2)
+  \${second(0).a} => 1
+  \${second(0).b} => 2
   \${second(1)} => Entity1(a=11, b=22)
 End`

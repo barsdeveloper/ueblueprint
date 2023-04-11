@@ -1,4 +1,5 @@
 import Grammar from "./Grammar.js"
+import IEntity from "../entity/IEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
@@ -60,7 +61,7 @@ export default class Serializer {
     }
 
     /**
-     * @param {T} entity
+     * @param {T & IEntity} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
@@ -74,7 +75,7 @@ export default class Serializer {
         attributeKeyPrinter = this.attributeKeyPrinter
     ) {
         let result = ""
-        const attributes = /** @type {EntityConstructor} */(entity.constructor).attributes ?? {}
+        const attributes = IEntity.getAttributes(entity)
         const keys = Utility.mergeArrays(
             Object.keys(attributes),
             Object.keys(entity)
@@ -83,6 +84,7 @@ export default class Serializer {
         for (const key of keys) {
             const value = entity[key]
             if (value !== undefined && this.showProperty(entity, key)) {
+                const keyValue = entity instanceof Array ? `(${key})` : key
                 const isSerialized = Utility.isSerialized(entity, key)
                 if (first) {
                     first = false
@@ -98,13 +100,13 @@ export default class Serializer {
                         false,
                         attributeValueConjunctionSign,
                         attributes[key].type instanceof Array
-                            ? k => attributeKeyPrinter(`${key}(${k})`)
-                            : k => attributeKeyPrinter(`${key}.${k}`),
+                            ? k => attributeKeyPrinter(`${keyValue}${k}`)
+                            : k => attributeKeyPrinter(`${keyValue}.${k}`)
                     )
                     continue
                 }
                 result +=
-                    attributeKeyPrinter(key)
+                    attributeKeyPrinter(keyValue)
                     + this.attributeValueConjunctionSign
                     + (
                         isSerialized

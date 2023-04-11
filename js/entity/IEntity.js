@@ -7,8 +7,9 @@ import Utility from "../Utility.js"
  * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
+ * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | UnionType[] | ComputedType} AttributeType
  * @typedef {{
- *     type?: AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | ComputedType,
+ *     type?: AttributeType,
  *     default?: AnyValue | ValueSupplier,
  *     showDefault?: Boolean,
  *     nullable?: Boolean,
@@ -46,7 +47,16 @@ export default class IEntity {
 
     constructor(values = {}, suppressWarns = false) {
         const Self = /** @type {EntityConstructor} */(this.constructor)
-        const attributes = Self.attributes
+        let attributes = Self.attributes
+        if (values.attributes) {
+            Utility.mergeArrays(Object.keys(attributes), Object.keys(values.attributes))
+                .forEach(k => attributes[k] = {
+                    ...attributes[k],
+                    ...values.attributes[k]
+                })
+            IEntity.defineAttributes(this, attributes)
+        }
+        /** @type {AttributeDeclarations?} */ this.attributes
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
             // Where there is just one attribute, option can be the value of that attribute
             values = {
@@ -203,6 +213,22 @@ export default class IEntity {
         return !Object.values(this.attributes)
             .filter(/** @param {AttributeInformation} attribute */attribute => !attribute.ignored)
             .some(/** @param {AttributeInformation} attribute */attribute => !attribute.expected)
+    }
+
+    static getAttribute(object, attribute) {
+        return this.getAttributes(object)[attribute]
+    }
+
+    static getAttributes(object) {
+        return object.attributes ?? object.constructor?.attributes ?? {}
+    }
+
+    static defineAttributes(object, attributes) {
+        Object.defineProperty(object, "attributes", {
+            writable: true,
+            configurable: false,
+        })
+        object.attributes = attributes
     }
 
     unexpectedKeys() {

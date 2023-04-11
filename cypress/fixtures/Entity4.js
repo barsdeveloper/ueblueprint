@@ -15,6 +15,15 @@ export default class Entity4 extends IEntity {
         },
     }
 
+    constructor() {
+        super()
+        IEntity.defineAttributes(this.second, {
+            0: {
+                inlined: true,
+            },
+        })
+    }
+
     static {
         this.cleanupAttributes(this.attributes)
     }
