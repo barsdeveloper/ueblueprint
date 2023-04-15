@@ -13,14 +13,19 @@ import Utility from "../Utility.js"
 export default class Serializer {
 
     /** @type {(v: String) => String} */
-    static bracketsWrapped = (v => `(${v})`)
-    /** @type {(v: String) => String} */
     static same = v => v
+
+    /** @type {(entity: AnyValue, serialized: String) => String} */
+    static notWrapped = (entity, serialized) => serialized
+
+    /** @type {(entity: AnyValue, serialized: String) => String} */
+    static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
-        wrap = Serializer.same,
+        /** @type {(entity: T, serialized: String) => String} */
+        wrap = (entity, serialized) => serialized,
         attributeSeparator = ",",
         trailingSeparator = false,
         attributeValueConjunctionSign = "=",
@@ -67,7 +72,8 @@ export default class Serializer {
      */
     doWrite(
         entity,
-        insideString,
+        insideString = false,
+        indentation = "",
         wrap = this.wrap,
         attributeSeparator = this.attributeSeparator,
         trailingSeparator = this.trailingSeparator,
@@ -95,7 +101,8 @@ export default class Serializer {
                     result += this.doWrite(
                         value,
                         insideString,
-                        Serializer.same,
+                        indentation,
+                        Serializer.notWrapped,
                         attributeSeparator,
                         false,
                         attributeValueConjunctionSign,
@@ -105,13 +112,17 @@ export default class Serializer {
                     )
                     continue
                 }
-                result +=
-                    attributeKeyPrinter(keyValue)
-                    + this.attributeValueConjunctionSign
+                const keyPrinted = attributeKeyPrinter(keyValue)
+                const indentationPrinted = attributeSeparator.includes("\n") ? indentation : ""
+                result += (
+                    keyPrinted.length
+                        ? (indentationPrinted + keyPrinted + this.attributeValueConjunctionSign)
+                        : ""
+                )
                     + (
                         isSerialized
-                            ? `"${this.doWriteValue(value, true)}"`
-                            : this.doWriteValue(value, insideString)
+                            ? `"${this.doWriteValue(value, true, indentation)}"`
+                            : this.doWriteValue(value, insideString, indentation)
                     )
             }
         }
@@ -119,11 +130,11 @@ export default class Serializer {
             // append separator at the end if asked and there was printed content
             result += attributeSeparator
         }
-        return wrap(result, entity.constructor)
+        return wrap(entity, result)
     }
 
     /** @param {Boolean} insideString */
-    doWriteValue(value, insideString) {
+    doWriteValue(value, insideString, indentation = "") {
         const type = Utility.getType(value)
         // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type)
@@ -133,10 +144,7 @@ export default class Serializer {
                 + "check initializeSerializerFactory.js"
             )
         }
-        return serializer.doWrite(
-            value,
-            insideString
-        )
+        return serializer.doWrite(value, insideString, indentation)
     }
 
     showProperty(entity, key) {
@@ -147,7 +155,7 @@ export default class Serializer {
             if (attribute.ignored) {
                 return false
             }
-            return !Utility.equals(attribute.value, value) || attribute.showDefault
+            return !Utility.equals(attribute.default, value) || attribute.showDefault
         }
         return true
     }

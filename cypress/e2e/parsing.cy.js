@@ -92,7 +92,6 @@ describe("Serializer", () => {
     context("KeyBindingEntity", () => {
         let serializer = SerializerFactory.getSerializer(KeyBindingEntity)
 
-
         it("Parses A", () =>
             expect(serializer.read("A"))
                 .to.be.instanceOf(KeyBindingEntity)
@@ -112,6 +111,36 @@ describe("Serializer", () => {
             expect(serializer.read("(       bCtrl=  false  \n,       Key \n\n\n  =Y ,bAlt=true     )"))
                 .to.be.instanceOf(KeyBindingEntity)
                 .and.to.deep.contain({ Key: { value: "Y" }, bAlt: true, bCtrl: false })
+        )
+    })
+
+    context("ObjectReferenceEntity", () => {
+        let serializer = SerializerFactory.getSerializer(ObjectReferenceEntity)
+
+        it("Parses Class", () =>
+            expect(serializer.read("Class"))
+                .to.be.instanceOf(ObjectReferenceEntity)
+                .and.to.deep.contain({ type: "Class", path: "" })
+        )
+        it("Parses Class'/Script/ShooterGame.ShooterGameMode'", () =>
+            expect(serializer.read(`Class'/Script/ShooterGame.ShooterGameMode'`))
+                .to.be.instanceOf(ObjectReferenceEntity)
+                .and.to.deep.contain({ type: "Class", path: "/Script/ShooterGame.ShooterGameMode" })
+        )
+        it(`Parses EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`, () =>
+            expect(serializer.read(`EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`))
+                .to.be.instanceOf(ObjectReferenceEntity)
+                .and.to.deep.contain({ type: "EdGraphPin", path: "K2Node_DynamicCast_2126.EdGraphPin_3990988" })
+        )
+        it(`Parses /Script/Engine.EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N"'`, () =>
+            expect(serializer.read(`/Script/Engine.EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N"'`))
+                .to.be.instanceOf(ObjectReferenceEntity)
+                .and.to.deep.contain({ type: "/Script/Engine.EdGraph", path: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N" })
+        )
+        it(`Parses Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`, () =>
+            expect(serializer.read(`Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`))
+                .to.be.instanceOf(ObjectReferenceEntity)
+                .and.to.deep.contain({ type: "Function", path: "/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element" })
         )
     })
 
@@ -306,11 +335,6 @@ describe("Serializer", () => {
         )
         it("Parses ObjectReferenceEntity", () =>
             expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`).value.constructor)
-                .equals(ObjectReferenceEntity)
-        )
-        it("Parses ObjectReferenceEntity 2", () =>
-            expect(parser.parse(`Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`)
-                .value.constructor)
                 .equals(ObjectReferenceEntity)
         )
         it("Parses Numbers array", () =>

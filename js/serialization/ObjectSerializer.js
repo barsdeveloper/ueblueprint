@@ -1,13 +1,14 @@
+import Configuration from "../Configuration.js"
 import Grammar from "./Grammar.js"
-import Serializer from "./Serializer.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
+import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
 
 export default class ObjectSerializer extends Serializer {
 
     constructor() {
-        super(ObjectEntity, undefined, "\n", false, undefined, k => `   ${k}`)
+        super(ObjectEntity, undefined, "\n", true, undefined, Serializer.same)
     }
 
     showProperty(entity, key) {
@@ -19,6 +20,11 @@ export default class ObjectSerializer extends Serializer {
                 return false
         }
         return super.showProperty(entity, key)
+    }
+
+    /** @param {ObjectEntity} value */
+    write(value, insideString = false) {
+        return this.doWrite(value, insideString) + "\n"
     }
 
     /** @param {String} value */
@@ -50,24 +56,48 @@ export default class ObjectSerializer extends Serializer {
     doWrite(
         entity,
         insideString,
+        indentation = "",
         wrap = this.wrap,
         attributeSeparator = this.attributeSeparator,
         trailingSeparator = this.trailingSeparator,
         attributeValueConjunctionSign = this.attributeValueConjunctionSign,
-        attributeKeyPrinter = this.attributeKeyPrinter
+        attributeKeyPrinter = this.attributeKeyPrinter,
     ) {
+        const moreIndentation = indentation + Configuration.indentation
         if (!(entity instanceof ObjectEntity)) {
-            return super.doWrite(entity, insideString)
+            return super.doWrite(
+                entity,
+                insideString,
+                indentation,
+                wrap,
+                attributeSeparator,
+                trailingSeparator,
+                attributeValueConjunctionSign,
+                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
+            )
         }
-        let result = `Begin Object Class=${entity.Class.path} Name=${this.doWriteValue(entity.Name, insideString)}\n`
-            + super.doWrite(entity, insideString)
+        let result = indentation + "Begin Object"
+            + (entity.Class.path ? ` Class=${entity.Class.path}` : "")
+            + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
+            + "\n"
+            + super.doWrite(
+                entity,
+                insideString,
+                moreIndentation,
+                wrap,
+                attributeSeparator,
+                true,
+                attributeValueConjunctionSign,
+                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
+            )
             + entity.CustomProperties.map(pin =>
                 this.attributeSeparator
-                + "   CustomProperties "
+                + moreIndentation
+                + attributeKeyPrinter("CustomProperties ")
                 + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
             )
                 .join("")
-            + "\nEnd Object\n"
+            + indentation + "End Object"
         return result
     }
 }

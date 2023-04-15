@@ -72,6 +72,7 @@ class Configuration {
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static keysSeparator = /[\.\(\)]/
+    static indentation = "   "
     static knotOffset = [-26, -16]
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
@@ -922,10 +923,19 @@ class IEntity {
         const Self = /** @type {EntityConstructor} */(this.constructor);
         let attributes = Self.attributes;
         if (values.attributes) {
+            let attributes = { ...Self.attributes };
             Utility.mergeArrays(Object.keys(attributes), Object.keys(values.attributes))
-                .forEach(k => attributes[k] = {
-                    ...attributes[k],
-                    ...values.attributes[k]
+                .forEach(k => {
+                    attributes[k] = {
+                        ...IEntity.defaultAttribute,
+                        ...attributes[k],
+                        ...values.attributes[k]
+                    };
+                    if (!attributes[k].type) {
+                        attributes[k].type = values[k] instanceof Array
+                            ? [Utility.getType(values[k][0])]
+                            : Utility.getType(values[k]);
+                    }
                 });
             IEntity.defineAttributes(this, attributes);
         }
@@ -2596,11 +2606,9 @@ class SVGIcon {
     `
 }
 
-/** @typedef {import("./IEntity.js").AnyValue} AnyValue */
+class UnknownPinEntity extends PinEntity {
 
-class UserDefinedPinEntity extends IEntity {
-
-    static lookbehind = "UserDefinedPin"
+    static lookbehind = ""
 }
 
 class VariableReferenceEntity extends IEntity {
@@ -2806,6 +2814,7 @@ class ObjectEntity extends IEntity {
         },
         NodeGuid: {
             type: GuidEntity,
+            showDefault: false,
         },
         ErrorType: {
             type: IntegerEntity,
@@ -2817,7 +2826,7 @@ class ObjectEntity extends IEntity {
             showDefault: false,
         },
         CustomProperties: {
-            type: [new UnionType(PinEntity, UserDefinedPinEntity)]
+            type: [new UnionType(PinEntity, UnknownPinEntity)]
         },
     }
 
@@ -2918,7 +2927,7 @@ class ObjectEntity extends IEntity {
         /** @type {GuidEntity} */ this.NodeGuid;
         /** @type {IntegerEntity?} */ this.ErrorType;
         /** @type {String?} */ this.ErrorMsg;
-        /** @type {PinEntity[]} */ this.CustomProperties;
+        /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
     }
 
     getClass() {
@@ -3355,7 +3364,7 @@ class Grammar {
         static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
         static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
         static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
-        static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`)
+        static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
         static PathOptSpace = new RegExp(`(?:\\/${this.PathSpaceFragment.source}){2,}`)
     }
 
@@ -3384,12 +3393,21 @@ class Grammar {
     static colorValue = this.byteNumber
     static word = P.regex(Grammar.Regex.Word)
     static pathQuotes = Grammar.regexMap(
-        new RegExp(`"(${Grammar.Regex.PathOptSpace.source}|${Grammar.Regex.Symbol.source})"|'"(${Grammar.Regex.PathOptSpace.source}|${Grammar.Regex.Symbol.source})"'`),
+        new RegExp(
+            `'(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)'`
+            + `|"(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)"`
+            + `|'"(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)"'`
+        ),
         ([_0, a, b, c]) => a ?? b ?? c
     )
     static path = Grammar.regexMap(
-        new RegExp(`(${Grammar.Regex.Path.source})|"(${Grammar.Regex.PathOptSpace.source})"|'"(${Grammar.Regex.PathOptSpace.source})"'`),
-        ([_0, a, b, c]) => a ?? b ?? c
+        new RegExp(
+            `(` + Grammar.Regex.Path.source + `)`
+            + `|'(` + Grammar.Regex.PathOptSpace.source + `)'`
+            + `|"(` + Grammar.Regex.PathOptSpace.source + `)"`
+            + `|'"(` + Grammar.Regex.PathOptSpace.source + `)"'`
+        ),
+        ([_0, a, b, c, d]) => a ?? b ?? c ?? d
     )
     static symbol = P.regex(Grammar.Regex.Symbol)
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
@@ -3534,8 +3552,8 @@ class Grammar {
                 case UnknownKeysEntity:
                     result = this.unknownKeysEntity;
                     break
-                case UserDefinedPinEntity:
-                    result = this.userDefinedPinEntity;
+                case UnknownPinEntity:
+                    result = this.unknownPinEntity;
                     break
                 case VariableReferenceEntity:
                     result = this.variableReferenceEntity;
@@ -3811,8 +3829,6 @@ class Grammar {
 
     static symbolEntity = P.lazy(() => this.symbol.map(v => new SymbolEntity(v)))
 
-    static userDefinedPinEntity = P.lazy(() => this.createEntityGrammar(UserDefinedPinEntity))
-
     static variableReferenceEntity = P.lazy(() => this.createEntityGrammar(VariableReferenceEntity))
 
     static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
@@ -3838,11 +3854,30 @@ class Grammar {
         )
             .map(([lookbehind, attributes, _2]) => {
                 let values = {};
-                attributes.forEach(attributeSetter => attributeSetter(values));
                 if (lookbehind.length) {
                     values.lookbehind = lookbehind;
                 }
+                attributes.forEach(attributeSetter => attributeSetter(values));
                 return new UnknownKeysEntity(values)
+            })
+    )
+
+    static unknownPinEntity = P.lazy(() =>
+        P.seq(
+            this.regexMap(
+                new RegExp(`${this.Regex.Symbol.source}\\s*\\(\\s*`),
+                result => result[1] ?? ""
+            ),
+            this.createAttributeGrammar(this.unknownPinEntity).sepBy1(this.commaSeparation),
+            P.regex(/\s*(?:,\s*)?\)/)
+        )
+            .map(([lookbehind, attributes, _2]) => {
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new UnknownPinEntity(values)
             })
     )
 
@@ -3891,10 +3926,18 @@ class Grammar {
                 v => v[1]
             )
         )
-            .chain(([symbol, _1]) =>
+            .chain(([symbol, index]) =>
                 this.grammarFor(ObjectEntity.attributes[symbol])
                     .map(currentValue =>
-                        values => (values[symbol] ??= []).push(currentValue)
+                        values => {
+                            (values[symbol] ??= [])[index] = currentValue;
+                            if (!ObjectEntity.attributes[symbol]?.inlined) {
+                                if (!values.attributes) {
+                                    IEntity.defineAttributes(values, {});
+                                }
+                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true);
+                            }
+                        }
                     )
             )
     )
@@ -4033,14 +4076,19 @@ class Grammar {
 class Serializer {
 
     /** @type {(v: String) => String} */
-    static bracketsWrapped = (v => `(${v})`)
-    /** @type {(v: String) => String} */
     static same = v => v
+
+    /** @type {(entity: AnyValue, serialized: String) => String} */
+    static notWrapped = (entity, serialized) => serialized
+
+    /** @type {(entity: AnyValue, serialized: String) => String} */
+    static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
     /** @param {AnyValueConstructor} entityType */
     constructor(
         entityType,
-        wrap = Serializer.same,
+        /** @type {(entity: T, serialized: String) => String} */
+        wrap = (entity, serialized) => serialized,
         attributeSeparator = ",",
         trailingSeparator = false,
         attributeValueConjunctionSign = "=",
@@ -4087,7 +4135,8 @@ class Serializer {
      */
     doWrite(
         entity,
-        insideString,
+        insideString = false,
+        indentation = "",
         wrap = this.wrap,
         attributeSeparator = this.attributeSeparator,
         trailingSeparator = this.trailingSeparator,
@@ -4104,6 +4153,7 @@ class Serializer {
         for (const key of keys) {
             const value = entity[key];
             if (value !== undefined && this.showProperty(entity, key)) {
+                const keyValue = entity instanceof Array ? `(${key})` : key;
                 const isSerialized = Utility.isSerialized(entity, key);
                 if (first) {
                     first = false;
@@ -4111,11 +4161,11 @@ class Serializer {
                     result += attributeSeparator;
                 }
                 if (attributes[key]?.inlined) {
-                    const keyValue = entity instanceof Array ? `(${key})` : key;
                     result += this.doWrite(
                         value,
                         insideString,
-                        Serializer.same,
+                        indentation,
+                        Serializer.notWrapped,
                         attributeSeparator,
                         false,
                         attributeValueConjunctionSign,
@@ -4125,13 +4175,17 @@ class Serializer {
                     );
                     continue
                 }
-                result +=
-                    attributeKeyPrinter(key)
-                    + this.attributeValueConjunctionSign
+                const keyPrinted = attributeKeyPrinter(keyValue);
+                const indentationPrinted = attributeSeparator.includes("\n") ? indentation : "";
+                result += (
+                    keyPrinted.length
+                        ? (indentationPrinted + keyPrinted + this.attributeValueConjunctionSign)
+                        : ""
+                )
                     + (
                         isSerialized
-                            ? `"${this.doWriteValue(value, true)}"`
-                            : this.doWriteValue(value, insideString)
+                            ? `"${this.doWriteValue(value, true, indentation)}"`
+                            : this.doWriteValue(value, insideString, indentation)
                     );
             }
         }
@@ -4139,11 +4193,11 @@ class Serializer {
             // append separator at the end if asked and there was printed content
             result += attributeSeparator;
         }
-        return wrap(result, entity.constructor)
+        return wrap(entity, result)
     }
 
     /** @param {Boolean} insideString */
-    doWriteValue(value, insideString) {
+    doWriteValue(value, insideString, indentation = "") {
         const type = Utility.getType(value);
         // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type);
@@ -4153,10 +4207,7 @@ class Serializer {
                 + "check initializeSerializerFactory.js"
             )
         }
-        return serializer.doWrite(
-            value,
-            insideString
-        )
+        return serializer.doWrite(value, insideString, indentation)
     }
 
     showProperty(entity, key) {
@@ -4167,7 +4218,7 @@ class Serializer {
             if (attribute.ignored) {
                 return false
             }
-            return !Utility.equals(attribute.value, value) || attribute.showDefault
+            return !Utility.equals(attribute.default, value) || attribute.showDefault
         }
         return true
     }
@@ -4176,7 +4227,7 @@ class Serializer {
 class ObjectSerializer extends Serializer {
 
     constructor() {
-        super(ObjectEntity, undefined, "\n", false, undefined, k => `   ${k}`);
+        super(ObjectEntity, undefined, "\n", true, undefined, Serializer.same);
     }
 
     showProperty(entity, key) {
@@ -4188,6 +4239,11 @@ class ObjectSerializer extends Serializer {
                 return false
         }
         return super.showProperty(entity, key)
+    }
+
+    /** @param {ObjectEntity} value */
+    write(value, insideString = false) {
+        return this.doWrite(value, insideString) + "\n"
     }
 
     /** @param {String} value */
@@ -4219,24 +4275,48 @@ class ObjectSerializer extends Serializer {
     doWrite(
         entity,
         insideString,
+        indentation = "",
         wrap = this.wrap,
         attributeSeparator = this.attributeSeparator,
         trailingSeparator = this.trailingSeparator,
         attributeValueConjunctionSign = this.attributeValueConjunctionSign,
-        attributeKeyPrinter = this.attributeKeyPrinter
+        attributeKeyPrinter = this.attributeKeyPrinter,
     ) {
+        const moreIndentation = indentation + Configuration.indentation;
         if (!(entity instanceof ObjectEntity)) {
-            return super.doWrite(entity, insideString)
+            return super.doWrite(
+                entity,
+                insideString,
+                indentation,
+                wrap,
+                attributeSeparator,
+                trailingSeparator,
+                attributeValueConjunctionSign,
+                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
+            )
         }
-        let result = `Begin Object Class=${entity.Class.path} Name=${this.doWriteValue(entity.Name, insideString)}\n`
-            + super.doWrite(entity, insideString)
+        let result = indentation + "Begin Object"
+            + (entity.Class.path ? ` Class=${entity.Class.path}` : "")
+            + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
+            + "\n"
+            + super.doWrite(
+                entity,
+                insideString,
+                moreIndentation,
+                wrap,
+                attributeSeparator,
+                true,
+                attributeValueConjunctionSign,
+                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
+            )
             + entity.CustomProperties.map(pin =>
                 this.attributeSeparator
-                + "   CustomProperties "
+                + moreIndentation
+                + attributeKeyPrinter("CustomProperties ")
                 + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
             )
                 .join("")
-            + "\nEnd Object\n";
+            + indentation + "End Object";
         return result
     }
 }
@@ -10222,7 +10302,7 @@ class CustomSerializer extends Serializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    doWrite(entity, insideString = false) {
+    doWrite(entity, insideString, indentation = "") {
         let result = this.#objectWriter(entity, insideString);
         return result
     }
@@ -10248,7 +10328,7 @@ class ToStringSerializer extends Serializer {
      * @param {T} entity
      * @param {Boolean} insideString
      */
-    doWrite(entity, insideString) {
+    doWrite(entity, insideString, indentation = "") {
         return !insideString && entity.constructor === String
             ? `"${Utility.escapeString(entity.toString())}"` // String will have quotes if not inside a string already
             : Utility.escapeString(entity.toString())
@@ -10343,7 +10423,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new Serializer(InvariantTextEntity, v => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
+        new Serializer(InvariantTextEntity, (entity, v) => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -10358,7 +10438,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new Serializer(LocalizedTextEntity, v => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
+        new Serializer(LocalizedTextEntity, (entity, v) => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -10395,12 +10475,12 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new Serializer(PinEntity, v => `${PinEntity.lookbehind} (${v})`, ",", true)
+        new Serializer(PinEntity, (entity, v) => `${PinEntity.lookbehind} (${v})`, ",", true)
     );
 
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
-        new Serializer(PinReferenceEntity, Serializer.same, " ", false, "", _ => "")
+        new Serializer(PinReferenceEntity, undefined, " ", false, "", _ => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -10461,7 +10541,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         UnknownKeysEntity,
-        new Serializer(UnknownKeysEntity, (string, entity) => `${entity.lookbehind ?? ""}(${string})`)
+        new Serializer(UnknownKeysEntity, (entity, string) => `${entity.lookbehind ?? ""}(${string})`)
     );
 
     SerializerFactory.registerSerializer(

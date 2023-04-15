@@ -27,7 +27,7 @@ export default class CustomSerializer extends Serializer {
      * @param {Boolean} insideString
      * @returns {String}
      */
-    doWrite(entity, insideString = false) {
+    doWrite(entity, insideString, indentation = "") {
         let result = this.#objectWriter(entity, insideString)
         return result
     }

@@ -26,7 +26,7 @@ describe("Entity initialization", () => {
                 Entity2,
                 new Serializer(
                     Entity2,
-                    v => `{\n${v}\n}`,
+                    (entity, v) => `{\n${v}\n}`,
                     "\n",
                     false,
                     ": ",
@@ -37,7 +37,7 @@ describe("Entity initialization", () => {
                 Entity1,
                 new Serializer(
                     Entity1,
-                    v => `Entity1(${v})`,
+                    (entity, v) => `Entity1(${v})`,
                     ", ",
                     false,
                     "=",
@@ -147,7 +147,7 @@ describe("Entity initialization", () => {
                 Entity3,
                 new Serializer(
                     Entity3,
-                    v => `[[\n${v}\n]]`,
+                    (entity, v) => `[[\n${v}\n]]`,
                     "\n",
                     false,
                     ": ",
@@ -158,7 +158,7 @@ describe("Entity initialization", () => {
                 Entity1,
                 new Serializer(
                     Entity1,
-                    v => `Entity1(${v})`,
+                    (entity, v) => `Entity1(${v})`,
                     ", ",
                     false,
                     "=",
@@ -287,7 +287,7 @@ describe("Entity initialization", () => {
                 Entity4,
                 new Serializer(
                     Entity4,
-                    v => `Begin\n${v}\nEnd`,
+                    (entity, v) => `Begin\n${v}\nEnd`,
                     "\n",
                     false,
                     " => ",

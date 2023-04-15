@@ -11,7 +11,7 @@ import PinEntity from "./PinEntity.js"
 import SVGIcon from "../SVGIcon.js"
 import SymbolEntity from "./SymbolEntity.js"
 import UnionType from "./UnionType.js"
-import UserDefinedPinEntity from "./UserDefinedPinEntity.js"
+import UnknownPinEntity from "./UnknownPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
 
@@ -187,6 +187,7 @@ export default class ObjectEntity extends IEntity {
         },
         NodeGuid: {
             type: GuidEntity,
+            showDefault: false,
         },
         ErrorType: {
             type: IntegerEntity,
@@ -198,7 +199,7 @@ export default class ObjectEntity extends IEntity {
             showDefault: false,
         },
         CustomProperties: {
-            type: [new UnionType(PinEntity, UserDefinedPinEntity)]
+            type: [new UnionType(PinEntity, UnknownPinEntity)]
         },
     }
 
@@ -299,7 +300,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {GuidEntity} */ this.NodeGuid
         /** @type {IntegerEntity?} */ this.ErrorType
         /** @type {String?} */ this.ErrorMsg
-        /** @type {PinEntity[]} */ this.CustomProperties
+        /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
     }
 
     getClass() {

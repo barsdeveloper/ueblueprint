@@ -49,10 +49,19 @@ export default class IEntity {
         const Self = /** @type {EntityConstructor} */(this.constructor)
         let attributes = Self.attributes
         if (values.attributes) {
+            let attributes = { ...Self.attributes }
             Utility.mergeArrays(Object.keys(attributes), Object.keys(values.attributes))
-                .forEach(k => attributes[k] = {
-                    ...attributes[k],
-                    ...values.attributes[k]
+                .forEach(k => {
+                    attributes[k] = {
+                        ...IEntity.defaultAttribute,
+                        ...attributes[k],
+                        ...values.attributes[k]
+                    }
+                    if (!attributes[k].type) {
+                        attributes[k].type = values[k] instanceof Array
+                            ? [Utility.getType(values[k][0])]
+                            : Utility.getType(values[k])
+                    }
                 })
             IEntity.defineAttributes(this, attributes)
         }

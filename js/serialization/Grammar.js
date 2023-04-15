@@ -29,7 +29,7 @@ import SymbolEntity from "../entity/SymbolEntity.js"
 import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
 import UnionType from "../entity/UnionType.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
-import UserDefinedPinEntity from "../entity/UserDefinedPinEntity.js"
+import UnknownPinEntity from "../entity/UnknownPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
@@ -71,7 +71,7 @@ export default class Grammar {
         static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
         static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
         static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
-        static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`)
+        static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
         static PathOptSpace = new RegExp(`(?:\\/${this.PathSpaceFragment.source}){2,}`)
     }
 
@@ -100,12 +100,21 @@ export default class Grammar {
     static colorValue = this.byteNumber
     static word = P.regex(Grammar.Regex.Word)
     static pathQuotes = Grammar.regexMap(
-        new RegExp(`"(${Grammar.Regex.PathOptSpace.source}|${Grammar.Regex.Symbol.source})"|'"(${Grammar.Regex.PathOptSpace.source}|${Grammar.Regex.Symbol.source})"'`),
+        new RegExp(
+            `'(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)'`
+            + `|"(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)"`
+            + `|'"(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)"'`
+        ),
         ([_0, a, b, c]) => a ?? b ?? c
     )
     static path = Grammar.regexMap(
-        new RegExp(`(${Grammar.Regex.Path.source})|"(${Grammar.Regex.PathOptSpace.source})"|'"(${Grammar.Regex.PathOptSpace.source})"'`),
-        ([_0, a, b, c]) => a ?? b ?? c
+        new RegExp(
+            `(` + Grammar.Regex.Path.source + `)`
+            + `|'(` + Grammar.Regex.PathOptSpace.source + `)'`
+            + `|"(` + Grammar.Regex.PathOptSpace.source + `)"`
+            + `|'"(` + Grammar.Regex.PathOptSpace.source + `)"'`
+        ),
+        ([_0, a, b, c, d]) => a ?? b ?? c ?? d
     )
     static symbol = P.regex(Grammar.Regex.Symbol)
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
@@ -250,8 +259,8 @@ export default class Grammar {
                 case UnknownKeysEntity:
                     result = this.unknownKeysEntity
                     break
-                case UserDefinedPinEntity:
-                    result = this.userDefinedPinEntity
+                case UnknownPinEntity:
+                    result = this.unknownPinEntity
                     break
                 case VariableReferenceEntity:
                     result = this.variableReferenceEntity
@@ -527,8 +536,6 @@ export default class Grammar {
 
     static symbolEntity = P.lazy(() => this.symbol.map(v => new SymbolEntity(v)))
 
-    static userDefinedPinEntity = P.lazy(() => this.createEntityGrammar(UserDefinedPinEntity))
-
     static variableReferenceEntity = P.lazy(() => this.createEntityGrammar(VariableReferenceEntity))
 
     static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
@@ -554,11 +561,30 @@ export default class Grammar {
         )
             .map(([lookbehind, attributes, _2]) => {
                 let values = {}
-                attributes.forEach(attributeSetter => attributeSetter(values))
                 if (lookbehind.length) {
                     values.lookbehind = lookbehind
                 }
+                attributes.forEach(attributeSetter => attributeSetter(values))
                 return new UnknownKeysEntity(values)
+            })
+    )
+
+    static unknownPinEntity = P.lazy(() =>
+        P.seq(
+            this.regexMap(
+                new RegExp(`${this.Regex.Symbol.source}\\s*\\(\\s*`),
+                result => result[1] ?? ""
+            ),
+            this.createAttributeGrammar(this.unknownPinEntity).sepBy1(this.commaSeparation),
+            P.regex(/\s*(?:,\s*)?\)/)
+        )
+            .map(([lookbehind, attributes, _2]) => {
+                let values = {}
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values))
+                return new UnknownPinEntity(values)
             })
     )
 
@@ -607,10 +633,18 @@ export default class Grammar {
                 v => v[1]
             )
         )
-            .chain(([symbol, _1]) =>
+            .chain(([symbol, index]) =>
                 this.grammarFor(ObjectEntity.attributes[symbol])
                     .map(currentValue =>
-                        values => (values[symbol] ??= []).push(currentValue)
+                        values => {
+                            (values[symbol] ??= [])[index] = currentValue
+                            if (!ObjectEntity.attributes[symbol]?.inlined) {
+                                if (!values.attributes) {
+                                    IEntity.defineAttributes(values, {})
+                                }
+                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+                            }
+                        }
                     )
             )
     )
