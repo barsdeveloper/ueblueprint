@@ -1,11 +1,13 @@
 import Configuration from "../../Configuration.js"
 import IKeyboardShortcut from "./IKeyboardShortcut.js"
 
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
+
 export default class KeyboardCanc extends IKeyboardShortcut {
 
     /**
      * @param {HTMLElement} target
-     * @param {import("../../Blueprint").default} blueprint
+     * @param {Blueprint} blueprint
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {

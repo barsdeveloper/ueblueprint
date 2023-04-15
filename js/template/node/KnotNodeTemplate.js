@@ -5,9 +5,9 @@ import KnotPinTemplate from "../pin/KnotPinTemplate.js"
 import NodeTemplate from "./NodeTemplate.js"
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").default} PinElement
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../element/NodeElement.js").default} NodeElement
+ * @typedef {import("../../element/PinElement.js").default} PinElement
+ * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
  */
 
 export default class KnotNodeTemplate extends NodeTemplate {

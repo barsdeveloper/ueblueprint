@@ -77,7 +77,7 @@ export default class ObjectSerializer extends Serializer {
             )
         }
         let result = indentation + "Begin Object"
-            + (entity.Class.path ? ` Class=${entity.Class.path}` : "")
+            + (entity.Class.type || entity.Class.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
             + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
             + "\n"
             + super.doWrite(

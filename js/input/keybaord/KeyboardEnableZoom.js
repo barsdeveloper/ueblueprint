@@ -2,6 +2,8 @@ import Configuration from "../../Configuration.js"
 import IKeyboardShortcut from "./IKeyboardShortcut.js"
 import Zoom from "../mouse/Zoom.js"
 
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
+
 export default class KeyboardEnableZoom extends IKeyboardShortcut {
 
     /** @type {Zoom} */
@@ -9,7 +11,7 @@ export default class KeyboardEnableZoom extends IKeyboardShortcut {
 
     /**
      * @param {HTMLElement} target
-     * @param {import("../../Blueprint").default} blueprint
+     * @param {Blueprint} blueprint
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {

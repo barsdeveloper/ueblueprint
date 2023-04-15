@@ -5,9 +5,9 @@ import ElementFactory from "../../element/ElementFactory.js"
 import PinTemplate from "./PinTemplate.js"
 
 /**
- * @typedef {import("../../element/WindowElement").default} WindowElement
- * @typedef {import("../../element/WindowElement").WindowElementConstructor} WindowElementConstructor
- * @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("../../element/WindowElement.js").default} WindowElement
+ * @typedef {import("../../element/WindowElement.js").WindowElementConstructor} WindowElementConstructor
+ * @typedef {import("../../entity/LinearColorEntity.js").default} LinearColorEntity
  */
 
 /** @extends PinTemplate<LinearColorEntity> */

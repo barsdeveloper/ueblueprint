@@ -33,10 +33,7 @@ import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
 
-/**
- * @typedef {import("../entity/IEntity").AnySimpleValue} AnySimpleValue
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- */
+/** @typedef {import("../entity/IEntity.js").AnySimpleValue} AnySimpleValue */
 
 export default function initializeSerializerFactory() {
 

@@ -3,7 +3,7 @@ import Grammar from "../../serialization/Grammar.js"
 import IInput from "../IInput.js"
 import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
  * @template {HTMLElement} T

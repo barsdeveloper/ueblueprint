@@ -1,5 +1,5 @@
 /**
- * @typedef {import("./IElement").default} IElement
+ * @typedef {import("./IElement.js").default} IElement
  * @typedef {new (...args) => IElement} ElementConstructor
  */
 

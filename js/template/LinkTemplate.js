@@ -7,10 +7,10 @@ import MouseDbClick from "../input/mouse/MouseDbClick.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {import("../element/LinkElement").default} LinkElement
- * @typedef {import("../element/LinkElement").LinkElementConstructor} LinkElementConstructor
- * @typedef {import("../element/NodeElement").NodeElementConstructor} NodeElementConstructor
- * @typedef {import("./node/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("../element/LinkElement.js").default} LinkElement
+ * @typedef {import("../element/LinkElement.js").LinkElementConstructor} LinkElementConstructor
+ * @typedef {import("../element/NodeElement.js").NodeElementConstructor} NodeElementConstructor
+ * @typedef {import("./node/KnotNodeTemplate.js").default} KnotNodeTemplate
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 

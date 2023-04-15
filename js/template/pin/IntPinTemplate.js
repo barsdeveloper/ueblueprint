@@ -1,7 +1,7 @@
 import { html } from "lit"
 import INumericPinTemplate from "./INumericPinTemplate.js"
 
-/** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
+/** @typedef {import("../../entity/IntegerEntity.js").default} IntegerEntity */
 
 /** @extends INumericPinTemplate<IntegerEntity> */
 export default class IntPinTemplate extends INumericPinTemplate {

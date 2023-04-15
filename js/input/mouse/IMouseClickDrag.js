@@ -4,8 +4,8 @@ import IPointing from "./IPointing.js"
 import Utility from "../../Utility.js"
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IElement").default} IElement
+ * @typedef {import("../../Blueprint.js").default} Blueprint
+ * @typedef {import("../../element/IElement.js").default} IElement
  */
 
 /**

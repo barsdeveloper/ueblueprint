@@ -1,9 +1,8 @@
 import { css } from "lit"
 
 /**
- * @typedef {import("./element/NodeElement").default} NodeElement
- * @typedef {import("./element/PinElement").default} PinElement
- * @typedef {import("lit").CSSResult} CSSResult
+ * @typedef {import("./entity/ObjectEntity.js").default} ObjectEntity
+ * @typedef {import("./entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
  */
 
 export default class Configuration {
@@ -174,6 +173,12 @@ export default class Configuration {
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
     static stringEscapedCharacters = /['"\\]/g
+    /** @param {ObjectEntity} objectEntity */
+    static subObjectAttributeNameFromEntity = objectEntity =>
+        "#SubObject" + (objectEntity.Class.type ? "_" + objectEntity.Class.type : "") + "_" + objectEntity.Name
+    /** @param {ObjectReferenceEntity} objectReferenceEntity */
+    static subObjectAttributeNameFromReference = objectReferenceEntity =>
+        "#SubObject_" + objectReferenceEntity.type + "_" + objectReferenceEntity.path
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",

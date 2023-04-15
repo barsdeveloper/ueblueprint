@@ -1,13 +1,14 @@
 import { html } from "lit"
 import PinTemplate from "./PinTemplate.js"
 
+/** @typedef {import("../../entity/IEntity.js").AnyValue} AnyValue */
 /**
- * @template T
- * @typedef {import("../../element/PinElement").default<T>} PinElement
+ * @template {AnyValue} T
+ * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template T
+ * @template {AnyValue} T
  * @extends PinTemplate<PinElement<T>>
  */
 export default class MinimalPinTemplate extends PinTemplate {

@@ -5,9 +5,9 @@ import SVGIcon from "../../SVGIcon.js"
 import Utility from "../../Utility.js"
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").default} PinElement
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../element/NodeElement.js").default} NodeElement
+ * @typedef {import("../../element/PinElement.js").default} PinElement
+ * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 

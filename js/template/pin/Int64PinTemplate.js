@@ -1,7 +1,5 @@
 import IntPinTemplate from "./IntPinTemplate.js"
 
-/** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
-
 export default class Int64PinTemplate extends IntPinTemplate {
 
     /** @param {String[]} values */

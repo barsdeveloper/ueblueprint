@@ -25,9 +25,8 @@ var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html
  */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=Z(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
 /**
- * @typedef {import("./element/NodeElement").default} NodeElement
- * @typedef {import("./element/PinElement").default} PinElement
- * @typedef {import("lit").CSSResult} CSSResult
+ * @typedef {import("./entity/ObjectEntity.js").default} ObjectEntity
+ * @typedef {import("./entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
  */
 
 class Configuration {
@@ -198,6 +197,12 @@ class Configuration {
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
     static stringEscapedCharacters = /['"\\]/g
+    /** @param {ObjectEntity} objectEntity */
+    static subObjectAttributeNameFromEntity = objectEntity =>
+        "#SubObject" + (objectEntity.Class.type ? "_" + objectEntity.Class.type : "") + "_" + objectEntity.Name
+    /** @param {ObjectReferenceEntity} objectReferenceEntity */
+    static subObjectAttributeNameFromReference = objectReferenceEntity =>
+        "#SubObject_" + objectReferenceEntity.type + "_" + objectReferenceEntity.path
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
@@ -306,7 +311,7 @@ class Configuration {
     }
 }
 
-/** @typedef {import("../Blueprint").default} Blueprint */
+/** @typedef {import("../Blueprint.js").default} Blueprint */
 
 /** @template {HTMLElement} T */
 class IInput {
@@ -374,7 +379,7 @@ class IInput {
     }
 }
 
-/** @typedef {import("./IEntity").default} IEntity */
+/** @typedef {import("./IEntity.js").default} IEntity */
 
 class ComputedType {
 
@@ -392,17 +397,17 @@ class ComputedType {
 }
 
 /**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
  */
 
 /**
  * @template {AnyValue} T
- * @typedef {import("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
  */
 /**
  * @template {AnyValue} T
- * @typedef {import("./Serializer").default<T>} Serializer
+ * @typedef {import("./Serializer.js").default<T>} Serializer
  */
 
 class SerializerFactory {
@@ -430,7 +435,7 @@ class SerializerFactory {
     }
 }
 
-/** @typedef {import("./IEntity").AnyValueConstructor<*>} AnyValueConstructor */
+/** @typedef {import("./IEntity.js").AnyValueConstructor<*>} AnyValueConstructor */
 
 class UnionType {
 
@@ -450,13 +455,12 @@ class UnionType {
 }
 
 /**
- * @typedef {import("./element/IElement").default} IElement
- * @typedef {import("./entity/IEntity").AnyValue} AnyValue
- * @typedef {import("./entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
- * @typedef {import("./entity/IEntity").AttributeInformation} TypeInformation
- * @typedef {import("./entity/IEntity").default} IEntity
- * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
- * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("./entity/IEntity.js").AnyValue} AnyValue
+ * @typedef {import("./entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("./entity/IEntity.js").AttributeInformation} TypeInformation
+ * @typedef {import("./entity/IEntity.js").default} IEntity
+ * @typedef {import("./entity/IEntity.js").EntityConstructor} EntityConstructor
+ * @typedef {import("./entity/LinearColorEntity.js").default} LinearColorEntity
  */
 
 class Utility {
@@ -2015,7 +2019,7 @@ class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
 /**
- * @typedef {import("./IEntity").AnyValue} AnyValue
+ * @typedef {import("./IEntity.js").AnyValue} AnyValue
  * @typedef {import("lit").CSSResult} CSSResult
  */
 
@@ -2609,6 +2613,10 @@ class SVGIcon {
 class UnknownPinEntity extends PinEntity {
 
     static lookbehind = ""
+
+    constructor(values = {}) {
+        super(values, true);
+    }
 }
 
 class VariableReferenceEntity extends IEntity {
@@ -2826,7 +2834,12 @@ class ObjectEntity extends IEntity {
             showDefault: false,
         },
         CustomProperties: {
-            type: [new UnionType(PinEntity, UnknownPinEntity)]
+            type: [new UnionType(PinEntity, UnknownPinEntity)],
+        },
+        // Legacy
+        Pins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
         },
     }
 
@@ -2928,6 +2941,8 @@ class ObjectEntity extends IEntity {
         /** @type {IntegerEntity?} */ this.ErrorType;
         /** @type {String?} */ this.ErrorMsg;
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
+        // Legacy
+        /** @type {ObjectReferenceEntity[]} */ this.Pins;
     }
 
     getClass() {
@@ -3945,7 +3960,7 @@ class Grammar {
     static subObjectEntity = P.lazy(() =>
         this.objectEntity
             .map(object =>
-                values => values["SubObject_" + object.Name] = object
+                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
             )
     )
 
@@ -4296,7 +4311,7 @@ class ObjectSerializer extends Serializer {
             )
         }
         let result = indentation + "Begin Object"
-            + (entity.Class.path ? ` Class=${entity.Class.path}` : "")
+            + (entity.Class.type || entity.Class.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
             + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
             + "\n"
             + super.doWrite(
@@ -4358,8 +4373,8 @@ class Copy extends IInput {
 }
 
 /**
- * @typedef {import("../element/IElement").default} IElement
- * @typedef {import("../input/IInput").default} IInput
+ * @typedef {import("../element/IElement.js").default} IElement
+ * @typedef {import("../input/IInput.js").default} IInput
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -4429,7 +4444,7 @@ class ITemplate {
     }
 }
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
  * @template {HTMLElement} T
@@ -4540,11 +4555,13 @@ class IKeyboardShortcut extends IInput {
     }
 }
 
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
+
 class KeyboardCanc extends IKeyboardShortcut {
 
     /**
      * @param {HTMLElement} target
-     * @param {import("../../Blueprint").default} blueprint
+     * @param {Blueprint} blueprint
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
@@ -4585,6 +4602,8 @@ class IPointing extends IInput {
     }
 }
 
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
+
 class IMouseWheel extends IPointing {
 
     /** @param {WheelEvent} e */
@@ -4599,7 +4618,7 @@ class IMouseWheel extends IPointing {
 
     /**
      * @param {HTMLElement} target
-     * @param {import("../../Blueprint").default} blueprint
+     * @param {Blueprint} blueprint
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
@@ -4648,6 +4667,8 @@ class Zoom extends IMouseWheel {
     }
 }
 
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
+
 class KeyboardEnableZoom extends IKeyboardShortcut {
 
     /** @type {Zoom} */
@@ -4655,7 +4676,7 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
 
     /**
      * @param {HTMLElement} target
-     * @param {import("../../Blueprint").default} blueprint
+     * @param {Blueprint} blueprint
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
@@ -4673,7 +4694,8 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
     }
 }
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
+
 class KeyboardSelectAll extends IKeyboardShortcut {
 
     /**
@@ -4692,11 +4714,10 @@ class KeyboardSelectAll extends IKeyboardShortcut {
 }
 
 /**
- * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../input/IInput").default} IInput
- * @typedef {import("../template/ITemplate").default} ITemplate
- * @typedef {import("lit").PropertyDeclarations} PropertyDeclarations
+ * @typedef {import("../Blueprint.js").default} Blueprint
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../input/IInput.js").default} IInput
+ * @typedef {import("../template/ITemplate.js").default} ITemplate
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -4850,8 +4871,8 @@ class IElement extends s {
 }
 
 /**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../template/IDraggableTemplate").default} IDraggableTemplate
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../template/IDraggableTemplate.js").default} IDraggableTemplate
  * @typedef {CustomEvent<{
  *     value: [Number, Number]
  * }>} DragEvent
@@ -4979,8 +5000,8 @@ class IDraggableElement extends IElement {
 }
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IElement").default} IElement
+ * @typedef {import("../../Blueprint.js").default} Blueprint
+ * @typedef {import("../../element/IElement.js").default} IElement
  */
 
 /**
@@ -5252,7 +5273,7 @@ class MouseTracking extends IPointing {
 }
 
 /**
- * @typedef {import("./IElement").default} IElement
+ * @typedef {import("./IElement.js").default} IElement
  * @typedef {new (...args) => IElement} ElementConstructor
  */
 
@@ -5275,7 +5296,7 @@ class ElementFactory {
     }
 }
 
-/** @typedef {import("../../element/NodeElement").NodeElementConstructor} NodeElementConstructor */
+/** @typedef {import("../../element/NodeElement.js").NodeElementConstructor} NodeElementConstructor */
 
 class Paste extends IInput {
 
@@ -5390,10 +5411,10 @@ class Unfocus extends IInput {
 }
 
 /**
- * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../element/SelectorElement").default} SelectorElement
- * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {import("../Blueprint.js").default} Blueprint
+ * @typedef {import("../element/PinElement.js").default} PinElement
+ * @typedef {import("../element/SelectorElement.js").default} SelectorElement
+ * @typedef {import("../entity/PinReferenceEntity.js").default} PinReferenceEntity
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -5618,8 +5639,8 @@ class BlueprintTemplate extends ITemplate {
 }
 
 /**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../template/ITemplate").default} ITemplate
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../template/ITemplate.js").default} ITemplate
  */
 
 /**
@@ -5685,7 +5706,7 @@ class IFromToPositionedElement extends IElement {
 }
 
 /**
- * @typedef {import("../element/IFromToPositionedElement").default} IFromToPositionedElement
+ * @typedef {import("../element/IFromToPositionedElement.js").default} IFromToPositionedElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -5752,8 +5773,6 @@ class KnotEntity extends ObjectEntity {
     }
 }
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
-
 /**
  * @template {HTMLElement} T
  * @extends {IPointing<T>}
@@ -5809,10 +5828,10 @@ class MouseDbClick extends IPointing {
 }
 
 /**
- * @typedef {import("../element/LinkElement").default} LinkElement
- * @typedef {import("../element/LinkElement").LinkElementConstructor} LinkElementConstructor
- * @typedef {import("../element/NodeElement").NodeElementConstructor} NodeElementConstructor
- * @typedef {import("./node/KnotNodeTemplate").default} KnotNodeTemplate
+ * @typedef {import("../element/LinkElement.js").default} LinkElement
+ * @typedef {import("../element/LinkElement.js").LinkElementConstructor} LinkElementConstructor
+ * @typedef {import("../element/NodeElement.js").NodeElementConstructor} NodeElementConstructor
+ * @typedef {import("./node/KnotNodeTemplate.js").default} KnotNodeTemplate
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -5995,8 +6014,8 @@ class LinkTemplate extends IFromToPositionedTemplate {
 }
 
 /**
- * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
- * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent
+ * @typedef {import("./PinElement.js").default} PinElement
  * @typedef {import("lit").TemplateResult<1>} TemplateResult
  * @typedef {typeof LinkElement} LinkElementConstructor
  */
@@ -6300,8 +6319,7 @@ class LinkElement extends IFromToPositionedElement {
 }
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("../../element/IDraggableElement.js").default} IDraggableElement
  */
 
 /**
@@ -6360,7 +6378,7 @@ class MouseMoveDraggable extends IMouseClickDrag {
     }
 }
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 class MouseClickDrag extends MouseMoveDraggable {
 
@@ -6411,7 +6429,7 @@ class MouseClickDrag extends MouseMoveDraggable {
     }
 }
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
  * @template {HTMLElement} T
@@ -6451,10 +6469,7 @@ class KeyboardShortcutAction extends IKeyboardShortcut {
     }
 }
 
-/**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../element/IDraggableElement").default} IDraggableElement
- */
+/** @typedef {import("../element/IDraggableElement.js").default} IDraggableElement */
 
 /**
  * @template {IDraggableElement} T
@@ -6535,7 +6550,7 @@ class IDraggableTemplate extends ITemplate {
 }
 
 /**
- * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("../element/IDraggableElement.js").default} IDraggableElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -6558,9 +6573,8 @@ class IDraggablePositionedTemplate extends IDraggableTemplate {
 }
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../template/node/CommentNodeTemplate").default} CommentNodeTemplate
+ * @typedef {import("../../element/NodeElement.js").default} NodeElement
+ * @typedef {import("../../template/node/CommentNodeTemplate.js").default} CommentNodeTemplate
  */
 
 /** @extends {MouseMoveDraggable<NodeElement>} */
@@ -6595,9 +6609,9 @@ class MouseMoveNodes extends MouseMoveDraggable {
 }
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/NodeElement.js").default} NodeElement
+ * @typedef {import("../input/mouse/MouseMoveDraggable.js").default} MouseMoveDraggable
  * @typedef {import("lit").PropertyValues} PropertyValues
- * @typedef {import("../input/mouse/MouseMoveDraggable").default} MouseMoveDraggable
  */
 
 /**
@@ -6627,9 +6641,9 @@ class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 }
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").default} PinElement
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../element/NodeElement.js").default} NodeElement
+ * @typedef {import("../../element/PinElement.js").default} PinElement
+ * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -6770,7 +6784,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 }
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
+ * @typedef {import("../element/NodeElement.js").default} NodeElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -6924,8 +6938,7 @@ class IResizeableTemplate extends NodeTemplate {
 }
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement.js").default} NodeElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -7037,12 +7050,11 @@ class CommentNodeTemplate extends IResizeableTemplate {
 }
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/LinkElement").default} LinkElement
- * @typedef {import("../../element/LinkElement").LinkElementConstructor} LinkElementConstructor
- * @typedef {import("../../element/PinElement").default} PinElement
- * @typedef {import("../../template/node/KnotNodeTemplate").default} KnotNodeTemplate
- * @typedef {import("../../template/pin/KnotPinTemplate").default} KnotPinTemplate
+ * @typedef {import("../../Blueprint.js").default} Blueprint
+ * @typedef {import("../../element/LinkElement.js").default} LinkElement
+ * @typedef {import("../../element/LinkElement.js").LinkElementConstructor} LinkElementConstructor
+ * @typedef {import("../../element/PinElement.js").default} PinElement
+ * @typedef {import("../../template/pin/KnotPinTemplate.js").default} KnotPinTemplate
  */
 
 /** @extends IMouseClickDrag<PinElement> */
@@ -7172,8 +7184,8 @@ class MouseCreateLink extends IMouseClickDrag {
 }
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../element/NodeElement.js").default} NodeElement
+ * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
  */
 
 class VariableManagementNodeTemplate extends NodeTemplate {
@@ -7229,14 +7241,10 @@ class VariableManagementNodeTemplate extends NodeTemplate {
     }
 }
 
-/** @typedef {import("../../element/NodeElement").default} NodeElement */
-
 class VariableConversionNodeTemplate extends VariableManagementNodeTemplate {
 
     static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-conversion"]
 }
-
-/** @typedef {import("../../element/NodeElement").default} NodeElement */
 
 class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
 
@@ -7244,12 +7252,12 @@ class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
 }
 
 /**
- * @typedef {import("../../input/IInput").default} IInput
+ * @typedef {import("../../input/IInput.js").default} IInput
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 /**
  * @template T
- * @typedef {import("../../element/PinElement").default<T>} PinElement
+ * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
@@ -7365,13 +7373,14 @@ class PinTemplate extends ITemplate {
     }
 }
 
+/** @typedef {import("../../entity/IEntity.js").AnyValue} AnyValue */
 /**
- * @template T
- * @typedef {import("../../element/PinElement").default<T>} PinElement
+ * @template {AnyValue} T
+ * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template T
+ * @template {AnyValue} T
  * @extends PinTemplate<PinElement<T>>
  */
 class MinimalPinTemplate extends PinTemplate {
@@ -7386,7 +7395,7 @@ class MinimalPinTemplate extends PinTemplate {
 }
 
 /**
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -7444,9 +7453,9 @@ class EventNodeTemplate extends NodeTemplate {
 }
 
 /**
- * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
+ * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../template/ISelectableDraggableTemplate.js").default} ISelectableDraggableTemplate
  */
 
 /**
@@ -7500,8 +7509,8 @@ class ISelectableDraggableElement extends IDraggableElement {
 }
 
 /**
- * @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate
- * @typedef {import("../../entity/PinEntity").default} KnotEntity
+ * @typedef {import("../../entity/PinEntity.js").default} KnotEntity
+ * @typedef {import("../node/KnotNodeTemplate.js").default} KnotNodeTemplate
  */
 
 /** @extends MinimalPinTemplate<KnotEntity> */
@@ -7530,9 +7539,9 @@ class KnotPinTemplate extends MinimalPinTemplate {
 }
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").default} PinElement
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../element/NodeElement.js").default} NodeElement
+ * @typedef {import("../../element/PinElement.js").default} PinElement
+ * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
  */
 
 class KnotNodeTemplate extends NodeTemplate {
@@ -7615,7 +7624,7 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 }
 
-/** @typedef {import("../../element/NodeElement").default} NodeElement */
+/** @typedef {import("../../element/NodeElement.js").default} NodeElement */
 
 class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 
@@ -7637,9 +7646,10 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 }
 
 /**
- * @typedef {import("./IDraggableElement").DragEvent} DragEvent
- * @typedef {import("./IElement").default} IElement
- * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("./IDraggableElement.js").DragEvent} DragEvent
+ * @typedef {import("./IElement.js").default} IElement
+ * @typedef {import("../entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
+ * @typedef {import("./PinElement.js").default} PinElement
  * @typedef {typeof NodeElement} NodeElementConstructor
  */
 
@@ -7900,7 +7910,15 @@ class NodeElement extends ISelectableDraggableElement {
 
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
+        if (this.entity.CustomProperties.length > 0) {
+            return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
+        }
+        // Legacy nodes attempt to find pin entities
+        if (this.entity.Pins) {
+            return this.entity.Pins.map(objectReference =>
+                new UnknownPinEntity(this.entity[Configuration.subObjectAttributeNameFromReference(objectReference)])
+            )
+        }
     }
 
     setLocation(x = 0, y = 0, acknowledge = true) {
@@ -7927,11 +7945,9 @@ class NodeElement extends ISelectableDraggableElement {
 }
 
 /**
- * @typedef {import("./element/PinElement").default} PinElement
- * @typedef {import("./entity/GuidEntity").default} GuidEntity
- * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
- * @typedef {import("./template/node/CommentNodeTemplate").default} CommentNodeTemplate
- * @typedef {import("lit").PropertyValues} PropertyValues
+ * @typedef {import("./element/PinElement.js").default} PinElement
+ * @typedef {import("./entity/PinReferenceEntity.js").default} PinReferenceEntity
+ * @typedef {import("./template/node/CommentNodeTemplate.js").default} CommentNodeTemplate
  * @typedef {typeof Blueprint} BlueprintConstructor
  */
 
@@ -8385,7 +8401,7 @@ class Blueprint extends IElement {
 customElements.define("ueb-blueprint", Blueprint);
 
 /**
- * @typedef {import("../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("../element/IDraggableElement.js").default} IDraggableElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -8441,7 +8457,7 @@ class IDraggableControlTemplate extends IDraggableTemplate {
     }
 }
 
-/** @typedef {import("../element/ColorHandlerElement").default} ColorHandlerElement */
+/** @typedef {import("../element/ColorHandlerElement.js").default} ColorHandlerElement */
 
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
 class ColorHandlerTemplate extends IDraggableControlTemplate {
@@ -8465,9 +8481,9 @@ class ColorHandlerTemplate extends IDraggableControlTemplate {
 }
 
 /**
- * @typedef {import("../element/WindowElement").default} WindowElement
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../template/IDraggableControlTemplate").default} IDraggableControlTemplate
+ * @typedef {import("../element/WindowElement.js").default} WindowElement
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../template/IDraggableControlTemplate.js").default} IDraggableControlTemplate
  */
 
 /**
@@ -8511,7 +8527,7 @@ class ColorHandlerElement extends IDraggableControlElement {
     }
 }
 
-/** @typedef {import("../element/ColorHandlerElement").default} ColorHandlerElement */
+/** @typedef {import("../element/ColorHandlerElement.js").default} ColorHandlerElement */
 
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
 class ColorSliderTemplate extends IDraggableControlTemplate {
@@ -8645,7 +8661,7 @@ class InputElement extends IElement {
 }
 
 /**
- * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("../../element/IDraggableElement.js").default} IDraggableElement
  */
 
 /**
@@ -8699,8 +8715,6 @@ class BoolPinTemplate extends PinTemplate {
         `
     }
 }
-
-/** @typedef {import("../../element/PinElement").default} PinElement */
 
 class ExecPinTemplate extends PinTemplate {
 
@@ -8882,7 +8896,7 @@ class INumericPinTemplate extends IInputPinTemplate {
     }
 }
 
-/** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
+/** @typedef {import("../../entity/IntegerEntity.js").default} IntegerEntity */
 
 /** @extends INumericPinTemplate<IntegerEntity> */
 class IntPinTemplate extends INumericPinTemplate {
@@ -8903,8 +8917,6 @@ class IntPinTemplate extends INumericPinTemplate {
         `
     }
 }
-
-/** @typedef {import("../../entity/IntegerEntity").default} IntegerEntity */
 
 class Int64PinTemplate extends IntPinTemplate {
 
@@ -8937,7 +8949,7 @@ const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e
  * SPDX-License-Identifier: BSD-3-Clause
  */const i=e(class extends i$1{constructor(t$1){var e;if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||(null===(e=t$1.strings)||void 0===e?void 0:e.length)>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce(((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`}),"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.vt){this.vt=new Set;for(const t in r)this.vt.add(t);return this.render(r)}this.vt.forEach((t=>{null==r[t]&&(this.vt.delete(t),t.includes("-")?s.removeProperty(t):s[t]="");}));for(const t in r){const e=r[t];null!=e&&(this.vt.add(t),t.includes("-")?s.setProperty(t,e):s[t]=e);}return x}});
 
-/** @typedef {import("../../element/WindowElement").default} WindowElement */
+/** @typedef {import("../../element/WindowElement.js").default} WindowElement */
 
 /** @extends {IDraggablePositionedTemplate<WindowElement>} */
 class WindowTemplate extends IDraggablePositionedTemplate {
@@ -9012,7 +9024,7 @@ class WindowTemplate extends IDraggablePositionedTemplate {
 }
 
 /**
- * @typedef {import("../../element/WindowElement").default} WindowElement
+ * @typedef {import("../../element/WindowElement.js").default} WindowElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -9367,9 +9379,9 @@ class ColorPickerWindowTemplate extends WindowTemplate {
 }
 
 /**
- * @typedef {import("../../element/WindowElement").default} WindowElement
- * @typedef {import("../../element/WindowElement").WindowElementConstructor} WindowElementConstructor
- * @typedef {import("../../entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("../../element/WindowElement.js").default} WindowElement
+ * @typedef {import("../../element/WindowElement.js").WindowElementConstructor} WindowElementConstructor
+ * @typedef {import("../../entity/LinearColorEntity.js").default} LinearColorEntity
  */
 
 /** @extends PinTemplate<LinearColorEntity> */
@@ -9418,8 +9430,6 @@ class LinearColorPinTemplate extends PinTemplate {
     }
 }
 
-/** @typedef {import("../../element/PinElement").default} PinElement */
-
 class NamePinTemplate extends IInputPinTemplate {
 
     static singleLineInput = true
@@ -9453,7 +9463,7 @@ class ReferencePinTemplate extends PinTemplate {
     }
 }
 
-/** @typedef {import("../../entity/RotatorEntity").default} Rotator */
+/** @typedef {import("../../entity/RotatorEntity.js").default} Rotator */
 
 /** @extends INumericPinTemplate<Rotator> */
 class RotatorPinTemplate extends INumericPinTemplate {
@@ -9601,9 +9611,9 @@ class VectorPinTemplate extends INumericPinTemplate {
 }
 
 /**
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("./LinkElement").LinkElementConstructor} LinkElementConstructor
- * @typedef {import("./NodeElement").default} NodeElement
+ * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
+ * @typedef {import("./LinkElement.js").LinkElementConstructor} LinkElementConstructor
+ * @typedef {import("./NodeElement.js").default} NodeElement
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {typeof PinElement} PinElementConstructor
  */
@@ -9983,9 +9993,9 @@ class OrderedIndexArray {
 }
 
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {typeof import("../Blueprint").default.nodeBoundariesSupplier} BoundariesFunction
- * @typedef {typeof import("../Blueprint").default.nodeSelectToggleFunction} SelectionFunction
+ * @typedef {import("../element/NodeElement.js").default} NodeElement
+ * @typedef {typeof import("../Blueprint.js").default.nodeBoundariesSupplier} BoundariesFunction
+ * @typedef {typeof import("../Blueprint.js").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{
  *     primaryBoundary: Number,
  *     secondaryBoundary: Number,
@@ -10142,13 +10152,13 @@ class FastSelectionModel {
     }
 }
 
-/** @typedef {import("../element/SelectorElement").default} SelectorElement */
+/** @typedef {import("../element/SelectorElement.js").default} SelectorElement */
 
 /** @extends IFromToPositionedTemplate<SelectorElement> */
 class SelectorTemplate extends IFromToPositionedTemplate {
 }
 
-/** @typedef {import("../Blueprint").BlueprintConstructor} BlueprintConstructor */
+/** @typedef {import("../Blueprint.js").BlueprintConstructor} BlueprintConstructor */
 
 /** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
 class SelectorElement extends IFromToPositionedElement {
@@ -10276,8 +10286,8 @@ function defineElements() {
 }
 
 /**
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /**
@@ -10309,8 +10319,8 @@ class CustomSerializer extends Serializer {
 }
 
 /**
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /**
@@ -10335,10 +10345,7 @@ class ToStringSerializer extends Serializer {
     }
 }
 
-/**
- * @typedef {import("../entity/IEntity").AnySimpleValue} AnySimpleValue
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- */
+/** @typedef {import("../entity/IEntity.js").AnySimpleValue} AnySimpleValue */
 
 function initializeSerializerFactory() {
 

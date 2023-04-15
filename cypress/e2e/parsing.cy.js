@@ -127,6 +127,11 @@ describe("Serializer", () => {
                 .to.be.instanceOf(ObjectReferenceEntity)
                 .and.to.deep.contain({ type: "Class", path: "/Script/ShooterGame.ShooterGameMode" })
         )
+        it("Parses EdGraphPin'EdGraphPin_45417'", () =>
+            expect(serializer.read(`EdGraphPin'EdGraphPin_45417'`))
+                .to.be.instanceOf(ObjectReferenceEntity)
+                .and.to.deep.contain({ type: "EdGraphPin", path: "EdGraphPin_45417" })
+        )
         it(`Parses EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`, () =>
             expect(serializer.read(`EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`))
                 .to.be.instanceOf(ObjectReferenceEntity)

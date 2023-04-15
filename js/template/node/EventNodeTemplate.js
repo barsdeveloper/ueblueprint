@@ -5,7 +5,7 @@ import MinimalPinTemplate from "../pin/MinimalPinTemplate.js"
 import NodeTemplate from "./NodeTemplate.js"
 
 /**
- * @typedef {import("../../element/PinElement").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 

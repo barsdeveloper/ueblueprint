@@ -8,7 +8,7 @@ import Utility from "../../Utility.js"
 import WindowTemplate from "./WindowTemplate.js"
 
 /**
- * @typedef {import("../../element/WindowElement").default} WindowElement
+ * @typedef {import("../../element/WindowElement.js").default} WindowElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 

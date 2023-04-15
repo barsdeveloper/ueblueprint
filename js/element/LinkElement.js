@@ -6,8 +6,8 @@ import SVGIcon from "../SVGIcon.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
- * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent
+ * @typedef {import("./PinElement.js").default} PinElement
  * @typedef {import("lit").TemplateResult<1>} TemplateResult
  * @typedef {typeof LinkElement} LinkElementConstructor
  */

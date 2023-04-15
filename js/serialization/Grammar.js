@@ -652,7 +652,7 @@ export default class Grammar {
     static subObjectEntity = P.lazy(() =>
         this.objectEntity
             .map(object =>
-                values => values["SubObject_" + object.Name] = object
+                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
             )
     )
 

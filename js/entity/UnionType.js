@@ -1,4 +1,4 @@
-/** @typedef {import("./IEntity").AnyValueConstructor<*>} AnyValueConstructor */
+/** @typedef {import("./IEntity.js").AnyValueConstructor<*>} AnyValueConstructor */
 
 export default class UnionType {
 

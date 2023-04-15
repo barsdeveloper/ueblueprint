@@ -1,8 +1,8 @@
 import { html } from "lit"
 
 /**
- * @typedef {import("../element/IElement").default} IElement
- * @typedef {import("../input/IInput").default} IInput
+ * @typedef {import("../element/IElement.js").default} IElement
+ * @typedef {import("../input/IInput.js").default} IInput
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 

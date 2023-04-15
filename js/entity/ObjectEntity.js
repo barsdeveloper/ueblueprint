@@ -199,7 +199,12 @@ export default class ObjectEntity extends IEntity {
             showDefault: false,
         },
         CustomProperties: {
-            type: [new UnionType(PinEntity, UnknownPinEntity)]
+            type: [new UnionType(PinEntity, UnknownPinEntity)],
+        },
+        // Legacy
+        Pins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
         },
     }
 
@@ -301,6 +306,8 @@ export default class ObjectEntity extends IEntity {
         /** @type {IntegerEntity?} */ this.ErrorType
         /** @type {String?} */ this.ErrorMsg
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
+        // Legacy
+        /** @type {ObjectReferenceEntity[]} */ this.Pins
     }
 
     getClass() {

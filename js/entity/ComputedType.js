@@ -1,4 +1,4 @@
-/** @typedef {import("./IEntity").default} IEntity */
+/** @typedef {import("./IEntity.js").default} IEntity */
 
 export default class ComputedType {
 

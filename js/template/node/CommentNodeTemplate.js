@@ -5,8 +5,7 @@ import LinearColorEntity from "../../entity/LinearColorEntity.js"
 import Utility from "../../Utility.js"
 
 /**
- * @typedef {import("../../element/NodeElement").default} NodeElement
- * @typedef {import("../../element/PinElement").default} PinElement
+ * @typedef {import("../../element/NodeElement.js").default} NodeElement
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 

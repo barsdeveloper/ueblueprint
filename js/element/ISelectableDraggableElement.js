@@ -3,9 +3,9 @@ import Utility from "../Utility.js"
 import IDraggableElement from "./IDraggableElement.js"
 
 /**
- * @typedef {import("../element/IDraggableElement").DragEvent} DragEvent
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../template/ISelectableDraggableTemplate").default} ISelectableDraggableTemplate
+ * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../template/ISelectableDraggableTemplate.js").default} ISelectableDraggableTemplate
  */
 
 /**

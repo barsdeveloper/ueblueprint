@@ -1,7 +1,5 @@
 import IPointing from "./IPointing.js"
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
-
 /**
  * @template {HTMLElement} T
  * @extends {IPointing<T>}

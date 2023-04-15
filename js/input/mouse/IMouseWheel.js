@@ -1,6 +1,8 @@
 import Configuration from "../../Configuration.js"
 import IPointing from "./IPointing.js"
 
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
+
 export default class IMouseWheel extends IPointing {
 
     /** @param {WheelEvent} e */
@@ -15,7 +17,7 @@ export default class IMouseWheel extends IPointing {
 
     /**
      * @param {HTMLElement} target
-     * @param {import("../../Blueprint").default} blueprint
+     * @param {Blueprint} blueprint
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {

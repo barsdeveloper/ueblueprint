@@ -1,8 +1,8 @@
 import Serializer from "./Serializer.js"
 
 /**
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
  */
 
 /**

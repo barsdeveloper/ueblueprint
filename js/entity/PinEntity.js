@@ -22,7 +22,7 @@ import Vector2DEntity from "./Vector2DEntity.js"
 import VectorEntity from "./VectorEntity.js"
 
 /**
- * @typedef {import("./IEntity").AnyValue} AnyValue
+ * @typedef {import("./IEntity.js").AnyValue} AnyValue
  * @typedef {import("lit").CSSResult} CSSResult
  */
 

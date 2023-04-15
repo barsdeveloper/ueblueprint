@@ -1,7 +1,7 @@
 /**
- * @typedef {import("../element/NodeElement").default} NodeElement
- * @typedef {typeof import("../Blueprint").default.nodeBoundariesSupplier} BoundariesFunction
- * @typedef {typeof import("../Blueprint").default.nodeSelectToggleFunction} SelectionFunction
+ * @typedef {import("../element/NodeElement.js").default} NodeElement
+ * @typedef {typeof import("../Blueprint.js").default.nodeBoundariesSupplier} BoundariesFunction
+ * @typedef {typeof import("../Blueprint.js").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{
 *     primaryBoundary: Number,
 *     secondaryBoundary: Number,

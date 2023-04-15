@@ -1,15 +1,15 @@
 /**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
  */
 
 /**
  * @template {AnyValue} T
- * @typedef {import("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
  */
 /**
  * @template {AnyValue} T
- * @typedef {import("./Serializer").default<T>} Serializer
+ * @typedef {import("./Serializer.js").default<T>} Serializer
  */
 
 export default class SerializerFactory {

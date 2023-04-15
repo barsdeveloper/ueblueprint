@@ -2,8 +2,7 @@ import IMouseClickDrag from "./IMouseClickDrag.js"
 import Utility from "../../Utility.js"
 
 /**
- * @typedef {import("../../Blueprint").default} Blueprint
- * @typedef {import("../../element/IDraggableElement").default} IDraggableElement
+ * @typedef {import("../../element/IDraggableElement.js").default} IDraggableElement
  */
 
 /**

@@ -3,8 +3,8 @@ import MinimalPinTemplate from "./MinimalPinTemplate.js"
 import Utility from "../../Utility.js"
 
 /**
- * @typedef {import("../node/KnotNodeTemplate").default} KnotNodeTemplate
- * @typedef {import("../../entity/PinEntity").default} KnotEntity
+ * @typedef {import("../../entity/PinEntity.js").default} KnotEntity
+ * @typedef {import("../node/KnotNodeTemplate.js").default} KnotNodeTemplate
  */
 
 /** @extends MinimalPinTemplate<KnotEntity> */

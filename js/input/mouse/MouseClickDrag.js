@@ -1,6 +1,6 @@
 import MouseMoveDraggable from "./MouseMoveDraggable.js"
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 export default class MouseClickDrag extends MouseMoveDraggable {
 

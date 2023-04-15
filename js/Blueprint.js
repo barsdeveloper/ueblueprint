@@ -6,11 +6,9 @@ import NodeElement from "./element/NodeElement.js"
 import Utility from "./Utility.js"
 
 /**
- * @typedef {import("./element/PinElement").default} PinElement
- * @typedef {import("./entity/GuidEntity").default} GuidEntity
- * @typedef {import("./entity/PinReferenceEntity").default} PinReferenceEntity
- * @typedef {import("./template/node/CommentNodeTemplate").default} CommentNodeTemplate
- * @typedef {import("lit").PropertyValues} PropertyValues
+ * @typedef {import("./element/PinElement.js").default} PinElement
+ * @typedef {import("./entity/PinReferenceEntity.js").default} PinReferenceEntity
+ * @typedef {import("./template/node/CommentNodeTemplate.js").default} CommentNodeTemplate
  * @typedef {typeof Blueprint} BlueprintConstructor
  */
 

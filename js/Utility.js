@@ -3,13 +3,12 @@ import Configuration from "./Configuration.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
- * @typedef {import("./element/IElement").default} IElement
- * @typedef {import("./entity/IEntity").AnyValue} AnyValue
- * @typedef {import("./entity/IEntity").AnyValueConstructor<*>} AnyValueConstructor
- * @typedef {import("./entity/IEntity").AttributeInformation} TypeInformation
- * @typedef {import("./entity/IEntity").default} IEntity
- * @typedef {import("./entity/IEntity").EntityConstructor} EntityConstructor
- * @typedef {import("./entity/LinearColorEntity").default} LinearColorEntity
+ * @typedef {import("./entity/IEntity.js").AnyValue} AnyValue
+ * @typedef {import("./entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("./entity/IEntity.js").AttributeInformation} TypeInformation
+ * @typedef {import("./entity/IEntity.js").default} IEntity
+ * @typedef {import("./entity/IEntity.js").EntityConstructor} EntityConstructor
+ * @typedef {import("./entity/LinearColorEntity.js").default} LinearColorEntity
  */
 
 export default class Utility {

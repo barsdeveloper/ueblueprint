@@ -13,11 +13,13 @@ import Utility from "../Utility.js"
 import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTemplate.js"
 import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate.js"
+import UnknownPinEntity from "../entity/UnknownPinEntity.js"
 
 /**
- * @typedef {import("./IDraggableElement").DragEvent} DragEvent
- * @typedef {import("./IElement").default} IElement
- * @typedef {import("./PinElement").default} PinElement
+ * @typedef {import("./IDraggableElement.js").DragEvent} DragEvent
+ * @typedef {import("./IElement.js").default} IElement
+ * @typedef {import("../entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
+ * @typedef {import("./PinElement.js").default} PinElement
  * @typedef {typeof NodeElement} NodeElementConstructor
  */
 
@@ -278,7 +280,15 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
+        if (this.entity.CustomProperties.length > 0) {
+            return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
+        }
+        // Legacy nodes attempt to find pin entities
+        if (this.entity.Pins) {
+            return this.entity.Pins.map(objectReference =>
+                new UnknownPinEntity(this.entity[Configuration.subObjectAttributeNameFromReference(objectReference)])
+            )
+        }
     }
 
     setLocation(x = 0, y = 0, acknowledge = true) {

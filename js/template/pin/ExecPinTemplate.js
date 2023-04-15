@@ -3,8 +3,6 @@ import PinTemplate from "./PinTemplate.js"
 import SVGIcon from "../../SVGIcon.js"
 import Utility from "../../Utility.js"
 
-/** @typedef {import("../../element/PinElement").default} PinElement */
-
 export default class ExecPinTemplate extends PinTemplate {
 
     renderIcon() {

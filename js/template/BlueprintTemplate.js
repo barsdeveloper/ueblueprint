@@ -14,10 +14,10 @@ import Utility from "../Utility.js"
 import Zoom from "../input/mouse/Zoom.js"
 
 /**
- * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../element/PinElement").default} PinElement
- * @typedef {import("../element/SelectorElement").default} SelectorElement
- * @typedef {import("../entity/PinReferenceEntity").default} PinReferenceEntity
+ * @typedef {import("../Blueprint.js").default} Blueprint
+ * @typedef {import("../element/PinElement.js").default} PinElement
+ * @typedef {import("../element/SelectorElement.js").default} SelectorElement
+ * @typedef {import("../entity/PinReferenceEntity.js").default} PinReferenceEntity
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 

@@ -1,8 +1,8 @@
 import IElement from "./IElement.js"
 
 /**
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../template/ITemplate").default} ITemplate
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../template/ITemplate.js").default} ITemplate
  */
 
 /**

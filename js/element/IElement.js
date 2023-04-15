@@ -2,11 +2,10 @@ import { LitElement } from "lit"
 import Configuration from "../Configuration.js"
 
 /**
- * @typedef {import("../Blueprint").default} Blueprint
- * @typedef {import("../entity/IEntity").default} IEntity
- * @typedef {import("../input/IInput").default} IInput
- * @typedef {import("../template/ITemplate").default} ITemplate
- * @typedef {import("lit").PropertyDeclarations} PropertyDeclarations
+ * @typedef {import("../Blueprint.js").default} Blueprint
+ * @typedef {import("../entity/IEntity.js").default} IEntity
+ * @typedef {import("../input/IInput.js").default} IInput
+ * @typedef {import("../template/ITemplate.js").default} ITemplate
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 

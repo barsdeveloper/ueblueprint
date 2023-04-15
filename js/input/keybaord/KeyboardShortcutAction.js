@@ -1,6 +1,6 @@
 import IKeyboardShortcut from "./IKeyboardShortcut.js"
 
-/** @typedef {import("../../Blueprint").default} Blueprint */
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
  * @template {HTMLElement} T
