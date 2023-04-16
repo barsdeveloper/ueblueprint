@@ -104,6 +104,7 @@ class Configuration {
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
+        blueprint: "/Script/Engine.Blueprint",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
@@ -114,6 +115,7 @@ class Configuration {
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        edGraph: "/Script/Engine.EdGraph",
         edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
@@ -458,6 +460,7 @@ class UnionType {
 }
 
 /**
+ * @typedef {import("./Blueprint.js").default} Blueprint
  * @typedef {import("./entity/IEntity.js").AnyValue} AnyValue
  * @typedef {import("./entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
  * @typedef {import("./entity/IEntity.js").AttributeInformation} TypeInformation
@@ -865,6 +868,16 @@ class Utility {
         });
         event.clipboardData.setData("text", value);
         element.dispatchEvent(event);
+    }
+
+    /** @param {Blueprint} blueprint */
+    static async copy(blueprint) {
+        const event = new ClipboardEvent("copy", {
+            bubbles: true,
+            cancelable: true,
+            clipboardData: new DataTransfer(),
+        });
+        blueprint.dispatchEvent(event);
     }
 
     static animate(from, to, intervalSeconds, callback, timingFunction = x => {
@@ -1361,6 +1374,20 @@ class ObjectReferenceEntity extends IEntity {
         super(values);
         /** @type {String} */ this.type;
         /** @type {String} */ this.path;
+    }
+
+    sanitize() {
+        if (this.type && !this.type.startsWith("/")) {
+            let deprecatedType = this.type + "_Deprecated";
+            let nodeType = Object.keys(Configuration.nodeType)
+                .find(type => {
+                    const name = Utility.getNameFromPath(Configuration.nodeType[type]);
+                    return name === this.type || name === deprecatedType
+                });
+            if (nodeType) {
+                this.type = Configuration.nodeType[nodeType];
+            }
+        }
     }
 
     getName() {
@@ -2915,6 +2942,23 @@ class ObjectEntity extends IEntity {
     }
 
     constructor(values, suppressWarns = false) {
+        let keys = Object.keys(values);
+        if (keys.some(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))) {
+            let subObjectsValues = keys
+                .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
+                .reduce(
+                    (acc, k) => {
+                        acc[k] = values[k];
+                        return acc
+                    },
+                    {}
+                );
+            // Reorder suboejcts to be the first
+            values = {
+                ...subObjectsValues,
+                ...values,
+            };
+        }
         super(values, suppressWarns);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
@@ -2975,12 +3019,10 @@ class ObjectEntity extends IEntity {
         }
 
         // Legacy path names
-        if (this.Class.type && !this.Class.type.startsWith("/")) {
-            const nodeType = Object.keys(Configuration.nodeType)
-                .find(type => Utility.getNameFromPath(Configuration.nodeType[type]) === this.Class.type);
-            if (nodeType) {
-                this.Class.type = Configuration.nodeType[nodeType];
-            }
+        this.Class.sanitize();
+        if (this.MacroGraphReference) {
+            this.MacroGraphReference.MacroGraph?.sanitize();
+            this.MacroGraphReference.GraphBlueprint?.sanitize();
         }
     }
 
@@ -3072,6 +3114,11 @@ class ObjectEntity extends IEntity {
             this.NodePosY = new IntegerEntity();
         }
         this.NodePosY.value = Math.round(value);
+    }
+
+    /** @returns {PinEntity[]} */
+    getPinEntities() {
+        return this.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
     isEvent() {
@@ -7951,7 +7998,7 @@ class NodeElement extends ISelectableDraggableElement {
 
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
+        return this.entity.getPinEntities()
     }
 
     setLocation(x = 0, y = 0, acknowledge = true) {

@@ -3,6 +3,7 @@ import Configuration from "./Configuration.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
+ * @typedef {import("./Blueprint.js").default} Blueprint
  * @typedef {import("./entity/IEntity.js").AnyValue} AnyValue
  * @typedef {import("./entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
  * @typedef {import("./entity/IEntity.js").AttributeInformation} TypeInformation
@@ -411,6 +412,16 @@ export default class Utility {
         })
         event.clipboardData.setData("text", value)
         element.dispatchEvent(event)
+    }
+
+    /** @param {Blueprint} blueprint */
+    static async copy(blueprint) {
+        const event = new ClipboardEvent("copy", {
+            bubbles: true,
+            cancelable: true,
+            clipboardData: new DataTransfer(),
+        })
+        blueprint.dispatchEvent(event)
     }
 
     static animate(from, to, intervalSeconds, callback, timingFunction = x => {

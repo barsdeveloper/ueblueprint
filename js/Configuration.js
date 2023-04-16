@@ -80,6 +80,7 @@ export default class Configuration {
     static nodeReflowEventName = "ueb-node-reflow"
     static nodeType = {
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
+        blueprint: "/Script/Engine.Blueprint",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
@@ -90,6 +91,7 @@ export default class Configuration {
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        edGraph: "/Script/Engine.EdGraph",
         edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",

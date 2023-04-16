@@ -61,5 +61,10 @@ export function generateNodeTest(nodeTest, getBlueprint) {
             const words = value.split("\n").map(row => row.match(/\s*(\w+(\s+\w+)*).+/)?.[1]).filter(v => v?.length > 0)
             return expect(value).to.match(getFirstWordOrder(words))
         })
+        if (nodeTest.additionalTest) {
+            it("Additional tests", () => {
+                nodeTest.additionalTest(node)
+            })
+        }
     })
 }

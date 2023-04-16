@@ -280,7 +280,7 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
+        return this.entity.getPinEntities()
     }
 
     setLocation(x = 0, y = 0, acknowledge = true) {

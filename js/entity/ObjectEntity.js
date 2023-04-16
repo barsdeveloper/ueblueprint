@@ -258,6 +258,23 @@ export default class ObjectEntity extends IEntity {
     }
 
     constructor(values, suppressWarns = false) {
+        let keys = Object.keys(values)
+        if (keys.some(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))) {
+            let subObjectsValues = keys
+                .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
+                .reduce(
+                    (acc, k) => {
+                        acc[k] = values[k]
+                        return acc
+                    },
+                    {}
+                )
+            // Reorder sub objects to be the first entries
+            values = {
+                ...subObjectsValues,
+                ...values,
+            }
+        }
         super(values, suppressWarns)
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
@@ -302,7 +319,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {String?} */ this.ErrorMsg
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
 
-        // Legacy objects transform into pins
+        // Legacy nodes cleanup
         if (this["Pins"] instanceof Array) {
             this["Pins"]
                 .forEach(
@@ -315,15 +332,13 @@ export default class ObjectEntity extends IEntity {
                             this.CustomProperties.push(pinEntity)
                         }
                     })
+            delete this["Pins"]
         }
 
-        // Legacy path names
-        if (this.Class.type && !this.Class.type.startsWith("/")) {
-            const nodeType = Object.keys(Configuration.nodeType)
-                .find(type => Utility.getNameFromPath(Configuration.nodeType[type]) === this.Class.type)
-            if (nodeType) {
-                this.Class.type = Configuration.nodeType[nodeType]
-            }
+        this.Class.sanitize()
+        if (this.MacroGraphReference) {
+            this.MacroGraphReference.MacroGraph?.sanitize()
+            this.MacroGraphReference.GraphBlueprint?.sanitize()
         }
     }
 
@@ -415,6 +430,11 @@ export default class ObjectEntity extends IEntity {
             this.NodePosY = new IntegerEntity()
         }
         this.NodePosY.value = Math.round(value)
+    }
+
+    /** @returns {PinEntity[]} */
+    getPinEntities() {
+        return this.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
     isEvent() {
