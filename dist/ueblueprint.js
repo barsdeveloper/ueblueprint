@@ -114,10 +114,12 @@ class Configuration {
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
+        flipflop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
         forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",
         forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
@@ -197,12 +199,13 @@ class Configuration {
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
     static stringEscapedCharacters = /['"\\]/g
+    static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
-    static subObjectAttributeNameFromEntity = objectEntity =>
-        "#SubObject" + (objectEntity.Class.type ? "_" + objectEntity.Class.type : "") + "_" + objectEntity.Name
+    static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class.type ? "_" + objectEntity.Class.type : "") + "_" + objectEntity.Name
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
-    static subObjectAttributeNameFromReference = objectReferenceEntity =>
-        "#SubObject_" + objectReferenceEntity.type + "_" + objectReferenceEntity.path
+    static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
+        this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
@@ -804,6 +807,11 @@ class Utility {
             .toLowerCase()
     }
 
+    /** @param {String} pathValue */
+    static getNameFromPath(pathValue) {
+        return pathValue.match(/[^\.\/]+$/)?.[0] ?? ""
+    }
+
     /** @param {LinearColorEntity} value */
     static printLinearColor(value) {
         return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
@@ -1356,7 +1364,7 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     getName() {
-        return this.path.match(/[^\.\/]+$/)?.[0] ?? ""
+        return Utility.getNameFromPath(this.path)
     }
 }
 
@@ -2020,6 +2028,7 @@ class SimpleSerializationVectorEntity extends VectorEntity {
 
 /**
  * @typedef {import("./IEntity.js").AnyValue} AnyValue
+ * @typedef {import("./ObjectEntity.js").default} ObjectEntity
  * @typedef {import("lit").CSSResult} CSSResult
  */
 
@@ -2145,6 +2154,11 @@ class PinEntity extends IEntity {
         /** @type {Boolean} */ this.bDefaultValueIsIgnored;
         /** @type {Boolean} */ this.bAdvancedView;
         /** @type {Boolean} */ this.bOrphanedPin;
+    }
+
+    /** @param {ObjectEntity} objectEntity */
+    static fromLegacyObject(objectEntity) {
+        return new PinEntity(objectEntity, true)
     }
 
     getType() {
@@ -2385,6 +2399,14 @@ class SVGIcon {
     static expandIcon = y`
         <svg fill="currentColor" viewBox="4 4 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
+        </svg>
+    `
+
+    static flipflop = y`
+        <svg  viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2L10 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6 2L2 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6 2L10 14" stroke="white" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round"/>
         </svg>
     `
 
@@ -2836,11 +2858,6 @@ class ObjectEntity extends IEntity {
         CustomProperties: {
             type: [new UnionType(PinEntity, UnknownPinEntity)],
         },
-        // Legacy
-        Pins: {
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        },
     }
 
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
@@ -2941,12 +2958,34 @@ class ObjectEntity extends IEntity {
         /** @type {IntegerEntity?} */ this.ErrorType;
         /** @type {String?} */ this.ErrorMsg;
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
-        // Legacy
-        /** @type {ObjectReferenceEntity[]} */ this.Pins;
+
+        // Legacy objects transform into pins
+        if (this["Pins"] instanceof Array) {
+            this["Pins"]
+                .forEach(
+                    /** @param {ObjectReferenceEntity} objectReference */
+                    objectReference => {
+                        const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)];
+                        if (pinObject) {
+                            const pinEntity = PinEntity.fromLegacyObject(pinObject);
+                            pinEntity.LinkedTo = [];
+                            this.CustomProperties.push(pinEntity);
+                        }
+                    });
+        }
+
+        // Legacy path names
+        if (this.Class.type && !this.Class.type.startsWith("/")) {
+            const nodeType = Object.keys(Configuration.nodeType)
+                .find(type => Utility.getNameFromPath(Configuration.nodeType[type]) === this.Class.type);
+            if (nodeType) {
+                this.Class.type = Configuration.nodeType[nodeType];
+            }
+        }
     }
 
     getClass() {
-        return this.Class.path
+        return this.Class.path ? this.Class.path : this.Class.type
     }
 
     getType() {
@@ -3226,6 +3265,8 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.executionSequence:
             case Configuration.nodeType.multiGate:
                 return SVGIcon.sequence
+            case Configuration.nodeType.flipflop:
+                return SVGIcon.flipflop
             case Configuration.nodeType.forEachElementInEnum:
             case Configuration.nodeType.forLoop:
             case Configuration.nodeType.forLoopWithBreak:
@@ -4325,10 +4366,10 @@ class ObjectSerializer extends Serializer {
                 key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
             )
             + entity.CustomProperties.map(pin =>
-                this.attributeSeparator
-                + moreIndentation
+                moreIndentation
                 + attributeKeyPrinter("CustomProperties ")
                 + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
+                + this.attributeSeparator
             )
                 .join("")
             + indentation + "End Object";
@@ -7910,15 +7951,7 @@ class NodeElement extends ISelectableDraggableElement {
 
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        if (this.entity.CustomProperties.length > 0) {
-            return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
-        }
-        // Legacy nodes attempt to find pin entities
-        if (this.entity.Pins) {
-            return this.entity.Pins.map(objectReference =>
-                new UnknownPinEntity(this.entity[Configuration.subObjectAttributeNameFromReference(objectReference)])
-            )
-        }
+        return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
     setLocation(x = 0, y = 0, acknowledge = true) {

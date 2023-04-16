@@ -23,6 +23,7 @@ import VectorEntity from "./VectorEntity.js"
 
 /**
  * @typedef {import("./IEntity.js").AnyValue} AnyValue
+ * @typedef {import("./ObjectEntity.js").default} ObjectEntity
  * @typedef {import("lit").CSSResult} CSSResult
  */
 
@@ -148,6 +149,11 @@ export default class PinEntity extends IEntity {
         /** @type {Boolean} */ this.bDefaultValueIsIgnored
         /** @type {Boolean} */ this.bAdvancedView
         /** @type {Boolean} */ this.bOrphanedPin
+    }
+
+    /** @param {ObjectEntity} objectEntity */
+    static fromLegacyObject(objectEntity) {
+        return new PinEntity(objectEntity, true)
     }
 
     getType() {

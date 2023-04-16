@@ -201,11 +201,6 @@ export default class ObjectEntity extends IEntity {
         CustomProperties: {
             type: [new UnionType(PinEntity, UnknownPinEntity)],
         },
-        // Legacy
-        Pins: {
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        },
     }
 
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
@@ -306,12 +301,34 @@ export default class ObjectEntity extends IEntity {
         /** @type {IntegerEntity?} */ this.ErrorType
         /** @type {String?} */ this.ErrorMsg
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
-        // Legacy
-        /** @type {ObjectReferenceEntity[]} */ this.Pins
+
+        // Legacy objects transform into pins
+        if (this["Pins"] instanceof Array) {
+            this["Pins"]
+                .forEach(
+                    /** @param {ObjectReferenceEntity} objectReference */
+                    objectReference => {
+                        const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)]
+                        if (pinObject) {
+                            const pinEntity = PinEntity.fromLegacyObject(pinObject)
+                            pinEntity.LinkedTo = []
+                            this.CustomProperties.push(pinEntity)
+                        }
+                    })
+        }
+
+        // Legacy path names
+        if (this.Class.type && !this.Class.type.startsWith("/")) {
+            const nodeType = Object.keys(Configuration.nodeType)
+                .find(type => Utility.getNameFromPath(Configuration.nodeType[type]) === this.Class.type)
+            if (nodeType) {
+                this.Class.type = Configuration.nodeType[nodeType]
+            }
+        }
     }
 
     getClass() {
-        return this.Class.path
+        return this.Class.path ? this.Class.path : this.Class.type
     }
 
     getType() {
@@ -591,6 +608,8 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.executionSequence:
             case Configuration.nodeType.multiGate:
                 return SVGIcon.sequence
+            case Configuration.nodeType.flipflop:
+                return SVGIcon.flipflop
             case Configuration.nodeType.forEachElementInEnum:
             case Configuration.nodeType.forLoop:
             case Configuration.nodeType.forLoopWithBreak:

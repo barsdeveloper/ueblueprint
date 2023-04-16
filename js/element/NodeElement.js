@@ -280,15 +280,7 @@ export default class NodeElement extends ISelectableDraggableElement {
 
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        if (this.entity.CustomProperties.length > 0) {
-            return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
-        }
-        // Legacy nodes attempt to find pin entities
-        if (this.entity.Pins) {
-            return this.entity.Pins.map(objectReference =>
-                new UnknownPinEntity(this.entity[Configuration.subObjectAttributeNameFromReference(objectReference)])
-            )
-        }
+        return this.entity.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
     setLocation(x = 0, y = 0, acknowledge = true) {

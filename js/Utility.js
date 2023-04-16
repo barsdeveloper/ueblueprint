@@ -353,6 +353,11 @@ export default class Utility {
             .toLowerCase()
     }
 
+    /** @param {String} pathValue */
+    static getNameFromPath(pathValue) {
+        return pathValue.match(/[^\.\/]+$/)?.[0] ?? ""
+    }
+
     /** @param {LinearColorEntity} value */
     static printLinearColor(value) {
         return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`

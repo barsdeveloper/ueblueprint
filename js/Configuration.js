@@ -90,10 +90,12 @@ export default class Configuration {
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
+        flipflop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
         forEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",
         forEachLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoopWithBreak",
@@ -173,12 +175,13 @@ export default class Configuration {
     static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
     static stringEscapedCharacters = /['"\\]/g
+    static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
-    static subObjectAttributeNameFromEntity = objectEntity =>
-        "#SubObject" + (objectEntity.Class.type ? "_" + objectEntity.Class.type : "") + "_" + objectEntity.Name
+    static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class.type ? "_" + objectEntity.Class.type : "") + "_" + objectEntity.Name
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
-    static subObjectAttributeNameFromReference = objectReferenceEntity =>
-        "#SubObject_" + objectReferenceEntity.type + "_" + objectReferenceEntity.path
+    static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
+        this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",

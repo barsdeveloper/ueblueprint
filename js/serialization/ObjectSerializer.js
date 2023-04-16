@@ -91,10 +91,10 @@ export default class ObjectSerializer extends Serializer {
                 key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
             )
             + entity.CustomProperties.map(pin =>
-                this.attributeSeparator
-                + moreIndentation
+                moreIndentation
                 + attributeKeyPrinter("CustomProperties ")
                 + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
+                + this.attributeSeparator
             )
                 .join("")
             + indentation + "End Object"

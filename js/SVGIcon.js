@@ -107,6 +107,14 @@ export default class SVGIcon {
         </svg>
     `
 
+    static flipflop = html`
+        <svg  viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2L10 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6 2L2 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6 2L10 14" stroke="white" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    `
+
     static forEachLoop = html`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M4 2C1.8 2 0 3.8 0 6V9C0 11.2 2 13 4 13H10V11H5C3.2 11 2 9.7 2 8V7C2 5.63882 2.76933 4.53408 4 4.14779V2ZM12 4C13.8 4 14 5.3 14 7V8C14 8.8 13.7 9.5 13.3 10L15.2 11.4C15.7 10.7 16 9.9 16 9V6C16 3.8 14.2 2 12 2V4Z" fill="white" />

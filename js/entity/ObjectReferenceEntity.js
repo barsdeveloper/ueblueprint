@@ -1,3 +1,4 @@
+import Utility from "../Utility.js"
 import IEntity from "./IEntity.js"
 
 export default class ObjectReferenceEntity extends IEntity {
@@ -27,6 +28,6 @@ export default class ObjectReferenceEntity extends IEntity {
     }
 
     getName() {
-        return this.path.match(/[^\.\/]+$/)?.[0] ?? ""
+        return Utility.getNameFromPath(this.path)
     }
 }
