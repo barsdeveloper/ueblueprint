@@ -2953,7 +2953,7 @@ class ObjectEntity extends IEntity {
                     },
                     {}
                 );
-            // Reorder suboejcts to be the first
+            // Reorder sub objects to be the first entries
             values = {
                 ...subObjectsValues,
                 ...values,
@@ -3003,7 +3003,7 @@ class ObjectEntity extends IEntity {
         /** @type {String?} */ this.ErrorMsg;
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
 
-        // Legacy objects transform into pins
+        // Legacy nodes cleanup
         if (this["Pins"] instanceof Array) {
             this["Pins"]
                 .forEach(
@@ -3016,9 +3016,9 @@ class ObjectEntity extends IEntity {
                             this.CustomProperties.push(pinEntity);
                         }
                     });
+            delete this["Pins"];
         }
 
-        // Legacy path names
         this.Class.sanitize();
         if (this.MacroGraphReference) {
             this.MacroGraphReference.MacroGraph?.sanitize();
@@ -3458,6 +3458,7 @@ class Grammar {
         static InlineOptWhitespace = /[^\S\n]*/
         static InlineWhitespace = /[^\S\n]+/
         static InsideString = /(?:[^"\\]|\\.)*/
+        static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
         static Integer = /[\-\+]?\d+(?!\d|\.)/
         static MultilineWhitespace = /\s*\n\s*/
         static Number = /[-\+]?\d+(?:\.\d+)?(?!\d|\.)/
@@ -3468,7 +3469,6 @@ class Grammar {
         static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
         static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
         static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
-        static PathOptSpace = new RegExp(`(?:\\/${this.PathSpaceFragment.source}){2,}`)
     }
 
     /*   ---   Primitive   ---   */
@@ -3497,18 +3497,18 @@ class Grammar {
     static word = P.regex(Grammar.Regex.Word)
     static pathQuotes = Grammar.regexMap(
         new RegExp(
-            `'(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)'`
-            + `|"(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)"`
-            + `|'"(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)"'`
+            `'"(` + Grammar.Regex.InsideString.source + `)"'`
+            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+            + `|"(` + Grammar.Regex.InsideString.source + `)"`
         ),
         ([_0, a, b, c]) => a ?? b ?? c
     )
     static path = Grammar.regexMap(
         new RegExp(
-            `(` + Grammar.Regex.Path.source + `)`
-            + `|'(` + Grammar.Regex.PathOptSpace.source + `)'`
-            + `|"(` + Grammar.Regex.PathOptSpace.source + `)"`
-            + `|'"(` + Grammar.Regex.PathOptSpace.source + `)"'`
+            `'"(` + Grammar.Regex.InsideString.source + `)"'`
+            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+            + `|"(` + Grammar.Regex.InsideString.source + `)"`
+            + `|(` + Grammar.Regex.Path.source + `)`
         ),
         ([_0, a, b, c, d]) => a ?? b ?? c ?? d
     )

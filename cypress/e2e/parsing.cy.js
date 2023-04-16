@@ -117,17 +117,17 @@ describe("Serializer", () => {
     context("ObjectReferenceEntity", () => {
         let serializer = SerializerFactory.getSerializer(ObjectReferenceEntity)
 
-        it("Parses Class", () =>
+        it(`Parses Class`, () =>
             expect(serializer.read("Class"))
                 .to.be.instanceOf(ObjectReferenceEntity)
                 .and.to.deep.contain({ type: "Class", path: "" })
         )
-        it("Parses Class'/Script/ShooterGame.ShooterGameMode'", () =>
+        it(`Parses Class'/Script/ShooterGame.ShooterGameMode'`, () =>
             expect(serializer.read(`Class'/Script/ShooterGame.ShooterGameMode'`))
                 .to.be.instanceOf(ObjectReferenceEntity)
                 .and.to.deep.contain({ type: "Class", path: "/Script/ShooterGame.ShooterGameMode" })
         )
-        it("Parses EdGraphPin'EdGraphPin_45417'", () =>
+        it(`Parses EdGraphPin'EdGraphPin_45417'`, () =>
             expect(serializer.read(`EdGraphPin'EdGraphPin_45417'`))
                 .to.be.instanceOf(ObjectReferenceEntity)
                 .and.to.deep.contain({ type: "EdGraphPin", path: "EdGraphPin_45417" })
@@ -146,6 +146,16 @@ describe("Serializer", () => {
             expect(serializer.read(`Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`))
                 .to.be.instanceOf(ObjectReferenceEntity)
                 .and.to.deep.contain({ type: "Function", path: "/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element" })
+        )
+        it(`Parses EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`, () =>
+            expect(serializer.read(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`))
+                .to.be.instanceOf(ObjectReferenceEntity)
+                .and.to.deep.contain({ type: "EdGraph", path: "/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch" })
+        )
+        it(`Parses /Script/Engine.EdGraph'"+-Weird/2,Macro"'`, () =>
+            expect(serializer.read(`/Script/Engine.EdGraph'"+-Weird/2,Macro"'`))
+                .to.be.instanceOf(ObjectReferenceEntity)
+                .and.to.deep.contain({ type: "/Script/Engine.EdGraph", path: "+-Weird/2,Macro" })
         )
     })
 

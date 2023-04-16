@@ -62,6 +62,7 @@ export default class Grammar {
         static InlineOptWhitespace = /[^\S\n]*/
         static InlineWhitespace = /[^\S\n]+/
         static InsideString = /(?:[^"\\]|\\.)*/
+        static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
         static Integer = /[\-\+]?\d+(?!\d|\.)/
         static MultilineWhitespace = /\s*\n\s*/
         static Number = /[-\+]?\d+(?:\.\d+)?(?!\d|\.)/
@@ -72,7 +73,6 @@ export default class Grammar {
         static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
         static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
         static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
-        static PathOptSpace = new RegExp(`(?:\\/${this.PathSpaceFragment.source}){2,}`)
     }
 
     /*   ---   Primitive   ---   */
@@ -101,18 +101,18 @@ export default class Grammar {
     static word = P.regex(Grammar.Regex.Word)
     static pathQuotes = Grammar.regexMap(
         new RegExp(
-            `'(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)'`
-            + `|"(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)"`
-            + `|'"(` + Grammar.Regex.PathOptSpace.source + `|` + Grammar.Regex.PathFragment.source + `)"'`
+            `'"(` + Grammar.Regex.InsideString.source + `)"'`
+            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+            + `|"(` + Grammar.Regex.InsideString.source + `)"`
         ),
         ([_0, a, b, c]) => a ?? b ?? c
     )
     static path = Grammar.regexMap(
         new RegExp(
-            `(` + Grammar.Regex.Path.source + `)`
-            + `|'(` + Grammar.Regex.PathOptSpace.source + `)'`
-            + `|"(` + Grammar.Regex.PathOptSpace.source + `)"`
-            + `|'"(` + Grammar.Regex.PathOptSpace.source + `)"'`
+            `'"(` + Grammar.Regex.InsideString.source + `)"'`
+            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+            + `|"(` + Grammar.Regex.InsideString.source + `)"`
+            + `|(` + Grammar.Regex.Path.source + `)`
         ),
         ([_0, a, b, c, d]) => a ?? b ?? c ?? d
     )
