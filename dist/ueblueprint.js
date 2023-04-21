@@ -4862,8 +4862,6 @@ class KeyboardSelectAll extends IKeyboardShortcut {
  */
 class IElement extends s {
 
-    #nextUpdatedCallbacks = []
-
     /** @type {Blueprint} */
     #blueprint
     get blueprint() {
@@ -4967,18 +4965,6 @@ class IElement extends s {
     updated(changedProperties) {
         super.updated(changedProperties);
         this.template.updated(changedProperties);
-        // Remember the array might change while iterating
-        for (const f of this.#nextUpdatedCallbacks) {
-            f(changedProperties);
-        }
-        this.#nextUpdatedCallbacks = [];
-    }
-
-    addNextUpdatedCallbacks(callback, requestUpdate = false) {
-        this.#nextUpdatedCallbacks.push(callback);
-        if (requestUpdate) {
-            this.requestUpdate();
-        }
     }
 
     acknowledgeDelete() {
@@ -6788,7 +6774,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay();
-        this.element.addNextUpdatedCallbacks(() => this.element.acknowledgeReflow(), true);
+        this.element.requestUpdate();
+        this.element.updateComplete.then(() => this.element.acknowledgeReflow());
     }
 
     /** @param {NodeElement} element */
@@ -7478,8 +7465,8 @@ class PinTemplate extends ITemplate {
         if (this.element.isInput() && changedProperties.has("isLinked")) {
             // When connected, an input may drop its input fields which means the node has to reflow
             const node = this.element.nodeElement;
-            node.addNextUpdatedCallbacks(() => node.acknowledgeReflow());
-            node.requestUpdate();
+            this.element.requestUpdate();
+            this.element.updateComplete.then(() => node.acknowledgeReflow());
         }
     }
 
@@ -7850,7 +7837,8 @@ class NodeElement extends ISelectableDraggableElement {
         // If selected, it will already drag, also must check if under nested comments, it must drag just once
         if (!this.selected && !this.#commentDragged) {
             this.#commentDragged = true;
-            this.addNextUpdatedCallbacks(() => this.#commentDragged = false);
+            this.requestUpdate();
+            this.updateComplete.then(() => this.#commentDragged = false);
             this.addLocation(...e.detail.value);
         }
     }

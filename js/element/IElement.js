@@ -15,8 +15,6 @@ import Configuration from "../Configuration.js"
  */
 export default class IElement extends LitElement {
 
-    #nextUpdatedCallbacks = []
-
     /** @type {Blueprint} */
     #blueprint
     get blueprint() {
@@ -120,18 +118,6 @@ export default class IElement extends LitElement {
     updated(changedProperties) {
         super.updated(changedProperties)
         this.template.updated(changedProperties)
-        // Remember the array might change while iterating
-        for (const f of this.#nextUpdatedCallbacks) {
-            f(changedProperties)
-        }
-        this.#nextUpdatedCallbacks = []
-    }
-
-    addNextUpdatedCallbacks(callback, requestUpdate = false) {
-        this.#nextUpdatedCallbacks.push(callback)
-        if (requestUpdate) {
-            this.requestUpdate()
-        }
     }
 
     acknowledgeDelete() {

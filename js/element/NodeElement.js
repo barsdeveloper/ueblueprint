@@ -89,7 +89,8 @@ export default class NodeElement extends ISelectableDraggableElement {
         // If selected, it will already drag, also must check if under nested comments, it must drag just once
         if (!this.selected && !this.#commentDragged) {
             this.#commentDragged = true
-            this.addNextUpdatedCallbacks(() => this.#commentDragged = false)
+            this.requestUpdate()
+            this.updateComplete.then(() => this.#commentDragged = false)
             this.addLocation(...e.detail.value)
         }
     }

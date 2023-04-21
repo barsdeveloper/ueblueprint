@@ -103,8 +103,8 @@ export default class PinTemplate extends ITemplate {
         if (this.element.isInput() && changedProperties.has("isLinked")) {
             // When connected, an input may drop its input fields which means the node has to reflow
             const node = this.element.nodeElement
-            node.addNextUpdatedCallbacks(() => node.acknowledgeReflow())
-            node.requestUpdate()
+            this.element.requestUpdate()
+            this.element.updateComplete.then(() => node.acknowledgeReflow())
         }
     }
 
