@@ -405,6 +405,82 @@ const tests = [
         delegate: false,
         development: false,
     },
+    {
+        name: "Switch on ENiagaraOrientationAxis",
+        value: String.raw`
+            Begin Object Class=/Script/BlueprintGraph.K2Node_SwitchEnum Name="K2Node_SwitchEnum_3"
+                Enum=/Script/Engine.UserDefinedEnum'"/Niagara/Enums/ENiagaraOrientationAxis.ENiagaraOrientationAxis"'
+                EnumEntries(0)="NewEnumerator0"
+                EnumEntries(1)="NewEnumerator1"
+                EnumEntries(2)="NewEnumerator2"
+                NodePosX=128
+                NodePosY=272
+                NodeGuid=27ECE312F8464337AAFD3E4710FD0108
+                CustomProperties Pin (PinId=D9D55819354041FCA1749D111E98462F,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=A34A643489CB4A9A8AB8EF406E66E586,PinName="Selection",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/Engine.UserDefinedEnum'"/Niagara/Enums/ENiagaraOrientationAxis.ENiagaraOrientationAxis"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="NewEnumerator0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=E28F973F53654172AA58FEB665826457,PinName="NotEqual_ByteByte",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/Engine.KismetMathLibrary"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/Engine.Default__KismetMathLibrary",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=True,bDefaultValueIsReadOnly=True,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=02E2659FDD834A9483316C112630A17C,PinName="NewEnumerator0",PinFriendlyName=NSLOCTEXT("[9C9868C74FCF3E7AFDEB778F8C9EA988]", "1CE439C14E8741B2E94E4896C5BB29BB", "X Axis"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=36E317D2BD3C48A7BED78FFE25AD1451,PinName="NewEnumerator1",PinFriendlyName=NSLOCTEXT("[9C9868C74FCF3E7AFDEB778F8C9EA988]", "4807FD384418AD133AF56D9DD063A9D8", "Y Axis"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=2020E66C887C446DB4B69B0CA9652A6A,PinName="NewEnumerator2",PinFriendlyName=NSLOCTEXT("[9C9868C74FCF3E7AFDEB778F8C9EA988]", "0D8EE448409B4A8CD1F47FAB0AC122CF", "Z Axis"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            End Object
+        `,
+        color: Configuration.nodeColors.lime,
+        icon: SVGIcon.switch,
+        pins: 5,
+        pinName: ["Selection", "X Axis", "Y Axis", "Z Axis"],
+        delegate: false,
+        development: false,
+    },
+    {
+        name: "Switch on FTransformChannelEnum",
+        value: String.raw`
+            Begin Object Class=/Script/BlueprintGraph.K2Node_SwitchEnum Name="K2Node_SwitchEnum_4"
+                Enum=/Script/CoreUObject.Enum'"/Script/MovieSceneTools.FTransformChannelEnum"'
+                EnumEntries(0)="TranslateX"
+                EnumEntries(1)="TranslateY"
+                EnumEntries(2)="TranslateZ"
+                EnumEntries(3)="RotateX"
+                EnumEntries(4)="RotateY"
+                EnumEntries(5)="RotateZ"
+                EnumEntries(6)="ScaleX"
+                EnumEntries(7)="ScaleY"
+                EnumEntries(8)="ScaleZ"
+                NodePosX=-48
+                NodePosY=448
+                AdvancedPinDisplay=Shown
+                NodeGuid=27936712DE844DD68577CF8D703E315B
+                CustomProperties Pin (PinId=AF3B9C33C7E84817A720F393F7307A46,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=045AC753EEF74356BE997C19BB00B82B,PinName="Selection",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Enum'"/Script/MovieSceneTools.FTransformChannelEnum"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="ScaleX",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=759822D08F654AF7ACDFA6F0590404B8,PinName="NotEqual_ByteByte",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/Engine.KismetMathLibrary"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/Engine.Default__KismetMathLibrary",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=True,bDefaultValueIsReadOnly=True,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=D91E0E2866954BC887234AA8883DCB83,PinName="TranslateX",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.TranslateX", "Translate X"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=697FB3903E294ADF821BFBD574CB2976,PinName="TranslateY",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.TranslateY", "Translate Y"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=F76AB334C5E24919815C2AAAEACCD14B,PinName="TranslateZ",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.TranslateZ", "Translate Z"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=1C6C49D0E8A94F2F99A1DF9AF1574D16,PinName="RotateX",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.RotateX", "Rotate X"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=0D35BB4401504A20B45D152BCA0B9BD0,PinName="RotateY",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.RotateY", "Rotate Y"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=2024CA11E8E840F1A1D7C087145476AC,PinName="RotateZ",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.RotateZ", "Rotate Z"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=E9F47D5F991E43318D29DD40089114D4,PinName="ScaleX",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.ScaleX", "Scale X"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=D41C6BF492AD4AB09AE11DFEF442E256,PinName="ScaleY",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.ScaleY", "Scale Y"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=A7460C8034394A20863B4AB8A38249D9,PinName="ScaleZ",PinFriendlyName=NSLOCTEXT("UObjectDisplayNames", "FTransformChannelEnum.ScaleZ", "Scale Z"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+            End Object
+        `,
+        color: Configuration.nodeColors.lime,
+        icon: SVGIcon.switch,
+        pins: 11,
+        pinName: [
+            "Selection",
+            "Translate X",
+            "Translate Y",
+            "Translate Z",
+            "Rotate X",
+            "Rotate Y",
+            "Rotate Z",
+            "Scale X",
+            "Scale Y",
+            "Scale Z",
+        ],
+        delegate: false,
+        development: false,
+    },
 ]
 
 /** @type {Blueprint} */

@@ -317,7 +317,7 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node.ueb-node-styl
 }
 
 .ueb-node-top {
-  color: #c0c0c0;
+  color: #d0d0d0;
   font-size: calc(var(--ueb-font-size) + 1px);
   font-weight: 600;
   white-space: nowrap;
@@ -775,7 +775,8 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-input-content
 }
 
 ueb-dropdown.ueb-pin-input {
-  margin-right: 10px;
+  margin-right: 15px;
+  padding-right: 10px;
   background: #101010 !important;
   color: #c0c0c0;
   border-color: #404040;
@@ -783,7 +784,7 @@ ueb-dropdown.ueb-pin-input {
 
 ueb-dropdown.ueb-pin-input select {
   padding: 6px;
-  width: 180px;
+  width: 170px;
   background: none;
   font-size: 10px;
   letter-spacing: -0.2px;

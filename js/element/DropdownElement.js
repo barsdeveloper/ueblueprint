@@ -7,7 +7,7 @@ export default class DropdownElement extends IElement {
     static properties = {
         ...super.properties,
         options: {
-            type: Array,
+            type: Object,
         },
         selected: {
             type: String,
@@ -17,11 +17,11 @@ export default class DropdownElement extends IElement {
     constructor() {
         super()
         super.initialize({}, new DropdownTemplate())
-        this.options = /** @type {String[]} */([])
+        this.options = /** @type {[String, String][]} */([])
         this.selected = ""
     }
 
-    /** @param {String[]} options */
+    /** @param {[String, String][]} options */
     static newObject(options) {
         const result = new DropdownElement()
         return result

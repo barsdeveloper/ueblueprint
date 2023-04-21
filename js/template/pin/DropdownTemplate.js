@@ -16,8 +16,8 @@ export default class DropdownTemplate extends ITemplate {
     render() {
         return html`
             <select class="ueb-pin-input-content">
-                ${this.element.options.map(v => html`
-                    <option value="${v}" ?selected="${v === this.element.selected}">${v}</option>
+                ${this.element.options.map(([k, v]) => html`
+                    <option value="${k}" ?selected="${k === this.element.selected}">${v}</option>
                 `)}
             </select>
         `

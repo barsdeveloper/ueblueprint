@@ -9,7 +9,6 @@ export default class IntPinTemplate extends INumericPinTemplate {
     setDefaultValue(values = [], rawValues = values) {
         const integer = this.element.getDefaultValue(true)
         integer.value = values[0]
-        this.inputContentElements[0].innerText = this.element.getDefaultValue()?.toString() // needed
         this.element.requestUpdate()
     }
 

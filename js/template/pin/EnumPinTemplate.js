@@ -20,12 +20,28 @@ export default class EnumPinTemplate extends IInputPinTemplate {
     /** @type {DropdownElement} */
     #dropdownElement
 
+    #dropdownEntries = []
+
+    setup() {
+        super.setup()
+        const enumEntries = this.element.nodeElement.entity.EnumEntries
+        if (enumEntries) {
+            this.#dropdownEntries = enumEntries.map(k => [
+                k,
+                this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
+                    ?.PinFriendlyName.toString()
+                ?? k
+            ])
+            this.element.requestUpdate()
+        }
+    }
+
     renderInput() {
         const entity = this.element.nodeElement.entity
         return html`
             <ueb-dropdown
                 class="ueb-pin-input"
-                .options="${this.element.nodeElement.entity.EnumEntries}"
+                .options="${this.#dropdownEntries}"
                 .selected="${this.element.defaultValue.value}"
             >
             </ueb-dropdown>

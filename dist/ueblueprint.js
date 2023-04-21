@@ -8715,8 +8715,8 @@ class DropdownTemplate extends ITemplate {
     render() {
         return x`
             <select class="ueb-pin-input-content">
-                ${this.element.options.map(v => x`
-                    <option value="${v}" ?selected="${v === this.element.selected}">${v}</option>
+                ${this.element.options.map(([k, v]) => x`
+                    <option value="${k}" ?selected="${k === this.element.selected}">${v}</option>
                 `)}
             </select>
         `
@@ -8753,7 +8753,7 @@ class DropdownElement extends IElement {
     static properties = {
         ...super.properties,
         options: {
-            type: Array,
+            type: Object,
         },
         selected: {
             type: String,
@@ -8763,11 +8763,11 @@ class DropdownElement extends IElement {
     constructor() {
         super();
         super.initialize({}, new DropdownTemplate());
-        this.options = /** @type {String[]} */([]);
+        this.options = /** @type {[String, String][]} */([]);
         this.selected = "";
     }
 
-    /** @param {String[]} options */
+    /** @param {[String, String][]} options */
     static newObject(options) {
         const result = new DropdownElement();
         return result
@@ -9079,12 +9079,28 @@ class EnumPinTemplate extends IInputPinTemplate {
     /** @type {DropdownElement} */
     #dropdownElement
 
+    #dropdownEntries = []
+
+    setup() {
+        super.setup();
+        const enumEntries = this.element.nodeElement.entity.EnumEntries;
+        if (enumEntries) {
+            this.#dropdownEntries = enumEntries.map(k => [
+                k,
+                this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
+                    ?.PinFriendlyName.toString()
+                ?? k
+            ]);
+            this.element.requestUpdate();
+        }
+    }
+
     renderInput() {
         this.element.nodeElement.entity;
         return x`
             <ueb-dropdown
                 class="ueb-pin-input"
-                .options="${this.element.nodeElement.entity.EnumEntries}"
+                .options="${this.#dropdownEntries}"
                 .selected="${this.element.defaultValue.value}"
             >
             </ueb-dropdown>
@@ -9164,7 +9180,6 @@ class IntPinTemplate extends INumericPinTemplate {
     setDefaultValue(values = [], rawValues = values) {
         const integer = this.element.getDefaultValue(true);
         integer.value = values[0];
-        this.inputContentElements[0].innerText = this.element.getDefaultValue()?.toString(); // needed
         this.element.requestUpdate();
     }
 
