@@ -21,7 +21,7 @@ export default class InputTemplate extends ITemplate {
         getSelection().removeAllRanges() // Deselect eventually selected text inside the input
     }
 
-    /** @param {InputEvent} e */
+    /** @param {Event} e */
     #inputSingleLineHandler = e =>
         /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
 
@@ -43,7 +43,7 @@ export default class InputTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        const event = new InputEvent("input", { bubbles: true })
+        const event = new Event("input", { bubbles: true })
         this.element.dispatchEvent(event)
     }
 

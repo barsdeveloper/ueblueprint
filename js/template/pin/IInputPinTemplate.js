@@ -33,7 +33,7 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     #setInput = () => this.setInputs(this.getInputs(), true)
-    /** @param {InputEvent} event */
+    /** @param {Event} event */
     #onInputCheckWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
 
     /** @param {HTMLElement}  inputElement*/

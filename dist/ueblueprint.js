@@ -4909,10 +4909,6 @@ class IElement extends s {
         this.isInitialized = true;
     }
 
-    async getUpdateComplete() {
-        return (await super.getUpdateComplete()) && (await this.template.updateComplete)
-    }
-
     connectedCallback() {
         super.connectedCallback();
         this.blueprint = /** @type {Blueprint} */(this.closest("ueb-blueprint"));
@@ -8730,7 +8726,7 @@ class DropdownTemplate extends ITemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         this.#selectElement = this.element.querySelector("select");
-        const event = new InputEvent("input", { bubbles: true });
+        const event = new Event("input", { bubbles: true });
         this.#selectElement.dispatchEvent(event);
     }
 
@@ -8806,7 +8802,7 @@ class InputTemplate extends ITemplate {
         getSelection().removeAllRanges(); // Deselect eventually selected text inside the input
     }
 
-    /** @param {InputEvent} e */
+    /** @param {Event} e */
     #inputSingleLineHandler = e =>
         /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
 
@@ -8828,7 +8824,7 @@ class InputTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        const event = new InputEvent("input", { bubbles: true });
+        const event = new Event("input", { bubbles: true });
         this.element.dispatchEvent(event);
     }
 
@@ -8972,7 +8968,7 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     #setInput = () => this.setInputs(this.getInputs(), true)
-    /** @param {InputEvent} event */
+    /** @param {Event} event */
     #onInputCheckWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
 
     /** @param {HTMLElement}  inputElement*/

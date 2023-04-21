@@ -7,5 +7,6 @@ module.exports = defineConfig({
     },
     experimentalRunAllSpecs: true,
     testIsolation: false,
+    video: false,
   },
 })

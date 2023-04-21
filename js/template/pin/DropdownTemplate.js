@@ -27,7 +27,7 @@ export default class DropdownTemplate extends ITemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         this.#selectElement = this.element.querySelector("select")
-        const event = new InputEvent("input", { bubbles: true })
+        const event = new Event("input", { bubbles: true })
         this.#selectElement.dispatchEvent(event)
     }
 
