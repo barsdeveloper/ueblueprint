@@ -3,26 +3,26 @@
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t$2=window,e$3=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$3=Symbol(),n$3=new WeakMap;class o$3{constructor(t,e,n){if(this._$cssResult$=!0,n!==s$3)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e;}get styleSheet(){let t=this.o;const s=this.t;if(e$3&&void 0===t){const e=void 0!==s&&1===s.length;e&&(t=n$3.get(s)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&n$3.set(s,t));}return t}toString(){return this.cssText}}const r$2=t=>new o$3("string"==typeof t?t:t+"",void 0,s$3),i$3=(t,...e)=>{const n=1===t.length?t[0]:e.reduce(((e,s,n)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[n+1]),t[0]);return new o$3(n,t,s$3)},S$1=(s,n)=>{e$3?s.adoptedStyleSheets=n.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet)):n.forEach((e=>{const n=document.createElement("style"),o=t$2.litNonce;void 0!==o&&n.setAttribute("nonce",o),n.textContent=e.cssText,s.appendChild(n);}));},c$1=e$3?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return r$2(e)})(t):t;
+const t$2=window,e$3=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$3=Symbol(),n$4=new WeakMap;class o$4{constructor(t,e,n){if(this._$cssResult$=!0,n!==s$3)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e;}get styleSheet(){let t=this.o;const s=this.t;if(e$3&&void 0===t){const e=void 0!==s&&1===s.length;e&&(t=n$4.get(s)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&n$4.set(s,t));}return t}toString(){return this.cssText}}const r$2=t=>new o$4("string"==typeof t?t:t+"",void 0,s$3),i$3=(t,...e)=>{const n=1===t.length?t[0]:e.reduce(((e,s,n)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[n+1]),t[0]);return new o$4(n,t,s$3)},S$1=(s,n)=>{e$3?s.adoptedStyleSheets=n.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet)):n.forEach((e=>{const n=document.createElement("style"),o=t$2.litNonce;void 0!==o&&n.setAttribute("nonce",o),n.textContent=e.cssText,s.appendChild(n);}));},c$1=e$3?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return r$2(e)})(t):t;
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var s$2;const e$2=window,r$1=e$2.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$2.reactiveElementPolyfillSupport,n$2={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$2,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;this.finalize(),(null!==(i=this.h)&&void 0!==i?i:this.h=[]).push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),void 0!==t.h&&(this.h=[...t.h]),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$2).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$2;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$2.reactiveElementVersions)&&void 0!==s$2?s$2:e$2.reactiveElementVersions=[]).push("1.4.2");
+ */var s$2;const e$2=window,r$1=e$2.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$3=e$2.reactiveElementPolyfillSupport,n$3={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$3,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;this.finalize(),(null!==(i=this.h)&&void 0!==i?i:this.h=[]).push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),void 0!==t.h&&(this.h=[...t.h]),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$3).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$3;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$3||o$3({ReactiveElement:d$1}),(null!==(s$2=e$2.reactiveElementVersions)&&void 0!==s$2?s$2:e$2.reactiveElementVersions=[]).push("1.6.1");
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$1="?"+o$1,l$1=`<${n$1}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p=/"/g,$=/^(?:script|style|textarea|title)$/i,g=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g(1),x=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A=h.createTreeWalker(h,129,null,!1),E=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p:m):d===p||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e$1?e$1.createHTML(u):u,n]};class C{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=E(t,i);if(this.el=C.createElement(v,e),A.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),A.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$1)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function P$1(t,i,s=t,e){var o,n,l,h;if(i===x)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=P$1(t,r._$AS(t,i.values),r,e)),i}class V{constructor(t,i){this.u=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}v(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);A.currentNode=o;let n=A.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I(n,this,t)),this.u.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=A.nextNode(),l++);}return o}p(t){let i=0;for(const s of this.u)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cm=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cm}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=P$1(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x&&this.g(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):c(t)?this.k(t):this.g(t);}O(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}g(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.T(h.createTextNode(t)),this._$AH=t;}$(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=C.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.p(s);else {const t=new V(o,this),i=t.v(this.options);t.p(s),this.T(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new C(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.O(r()),this.O(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cm=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=P$1(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=P$1(this,e[s+l],i,l),h===x&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===b?void 0:t;}}const R=s$1?s$1.emptyScript:"";class k extends S{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==b?this.element.setAttribute(this.name,R):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=P$1(this,t,i,0))&&void 0!==s?s:b)===x)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){P$1(this,t);}}const z=i$2.litHtmlPolyfillSupport;null==z||z(C,N),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.4.0");const Z=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
+var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$2="$lit$",n$2=`lit$${(Math.random()+"").slice(9)}$`,l$1="?"+n$2,h=`<${l$1}>`,r=document,d=()=>r.createComment(""),u=t=>null===t||"object"!=typeof t&&"function"!=typeof t,c=Array.isArray,v=t=>c(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),a="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${a}(?:([^\\s"'>=/]+)(${a}*=${a}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,w=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=w(1),T=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),E=new WeakMap,C=r.createTreeWalker(r,129,null,!1),P$1=(t,i)=>{const s=t.length-1,l=[];let r,d=2===i?"<svg>":"",u=f;for(let i=0;i<s;i++){const s=t[i];let e,c,v=-1,a=0;for(;a<s.length&&(u.lastIndex=a,c=u.exec(s),null!==c);)a=u.lastIndex,u===f?"!--"===c[1]?u=_:void 0!==c[1]?u=m:void 0!==c[2]?(y.test(c[2])&&(r=RegExp("</"+c[2],"g")),u=p):void 0!==c[3]&&(u=p):u===p?">"===c[0]?(u=null!=r?r:f,v=-1):void 0===c[1]?v=-2:(v=u.lastIndex-c[2].length,e=c[1],u=void 0===c[3]?p:'"'===c[3]?$:g):u===$||u===g?u=p:u===_||u===m?u=f:(u=p,r=void 0);const w=u===p&&t[i+1].startsWith("/>")?" ":"";d+=u===f?s+h:v>=0?(l.push(e),s.slice(0,v)+o$2+s.slice(v)+n$2+w):s+n$2+(-2===v?(l.push(void 0),i):w);}const c=d+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e$1?e$1.createHTML(c):c,l]};class V{constructor({strings:t,_$litType$:i},e){let h;this.parts=[];let r=0,u=0;const c=t.length-1,v=this.parts,[a,f]=P$1(t,i);if(this.el=V.createElement(a,e),C.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(h=C.nextNode())&&v.length<c;){if(1===h.nodeType){if(h.hasAttributes()){const t=[];for(const i of h.getAttributeNames())if(i.endsWith(o$2)||i.startsWith(n$2)){const s=f[u++];if(t.push(i),void 0!==s){const t=h.getAttribute(s.toLowerCase()+o$2).split(n$2),i=/([.?@])?(.*)/.exec(s);v.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?k:"?"===i[1]?I:"@"===i[1]?L:R});}else v.push({type:6,index:r});}for(const i of t)h.removeAttribute(i);}if(y.test(h.tagName)){const t=h.textContent.split(n$2),i=t.length-1;if(i>0){h.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)h.append(t[s],d()),C.nextNode(),v.push({type:2,index:++r});h.append(t[i],d());}}}else if(8===h.nodeType)if(h.data===l$1)v.push({type:2,index:r});else {let t=-1;for(;-1!==(t=h.data.indexOf(n$2,t+1));)v.push({type:7,index:r}),t+=n$2.length-1;}r++;}}static createElement(t,i){const s=r.createElement("template");return s.innerHTML=t,s}}function N(t,i,s=t,e){var o,n,l,h;if(i===T)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const d=u(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==d&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===d?r=void 0:(r=new d(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=N(t,r._$AS(t,i.values),r,e)),i}class S{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:r).importNode(s,!0);C.currentNode=o;let n=C.nextNode(),l=0,h=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new M(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new z(n,this,t)),this._$AV.push(i),d=e[++h];}l!==(null==d?void 0:d.index)&&(n=C.nextNode(),l++);}return o}v(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class M{constructor(t,i,s,e){var o;this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cp=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cp}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===(null==t?void 0:t.nodeType)&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=N(this,t,i),u(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.g(t):void 0!==t.nodeType?this.$(t):v(t)?this.T(t):this._(t);}k(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}$(t){this._$AH!==t&&(this._$AR(),this._$AH=this.k(t));}_(t){this._$AH!==A&&u(this._$AH)?this._$AA.nextSibling.data=t:this.$(r.createTextNode(t)),this._$AH=t;}g(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=V.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.v(s);else {const t=new S(o,this),i=t.u(this.options);t.v(s),this.$(i),this._$AH=t;}}_$AC(t){let i=E.get(t.strings);return void 0===i&&E.set(t.strings,i=new V(t)),i}T(t){c(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new M(this.k(d()),this.k(d()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cp=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class R{constructor(t,i,s,e,o){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=N(this,t,i,0),n=!u(t)||t!==this._$AH&&t!==T,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=N(this,e[s+l],i,l),h===T&&(h=this._$AH[l]),n||(n=!u(h)||h!==this._$AH[l]),h===A?t=A:t!==A&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class k extends R{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===A?void 0:t;}}const H=s$1?s$1.emptyScript:"";class I extends R{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==A?this.element.setAttribute(this.name,H):this.element.removeAttribute(this.name);}}class L extends R{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=N(this,t,i,0))&&void 0!==s?s:A)===T)return;const e=this._$AH,o=t===A&&e!==A||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==A&&(e===A||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){N(this,t);}}const j=i$2.litHtmlPolyfillSupport;null==j||j(V,M),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.7.2");const B=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new M(i.insertBefore(d(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=Z(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n=globalThis.litElementPolyfillSupport;null==n||n({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
+ */var l,o$1;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=B(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return T}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n$1=globalThis.litElementPolyfillSupport;null==n$1||n$1({LitElement:s});(null!==(o$1=globalThis.litElementVersions)&&void 0!==o$1?o$1:globalThis.litElementVersions=[]).push("3.3.1");
 
 /**
  * @typedef {import("./entity/ObjectEntity.js").default} ObjectEntity
@@ -54,7 +54,7 @@ class Configuration {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
     }
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
     static expandGridSize = 400
     static focusEventName = {
         begin: "blueprint-focus",
@@ -136,6 +136,7 @@ class Configuration {
         inputVectorAxisEvent: "/Script/BlueprintGraph.K2Node_InputVectorAxisEvent",
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
+        linearColor: "/Script/CoreUObject.LinearColor",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
@@ -144,12 +145,18 @@ class Configuration {
         pawn: "/Script/Engine.Pawn",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
+        rotator: "/Script/CoreUObject.Rotator",
         select: "/Script/BlueprintGraph.K2Node_Select",
         spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
+        switchInteger: "/Script/BlueprintGraph.K2Node_SwitchInteger",
+        switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
+        switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
+        vector: "/Script/CoreUObject.Vector",
+        vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinColor = {
@@ -208,6 +215,7 @@ class Configuration {
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
         this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
+    static switchTargetPattern = /\/Script\/[\w\.\/\:]+K2Node_Switch([A-Z]\w+)+/
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
@@ -485,6 +493,13 @@ class Utility {
             }
             return ""
         }
+    }
+
+    static arrayConverter = {
+        /** @param {String} value */
+        fromAttribute: (value, type) => value.split(/(?<!\\),/).map(v => v.trim()),
+        /** @param {String[]} value */
+        toAttribute: (value, type) => value.join(","),
     }
 
     /** @param {Number} x */
@@ -772,7 +787,7 @@ class Utility {
     static clearHTMLWhitespace(value) {
         return value
             .replaceAll("&nbsp;", "\u00A0") // whitespace
-            .replaceAll(/<br\s*\/>|<br>/, "\n") // newlines
+            .replaceAll(/<br\s*\/>|<br>/g, "\n") // newlines
             .replaceAll(/(\<!--.*?\-->)/g, "") // html comments
     }
 
@@ -980,7 +995,7 @@ class IEntity {
 
             if (!suppressWarns) {
                 if (!(attributeName in attributes)) {
-                    const typeName = value instanceof Array ? `[${value[0].constructor.name}]` : value.constructor.name;
+                    const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name;
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
                         + `defined in ${Self.name}.attributes`
@@ -2063,10 +2078,10 @@ class SimpleSerializationVectorEntity extends VectorEntity {
 class PinEntity extends IEntity {
 
     static #typeEntityMap = {
-        "/Script/CoreUObject.LinearColor": LinearColorEntity,
-        "/Script/CoreUObject.Rotator": RotatorEntity,
-        "/Script/CoreUObject.Vector": VectorEntity,
-        "/Script/CoreUObject.Vector2D": Vector2DEntity,
+        [Configuration.nodeType.linearColor]: LinearColorEntity,
+        [Configuration.nodeType.rotator]: RotatorEntity,
+        [Configuration.nodeType.vector]: VectorEntity,
+        [Configuration.nodeType.vector2D]: Vector2DEntity,
         "bool": Boolean,
         "byte": ByteEntity,
         "enum": EnumEntity,
@@ -2078,9 +2093,9 @@ class PinEntity extends IEntity {
         "string": String,
     }
     static #alternativeTypeEntityMap = {
-        "/Script/CoreUObject.Vector2D": SimpleSerializationVector2DEntity,
-        "/Script/CoreUObject.Vector": SimpleSerializationVectorEntity,
-        "/Script/CoreUObject.Rotator": SimpleSerializationRotatorEntity,
+        [Configuration.nodeType.vector2D]: SimpleSerializationVector2DEntity,
+        [Configuration.nodeType.vector]: SimpleSerializationVectorEntity,
+        [Configuration.nodeType.rotator]: SimpleSerializationRotatorEntity,
     }
     static lookbehind = "Pin"
     static attributes = {
@@ -2324,7 +2339,7 @@ class PinEntity extends IEntity {
 
 class SVGIcon {
 
-    static array = y`
+    static array = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 0H0V4H4V0Z" fill="currentColor" />
             <path d="M10 0H6V4H10V0Z" fill="currentColor" />
@@ -2338,7 +2353,7 @@ class SVGIcon {
         </svg>
     `
 
-    static branchNode = y`
+    static branchNode = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2H6C5.44772 2 5 2.44772 5 3V13C5 13.5523 5.44772 14 6 14H11V12H7V4H11V2Z" fill="white" />
             <rect x="1" y="7" width="4" height="2" fill="white" />
@@ -2347,7 +2362,7 @@ class SVGIcon {
         </svg>
     `
 
-    static breakStruct = y`
+    static breakStruct = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 14L10 12L11 11L13 13L14 12L14 15L11 15L12 14Z" fill="white" />
             <path d="M13 3L11 5L10 4L12 2L11 1L14 1L14 4L13 3Z" fill="white" />
@@ -2355,7 +2370,7 @@ class SVGIcon {
         </svg>
     `
 
-    static cast = y`
+    static cast = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 12L16 7.5L12 3V12Z" fill="white" />
             <path fill-rule="evenodd" clip-rule="evenodd" d="M0 11L4 7.5L0 4V11Z" fill="white" />
@@ -2366,33 +2381,33 @@ class SVGIcon {
         </svg>
     `
 
-    static close = y`
+    static close = x`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
             <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
         </svg>
     `
 
-    static correct = y`
+    static correct = x`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <path fill="#2da800" d="M 2 16 L 14 30 L 30 2 L 13 22 Z" />
         </svg>
     `
 
-    static delegate = y`
+    static delegate = x`
         <svg viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
             <rect class="ueb-pin-tofill" fill="black" width="28" height="28" rx="4" stroke="currentColor" stroke-width="5" />
         </svg>
     `
 
-    static doN = y`
+    static doN = x`
         <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
             <path fill="white" d="M1 12V8H9V4L16 10L9 16V12H1Z" />
             <path fill="white" d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" />
         </svg>
     `
 
-    static doOnce = y`
+    static doOnce = x`
         <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white"/>
             <path d="M6 6H5L4.98752 2.42387L4 2.8642V1.893L5.89305 1H6V6Z" fill="white"/>
@@ -2400,14 +2415,14 @@ class SVGIcon {
         </svg>
     `
 
-    static enum = y`
+    static enum = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill="white" d="M9 5V0H2V16H14V5H9ZM3.2 4.4L4.5 4H4.6V7H4V4.7L3.2 4.9V4.4ZM4.7 14.8C4.6 14.9 4.3 15 4 15C3.7 15 3.5 14.9 3.3 14.8C3.1 14.6 3 14.4 3 14.2H3.6C3.6 14.3 3.6 14.4 3.7 14.5C3.8 14.6 3.9 14.6 4 14.6C4.1 14.6 4.2 14.6 4.3 14.5C4.4 14.4 4.4 14.3 4.4 14.2C4.4 13.9 4.2 13.8 3.9 13.8H3.7V13.3H4C4.1 13.3 4.3 13.3 4.3 13.2C4.4 13.1 4.4 13 4.4 12.9C4.4 12.8 4.4 12.7 4.3 12.6C4.2 12.5 4.1 12.5 4 12.5C3.9 12.5 3.8 12.5 3.7 12.6C3.6 12.7 3.6 12.7 3.6 12.8H3C3 12.6 3 12.5 3.1 12.4C3.2 12.3 3.3 12.2 3.4 12.1C3.7 12 3.8 12 4 12C4.3 12 4.6 12.1 4.7 12.2C4.9 12.4 5 12.6 5 12.8C5 12.9 5 13.1 4.9 13.2C4.8 13.3 4.7 13.4 4.6 13.5C4.8 13.6 4.9 13.6 5 13.8C5 13.8 5 14 5 14.1C5 14.4 4.9 14.6 4.7 14.8ZM5.1 11H3.1V10.6L4.1 9.6C4.2 9.5 4.3 9.3 4.4 9.2C4.4 9.1 4.4 9 4.4 8.9C4.4 8.8 4.4 8.7 4.3 8.6C4.2 8.5 4.1 8.5 4 8.5C3.9 8.5 3.8 8.5 3.7 8.6C3.6 8.7 3.6 8.8 3.6 9H3C3 8.8 3 8.7 3.1 8.5C3.2 8.4 3.3 8.2 3.5 8.1C3.7 8 3.8 8 4 8C4.3 8 4.5 8.1 4.7 8.2C4.9 8.4 5 8.6 5 8.8C5 9 5 9.1 4.9 9.3C4.8 9.4 4.7 9.6 4.5 9.8L3.8 10.5H5.1V11ZM12 15H6V14H12V15ZM12 11H6V10H12V11ZM12 7H6V6H12V7Z" />
             <path d="M9 0H8L14 6V5L9 0Z" fill="white"/>
         </svg>
     `
 
-    static event = y`
+    static event = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0.929031" y="8" width="10" height="10" rx="0.5" transform="rotate(-45 0.929031 8)" stroke="white" />
             <path d="M5 4.00024L8 1.00024V6.00024H3L5 4.00024Z" fill="white" />
@@ -2416,20 +2431,20 @@ class SVGIcon {
         </svg>
     `
 
-    static execPin = y`
+    static execPin = x`
         <svg viewBox="-2 0 16 16" xmlns="http://www.w3.org/2000/svg">
             <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
                 d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
         </svg>
     `
 
-    static expandIcon = y`
+    static expandIcon = x`
         <svg fill="currentColor" viewBox="4 4 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
         </svg>
     `
 
-    static flipflop = y`
+    static flipflop = x`
         <svg  viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M14 2L10 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
             <path d="M6 2L2 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
@@ -2437,7 +2452,7 @@ class SVGIcon {
         </svg>
     `
 
-    static forEachLoop = y`
+    static forEachLoop = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M4 2C1.8 2 0 3.8 0 6V9C0 11.2 2 13 4 13H10V11H5C3.2 11 2 9.7 2 8V7C2 5.63882 2.76933 4.53408 4 4.14779V2ZM12 4C13.8 4 14 5.3 14 7V8C14 8.8 13.7 9.5 13.3 10L15.2 11.4C15.7 10.7 16 9.9 16 9V6C16 3.8 14.2 2 12 2V4Z" fill="white" />
             <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16L13 12L8 8V16Z" fill="white" />
@@ -2448,7 +2463,7 @@ class SVGIcon {
         </svg>
     `
 
-    static functionSymbol = y`
+    static functionSymbol = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
                 d="M9.72002 6.0699C9.88111 4.96527 10.299 3.9138 10.94 2.99991C10.94 2.99991 10.94 3.05991 10.94 3.08991C10.94 3.36573 11.0496 3.63026 11.2446 3.8253C11.4397 4.02033 11.7042 4.12991 11.98 4.12991C12.2558 4.12991 12.5204 4.02033 12.7154 3.8253C12.9105 3.63026 13.02 3.36573 13.02 3.08991C13.0204 2.90249 12.9681 2.71873 12.8691 2.5596C12.7701 2.40047 12.6283 2.27237 12.46 2.18991H12.37C11.8725 2.00961 11.3275 2.00961 10.83 2.18991C9.21002 2.63991 8.58002 4.99991 8.58002 4.99991L8.40002 5.1199H5.40002L5.15002 6.1199H8.27002L7.27002 11.4199C7.11348 12.0161 6.79062 12.5555 6.33911 12.9751C5.8876 13.3948 5.32607 13.6773 4.72002 13.7899C4.78153 13.655 4.81227 13.5081 4.81002 13.3599C4.81002 13.0735 4.69624 12.7988 4.4937 12.5962C4.29116 12.3937 4.01646 12.2799 3.73002 12.2799C3.44359 12.2799 3.16889 12.3937 2.96635 12.5962C2.76381 12.7988 2.65002 13.0735 2.65002 13.3599C2.66114 13.605 2.75692 13.8386 2.92104 14.021C3.08517 14.2033 3.30746 14.3231 3.55002 14.3599C7.91002 15.1999 8.55002 11.4499 8.55002 11.4499L9.55002 7.05991H12.55L12.8 6.05991H9.64002L9.72002 6.0699Z"
@@ -2457,26 +2472,26 @@ class SVGIcon {
         </svg>
     `
 
-    static gamepad = y`
+    static gamepad = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill="white" d="m 15.2107 8.525 c -0.6619 -1.7207 -1.9856 -4.8978 -3.3094 -4.8978 c -1.9856 0 -1.9856 1.8532 -2.7799 1.8532 c -0.3971 0 -1.8532 0 -2.3827 0 c -0.7943 0 -0.7943 -1.8532 -2.6475 -1.8532 c -1.3238 0 -2.6475 3.0446 -3.3094 4.8978 c -1.059 3.3094 -1.1914 4.8979 1.1914 4.8979 c 2.6475 0 2.6475 -3.0445 5.9569 -3.0445 c 3.3094 0 3.4418 3.0445 5.9569 3.0445 c 2.5151 0 2.5151 -1.5885 1.3238 -4.8979 z m -8.472 0 h -1.3238 v 1.3238 h -1.3238 v -1.3238 h -1.3238 v -1.3238 h 1.3238 v -1.3238 h 1.3238 v 1.3238 h 1.3238 v 1.3238 z m 4.6331 1.5887 c -1.1914 0 -2.2504 -0.9268 -2.2504 -2.2505 c 0 -1.1913 0.9267 -2.2503 2.2504 -2.2503 c 1.3238 0 2.2504 0.9266 2.2504 2.2503 c 0 1.1915 -1.059 2.2505 -2.2504 2.2505 z m -0.0001 -2.9124 c -0.3971 0 -0.6619 0.2648 -0.6619 0.6619 c 0 0.3971 0.2648 0.6619 0.6619 0.6619 c 0.3971 0 0.6619 -0.2648 0.6619 -0.6619 c 0 -0.3971 -0.2648 -0.6619 -0.6619 -0.6619 z" />
         </svg>
     `
 
-    static genericPin = y`
+    static genericPin = x`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <circle class="ueb-pin-tofill" cx="16" cy="16" r="13" fill="black" stroke="currentColor" stroke-width="5" />
             <path fill="currentColor" d="M 34 6 L 34 26 L 42 16 Z" />
         </svg>
     `
 
-    static keyboard = y`
+    static keyboard = x`
         <svg viewBox="0 -3 16 16" xmlns="http://www.w3.org/2000/svg">
             <path fill="white" d="M 1 10 H 15 c 0.2652 0 0.5195 -0.1054 0.707 -0.293 c 0.1875 -0.1875 0.293 -0.4418 0.293 -0.707 v -8 c 0 -0.2652 -0.1054 -0.5195 -0.293 -0.707 c -0.1875 -0.1875 -0.4418 -0.293 -0.707 -0.293 H 1 c -0.2652 0 -0.5195 0.1054 -0.707 0.293 c -0.1875 0.1875 -0.293 0.4418 -0.293 0.707 V 9 c 0 0.2652 0.1054 0.5195 0.293 0.707 c 0.1875 0.1875 0.4418 0.293 0.707 0.293 Z M 14 6 h -3 v -2 h 3 v 2 Z M 13 1 h 2 v 2 h -2 v -2 Z M 10 1 h 2 v 2 h -2 v -2 Z M 10 6 h -2 v -2 h 2 v 2 Z M 7 1 h 2 v 2 h -2 v -2 Z M 7 6 h -2 v -2 h 2 v 2 Z M 4 1 h 2 v 2 h -2 v -2 Z M 4 6 h -2 v -2 h 2 v 2 Z M 1 1 h 2 v 2 h -2 v -2 Z M 1 7 h 2 v 2 h -2 v -2 M 4 7 h 8 v 2 h -8 v -2 M 13 7 h 2 v 2 h -2 v -2 Z" />
         </svg>
     `
 
-    static loop = y`
+    static loop = x`
         <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <style>
@@ -2498,13 +2513,13 @@ class SVGIcon {
         </svg>
     `
 
-    static macro = y`
+    static macro = x`
         <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 2.92L10 12.29L14.55 2.61C14.662 2.4259 14.8189 2.27332 15.0061 2.16661C15.1933 2.05989 15.4045 2.00256 15.62 2H19L18.66 2.89C18.66 2.89 17.17 3.04 17.11 3.63C17.05 4.22 16 15.34 15.93 16.13C15.86 16.92 17.33 17.13 17.33 17.13L17.17 17.99H13.84C13.7241 17.9764 13.612 17.9399 13.5103 17.8826C13.4086 17.8253 13.3194 17.7484 13.2477 17.6562C13.176 17.5641 13.1234 17.4586 13.0929 17.346C13.0624 17.2333 13.0546 17.1157 13.07 17L14.43 5.52L10 14.57C9.8 15.03 9.07 15.72 8.63 15.71H7.75L6.05 4.86L3.54 17.39C3.51941 17.5514 3.44327 17.7005 3.32465 17.8118C3.20603 17.9232 3.05235 17.9897 2.89 18H1L1.11 17.09C1.11 17.09 2.21 17.09 2.3 16.69C2.39 16.29 5.3 3.76 5.41 3.32C5.52 2.88 4.19 2.81 4.19 2.81L4.46 2H6.62C7.09 2 7.92 2.38 8 2.92Z" fill="white" />
         </svg>
     `
 
-    static map = y`
+    static map = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 0H0V4H4V0Z" fill="currentColor"/>
             <path d="M4 6H0V10H4V6Z" fill="currentColor"/>
@@ -2515,7 +2530,7 @@ class SVGIcon {
         </svg>
     `
 
-    static makeArray = y`
+    static makeArray = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M15 4H13V6H15V4Z" fill="white" />
             <path d="M15 7H13V9H15V7Z" fill="white" />
@@ -2531,7 +2546,7 @@ class SVGIcon {
         </svg>
     `
 
-    static makeMap = y`
+    static makeMap = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M15 4H10V6H15V4Z" fill="white" />
             <path d="M15 7H10V9H15V7Z" fill="white" />
@@ -2544,7 +2559,7 @@ class SVGIcon {
         </svg>
     `
 
-    static makeSet = y`
+    static makeSet = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
             <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
@@ -2555,7 +2570,7 @@ class SVGIcon {
         </svg>
     `
 
-    static makeStruct = y`
+    static makeStruct = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
             <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
@@ -2563,14 +2578,14 @@ class SVGIcon {
         </svg>
     `
 
-    static mouse = y`
+    static mouse = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white"/>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 0C11 0.595745 13.4 3.31915 13.9143 6.6383H8.85714V0ZM7.14286 0C5 0.595745 2.6 3.31915 2.08571 6.6383H7.14286V0ZM8.85714 8.34043H7.14286H2C2 12.5957 3.02857 16 8 16C12.9714 16 14 12.5957 14 8.34043H8.85714Z" fill="white"/>
         </svg>
     `
 
-    static node = y`
+    static node = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="16" height="15" rx="1" fill="white" fill-opacity="0.5"/>
             <rect x="0.5" y="0.5" width="15" height="14" rx="0.5" stroke="white"/>
@@ -2578,27 +2593,27 @@ class SVGIcon {
         </svg>
     `
 
-    static questionMark = y`
+    static questionMark = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 15C9.10456 15 10 14.1046 10 13C10 11.8954 9.10456 11 8 11C6.89544 11 6 11.8954 6 13C6 14.1046 6.89544 15 8 15Z" fill="white" />
             <path d="M5 4.86697C5.15 3.33619 6.5 2.26465 8 2.26465C9.65 2.26465 11 3.64235 11 5.3262C11 7.01005 8 7.92852 8 9.00006" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
     `
 
-    static referencePin = y`
+    static referencePin = x`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
         </svg>
     `
 
-    static reject = y`
+    static reject = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path stroke="red" stroke-width="2" stroke-miterlimit="10" d="M12.5 3.5L3.5 12.5" />
             <path fill="red" d="M8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2ZM8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5Z" />
         </svg>
     `
 
-    static set = y`
+    static set = x`
         <svg viewBox="2 2 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 7.99956V6.99956C1.62451 6.89501 2.23976 6.7412 2.84 6.53956C3.02865 6.44859 3.18802 6.30655 3.3 6.12956C3.44478 5.91383 3.53723 5.6673 3.57 5.40956C3.6183 5.04164 3.63836 4.67055 3.63 4.29956C3.60615 3.68664 3.64974 3.07296 3.76 2.46956C3.82982 2.152 3.99359 1.86279 4.23 1.63956C4.51974 1.39713 4.86221 1.22589 5.23 1.13956C5.68612 1.03782 6.15275 0.990826 6.62 0.999563H7V1.99956C6.69952 2.01634 6.4103 2.11967 6.16722 2.2971C5.92414 2.47453 5.73757 2.71849 5.63 2.99956C5.5431 3.18346 5.5052 3.3867 5.52 3.58956C5.52 3.86956 5.52 4.40956 5.46 5.19956C5.44584 5.56977 5.38194 5.9364 5.27 6.28956C5.18779 6.5495 5.05527 6.79074 4.88 6.99956C4.62654 7.36597 4.33121 7.70157 4 7.99956" fill="currentColor" />
             <path d="M4 7.99951C4.33723 8.31397 4.63295 8.67019 4.88 9.05951C5.05095 9.2601 5.18319 9.49067 5.27 9.73951C5.38194 10.0927 5.44584 10.4593 5.46 10.8295C5.5 11.6228 5.52 12.1628 5.52 12.4495C5.5061 12.6523 5.54395 12.8553 5.63 13.0395C5.74563 13.3117 5.93533 13.546 6.17752 13.7157C6.41972 13.8854 6.70468 13.9837 7 13.9995V14.9995H6.62C6.15021 15.0156 5.68019 14.9753 5.22 14.8795C4.85378 14.7889 4.51224 14.6181 4.22 14.3795C3.98551 14.1548 3.8221 13.8662 3.75 13.5495C3.64077 12.946 3.59718 12.3324 3.62 11.7195C3.63014 11.3418 3.61007 10.964 3.56 10.5895C3.52723 10.3318 3.43478 10.0852 3.29 9.86951C3.17802 9.69252 3.01865 9.55048 2.83 9.45951C2.23302 9.25838 1.62113 9.10457 1 8.99951V7.99951" fill="currentColor" />
@@ -2607,7 +2622,7 @@ class SVGIcon {
         </svg>
     `
 
-    static select = y`
+    static select = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="1" y="2" width="6" height="2" fill="white" />
             <rect x="10" y="7" width="3" height="2" fill="white" />
@@ -2618,7 +2633,7 @@ class SVGIcon {
         </svg>
     `
 
-    static sequence = y`
+    static sequence = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="3" y="2" width="5" height="2" fill="white" />
             <rect y="7" width="8" height="2" fill="white" />
@@ -2630,7 +2645,7 @@ class SVGIcon {
         </svg>
     `
 
-    static spawnActor = y`
+    static spawnActor = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10.38 12.62L7 11.5L10.38 10.38L11.5 7L12.63 10.38L16 11.5L12.63 12.62L11.5 16L10.38 12.62Z" fill="white"/>
             <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4 14H2L3 10L0 14V16H10L9 14H4Z" fill="white"/>
@@ -2640,7 +2655,7 @@ class SVGIcon {
         </svg>
     `
 
-    static switch = y`
+    static switch = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="3" y="2" width="6" height="2" fill="white" />
             <rect y="7" width="9" height="2" fill="white" />
@@ -2651,7 +2666,7 @@ class SVGIcon {
         </svg>
     `
 
-    static touchpad = y`
+    static touchpad = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path  fill="white" fill-rule="evenodd" clip-rule="evenodd" d="M13 0H3C2.4 0 2 0.4 2 1V15C2 15.6 2.4 16 3 16H13C13.6 16 14 15.6 14 15V1C14 0.4 13.6 0 13 0ZM8 15.5C7.2 15.5 6.5 14.8 6.5 14C6.5 13.2 7.2 12.5 8 12.5C8.8 12.5 9.5 13.2 9.5 14C9.5 14.8 8.8 15.5 8 15.5ZM13 12H3V1H13V12Z" />
             <path opacity="0.5" d="M13 1H3V12H13V1Z" fill="white"/>
@@ -2773,6 +2788,11 @@ class ObjectEntity extends IEntity {
         Enum: {
             type: ObjectReferenceEntity,
             showDefault: false,
+        },
+        EnumEntries: {
+            type: [String],
+            showDefault: false,
+            inlined: true,
         },
         InputKey: {
             type: SymbolEntity,
@@ -2977,6 +2997,7 @@ class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity?} */ this.TargetType;
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference;
         /** @type {ObjectReferenceEntity?} */ this.Enum;
+        /** @type {String[]?} */ this.EnumEntries;
         /** @type {SymbolEntity?} */ this.InputKey;
         /** @type {Boolean?} */ this.bOverrideFunction;
         /** @type {Boolean?} */ this.bInternalEvent;
@@ -3121,6 +3142,14 @@ class ObjectEntity extends IEntity {
         return this.CustomProperties.filter(v => v instanceof PinEntity)
     }
 
+    switchTarget() {
+        const switchMatch = this.getClass().match(Configuration.switchTargetPattern);
+        if (switchMatch) {
+            return switchMatch[1]
+        }
+        return ""
+    }
+
     isEvent() {
         switch (this.getClass()) {
             case Configuration.nodeType.customEvent:
@@ -3180,10 +3209,19 @@ class ObjectEntity extends IEntity {
                 )}`
             case Configuration.nodeType.switchEnum:
                 return `Switch on ${this.Enum?.getName() ?? "Enum"}`
+            case Configuration.nodeType.switchInteger:
+                return `Switch on Int`
             case Configuration.nodeType.variableGet:
                 return ""
             case Configuration.nodeType.variableSet:
                 return "SET"
+        }
+        let switchTarget = this.switchTarget();
+        if (switchTarget) {
+            if (switchTarget[0] !== "E") {
+                switchTarget = Utility.formatStringName(switchTarget);
+            }
+            return `Switch on ${switchTarget}`
         }
         const keyNameSymbol = this.getHIDAttribute();
         if (keyNameSymbol) {
@@ -3219,7 +3257,7 @@ class ObjectEntity extends IEntity {
             switch (memberParent) {
                 case "/Script/Engine.KismetMathLibrary":
                     if (memberName.startsWith("Conv_")) {
-                        return "" // Conversion  nodes do not have visible names
+                        return "" // Conversion nodes do not have visible names
                     }
                     if (memberName.startsWith("Percent_")) {
                         return "%"
@@ -3286,8 +3324,9 @@ class ObjectEntity extends IEntity {
                 return Configuration.nodeColors.gray
             case Configuration.nodeType.dynamicCast:
                 return Configuration.nodeColors.turquoise
-            case Configuration.nodeType.switchEnum:
-                return Configuration.nodeColors.lime
+        }
+        if (this.switchTarget()) {
+            return Configuration.nodeColors.lime
         }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
@@ -3329,7 +3368,9 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
             case Configuration.nodeType.spawnActorFromClass: return SVGIcon.spawnActor
-            case Configuration.nodeType.switchEnum: return SVGIcon.switch
+        }
+        if (this.switchTarget()) {
+            return SVGIcon.switch
         }
         if (this.nodeDisplayName().startsWith("Break")) {
             return SVGIcon.breakStruct
@@ -3366,11 +3407,14 @@ function getDefaultExportFromCjs (x) {
 
 var parsimmon_umd_min = {exports: {}};
 
-(function (module, exports) {
-!function(n,t){module.exports=t();}("undefined"!=typeof self?self:commonjsGlobal,function(){return function(n){var t={};function r(e){if(t[e])return t[e].exports;var u=t[e]={i:e,l:!1,exports:{}};return n[e].call(u.exports,u,u.exports,r),u.l=!0,u.exports}return r.m=n,r.c=t,r.d=function(n,t,e){r.o(n,t)||Object.defineProperty(n,t,{configurable:!1,enumerable:!0,get:e});},r.r=function(n){Object.defineProperty(n,"__esModule",{value:!0});},r.n=function(n){var t=n&&n.__esModule?function(){return n.default}:function(){return n};return r.d(t,"a",t),t},r.o=function(n,t){return Object.prototype.hasOwnProperty.call(n,t)},r.p="",r(r.s=0)}([function(n,t,r){function e(n){if(!(this instanceof e))return new e(n);this._=n;}var u=e.prototype;function o(n,t){for(var r=0;r<n;r++)t(r);}function i(n,t,r){return function(n,t){o(t.length,function(r){n(t[r],r,t);});}(function(r,e,u){t=n(t,r,e,u);},r),t}function a(n,t){return i(function(t,r,e,u){return t.concat([n(r,e,u)])},[],t)}function f(n,t){var r={v:0,buf:t};return o(n,function(){var n;r={v:r.v<<1|(n=r.buf,n[0]>>7),buf:function(n){var t=i(function(n,t,r,e){return n.concat(r===e.length-1?Buffer.from([t,0]).readUInt16BE(0):e.readUInt16BE(r))},[],n);return Buffer.from(a(function(n){return (n<<1&65535)>>8},t))}(r.buf)};}),r}function c(){return "undefined"!=typeof Buffer}function s(){if(!c())throw new Error("Buffer global does not exist; please use webpack if you need to parse Buffers in the browser.")}function l(n){s();var t=i(function(n,t){return n+t},0,n);if(t%8!=0)throw new Error("The bits ["+n.join(", ")+"] add up to "+t+" which is not an even number of bytes; the total should be divisible by 8");var r,u=t/8,o=(r=function(n){return n>48},i(function(n,t){return n||(r(t)?t:n)},null,n));if(o)throw new Error(o+" bit range requested exceeds 48 bit (6 byte) Number max.");return new e(function(t,r){var e=u+r;return e>t.length?x(r,u.toString()+" bytes"):b(e,i(function(n,t){var r=f(t,n.buf);return {coll:n.coll.concat(r.v),buf:r.buf}},{coll:[],buf:t.slice(r,e)},n).coll)})}function h(n,t){return new e(function(r,e){return s(),e+t>r.length?x(e,t+" bytes for "+n):b(e+t,r.slice(e,e+t))})}function p(n,t){if("number"!=typeof(r=t)||Math.floor(r)!==r||t<0||t>6)throw new Error(n+" requires integer length in range [0, 6].");var r;}function d(n){return p("uintBE",n),h("uintBE("+n+")",n).map(function(t){return t.readUIntBE(0,n)})}function v(n){return p("uintLE",n),h("uintLE("+n+")",n).map(function(t){return t.readUIntLE(0,n)})}function g(n){return p("intBE",n),h("intBE("+n+")",n).map(function(t){return t.readIntBE(0,n)})}function m(n){return p("intLE",n),h("intLE("+n+")",n).map(function(t){return t.readIntLE(0,n)})}function y(n){return n instanceof e}function E(n){return "[object Array]"==={}.toString.call(n)}function w(n){return c()&&Buffer.isBuffer(n)}function b(n,t){return {status:!0,index:n,value:t,furthest:-1,expected:[]}}function x(n,t){return E(t)||(t=[t]),{status:!1,index:-1,value:null,furthest:n,expected:t}}function B(n,t){if(!t)return n;if(n.furthest>t.furthest)return n;var r=n.furthest===t.furthest?function(n,t){if(function(){if(void 0!==e._supportsSet)return e._supportsSet;var n="undefined"!=typeof Set;return e._supportsSet=n,n}()&&Array.from){for(var r=new Set(n),u=0;u<t.length;u++)r.add(t[u]);var o=Array.from(r);return o.sort(),o}for(var i={},a=0;a<n.length;a++)i[n[a]]=!0;for(var f=0;f<t.length;f++)i[t[f]]=!0;var c=[];for(var s in i)({}).hasOwnProperty.call(i,s)&&c.push(s);return c.sort(),c}(n.expected,t.expected):t.expected;return {status:n.status,index:n.index,value:n.value,furthest:t.furthest,expected:r}}var j={};function S(n,t){if(w(n))return {offset:t,line:-1,column:-1};n in j||(j[n]={});for(var r=j[n],e=0,u=0,o=0,i=t;i>=0;){if(i in r){e=r[i].line,0===o&&(o=r[i].lineStart);break}("\n"===n.charAt(i)||"\r"===n.charAt(i)&&"\n"!==n.charAt(i+1))&&(u++,0===o&&(o=i+1)),i--;}var a=e+u,f=t-o;return r[t]={line:a,lineStart:o},{offset:t,line:a+1,column:f+1}}function _(n){if(!y(n))throw new Error("not a parser: "+n)}function L(n,t){return "string"==typeof n?n.charAt(t):n[t]}function O(n){if("number"!=typeof n)throw new Error("not a number: "+n)}function k(n){if("function"!=typeof n)throw new Error("not a function: "+n)}function P(n){if("string"!=typeof n)throw new Error("not a string: "+n)}var q=2,A=3,I=8,F=5*I,M=4*I,z="  ";function R(n,t){return new Array(t+1).join(n)}function U(n,t,r){var e=t-n.length;return e<=0?n:R(r,e)+n}function W(n,t,r,e){return {from:n-t>0?n-t:0,to:n+r>e?e:n+r}}function D(n,t){var r,e,u,o,f,c=t.index,s=c.offset,l=1;if(s===n.length)return "Got the end of the input";if(w(n)){var h=s-s%I,p=s-h,d=W(h,F,M+I,n.length),v=a(function(n){return a(function(n){return U(n.toString(16),2,"0")},n)},function(n,t){var r=n.length,e=[],u=0;if(r<=t)return [n.slice()];for(var o=0;o<r;o++)e[u]||e.push([]),e[u].push(n[o]),(o+1)%t==0&&u++;return e}(n.slice(d.from,d.to).toJSON().data,I));o=function(n){return 0===n.from&&1===n.to?{from:n.from,to:n.to}:{from:n.from/I,to:Math.floor(n.to/I)}}(d),e=h/I,r=3*p,p>=4&&(r+=1),l=2,u=a(function(n){return n.length<=4?n.join(" "):n.slice(0,4).join(" ")+"  "+n.slice(4).join(" ")},v),(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2);}else {var g=n.split(/\r\n|[\n\r\u2028\u2029]/);r=c.column-1,e=c.line-1,o=W(e,q,A,g.length),u=g.slice(o.from,o.to),f=o.to.toString().length;}var m=e-o.from;return w(n)&&(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2),i(function(t,e,u){var i,a=u===m,c=a?"> ":z;return i=w(n)?U((8*(o.from+u)).toString(16),f,"0"):U((o.from+u+1).toString(),f," "),[].concat(t,[c+i+" | "+e],a?[z+R(" ",f)+" | "+U("",r," ")+R("^",l)]:[])},[],u).join("\n")}function N(n,t){return ["\n","-- PARSING FAILED "+R("-",50),"\n\n",D(n,t),"\n\n",(r=t.expected,1===r.length?"Expected:\n\n"+r[0]:"Expected one of the following: \n\n"+r.join(", ")),"\n"].join("");var r;}function G(n){return void 0!==n.flags?n.flags:[n.global?"g":"",n.ignoreCase?"i":"",n.multiline?"m":"",n.unicode?"u":"",n.sticky?"y":""].join("")}function C(){for(var n=[].slice.call(arguments),t=n.length,r=0;r<t;r+=1)_(n[r]);return e(function(r,e){for(var u,o=new Array(t),i=0;i<t;i+=1){if(!(u=B(n[i]._(r,e),u)).status)return u;o[i]=u.value,e=u.index;}return B(b(e,o),u)})}function J(){var n=[].slice.call(arguments);if(0===n.length)throw new Error("seqMap needs at least one argument");var t=n.pop();return k(t),C.apply(null,n).map(function(n){return t.apply(null,n)})}function T(){var n=[].slice.call(arguments),t=n.length;if(0===t)return Y("zero alternates");for(var r=0;r<t;r+=1)_(n[r]);return e(function(t,r){for(var e,u=0;u<n.length;u+=1)if((e=B(n[u]._(t,r),e)).status)return e;return e})}function V(n,t){return H(n,t).or(X([]))}function H(n,t){return _(n),_(t),J(n,t.then(n).many(),function(n,t){return [n].concat(t)})}function K(n){P(n);var t="'"+n+"'";return e(function(r,e){var u=e+n.length,o=r.slice(e,u);return o===n?b(u,o):x(e,t)})}function Q(n,t){!function(n){if(!(n instanceof RegExp))throw new Error("not a regexp: "+n);for(var t=G(n),r=0;r<t.length;r++){var e=t.charAt(r);if("i"!==e&&"m"!==e&&"u"!==e&&"s"!==e)throw new Error('unsupported regexp flag "'+e+'": '+n)}}(n),arguments.length>=2?O(t):t=0;var r=function(n){return RegExp("^(?:"+n.source+")",G(n))}(n),u=""+n;return e(function(n,e){var o=r.exec(n.slice(e));if(o){if(0<=t&&t<=o.length){var i=o[0],a=o[t];return b(e+i.length,a)}return x(e,"valid match group (0 to "+o.length+") in "+u)}return x(e,u)})}function X(n){return e(function(t,r){return b(r,n)})}function Y(n){return e(function(t,r){return x(r,n)})}function Z(n){if(y(n))return e(function(t,r){var e=n._(t,r);return e.index=r,e.value="",e});if("string"==typeof n)return Z(K(n));if(n instanceof RegExp)return Z(Q(n));throw new Error("not a string, regexp, or parser: "+n)}function $(n){return _(n),e(function(t,r){var e=n._(t,r),u=t.slice(r,e.index);return e.status?x(r,'not "'+u+'"'):b(r,null)})}function nn(n){return k(n),e(function(t,r){var e=L(t,r);return r<t.length&&n(e)?b(r+1,e):x(r,"a character/byte matching "+n)})}function tn(n,t){arguments.length<2&&(t=n,n=void 0);var r=e(function(n,e){return r._=t()._,r._(n,e)});return n?r.desc(n):r}function rn(){return Y("fantasy-land/empty")}u.parse=function(n){if("string"!=typeof n&&!w(n))throw new Error(".parse must be called with a string or Buffer as its argument");var t,r=this.skip(an)._(n,0);return t=r.status?{status:!0,value:r.value}:{status:!1,index:S(n,r.furthest),expected:r.expected},delete j[n],t},u.tryParse=function(n){var t=this.parse(n);if(t.status)return t.value;var r=N(n,t),e=new Error(r);throw e.type="ParsimmonError",e.result=t,e},u.assert=function(n,t){return this.chain(function(r){return n(r)?X(r):Y(t)})},u.or=function(n){return T(this,n)},u.trim=function(n){return this.wrap(n,n)},u.wrap=function(n,t){return J(n,this,t,function(n,t){return t})},u.thru=function(n){return n(this)},u.then=function(n){return _(n),C(this,n).map(function(n){return n[1]})},u.many=function(){var n=this;return e(function(t,r){for(var e=[],u=void 0;;){if(!(u=B(n._(t,r),u)).status)return B(b(r,e),u);if(r===u.index)throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");r=u.index,e.push(u.value);}})},u.tieWith=function(n){return P(n),this.map(function(t){if(function(n){if(!E(n))throw new Error("not an array: "+n)}(t),t.length){P(t[0]);for(var r=t[0],e=1;e<t.length;e++)P(t[e]),r+=n+t[e];return r}return ""})},u.tie=function(){return this.tieWith("")},u.times=function(n,t){var r=this;return arguments.length<2&&(t=n),O(n),O(t),e(function(e,u){for(var o=[],i=void 0,a=void 0,f=0;f<n;f+=1){if(a=B(i=r._(e,u),a),!i.status)return a;u=i.index,o.push(i.value);}for(;f<t&&(a=B(i=r._(e,u),a),i.status);f+=1)u=i.index,o.push(i.value);return B(b(u,o),a)})},u.result=function(n){return this.map(function(){return n})},u.atMost=function(n){return this.times(0,n)},u.atLeast=function(n){return J(this.times(n),this.many(),function(n,t){return n.concat(t)})},u.map=function(n){k(n);var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(b(u.index,n(u.value)),u):u})},u.contramap=function(n){k(n);var t=this;return e(function(r,e){var u=t.parse(n(r.slice(e)));return u.status?b(e+r.length,u.value):u})},u.promap=function(n,t){return k(n),k(t),this.contramap(n).map(t)},u.skip=function(n){return C(this,n).map(function(n){return n[0]})},u.mark=function(){return J(en,this,en,function(n,t,r){return {start:n,value:t,end:r}})},u.node=function(n){return J(en,this,en,function(t,r,e){return {name:n,value:r,start:t,end:e}})},u.sepBy=function(n){return V(this,n)},u.sepBy1=function(n){return H(this,n)},u.lookahead=function(n){return this.skip(Z(n))},u.notFollowedBy=function(n){return this.skip($(n))},u.desc=function(n){E(n)||(n=[n]);var t=this;return e(function(r,e){var u=t._(r,e);return u.status||(u.expected=n),u})},u.fallback=function(n){return this.or(X(n))},u.ap=function(n){return J(n,this,function(n,t){return n(t)})},u.chain=function(n){var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(n(u.value)._(r,u.index),u):u})},u.concat=u.or,u.empty=rn,u.of=X,u["fantasy-land/ap"]=u.ap,u["fantasy-land/chain"]=u.chain,u["fantasy-land/concat"]=u.concat,u["fantasy-land/empty"]=u.empty,u["fantasy-land/of"]=u.of,u["fantasy-land/map"]=u.map;var en=e(function(n,t){return b(t,S(n,t))}),un=e(function(n,t){return t>=n.length?x(t,"any character/byte"):b(t+1,L(n,t))}),on=e(function(n,t){return b(n.length,n.slice(t))}),an=e(function(n,t){return t<n.length?x(t,"EOF"):b(t,null)}),fn=Q(/[0-9]/).desc("a digit"),cn=Q(/[0-9]*/).desc("optional digits"),sn=Q(/[a-z]/i).desc("a letter"),ln=Q(/[a-z]*/i).desc("optional letters"),hn=Q(/\s*/).desc("optional whitespace"),pn=Q(/\s+/).desc("whitespace"),dn=K("\r"),vn=K("\n"),gn=K("\r\n"),mn=T(gn,vn,dn).desc("newline"),yn=T(mn,an);e.all=on,e.alt=T,e.any=un,e.cr=dn,e.createLanguage=function(n){var t={};for(var r in n)({}).hasOwnProperty.call(n,r)&&function(r){t[r]=tn(function(){return n[r](t)});}(r);return t},e.crlf=gn,e.custom=function(n){return e(n(b,x))},e.digit=fn,e.digits=cn,e.empty=rn,e.end=yn,e.eof=an,e.fail=Y,e.formatError=N,e.index=en,e.isParser=y,e.lazy=tn,e.letter=sn,e.letters=ln,e.lf=vn,e.lookahead=Z,e.makeFailure=x,e.makeSuccess=b,e.newline=mn,e.noneOf=function(n){return nn(function(t){return n.indexOf(t)<0}).desc("none of '"+n+"'")},e.notFollowedBy=$,e.of=X,e.oneOf=function(n){for(var t=n.split(""),r=0;r<t.length;r++)t[r]="'"+t[r]+"'";return nn(function(t){return n.indexOf(t)>=0}).desc(t)},e.optWhitespace=hn,e.Parser=e,e.range=function(n,t){return nn(function(r){return n<=r&&r<=t}).desc(n+"-"+t)},e.regex=Q,e.regexp=Q,e.sepBy=V,e.sepBy1=H,e.seq=C,e.seqMap=J,e.seqObj=function(){for(var n,t={},r=0,u=(n=arguments,Array.prototype.slice.call(n)),o=u.length,i=0;i<o;i+=1){var a=u[i];if(!y(a)){if(E(a)&&2===a.length&&"string"==typeof a[0]&&y(a[1])){var f=a[0];if(Object.prototype.hasOwnProperty.call(t,f))throw new Error("seqObj: duplicate key "+f);t[f]=!0,r++;continue}throw new Error("seqObj arguments must be parsers or [string, parser] array pairs.")}}if(0===r)throw new Error("seqObj expects at least one named parser, found zero");return e(function(n,t){for(var r,e={},i=0;i<o;i+=1){var a,f;if(E(u[i])?(a=u[i][0],f=u[i][1]):(a=null,f=u[i]),!(r=B(f._(n,t),r)).status)return r;a&&(e[a]=r.value),t=r.index;}return B(b(t,e),r)})},e.string=K,e.succeed=X,e.takeWhile=function(n){return k(n),e(function(t,r){for(var e=r;e<t.length&&n(L(t,e));)e++;return b(e,t.slice(r,e))})},e.test=nn,e.whitespace=pn,e["fantasy-land/empty"]=rn,e["fantasy-land/of"]=X,e.Binary={bitSeq:l,bitSeqObj:function(n){s();var t={},r=0,e=a(function(n){if(E(n)){var e=n;if(2!==e.length)throw new Error("["+e.join(", ")+"] should be length 2, got length "+e.length);if(P(e[0]),O(e[1]),Object.prototype.hasOwnProperty.call(t,e[0]))throw new Error("duplicate key in bitSeqObj: "+e[0]);return t[e[0]]=!0,r++,e}return O(n),[null,n]},n);if(r<1)throw new Error("bitSeqObj expects at least one named pair, got ["+n.join(", ")+"]");var u=a(function(n){return n[0]},e);return l(a(function(n){return n[1]},e)).map(function(n){return i(function(n,t){return null!==t[0]&&(n[t[0]]=t[1]),n},{},a(function(t,r){return [t,n[r]]},u))})},byte:function(n){if(s(),O(n),n>255)throw new Error("Value specified to byte constructor ("+n+"=0x"+n.toString(16)+") is larger in value than a single byte.");var t=(n>15?"0x":"0x0")+n.toString(16);return e(function(r,e){var u=L(r,e);return u===n?b(e+1,u):x(e,t)})},buffer:function(n){return h("buffer",n).map(function(n){return Buffer.from(n)})},encodedString:function(n,t){return h("string",t).map(function(t){return t.toString(n)})},uintBE:d,uint8BE:d(1),uint16BE:d(2),uint32BE:d(4),uintLE:v,uint8LE:v(1),uint16LE:v(2),uint32LE:v(4),intBE:g,int8BE:g(1),int16BE:g(2),int32BE:g(4),intLE:m,int8LE:m(1),int16LE:m(2),int32LE:m(4),floatBE:h("floatBE",4).map(function(n){return n.readFloatBE(0)}),floatLE:h("floatLE",4).map(function(n){return n.readFloatLE(0)}),doubleBE:h("doubleBE",8).map(function(n){return n.readDoubleBE(0)}),doubleLE:h("doubleLE",8).map(function(n){return n.readDoubleLE(0)})},n.exports=e;}])});
-}(parsimmon_umd_min));
+parsimmon_umd_min.exports;
 
-var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_min.exports);
+(function (module, exports) {
+	!function(n,t){module.exports=t();}("undefined"!=typeof self?self:commonjsGlobal,function(){return function(n){var t={};function r(e){if(t[e])return t[e].exports;var u=t[e]={i:e,l:!1,exports:{}};return n[e].call(u.exports,u,u.exports,r),u.l=!0,u.exports}return r.m=n,r.c=t,r.d=function(n,t,e){r.o(n,t)||Object.defineProperty(n,t,{configurable:!1,enumerable:!0,get:e});},r.r=function(n){Object.defineProperty(n,"__esModule",{value:!0});},r.n=function(n){var t=n&&n.__esModule?function(){return n.default}:function(){return n};return r.d(t,"a",t),t},r.o=function(n,t){return Object.prototype.hasOwnProperty.call(n,t)},r.p="",r(r.s=0)}([function(n,t,r){function e(n){if(!(this instanceof e))return new e(n);this._=n;}var u=e.prototype;function o(n,t){for(var r=0;r<n;r++)t(r);}function i(n,t,r){return function(n,t){o(t.length,function(r){n(t[r],r,t);});}(function(r,e,u){t=n(t,r,e,u);},r),t}function a(n,t){return i(function(t,r,e,u){return t.concat([n(r,e,u)])},[],t)}function f(n,t){var r={v:0,buf:t};return o(n,function(){var n;r={v:r.v<<1|(n=r.buf,n[0]>>7),buf:function(n){var t=i(function(n,t,r,e){return n.concat(r===e.length-1?Buffer.from([t,0]).readUInt16BE(0):e.readUInt16BE(r))},[],n);return Buffer.from(a(function(n){return (n<<1&65535)>>8},t))}(r.buf)};}),r}function c(){return "undefined"!=typeof Buffer}function s(){if(!c())throw new Error("Buffer global does not exist; please use webpack if you need to parse Buffers in the browser.")}function l(n){s();var t=i(function(n,t){return n+t},0,n);if(t%8!=0)throw new Error("The bits ["+n.join(", ")+"] add up to "+t+" which is not an even number of bytes; the total should be divisible by 8");var r,u=t/8,o=(r=function(n){return n>48},i(function(n,t){return n||(r(t)?t:n)},null,n));if(o)throw new Error(o+" bit range requested exceeds 48 bit (6 byte) Number max.");return new e(function(t,r){var e=u+r;return e>t.length?x(r,u.toString()+" bytes"):b(e,i(function(n,t){var r=f(t,n.buf);return {coll:n.coll.concat(r.v),buf:r.buf}},{coll:[],buf:t.slice(r,e)},n).coll)})}function h(n,t){return new e(function(r,e){return s(),e+t>r.length?x(e,t+" bytes for "+n):b(e+t,r.slice(e,e+t))})}function p(n,t){if("number"!=typeof(r=t)||Math.floor(r)!==r||t<0||t>6)throw new Error(n+" requires integer length in range [0, 6].");var r;}function d(n){return p("uintBE",n),h("uintBE("+n+")",n).map(function(t){return t.readUIntBE(0,n)})}function v(n){return p("uintLE",n),h("uintLE("+n+")",n).map(function(t){return t.readUIntLE(0,n)})}function g(n){return p("intBE",n),h("intBE("+n+")",n).map(function(t){return t.readIntBE(0,n)})}function m(n){return p("intLE",n),h("intLE("+n+")",n).map(function(t){return t.readIntLE(0,n)})}function y(n){return n instanceof e}function E(n){return "[object Array]"==={}.toString.call(n)}function w(n){return c()&&Buffer.isBuffer(n)}function b(n,t){return {status:!0,index:n,value:t,furthest:-1,expected:[]}}function x(n,t){return E(t)||(t=[t]),{status:!1,index:-1,value:null,furthest:n,expected:t}}function B(n,t){if(!t)return n;if(n.furthest>t.furthest)return n;var r=n.furthest===t.furthest?function(n,t){if(function(){if(void 0!==e._supportsSet)return e._supportsSet;var n="undefined"!=typeof Set;return e._supportsSet=n,n}()&&Array.from){for(var r=new Set(n),u=0;u<t.length;u++)r.add(t[u]);var o=Array.from(r);return o.sort(),o}for(var i={},a=0;a<n.length;a++)i[n[a]]=!0;for(var f=0;f<t.length;f++)i[t[f]]=!0;var c=[];for(var s in i)({}).hasOwnProperty.call(i,s)&&c.push(s);return c.sort(),c}(n.expected,t.expected):t.expected;return {status:n.status,index:n.index,value:n.value,furthest:t.furthest,expected:r}}var j={};function S(n,t){if(w(n))return {offset:t,line:-1,column:-1};n in j||(j[n]={});for(var r=j[n],e=0,u=0,o=0,i=t;i>=0;){if(i in r){e=r[i].line,0===o&&(o=r[i].lineStart);break}("\n"===n.charAt(i)||"\r"===n.charAt(i)&&"\n"!==n.charAt(i+1))&&(u++,0===o&&(o=i+1)),i--;}var a=e+u,f=t-o;return r[t]={line:a,lineStart:o},{offset:t,line:a+1,column:f+1}}function _(n){if(!y(n))throw new Error("not a parser: "+n)}function L(n,t){return "string"==typeof n?n.charAt(t):n[t]}function O(n){if("number"!=typeof n)throw new Error("not a number: "+n)}function k(n){if("function"!=typeof n)throw new Error("not a function: "+n)}function P(n){if("string"!=typeof n)throw new Error("not a string: "+n)}var q=2,A=3,I=8,F=5*I,M=4*I,z="  ";function R(n,t){return new Array(t+1).join(n)}function U(n,t,r){var e=t-n.length;return e<=0?n:R(r,e)+n}function W(n,t,r,e){return {from:n-t>0?n-t:0,to:n+r>e?e:n+r}}function D(n,t){var r,e,u,o,f,c=t.index,s=c.offset,l=1;if(s===n.length)return "Got the end of the input";if(w(n)){var h=s-s%I,p=s-h,d=W(h,F,M+I,n.length),v=a(function(n){return a(function(n){return U(n.toString(16),2,"0")},n)},function(n,t){var r=n.length,e=[],u=0;if(r<=t)return [n.slice()];for(var o=0;o<r;o++)e[u]||e.push([]),e[u].push(n[o]),(o+1)%t==0&&u++;return e}(n.slice(d.from,d.to).toJSON().data,I));o=function(n){return 0===n.from&&1===n.to?{from:n.from,to:n.to}:{from:n.from/I,to:Math.floor(n.to/I)}}(d),e=h/I,r=3*p,p>=4&&(r+=1),l=2,u=a(function(n){return n.length<=4?n.join(" "):n.slice(0,4).join(" ")+"  "+n.slice(4).join(" ")},v),(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2);}else {var g=n.split(/\r\n|[\n\r\u2028\u2029]/);r=c.column-1,e=c.line-1,o=W(e,q,A,g.length),u=g.slice(o.from,o.to),f=o.to.toString().length;}var m=e-o.from;return w(n)&&(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2),i(function(t,e,u){var i,a=u===m,c=a?"> ":z;return i=w(n)?U((8*(o.from+u)).toString(16),f,"0"):U((o.from+u+1).toString(),f," "),[].concat(t,[c+i+" | "+e],a?[z+R(" ",f)+" | "+U("",r," ")+R("^",l)]:[])},[],u).join("\n")}function N(n,t){return ["\n","-- PARSING FAILED "+R("-",50),"\n\n",D(n,t),"\n\n",(r=t.expected,1===r.length?"Expected:\n\n"+r[0]:"Expected one of the following: \n\n"+r.join(", ")),"\n"].join("");var r;}function G(n){return void 0!==n.flags?n.flags:[n.global?"g":"",n.ignoreCase?"i":"",n.multiline?"m":"",n.unicode?"u":"",n.sticky?"y":""].join("")}function C(){for(var n=[].slice.call(arguments),t=n.length,r=0;r<t;r+=1)_(n[r]);return e(function(r,e){for(var u,o=new Array(t),i=0;i<t;i+=1){if(!(u=B(n[i]._(r,e),u)).status)return u;o[i]=u.value,e=u.index;}return B(b(e,o),u)})}function J(){var n=[].slice.call(arguments);if(0===n.length)throw new Error("seqMap needs at least one argument");var t=n.pop();return k(t),C.apply(null,n).map(function(n){return t.apply(null,n)})}function T(){var n=[].slice.call(arguments),t=n.length;if(0===t)return Y("zero alternates");for(var r=0;r<t;r+=1)_(n[r]);return e(function(t,r){for(var e,u=0;u<n.length;u+=1)if((e=B(n[u]._(t,r),e)).status)return e;return e})}function V(n,t){return H(n,t).or(X([]))}function H(n,t){return _(n),_(t),J(n,t.then(n).many(),function(n,t){return [n].concat(t)})}function K(n){P(n);var t="'"+n+"'";return e(function(r,e){var u=e+n.length,o=r.slice(e,u);return o===n?b(u,o):x(e,t)})}function Q(n,t){!function(n){if(!(n instanceof RegExp))throw new Error("not a regexp: "+n);for(var t=G(n),r=0;r<t.length;r++){var e=t.charAt(r);if("i"!==e&&"m"!==e&&"u"!==e&&"s"!==e)throw new Error('unsupported regexp flag "'+e+'": '+n)}}(n),arguments.length>=2?O(t):t=0;var r=function(n){return RegExp("^(?:"+n.source+")",G(n))}(n),u=""+n;return e(function(n,e){var o=r.exec(n.slice(e));if(o){if(0<=t&&t<=o.length){var i=o[0],a=o[t];return b(e+i.length,a)}return x(e,"valid match group (0 to "+o.length+") in "+u)}return x(e,u)})}function X(n){return e(function(t,r){return b(r,n)})}function Y(n){return e(function(t,r){return x(r,n)})}function Z(n){if(y(n))return e(function(t,r){var e=n._(t,r);return e.index=r,e.value="",e});if("string"==typeof n)return Z(K(n));if(n instanceof RegExp)return Z(Q(n));throw new Error("not a string, regexp, or parser: "+n)}function $(n){return _(n),e(function(t,r){var e=n._(t,r),u=t.slice(r,e.index);return e.status?x(r,'not "'+u+'"'):b(r,null)})}function nn(n){return k(n),e(function(t,r){var e=L(t,r);return r<t.length&&n(e)?b(r+1,e):x(r,"a character/byte matching "+n)})}function tn(n,t){arguments.length<2&&(t=n,n=void 0);var r=e(function(n,e){return r._=t()._,r._(n,e)});return n?r.desc(n):r}function rn(){return Y("fantasy-land/empty")}u.parse=function(n){if("string"!=typeof n&&!w(n))throw new Error(".parse must be called with a string or Buffer as its argument");var t,r=this.skip(an)._(n,0);return t=r.status?{status:!0,value:r.value}:{status:!1,index:S(n,r.furthest),expected:r.expected},delete j[n],t},u.tryParse=function(n){var t=this.parse(n);if(t.status)return t.value;var r=N(n,t),e=new Error(r);throw e.type="ParsimmonError",e.result=t,e},u.assert=function(n,t){return this.chain(function(r){return n(r)?X(r):Y(t)})},u.or=function(n){return T(this,n)},u.trim=function(n){return this.wrap(n,n)},u.wrap=function(n,t){return J(n,this,t,function(n,t){return t})},u.thru=function(n){return n(this)},u.then=function(n){return _(n),C(this,n).map(function(n){return n[1]})},u.many=function(){var n=this;return e(function(t,r){for(var e=[],u=void 0;;){if(!(u=B(n._(t,r),u)).status)return B(b(r,e),u);if(r===u.index)throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");r=u.index,e.push(u.value);}})},u.tieWith=function(n){return P(n),this.map(function(t){if(function(n){if(!E(n))throw new Error("not an array: "+n)}(t),t.length){P(t[0]);for(var r=t[0],e=1;e<t.length;e++)P(t[e]),r+=n+t[e];return r}return ""})},u.tie=function(){return this.tieWith("")},u.times=function(n,t){var r=this;return arguments.length<2&&(t=n),O(n),O(t),e(function(e,u){for(var o=[],i=void 0,a=void 0,f=0;f<n;f+=1){if(a=B(i=r._(e,u),a),!i.status)return a;u=i.index,o.push(i.value);}for(;f<t&&(a=B(i=r._(e,u),a),i.status);f+=1)u=i.index,o.push(i.value);return B(b(u,o),a)})},u.result=function(n){return this.map(function(){return n})},u.atMost=function(n){return this.times(0,n)},u.atLeast=function(n){return J(this.times(n),this.many(),function(n,t){return n.concat(t)})},u.map=function(n){k(n);var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(b(u.index,n(u.value)),u):u})},u.contramap=function(n){k(n);var t=this;return e(function(r,e){var u=t.parse(n(r.slice(e)));return u.status?b(e+r.length,u.value):u})},u.promap=function(n,t){return k(n),k(t),this.contramap(n).map(t)},u.skip=function(n){return C(this,n).map(function(n){return n[0]})},u.mark=function(){return J(en,this,en,function(n,t,r){return {start:n,value:t,end:r}})},u.node=function(n){return J(en,this,en,function(t,r,e){return {name:n,value:r,start:t,end:e}})},u.sepBy=function(n){return V(this,n)},u.sepBy1=function(n){return H(this,n)},u.lookahead=function(n){return this.skip(Z(n))},u.notFollowedBy=function(n){return this.skip($(n))},u.desc=function(n){E(n)||(n=[n]);var t=this;return e(function(r,e){var u=t._(r,e);return u.status||(u.expected=n),u})},u.fallback=function(n){return this.or(X(n))},u.ap=function(n){return J(n,this,function(n,t){return n(t)})},u.chain=function(n){var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(n(u.value)._(r,u.index),u):u})},u.concat=u.or,u.empty=rn,u.of=X,u["fantasy-land/ap"]=u.ap,u["fantasy-land/chain"]=u.chain,u["fantasy-land/concat"]=u.concat,u["fantasy-land/empty"]=u.empty,u["fantasy-land/of"]=u.of,u["fantasy-land/map"]=u.map;var en=e(function(n,t){return b(t,S(n,t))}),un=e(function(n,t){return t>=n.length?x(t,"any character/byte"):b(t+1,L(n,t))}),on=e(function(n,t){return b(n.length,n.slice(t))}),an=e(function(n,t){return t<n.length?x(t,"EOF"):b(t,null)}),fn=Q(/[0-9]/).desc("a digit"),cn=Q(/[0-9]*/).desc("optional digits"),sn=Q(/[a-z]/i).desc("a letter"),ln=Q(/[a-z]*/i).desc("optional letters"),hn=Q(/\s*/).desc("optional whitespace"),pn=Q(/\s+/).desc("whitespace"),dn=K("\r"),vn=K("\n"),gn=K("\r\n"),mn=T(gn,vn,dn).desc("newline"),yn=T(mn,an);e.all=on,e.alt=T,e.any=un,e.cr=dn,e.createLanguage=function(n){var t={};for(var r in n)({}).hasOwnProperty.call(n,r)&&function(r){t[r]=tn(function(){return n[r](t)});}(r);return t},e.crlf=gn,e.custom=function(n){return e(n(b,x))},e.digit=fn,e.digits=cn,e.empty=rn,e.end=yn,e.eof=an,e.fail=Y,e.formatError=N,e.index=en,e.isParser=y,e.lazy=tn,e.letter=sn,e.letters=ln,e.lf=vn,e.lookahead=Z,e.makeFailure=x,e.makeSuccess=b,e.newline=mn,e.noneOf=function(n){return nn(function(t){return n.indexOf(t)<0}).desc("none of '"+n+"'")},e.notFollowedBy=$,e.of=X,e.oneOf=function(n){for(var t=n.split(""),r=0;r<t.length;r++)t[r]="'"+t[r]+"'";return nn(function(t){return n.indexOf(t)>=0}).desc(t)},e.optWhitespace=hn,e.Parser=e,e.range=function(n,t){return nn(function(r){return n<=r&&r<=t}).desc(n+"-"+t)},e.regex=Q,e.regexp=Q,e.sepBy=V,e.sepBy1=H,e.seq=C,e.seqMap=J,e.seqObj=function(){for(var n,t={},r=0,u=(n=arguments,Array.prototype.slice.call(n)),o=u.length,i=0;i<o;i+=1){var a=u[i];if(!y(a)){if(E(a)&&2===a.length&&"string"==typeof a[0]&&y(a[1])){var f=a[0];if(Object.prototype.hasOwnProperty.call(t,f))throw new Error("seqObj: duplicate key "+f);t[f]=!0,r++;continue}throw new Error("seqObj arguments must be parsers or [string, parser] array pairs.")}}if(0===r)throw new Error("seqObj expects at least one named parser, found zero");return e(function(n,t){for(var r,e={},i=0;i<o;i+=1){var a,f;if(E(u[i])?(a=u[i][0],f=u[i][1]):(a=null,f=u[i]),!(r=B(f._(n,t),r)).status)return r;a&&(e[a]=r.value),t=r.index;}return B(b(t,e),r)})},e.string=K,e.succeed=X,e.takeWhile=function(n){return k(n),e(function(t,r){for(var e=r;e<t.length&&n(L(t,e));)e++;return b(e,t.slice(r,e))})},e.test=nn,e.whitespace=pn,e["fantasy-land/empty"]=rn,e["fantasy-land/of"]=X,e.Binary={bitSeq:l,bitSeqObj:function(n){s();var t={},r=0,e=a(function(n){if(E(n)){var e=n;if(2!==e.length)throw new Error("["+e.join(", ")+"] should be length 2, got length "+e.length);if(P(e[0]),O(e[1]),Object.prototype.hasOwnProperty.call(t,e[0]))throw new Error("duplicate key in bitSeqObj: "+e[0]);return t[e[0]]=!0,r++,e}return O(n),[null,n]},n);if(r<1)throw new Error("bitSeqObj expects at least one named pair, got ["+n.join(", ")+"]");var u=a(function(n){return n[0]},e);return l(a(function(n){return n[1]},e)).map(function(n){return i(function(n,t){return null!==t[0]&&(n[t[0]]=t[1]),n},{},a(function(t,r){return [t,n[r]]},u))})},byte:function(n){if(s(),O(n),n>255)throw new Error("Value specified to byte constructor ("+n+"=0x"+n.toString(16)+") is larger in value than a single byte.");var t=(n>15?"0x":"0x0")+n.toString(16);return e(function(r,e){var u=L(r,e);return u===n?b(e+1,u):x(e,t)})},buffer:function(n){return h("buffer",n).map(function(n){return Buffer.from(n)})},encodedString:function(n,t){return h("string",t).map(function(t){return t.toString(n)})},uintBE:d,uint8BE:d(1),uint16BE:d(2),uint32BE:d(4),uintLE:v,uint8LE:v(1),uint16LE:v(2),uint32LE:v(4),intBE:g,int8BE:g(1),int16BE:g(2),int32BE:g(4),intLE:m,int8LE:m(1),int16LE:m(2),int32LE:m(4),floatBE:h("floatBE",4).map(function(n){return n.readFloatBE(0)}),floatLE:h("floatLE",4).map(function(n){return n.readFloatLE(0)}),doubleBE:h("doubleBE",8).map(function(n){return n.readDoubleBE(0)}),doubleLE:h("doubleLE",8).map(function(n){return n.readDoubleLE(0)})},n.exports=e;}])}); 
+} (parsimmon_umd_min, parsimmon_umd_min.exports));
+
+var parsimmon_umd_minExports = parsimmon_umd_min.exports;
+var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_minExports);
 
 class TerminalTypeEntity extends IEntity {
 
@@ -3552,6 +3596,9 @@ class Grammar {
     ) {
         let result = defaultGrammar;
         if (type instanceof Array) {
+            if (attribute?.inlined) {
+                return this.grammarFor(undefined, type[0])
+            }
             result = P.seq(
                 P.regex(/\(\s*/),
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
@@ -4516,7 +4563,7 @@ class ITemplate {
     }
 
     render() {
-        return y``
+        return x``
     }
 
     /** @param {PropertyValues} changedProperties */
@@ -4862,6 +4909,10 @@ class IElement extends s {
         this.isInitialized = true;
     }
 
+    async getUpdateComplete() {
+        return (await super.getUpdateComplete()) && (await this.template.updateComplete)
+    }
+
     connectedCallback() {
         super.connectedCallback();
         this.blueprint = /** @type {Blueprint} */(this.closest("ueb-blueprint"));
@@ -4881,11 +4932,6 @@ class IElement extends s {
 
     createRenderRoot() {
         return this
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    shouldUpdate(changedProperties) {
-        return this.isInitialized && this.isConnected
     }
 
     setup() {
@@ -5590,7 +5636,7 @@ class BlueprintTemplate extends ITemplate {
     }
 
     render() {
-        return y`
+        return x`
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">
                     Zoom ${this.element.zoom == 0 ? "1:1" : (this.element.zoom > 0 ? "+" : "") + this.element.zoom}
@@ -6080,23 +6126,23 @@ class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     render() {
-        return y`
+        return x`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <g class="ueb-link-area">
                     <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
                     <use href="#${this.#uniqueId}" pointer-events="stroke" stroke-width="20" />
                 </g>
             </svg>
-            ${this.element.linkMessageIcon || this.element.linkMessageText ? y`
+            ${this.element.linkMessageIcon || this.element.linkMessageText ? x`
                 <div class="ueb-link-message">
-                    ${this.element.linkMessageIcon !== b ? y`
+                    ${this.element.linkMessageIcon !== A ? x`
                         <span class="ueb-link-message-icon">${this.element.linkMessageIcon}</span>
-                    ` : b}
-                    ${this.element.linkMessageText !== b ? y`
+                    ` : A}
+                    ${this.element.linkMessageText !== A ? x`
                         <span class="ueb-link-message-text">${this.element.linkMessageText}</span>
-                    ` : b}
+                    ` : A}
                 </div>
-            ` : b}
+            ` : A}
         `
     }
 }
@@ -6172,9 +6218,9 @@ class LinkElement extends IFromToPositionedElement {
     #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
 
     /** @type {TemplateResult | nothing} */
-    linkMessageIcon = b
+    linkMessageIcon = A
     /** @type {TemplateResult | nothing} */
-    linkMessageText = b
+    linkMessageText = A
 
     /** @type {SVGPathElement} */
     pathElement
@@ -6356,8 +6402,8 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     removeMessage() {
-        this.linkMessageIcon = b;
-        this.linkMessageText = b;
+        this.linkMessageIcon = A;
+        this.linkMessageText = A;
     }
 
     setMessageConvertType() {
@@ -6367,42 +6413,42 @@ class LinkElement extends IFromToPositionedElement {
 
     setMessageCorrect() {
         this.linkMessageIcon = SVGIcon.correct;
-        this.linkMessageText = b;
+        this.linkMessageText = A;
     }
 
     setMessageReplace() {
         this.linkMessageIcon = SVGIcon.correct;
-        this.linkMessageText = b;
+        this.linkMessageText = A;
     }
 
     setMessageDirectionsIncompatible() {
         this.linkMessageIcon = SVGIcon.reject;
-        this.linkMessageText = y`Directions are not compatbile.`;
+        this.linkMessageText = x`Directions are not compatbile.`;
     }
 
     setMessagePlaceNode() {
         this.linkMessageIcon = "ueb-icon-place-node";
-        this.linkMessageText = y`Place a new node.`;
+        this.linkMessageText = x`Place a new node.`;
     }
 
     setMessageReplaceLink() {
         this.linkMessageIcon = SVGIcon.correct;
-        this.linkMessageText = y`Replace existing input connections.`;
+        this.linkMessageText = x`Replace existing input connections.`;
     }
 
     setMessageReplaceOutputLink() {
         this.linkMessageIcon = SVGIcon.correct;
-        this.linkMessageText = y`Replace existing output connections.`;
+        this.linkMessageText = x`Replace existing output connections.`;
     }
 
     setMessageSameNode() {
         this.linkMessageIcon = SVGIcon.reject;
-        this.linkMessageText = y`Both are on the same node.`;
+        this.linkMessageText = x`Both are on the same node.`;
     }
 
     setMEssagetypesIncompatible() {
         this.linkMessageIcon = SVGIcon.reject;
-        this.linkMessageText = y`${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`;
+        this.linkMessageText = x`${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`;
     }
 }
 
@@ -6761,7 +6807,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     render() {
-        return y`
+        return x`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">${this.renderTop()}</div>
@@ -6769,16 +6815,16 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                     </div>
-                    ${this.element.entity.isDevelopmentOnly() ? y`
+                    ${this.element.entity.isDevelopmentOnly() ? x`
                         <div class="ueb-node-developmentonly">
                             <span class="ueb-node-developmentonly-text">Development Only</span>
                         </div>
-                    ` : b}
-                    ${this.element.advancedPinDisplay ? y`
+                    ` : A}
+                    ${this.element.advancedPinDisplay ? x`
                         <div class="ueb-node-expansion" @click="${this.toggleAdvancedDisplayHandler}">
                             ${SVGIcon.expandIcon}
                         </div>
-                    ` : b}
+                    ` : A}
                 </div>
             </div>
         `
@@ -6795,21 +6841,21 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     renderTop() {
         const icon = this.renderNodeIcon();
         const name = this.renderNodeName();
-        return y`
+        return x`
             <div class="ueb-node-name">
-                ${icon ? y`
+                ${icon ? x`
                     <div class="ueb-node-name-symbol">${icon}</div>
-                ` : b}
-                ${name ? y`
+                ` : A}
+                ${name ? x`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${this.#hasSubtitle && this.getTargetType().length > 0 ? y`
+                        ${this.#hasSubtitle && this.getTargetType().length > 0 ? x`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
                                 Target is ${Utility.formatStringName(this.getTargetType())}
                             </div>
-                        `: b}
+                        `: A}
                     </div>
-                ` : b}
+                ` : A}
             </div>
         `
     }
@@ -7060,7 +7106,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
     }
 
     render() {
-        return y`
+        return x`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top"
@@ -7291,10 +7337,10 @@ class VariableManagementNodeTemplate extends NodeTemplate {
     }
 
     render() {
-        return y`
+        return x`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
-                    ${this.#displayName ? y`
+                    ${this.#displayName ? x`
                         <div class="ueb-node-top">
                             <div class="ueb-node-name">
                                 <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
@@ -7302,14 +7348,14 @@ class VariableManagementNodeTemplate extends NodeTemplate {
                                 </span>
                             </div>
                         </div>
-                    ` : b}
+                    ` : A}
                     <div class="ueb-node-content">
-                        ${this.#hasInput ? y`
+                        ${this.#hasInput ? x`
                             <div class="ueb-node-inputs"></div>
-                        ` : b}
-                        ${this.#hasOutput ? y`
+                        ` : A}
+                        ${this.#hasOutput ? x`
                             <div class="ueb-node-outputs"></div>
-                        ` : b}
+                        ` : A}
                     </div>
                 </div>
             </div>
@@ -7394,16 +7440,16 @@ class PinTemplate extends ITemplate {
     }
 
     render() {
-        const icon = y`<div class="ueb-pin-icon">${this.renderIcon()}</div>`;
-        const content = y`
+        const icon = x`<div class="ueb-pin-icon">${this.renderIcon()}</div>`;
+        const content = x`
             <div class="ueb-pin-content">
-                ${this.isNameRendered ? this.renderName() : b}
-                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : y``}
+                ${this.isNameRendered ? this.renderName() : A}
+                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : x``}
             </div>
         `;
-        return y`
+        return x`
             <div class="ueb-pin-wrapper">
-                ${this.element.isInput() ? y`${icon}${content}` : y`${content}${icon}`}
+                ${this.element.isInput() ? x`${icon}${content}` : x`${content}${icon}`}
             </div>
         `
     }
@@ -7421,13 +7467,13 @@ class PinTemplate extends ITemplate {
     }
 
     renderName() {
-        return y`
+        return x`
             <span class="ueb-pin-name">${this.element.getPinDisplayName()}</span>
         `
     }
 
     renderInput() {
-        return y``
+        return x``
     }
 
     /** @param {PropertyValues} changedProperties */
@@ -7474,7 +7520,7 @@ class PinTemplate extends ITemplate {
 class MinimalPinTemplate extends PinTemplate {
 
     render() {
-        return y`
+        return x`
             <div class="ueb-pin-wrapper">
                 <div class="ueb-pin-icon">${this.renderIcon()}</div>
             </div>
@@ -7502,21 +7548,21 @@ class EventNodeTemplate extends NodeTemplate {
         const name = this.renderNodeName();
         const customEvent = this.element.getType() === Configuration.nodeType.customEvent
             && (this.element.entity.CustomFunctionName || this.element.entity.FunctionReference.MemberParent);
-        return y`
+        return x`
             <div class="ueb-node-name">
-                ${icon ? y`
+                ${icon ? x`
                     <div class="ueb-node-name-symbol">${icon}</div>
-                ` : b}
-                ${name ? y`
+                ` : A}
+                ${name ? x`
                     <div class="ueb-node-name-text ueb-ellipsis-nowrap-text">
                         ${name}
-                        ${customEvent ? y`
+                        ${customEvent ? x`
                             <div class="ueb-node-subtitle-text ueb-ellipsis-nowrap-text">
                                 Custom Event
                             </div>
-                        `: b}
+                        `: A}
                     </div>
-                ` : b}
+                ` : A}
             </div>
         `
     }
@@ -7605,7 +7651,7 @@ class ISelectableDraggableElement extends IDraggableElement {
 class KnotPinTemplate extends MinimalPinTemplate {
 
     render() {
-        return this.element.isOutput() ? super.render() : y``
+        return this.element.isOutput() ? super.render() : x``
     }
 
     getOppositePin() {
@@ -7676,7 +7722,7 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 
     render() {
-        return y`
+        return x`
             <div class="ueb-node-border"></div>
         `
     }
@@ -7911,11 +7957,12 @@ class NodeElement extends ISelectableDraggableElement {
         }
     }
 
-    getUpdateComplete() {
-        return Promise.all([
-            super.getUpdateComplete(),
-            ...this.getPinElements().map(pin => pin.updateComplete)
-        ]).then(() => true)
+    async getUpdateComplete() {
+        let result = await super.getUpdateComplete();
+        for (const pin of this.getPinElements()) {
+            result &&= await pin.updateComplete;
+        }
+        return result
     }
 
     /** @param {NodeElement} commentNode */
@@ -8642,7 +8689,107 @@ class ColorSliderElement extends IDraggableControlElement {
     }
 }
 
-/** @typedef {import ("../../element/InputElement").default} InputElement */
+/**
+ * @typedef {import("../../element/IDraggableElement.js").default} IDraggableElement
+ */
+
+/**
+* @template {IDraggableElement} T
+* @extends {IMouseClickDrag<T>}
+*/
+class MouseIgnore extends IMouseClickDrag {
+
+    constructor(target, blueprint, options = {}) {
+        options.consumeEvent = true;
+        super(target, blueprint, options);
+    }
+}
+
+/**
+ * @typedef {import ("../../element/DropdownElement.js").default} DropdownElement
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
+
+/** @extends {ITemplate<DropdownElement>} */
+class DropdownTemplate extends ITemplate {
+
+    /** @type {HTMLSelectElement} */
+    #selectElement
+
+    render() {
+        return x`
+            <select class="ueb-pin-input-content">
+                ${this.element.options.map(v => x`
+                    <option value="${v}" ?selected="${v === this.element.selected}">${v}</option>
+                `)}
+            </select>
+        `
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.#selectElement = this.element.querySelector("select");
+        const event = new InputEvent("input", { bubbles: true });
+        this.#selectElement.dispatchEvent(event);
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            // Prevents creating links when selecting text and other undesired mouse actions detection
+            new MouseIgnore(this.element, this.blueprint),
+        ]
+    }
+
+    setSelectedValue(value) {
+        /** @type {HTMLOptionElement} */(this.element.querySelector(`option[value="${value}"]`)).defaultSelected = true;
+    }
+
+    getSelectedValue() {
+        return this.#selectElement.value
+    }
+}
+
+/** @extends {IElement<Object, DropdownTemplate>} */
+class DropdownElement extends IElement {
+
+    static properties = {
+        ...super.properties,
+        options: {
+            type: Array,
+        },
+        selected: {
+            type: String,
+        },
+    }
+
+    constructor() {
+        super();
+        super.initialize({}, new DropdownTemplate());
+        this.options = /** @type {String[]} */([]);
+        this.selected = "";
+    }
+
+    /** @param {String[]} options */
+    static newObject(options) {
+        const result = new DropdownElement();
+        return result
+    }
+
+    initialize() {
+        // Initialized in the constructor, this method does nothing
+    }
+
+    getValue() {
+        return this.template.getSelectedValue()
+    }
+}
+
+/**
+ * @typedef {import ("../../element/InputElement").default} InputElement
+ * @typedef {import ("lit").PropertyValues} PropertyValues
+ */
 
 /** @extends {ITemplate<InputElement>} */
 class InputTemplate extends ITemplate {
@@ -8676,6 +8823,21 @@ class InputTemplate extends ITemplate {
         this.element.classList.add("ueb-pin-input-content");
         this.element.setAttribute("role", "textbox");
         this.element.contentEditable = "true";
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        const event = new InputEvent("input", { bubbles: true });
+        this.element.dispatchEvent(event);
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            // Prevents creating links when selecting text and other undesired mouse actions detection
+            new MouseIgnore(this.element, this.blueprint),
+        ]
     }
 
     setup() {
@@ -8740,22 +8902,6 @@ class InputElement extends IElement {
     }
 }
 
-/**
- * @typedef {import("../../element/IDraggableElement.js").default} IDraggableElement
- */
-
-/**
-* @template {IDraggableElement} T
-* @extends {IMouseClickDrag<T>}
-*/
-class MouseIgnore extends IMouseClickDrag {
-
-    constructor(target, blueprint, options = {}) {
-        options.consumeEvent = true;
-        super(target, blueprint, options);
-    }
-}
-
 /** @typedef {import("lit").PropertyValues} PropertyValues */
 
 /** @extends PinTemplate<Boolean> */
@@ -8790,26 +8936,9 @@ class BoolPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        return y`
+        return x`
             <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
         `
-    }
-}
-
-class ExecPinTemplate extends PinTemplate {
-
-    renderIcon() {
-        return SVGIcon.execPin
-    }
-
-    renderName() {
-        let pinName = this.element.entity.PinName;
-        if (this.element.entity.PinFriendlyName) {
-            pinName = this.element.entity.PinFriendlyName.toString();
-        } else if (pinName === "execute" || pinName === "then") {
-            return y``
-        }
-        return y`${Utility.formatStringName(pinName)}`
     }
 }
 
@@ -8823,12 +8952,10 @@ class IInputPinTemplate extends PinTemplate {
 
     static singleLineInput = false
     static selectOnFocus = true
+    static saveEachInputChange = false // Otherwise save only on focus out
 
     /** @type {HTMLElement[]} */
     #inputContentElements
-    get inputContentElements() {
-        return this.#inputContentElements
-    }
 
     /** @param {String} value */
     static stringFromInputToUE(value) {
@@ -8844,7 +8971,7 @@ class IInputPinTemplate extends PinTemplate {
             .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
     }
 
-    #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
+    #setInput = () => this.setInputs(this.getInputs(), true)
     /** @param {InputEvent} event */
     #onInputCheckWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
 
@@ -8862,38 +8989,34 @@ class IInputPinTemplate extends PinTemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+            this.element.addEventListener("input", this.#onInputCheckWrapHandler);
             this.nameWidth = this.blueprint.scaleCorrect(
                 this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
             );
-            this.inputContentElements.forEach(inputElement => this.#updateWrapClass(inputElement));
         }
+        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
     }
 
     setup() {
         super.setup();
-        this.#inputContentElements.forEach(element => {
-            element.addEventListener("focusout", this.#onFocusOutHandler);
-            if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
-                element.addEventListener("input", this.#onInputCheckWrapHandler);
-            }
-        });
+        const Self = /** @type {typeof IInputPinTemplate} */(this.constructor);
+        if (Self.saveEachInputChange) {
+            this.element.addEventListener("input", this.#setInput);
+        } else {
+            this.element.addEventListener("focusout", this.#setInput);
+        }
+        if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+            this.element.addEventListener("input", this.#onInputCheckWrapHandler);
+        }
     }
 
     cleanup() {
         super.cleanup();
-        this.#inputContentElements.forEach(element => {
-            element.removeEventListener("focusout", this.#onFocusOutHandler);
-            element.removeEventListener("input", this.#onInputCheckWrapHandler);
-        });
-    }
+        this.element.removeEventListener("input", this.#onInputCheckWrapHandler);
+        this.element.removeEventListener("input", this.#setInput);
+        this.element.removeEventListener("focusout", this.#setInput);
 
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.blueprint)),
-        ]
     }
 
     getInput() {
@@ -8916,7 +9039,8 @@ class IInputPinTemplate extends PinTemplate {
         if (updateDefaultValue) {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values);
         }
-        this.element.addNextUpdatedCallbacks(() => this.element.nodeElement.acknowledgeReflow());
+        this.element.requestUpdate();
+        this.element.nodeElement.acknowledgeReflow();
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -8927,15 +9051,75 @@ class IInputPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        const singleLine = /** @type {typeof IInputPinTemplate} */(this.constructor).singleLineInput;
-        const selectOnFocus = /** @type {typeof IInputPinTemplate} */(this.constructor).selectOnFocus;
-        return y`
+        const Self = /** @type {typeof IInputPinTemplate} */(this.constructor);
+        const singleLine = Self.singleLineInput;
+        const selectOnFocus = Self.selectOnFocus;
+        return x`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
                     .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
                 </ueb-input>
             </div>
         `
+    }
+}
+
+/**
+ * @typedef {import("../../element/DropdownElement.js").default} DropdownElement
+ * @typedef {import("../../element/PinElement.js").AnyValue} AnyValue
+ * @typedef {import("../../entity/EnumEntity.js").default} EnumEntity
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../../element/PinElement.js").default<T>} PinElement
+ */
+
+/** @extends IInputPinTemplate<EnumEntity> */
+class EnumPinTemplate extends IInputPinTemplate {
+
+    static saveEachInputChange = true // Otherwise save only on focus out
+
+    /** @type {DropdownElement} */
+    #dropdownElement
+
+    renderInput() {
+        this.element.nodeElement.entity;
+        return x`
+            <ueb-dropdown
+                class="ueb-pin-input"
+                .options="${this.element.nodeElement.entity.EnumEntries}"
+                .selected="${this.element.defaultValue.value}"
+            >
+            </ueb-dropdown>
+        `
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.#dropdownElement = this.element.querySelector("ueb-dropdown");
+    }
+
+    getInputs() {
+        return [this.#dropdownElement.getValue()]
+    }
+}
+
+class ExecPinTemplate extends PinTemplate {
+
+    renderIcon() {
+        return SVGIcon.execPin
+    }
+
+    renderName() {
+        let pinName = this.element.entity.PinName;
+        if (this.element.entity.PinFriendlyName) {
+            pinName = this.element.entity.PinFriendlyName.toString();
+        } else if (pinName === "execute" || pinName === "then") {
+            return x``
+        }
+        return x`${Utility.formatStringName(pinName)}`
     }
 }
 
@@ -8989,7 +9173,7 @@ class IntPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        return y`
+        return x`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
                 </ueb-input>
@@ -9027,7 +9211,7 @@ const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e
  * @license
  * Copyright 2018 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const i=e(class extends i$1{constructor(t$1){var e;if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||(null===(e=t$1.strings)||void 0===e?void 0:e.length)>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce(((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`}),"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.vt){this.vt=new Set;for(const t in r)this.vt.add(t);return this.render(r)}this.vt.forEach((t=>{null==r[t]&&(this.vt.delete(t),t.includes("-")?s.removeProperty(t):s[t]="");}));for(const t in r){const e=r[t];null!=e&&(this.vt.add(t),t.includes("-")?s.setProperty(t,e):s[t]=e);}return x}});
+ */const i="important",n=" !"+i,o=e(class extends i$1{constructor(t$1){var e;if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||(null===(e=t$1.strings)||void 0===e?void 0:e.length)>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce(((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`}),"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ut){this.ut=new Set;for(const t in r)this.ut.add(t);return this.render(r)}this.ut.forEach((t=>{null==r[t]&&(this.ut.delete(t),t.includes("-")?s.removeProperty(t):s[t]="");}));for(const t in r){const e=r[t];if(null!=e){this.ut.add(t);const r="string"==typeof e&&e.endsWith(n);t.includes("-")||r?s.setProperty(t,r?e.slice(0,-11):e,r?i:""):s[t]=e;}}return T}});
 
 /** @typedef {import("../../element/WindowElement.js").default} WindowElement */
 
@@ -9069,7 +9253,7 @@ class WindowTemplate extends IDraggablePositionedTemplate {
     }
 
     render() {
-        return y`
+        return x`
             <div class="ueb-window">
                 <div class="ueb-window-top">
                     <div class="ueb-window-name ueb-ellipsis-nowrap-text">${this.renderWindowName()}</div>
@@ -9085,11 +9269,11 @@ class WindowTemplate extends IDraggablePositionedTemplate {
     }
 
     renderWindowName() {
-        return y`Window`
+        return x`Window`
     }
 
     renderContent() {
-        return y``
+        return x``
     }
 
     apply() {
@@ -9339,7 +9523,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                 break
         }
         background = `background: ${background};`;
-        return y`
+        return x`
             <div class="ueb-color-picker-${channelLetter.toLowerCase()}">
                 <span class="ueb-color-control-label">${channelLetter.toUpperCase()}</span>
                 <div>
@@ -9371,8 +9555,8 @@ class ColorPickerWindowTemplate extends WindowTemplate {
         const colorRGB = this.color.toRGBAString();
         const colorSRGB = this.color.toSRGBAString();
         const fullColorHex = this.fullColor.toRGBAString();
-        return y`
-            <div class="ueb-color-picker" style="${i(style)}">
+        return x`
+            <div class="ueb-color-picker" style="${o(style)}">
                 <div class="ueb-color-picker-toolbar">
                     <div class="ueb-color-picker-theme"></div>
                     <div class="ueb-color-picker-srgb"></div>
@@ -9454,7 +9638,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
     }
 
     renderWindowName() {
-        return y`${Configuration.colorWindowName}`
+        return x`${Configuration.colorWindowName}`
     }
 }
 
@@ -9501,10 +9685,10 @@ class LinearColorPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        return y`
-            <span class="ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? b}"
+        return x`
+            <span class="ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? A}"
                 @click="${this.#launchColorPickerWindow}"
-                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? b})">
+                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? A})">
             </span>
         `
     }
@@ -9526,7 +9710,7 @@ class RealPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        return y`
+        return x`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${true}"
                     .innerText="${Utility.minDecimals(this.element.getDefaultValue() ?? 0)}">
@@ -9572,7 +9756,7 @@ class RotatorPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        return y`
+        return x`
             <div class="ueb-pin-input-wrapper">
                 <span class="ueb-pin-input-label">X</span>
                 <div class="ueb-pin-input">
@@ -9623,7 +9807,7 @@ class VectorInputPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        return y`
+        return x`
             <div class="ueb-pin-input-wrapper">
                 <span class="ueb-pin-input-label">X</span>
                 <div class="ueb-pin-input">
@@ -9671,7 +9855,7 @@ class VectorPinTemplate extends INumericPinTemplate {
     }
 
     renderInput() {
-        return y`
+        return x`
             <div class="ueb-pin-input-wrapper">
                 <span class="ueb-pin-input-label">X</span>
                 <div class="ueb-pin-input">
@@ -9709,18 +9893,19 @@ class VectorPinTemplate extends INumericPinTemplate {
 class PinElement extends IElement {
 
     static #inputPinTemplates = {
-        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
-        "/Script/CoreUObject.Rotator": RotatorPinTemplate,
-        "/Script/CoreUObject.Vector": VectorPinTemplate,
-        "/Script/CoreUObject.Vector2D": VectorInputPinTemplate,
         "bool": BoolPinTemplate,
         "byte": IntPinTemplate,
+        "enum": EnumPinTemplate,
         "int": IntPinTemplate,
         "int64": Int64PinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
+        [Configuration.nodeType.linearColor]: LinearColorPinTemplate,
+        [Configuration.nodeType.rotator]: RotatorPinTemplate,
+        [Configuration.nodeType.vector]: VectorPinTemplate,
+        [Configuration.nodeType.vector2D]: VectorInputPinTemplate,
     }
 
     static properties = {
@@ -10347,22 +10532,19 @@ class WindowElement extends IDraggableElement {
 }
 
 function defineElements() {
-    customElements.define("ueb-color-handler", ColorHandlerElement);
-    ElementFactory.registerElement("ueb-color-handler", ColorHandlerElement);
-    customElements.define("ueb-input", InputElement);
-    ElementFactory.registerElement("ueb-input", InputElement);
-    customElements.define("ueb-link", LinkElement);
-    ElementFactory.registerElement("ueb-link", LinkElement);
-    customElements.define("ueb-node", NodeElement);
-    ElementFactory.registerElement("ueb-node", NodeElement);
-    customElements.define("ueb-pin", PinElement);
-    ElementFactory.registerElement("ueb-pin", PinElement);
-    customElements.define("ueb-selector", SelectorElement);
-    ElementFactory.registerElement("ueb-selector", SelectorElement);
-    customElements.define("ueb-ui-slider", ColorSliderElement);
-    ElementFactory.registerElement("ueb-ui-slider", ColorSliderElement);
-    customElements.define("ueb-window", WindowElement);
-    ElementFactory.registerElement("ueb-window", WindowElement);
+    const define = (tag, type) => {
+        customElements.define(tag, type);
+        ElementFactory.registerElement(tag, type);
+    };
+    define("ueb-color-handler", ColorHandlerElement);
+    define("ueb-dropdown", DropdownElement);
+    define("ueb-input", InputElement);
+    define("ueb-link", LinkElement);
+    define("ueb-node", NodeElement);
+    define("ueb-pin", PinElement);
+    define("ueb-selector", SelectorElement);
+    define("ueb-ui-slider", ColorSliderElement);
+    define("ueb-window", WindowElement);
 }
 
 /**

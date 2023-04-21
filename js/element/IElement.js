@@ -83,11 +83,6 @@ export default class IElement extends LitElement {
         return this
     }
 
-    /** @param {PropertyValues} changedProperties */
-    shouldUpdate(changedProperties) {
-        return this.isInitialized && this.isConnected
-    }
-
     setup() {
         this.template.setup()
         this.isSetup = true

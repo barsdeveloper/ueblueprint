@@ -1,5 +1,6 @@
 import ColorHandlerElement from "./ColorHandlerElement.js"
 import ColorSliderElement from "./ColorSliderElement.js"
+import DropdownElement from "./DropdownElement.js"
 import ElementFactory from "./ElementFactory.js"
 import InputElement from "./InputElement.js"
 import LinkElement from "./LinkElement.js"
@@ -9,20 +10,17 @@ import SelectorElement from "./SelectorElement.js"
 import WindowElement from "./WindowElement.js"
 
 export default function defineElements() {
-    customElements.define("ueb-color-handler", ColorHandlerElement)
-    ElementFactory.registerElement("ueb-color-handler", ColorHandlerElement)
-    customElements.define("ueb-input", InputElement)
-    ElementFactory.registerElement("ueb-input", InputElement)
-    customElements.define("ueb-link", LinkElement)
-    ElementFactory.registerElement("ueb-link", LinkElement)
-    customElements.define("ueb-node", NodeElement)
-    ElementFactory.registerElement("ueb-node", NodeElement)
-    customElements.define("ueb-pin", PinElement)
-    ElementFactory.registerElement("ueb-pin", PinElement)
-    customElements.define("ueb-selector", SelectorElement)
-    ElementFactory.registerElement("ueb-selector", SelectorElement)
-    customElements.define("ueb-ui-slider", ColorSliderElement)
-    ElementFactory.registerElement("ueb-ui-slider", ColorSliderElement)
-    customElements.define("ueb-window", WindowElement)
-    ElementFactory.registerElement("ueb-window", WindowElement)
+    const define = (tag, type) => {
+        customElements.define(tag, type)
+        ElementFactory.registerElement(tag, type)
+    }
+    define("ueb-color-handler", ColorHandlerElement)
+    define("ueb-dropdown", DropdownElement)
+    define("ueb-input", InputElement)
+    define("ueb-link", LinkElement)
+    define("ueb-node", NodeElement)
+    define("ueb-pin", PinElement)
+    define("ueb-selector", SelectorElement)
+    define("ueb-ui-slider", ColorSliderElement)
+    define("ueb-window", WindowElement)
 }

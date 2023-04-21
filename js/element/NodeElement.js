@@ -13,7 +13,6 @@ import Utility from "../Utility.js"
 import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTemplate.js"
 import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate.js"
-import UnknownPinEntity from "../entity/UnknownPinEntity.js"
 
 /**
  * @typedef {import("./IDraggableElement.js").DragEvent} DragEvent
@@ -193,11 +192,12 @@ export default class NodeElement extends ISelectableDraggableElement {
         }
     }
 
-    getUpdateComplete() {
-        return Promise.all([
-            super.getUpdateComplete(),
-            ...this.getPinElements().map(pin => pin.updateComplete)
-        ]).then(() => true)
+    async getUpdateComplete() {
+        let result = await super.getUpdateComplete()
+        for (const pin of this.getPinElements()) {
+            result &&= await pin.updateComplete
+        }
+        return result
     }
 
     /** @param {NodeElement} commentNode */
