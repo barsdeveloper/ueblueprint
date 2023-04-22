@@ -440,7 +440,7 @@ export default class ObjectEntity extends IEntity {
 
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        return this.CustomProperties.filter(v => v instanceof PinEntity)
+        return this.CustomProperties.filter(v => v.constructor === PinEntity)
     }
 
     switchTarget() {
