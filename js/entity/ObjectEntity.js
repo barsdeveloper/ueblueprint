@@ -448,7 +448,6 @@ export default class ObjectEntity extends IEntity {
         if (switchMatch) {
             return switchMatch[1]
         }
-        return ""
     }
 
     isEvent() {
