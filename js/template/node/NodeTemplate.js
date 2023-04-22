@@ -22,7 +22,8 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay()
-        this.element.addNextUpdatedCallbacks(() => this.element.acknowledgeReflow(), true)
+        this.element.requestUpdate()
+        this.element.updateComplete.then(() => this.element.acknowledgeReflow())
     }
 
     /** @param {NodeElement} element */

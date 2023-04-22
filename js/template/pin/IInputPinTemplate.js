@@ -1,6 +1,5 @@
 import { html } from "lit"
 import Configuration from "../../Configuration.js"
-import MouseIgnore from "../../input/mouse/MouseIgnore.js"
 import PinTemplate from "./PinTemplate.js"
 import Utility from "../../Utility.js"
 
@@ -14,12 +13,10 @@ export default class IInputPinTemplate extends PinTemplate {
 
     static singleLineInput = false
     static selectOnFocus = true
+    static saveEachInputChange = false // Otherwise save only on focus out
 
     /** @type {HTMLElement[]} */
     #inputContentElements
-    get inputContentElements() {
-        return this.#inputContentElements
-    }
 
     /** @param {String} value */
     static stringFromInputToUE(value) {
@@ -35,8 +32,8 @@ export default class IInputPinTemplate extends PinTemplate {
             .replace(/(?<=\n\s*)$/, "\n") // Put back trailing double newline
     }
 
-    #onFocusOutHandler = () => this.setInputs(this.getInputs(), true)
-    /** @param {InputEvent} event */
+    #setInput = () => this.setInputs(this.getInputs(), true)
+    /** @param {Event} event */
     #onInputCheckWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
 
     /** @param {HTMLElement}  inputElement*/
@@ -53,38 +50,34 @@ export default class IInputPinTemplate extends PinTemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+            this.element.addEventListener("input", this.#onInputCheckWrapHandler)
             this.nameWidth = this.blueprint.scaleCorrect(
                 this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
             )
-            this.inputContentElements.forEach(inputElement => this.#updateWrapClass(inputElement))
         }
+        this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
     }
 
     setup() {
         super.setup()
-        this.#inputContentElements.forEach(element => {
-            element.addEventListener("focusout", this.#onFocusOutHandler)
-            if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
-                element.addEventListener("input", this.#onInputCheckWrapHandler)
-            }
-        })
+        const Self = /** @type {typeof IInputPinTemplate} */(this.constructor)
+        if (Self.saveEachInputChange) {
+            this.element.addEventListener("input", this.#setInput)
+        } else {
+            this.element.addEventListener("focusout", this.#setInput)
+        }
+        if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+            this.element.addEventListener("input", this.#onInputCheckWrapHandler)
+        }
     }
 
     cleanup() {
         super.cleanup()
-        this.#inputContentElements.forEach(element => {
-            element.removeEventListener("focusout", this.#onFocusOutHandler)
-            element.removeEventListener("input", this.#onInputCheckWrapHandler)
-        })
-    }
+        this.element.removeEventListener("input", this.#onInputCheckWrapHandler)
+        this.element.removeEventListener("input", this.#setInput)
+        this.element.removeEventListener("focusout", this.#setInput)
 
-    createInputObjects() {
-        return [
-            ...super.createInputObjects(),
-            ...this.#inputContentElements.map(elem => new MouseIgnore(elem, this.blueprint)),
-        ]
     }
 
     getInput() {
@@ -107,7 +100,8 @@ export default class IInputPinTemplate extends PinTemplate {
         if (updateDefaultValue) {
             this.setDefaultValue(values.map(v => IInputPinTemplate.stringFromInputToUE(v)), values)
         }
-        this.element.addNextUpdatedCallbacks(() => this.element.nodeElement.acknowledgeReflow())
+        this.element.requestUpdate()
+        this.element.nodeElement.acknowledgeReflow()
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -118,8 +112,9 @@ export default class IInputPinTemplate extends PinTemplate {
     }
 
     renderInput() {
-        const singleLine = /** @type {typeof IInputPinTemplate} */(this.constructor).singleLineInput
-        const selectOnFocus = /** @type {typeof IInputPinTemplate} */(this.constructor).selectOnFocus
+        const Self = /** @type {typeof IInputPinTemplate} */(this.constructor)
+        const singleLine = Self.singleLineInput
+        const selectOnFocus = Self.selectOnFocus
         return html`
             <div class="ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"

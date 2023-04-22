@@ -81,7 +81,7 @@ export default class IEntity {
 
             if (!suppressWarns) {
                 if (!(attributeName in attributes)) {
-                    const typeName = value instanceof Array ? `[${value[0].constructor.name}]` : value.constructor.name
+                    const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
                         + `defined in ${Self.name}.attributes`

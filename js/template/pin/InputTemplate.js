@@ -1,6 +1,10 @@
 import ITemplate from "../ITemplate.js"
+import MouseIgnore from "../../input/mouse/MouseIgnore.js"
 
-/** @typedef {import ("../../element/InputElement").default} InputElement */
+/**
+ * @typedef {import ("../../element/InputElement").default} InputElement
+ * @typedef {import ("lit").PropertyValues} PropertyValues
+ */
 
 /** @extends {ITemplate<InputElement>} */
 export default class InputTemplate extends ITemplate {
@@ -17,7 +21,7 @@ export default class InputTemplate extends ITemplate {
         getSelection().removeAllRanges() // Deselect eventually selected text inside the input
     }
 
-    /** @param {InputEvent} e */
+    /** @param {Event} e */
     #inputSingleLineHandler = e =>
         /** @type {HTMLElement} */(e.target).querySelectorAll("br").forEach(br => br.remove())
 
@@ -34,6 +38,21 @@ export default class InputTemplate extends ITemplate {
         this.element.classList.add("ueb-pin-input-content")
         this.element.setAttribute("role", "textbox")
         this.element.contentEditable = "true"
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties)
+        const event = new Event("input", { bubbles: true })
+        this.element.dispatchEvent(event)
+    }
+
+    createInputObjects() {
+        return [
+            ...super.createInputObjects(),
+            // Prevents creating links when selecting text and other undesired mouse actions detection
+            new MouseIgnore(this.element, this.blueprint),
+        ]
     }
 
     setup() {

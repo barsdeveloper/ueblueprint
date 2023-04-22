@@ -30,7 +30,7 @@ export default class Configuration {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
     }
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 0 (1:1) zoom
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
     static expandGridSize = 400
     static focusEventName = {
         begin: "blueprint-focus",
@@ -112,6 +112,7 @@ export default class Configuration {
         inputVectorAxisEvent: "/Script/BlueprintGraph.K2Node_InputVectorAxisEvent",
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
+        linearColor: "/Script/CoreUObject.LinearColor",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
@@ -120,12 +121,18 @@ export default class Configuration {
         pawn: "/Script/Engine.Pawn",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
+        rotator: "/Script/CoreUObject.Rotator",
         select: "/Script/BlueprintGraph.K2Node_Select",
         spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
+        switchInteger: "/Script/BlueprintGraph.K2Node_SwitchInteger",
+        switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
+        switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
+        vector: "/Script/CoreUObject.Vector",
+        vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinColor = {
@@ -184,6 +191,7 @@ export default class Configuration {
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
         this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
+    static switchTargetPattern = /\/Script\/[\w\.\/\:]+K2Node_Switch([A-Z]\w+)+/
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",

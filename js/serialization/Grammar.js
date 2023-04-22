@@ -156,6 +156,9 @@ export default class Grammar {
     ) {
         let result = defaultGrammar
         if (type instanceof Array) {
+            if (attribute?.inlined) {
+                return this.grammarFor(undefined, type[0])
+            }
             result = P.seq(
                 P.regex(/\(\s*/),
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),

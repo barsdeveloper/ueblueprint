@@ -317,8 +317,9 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node.ueb-node-styl
 }
 
 .ueb-node-top {
-  color: #c0c0c0;
-  font-weight: 900;
+  color: #d0d0d0;
+  font-size: calc(var(--ueb-font-size) + 1px);
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -678,6 +679,7 @@ ueb-pin[data-linked=true] .ueb-pin-tofill {
 .ueb-pin-name {
   display: inline-block;
   vertical-align: middle;
+  letter-spacing: -0.2px;
 }
 
 .ueb-zoom--6 .ueb-pin-content {
@@ -770,6 +772,23 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
 
 ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-input-content:hover {
   cursor: text;
+}
+
+ueb-dropdown.ueb-pin-input {
+  margin-right: 15px;
+  padding-right: 10px;
+  background: #101010 !important;
+  color: #c0c0c0;
+  border-color: #404040;
+}
+
+ueb-dropdown.ueb-pin-input select {
+  padding: 6px;
+  width: 170px;
+  background: none;
+  font-size: 10px;
+  letter-spacing: -0.2px;
+  cursor: default !important;
 }
 
 .ueb-button {

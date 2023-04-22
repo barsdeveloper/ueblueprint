@@ -1,5 +1,7 @@
 import BoolPinTemplate from "../template/pin/BoolPinTemplate.js"
+import Configuration from "../Configuration.js"
 import ElementFactory from "./ElementFactory.js"
+import EnumPinTemplate from "../template/pin/EnumPinTemplate.js"
 import ExecPinTemplate from "../template/pin/ExecPinTemplate.js"
 import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "../entity/GuidEntity.js"
@@ -39,18 +41,19 @@ import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
 export default class PinElement extends IElement {
 
     static #inputPinTemplates = {
-        "/Script/CoreUObject.LinearColor": LinearColorPinTemplate,
-        "/Script/CoreUObject.Rotator": RotatorPinTemplate,
-        "/Script/CoreUObject.Vector": VectorPinTemplate,
-        "/Script/CoreUObject.Vector2D": Vector2DPinTemplate,
         "bool": BoolPinTemplate,
         "byte": IntPinTemplate,
+        "enum": EnumPinTemplate,
         "int": IntPinTemplate,
         "int64": Int64PinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
+        [Configuration.nodeType.linearColor]: LinearColorPinTemplate,
+        [Configuration.nodeType.rotator]: RotatorPinTemplate,
+        [Configuration.nodeType.vector]: VectorPinTemplate,
+        [Configuration.nodeType.vector2D]: Vector2DPinTemplate,
     }
 
     static properties = {

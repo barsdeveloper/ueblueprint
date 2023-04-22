@@ -71,8 +71,9 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] ueb-node.ueb-node-
 }
 
 .ueb-node-top {
-    color: #c0c0c0;
-    font-weight: 900;
+    color: #d0d0d0;
+    font-size: calc(var(--ueb-font-size) + 1px);
+    font-weight: 600;
     white-space: nowrap;
 }
 

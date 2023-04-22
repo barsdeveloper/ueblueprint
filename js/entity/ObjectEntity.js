@@ -90,6 +90,11 @@ export default class ObjectEntity extends IEntity {
             type: ObjectReferenceEntity,
             showDefault: false,
         },
+        EnumEntries: {
+            type: [String],
+            showDefault: false,
+            inlined: true,
+        },
         InputKey: {
             type: SymbolEntity,
             showDefault: false,
@@ -293,6 +298,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity?} */ this.TargetType
         /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference
         /** @type {ObjectReferenceEntity?} */ this.Enum
+        /** @type {String[]?} */ this.EnumEntries
         /** @type {SymbolEntity?} */ this.InputKey
         /** @type {Boolean?} */ this.bOverrideFunction
         /** @type {Boolean?} */ this.bInternalEvent
@@ -434,7 +440,14 @@ export default class ObjectEntity extends IEntity {
 
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        return this.CustomProperties.filter(v => v instanceof PinEntity)
+        return this.CustomProperties.filter(v => v.constructor === PinEntity)
+    }
+
+    switchTarget() {
+        const switchMatch = this.getClass().match(Configuration.switchTargetPattern)
+        if (switchMatch) {
+            return switchMatch[1]
+        }
     }
 
     isEvent() {
@@ -496,10 +509,19 @@ export default class ObjectEntity extends IEntity {
                 )}`
             case Configuration.nodeType.switchEnum:
                 return `Switch on ${this.Enum?.getName() ?? "Enum"}`
+            case Configuration.nodeType.switchInteger:
+                return `Switch on Int`
             case Configuration.nodeType.variableGet:
                 return ""
             case Configuration.nodeType.variableSet:
                 return "SET"
+        }
+        let switchTarget = this.switchTarget()
+        if (switchTarget) {
+            if (switchTarget[0] !== "E") {
+                switchTarget = Utility.formatStringName(switchTarget)
+            }
+            return `Switch on ${switchTarget}`
         }
         const keyNameSymbol = this.getHIDAttribute()
         if (keyNameSymbol) {
@@ -535,7 +557,7 @@ export default class ObjectEntity extends IEntity {
             switch (memberParent) {
                 case "/Script/Engine.KismetMathLibrary":
                     if (memberName.startsWith("Conv_")) {
-                        return "" // Conversion  nodes do not have visible names
+                        return "" // Conversion nodes do not have visible names
                     }
                     if (memberName.startsWith("Percent_")) {
                         return "%"
@@ -602,8 +624,9 @@ export default class ObjectEntity extends IEntity {
                 return Configuration.nodeColors.gray
             case Configuration.nodeType.dynamicCast:
                 return Configuration.nodeColors.turquoise
-            case Configuration.nodeType.switchEnum:
-                return Configuration.nodeColors.lime
+        }
+        if (this.switchTarget()) {
+            return Configuration.nodeColors.lime
         }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
@@ -645,7 +668,9 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
             case Configuration.nodeType.spawnActorFromClass: return SVGIcon.spawnActor
-            case Configuration.nodeType.switchEnum: return SVGIcon.switch
+        }
+        if (this.switchTarget()) {
+            return SVGIcon.switch
         }
         if (this.nodeDisplayName().startsWith("Break")) {
             return SVGIcon.breakStruct
