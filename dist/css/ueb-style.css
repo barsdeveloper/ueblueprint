@@ -404,12 +404,12 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
 }
 
 .ueb-node-has-inputs .ueb-node-inputs {
-  padding-left: 8px;
+  padding-left: 10px;
 }
 
 .ueb-node-outputs {
   margin-left: auto;
-  padding-left: 16px;
+  padding-left: 20px;
   padding-right: 10px;
 }
 
@@ -591,7 +591,7 @@ ueb-pin {
   min-height: 30px;
 }
 
-ueb-pin.ueb-pin-input-wrap .ueb-pin-input {
+ueb-pin.ueb-pin-input-wrap .ueb-pin-content {
   display: block;
 }
 
@@ -608,11 +608,8 @@ ueb-node[data-advanced-display=Hidden] ueb-pin[data-advanced-view=true] {
 }
 
 .ueb-pin-wrapper {
-  display: inline-block;
-}
-.ueb-pin-wrapper > * {
-  display: inline-block;
-  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
 }
 
 .ueb-node-top .ueb-pin-wrapper {
@@ -633,6 +630,11 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover
   background: none !important;
 }
 
+.ueb-pin-content {
+  display: flex;
+  align-items: center;
+}
+
 .ueb-node-outputs ueb-pin {
   text-align: right;
 }
@@ -650,11 +652,11 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover
 }
 
 .ueb-node-inputs .ueb-pin-icon {
-  margin-right: 4px;
+  margin-right: 10px;
 }
 
 .ueb-node-outputs .ueb-pin-icon {
-  margin-left: 2px;
+  margin-left: 4px;
 }
 
 ueb-node.ueb-node-style-minimal .ueb-pin-wrapper,
@@ -677,9 +679,7 @@ ueb-pin[data-linked=true] .ueb-pin-tofill {
 }
 
 .ueb-pin-name {
-  display: inline-block;
-  vertical-align: middle;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.25px;
 }
 
 .ueb-zoom--6 .ueb-pin-content {
@@ -695,12 +695,10 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-dir
 }
 
 .ueb-pin-input {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 3px;
+  margin-left: 6px;
   border: 1px solid #a0a0a0;
   border-radius: 3px;
-  padding: 0 3px 0 3px;
+  padding: 0 4px 0 4px;
   color: #e0e0e0;
 }
 .ueb-pin-input:hover, .ueb-pin-input:active, .ueb-pin-input:focus, .ueb-pin-input:focus-within {
@@ -772,6 +770,10 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
 
 ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-input-content:hover {
   cursor: text;
+}
+
+ueb-dropdown {
+  display: block;
 }
 
 ueb-dropdown.ueb-pin-input {

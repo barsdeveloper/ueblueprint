@@ -22,7 +22,6 @@ export default class IInputPinTemplate extends PinTemplate {
     static stringFromInputToUE(value) {
         return value
             .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
-            .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
     }
 
     /** @param {String} value */
@@ -38,7 +37,8 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
-        const width = this.blueprint.scaleCorrect(inputElement.getBoundingClientRect().width) + this.nameWidth
+        const width = Math.round(this.blueprint.scaleCorrect(inputElement.getBoundingClientRect().width))
+            + Math.round(this.nameWidth)
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap")
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
             this.element.classList.add("ueb-pin-input-wrap")

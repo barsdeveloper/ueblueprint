@@ -168,7 +168,7 @@ export default class Configuration {
         "text": css`226, 121, 167`,
         "wildcard": css`128, 120, 120`,
     }
-    static pinInputWrapWidth = 134 // px
+    static pinInputWrapWidth = 136 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,

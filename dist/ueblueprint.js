@@ -192,7 +192,7 @@ class Configuration {
         "text": i$3`226, 121, 167`,
         "wildcard": i$3`128, 120, 120`,
     }
-    static pinInputWrapWidth = 134 // px
+    static pinInputWrapWidth = 136 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
@@ -9007,7 +9007,6 @@ class IInputPinTemplate extends PinTemplate {
     static stringFromInputToUE(value) {
         return value
             .replace(/(?=\n\s*)\n$/, "") // Remove trailing double newline
-            .replaceAll("\n", "\\r\n") // Replace newline with \r\n (default newline in UE)
     }
 
     /** @param {String} value */
@@ -9023,7 +9022,8 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
-        const width = this.blueprint.scaleCorrect(inputElement.getBoundingClientRect().width) + this.nameWidth;
+        const width = Math.round(this.blueprint.scaleCorrect(inputElement.getBoundingClientRect().width))
+            + Math.round(this.nameWidth);
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap");
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
             this.element.classList.add("ueb-pin-input-wrap");
