@@ -37,6 +37,7 @@ class Configuration {
         lime: i$3`150, 160, 30`,
         red: i$3`151, 33, 32`,
         turquoise: i$3`46, 104, 106`,
+        yellow: i$3`148, 116, 24`,
     }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
@@ -159,6 +160,7 @@ class Configuration {
         switchInteger: "/Script/BlueprintGraph.K2Node_SwitchInteger",
         switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
         switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
+        timeline: "/Script/BlueprintGraph.K2Node_Timeline",
         transform: "/Script/CoreUObject.Transform",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
@@ -2687,6 +2689,13 @@ class SVGIcon {
         </svg>
     `
 
+    static timer = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5ZM8 14.1C4.6 14.1 1.9 11.4 1.9 8C1.9 4.6 4.6 1.90002 8 1.90002C11.4 1.90002 14.1 4.6 14.1 8C14.1 11.4 11.4 14.1 8 14.1Z" fill="white"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.60003 3.19995H7.40002V8.49994L10.5 11.4999L11.4 10.5999L8.60003 7.99994V3.19995Z" fill="white"/>
+        </svg>
+    `
+
     static touchpad = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path  fill="white" fill-rule="evenodd" clip-rule="evenodd" d="M13 0H3C2.4 0 2 0.4 2 1V15C2 15.6 2.4 16 3 16H13C13.6 16 14 15.6 14 15V1C14 0.4 13.6 0 13 0ZM8 15.5C7.2 15.5 6.5 14.8 6.5 14C6.5 13.2 7.2 12.5 8 12.5C8.8 12.5 9.5 13.2 9.5 14C9.5 14.8 8.8 15.5 8 15.5ZM13 12H3V1H13V12Z" />
@@ -2872,6 +2881,14 @@ class ObjectEntity extends IEntity {
             type: SymbolEntity,
             showDefault: false,
         },
+        TimelineName: {
+            type: String,
+            showDefault: false,
+        },
+        TimelineGuid: {
+            type: GuidEntity,
+            showDefault: false,
+        },
         NodePosX: {
             type: IntegerEntity,
             showDefault: false,
@@ -2886,6 +2903,10 @@ class ObjectEntity extends IEntity {
         },
         NodeHeight: {
             type: IntegerEntity,
+            showDefault: false,
+        },
+        bCanRenameNode: {
+            type: Boolean,
             showDefault: false,
         },
         bCommentBubblePinned: {
@@ -3336,6 +3357,8 @@ class ObjectEntity extends IEntity {
                 return this.bIsPureFunc
                     ? Configuration.nodeColors.green
                     : Configuration.nodeColors.blue
+            case Configuration.nodeType.dynamicCast:
+                return Configuration.nodeColors.turquoise
             case Configuration.nodeType.inputDebugKey:
             case Configuration.nodeType.inputKey:
                 return Configuration.nodeColors.red
@@ -3350,8 +3373,8 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.macro:
             case Configuration.nodeType.multiGate:
                 return Configuration.nodeColors.gray
-            case Configuration.nodeType.dynamicCast:
-                return Configuration.nodeColors.turquoise
+            case Configuration.nodeType.timeline:
+                return Configuration.nodeColors.yellow
         }
         if (this.switchTarget()) {
             return Configuration.nodeColors.lime
@@ -3396,6 +3419,7 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
             case Configuration.nodeType.spawnActorFromClass: return SVGIcon.spawnActor
+            case Configuration.nodeType.timeline: return SVGIcon.timer
         }
         if (this.switchTarget()) {
             return SVGIcon.switch

@@ -1,4 +1,5 @@
 import Configuration from "../Configuration.js"
+import FormatTextEntity from "./FormatTextEntity.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import GuidEntity from "./GuidEntity.js"
 import IdentifierEntity from "./IdentifierEntity.js"
@@ -152,6 +153,14 @@ export default class ObjectEntity extends IEntity {
             type: SymbolEntity,
             showDefault: false,
         },
+        TimelineName: {
+            type: String,
+            showDefault: false,
+        },
+        TimelineGuid: {
+            type: GuidEntity,
+            showDefault: false,
+        },
         NodePosX: {
             type: IntegerEntity,
             showDefault: false,
@@ -166,6 +175,10 @@ export default class ObjectEntity extends IEntity {
         },
         NodeHeight: {
             type: IntegerEntity,
+            showDefault: false,
+        },
+        bCanRenameNode: {
+            type: Boolean,
             showDefault: false,
         },
         bCommentBubblePinned: {
@@ -616,6 +629,8 @@ export default class ObjectEntity extends IEntity {
                 return this.bIsPureFunc
                     ? Configuration.nodeColors.green
                     : Configuration.nodeColors.blue
+            case Configuration.nodeType.dynamicCast:
+                return Configuration.nodeColors.turquoise
             case Configuration.nodeType.inputDebugKey:
             case Configuration.nodeType.inputKey:
                 return Configuration.nodeColors.red
@@ -630,8 +645,8 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.macro:
             case Configuration.nodeType.multiGate:
                 return Configuration.nodeColors.gray
-            case Configuration.nodeType.dynamicCast:
-                return Configuration.nodeColors.turquoise
+            case Configuration.nodeType.timeline:
+                return Configuration.nodeColors.yellow
         }
         if (this.switchTarget()) {
             return Configuration.nodeColors.lime
@@ -676,6 +691,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.makeSet: return SVGIcon.makeSet
             case Configuration.nodeType.select: return SVGIcon.select
             case Configuration.nodeType.spawnActorFromClass: return SVGIcon.spawnActor
+            case Configuration.nodeType.timeline: return SVGIcon.timer
         }
         if (this.switchTarget()) {
             return SVGIcon.switch

@@ -13,6 +13,7 @@ export default class Configuration {
         lime: css`150, 160, 30`,
         red: css`151, 33, 32`,
         turquoise: css`46, 104, 106`,
+        yellow: css`148, 116, 24`,
     }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
     static colorDragEventName = "ueb-color-drag"
@@ -135,6 +136,7 @@ export default class Configuration {
         switchInteger: "/Script/BlueprintGraph.K2Node_SwitchInteger",
         switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
         switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
+        timeline: "/Script/BlueprintGraph.K2Node_Timeline",
         transform: "/Script/CoreUObject.Transform",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
