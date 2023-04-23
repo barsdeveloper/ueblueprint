@@ -37,6 +37,7 @@ class Configuration {
         lime: i$3`150, 160, 30`,
         red: i$3`151, 33, 32`,
         turquoise: i$3`46, 104, 106`,
+        violet: i$3`126, 28, 150`,
         yellow: i$3`148, 116, 24`,
     }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"
@@ -3248,6 +3249,8 @@ class ObjectEntity extends IEntity {
                 return `For Each ${this.Enum?.getName()}`
             case Configuration.nodeType.forEachLoopWithBreak:
                 return "For Each Loop with Break"
+            case Configuration.nodeType.functionEntry:
+                return "Construction Script"
             case Configuration.nodeType.ifThenElse:
                 return "Branch"
             case Configuration.nodeType.spawnActorFromClass:
@@ -3373,6 +3376,8 @@ class ObjectEntity extends IEntity {
             case Configuration.nodeType.macro:
             case Configuration.nodeType.multiGate:
                 return Configuration.nodeColors.gray
+            case Configuration.nodeType.functionEntry:
+                return Configuration.nodeColors.violet
             case Configuration.nodeType.timeline:
                 return Configuration.nodeColors.yellow
         }
@@ -3392,6 +3397,7 @@ class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.nodeType.addDelegate:
             case Configuration.nodeType.createDelegate:
+            case Configuration.nodeType.functionEntry:
                 return SVGIcon.node
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN

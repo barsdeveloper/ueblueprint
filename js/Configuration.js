@@ -13,6 +13,7 @@ export default class Configuration {
         lime: css`150, 160, 30`,
         red: css`151, 33, 32`,
         turquoise: css`46, 104, 106`,
+        violet: css`126, 28, 150`,
         yellow: css`148, 116, 24`,
     }
     static alphaPattern = "repeating-conic-gradient(#7c8184 0% 25%, #c2c3c4 0% 50%) 50% / 10px 10px"

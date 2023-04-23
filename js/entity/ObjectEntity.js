@@ -520,6 +520,8 @@ export default class ObjectEntity extends IEntity {
                 return `For Each ${this.Enum?.getName()}`
             case Configuration.nodeType.forEachLoopWithBreak:
                 return "For Each Loop with Break"
+            case Configuration.nodeType.functionEntry:
+                return "Construction Script"
             case Configuration.nodeType.ifThenElse:
                 return "Branch"
             case Configuration.nodeType.spawnActorFromClass:
@@ -645,6 +647,8 @@ export default class ObjectEntity extends IEntity {
             case Configuration.nodeType.macro:
             case Configuration.nodeType.multiGate:
                 return Configuration.nodeColors.gray
+            case Configuration.nodeType.functionEntry:
+                return Configuration.nodeColors.violet
             case Configuration.nodeType.timeline:
                 return Configuration.nodeColors.yellow
         }
@@ -664,6 +668,7 @@ export default class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.nodeType.addDelegate:
             case Configuration.nodeType.createDelegate:
+            case Configuration.nodeType.functionEntry:
                 return SVGIcon.node
             case Configuration.nodeType.customEvent: return SVGIcon.event
             case Configuration.nodeType.doN: return SVGIcon.doN
