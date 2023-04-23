@@ -125,6 +125,7 @@ class Configuration {
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
         eSearchCase: "/Script/CoreUObject.ESearchCase",
         eSearchDir: "/Script/CoreUObject.ESearchDir",
+        eTraceTypeQuery: "/Script/Engine.ETraceTypeQuery",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         flipflop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
@@ -235,7 +236,8 @@ class Configuration {
     static CommonEnums = {
         [this.nodeType.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
         [this.nodeType.eSearchDir]: ["FromStart", "FromEnd"],
-        [this.nodeType.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"]
+        [this.nodeType.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
+        [this.nodeType.eTraceTypeQuery]: [["TraceTypeQuery1", "Visibility"], ["TraceTypeQuery2", "Camera"]]
     }
     static ModifierKeys = [
         "Ctrl",
@@ -9115,7 +9117,9 @@ class EnumPinTemplate extends IInputPinTemplate {
                 ]
             })
             ?? Configuration.CommonEnums[this.element.entity.getSubCategory()]?.map(k =>
-                [k, Utility.formatStringName(k)]
+                k instanceof Array
+                    ? k
+                    : [k, Utility.formatStringName(k)]
             )
             ?? [];
         const defaultEntry = this.element.getDefaultValue().toString();

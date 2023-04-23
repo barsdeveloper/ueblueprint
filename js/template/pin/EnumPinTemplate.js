@@ -40,7 +40,9 @@ export default class EnumPinTemplate extends IInputPinTemplate {
                 ]
             })
             ?? Configuration.CommonEnums[this.element.entity.getSubCategory()]?.map(k =>
-                [k, Utility.formatStringName(k)]
+                k instanceof Array
+                    ? k
+                    : [k, Utility.formatStringName(k)]
             )
             ?? []
         const defaultEntry = this.element.getDefaultValue().toString()
