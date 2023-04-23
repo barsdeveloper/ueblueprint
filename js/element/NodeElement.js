@@ -105,7 +105,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
             || nodeEntity.getClass() === Configuration.nodeType.callArrayFunction
         ) {
-            const memberParent = nodeEntity.FunctionReference.MemberParent?.path ?? ""
+            const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
             if (
                 memberParent === "/Script/Engine.KismetMathLibrary"
                 || memberParent === "/Script/Engine.KismetArrayLibrary"

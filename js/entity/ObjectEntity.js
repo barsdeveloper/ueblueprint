@@ -547,19 +547,20 @@ export default class ObjectEntity extends IEntity {
         let memberName = this.FunctionReference?.MemberName
         if (memberName) {
             const memberParent = this.FunctionReference.MemberParent?.path ?? ""
-            switch (memberName) {
-                case "AddKey":
-                    {
-                        let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex)
-                        if (result) {
-                            return `Add Key (${Utility.formatStringName(result[1])})`
-                        }
-                    }
-                    break
-                case "LineTraceSingle":
-                    return "Line Trace By Channel"
-                case "LineTraceSingleByProfile":
-                    return "Line Trace By Profile"
+            if (memberName === "AddKey") {
+                let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex)
+                if (result) {
+                    return `Add Key (${Utility.formatStringName(result[1])})`
+                }
+            }
+            const memberNameTraceLineMatch = memberName.match(Configuration.lineTracePattern)
+            if (memberNameTraceLineMatch) {
+                return "Line Trace"
+                    + (memberNameTraceLineMatch[1] === "Multi" ? " Multi " : " ")
+                    + (memberNameTraceLineMatch[2] === ""
+                        ? "By Channel"
+                        : Utility.formatStringName(memberNameTraceLineMatch[2])
+                    )
             }
             switch (memberParent) {
                 case "/Script/Engine.KismetMathLibrary":

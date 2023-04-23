@@ -292,7 +292,8 @@ export default class Grammar {
     }
 
     /**
-     * @param {EntityConstructor} entityType
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entityType
      * @param {String[]} key
      * @returns {AttributeInformation}
      */
@@ -307,6 +308,7 @@ export default class Grammar {
             }
         }
         if (entityType instanceof IEntity.constructor) {
+            // @ts-expect-error
             result = entityType.attributes[key[0]]
             type = result?.type
         } else if (entityType instanceof Array) {
@@ -380,6 +382,7 @@ export default class Grammar {
             P.regex(new RegExp(`${FormatTextEntity.lookbehind}\\s*`)),
             this.grammarFor(FormatTextEntity.attributes.value)
         )
+            .map(([_0, values]) => new FormatTextEntity(values))
     )
 
     static functionReferenceEntity = P.lazy(() => this.createEntityGrammar(FunctionReferenceEntity))

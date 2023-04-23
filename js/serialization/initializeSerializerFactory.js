@@ -1,13 +1,13 @@
 import ByteEntity from "../entity/ByteEntity.js"
 import CustomSerializer from "./CustomSerializer.js"
 import EnumEntity from "../entity/EnumEntity.js"
+import FormatTextEntity from "../entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import IdentifierEntity from "../entity/IdentifierEntity.js"
 import Integer64Entity from "../entity/Integer64Entity.js"
 import IntegerEntity from "../entity/IntegerEntity.js"
 import InvariantTextEntity from "../entity/InvariantTextEntity.js"
-import Serializer from "./Serializer.js"
 import KeyBindingEntity from "../entity/KeyBindingEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity.js"
@@ -20,6 +20,7 @@ import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import RealUnitEntity from "../entity/UnitRealEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
+import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity.js"
@@ -89,6 +90,21 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         EnumEntity,
         new ToStringSerializer(EnumEntity)
+    )
+
+    SerializerFactory.registerSerializer(
+        FormatTextEntity,
+        new CustomSerializer(
+            (v, insideString) => {
+                let result = FormatTextEntity.lookbehind + "("
+                    + v.value.map(v =>
+                        // @ts-expect-error
+                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString)
+                    ).join(", ")
+                    + ")"
+                return result
+            },
+            FormatTextEntity)
     )
 
     SerializerFactory.registerSerializer(

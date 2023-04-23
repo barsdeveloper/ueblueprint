@@ -70,9 +70,10 @@ class Configuration {
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
-    static keysSeparator = /[\.\(\)]/
     static indentation = "   "
+    static keysSeparator = /[\.\(\)]/
     static knotOffset = [-26, -16]
+    static lineTracePattern = /LineTrace(Single|Multi)(\w*)/
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
@@ -99,8 +100,8 @@ class Configuration {
     static mouseClickButton = 0
     static mouseRightClickButton = 2
     static mouseWheelFactor = 0.2
-    static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
+    static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
@@ -1314,7 +1315,7 @@ class FormatTextEntity extends IEntity {
     static lookbehind = "LOCGEN_FORMAT_NAMED"
     static attributes = {
         value: {
-            type: [new UnionType(LocalizedTextEntity, String, InvariantTextEntity, FormatTextEntity)],
+            type: [new UnionType(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
         },
     }
 
@@ -1324,7 +1325,21 @@ class FormatTextEntity extends IEntity {
 
     constructor(values) {
         super(values);
-        /** @type {String} */ this.value;
+        /** @type {(String | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} */ this.value;
+    }
+
+    toString() {
+        const pattern = this.value?.[0]?.toString(); // The pattern is always the first element of the array
+        if (!pattern) {
+            return ""
+        }
+        const values = this.value.slice(1).map(v => v.toString());
+        return pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
+            const argLocation = values.indexOf(arg) + 1;
+            return argLocation > 0 && argLocation < values.length
+                ? values[argLocation]
+                : substring
+        })
     }
 }
 
@@ -3250,19 +3265,20 @@ class ObjectEntity extends IEntity {
         let memberName = this.FunctionReference?.MemberName;
         if (memberName) {
             const memberParent = this.FunctionReference.MemberParent?.path ?? "";
-            switch (memberName) {
-                case "AddKey":
-                    {
-                        let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex);
-                        if (result) {
-                            return `Add Key (${Utility.formatStringName(result[1])})`
-                        }
-                    }
-                    break
-                case "LineTraceSingle":
-                    return "Line Trace By Channel"
-                case "LineTraceSingleByProfile":
-                    return "Line Trace By Profile"
+            if (memberName === "AddKey") {
+                let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex);
+                if (result) {
+                    return `Add Key (${Utility.formatStringName(result[1])})`
+                }
+            }
+            const memberNameTraceLineMatch = memberName.match(Configuration.lineTracePattern);
+            if (memberNameTraceLineMatch) {
+                return "Line Trace"
+                    + (memberNameTraceLineMatch[1] === "Multi" ? " Multi " : " ")
+                    + (memberNameTraceLineMatch[2] === ""
+                        ? "By Channel"
+                        : Utility.formatStringName(memberNameTraceLineMatch[2])
+                    )
             }
             switch (memberParent) {
                 case "/Script/Engine.KismetMathLibrary":
@@ -3742,7 +3758,8 @@ class Grammar {
     }
 
     /**
-     * @param {EntityConstructor} entityType
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entityType
      * @param {String[]} key
      * @returns {AttributeInformation}
      */
@@ -3757,6 +3774,7 @@ class Grammar {
             }
         }
         if (entityType instanceof IEntity.constructor) {
+            // @ts-expect-error
             result = entityType.attributes[key[0]];
             type = result?.type;
         } else if (entityType instanceof Array) {
@@ -3830,6 +3848,7 @@ class Grammar {
             P.regex(new RegExp(`${FormatTextEntity.lookbehind}\\s*`)),
             this.grammarFor(FormatTextEntity.attributes.value)
         )
+            .map(([_0, values]) => new FormatTextEntity(values))
     )
 
     static functionReferenceEntity = P.lazy(() => this.createEntityGrammar(FunctionReferenceEntity))
@@ -7864,7 +7883,7 @@ class NodeElement extends ISelectableDraggableElement {
             || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
             || nodeEntity.getClass() === Configuration.nodeType.callArrayFunction
         ) {
-            const memberParent = nodeEntity.FunctionReference.MemberParent?.path ?? "";
+            const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
             if (
                 memberParent === "/Script/Engine.KismetMathLibrary"
                 || memberParent === "/Script/Engine.KismetArrayLibrary"
@@ -10685,6 +10704,21 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         EnumEntity,
         new ToStringSerializer(EnumEntity)
+    );
+
+    SerializerFactory.registerSerializer(
+        FormatTextEntity,
+        new CustomSerializer(
+            (v, insideString) => {
+                let result = FormatTextEntity.lookbehind + "("
+                    + v.value.map(v =>
+                        // @ts-expect-error
+                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString)
+                    ).join(", ")
+                    + ")";
+                return result
+            },
+            FormatTextEntity)
     );
 
     SerializerFactory.registerSerializer(

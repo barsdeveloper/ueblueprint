@@ -46,9 +46,10 @@ export default class Configuration {
     static gridShrinkThreshold = 4 // exceding size factor threshold to cause a shrink event
     static gridSize = 16 // px
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
-    static keysSeparator = /[\.\(\)]/
     static indentation = "   "
+    static keysSeparator = /[\.\(\)]/
     static knotOffset = [-26, -16]
+    static lineTracePattern = /LineTrace(Single|Multi)(\w*)/
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
@@ -75,8 +76,8 @@ export default class Configuration {
     static mouseClickButton = 0
     static mouseRightClickButton = 2
     static mouseWheelFactor = 0.2
-    static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
+    static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
