@@ -496,54 +496,62 @@ export default class Grammar {
     static rotatorEntity = P.lazy(() => this.createEntityGrammar(RotatorEntity, false))
 
     static simpleSerializationRotatorEntity = P.lazy(() =>
-        P.seq(
-            this.number,
-            this.commaSeparation,
-            this.number,
-            this.commaSeparation,
-            this.number,
-        ).map(([p, _1, y, _3, r]) =>
-            new SimpleSerializationRotatorEntity({
-                R: r,
-                P: p,
-                Y: y,
-            })
+        P.alt(
+            P.seq(
+                this.number,
+                this.commaSeparation,
+                this.number,
+                this.commaSeparation,
+                this.number,
+            ).map(([p, _1, y, _3, r]) =>
+                new SimpleSerializationRotatorEntity({
+                    R: r,
+                    P: p,
+                    Y: y,
+                })
+            ),
+            this.rotatorEntity
         )
     )
 
+    static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
+
     static simpleSerializationVector2DEntity = P.lazy(() =>
-        P.seq(
-            this.number,
-            this.commaSeparation,
-            this.number,
-        ).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
-            X: x,
-            Y: y,
-        }))
+        P.alt(
+            P.seq(
+                this.number,
+                this.commaSeparation,
+                this.number,
+            ).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
+                X: x,
+                Y: y,
+            })),
+            this.vector2DEntity
+        )
     )
 
+    static vectorEntity = P.lazy(() => this.createEntityGrammar(VectorEntity, false))
 
     static simpleSerializationVectorEntity = P.lazy(() =>
-        P.seq(
-            this.number,
-            this.commaSeparation,
-            this.number,
-            this.commaSeparation,
-            this.number,
-        ).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
-            X: x,
-            Y: y,
-            Z: z,
-        }))
+        P.alt(
+            P.seq(
+                this.number,
+                this.commaSeparation,
+                this.number,
+                this.commaSeparation,
+                this.number,
+            ).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
+                X: x,
+                Y: y,
+                Z: z,
+            })),
+            this.vectorEntity
+        )
     )
 
     static symbolEntity = P.lazy(() => this.symbol.map(v => new SymbolEntity(v)))
 
     static variableReferenceEntity = P.lazy(() => this.createEntityGrammar(VariableReferenceEntity))
-
-    static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
-
-    static vectorEntity = P.lazy(() => this.createEntityGrammar(VectorEntity, false))
 
     static unknownKeysEntity = P.lazy(() =>
         P.seq(

@@ -335,7 +335,7 @@ export default class ObjectEntity extends IEntity {
                         if (pinObject) {
                             const pinEntity = PinEntity.fromLegacyObject(pinObject)
                             pinEntity.LinkedTo = []
-                            this.CustomProperties.push(pinEntity)
+                            this.getCustomproperties(true).push(pinEntity)
                         }
                     })
             delete this["Pins"]
@@ -438,9 +438,16 @@ export default class ObjectEntity extends IEntity {
         this.NodePosY.value = Math.round(value)
     }
 
+    getCustomproperties(canCreate = false) {
+        if (canCreate && !this.CustomProperties) {
+            this.CustomProperties = []
+        }
+        return this.CustomProperties ?? []
+    }
+
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        return this.CustomProperties.filter(v => v.constructor === PinEntity)
+        return this.getCustomproperties().filter(v => v.constructor === PinEntity)
     }
 
     switchTarget() {
@@ -472,7 +479,7 @@ export default class ObjectEntity extends IEntity {
     }
 
     getDelegatePin() {
-        return this.CustomProperties?.find(pin => pin.PinType.PinCategory === "delegate")
+        return this.getCustomproperties().find(pin => pin.PinType.PinCategory === "delegate")
     }
 
     nodeDisplayName() {
@@ -504,7 +511,7 @@ export default class ObjectEntity extends IEntity {
                 return "Branch"
             case Configuration.nodeType.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
-                    this.CustomProperties.find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
+                    this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
                     ?? "NONE"
                 )}`
             case Configuration.nodeType.switchEnum:

@@ -95,8 +95,11 @@ export default class Configuration {
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         edGraph: "/Script/Engine.EdGraph",
         edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
+        eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
+        eSearchCase: "/Script/CoreUObject.ESearchCase",
+        eSearchDir: "/Script/CoreUObject.ESearchDir",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         flipflop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
@@ -130,6 +133,7 @@ export default class Configuration {
         switchInteger: "/Script/BlueprintGraph.K2Node_SwitchInteger",
         switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
         switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
+        transform: "/Script/CoreUObject.Transform",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
@@ -138,9 +142,9 @@ export default class Configuration {
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinColor = {
-        "/Script/CoreUObject.Rotator": css`157, 177, 251`,
-        "/Script/CoreUObject.Transform": css`227, 103, 0`,
-        "/Script/CoreUObject.Vector": css`251, 198, 34`,
+        [this.nodeType.rotator]: css`157, 177, 251`,
+        [this.nodeType.transform]: css`227, 103, 0`,
+        [this.nodeType.vector]: css`251, 198, 34`,
         "bool": css`147, 0, 0`,
         "byte": css`0, 109, 99`,
         "class": css`88, 0, 186`,
@@ -203,6 +207,11 @@ export default class Configuration {
     static windowCancelEventName = "ueb-window-cancel"
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
+    static CommonEnums = {
+        [this.nodeType.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
+        [this.nodeType.eSearchDir]: ["FromStart", "FromEnd"],
+        [this.nodeType.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"]
+    }
     static ModifierKeys = [
         "Ctrl",
         "Shift",

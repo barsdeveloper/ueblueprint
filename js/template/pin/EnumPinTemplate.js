@@ -1,5 +1,7 @@
 import { html } from "lit"
+import Configuration from "../../Configuration.js"
 import IInputPinTemplate from "./IInputPinTemplate.js"
+import Utility from "../../Utility.js"
 
 /**
  * @typedef {import("../../element/DropdownElement.js").default} DropdownElement
@@ -25,15 +27,27 @@ export default class EnumPinTemplate extends IInputPinTemplate {
     setup() {
         super.setup()
         const enumEntries = this.element.nodeElement.entity.EnumEntries
-        if (enumEntries) {
-            this.#dropdownEntries = enumEntries.map(k => [
-                k,
-                this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
-                    ?.PinFriendlyName.toString()
-                ?? k
-            ])
-            this.element.requestUpdate()
+        this.#dropdownEntries =
+            enumEntries?.map(k => {
+                if (k === "") {
+                    k = "None"
+                }
+                return [
+                    k,
+                    this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
+                        ?.PinFriendlyName.toString()
+                    ?? k
+                ]
+            })
+            ?? Configuration.CommonEnums[this.element.entity.getSubCategory()]?.map(k =>
+                [k, Utility.formatStringName(k)]
+            )
+            ?? []
+        const defaultEntry = this.element.getDefaultValue().toString()
+        if (!this.#dropdownEntries.find(([k, v]) => k === defaultEntry)) {
+            this.#dropdownEntries.push([defaultEntry, Utility.formatStringName(defaultEntry)])
         }
+        this.element.requestUpdate()
     }
 
     renderInput() {

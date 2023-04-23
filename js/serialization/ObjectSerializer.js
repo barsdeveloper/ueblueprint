@@ -90,7 +90,7 @@ export default class ObjectSerializer extends Serializer {
                 attributeValueConjunctionSign,
                 key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
             )
-            + entity.CustomProperties.map(pin =>
+            + entity.getCustomproperties().map(pin =>
                 moreIndentation
                 + attributeKeyPrinter("CustomProperties ")
                 + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)

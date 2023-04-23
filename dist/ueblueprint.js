@@ -119,8 +119,11 @@ class Configuration {
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         edGraph: "/Script/Engine.EdGraph",
         edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
+        eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
+        eSearchCase: "/Script/CoreUObject.ESearchCase",
+        eSearchDir: "/Script/CoreUObject.ESearchDir",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         flipflop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
@@ -154,6 +157,7 @@ class Configuration {
         switchInteger: "/Script/BlueprintGraph.K2Node_SwitchInteger",
         switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
         switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
+        transform: "/Script/CoreUObject.Transform",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
@@ -162,9 +166,9 @@ class Configuration {
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinColor = {
-        "/Script/CoreUObject.Rotator": i$3`157, 177, 251`,
-        "/Script/CoreUObject.Transform": i$3`227, 103, 0`,
-        "/Script/CoreUObject.Vector": i$3`251, 198, 34`,
+        [this.nodeType.rotator]: i$3`157, 177, 251`,
+        [this.nodeType.transform]: i$3`227, 103, 0`,
+        [this.nodeType.vector]: i$3`251, 198, 34`,
         "bool": i$3`147, 0, 0`,
         "byte": i$3`0, 109, 99`,
         "class": i$3`88, 0, 186`,
@@ -227,6 +231,11 @@ class Configuration {
     static windowCancelEventName = "ueb-window-cancel"
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
+    static CommonEnums = {
+        [this.nodeType.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
+        [this.nodeType.eSearchDir]: ["FromStart", "FromEnd"],
+        [this.nodeType.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"]
+    }
     static ModifierKeys = [
         "Ctrl",
         "Shift",
@@ -3029,7 +3038,7 @@ class ObjectEntity extends IEntity {
                         if (pinObject) {
                             const pinEntity = PinEntity.fromLegacyObject(pinObject);
                             pinEntity.LinkedTo = [];
-                            this.CustomProperties.push(pinEntity);
+                            this.getCustomproperties(true).push(pinEntity);
                         }
                     });
             delete this["Pins"];
@@ -3132,9 +3141,16 @@ class ObjectEntity extends IEntity {
         this.NodePosY.value = Math.round(value);
     }
 
+    getCustomproperties(canCreate = false) {
+        if (canCreate && !this.CustomProperties) {
+            this.CustomProperties = [];
+        }
+        return this.CustomProperties ?? []
+    }
+
     /** @returns {PinEntity[]} */
     getPinEntities() {
-        return this.CustomProperties.filter(v => v.constructor === PinEntity)
+        return this.getCustomproperties().filter(v => v.constructor === PinEntity)
     }
 
     switchTarget() {
@@ -3166,7 +3182,7 @@ class ObjectEntity extends IEntity {
     }
 
     getDelegatePin() {
-        return this.CustomProperties?.find(pin => pin.PinType.PinCategory === "delegate")
+        return this.getCustomproperties().find(pin => pin.PinType.PinCategory === "delegate")
     }
 
     nodeDisplayName() {
@@ -3198,7 +3214,7 @@ class ObjectEntity extends IEntity {
                 return "Branch"
             case Configuration.nodeType.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
-                    this.CustomProperties.find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
+                    this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
                     ?? "NONE"
                 )}`
             case Configuration.nodeType.switchEnum:
@@ -3930,54 +3946,62 @@ class Grammar {
     static rotatorEntity = P.lazy(() => this.createEntityGrammar(RotatorEntity, false))
 
     static simpleSerializationRotatorEntity = P.lazy(() =>
-        P.seq(
-            this.number,
-            this.commaSeparation,
-            this.number,
-            this.commaSeparation,
-            this.number,
-        ).map(([p, _1, y, _3, r]) =>
-            new SimpleSerializationRotatorEntity({
-                R: r,
-                P: p,
-                Y: y,
-            })
+        P.alt(
+            P.seq(
+                this.number,
+                this.commaSeparation,
+                this.number,
+                this.commaSeparation,
+                this.number,
+            ).map(([p, _1, y, _3, r]) =>
+                new SimpleSerializationRotatorEntity({
+                    R: r,
+                    P: p,
+                    Y: y,
+                })
+            ),
+            this.rotatorEntity
         )
     )
 
+    static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
+
     static simpleSerializationVector2DEntity = P.lazy(() =>
-        P.seq(
-            this.number,
-            this.commaSeparation,
-            this.number,
-        ).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
-            X: x,
-            Y: y,
-        }))
+        P.alt(
+            P.seq(
+                this.number,
+                this.commaSeparation,
+                this.number,
+            ).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
+                X: x,
+                Y: y,
+            })),
+            this.vector2DEntity
+        )
     )
 
+    static vectorEntity = P.lazy(() => this.createEntityGrammar(VectorEntity, false))
 
     static simpleSerializationVectorEntity = P.lazy(() =>
-        P.seq(
-            this.number,
-            this.commaSeparation,
-            this.number,
-            this.commaSeparation,
-            this.number,
-        ).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
-            X: x,
-            Y: y,
-            Z: z,
-        }))
+        P.alt(
+            P.seq(
+                this.number,
+                this.commaSeparation,
+                this.number,
+                this.commaSeparation,
+                this.number,
+            ).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
+                X: x,
+                Y: y,
+                Z: z,
+            })),
+            this.vectorEntity
+        )
     )
 
     static symbolEntity = P.lazy(() => this.symbol.map(v => new SymbolEntity(v)))
 
     static variableReferenceEntity = P.lazy(() => this.createEntityGrammar(VariableReferenceEntity))
-
-    static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
-
-    static vectorEntity = P.lazy(() => this.createEntityGrammar(VectorEntity, false))
 
     static unknownKeysEntity = P.lazy(() =>
         P.seq(
@@ -4453,7 +4477,7 @@ class ObjectSerializer extends Serializer {
                 attributeValueConjunctionSign,
                 key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
             )
-            + entity.CustomProperties.map(pin =>
+            + entity.getCustomproperties().map(pin =>
                 moreIndentation
                 + attributeKeyPrinter("CustomProperties ")
                 + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
@@ -9059,15 +9083,27 @@ class EnumPinTemplate extends IInputPinTemplate {
     setup() {
         super.setup();
         const enumEntries = this.element.nodeElement.entity.EnumEntries;
-        if (enumEntries) {
-            this.#dropdownEntries = enumEntries.map(k => [
-                k,
-                this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
-                    ?.PinFriendlyName.toString()
-                ?? k
-            ]);
-            this.element.requestUpdate();
+        this.#dropdownEntries =
+            enumEntries?.map(k => {
+                if (k === "") {
+                    k = "None";
+                }
+                return [
+                    k,
+                    this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
+                        ?.PinFriendlyName.toString()
+                    ?? k
+                ]
+            })
+            ?? Configuration.CommonEnums[this.element.entity.getSubCategory()]?.map(k =>
+                [k, Utility.formatStringName(k)]
+            )
+            ?? [];
+        const defaultEntry = this.element.getDefaultValue().toString();
+        if (!this.#dropdownEntries.find(([k, v]) => k === defaultEntry)) {
+            this.#dropdownEntries.push([defaultEntry, Utility.formatStringName(defaultEntry)]);
         }
+        this.element.requestUpdate();
     }
 
     renderInput() {
