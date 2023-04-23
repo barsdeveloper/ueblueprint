@@ -17,14 +17,6 @@ export default class LinkElement extends IFromToPositionedElement {
 
     static properties = {
         ...super.properties,
-        source: {
-            type: String,
-            reflect: true,
-        },
-        destination: {
-            type: String,
-            reflect: true,
-        },
         dragging: {
             type: Boolean,
             attribute: "data-dragging",
@@ -50,20 +42,20 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     /** @type {PinElement} */
-    #sourcePin
-    get sourcePin() {
-        return this.#sourcePin
+    #source
+    get source() {
+        return this.#source
     }
-    set sourcePin(pin) {
+    set source(pin) {
         this.#setPin(pin, false)
     }
 
     /** @type {PinElement} */
-    #destinationPin
-    get destinationPin() {
-        return this.#destinationPin
+    #destination
+    get destination() {
+        return this.#destination
     }
-    set destinationPin(pin) {
+    set destination(pin) {
         this.#setPin(pin, true)
     }
 
@@ -85,8 +77,6 @@ export default class LinkElement extends IFromToPositionedElement {
 
     constructor() {
         super()
-        this.source = null
-        this.destination = null
         this.dragging = false
         this.originatesFromInput = false
         this.startPercentage = 0
@@ -111,14 +101,14 @@ export default class LinkElement extends IFromToPositionedElement {
     initialize(source, destination) {
         super.initialize({}, new LinkTemplate())
         if (source) {
-            this.sourcePin = source
+            this.source = source
             if (!destination) {
                 this.toX = this.fromX
                 this.toY = this.fromY
             }
         }
         if (destination) {
-            this.destinationPin = destination
+            this.destination = destination
             if (!source) {
                 this.fromX = this.toX
                 this.fromY = this.toY
@@ -131,7 +121,7 @@ export default class LinkElement extends IFromToPositionedElement {
      * @param {Boolean} isDestinationPin
      */
     #setPin(pin, isDestinationPin) {
-        const getCurrentPin = () => isDestinationPin ? this.destinationPin : this.sourcePin
+        const getCurrentPin = () => isDestinationPin ? this.destination : this.source
         if (getCurrentPin() == pin) {
             return
         }
@@ -149,8 +139,8 @@ export default class LinkElement extends IFromToPositionedElement {
             this.#unlinkPins()
         }
         isDestinationPin
-            ? this.#destinationPin = pin
-            : this.#sourcePin = pin
+            ? this.#destination = pin
+            : this.#source = pin
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement()
             nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler)
@@ -164,42 +154,42 @@ export default class LinkElement extends IFromToPositionedElement {
             )
             isDestinationPin
                 ? this.setDestinationLocation()
-                : (this.setSourceLocation(), this.originatesFromInput = this.sourcePin.isInput())
+                : (this.setSourceLocation(), this.originatesFromInput = this.source.isInput())
             this.#linkPins()
         }
     }
 
     #linkPins() {
-        if (this.sourcePin && this.destinationPin) {
-            this.sourcePin.linkTo(this.destinationPin)
-            this.destinationPin.linkTo(this.sourcePin)
+        if (this.source && this.destination) {
+            this.source.linkTo(this.destination)
+            this.destination.linkTo(this.source)
         }
     }
 
     #unlinkPins() {
-        if (this.sourcePin && this.destinationPin) {
-            this.sourcePin.unlinkFrom(this.destinationPin, false)
-            this.destinationPin.unlinkFrom(this.sourcePin, false)
+        if (this.source && this.destination) {
+            this.source.unlinkFrom(this.destination, false)
+            this.destination.unlinkFrom(this.source, false)
         }
     }
 
     cleanup() {
         super.cleanup()
         this.#unlinkPins()
-        this.sourcePin = null
-        this.destinationPin = null
+        this.source = null
+        this.destination = null
     }
 
     /** @param {Number[]?} location */
     setSourceLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this
-            if (canPostpone && (!this.hasUpdated || !this.sourcePin.hasUpdated)) {
-                Promise.all([this.updateComplete, this.sourcePin.updateComplete])
+            if (canPostpone && (!this.hasUpdated || !this.source.hasUpdated)) {
+                Promise.all([this.updateComplete, this.source.updateComplete])
                     .then(() => self.setSourceLocation(null, false))
                 return
             }
-            location = this.sourcePin.template.getLinkLocation()
+            location = this.source.template.getLinkLocation()
         }
         const [x, y] = location
         this.fromX = x
@@ -210,45 +200,45 @@ export default class LinkElement extends IFromToPositionedElement {
     setDestinationLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this
-            if (canPostpone && (!this.hasUpdated || !this.destinationPin.hasUpdated)) {
-                Promise.all([this.updateComplete, this.destinationPin.updateComplete])
+            if (canPostpone && (!this.hasUpdated || !this.destination.hasUpdated)) {
+                Promise.all([this.updateComplete, this.destination.updateComplete])
                     .then(() => self.setDestinationLocation(null, false))
                 return
             }
-            location = this.destinationPin.template.getLinkLocation()
+            location = this.destination.template.getLinkLocation()
         }
         this.toX = location[0]
         this.toY = location[1]
     }
 
     getInputPin() {
-        if (this.sourcePin?.isInput()) {
-            return this.sourcePin
+        if (this.source?.isInput()) {
+            return this.source
         }
-        return this.destinationPin
+        return this.destination
     }
 
     /** @param {PinElement} pin */
     setInputPin(pin) {
-        if (this.sourcePin?.isInput()) {
-            this.sourcePin = pin
+        if (this.source?.isInput()) {
+            this.source = pin
         }
-        this.destinationPin = pin
+        this.destination = pin
     }
 
     getOutputPin() {
-        if (this.destinationPin?.isOutput()) {
-            return this.destinationPin
+        if (this.destination?.isOutput()) {
+            return this.destination
         }
-        return this.sourcePin
+        return this.source
     }
 
     /** @param {PinElement} pin */
     setOutputPin(pin) {
-        if (this.destinationPin?.isOutput()) {
-            this.destinationPin = pin
+        if (this.destination?.isOutput()) {
+            this.destination = pin
         }
-        this.sourcePin = pin
+        this.source = pin
     }
 
     startDragging() {
@@ -266,7 +256,7 @@ export default class LinkElement extends IFromToPositionedElement {
 
     setMessageConvertType() {
         this.linkMessageIcon = "ueb-icon-conver-type"
-        this.linkMessageText = `Convert ${this.sourcePin.pinType} to ${this.destinationPin.pinType}.`
+        this.linkMessageText = `Convert ${this.source.pinType} to ${this.destination.pinType}.`
     }
 
     setMessageCorrect() {
@@ -306,6 +296,6 @@ export default class LinkElement extends IFromToPositionedElement {
 
     setMEssagetypesIncompatible() {
         this.linkMessageIcon = SVGIcon.reject
-        this.linkMessageText = html`${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`
+        this.linkMessageText = html`${this.source.pinType} is not compatible with ${this.destination.pinType}.`
     }
 }

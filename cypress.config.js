@@ -6,7 +6,10 @@ module.exports = defineConfig({
       // implement node event listeners here
     },
     experimentalRunAllSpecs: true,
+    scrollBehavior: false,
     testIsolation: false,
     video: false,
+    viewportHeight: 1000,
+    viewportWidth: 1000,
   },
 })

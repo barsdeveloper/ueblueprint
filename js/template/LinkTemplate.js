@@ -67,7 +67,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
 
     /** @param {[Number, Number]} location */
     #createKnot = location => {
-        const knotEntity = new KnotEntity({}, this.element.sourcePin.entity)
+        const knotEntity = new KnotEntity({}, this.element.source.entity)
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
             .newObject(knotEntity)
         knot.setLocation(...this.blueprint.snapToGrid(...location))
@@ -75,13 +75,13 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         this.blueprint.addGraphElement(knot) // Important: keep it before changing existing links
         const inputPin = this.element.getInputPin()
         const outputPin = this.element.getOutputPin()
-        this.element.sourcePin = null
-        this.element.destinationPin = null
+        this.element.source = null
+        this.element.destination = null
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(outputPin, knotTemplate.inputPin)
         this.blueprint.addGraphElement(link)
-        this.element.sourcePin = knotTemplate.outputPin
-        this.element.destinationPin = inputPin
+        this.element.source = knotTemplate.outputPin
+        this.element.destination = inputPin
     }
 
     createInputObjects() {
@@ -104,8 +104,8 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties)
-        const sourcePin = this.element.sourcePin
-        const destinationPin = this.element.destinationPin
+        const sourcePin = this.element.source
+        const destinationPin = this.element.destination
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
             const from = this.element.fromX
             const to = this.element.toX
@@ -113,17 +113,17 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
             const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.nodeType.knot
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
                 if (sourcePin?.isInput() && to > from + Configuration.distanceThreshold) {
-                    this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin
+                    this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin
                 } else if (sourcePin?.isOutput() && to < from - Configuration.distanceThreshold) {
-                    this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin
+                    this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin
                 }
             }
             if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
                 if (destinationPin?.isInput() && to < from - Configuration.distanceThreshold) {
-                    this.element.destinationPin =
+                    this.element.destination =
                         /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin
                 } else if (destinationPin?.isOutput() && to > from + Configuration.distanceThreshold) {
-                    this.element.destinationPin =
+                    this.element.destination =
                         /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin
                 }
             }
@@ -161,7 +161,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("originatesFromInput")) {
             this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0")
         }
-        const referencePin = this.element.sourcePin ?? this.element.destinationPin
+        const referencePin = this.element.source ?? this.element.destination
         if (referencePin) {
             this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color))
         }

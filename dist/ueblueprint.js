@@ -96,6 +96,8 @@ class Configuration {
     }
     static maxZoom = 7
     static minZoom = -12
+    static mouseClickButton = 0
+    static mouseRightClickButton = 2
     static mouseWheelFactor = 0.2
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"
@@ -493,13 +495,6 @@ class Utility {
             }
             return ""
         }
-    }
-
-    static arrayConverter = {
-        /** @param {String} value */
-        fromAttribute: (value, type) => value.split(/(?<!\\),/).map(v => v.trim()),
-        /** @param {String[]} value */
-        toAttribute: (value, type) => value.join(","),
     }
 
     /** @param {Number} x */
@@ -5251,7 +5246,7 @@ class IMouseClickDrag extends IPointing {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.clickButton ??= 0;
+        options.clickButton ??= Configuration.mouseClickButton;
         options.consumeEvent ??= true;
         options.draggableElement ??= target;
         options.exitAnyButton ??= true;
@@ -5271,7 +5266,7 @@ class IMouseClickDrag extends IPointing {
     listenEvents() {
         super.listenEvents();
         this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler);
-        if (this.options.clickButton == 2) {
+        if (this.options.clickButton === Configuration.mouseRightClickButton) {
             this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault());
         }
     }
@@ -5601,12 +5596,12 @@ class BlueprintTemplate extends ITemplate {
             new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
             new Zoom(this.element.getGridDOMElement(), this.element),
             new Select(this.element.getGridDOMElement(), this.element, {
-                clickButton: 0,
+                clickButton: Configuration.mouseClickButton,
                 exitAnyButton: true,
                 moveEverywhere: true,
             }),
             new MouseScrollGraph(this.element.getGridDOMElement(), this.element, {
-                clickButton: 2,
+                clickButton: Configuration.mouseRightClickButton,
                 exitAnyButton: false,
                 moveEverywhere: true,
             }),
@@ -6003,7 +5998,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
     /** @param {[Number, Number]} location */
     #createKnot = location => {
-        const knotEntity = new KnotEntity({}, this.element.sourcePin.entity);
+        const knotEntity = new KnotEntity({}, this.element.source.entity);
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
             .newObject(knotEntity);
         knot.setLocation(...this.blueprint.snapToGrid(...location));
@@ -6011,13 +6006,13 @@ class LinkTemplate extends IFromToPositionedTemplate {
         this.blueprint.addGraphElement(knot); // Important: keep it before changing existing links
         const inputPin = this.element.getInputPin();
         const outputPin = this.element.getOutputPin();
-        this.element.sourcePin = null;
-        this.element.destinationPin = null;
+        this.element.source = null;
+        this.element.destination = null;
         const link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
             .newObject(outputPin, knotTemplate.inputPin);
         this.blueprint.addGraphElement(link);
-        this.element.sourcePin = knotTemplate.outputPin;
-        this.element.destinationPin = inputPin;
+        this.element.source = knotTemplate.outputPin;
+        this.element.destination = inputPin;
     }
 
     createInputObjects() {
@@ -6040,8 +6035,8 @@ class LinkTemplate extends IFromToPositionedTemplate {
     /** @param {PropertyValues} changedProperties */
     willUpdate(changedProperties) {
         super.willUpdate(changedProperties);
-        const sourcePin = this.element.sourcePin;
-        const destinationPin = this.element.destinationPin;
+        const sourcePin = this.element.source;
+        const destinationPin = this.element.destination;
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
             const from = this.element.fromX;
             const to = this.element.toX;
@@ -6049,17 +6044,17 @@ class LinkTemplate extends IFromToPositionedTemplate {
             const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.nodeType.knot;
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
                 if (sourcePin?.isInput() && to > from + Configuration.distanceThreshold) {
-                    this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin;
+                    this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin;
                 } else if (sourcePin?.isOutput() && to < from - Configuration.distanceThreshold) {
-                    this.element.sourcePin = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin;
+                    this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).inputPin;
                 }
             }
             if (isDestinationAKnot && (!sourcePin || isSourceAKnot)) {
                 if (destinationPin?.isInput() && to < from - Configuration.distanceThreshold) {
-                    this.element.destinationPin =
+                    this.element.destination =
                         /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).outputPin;
                 } else if (destinationPin?.isOutput() && to > from + Configuration.distanceThreshold) {
-                    this.element.destinationPin =
+                    this.element.destination =
                         /** @type {KnotNodeTemplate} */(destinationPin.nodeElement.template).inputPin;
                 }
             }
@@ -6097,7 +6092,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("originatesFromInput")) {
             this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0");
         }
-        const referencePin = this.element.sourcePin ?? this.element.destinationPin;
+        const referencePin = this.element.source ?? this.element.destination;
         if (referencePin) {
             this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color));
         }
@@ -6140,14 +6135,6 @@ class LinkElement extends IFromToPositionedElement {
 
     static properties = {
         ...super.properties,
-        source: {
-            type: String,
-            reflect: true,
-        },
-        destination: {
-            type: String,
-            reflect: true,
-        },
         dragging: {
             type: Boolean,
             attribute: "data-dragging",
@@ -6173,20 +6160,20 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     /** @type {PinElement} */
-    #sourcePin
-    get sourcePin() {
-        return this.#sourcePin
+    #source
+    get source() {
+        return this.#source
     }
-    set sourcePin(pin) {
+    set source(pin) {
         this.#setPin(pin, false);
     }
 
     /** @type {PinElement} */
-    #destinationPin
-    get destinationPin() {
-        return this.#destinationPin
+    #destination
+    get destination() {
+        return this.#destination
     }
-    set destinationPin(pin) {
+    set destination(pin) {
         this.#setPin(pin, true);
     }
 
@@ -6208,8 +6195,6 @@ class LinkElement extends IFromToPositionedElement {
 
     constructor() {
         super();
-        this.source = null;
-        this.destination = null;
         this.dragging = false;
         this.originatesFromInput = false;
         this.startPercentage = 0;
@@ -6234,14 +6219,14 @@ class LinkElement extends IFromToPositionedElement {
     initialize(source, destination) {
         super.initialize({}, new LinkTemplate());
         if (source) {
-            this.sourcePin = source;
+            this.source = source;
             if (!destination) {
                 this.toX = this.fromX;
                 this.toY = this.fromY;
             }
         }
         if (destination) {
-            this.destinationPin = destination;
+            this.destination = destination;
             if (!source) {
                 this.fromX = this.toX;
                 this.fromY = this.toY;
@@ -6254,7 +6239,7 @@ class LinkElement extends IFromToPositionedElement {
      * @param {Boolean} isDestinationPin
      */
     #setPin(pin, isDestinationPin) {
-        const getCurrentPin = () => isDestinationPin ? this.destinationPin : this.sourcePin;
+        const getCurrentPin = () => isDestinationPin ? this.destination : this.source;
         if (getCurrentPin() == pin) {
             return
         }
@@ -6272,8 +6257,8 @@ class LinkElement extends IFromToPositionedElement {
             this.#unlinkPins();
         }
         isDestinationPin
-            ? this.#destinationPin = pin
-            : this.#sourcePin = pin;
+            ? this.#destination = pin
+            : this.#source = pin;
         if (getCurrentPin()) {
             const nodeElement = getCurrentPin().getNodeElement();
             nodeElement.addEventListener(Configuration.removeEventName, this.#nodeDeleteHandler);
@@ -6287,42 +6272,42 @@ class LinkElement extends IFromToPositionedElement {
             );
             isDestinationPin
                 ? this.setDestinationLocation()
-                : (this.setSourceLocation(), this.originatesFromInput = this.sourcePin.isInput());
+                : (this.setSourceLocation(), this.originatesFromInput = this.source.isInput());
             this.#linkPins();
         }
     }
 
     #linkPins() {
-        if (this.sourcePin && this.destinationPin) {
-            this.sourcePin.linkTo(this.destinationPin);
-            this.destinationPin.linkTo(this.sourcePin);
+        if (this.source && this.destination) {
+            this.source.linkTo(this.destination);
+            this.destination.linkTo(this.source);
         }
     }
 
     #unlinkPins() {
-        if (this.sourcePin && this.destinationPin) {
-            this.sourcePin.unlinkFrom(this.destinationPin, false);
-            this.destinationPin.unlinkFrom(this.sourcePin, false);
+        if (this.source && this.destination) {
+            this.source.unlinkFrom(this.destination, false);
+            this.destination.unlinkFrom(this.source, false);
         }
     }
 
     cleanup() {
         super.cleanup();
         this.#unlinkPins();
-        this.sourcePin = null;
-        this.destinationPin = null;
+        this.source = null;
+        this.destination = null;
     }
 
     /** @param {Number[]?} location */
     setSourceLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
-            if (canPostpone && (!this.hasUpdated || !this.sourcePin.hasUpdated)) {
-                Promise.all([this.updateComplete, this.sourcePin.updateComplete])
+            if (canPostpone && (!this.hasUpdated || !this.source.hasUpdated)) {
+                Promise.all([this.updateComplete, this.source.updateComplete])
                     .then(() => self.setSourceLocation(null, false));
                 return
             }
-            location = this.sourcePin.template.getLinkLocation();
+            location = this.source.template.getLinkLocation();
         }
         const [x, y] = location;
         this.fromX = x;
@@ -6333,45 +6318,45 @@ class LinkElement extends IFromToPositionedElement {
     setDestinationLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
-            if (canPostpone && (!this.hasUpdated || !this.destinationPin.hasUpdated)) {
-                Promise.all([this.updateComplete, this.destinationPin.updateComplete])
+            if (canPostpone && (!this.hasUpdated || !this.destination.hasUpdated)) {
+                Promise.all([this.updateComplete, this.destination.updateComplete])
                     .then(() => self.setDestinationLocation(null, false));
                 return
             }
-            location = this.destinationPin.template.getLinkLocation();
+            location = this.destination.template.getLinkLocation();
         }
         this.toX = location[0];
         this.toY = location[1];
     }
 
     getInputPin() {
-        if (this.sourcePin?.isInput()) {
-            return this.sourcePin
+        if (this.source?.isInput()) {
+            return this.source
         }
-        return this.destinationPin
+        return this.destination
     }
 
     /** @param {PinElement} pin */
     setInputPin(pin) {
-        if (this.sourcePin?.isInput()) {
-            this.sourcePin = pin;
+        if (this.source?.isInput()) {
+            this.source = pin;
         }
-        this.destinationPin = pin;
+        this.destination = pin;
     }
 
     getOutputPin() {
-        if (this.destinationPin?.isOutput()) {
-            return this.destinationPin
+        if (this.destination?.isOutput()) {
+            return this.destination
         }
-        return this.sourcePin
+        return this.source
     }
 
     /** @param {PinElement} pin */
     setOutputPin(pin) {
-        if (this.destinationPin?.isOutput()) {
-            this.destinationPin = pin;
+        if (this.destination?.isOutput()) {
+            this.destination = pin;
         }
-        this.sourcePin = pin;
+        this.source = pin;
     }
 
     startDragging() {
@@ -6389,7 +6374,7 @@ class LinkElement extends IFromToPositionedElement {
 
     setMessageConvertType() {
         this.linkMessageIcon = "ueb-icon-conver-type";
-        this.linkMessageText = `Convert ${this.sourcePin.pinType} to ${this.destinationPin.pinType}.`;
+        this.linkMessageText = `Convert ${this.source.pinType} to ${this.destination.pinType}.`;
     }
 
     setMessageCorrect() {
@@ -6429,7 +6414,7 @@ class LinkElement extends IFromToPositionedElement {
 
     setMEssagetypesIncompatible() {
         this.linkMessageIcon = SVGIcon.reject;
-        this.linkMessageText = x`${this.sourcePin.pinType} is not compatible with ${this.destinationPin.pinType}.`;
+        this.linkMessageText = x`${this.source.pinType} is not compatible with ${this.destination.pinType}.`;
     }
 }
 
@@ -7187,7 +7172,7 @@ class MouseCreateLink extends IMouseClickDrag {
         if (!this.enteredPin) {
             this.linkValid = false;
             this.enteredPin = /** @type {PinElement} */(e.target);
-            const a = this.link.sourcePin ?? this.target; // Remember target might have change
+            const a = this.link.source ?? this.target; // Remember target might have change
             const b = this.enteredPin;
             const outputPin = a.isOutput() ? a : b;
             if (
@@ -7270,14 +7255,15 @@ class MouseCreateLink extends IMouseClickDrag {
             pin.removeEventListener("mouseenter", this.#mouseenterHandler);
             pin.removeEventListener("mouseleave", this.#mouseleaveHandler);
         });
+        this.#listenedPins = null;
         if (this.enteredPin && this.linkValid) {
             if (this.#knotPin) {
-                const otherPin = this.#knotPin !== this.link.sourcePin ? this.link.sourcePin : this.enteredPin;
+                const otherPin = this.#knotPin !== this.link.source ? this.link.source : this.enteredPin;
                 // Knot pin direction correction
                 if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
                     const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).getOppositePin();
-                    if (this.#knotPin === this.link.sourcePin) {
-                        this.link.sourcePin = oppositePin;
+                    if (this.#knotPin === this.link.source) {
+                        this.link.source = oppositePin;
                     } else {
                         this.enteredPin = oppositePin;
                     }
@@ -7285,17 +7271,19 @@ class MouseCreateLink extends IMouseClickDrag {
             } else if (this.enteredPin.nodeElement.getType() === Configuration.nodeType.knot) {
                 this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin();
             }
-            this.blueprint.addGraphElement(this.link);
-            this.link.destinationPin = this.enteredPin;
-            this.link.removeMessage();
-            this.link.finishDragging();
+            if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
+                this.blueprint.addGraphElement(this.link);
+                this.link.destination = this.enteredPin;
+            } else {
+                this.link.remove();
+            }
         } else {
-            this.link.finishDragging();
             this.link.remove();
         }
         this.enteredPin = null;
+        this.link.removeMessage();
+        this.link.finishDragging();
         this.link = null;
-        this.#listenedPins = null;
     }
 }
 
@@ -8215,7 +8203,7 @@ class Blueprint extends IElement {
         }
     }
 
-    scrollCenter() {
+    scrollCenter(smooth = false) {
         const scroll = this.getScroll();
         const offset = [
             this.translateX - scroll[0],
@@ -8226,7 +8214,7 @@ class Blueprint extends IElement {
             offset[0] - targetOffset[0],
             offset[1] - targetOffset[1]
         ];
-        this.scrollDelta(deltaOffset[0], deltaOffset[1], true);
+        this.scrollDelta(deltaOffset[0], deltaOffset[1], smooth);
     }
 
     getViewportSize() {
@@ -8388,12 +8376,12 @@ class Blueprint extends IElement {
     getLinks(a = null, b = null) {
         if ((a == null) != (b == null)) {
             const pin = a ?? b;
-            return this.links.filter(link => link.sourcePin == pin || link.destinationPin == pin)
+            return this.links.filter(link => link.source == pin || link.destination == pin)
         }
         if (a != null && b != null) {
             return this.links.filter(link =>
-                link.sourcePin == a && link.destinationPin == b
-                || link.sourcePin == b && link.destinationPin == a
+                link.source == a && link.destination == b
+                || link.source == b && link.destination == a
             )
         }
         return this.links
@@ -8405,8 +8393,8 @@ class Blueprint extends IElement {
      */
     getLink(sourcePin, destinationPin, strictDirection = false) {
         return this.links.find(link =>
-            link.sourcePin == sourcePin && link.destinationPin == destinationPin
-            || !strictDirection && link.sourcePin == destinationPin && link.destinationPin == sourcePin
+            link.source == sourcePin && link.destination == destinationPin
+            || !strictDirection && link.source == destinationPin && link.destination == sourcePin
         )
     }
 

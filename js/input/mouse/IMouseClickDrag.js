@@ -140,7 +140,7 @@ export default class IMouseClickDrag extends IPointing {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.clickButton ??= 0
+        options.clickButton ??= Configuration.mouseClickButton
         options.consumeEvent ??= true
         options.draggableElement ??= target
         options.exitAnyButton ??= true
@@ -160,7 +160,7 @@ export default class IMouseClickDrag extends IPointing {
     listenEvents() {
         super.listenEvents()
         this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler)
-        if (this.options.clickButton == 2) {
+        if (this.options.clickButton === Configuration.mouseRightClickButton) {
             this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault())
         }
     }

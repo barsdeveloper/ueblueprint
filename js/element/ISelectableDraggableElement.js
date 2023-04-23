@@ -1,6 +1,6 @@
 import Configuration from "../Configuration.js"
-import Utility from "../Utility.js"
 import IDraggableElement from "./IDraggableElement.js"
+import Utility from "../Utility.js"
 
 /**
  * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent

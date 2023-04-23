@@ -1,6 +1,6 @@
+import IElement from "./IElement.js"
 import InputTemplate from "../template/pin/InputTemplate.js"
 import Utility from "../Utility.js"
-import IElement from "./IElement.js"
 
 export default class InputElement extends IElement {
 

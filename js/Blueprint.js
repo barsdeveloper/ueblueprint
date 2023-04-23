@@ -166,7 +166,7 @@ export default class Blueprint extends IElement {
         }
     }
 
-    scrollCenter() {
+    scrollCenter(smooth = false) {
         const scroll = this.getScroll()
         const offset = [
             this.translateX - scroll[0],
@@ -177,7 +177,7 @@ export default class Blueprint extends IElement {
             offset[0] - targetOffset[0],
             offset[1] - targetOffset[1]
         ]
-        this.scrollDelta(deltaOffset[0], deltaOffset[1], true)
+        this.scrollDelta(deltaOffset[0], deltaOffset[1], smooth)
     }
 
     getViewportSize() {
@@ -339,12 +339,12 @@ export default class Blueprint extends IElement {
     getLinks(a = null, b = null) {
         if ((a == null) != (b == null)) {
             const pin = a ?? b
-            return this.links.filter(link => link.sourcePin == pin || link.destinationPin == pin)
+            return this.links.filter(link => link.source == pin || link.destination == pin)
         }
         if (a != null && b != null) {
             return this.links.filter(link =>
-                link.sourcePin == a && link.destinationPin == b
-                || link.sourcePin == b && link.destinationPin == a
+                link.source == a && link.destination == b
+                || link.source == b && link.destination == a
             )
         }
         return this.links
@@ -356,8 +356,8 @@ export default class Blueprint extends IElement {
      */
     getLink(sourcePin, destinationPin, strictDirection = false) {
         return this.links.find(link =>
-            link.sourcePin == sourcePin && link.destinationPin == destinationPin
-            || !strictDirection && link.sourcePin == destinationPin && link.destinationPin == sourcePin
+            link.source == sourcePin && link.destination == destinationPin
+            || !strictDirection && link.source == destinationPin && link.destination == sourcePin
         )
     }
 

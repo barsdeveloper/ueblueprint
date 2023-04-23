@@ -1,3 +1,4 @@
+import Configuration from "../../Configuration.js"
 import IPointing from "./IPointing.js"
 
 /**
@@ -47,7 +48,7 @@ export default class MouseClick extends IPointing {
     clickedPosition = [0, 0]
 
     constructor(target, blueprint, options = {}) {
-        options.clickButton ??= 0
+        options.clickButton ??= Configuration.mouseClickButton
         options.consumeEvent ??= true
         options.exitAnyButton ??= true
         options.strictTarget ??= false
@@ -57,7 +58,7 @@ export default class MouseClick extends IPointing {
 
     listenEvents() {
         this.target.addEventListener("mousedown", this.#mouseDownHandler)
-        if (this.options.clickButton == 2) {
+        if (this.options.clickButton === Configuration.mouseRightClickButton) {
             this.target.addEventListener("contextmenu", e => e.preventDefault())
         }
     }

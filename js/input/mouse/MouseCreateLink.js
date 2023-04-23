@@ -24,7 +24,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
         if (!this.enteredPin) {
             this.linkValid = false
             this.enteredPin = /** @type {PinElement} */(e.target)
-            const a = this.link.sourcePin ?? this.target // Remember target might have change
+            const a = this.link.source ?? this.target // Remember target might have change
             const b = this.enteredPin
             const outputPin = a.isOutput() ? a : b
             if (
@@ -107,14 +107,15 @@ export default class MouseCreateLink extends IMouseClickDrag {
             pin.removeEventListener("mouseenter", this.#mouseenterHandler)
             pin.removeEventListener("mouseleave", this.#mouseleaveHandler)
         })
+        this.#listenedPins = null
         if (this.enteredPin && this.linkValid) {
             if (this.#knotPin) {
-                const otherPin = this.#knotPin !== this.link.sourcePin ? this.link.sourcePin : this.enteredPin
+                const otherPin = this.#knotPin !== this.link.source ? this.link.source : this.enteredPin
                 // Knot pin direction correction
                 if (this.#knotPin.isInput() && otherPin.isInput() || this.#knotPin.isOutput() && otherPin.isOutput()) {
                     const oppositePin = /** @type {KnotPinTemplate} */(this.#knotPin.template).getOppositePin()
-                    if (this.#knotPin === this.link.sourcePin) {
-                        this.link.sourcePin = oppositePin
+                    if (this.#knotPin === this.link.source) {
+                        this.link.source = oppositePin
                     } else {
                         this.enteredPin = oppositePin
                     }
@@ -122,16 +123,18 @@ export default class MouseCreateLink extends IMouseClickDrag {
             } else if (this.enteredPin.nodeElement.getType() === Configuration.nodeType.knot) {
                 this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin()
             }
-            this.blueprint.addGraphElement(this.link)
-            this.link.destinationPin = this.enteredPin
-            this.link.removeMessage()
-            this.link.finishDragging()
+            if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
+                this.blueprint.addGraphElement(this.link)
+                this.link.destination = this.enteredPin
+            } else {
+                this.link.remove()
+            }
         } else {
-            this.link.finishDragging()
             this.link.remove()
         }
         this.enteredPin = null
+        this.link.removeMessage()
+        this.link.finishDragging()
         this.link = null
-        this.#listenedPins = null
     }
 }

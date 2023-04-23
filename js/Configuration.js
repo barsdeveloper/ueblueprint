@@ -72,6 +72,8 @@ export default class Configuration {
     }
     static maxZoom = 7
     static minZoom = -12
+    static mouseClickButton = 0
+    static mouseRightClickButton = 2
     static mouseWheelFactor = 0.2
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeDragEventName = "ueb-node-drag"

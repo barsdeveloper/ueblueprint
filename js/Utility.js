@@ -31,13 +31,6 @@ export default class Utility {
         }
     }
 
-    static arrayConverter = {
-        /** @param {String} value */
-        fromAttribute: (value, type) => value.split(/(?<!\\),/).map(v => v.trim()),
-        /** @param {String[]} value */
-        toAttribute: (value, type) => value.join(","),
-    }
-
     /** @param {Number} x */
     static sigmoid(x, curvature = 1.7) {
         return 1 / (1 + (x / (1 - x) ** -curvature))

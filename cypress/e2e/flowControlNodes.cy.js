@@ -490,7 +490,7 @@ before(() => {
     cy.visit(`http://127.0.0.1:${Cypress.env("UEBLUEPRINT_TEST_SERVER_PORT")}/empty.html`, {
         onLoad: () => {
             cy.get("ueb-blueprint")
-                .then(b => blueprint = b[0])
+                .then(([b]) => blueprint = b)
                 .click(100, 300)
         }
     })
