@@ -14,7 +14,7 @@ export default class RealPinTemplate extends INumericPinTemplate {
 
     renderInput() {
         return html`
-            <div class="ueb-pin-input">
+            <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${true}"
                     .innerText="${Utility.minDecimals(this.element.getDefaultValue() ?? 0)}">
                 </ueb-input>

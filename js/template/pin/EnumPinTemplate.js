@@ -56,7 +56,7 @@ export default class EnumPinTemplate extends IInputPinTemplate {
         const entity = this.element.nodeElement.entity
         return html`
             <ueb-dropdown
-                class="ueb-pin-input"
+                class="ueb-pin-input-wrapper ueb-pin-input"
                 .options="${this.#dropdownEntries}"
                 .selected="${this.element.defaultValue.value}"
             >

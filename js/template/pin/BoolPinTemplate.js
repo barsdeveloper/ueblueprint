@@ -37,7 +37,7 @@ export default class BoolPinTemplate extends PinTemplate {
 
     renderInput() {
         return html`
-            <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
+            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue}" />
         `
     }
 }

@@ -192,7 +192,7 @@ class Configuration {
         "text": i$3`226, 121, 167`,
         "wildcard": i$3`128, 120, 120`,
     }
-    static pinInputWrapWidth = 136 // px
+    static pinInputWrapWidth = 147 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
@@ -8983,7 +8983,7 @@ class BoolPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <input type="checkbox" class="ueb-pin-input" ?checked="${this.element.defaultValue}" />
+            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue}" />
         `
     }
 }
@@ -8999,6 +8999,12 @@ class IInputPinTemplate extends PinTemplate {
     static singleLineInput = false
     static selectOnFocus = true
     static saveEachInputChange = false // Otherwise save only on focus out
+
+    /** @type {HTMLElement} */
+    #inputWrapper
+    get inputWrapper() {
+        return this.#inputWrapper
+    }
 
     /** @type {HTMLElement[]} */
     #inputContentElements
@@ -9022,8 +9028,7 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
-        const width = Math.round(this.blueprint.scaleCorrect(inputElement.getBoundingClientRect().width))
-            + Math.round(this.nameWidth);
+        const width = this.blueprint.scaleCorrect(this.#inputWrapper.getBoundingClientRect().width) + this.nameWidth;
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap");
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
             this.element.classList.add("ueb-pin-input-wrap");
@@ -9041,6 +9046,7 @@ class IInputPinTemplate extends PinTemplate {
                 this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
             );
         }
+        this.#inputWrapper = this.element.querySelector(".ueb-pin-input-wrapper");
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")]);
     }
 
@@ -9101,7 +9107,7 @@ class IInputPinTemplate extends PinTemplate {
         const singleLine = Self.singleLineInput;
         const selectOnFocus = Self.selectOnFocus;
         return x`
-            <div class="ueb-pin-input">
+            <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
                     .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
                 </ueb-input>
@@ -9163,7 +9169,7 @@ class EnumPinTemplate extends IInputPinTemplate {
         this.element.nodeElement.entity;
         return x`
             <ueb-dropdown
-                class="ueb-pin-input"
+                class="ueb-pin-input-wrapper ueb-pin-input"
                 .options="${this.#dropdownEntries}"
                 .selected="${this.element.defaultValue.value}"
             >
@@ -9249,7 +9255,7 @@ class IntPinTemplate extends INumericPinTemplate {
 
     renderInput() {
         return x`
-            <div class="ueb-pin-input">
+            <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
                 </ueb-input>
             </div>
@@ -9761,7 +9767,7 @@ class LinearColorPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <span class="ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? A}"
+            <span class="ueb-pin-input-wrapper ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? A}"
                 @click="${this.#launchColorPickerWindow}"
                 style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? A})">
             </span>
@@ -9786,7 +9792,7 @@ class RealPinTemplate extends INumericPinTemplate {
 
     renderInput() {
         return x`
-            <div class="ueb-pin-input">
+            <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${true}"
                     .innerText="${Utility.minDecimals(this.element.getDefaultValue() ?? 0)}">
                 </ueb-input>

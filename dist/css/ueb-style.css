@@ -691,6 +691,7 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-dir
 }
 
 .ueb-pin-input-wrapper {
+  display: flex;
   padding-left: 8px;
 }
 
@@ -734,13 +735,16 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
 }
 
 .ueb-pin-input-label ~ .ueb-pin-input {
-  margin-left: 0;
+  margin-left: 2px;
 }
 
 .ueb-pin-input-label {
-  vertical-align: middle;
-  margin-left: 3px;
+  margin-left: 10px;
   color: #777777;
+}
+
+.ueb-pin-input-label:first-child {
+  margin-left: 2px;
 }
 
 .ueb-pin-input-content {

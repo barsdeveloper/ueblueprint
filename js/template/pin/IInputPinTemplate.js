@@ -15,6 +15,12 @@ export default class IInputPinTemplate extends PinTemplate {
     static selectOnFocus = true
     static saveEachInputChange = false // Otherwise save only on focus out
 
+    /** @type {HTMLElement} */
+    #inputWrapper
+    get inputWrapper() {
+        return this.#inputWrapper
+    }
+
     /** @type {HTMLElement[]} */
     #inputContentElements
 
@@ -37,8 +43,7 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
-        const width = Math.round(this.blueprint.scaleCorrect(inputElement.getBoundingClientRect().width))
-            + Math.round(this.nameWidth)
+        const width = this.blueprint.scaleCorrect(this.#inputWrapper.getBoundingClientRect().width) + this.nameWidth
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap")
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
             this.element.classList.add("ueb-pin-input-wrap")
@@ -56,6 +61,7 @@ export default class IInputPinTemplate extends PinTemplate {
                 this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
             )
         }
+        this.#inputWrapper = this.element.querySelector(".ueb-pin-input-wrapper")
         this.#inputContentElements = /** @type {HTMLElement[]} */([...this.element.querySelectorAll("ueb-input")])
     }
 
@@ -116,7 +122,7 @@ export default class IInputPinTemplate extends PinTemplate {
         const singleLine = Self.singleLineInput
         const selectOnFocus = Self.selectOnFocus
         return html`
-            <div class="ueb-pin-input">
+            <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
                     .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
                 </ueb-input>
