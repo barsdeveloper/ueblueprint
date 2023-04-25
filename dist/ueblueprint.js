@@ -47,7 +47,6 @@ class Configuration {
     static colorWindowName = "Color Picker"
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
-    static deleteNodesKeyboardKey = "Delete"
     static distanceThreshold = 5 // px
     static dragEventName = "ueb-drag"
     static dragGeneralEventName = "ueb-drag-general"
@@ -56,7 +55,6 @@ class Configuration {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
     }
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
     static expandGridSize = 400
     static focusEventName = {
         begin: "blueprint-focus",
@@ -107,9 +105,11 @@ class Configuration {
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
-    static nodeType = {
+    static paths = {
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
         blueprint: "/Script/Engine.Blueprint",
+        blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
+        blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
@@ -144,12 +144,17 @@ class Configuration {
         inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
         inputVectorAxisEvent: "/Script/BlueprintGraph.K2Node_InputVectorAxisEvent",
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
+        kismetArrayLibrary: "/Script/Engine.KismetArrayLibrary",
+        kismetMathLibrary: "/Script/Engine.KismetMathLibrary",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         linearColor: "/Script/CoreUObject.LinearColor",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
+        materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
+        materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
+        materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
@@ -171,9 +176,10 @@ class Configuration {
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinColor = {
-        [this.nodeType.rotator]: i$3`157, 177, 251`,
-        [this.nodeType.transform]: i$3`227, 103, 0`,
-        [this.nodeType.vector]: i$3`251, 198, 34`,
+        [this.paths.rotator]: i$3`157, 177, 251`,
+        [this.paths.transform]: i$3`227, 103, 0`,
+        [this.paths.vector]: i$3`251, 198, 34`,
+        "blue": i$3`0, 0, 255`,
         "bool": i$3`147, 0, 0`,
         "byte": i$3`0, 109, 99`,
         "class": i$3`88, 0, 186`,
@@ -181,12 +187,14 @@ class Configuration {
         "delegate": i$3`255, 56, 56`,
         "enum": i$3`0, 109, 99`,
         "exec": i$3`240, 240, 240`,
+        "green": i$3`0, 255, 0`,
         "int": i$3`31, 224, 172`,
         "int64": i$3`169, 223, 172`,
         "interface": i$3`238, 252, 168`,
         "name": i$3`201, 128, 251`,
         "object": i$3`0, 167, 240`,
         "real": i$3`54, 208, 0`,
+        "red": i$3`255, 0, 0`,
         "string": i$3`251, 0, 209`,
         "struct": i$3`0, 88, 201`,
         "text": i$3`226, 121, 167`,
@@ -216,7 +224,6 @@ class Configuration {
         6: 1.875,
         7: 2,
     }
-    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
     static stringEscapedCharacters = /['"\\]/g
     static subObjectAttributeNamePrefix = "#SubObject"
@@ -237,10 +244,10 @@ class Configuration {
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static CommonEnums = {
-        [this.nodeType.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
-        [this.nodeType.eSearchDir]: ["FromStart", "FromEnd"],
-        [this.nodeType.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
-        [this.nodeType.eTraceTypeQuery]: [["TraceTypeQuery1", "Visibility"], ["TraceTypeQuery2", "Camera"]]
+        [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
+        [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
+        [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
+        [this.paths.eTraceTypeQuery]: [["TraceTypeQuery1", "Visibility"], ["TraceTypeQuery2", "Camera"]]
     }
     static ModifierKeys = [
         "Ctrl",
@@ -1418,13 +1425,13 @@ class ObjectReferenceEntity extends IEntity {
     sanitize() {
         if (this.type && !this.type.startsWith("/")) {
             let deprecatedType = this.type + "_Deprecated";
-            let nodeType = Object.keys(Configuration.nodeType)
+            let path = Object.keys(Configuration.paths)
                 .find(type => {
-                    const name = Utility.getNameFromPath(Configuration.nodeType[type]);
+                    const name = Utility.getNameFromPath(Configuration.paths[type]);
                     return name === this.type || name === deprecatedType
                 });
-            if (nodeType) {
-                this.type = Configuration.nodeType[nodeType];
+            if (path) {
+                this.type = Configuration.paths[path];
             }
         }
     }
@@ -2102,10 +2109,10 @@ class SimpleSerializationVectorEntity extends VectorEntity {
 class PinEntity extends IEntity {
 
     static #typeEntityMap = {
-        [Configuration.nodeType.linearColor]: LinearColorEntity,
-        [Configuration.nodeType.rotator]: RotatorEntity,
-        [Configuration.nodeType.vector]: VectorEntity,
-        [Configuration.nodeType.vector2D]: Vector2DEntity,
+        [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.rotator]: RotatorEntity,
+        [Configuration.paths.vector]: VectorEntity,
+        [Configuration.paths.vector2D]: Vector2DEntity,
         "bool": Boolean,
         "byte": ByteEntity,
         "enum": EnumEntity,
@@ -2117,9 +2124,9 @@ class PinEntity extends IEntity {
         "string": String,
     }
     static #alternativeTypeEntityMap = {
-        [Configuration.nodeType.vector2D]: SimpleSerializationVector2DEntity,
-        [Configuration.nodeType.vector]: SimpleSerializationVectorEntity,
-        [Configuration.nodeType.rotator]: SimpleSerializationRotatorEntity,
+        [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
+        [Configuration.paths.vector]: SimpleSerializationVectorEntity,
+        [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
     }
     static lookbehind = "Pin"
     static attributes = {
@@ -2228,14 +2235,17 @@ class PinEntity extends IEntity {
     }
 
     getType() {
-        const subCategory = this.PinType.PinSubCategoryObject;
-        if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
-            return subCategory.path
+        const category = this.PinType.PinCategory;
+        if (category === "struct" || category === "object") {
+            return this.PinType.PinSubCategoryObject.path
+        }
+        if (category === "optional" && this.PinType.PinSubCategory === "red") {
+            return "real"
         }
         if (this.isEnum()) {
             return "enum"
         }
-        return this.PinType.PinCategory
+        return category
     }
 
     getEntityType(alternative = false) {
@@ -2286,8 +2296,8 @@ class PinEntity extends IEntity {
 
     isEnum() {
         const type = this.PinType.PinSubCategoryObject.type;
-        return type === Configuration.nodeType.enum
-            || type === Configuration.nodeType.userDefinedEnum
+        return type === Configuration.paths.enum
+            || type === Configuration.paths.userDefinedEnum
             || type.toLowerCase() === "enum"
     }
 
@@ -2355,6 +2365,12 @@ class PinEntity extends IEntity {
 
     /** @return {CSSResult} */
     pinColor() {
+        if (this.PinType.PinCategory === "mask") {
+            const result = Configuration.pinColor[this.PinType.PinSubCategory];
+            if (result) {
+                return result
+            }
+        }
         return Configuration.pinColor[this.getType()]
             ?? Configuration.pinColor[this.PinType.PinCategory.toLowerCase()]
             ?? Configuration.pinColor["default"]
@@ -2878,6 +2894,18 @@ class ObjectEntity extends IEntity {
             default: false,
             showDefault: false,
         },
+        R: {
+            type: Number,
+            showDefault: false,
+        },
+        G: {
+            type: Number,
+            showDefault: false,
+        },
+        MaterialExpression: {
+            type: ObjectReferenceEntity,
+            showDefault: false,
+        },
         MoveMode: {
             type: SymbolEntity,
             showDefault: false,
@@ -3053,10 +3081,18 @@ class ObjectEntity extends IEntity {
         /** @type {Boolean?} */ this.bCommand;
         /** @type {LinearColorEntity?} */ this.CommentColor;
         /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel;
+        /** @type {Boolean?} */ this.bColorCommentBubble;
+        /** @type {Number?} */ this.R;
+        /** @type {Number?} */ this.G;
+        /** @type {ObjectReferenceEntity?} */ this.MaterialExpression;
+        /** @type {SymbolEntity?} */ this.MoveMode;
+        /** @type {String?} */ this.TimelineName;
+        /** @type {GuidEntity?} */ this.TimelineGuid;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
         /** @type {IntegerEntity?} */ this.NodeWidth;
         /** @type {IntegerEntity?} */ this.NodeHeight;
+        /** @type {Boolean?} */ this.bCanRenameNode;
         /** @type {Boolean?} */ this.bCommentBubblePinned;
         /** @type {Boolean?} */ this.bCommentBubbleVisible;
         /** @type {String?} */ this.NodeComment;
@@ -3099,6 +3135,9 @@ class ObjectEntity extends IEntity {
         if (this.MacroGraphReference?.MacroGraph?.path) {
             return this.MacroGraphReference.MacroGraph.path
         }
+        if (this.MaterialExpression) {
+            return this.MaterialExpression.type
+        }
         return classValue
     }
 
@@ -3132,7 +3171,7 @@ class ObjectEntity extends IEntity {
 
     getNodeWidth() {
         return this.NodeWidth ??
-            this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentWidth : undefined
+            this.getType() == Configuration.paths.comment ? Configuration.defaultCommentWidth : undefined
     }
 
     /** @param {Number} value */
@@ -3145,7 +3184,7 @@ class ObjectEntity extends IEntity {
 
     getNodeHeight() {
         return this.NodeHeight ??
-            this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentHeight : undefined
+            this.getType() == Configuration.paths.comment ? Configuration.defaultCommentHeight : undefined
     }
 
     /** @param {Number} value */
@@ -3201,13 +3240,17 @@ class ObjectEntity extends IEntity {
 
     isEvent() {
         switch (this.getClass()) {
-            case Configuration.nodeType.customEvent:
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.inputAxisKeyEvent:
-            case Configuration.nodeType.inputVectorAxisEvent:
+            case Configuration.paths.customEvent:
+            case Configuration.paths.event:
+            case Configuration.paths.inputAxisKeyEvent:
+            case Configuration.paths.inputVectorAxisEvent:
                 return true
         }
         return false
+    }
+
+    isMaterial() {
+        return this.getClass() === Configuration.paths.materialGraphNode || this.MaterialExpression !== undefined
     }
 
     isDevelopmentOnly() {
@@ -3224,47 +3267,48 @@ class ObjectEntity extends IEntity {
         return this.getCustomproperties().find(pin => pin.PinType.PinCategory === "delegate")
     }
 
+    /** @returns {String} */
     nodeDisplayName() {
         switch (this.getType()) {
-            case Configuration.nodeType.componentBoundEvent:
+            case Configuration.paths.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
-            case Configuration.nodeType.createDelegate:
+            case Configuration.paths.createDelegate:
                 return "Create Event"
-            case Configuration.nodeType.customEvent:
+            case Configuration.paths.customEvent:
                 if (this.CustomFunctionName) {
                     return this.CustomFunctionName
                 }
-            case Configuration.nodeType.dynamicCast:
+            case Configuration.paths.dynamicCast:
                 if (!this.TargetType) {
                     return "Bad cast node" // Target type not found
                 }
                 return `Cast To ${this.TargetType?.getName()}`
-            case Configuration.nodeType.enumLiteral:
+            case Configuration.paths.enumLiteral:
                 return `Literal enum ${this.Enum?.getName()}`
-            case Configuration.nodeType.event:
+            case Configuration.paths.event:
                 return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
-            case Configuration.nodeType.executionSequence:
+            case Configuration.paths.executionSequence:
                 return "Sequence"
-            case Configuration.nodeType.forEachElementInEnum:
+            case Configuration.paths.forEachElementInEnum:
                 return `For Each ${this.Enum?.getName()}`
-            case Configuration.nodeType.forEachLoopWithBreak:
+            case Configuration.paths.forEachLoopWithBreak:
                 return "For Each Loop with Break"
-            case Configuration.nodeType.functionEntry:
+            case Configuration.paths.functionEntry:
                 return "Construction Script"
-            case Configuration.nodeType.ifThenElse:
+            case Configuration.paths.ifThenElse:
                 return "Branch"
-            case Configuration.nodeType.spawnActorFromClass:
+            case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
                     ?? "NONE"
                 )}`
-            case Configuration.nodeType.switchEnum:
+            case Configuration.paths.switchEnum:
                 return `Switch on ${this.Enum?.getName() ?? "Enum"}`
-            case Configuration.nodeType.switchInteger:
+            case Configuration.paths.switchInteger:
                 return `Switch on Int`
-            case Configuration.nodeType.variableGet:
+            case Configuration.paths.variableGet:
                 return ""
-            case Configuration.nodeType.variableSet:
+            case Configuration.paths.variableSet:
                 return "SET"
         }
         let switchTarget = this.switchTarget();
@@ -3278,15 +3322,23 @@ class ObjectEntity extends IEntity {
         if (keyNameSymbol) {
             const keyName = keyNameSymbol.toString();
             let title = ObjectEntity.keyName(keyName) ?? Utility.formatStringName(keyName);
-            if (this.getClass() === Configuration.nodeType.inputDebugKey) {
+            if (this.getClass() === Configuration.paths.inputDebugKey) {
                 title = "Debug Key " + title;
-            } else if (this.getClass() === Configuration.nodeType.getInputAxisKeyValue) {
+            } else if (this.getClass() === Configuration.paths.getInputAxisKeyValue) {
                 title = "Get " + title;
             }
             return title
         }
-        if (this.getClass() === Configuration.nodeType.macro) {
+        if (this.getClass() === Configuration.paths.macro) {
             return Utility.formatStringName(this.MacroGraphReference?.getMacroName())
+        }
+        if (this.isMaterial()) {
+            const materialObject = /** @type {ObjectEntity} */(
+                this[Configuration.subObjectAttributeNameFromReference(this.MaterialExpression, true)]
+            );
+            let result = materialObject.nodeDisplayName();
+            result = result.match(/Material Expression (.+)/)?.[1] ?? result;
+            return result
         }
         let memberName = this.FunctionReference?.MemberName;
         if (memberName) {
@@ -3307,7 +3359,7 @@ class ObjectEntity extends IEntity {
                     )
             }
             switch (memberParent) {
-                case "/Script/Engine.KismetMathLibrary":
+                case Configuration.paths.kismetMathLibrary:
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion nodes do not have visible names
                     }
@@ -3332,7 +3384,7 @@ class ObjectEntity extends IEntity {
                         case "MinInt64": return "MIN"
                     }
                     break
-                case "/Script/Engine.BlueprintSetLibrary":
+                case Configuration.paths.blueprintSetLibrary:
                     {
                         const setOperationMatch = memberName.match(/Set_(\w+)/);
                         if (setOperationMatch) {
@@ -3340,7 +3392,7 @@ class ObjectEntity extends IEntity {
                         }
                     }
                     break
-                case "/Script/Engine.BlueprintMapLibrary":
+                case Configuration.paths.blueprintMapLibrary:
                     {
                         const setOperationMatch = memberName.match(/Map_(\w+)/);
                         if (setOperationMatch) {
@@ -3355,30 +3407,37 @@ class ObjectEntity extends IEntity {
     }
 
     nodeColor() {
+        switch (this.getType()) {
+            case Configuration.paths.materialExpressionConstant2Vector:
+                return Configuration.nodeColors.yellow
+            case Configuration.paths.materialExpressionTextureCoordinate:
+                return Configuration.nodeColors.red
+        }
         switch (this.getClass()) {
-            case Configuration.nodeType.callFunction:
+            case Configuration.paths.callFunction:
                 return this.bIsPureFunc
                     ? Configuration.nodeColors.green
                     : Configuration.nodeColors.blue
-            case Configuration.nodeType.dynamicCast:
+            case Configuration.paths.dynamicCast:
                 return Configuration.nodeColors.turquoise
-            case Configuration.nodeType.inputDebugKey:
-            case Configuration.nodeType.inputKey:
+            case Configuration.paths.inputDebugKey:
+            case Configuration.paths.inputKey:
                 return Configuration.nodeColors.red
-            case Configuration.nodeType.createDelegate:
-            case Configuration.nodeType.enumLiteral:
-            case Configuration.nodeType.makeArray:
-            case Configuration.nodeType.makeMap:
-            case Configuration.nodeType.select:
+            case Configuration.paths.createDelegate:
+            case Configuration.paths.enumLiteral:
+            case Configuration.paths.makeArray:
+            case Configuration.paths.makeMap:
+            case Configuration.paths.materialGraphNode:
+            case Configuration.paths.select:
                 return Configuration.nodeColors.green
-            case Configuration.nodeType.executionSequence:
-            case Configuration.nodeType.ifThenElse:
-            case Configuration.nodeType.macro:
-            case Configuration.nodeType.multiGate:
+            case Configuration.paths.executionSequence:
+            case Configuration.paths.ifThenElse:
+            case Configuration.paths.macro:
+            case Configuration.paths.multiGate:
                 return Configuration.nodeColors.gray
-            case Configuration.nodeType.functionEntry:
+            case Configuration.paths.functionEntry:
                 return Configuration.nodeColors.violet
-            case Configuration.nodeType.timeline:
+            case Configuration.paths.timeline:
                 return Configuration.nodeColors.yellow
         }
         if (this.switchTarget()) {
@@ -3395,37 +3454,37 @@ class ObjectEntity extends IEntity {
 
     nodeIcon() {
         switch (this.getType()) {
-            case Configuration.nodeType.addDelegate:
-            case Configuration.nodeType.createDelegate:
-            case Configuration.nodeType.functionEntry:
+            case Configuration.paths.addDelegate:
+            case Configuration.paths.createDelegate:
+            case Configuration.paths.functionEntry:
                 return SVGIcon.node
-            case Configuration.nodeType.customEvent: return SVGIcon.event
-            case Configuration.nodeType.doN: return SVGIcon.doN
-            case Configuration.nodeType.doOnce: return SVGIcon.doOnce
-            case Configuration.nodeType.dynamicCast: return SVGIcon.cast
-            case Configuration.nodeType.enumLiteral: return SVGIcon.enum
-            case Configuration.nodeType.event: return SVGIcon.event
-            case Configuration.nodeType.executionSequence:
-            case Configuration.nodeType.multiGate:
+            case Configuration.paths.customEvent: return SVGIcon.event
+            case Configuration.paths.doN: return SVGIcon.doN
+            case Configuration.paths.doOnce: return SVGIcon.doOnce
+            case Configuration.paths.dynamicCast: return SVGIcon.cast
+            case Configuration.paths.enumLiteral: return SVGIcon.enum
+            case Configuration.paths.event: return SVGIcon.event
+            case Configuration.paths.executionSequence:
+            case Configuration.paths.multiGate:
                 return SVGIcon.sequence
-            case Configuration.nodeType.flipflop:
+            case Configuration.paths.flipflop:
                 return SVGIcon.flipflop
-            case Configuration.nodeType.forEachElementInEnum:
-            case Configuration.nodeType.forLoop:
-            case Configuration.nodeType.forLoopWithBreak:
-            case Configuration.nodeType.whileLoop:
+            case Configuration.paths.forEachElementInEnum:
+            case Configuration.paths.forLoop:
+            case Configuration.paths.forLoopWithBreak:
+            case Configuration.paths.whileLoop:
                 return SVGIcon.loop
-            case Configuration.nodeType.forEachLoop:
-            case Configuration.nodeType.forEachLoopWithBreak:
+            case Configuration.paths.forEachLoop:
+            case Configuration.paths.forEachLoopWithBreak:
                 return SVGIcon.forEachLoop
-            case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
-            case Configuration.nodeType.isValid: return SVGIcon.questionMark
-            case Configuration.nodeType.makeArray: return SVGIcon.makeArray
-            case Configuration.nodeType.makeMap: return SVGIcon.makeMap
-            case Configuration.nodeType.makeSet: return SVGIcon.makeSet
-            case Configuration.nodeType.select: return SVGIcon.select
-            case Configuration.nodeType.spawnActorFromClass: return SVGIcon.spawnActor
-            case Configuration.nodeType.timeline: return SVGIcon.timer
+            case Configuration.paths.ifThenElse: return SVGIcon.branchNode
+            case Configuration.paths.isValid: return SVGIcon.questionMark
+            case Configuration.paths.makeArray: return SVGIcon.makeArray
+            case Configuration.paths.makeMap: return SVGIcon.makeMap
+            case Configuration.paths.makeSet: return SVGIcon.makeSet
+            case Configuration.paths.select: return SVGIcon.select
+            case Configuration.paths.spawnActorFromClass: return SVGIcon.spawnActor
+            case Configuration.paths.timeline: return SVGIcon.timer
         }
         if (this.switchTarget()) {
             return SVGIcon.switch
@@ -3433,8 +3492,11 @@ class ObjectEntity extends IEntity {
         if (this.nodeDisplayName().startsWith("Break")) {
             return SVGIcon.breakStruct
         }
-        if (this.getClass() === Configuration.nodeType.macro) {
+        if (this.getClass() === Configuration.paths.macro) {
             return SVGIcon.macro
+        }
+        if (this.isMaterial()) {
+            return undefined
         }
         const hidValue = this.getHIDAttribute()?.toString();
         if (hidValue) {
@@ -4573,78 +4635,7 @@ class Copy extends IInput {
     copied() {
         const value = this.getSerializedText();
         navigator.clipboard.writeText(value);
-    }
-}
-
-/**
- * @typedef {import("../element/IElement.js").default} IElement
- * @typedef {import("../input/IInput.js").default} IInput
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-/** @template {IElement} T */
-class ITemplate {
-
-    /** @type {T} */
-    element
-
-    get blueprint() {
-        return this.element.blueprint
-    }
-
-    /** @type {IInput[]} */
-    #inputObjects = []
-    get inputObjects() {
-        return this.#inputObjects
-    }
-
-    /** @param {T} element */
-    initialize(element) {
-        this.element = element;
-    }
-
-    createInputObjects() {
-        return /** @type {IInput[]} */([])
-    }
-
-    /**
-     * @template {IInput} T
-     * @param {new () => T} type
-     */
-    getInputObject(type) {
-        return /** @type {T} */(this.inputObjects.find(object => object.constructor == type))
-    }
-
-    setup() {
-        this.#inputObjects.forEach(v => v.setup());
-    }
-
-    cleanup() {
-        this.#inputObjects.forEach(v => v.cleanup());
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    willUpdate(changedProperties) {
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    update(changedProperties) {
-    }
-
-    render() {
-        return x``
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    firstUpdated(changedProperties) {
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    updated(changedProperties) {
-    }
-
-    inputSetup() {
-        this.#inputObjects = this.createInputObjects();
+        return value
     }
 }
 
@@ -4759,6 +4750,13 @@ class IKeyboardShortcut extends IInput {
     }
 }
 
+class Shortcut {
+    static deleteNodes = "Delete"
+    static duplicateNodes = "(bCtrl=True,Key=D)"
+    static selectAllNodes = "(bCtrl=True,Key=A)"
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
+}
+
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 class KeyboardCanc extends IKeyboardShortcut {
@@ -4769,12 +4767,120 @@ class KeyboardCanc extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.activationKeys = Configuration.deleteNodesKeyboardKey;
+        options.activationKeys = Shortcut.deleteNodes;
         super(target, blueprint, options);
     }
 
     fire() {
         this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
+    }
+}
+
+class Cut extends IInput {
+
+    static #serializer = new ObjectSerializer()
+
+    /** @type {(e: ClipboardEvent) => void} */
+    #cutHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus ??= true;
+        options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
+        super(target, blueprint, options);
+        let self = this;
+        this.#cutHandler = _ => self.cut();
+    }
+
+    listenEvents() {
+        window.addEventListener("cut", this.#cutHandler);
+    }
+
+    unlistenEvents() {
+        window.removeEventListener("cut", this.#cutHandler);
+    }
+
+    getSerializedText() {
+        return this.blueprint
+            .getNodes(true)
+            .map(node => Cut.#serializer.write(node.entity, false))
+            .join("")
+    }
+
+    cut() {
+        this.blueprint.template.getCopyInputObject().copied();
+        this.blueprint.template.getInputObject(KeyboardCanc).fire();
+    }
+}
+
+/**
+ * @typedef {import("../element/IElement.js").default} IElement
+ * @typedef {import("../input/IInput.js").default} IInput
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
+
+/** @template {IElement} T */
+class ITemplate {
+
+    /** @type {T} */
+    element
+
+    get blueprint() {
+        return this.element.blueprint
+    }
+
+    /** @type {IInput[]} */
+    #inputObjects = []
+    get inputObjects() {
+        return this.#inputObjects
+    }
+
+    /** @param {T} element */
+    initialize(element) {
+        this.element = element;
+    }
+
+    createInputObjects() {
+        return /** @type {IInput[]} */([])
+    }
+
+    /**
+     * @template {IInput} T
+     * @param {new (...any) => T} type
+     */
+    getInputObject(type) {
+        return /** @type {T} */(this.inputObjects.find(object => object.constructor == type))
+    }
+
+    setup() {
+        this.#inputObjects.forEach(v => v.setup());
+    }
+
+    cleanup() {
+        this.#inputObjects.forEach(v => v.cleanup());
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    willUpdate(changedProperties) {
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    update(changedProperties) {
+    }
+
+    render() {
+        return x``
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    updated(changedProperties) {
+    }
+
+    inputSetup() {
+        this.#inputObjects = this.createInputObjects();
     }
 }
 
@@ -4884,7 +4990,7 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.activationKeys = Configuration.enableZoomIn;
+        options.activationKeys = Shortcut.enableZoomIn;
         super(target, blueprint, options);
     }
 
@@ -4908,12 +5014,52 @@ class KeyboardSelectAll extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.activationKeys = Configuration.selectAllKeyboardKey;
+        options.activationKeys = Shortcut.selectAllNodes;
         super(target, blueprint, options);
     }
 
     fire() {
         this.blueprint.selectAll();
+    }
+}
+
+/** @typedef {import("../../Blueprint.js").default} Blueprint */
+
+/**
+ * @template {HTMLElement} T
+ * @extends IKeyboardShortcut<T>
+ */
+class KeyboardShortcutAction extends IKeyboardShortcut {
+
+    static #ignoreEvent =
+        /** @param {KeyboardShortcutAction} self */
+        self => { }
+
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     * @param {(self: KeyboardShortcutAction<T>) => void} onKeyDown
+     * @param {(self: KeyboardShortcutAction<T>) => void} onKeyUp
+     */
+    constructor(
+        target,
+        blueprint,
+        options,
+        onKeyDown = KeyboardShortcutAction.#ignoreEvent,
+        onKeyUp = KeyboardShortcutAction.#ignoreEvent
+    ) {
+        super(target, blueprint, options);
+        this.onKeyDown = onKeyDown;
+        this.onKeyUp = onKeyUp;
+    }
+
+    fire() {
+        this.onKeyDown(this);
+    }
+
+    unfire() {
+        this.onKeyUp(this);
     }
 }
 
@@ -5667,6 +5813,14 @@ class BlueprintTemplate extends ITemplate {
             ...super.createInputObjects(),
             new Copy(this.element.getGridDOMElement(), this.element),
             new Paste(this.element.getGridDOMElement(), this.element),
+            new Cut(this.element.getGridDOMElement(), this.element),
+            new KeyboardShortcutAction(this.element.getGridDOMElement(), this.element, {
+                activationKeys: Shortcut.duplicateNodes
+            }, () =>
+                this.blueprint.template.getPasteInputObject().pasted(
+                    this.blueprint.template.getCopyInputObject().copied()
+                )
+            ),
             new KeyboardCanc(this.element.getGridDOMElement(), this.element),
             new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
             new Zoom(this.element.getGridDOMElement(), this.element),
@@ -5690,13 +5844,13 @@ class BlueprintTemplate extends ITemplate {
         return x`
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">
-                    Zoom ${this.element.zoom == 0 ? "1:1" : (this.element.zoom > 0 ? "+" : "") + this.element.zoom}
+                    Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
                 </div>
             </div>
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
-                    style="--ueb-additional-x: ${Math.round(this.element.translateX)}; --ueb-additional-y: ${Math.round(this.element.translateY)}; --ueb-translate-x: ${Math.round(this.element.translateX)}; --ueb-translate-y: ${Math.round(this.element.translateY)};">
+                    style="--ueb-additional-x: ${Math.round(this.blueprint.translateX)}; --ueb-additional-y: ${Math.round(this.blueprint.translateY)}; --ueb-translate-x: ${Math.round(this.blueprint.translateX)}; --ueb-translate-y: ${Math.round(this.blueprint.translateY)};">
                     <div class="ueb-grid-content">
                         <div data-links></div>
                         <div data-nodes></div>
@@ -5710,15 +5864,15 @@ class BlueprintTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.headerElement = this.element.querySelector('.ueb-viewport-header');
-        this.overlayElement = this.element.querySelector('.ueb-viewport-overlay');
-        this.viewportElement = this.element.querySelector('.ueb-viewport-body');
-        this.selectorElement = this.element.querySelector('ueb-selector');
+        this.headerElement = this.blueprint.querySelector('.ueb-viewport-header');
+        this.overlayElement = this.blueprint.querySelector('.ueb-viewport-overlay');
+        this.viewportElement = this.blueprint.querySelector('.ueb-viewport-body');
+        this.selectorElement = this.blueprint.querySelector('ueb-selector');
         this.gridElement = this.viewportElement.querySelector(".ueb-grid");
-        this.linksContainerElement = this.element.querySelector("[data-links]");
-        this.linksContainerElement.append(...this.element.getLinks());
-        this.nodesContainerElement = this.element.querySelector("[data-nodes]");
-        this.nodesContainerElement.append(...this.element.getNodes());
+        this.linksContainerElement = this.blueprint.querySelector("[data-links]");
+        this.linksContainerElement.append(...this.blueprint.getLinks());
+        this.nodesContainerElement = this.blueprint.querySelector("[data-nodes]");
+        this.nodesContainerElement.append(...this.blueprint.getNodes());
         this.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
     }
 
@@ -5738,40 +5892,44 @@ class BlueprintTemplate extends ITemplate {
     updated(changedProperties) {
         super.updated(changedProperties);
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
-            this.viewportElement.scroll(this.element.scrollX, this.element.scrollY);
+            this.viewportElement.scroll(this.blueprint.scrollX, this.blueprint.scrollY);
         }
         if (changedProperties.has("zoom")) {
-            this.element.style.setProperty("--ueb-scale", this.blueprint.getScale());
+            this.blueprint.style.setProperty("--ueb-scale", this.blueprint.getScale());
             const previousZoom = changedProperties.get("zoom");
-            const minZoom = Math.min(previousZoom, this.element.zoom);
-            const maxZoom = Math.max(previousZoom, this.element.zoom);
+            const minZoom = Math.min(previousZoom, this.blueprint.zoom);
+            const maxZoom = Math.max(previousZoom, this.blueprint.zoom);
             const classes = Utility.range(minZoom, maxZoom);
             const getClassName = v => `ueb-zoom-${v}`;
-            if (previousZoom < this.element.zoom) {
-                this.element.classList.remove(...classes.filter(v => v < 0).map(getClassName));
-                this.element.classList.add(...classes.filter(v => v > 0).map(getClassName));
+            if (previousZoom < this.blueprint.zoom) {
+                this.blueprint.classList.remove(...classes.filter(v => v < 0).map(getClassName));
+                this.blueprint.classList.add(...classes.filter(v => v > 0).map(getClassName));
             } else {
-                this.element.classList.remove(...classes.filter(v => v > 0).map(getClassName));
-                this.element.classList.add(...classes.filter(v => v < 0).map(getClassName));
+                this.blueprint.classList.remove(...classes.filter(v => v > 0).map(getClassName));
+                this.blueprint.classList.add(...classes.filter(v => v < 0).map(getClassName));
             }
         }
     }
 
     getCommentNodes(justSelected = false) {
-        return this.element.querySelectorAll(
-            `ueb-node[data-type="${Configuration.nodeType.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
+        return this.blueprint.querySelectorAll(
+            `ueb-node[data-type="${Configuration.paths.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
         )
     }
 
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
-        return /** @type {PinElement} */(this.element.querySelector(
+        return /** @type {PinElement} */(this.blueprint.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
     }
 
     getCopyInputObject() {
         return this.getInputObject(Copy)
+    }
+
+    getPasteInputObject() {
+        return this.getInputObject(Paste)
     }
 
     /**
@@ -5787,7 +5945,6 @@ class BlueprintTemplate extends ITemplate {
     }
 
     gridRightVisibilityBoundary() {
-        this.blueprint;
         return this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0])
     }
 
@@ -5935,7 +6092,7 @@ class KnotEntity extends ObjectEntity {
      */
     constructor(options = {}, pinReferenceForType = undefined) {
         super(options, true);
-        this.Class = new ObjectReferenceEntity("/Script/BlueprintGraph.K2Node_Knot");
+        this.Class = new ObjectReferenceEntity(Configuration.paths.knot);
         this.Name = "K2Node_Knot";
         const inputPinEntity = new PinEntity(
             {
@@ -6115,8 +6272,8 @@ class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
             const from = this.element.fromX;
             const to = this.element.toX;
-            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.nodeType.knot;
-            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.nodeType.knot;
+            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.paths.knot;
+            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.paths.knot;
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
                 if (sourcePin?.isInput() && to > from + Configuration.distanceThreshold) {
                     this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin;
@@ -6601,46 +6758,6 @@ class MouseClickDrag extends MouseMoveDraggable {
     endDrag() {
         super.endDrag();
         this.#onEndDrag?.();
-    }
-}
-
-/** @typedef {import("../../Blueprint.js").default} Blueprint */
-
-/**
- * @template {HTMLElement} T
- * @extends IKeyboardShortcut<T>
- */
-class KeyboardShortcutAction extends IKeyboardShortcut {
-
-    static #ignoreEvent =
-        /** @param {KeyboardShortcutAction} self */
-        self => { }
-
-    /**
-     * @param {T} target
-     * @param {Blueprint} blueprint
-     * @param {Object} options
-     * @param {(self: KeyboardShortcutAction<T>) => void} onKeyDown
-     * @param {(self: KeyboardShortcutAction<T>) => void} onKeyUp
-     */
-    constructor(
-        target,
-        blueprint,
-        options,
-        onKeyDown = KeyboardShortcutAction.#ignoreEvent,
-        onKeyUp = KeyboardShortcutAction.#ignoreEvent
-    ) {
-        super(target, blueprint, options);
-        this.onKeyDown = onKeyDown;
-        this.onKeyUp = onKeyUp;
-    }
-
-    fire() {
-        this.onKeyDown(this);
-    }
-
-    unfire() {
-        this.onKeyUp(this);
     }
 }
 
@@ -7251,8 +7368,8 @@ class MouseCreateLink extends IMouseClickDrag {
             const b = this.enteredPin;
             const outputPin = a.isOutput() ? a : b;
             if (
-                a.nodeElement.getType() === Configuration.nodeType.knot
-                || b.nodeElement.getType() === Configuration.nodeType.knot
+                a.nodeElement.getType() === Configuration.paths.knot
+                || b.nodeElement.getType() === Configuration.paths.knot
             ) {
                 // A knot can be linked to any pin, it doesn't matter the type or input/output direction
                 this.link.setMessageCorrect();
@@ -7302,7 +7419,7 @@ class MouseCreateLink extends IMouseClickDrag {
     }
 
     startDrag(location) {
-        if (this.target.nodeElement.getType() == Configuration.nodeType.knot) {
+        if (this.target.nodeElement.getType() == Configuration.paths.knot) {
             this.#knotPin = this.target;
         }
         /** @type {LinkElement} */
@@ -7343,7 +7460,7 @@ class MouseCreateLink extends IMouseClickDrag {
                         this.enteredPin = oppositePin;
                     }
                 }
-            } else if (this.enteredPin.nodeElement.getType() === Configuration.nodeType.knot) {
+            } else if (this.enteredPin.nodeElement.getType() === Configuration.paths.knot) {
                 this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin();
             }
             if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
@@ -7591,7 +7708,7 @@ class EventNodeTemplate extends NodeTemplate {
     renderTop() {
         const icon = this.renderNodeIcon();
         const name = this.renderNodeName();
-        const customEvent = this.element.getType() === Configuration.nodeType.customEvent
+        const customEvent = this.element.getType() === Configuration.paths.customEvent
             && (this.element.entity.CustomFunctionName || this.element.entity.FunctionReference.MemberParent);
         return x`
             <div class="ueb-node-name">
@@ -7751,7 +7868,7 @@ class KnotNodeTemplate extends NodeTemplate {
     /** @param {PinElement} startingPin */
     findDirectionaPin(startingPin) {
         if (
-            startingPin.nodeElement.getType() !== Configuration.nodeType.knot
+            startingPin.nodeElement.getType() !== Configuration.paths.knot
             || KnotNodeTemplate.#traversedPin.has(startingPin)
         ) {
             KnotNodeTemplate.#traversedPin.clear();
@@ -7810,9 +7927,9 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
-        if (element.getType() === Configuration.nodeType.variableGet) {
+        if (element.getType() === Configuration.paths.variableGet) {
             this.element.classList.add("ueb-node-style-getter");
-        } else if (element.getType() === Configuration.nodeType.variableSet) {
+        } else if (element.getType() === Configuration.paths.variableSet) {
             this.element.classList.add("ueb-node-style-setter");
         }
     }
@@ -7911,14 +8028,14 @@ class NodeElement extends ISelectableDraggableElement {
      */
     static getTypeTemplate(nodeEntity) {
         if (
-            nodeEntity.getClass() === Configuration.nodeType.callFunction
-            || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
-            || nodeEntity.getClass() === Configuration.nodeType.callArrayFunction
+            nodeEntity.getClass() === Configuration.paths.callFunction
+            || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
+            || nodeEntity.getClass() === Configuration.paths.callArrayFunction
         ) {
             const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
             if (
-                memberParent === "/Script/Engine.KismetMathLibrary"
-                || memberParent === "/Script/Engine.KismetArrayLibrary"
+                memberParent === Configuration.paths.kismetMathLibrary
+                || memberParent === Configuration.paths.kismetArrayLibrary
             ) {
                 if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
                     return VariableConversionNodeTemplate
@@ -7943,23 +8060,23 @@ class NodeElement extends ISelectableDraggableElement {
                         return VariableOperationNodeTemplate
                 }
             }
-            if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
+            if (memberParent === Configuration.paths.blueprintSetLibrary) {
                 return VariableOperationNodeTemplate
             }
-            if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
+            if (memberParent === Configuration.paths.blueprintMapLibrary) {
                 return VariableOperationNodeTemplate
             }
         }
         switch (nodeEntity.getClass()) {
-            case Configuration.nodeType.comment:
+            case Configuration.paths.comment:
                 return CommentNodeTemplate
-            case Configuration.nodeType.createDelegate:
+            case Configuration.paths.createDelegate:
                 return NodeTemplate
-            case Configuration.nodeType.promotableOperator:
+            case Configuration.paths.promotableOperator:
                 return VariableOperationNodeTemplate
-            case Configuration.nodeType.knot: return KnotNodeTemplate
-            case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
-            case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
+            case Configuration.paths.knot: return KnotNodeTemplate
+            case Configuration.paths.variableGet: return VariableAccessNodeTemplate
+            case Configuration.paths.variableSet: return VariableAccessNodeTemplate
         }
         if (nodeEntity.isEvent()) {
             return EventNodeTemplate
@@ -8424,7 +8541,7 @@ class Blueprint extends IElement {
         let result = /** @type {NodeElement[]} */([...this.template.getCommentNodes(justSelected)]);
         if (result.length === 0) {
             result = this.nodes.filter(n =>
-                n.getType() === Configuration.nodeType.comment && (!justSelected || n.selected)
+                n.getType() === Configuration.paths.comment && (!justSelected || n.selected)
             );
         }
         return result
@@ -8532,7 +8649,7 @@ class Blueprint extends IElement {
             node => /** @type {NodeElement} */(node).sanitizeLinks(graphElements)
         );
         graphElements
-            .filter(element => element instanceof NodeElement && element.getType() == Configuration.nodeType.comment)
+            .filter(element => element instanceof NodeElement && element.getType() == Configuration.paths.comment)
             .forEach(element => element.updateComplete.then(() =>
                 /** @type {CommentNodeTemplate} */(element.template).manageNodesBind()
             ));
@@ -9982,11 +10099,12 @@ class PinElement extends IElement {
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
+        "red": RealPinTemplate,
         "string": StringPinTemplate,
-        [Configuration.nodeType.linearColor]: LinearColorPinTemplate,
-        [Configuration.nodeType.rotator]: RotatorPinTemplate,
-        [Configuration.nodeType.vector]: VectorPinTemplate,
-        [Configuration.nodeType.vector2D]: VectorInputPinTemplate,
+        [Configuration.paths.linearColor]: LinearColorPinTemplate,
+        [Configuration.paths.rotator]: RotatorPinTemplate,
+        [Configuration.paths.vector]: VectorPinTemplate,
+        [Configuration.paths.vector2D]: VectorInputPinTemplate,
     }
 
     static properties = {
@@ -10037,6 +10155,12 @@ class PinElement extends IElement {
             attribute: "data-direction",
             reflect: true,
         },
+        connectable: {
+            type: Boolean,
+            converter: Utility.booleanConverter,
+            attribute: "data-connectable",
+            reflect: true,
+        }
     }
 
     /** @type {NodeElement} */
@@ -10084,6 +10208,7 @@ class PinElement extends IElement {
         this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
         this.nodeElement = /** @type {NodeElement} */(nodeElement);
+        this.connectable = !entity.bNotConnectable;
     }
 
     setup() {

@@ -4,12 +4,12 @@ import Blueprint from "../../js/Blueprint.js"
 import Utility from "../../js/Utility.js"
 
 /** @param {String[]} words */
-export function getFirstWordOrder(words) {
+function getFirstWordOrder(words) {
     return new RegExp("\\s*" + words.join("[^\\n]+\\n\\s*") + "\\s*")
 }
 
 /** @param {() => Blueprint} getBlueprint */
-export function generateNodeTest(nodeTest, getBlueprint) {
+function generateNodeTest(nodeTest, getBlueprint) {
     context(nodeTest.name, () => {
         /** @type {NodeElement} */
         let node
@@ -41,6 +41,8 @@ export function generateNodeTest(nodeTest, getBlueprint) {
             () => expect(node.querySelector(".ueb-node-subtitle-text")?.innerText).to.be.equal(nodeTest.subtitle))
         if (nodeTest.icon) {
             it("Has the correct icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(nodeTest.icon))
+        } else if (nodeTest.icon === false) {
+            it("It does not have an icon", () => expect(node.entity.nodeIcon()).to.be.undefined)
         }
         it(`Has ${nodeTest.pins} pins`, () => expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(nodeTest.pins))
         if (nodeTest.pinNames) {
@@ -67,4 +69,20 @@ export function generateNodeTest(nodeTest, getBlueprint) {
             })
         }
     })
+}
+
+export default function generateNodesTests(tests) {
+
+    /** @type {Blueprint} */
+    let blueprint
+
+    before(() => {
+        cy.visit(`http://127.0.0.1:${Cypress.env("UEBLUEPRINT_TEST_SERVER_PORT")}/empty.html`, {
+            onLoad: () => {
+                cy.get("ueb-blueprint").then(b => blueprint = b[0]).click(100, 300)
+            }
+        })
+    })
+
+    tests.forEach(testObject => generateNodeTest(testObject, () => blueprint))
 }

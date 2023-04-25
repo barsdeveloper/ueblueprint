@@ -101,14 +101,14 @@ export default class NodeElement extends ISelectableDraggableElement {
      */
     static getTypeTemplate(nodeEntity) {
         if (
-            nodeEntity.getClass() === Configuration.nodeType.callFunction
-            || nodeEntity.getClass() === Configuration.nodeType.commutativeAssociativeBinaryOperator
-            || nodeEntity.getClass() === Configuration.nodeType.callArrayFunction
+            nodeEntity.getClass() === Configuration.paths.callFunction
+            || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
+            || nodeEntity.getClass() === Configuration.paths.callArrayFunction
         ) {
             const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
             if (
-                memberParent === "/Script/Engine.KismetMathLibrary"
-                || memberParent === "/Script/Engine.KismetArrayLibrary"
+                memberParent === Configuration.paths.kismetMathLibrary
+                || memberParent === Configuration.paths.kismetArrayLibrary
             ) {
                 if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
                     return VariableConversionNodeTemplate
@@ -133,23 +133,23 @@ export default class NodeElement extends ISelectableDraggableElement {
                         return VariableOperationNodeTemplate
                 }
             }
-            if (memberParent === "/Script/Engine.BlueprintSetLibrary") {
+            if (memberParent === Configuration.paths.blueprintSetLibrary) {
                 return VariableOperationNodeTemplate
             }
-            if (memberParent === "/Script/Engine.BlueprintMapLibrary") {
+            if (memberParent === Configuration.paths.blueprintMapLibrary) {
                 return VariableOperationNodeTemplate
             }
         }
         switch (nodeEntity.getClass()) {
-            case Configuration.nodeType.comment:
+            case Configuration.paths.comment:
                 return CommentNodeTemplate
-            case Configuration.nodeType.createDelegate:
+            case Configuration.paths.createDelegate:
                 return NodeTemplate
-            case Configuration.nodeType.promotableOperator:
+            case Configuration.paths.promotableOperator:
                 return VariableOperationNodeTemplate
-            case Configuration.nodeType.knot: return KnotNodeTemplate
-            case Configuration.nodeType.variableGet: return VariableAccessNodeTemplate
-            case Configuration.nodeType.variableSet: return VariableAccessNodeTemplate
+            case Configuration.paths.knot: return KnotNodeTemplate
+            case Configuration.paths.variableGet: return VariableAccessNodeTemplate
+            case Configuration.paths.variableSet: return VariableAccessNodeTemplate
         }
         if (nodeEntity.isEvent()) {
             return EventNodeTemplate

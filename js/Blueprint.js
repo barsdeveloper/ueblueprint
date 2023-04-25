@@ -312,7 +312,7 @@ export default class Blueprint extends IElement {
         let result = /** @type {NodeElement[]} */([...this.template.getCommentNodes(justSelected)])
         if (result.length === 0) {
             result = this.nodes.filter(n =>
-                n.getType() === Configuration.nodeType.comment && (!justSelected || n.selected)
+                n.getType() === Configuration.paths.comment && (!justSelected || n.selected)
             )
         }
         return result
@@ -420,7 +420,7 @@ export default class Blueprint extends IElement {
             node => /** @type {NodeElement} */(node).sanitizeLinks(graphElements)
         )
         graphElements
-            .filter(element => element instanceof NodeElement && element.getType() == Configuration.nodeType.comment)
+            .filter(element => element instanceof NodeElement && element.getType() == Configuration.paths.comment)
             .forEach(element => element.updateComplete.then(() =>
                 /** @type {CommentNodeTemplate} */(element.template).manageNodesBind()
             ))

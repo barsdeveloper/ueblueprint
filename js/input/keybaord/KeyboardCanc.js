@@ -1,5 +1,5 @@
-import Configuration from "../../Configuration.js"
 import IKeyboardShortcut from "./IKeyboardShortcut.js"
+import Shortcut from "../../Shortcut.js"
 
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
@@ -11,7 +11,7 @@ export default class KeyboardCanc extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.activationKeys = Configuration.deleteNodesKeyboardKey
+        options.activationKeys = Shortcut.deleteNodes
         super(target, blueprint, options)
     }
 

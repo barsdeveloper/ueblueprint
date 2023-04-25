@@ -646,6 +646,10 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover
   text-align: left;
 }
 
+ueb-pin[data-connectable=false] .ueb-pin-icon {
+  visibility: hidden;
+}
+
 .ueb-node-style-event ueb-pin[data-type=delegate] .ueb-pin-icon {
   width: 11px;
   height: 11px;

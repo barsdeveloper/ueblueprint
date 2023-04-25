@@ -1,3 +1,4 @@
+import Configuration from "../../Configuration.js"
 import ObjectEntity from "../ObjectEntity.js"
 import ObjectReferenceEntity from "../ObjectReferenceEntity.js"
 import PinEntity from "../PinEntity.js"
@@ -10,7 +11,7 @@ export default class KnotEntity extends ObjectEntity {
      */
     constructor(options = {}, pinReferenceForType = undefined) {
         super(options, true)
-        this.Class = new ObjectReferenceEntity("/Script/BlueprintGraph.K2Node_Knot")
+        this.Class = new ObjectReferenceEntity(Configuration.paths.knot)
         this.Name = "K2Node_Knot"
         const inputPinEntity = new PinEntity(
             {

@@ -31,10 +31,10 @@ import VectorEntity from "./VectorEntity.js"
 export default class PinEntity extends IEntity {
 
     static #typeEntityMap = {
-        [Configuration.nodeType.linearColor]: LinearColorEntity,
-        [Configuration.nodeType.rotator]: RotatorEntity,
-        [Configuration.nodeType.vector]: VectorEntity,
-        [Configuration.nodeType.vector2D]: Vector2DEntity,
+        [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.rotator]: RotatorEntity,
+        [Configuration.paths.vector]: VectorEntity,
+        [Configuration.paths.vector2D]: Vector2DEntity,
         "bool": Boolean,
         "byte": ByteEntity,
         "enum": EnumEntity,
@@ -46,9 +46,9 @@ export default class PinEntity extends IEntity {
         "string": String,
     }
     static #alternativeTypeEntityMap = {
-        [Configuration.nodeType.vector2D]: SimpleSerializationVector2DEntity,
-        [Configuration.nodeType.vector]: SimpleSerializationVectorEntity,
-        [Configuration.nodeType.rotator]: SimpleSerializationRotatorEntity,
+        [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
+        [Configuration.paths.vector]: SimpleSerializationVectorEntity,
+        [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
     }
     static lookbehind = "Pin"
     static attributes = {
@@ -157,14 +157,17 @@ export default class PinEntity extends IEntity {
     }
 
     getType() {
-        const subCategory = this.PinType.PinSubCategoryObject
-        if (this.PinType.PinCategory === "struct" || this.PinType.PinCategory === "object") {
-            return subCategory.path
+        const category = this.PinType.PinCategory
+        if (category === "struct" || category === "object") {
+            return this.PinType.PinSubCategoryObject.path
+        }
+        if (category === "optional" && this.PinType.PinSubCategory === "red") {
+            return "real"
         }
         if (this.isEnum()) {
             return "enum"
         }
-        return this.PinType.PinCategory
+        return category
     }
 
     getEntityType(alternative = false) {
@@ -215,8 +218,8 @@ export default class PinEntity extends IEntity {
 
     isEnum() {
         const type = this.PinType.PinSubCategoryObject.type
-        return type === Configuration.nodeType.enum
-            || type === Configuration.nodeType.userDefinedEnum
+        return type === Configuration.paths.enum
+            || type === Configuration.paths.userDefinedEnum
             || type.toLowerCase() === "enum"
     }
 
@@ -284,6 +287,12 @@ export default class PinEntity extends IEntity {
 
     /** @return {CSSResult} */
     pinColor() {
+        if (this.PinType.PinCategory === "mask") {
+            const result = Configuration.pinColor[this.PinType.PinSubCategory]
+            if (result) {
+                return result
+            }
+        }
         return Configuration.pinColor[this.getType()]
             ?? Configuration.pinColor[this.PinType.PinCategory.toLowerCase()]
             ?? Configuration.pinColor["default"]

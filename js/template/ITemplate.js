@@ -33,7 +33,7 @@ export default class ITemplate {
 
     /**
      * @template {IInput} T
-     * @param {new () => T} type
+     * @param {new (...any) => T} type
      */
     getInputObject(type) {
         return /** @type {T} */(this.inputObjects.find(object => object.constructor == type))

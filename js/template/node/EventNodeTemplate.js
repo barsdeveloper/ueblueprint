@@ -22,7 +22,7 @@ export default class EventNodeTemplate extends NodeTemplate {
     renderTop() {
         const icon = this.renderNodeIcon()
         const name = this.renderNodeName()
-        const customEvent = this.element.getType() === Configuration.nodeType.customEvent
+        const customEvent = this.element.getType() === Configuration.paths.customEvent
             && (this.element.entity.CustomFunctionName || this.element.entity.FunctionReference.MemberParent)
         return html`
             <div class="ueb-node-name">

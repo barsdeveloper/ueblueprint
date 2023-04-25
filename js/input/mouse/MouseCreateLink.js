@@ -28,8 +28,8 @@ export default class MouseCreateLink extends IMouseClickDrag {
             const b = this.enteredPin
             const outputPin = a.isOutput() ? a : b
             if (
-                a.nodeElement.getType() === Configuration.nodeType.knot
-                || b.nodeElement.getType() === Configuration.nodeType.knot
+                a.nodeElement.getType() === Configuration.paths.knot
+                || b.nodeElement.getType() === Configuration.paths.knot
             ) {
                 // A knot can be linked to any pin, it doesn't matter the type or input/output direction
                 this.link.setMessageCorrect()
@@ -79,7 +79,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
     }
 
     startDrag(location) {
-        if (this.target.nodeElement.getType() == Configuration.nodeType.knot) {
+        if (this.target.nodeElement.getType() == Configuration.paths.knot) {
             this.#knotPin = this.target
         }
         /** @type {LinkElement} */
@@ -120,7 +120,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
                         this.enteredPin = oppositePin
                     }
                 }
-            } else if (this.enteredPin.nodeElement.getType() === Configuration.nodeType.knot) {
+            } else if (this.enteredPin.nodeElement.getType() === Configuration.paths.knot) {
                 this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin()
             }
             if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {

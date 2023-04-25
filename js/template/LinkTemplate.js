@@ -109,8 +109,8 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("fromX") || changedProperties.has("toX")) {
             const from = this.element.fromX
             const to = this.element.toX
-            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.nodeType.knot
-            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.nodeType.knot
+            const isSourceAKnot = sourcePin?.nodeElement.getType() == Configuration.paths.knot
+            const isDestinationAKnot = destinationPin?.nodeElement.getType() == Configuration.paths.knot
             if (isSourceAKnot && (!destinationPin || isDestinationAKnot)) {
                 if (sourcePin?.isInput() && to > from + Configuration.distanceThreshold) {
                     this.element.source = /** @type {KnotNodeTemplate} */(sourcePin.nodeElement.template).outputPin

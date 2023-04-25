@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-import { generateNodeTest } from "../fixtures/testUtilities.js"
+import generateNodeTests from "../fixtures/testUtilities.js"
 import Configuration from "../../js/Configuration.js"
 import SVGIcon from "../../js/SVGIcon.js"
 
@@ -69,25 +69,10 @@ const tests = [
                     .map(k => /** @type {import("../../js/entity/ObjectEntity.js").default} */(entity[k]))
                     .filter(v => v.getType())
                 expect(pinObjects).to.be.of.length(4)
-                pinObjects.forEach(v => expect(v.getType()).to.be.equal(Configuration.nodeType.edGraphPinDeprecated))
+                pinObjects.forEach(v => expect(v.getType()).to.be.equal(Configuration.paths.edGraphPinDeprecated))
                 expect(entity.getPinEntities()).to.be.of.length(4)
             }
     },
 ]
 
-/** @type {Blueprint} */
-let blueprint
-
-before(() => {
-    cy.visit(`http://127.0.0.1:${Cypress.env("UEBLUEPRINT_TEST_SERVER_PORT")}/empty.html`, {
-        onLoad: () => {
-            cy.get("ueb-blueprint")
-                .then(b => blueprint = b[0])
-                .click(100, 300)
-        }
-    })
-})
-
-tests.forEach(
-    testObject => generateNodeTest(testObject, () => blueprint)
-)
+generateNodeTests(tests)

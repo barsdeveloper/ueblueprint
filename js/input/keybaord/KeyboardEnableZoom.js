@@ -1,5 +1,5 @@
-import Configuration from "../../Configuration.js"
 import IKeyboardShortcut from "./IKeyboardShortcut.js"
+import Shortcut from "../../Shortcut.js"
 import Zoom from "../mouse/Zoom.js"
 
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
@@ -15,7 +15,7 @@ export default class KeyboardEnableZoom extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.activationKeys = Configuration.enableZoomIn
+        options.activationKeys = Shortcut.enableZoomIn
         super(target, blueprint, options)
     }
 

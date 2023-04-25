@@ -149,6 +149,18 @@ export default class ObjectEntity extends IEntity {
             default: false,
             showDefault: false,
         },
+        R: {
+            type: Number,
+            showDefault: false,
+        },
+        G: {
+            type: Number,
+            showDefault: false,
+        },
+        MaterialExpression: {
+            type: ObjectReferenceEntity,
+            showDefault: false,
+        },
         MoveMode: {
             type: SymbolEntity,
             showDefault: false,
@@ -324,10 +336,18 @@ export default class ObjectEntity extends IEntity {
         /** @type {Boolean?} */ this.bCommand
         /** @type {LinearColorEntity?} */ this.CommentColor
         /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel
+        /** @type {Boolean?} */ this.bColorCommentBubble
+        /** @type {Number?} */ this.R
+        /** @type {Number?} */ this.G
+        /** @type {ObjectReferenceEntity?} */ this.MaterialExpression
+        /** @type {SymbolEntity?} */ this.MoveMode
+        /** @type {String?} */ this.TimelineName
+        /** @type {GuidEntity?} */ this.TimelineGuid
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IntegerEntity?} */ this.NodeWidth
         /** @type {IntegerEntity?} */ this.NodeHeight
+        /** @type {Boolean?} */ this.bCanRenameNode
         /** @type {Boolean?} */ this.bCommentBubblePinned
         /** @type {Boolean?} */ this.bCommentBubbleVisible
         /** @type {String?} */ this.NodeComment
@@ -370,6 +390,9 @@ export default class ObjectEntity extends IEntity {
         if (this.MacroGraphReference?.MacroGraph?.path) {
             return this.MacroGraphReference.MacroGraph.path
         }
+        if (this.MaterialExpression) {
+            return this.MaterialExpression.type
+        }
         return classValue
     }
 
@@ -403,7 +426,7 @@ export default class ObjectEntity extends IEntity {
 
     getNodeWidth() {
         return this.NodeWidth ??
-            this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentWidth : undefined
+            this.getType() == Configuration.paths.comment ? Configuration.defaultCommentWidth : undefined
     }
 
     /** @param {Number} value */
@@ -416,7 +439,7 @@ export default class ObjectEntity extends IEntity {
 
     getNodeHeight() {
         return this.NodeHeight ??
-            this.getType() == Configuration.nodeType.comment ? Configuration.defaultCommentHeight : undefined
+            this.getType() == Configuration.paths.comment ? Configuration.defaultCommentHeight : undefined
     }
 
     /** @param {Number} value */
@@ -472,13 +495,17 @@ export default class ObjectEntity extends IEntity {
 
     isEvent() {
         switch (this.getClass()) {
-            case Configuration.nodeType.customEvent:
-            case Configuration.nodeType.event:
-            case Configuration.nodeType.inputAxisKeyEvent:
-            case Configuration.nodeType.inputVectorAxisEvent:
+            case Configuration.paths.customEvent:
+            case Configuration.paths.event:
+            case Configuration.paths.inputAxisKeyEvent:
+            case Configuration.paths.inputVectorAxisEvent:
                 return true
         }
         return false
+    }
+
+    isMaterial() {
+        return this.getClass() === Configuration.paths.materialGraphNode || this.MaterialExpression !== undefined
     }
 
     isDevelopmentOnly() {
@@ -495,47 +522,48 @@ export default class ObjectEntity extends IEntity {
         return this.getCustomproperties().find(pin => pin.PinType.PinCategory === "delegate")
     }
 
+    /** @returns {String} */
     nodeDisplayName() {
         switch (this.getType()) {
-            case Configuration.nodeType.componentBoundEvent:
+            case Configuration.paths.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
-            case Configuration.nodeType.createDelegate:
+            case Configuration.paths.createDelegate:
                 return "Create Event"
-            case Configuration.nodeType.customEvent:
+            case Configuration.paths.customEvent:
                 if (this.CustomFunctionName) {
                     return this.CustomFunctionName
                 }
-            case Configuration.nodeType.dynamicCast:
+            case Configuration.paths.dynamicCast:
                 if (!this.TargetType) {
                     return "Bad cast node" // Target type not found
                 }
                 return `Cast To ${this.TargetType?.getName()}`
-            case Configuration.nodeType.enumLiteral:
+            case Configuration.paths.enumLiteral:
                 return `Literal enum ${this.Enum?.getName()}`
-            case Configuration.nodeType.event:
+            case Configuration.paths.event:
                 return `Event ${(this.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
-            case Configuration.nodeType.executionSequence:
+            case Configuration.paths.executionSequence:
                 return "Sequence"
-            case Configuration.nodeType.forEachElementInEnum:
+            case Configuration.paths.forEachElementInEnum:
                 return `For Each ${this.Enum?.getName()}`
-            case Configuration.nodeType.forEachLoopWithBreak:
+            case Configuration.paths.forEachLoopWithBreak:
                 return "For Each Loop with Break"
-            case Configuration.nodeType.functionEntry:
+            case Configuration.paths.functionEntry:
                 return "Construction Script"
-            case Configuration.nodeType.ifThenElse:
+            case Configuration.paths.ifThenElse:
                 return "Branch"
-            case Configuration.nodeType.spawnActorFromClass:
+            case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
                     ?? "NONE"
                 )}`
-            case Configuration.nodeType.switchEnum:
+            case Configuration.paths.switchEnum:
                 return `Switch on ${this.Enum?.getName() ?? "Enum"}`
-            case Configuration.nodeType.switchInteger:
+            case Configuration.paths.switchInteger:
                 return `Switch on Int`
-            case Configuration.nodeType.variableGet:
+            case Configuration.paths.variableGet:
                 return ""
-            case Configuration.nodeType.variableSet:
+            case Configuration.paths.variableSet:
                 return "SET"
         }
         let switchTarget = this.switchTarget()
@@ -549,15 +577,23 @@ export default class ObjectEntity extends IEntity {
         if (keyNameSymbol) {
             const keyName = keyNameSymbol.toString()
             let title = ObjectEntity.keyName(keyName) ?? Utility.formatStringName(keyName)
-            if (this.getClass() === Configuration.nodeType.inputDebugKey) {
+            if (this.getClass() === Configuration.paths.inputDebugKey) {
                 title = "Debug Key " + title
-            } else if (this.getClass() === Configuration.nodeType.getInputAxisKeyValue) {
+            } else if (this.getClass() === Configuration.paths.getInputAxisKeyValue) {
                 title = "Get " + title
             }
             return title
         }
-        if (this.getClass() === Configuration.nodeType.macro) {
+        if (this.getClass() === Configuration.paths.macro) {
             return Utility.formatStringName(this.MacroGraphReference?.getMacroName())
+        }
+        if (this.isMaterial()) {
+            const materialObject = /** @type {ObjectEntity} */(
+                this[Configuration.subObjectAttributeNameFromReference(this.MaterialExpression, true)]
+            )
+            let result = materialObject.nodeDisplayName()
+            result = result.match(/Material Expression (.+)/)?.[1] ?? result
+            return result
         }
         let memberName = this.FunctionReference?.MemberName
         if (memberName) {
@@ -578,7 +614,7 @@ export default class ObjectEntity extends IEntity {
                     )
             }
             switch (memberParent) {
-                case "/Script/Engine.KismetMathLibrary":
+                case Configuration.paths.kismetMathLibrary:
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion nodes do not have visible names
                     }
@@ -603,7 +639,7 @@ export default class ObjectEntity extends IEntity {
                         case "MinInt64": return "MIN"
                     }
                     break
-                case "/Script/Engine.BlueprintSetLibrary":
+                case Configuration.paths.blueprintSetLibrary:
                     {
                         const setOperationMatch = memberName.match(/Set_(\w+)/)
                         if (setOperationMatch) {
@@ -611,7 +647,7 @@ export default class ObjectEntity extends IEntity {
                         }
                     }
                     break
-                case "/Script/Engine.BlueprintMapLibrary":
+                case Configuration.paths.blueprintMapLibrary:
                     {
                         const setOperationMatch = memberName.match(/Map_(\w+)/)
                         if (setOperationMatch) {
@@ -626,30 +662,37 @@ export default class ObjectEntity extends IEntity {
     }
 
     nodeColor() {
+        switch (this.getType()) {
+            case Configuration.paths.materialExpressionConstant2Vector:
+                return Configuration.nodeColors.yellow
+            case Configuration.paths.materialExpressionTextureCoordinate:
+                return Configuration.nodeColors.red
+        }
         switch (this.getClass()) {
-            case Configuration.nodeType.callFunction:
+            case Configuration.paths.callFunction:
                 return this.bIsPureFunc
                     ? Configuration.nodeColors.green
                     : Configuration.nodeColors.blue
-            case Configuration.nodeType.dynamicCast:
+            case Configuration.paths.dynamicCast:
                 return Configuration.nodeColors.turquoise
-            case Configuration.nodeType.inputDebugKey:
-            case Configuration.nodeType.inputKey:
+            case Configuration.paths.inputDebugKey:
+            case Configuration.paths.inputKey:
                 return Configuration.nodeColors.red
-            case Configuration.nodeType.createDelegate:
-            case Configuration.nodeType.enumLiteral:
-            case Configuration.nodeType.makeArray:
-            case Configuration.nodeType.makeMap:
-            case Configuration.nodeType.select:
+            case Configuration.paths.createDelegate:
+            case Configuration.paths.enumLiteral:
+            case Configuration.paths.makeArray:
+            case Configuration.paths.makeMap:
+            case Configuration.paths.materialGraphNode:
+            case Configuration.paths.select:
                 return Configuration.nodeColors.green
-            case Configuration.nodeType.executionSequence:
-            case Configuration.nodeType.ifThenElse:
-            case Configuration.nodeType.macro:
-            case Configuration.nodeType.multiGate:
+            case Configuration.paths.executionSequence:
+            case Configuration.paths.ifThenElse:
+            case Configuration.paths.macro:
+            case Configuration.paths.multiGate:
                 return Configuration.nodeColors.gray
-            case Configuration.nodeType.functionEntry:
+            case Configuration.paths.functionEntry:
                 return Configuration.nodeColors.violet
-            case Configuration.nodeType.timeline:
+            case Configuration.paths.timeline:
                 return Configuration.nodeColors.yellow
         }
         if (this.switchTarget()) {
@@ -666,37 +709,37 @@ export default class ObjectEntity extends IEntity {
 
     nodeIcon() {
         switch (this.getType()) {
-            case Configuration.nodeType.addDelegate:
-            case Configuration.nodeType.createDelegate:
-            case Configuration.nodeType.functionEntry:
+            case Configuration.paths.addDelegate:
+            case Configuration.paths.createDelegate:
+            case Configuration.paths.functionEntry:
                 return SVGIcon.node
-            case Configuration.nodeType.customEvent: return SVGIcon.event
-            case Configuration.nodeType.doN: return SVGIcon.doN
-            case Configuration.nodeType.doOnce: return SVGIcon.doOnce
-            case Configuration.nodeType.dynamicCast: return SVGIcon.cast
-            case Configuration.nodeType.enumLiteral: return SVGIcon.enum
-            case Configuration.nodeType.event: return SVGIcon.event
-            case Configuration.nodeType.executionSequence:
-            case Configuration.nodeType.multiGate:
+            case Configuration.paths.customEvent: return SVGIcon.event
+            case Configuration.paths.doN: return SVGIcon.doN
+            case Configuration.paths.doOnce: return SVGIcon.doOnce
+            case Configuration.paths.dynamicCast: return SVGIcon.cast
+            case Configuration.paths.enumLiteral: return SVGIcon.enum
+            case Configuration.paths.event: return SVGIcon.event
+            case Configuration.paths.executionSequence:
+            case Configuration.paths.multiGate:
                 return SVGIcon.sequence
-            case Configuration.nodeType.flipflop:
+            case Configuration.paths.flipflop:
                 return SVGIcon.flipflop
-            case Configuration.nodeType.forEachElementInEnum:
-            case Configuration.nodeType.forLoop:
-            case Configuration.nodeType.forLoopWithBreak:
-            case Configuration.nodeType.whileLoop:
+            case Configuration.paths.forEachElementInEnum:
+            case Configuration.paths.forLoop:
+            case Configuration.paths.forLoopWithBreak:
+            case Configuration.paths.whileLoop:
                 return SVGIcon.loop
-            case Configuration.nodeType.forEachLoop:
-            case Configuration.nodeType.forEachLoopWithBreak:
+            case Configuration.paths.forEachLoop:
+            case Configuration.paths.forEachLoopWithBreak:
                 return SVGIcon.forEachLoop
-            case Configuration.nodeType.ifThenElse: return SVGIcon.branchNode
-            case Configuration.nodeType.isValid: return SVGIcon.questionMark
-            case Configuration.nodeType.makeArray: return SVGIcon.makeArray
-            case Configuration.nodeType.makeMap: return SVGIcon.makeMap
-            case Configuration.nodeType.makeSet: return SVGIcon.makeSet
-            case Configuration.nodeType.select: return SVGIcon.select
-            case Configuration.nodeType.spawnActorFromClass: return SVGIcon.spawnActor
-            case Configuration.nodeType.timeline: return SVGIcon.timer
+            case Configuration.paths.ifThenElse: return SVGIcon.branchNode
+            case Configuration.paths.isValid: return SVGIcon.questionMark
+            case Configuration.paths.makeArray: return SVGIcon.makeArray
+            case Configuration.paths.makeMap: return SVGIcon.makeMap
+            case Configuration.paths.makeSet: return SVGIcon.makeSet
+            case Configuration.paths.select: return SVGIcon.select
+            case Configuration.paths.spawnActorFromClass: return SVGIcon.spawnActor
+            case Configuration.paths.timeline: return SVGIcon.timer
         }
         if (this.switchTarget()) {
             return SVGIcon.switch
@@ -704,8 +747,11 @@ export default class ObjectEntity extends IEntity {
         if (this.nodeDisplayName().startsWith("Break")) {
             return SVGIcon.breakStruct
         }
-        if (this.getClass() === Configuration.nodeType.macro) {
+        if (this.getClass() === Configuration.paths.macro) {
             return SVGIcon.macro
+        }
+        if (this.isMaterial()) {
+            return undefined
         }
         const hidValue = this.getHIDAttribute()?.toString()
         if (hidValue) {

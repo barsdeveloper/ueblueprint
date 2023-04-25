@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-import { generateNodeTest } from "../fixtures/testUtilities.js"
+import generateNodeTests from "../fixtures/testUtilities.js"
 import Configuration from "../../js/Configuration.js"
 import SVGIcon from "../../js/SVGIcon.js"
 
@@ -483,19 +483,4 @@ const tests = [
     },
 ]
 
-/** @type {Blueprint} */
-let blueprint
-
-before(() => {
-    cy.visit(`http://127.0.0.1:${Cypress.env("UEBLUEPRINT_TEST_SERVER_PORT")}/empty.html`, {
-        onLoad: () => {
-            cy.get("ueb-blueprint")
-                .then(([b]) => blueprint = b)
-                .click(100, 300)
-        }
-    })
-})
-
-tests.forEach(
-    testObject => generateNodeTest(testObject, () => blueprint)
-)
+generateNodeTests(tests)

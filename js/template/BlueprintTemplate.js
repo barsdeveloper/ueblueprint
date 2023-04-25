@@ -1,14 +1,17 @@
 import { html } from "lit"
 import Configuration from "../Configuration.js"
 import Copy from "../input/common/Copy.js"
+import Cut from "../input/common/Cut.js"
 import ITemplate from "./ITemplate.js"
 import KeyboardCanc from "../input/keybaord/KeyboardCanc.js"
 import KeyboardEnableZoom from "../input/keybaord/KeyboardEnableZoom.js"
 import KeyboardSelectAll from "../input/keybaord/KeyboardSelectAll.js"
+import KeyboardShortcutAction from "../input/keybaord/KeyboardShortcutAction.js"
 import MouseScrollGraph from "../input/mouse/MouseScrollGraph.js"
 import MouseTracking from "../input/mouse/MouseTracking.js"
 import Paste from "../input/common/Paste.js"
 import Select from "../input/mouse/Select.js"
+import Shortcut from "../Shortcut.js"
 import Unfocus from "../input/mouse/Unfocus.js"
 import Utility from "../Utility.js"
 import Zoom from "../input/mouse/Zoom.js"
@@ -85,6 +88,14 @@ export default class BlueprintTemplate extends ITemplate {
             ...super.createInputObjects(),
             new Copy(this.element.getGridDOMElement(), this.element),
             new Paste(this.element.getGridDOMElement(), this.element),
+            new Cut(this.element.getGridDOMElement(), this.element),
+            new KeyboardShortcutAction(this.element.getGridDOMElement(), this.element, {
+                activationKeys: Shortcut.duplicateNodes
+            }, () =>
+                this.blueprint.template.getPasteInputObject().pasted(
+                    this.blueprint.template.getCopyInputObject().copied()
+                )
+            ),
             new KeyboardCanc(this.element.getGridDOMElement(), this.element),
             new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
             new Zoom(this.element.getGridDOMElement(), this.element),
@@ -108,13 +119,13 @@ export default class BlueprintTemplate extends ITemplate {
         return html`
             <div class="ueb-viewport-header">
                 <div class="ueb-viewport-zoom">
-                    Zoom ${this.element.zoom == 0 ? "1:1" : (this.element.zoom > 0 ? "+" : "") + this.element.zoom}
+                    Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
                 </div>
             </div>
             <div class="ueb-viewport-overlay"></div>
             <div class="ueb-viewport-body">
                 <div class="ueb-grid"
-                    style="--ueb-additional-x: ${Math.round(this.element.translateX)}; --ueb-additional-y: ${Math.round(this.element.translateY)}; --ueb-translate-x: ${Math.round(this.element.translateX)}; --ueb-translate-y: ${Math.round(this.element.translateY)};">
+                    style="--ueb-additional-x: ${Math.round(this.blueprint.translateX)}; --ueb-additional-y: ${Math.round(this.blueprint.translateY)}; --ueb-translate-x: ${Math.round(this.blueprint.translateX)}; --ueb-translate-y: ${Math.round(this.blueprint.translateY)};">
                     <div class="ueb-grid-content">
                         <div data-links></div>
                         <div data-nodes></div>
@@ -128,15 +139,15 @@ export default class BlueprintTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
-        this.headerElement = this.element.querySelector('.ueb-viewport-header')
-        this.overlayElement = this.element.querySelector('.ueb-viewport-overlay')
-        this.viewportElement = this.element.querySelector('.ueb-viewport-body')
-        this.selectorElement = this.element.querySelector('ueb-selector')
+        this.headerElement = this.blueprint.querySelector('.ueb-viewport-header')
+        this.overlayElement = this.blueprint.querySelector('.ueb-viewport-overlay')
+        this.viewportElement = this.blueprint.querySelector('.ueb-viewport-body')
+        this.selectorElement = this.blueprint.querySelector('ueb-selector')
         this.gridElement = this.viewportElement.querySelector(".ueb-grid")
-        this.linksContainerElement = this.element.querySelector("[data-links]")
-        this.linksContainerElement.append(...this.element.getLinks())
-        this.nodesContainerElement = this.element.querySelector("[data-nodes]")
-        this.nodesContainerElement.append(...this.element.getNodes())
+        this.linksContainerElement = this.blueprint.querySelector("[data-links]")
+        this.linksContainerElement.append(...this.blueprint.getLinks())
+        this.nodesContainerElement = this.blueprint.querySelector("[data-nodes]")
+        this.nodesContainerElement.append(...this.blueprint.getNodes())
         this.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize)
     }
 
@@ -156,40 +167,44 @@ export default class BlueprintTemplate extends ITemplate {
     updated(changedProperties) {
         super.updated(changedProperties)
         if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
-            this.viewportElement.scroll(this.element.scrollX, this.element.scrollY)
+            this.viewportElement.scroll(this.blueprint.scrollX, this.blueprint.scrollY)
         }
         if (changedProperties.has("zoom")) {
-            this.element.style.setProperty("--ueb-scale", this.blueprint.getScale())
+            this.blueprint.style.setProperty("--ueb-scale", this.blueprint.getScale())
             const previousZoom = changedProperties.get("zoom")
-            const minZoom = Math.min(previousZoom, this.element.zoom)
-            const maxZoom = Math.max(previousZoom, this.element.zoom)
+            const minZoom = Math.min(previousZoom, this.blueprint.zoom)
+            const maxZoom = Math.max(previousZoom, this.blueprint.zoom)
             const classes = Utility.range(minZoom, maxZoom)
             const getClassName = v => `ueb-zoom-${v}`
-            if (previousZoom < this.element.zoom) {
-                this.element.classList.remove(...classes.filter(v => v < 0).map(getClassName))
-                this.element.classList.add(...classes.filter(v => v > 0).map(getClassName))
+            if (previousZoom < this.blueprint.zoom) {
+                this.blueprint.classList.remove(...classes.filter(v => v < 0).map(getClassName))
+                this.blueprint.classList.add(...classes.filter(v => v > 0).map(getClassName))
             } else {
-                this.element.classList.remove(...classes.filter(v => v > 0).map(getClassName))
-                this.element.classList.add(...classes.filter(v => v < 0).map(getClassName))
+                this.blueprint.classList.remove(...classes.filter(v => v > 0).map(getClassName))
+                this.blueprint.classList.add(...classes.filter(v => v < 0).map(getClassName))
             }
         }
     }
 
     getCommentNodes(justSelected = false) {
-        return this.element.querySelectorAll(
-            `ueb-node[data-type="${Configuration.nodeType.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
+        return this.blueprint.querySelectorAll(
+            `ueb-node[data-type="${Configuration.paths.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
         )
     }
 
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
-        return /** @type {PinElement} */(this.element.querySelector(
+        return /** @type {PinElement} */(this.blueprint.querySelector(
             `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
     }
 
     getCopyInputObject() {
         return this.getInputObject(Copy)
+    }
+
+    getPasteInputObject() {
+        return this.getInputObject(Paste)
     }
 
     /**
@@ -205,7 +220,6 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     gridRightVisibilityBoundary() {
-        this.blueprint
         return this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0])
     }
 

@@ -23,7 +23,6 @@ export default class Configuration {
     static colorWindowName = "Color Picker"
     static defaultCommentHeight = 96
     static defaultCommentWidth = 400
-    static deleteNodesKeyboardKey = "Delete"
     static distanceThreshold = 5 // px
     static dragEventName = "ueb-drag"
     static dragGeneralEventName = "ueb-drag-general"
@@ -32,7 +31,6 @@ export default class Configuration {
         begin: "ueb-edit-text-begin",
         end: "ueb-edit-text-end",
     }
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
     static expandGridSize = 400
     static focusEventName = {
         begin: "blueprint-focus",
@@ -83,9 +81,11 @@ export default class Configuration {
     static nodeName = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
-    static nodeType = {
+    static paths = {
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
         blueprint: "/Script/Engine.Blueprint",
+        blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
+        blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
@@ -120,12 +120,17 @@ export default class Configuration {
         inputKey: "/Script/BlueprintGraph.K2Node_InputKey",
         inputVectorAxisEvent: "/Script/BlueprintGraph.K2Node_InputVectorAxisEvent",
         isValid: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:IsValid",
+        kismetArrayLibrary: "/Script/Engine.KismetArrayLibrary",
+        kismetMathLibrary: "/Script/Engine.KismetMathLibrary",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         linearColor: "/Script/CoreUObject.LinearColor",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
+        materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
+        materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
+        materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
@@ -147,9 +152,10 @@ export default class Configuration {
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinColor = {
-        [this.nodeType.rotator]: css`157, 177, 251`,
-        [this.nodeType.transform]: css`227, 103, 0`,
-        [this.nodeType.vector]: css`251, 198, 34`,
+        [this.paths.rotator]: css`157, 177, 251`,
+        [this.paths.transform]: css`227, 103, 0`,
+        [this.paths.vector]: css`251, 198, 34`,
+        "blue": css`0, 0, 255`,
         "bool": css`147, 0, 0`,
         "byte": css`0, 109, 99`,
         "class": css`88, 0, 186`,
@@ -157,12 +163,14 @@ export default class Configuration {
         "delegate": css`255, 56, 56`,
         "enum": css`0, 109, 99`,
         "exec": css`240, 240, 240`,
+        "green": css`0, 255, 0`,
         "int": css`31, 224, 172`,
         "int64": css`169, 223, 172`,
         "interface": css`238, 252, 168`,
         "name": css`201, 128, 251`,
         "object": css`0, 167, 240`,
         "real": css`54, 208, 0`,
+        "red": css`255, 0, 0`,
         "string": css`251, 0, 209`,
         "struct": css`0, 88, 201`,
         "text": css`226, 121, 167`,
@@ -192,7 +200,6 @@ export default class Configuration {
         6: 1.875,
         7: 2,
     }
-    static selectAllKeyboardKey = "(bCtrl=True,Key=A)"
     static smoothScrollTime = 1000 // ms
     static stringEscapedCharacters = /['"\\]/g
     static subObjectAttributeNamePrefix = "#SubObject"
@@ -213,10 +220,10 @@ export default class Configuration {
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static CommonEnums = {
-        [this.nodeType.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
-        [this.nodeType.eSearchDir]: ["FromStart", "FromEnd"],
-        [this.nodeType.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
-        [this.nodeType.eTraceTypeQuery]: [["TraceTypeQuery1", "Visibility"], ["TraceTypeQuery2", "Camera"]]
+        [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
+        [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
+        [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
+        [this.paths.eTraceTypeQuery]: [["TraceTypeQuery1", "Visibility"], ["TraceTypeQuery2", "Camera"]]
     }
     static ModifierKeys = [
         "Ctrl",

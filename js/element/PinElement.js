@@ -50,10 +50,10 @@ export default class PinElement extends IElement {
         "name": NamePinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
-        [Configuration.nodeType.linearColor]: LinearColorPinTemplate,
-        [Configuration.nodeType.rotator]: RotatorPinTemplate,
-        [Configuration.nodeType.vector]: VectorPinTemplate,
-        [Configuration.nodeType.vector2D]: Vector2DPinTemplate,
+        [Configuration.paths.linearColor]: LinearColorPinTemplate,
+        [Configuration.paths.rotator]: RotatorPinTemplate,
+        [Configuration.paths.vector]: VectorPinTemplate,
+        [Configuration.paths.vector2D]: Vector2DPinTemplate,
     }
 
     static properties = {
@@ -104,6 +104,12 @@ export default class PinElement extends IElement {
             attribute: "data-direction",
             reflect: true,
         },
+        connectable: {
+            type: Boolean,
+            converter: Utility.booleanConverter,
+            attribute: "data-connectable",
+            reflect: true,
+        }
     }
 
     /** @type {NodeElement} */
@@ -151,6 +157,7 @@ export default class PinElement extends IElement {
         this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
         this.nodeElement = /** @type {NodeElement} */(nodeElement)
+        this.connectable = !entity.bNotConnectable
     }
 
     setup() {

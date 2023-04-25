@@ -8,9 +8,9 @@ export default class VariableAccessNodeTemplate extends VariableManagementNodeTe
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
-        if (element.getType() === Configuration.nodeType.variableGet) {
+        if (element.getType() === Configuration.paths.variableGet) {
             this.element.classList.add("ueb-node-style-getter")
-        } else if (element.getType() === Configuration.nodeType.variableSet) {
+        } else if (element.getType() === Configuration.paths.variableSet) {
             this.element.classList.add("ueb-node-style-setter")
         }
     }

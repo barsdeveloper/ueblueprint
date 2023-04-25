@@ -31,13 +31,13 @@ export default class ObjectReferenceEntity extends IEntity {
     sanitize() {
         if (this.type && !this.type.startsWith("/")) {
             let deprecatedType = this.type + "_Deprecated"
-            let nodeType = Object.keys(Configuration.nodeType)
+            let path = Object.keys(Configuration.paths)
                 .find(type => {
-                    const name = Utility.getNameFromPath(Configuration.nodeType[type])
+                    const name = Utility.getNameFromPath(Configuration.paths[type])
                     return name === this.type || name === deprecatedType
                 })
-            if (nodeType) {
-                this.type = Configuration.nodeType[nodeType]
+            if (path) {
+                this.type = Configuration.paths[path]
             }
         }
     }
