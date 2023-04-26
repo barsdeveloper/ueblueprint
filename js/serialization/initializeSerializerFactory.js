@@ -1,5 +1,6 @@
 import ByteEntity from "../entity/ByteEntity.js"
 import CustomSerializer from "./CustomSerializer.js"
+import EnumDisplayValueEntity from "../entity/EnumDisplayValueEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity.js"
@@ -85,6 +86,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ByteEntity,
         new ToStringSerializer(ByteEntity)
+    )
+
+    SerializerFactory.registerSerializer(
+        EnumDisplayValueEntity,
+        new ToStringSerializer(EnumDisplayValueEntity)
     )
 
     SerializerFactory.registerSerializer(

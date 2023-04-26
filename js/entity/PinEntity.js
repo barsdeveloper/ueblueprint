@@ -20,6 +20,7 @@ import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import VectorEntity from "./VectorEntity.js"
+import EnumDisplayValueEntity from "./EnumDisplayValueEntity.js"
 
 /**
  * @typedef {import("./IEntity.js").AnyValue} AnyValue
@@ -46,9 +47,10 @@ export default class PinEntity extends IEntity {
         "string": String,
     }
     static #alternativeTypeEntityMap = {
-        [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
-        [Configuration.paths.vector]: SimpleSerializationVectorEntity,
+        "enum": EnumDisplayValueEntity,
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
+        [Configuration.paths.vector]: SimpleSerializationVectorEntity,
+        [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
     }
     static lookbehind = "Pin"
     static attributes = {

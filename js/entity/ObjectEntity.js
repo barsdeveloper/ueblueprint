@@ -530,7 +530,7 @@ export default class ObjectEntity extends IEntity {
     }
 
     isMaterial() {
-        return this.getClass() === Configuration.paths.materialGraphNode || this.MaterialExpression !== undefined
+        return this.getClass() === Configuration.paths.materialGraphNode
     }
 
     /** @return {ObjectEntity} */
@@ -620,7 +620,7 @@ export default class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.paths.macro) {
             return Utility.formatStringName(this.MacroGraphReference?.getMacroName())
         }
-        if (this.isMaterial()) {
+        if (this.isMaterial() && this.MaterialExpression) {
             const materialObject = /** @type {ObjectEntity} */(
                 this[Configuration.subObjectAttributeNameFromReference(this.MaterialExpression, true)]
             )

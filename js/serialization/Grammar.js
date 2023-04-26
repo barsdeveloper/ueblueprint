@@ -1,5 +1,6 @@
 import ByteEntity from "../entity/ByteEntity.js"
 import Configuration from "../Configuration.js"
+import EnumDisplayValueEntity from "../entity/EnumDisplayValueEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity.js"
@@ -183,6 +184,9 @@ export default class Grammar {
                     break
                 case ByteEntity:
                     result = this.byteEntity
+                    break
+                case EnumDisplayValueEntity:
+                    result = this.enumDisplayValueEntity
                     break
                 case EnumEntity:
                     result = this.enumEntity
@@ -374,6 +378,10 @@ export default class Grammar {
     /*   ---   Entity   ---   */
 
     static byteEntity = P.lazy(() => this.byteNumber.map(v => new ByteEntity(v)))
+
+    static enumDisplayValueEntity = P.lazy(() =>
+        P.regex(this.Regex.InsideString).map(v => new EnumDisplayValueEntity(v))
+    )
 
     static enumEntity = P.lazy(() => this.symbol.map(v => new EnumEntity(v)))
 

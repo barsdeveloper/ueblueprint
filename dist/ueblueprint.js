@@ -2100,6 +2100,10 @@ class VectorEntity extends IEntity {
 class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
+class EnumDisplayValueEntity extends EnumEntity {
+
+}
+
 /**
  * @typedef {import("./IEntity.js").AnyValue} AnyValue
  * @typedef {import("./ObjectEntity.js").default} ObjectEntity
@@ -2125,9 +2129,10 @@ class PinEntity extends IEntity {
         "string": String,
     }
     static #alternativeTypeEntityMap = {
-        [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
-        [Configuration.paths.vector]: SimpleSerializationVectorEntity,
+        "enum": EnumDisplayValueEntity,
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
+        [Configuration.paths.vector]: SimpleSerializationVectorEntity,
+        [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
     }
     static lookbehind = "Pin"
     static attributes = {
@@ -2955,6 +2960,10 @@ class ObjectEntity extends IEntity {
             type: Boolean,
             showDefault: false,
         },
+        Text: {
+            type: String,
+            showDefault: false,
+        },
         NodeComment: {
             type: String,
             showDefault: false,
@@ -3107,6 +3116,7 @@ class ObjectEntity extends IEntity {
         /** @type {Boolean?} */ this.bCanRenameNode;
         /** @type {Boolean?} */ this.bCommentBubblePinned;
         /** @type {Boolean?} */ this.bCommentBubbleVisible;
+        /** @type {String?} */ this.Text;
         /** @type {String?} */ this.NodeComment;
         /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
         /** @type {IdentifierEntity?} */ this.EnabledState;
@@ -3192,13 +3202,6 @@ class ObjectEntity extends IEntity {
             this.NodeWidth = new IntegerEntity();
         }
         this.NodeWidth.value = value;
-        const materialComment = this.getMaterialSubobject();
-        if (materialComment) {
-            if (!materialComment.SizeX) {
-                materialComment.SizeX = new IntegerEntity();
-            }
-            materialComment.SizeX.value = value;
-        }
     }
 
     getNodeHeight() {
@@ -3212,13 +3215,6 @@ class ObjectEntity extends IEntity {
             this.NodeHeight = new IntegerEntity();
         }
         this.NodeHeight.value = value;
-        const materialComment = this.getMaterialSubobject();
-        if (materialComment) {
-            if (!materialComment.SizeY) {
-                materialComment.SizeY = new IntegerEntity();
-            }
-            materialComment.SizeY.value = value;
-        }
     }
 
     getNodePosX() {
@@ -3285,7 +3281,7 @@ class ObjectEntity extends IEntity {
     }
 
     isMaterial() {
-        return this.getClass() === Configuration.paths.materialGraphNode || this.MaterialExpression !== undefined
+        return this.getClass() === Configuration.paths.materialGraphNode
     }
 
     /** @return {ObjectEntity} */
@@ -3375,7 +3371,7 @@ class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.paths.macro) {
             return Utility.formatStringName(this.MacroGraphReference?.getMacroName())
         }
-        if (this.isMaterial()) {
+        if (this.isMaterial() && this.MaterialExpression) {
             const materialObject = /** @type {ObjectEntity} */(
                 this[Configuration.subObjectAttributeNameFromReference(this.MaterialExpression, true)]
             );
@@ -3790,6 +3786,9 @@ class Grammar {
                 case EnumEntity:
                     result = this.enumEntity;
                     break
+                case EnumDisplayValueEntity:
+                    result = this.enumDisplayValueEntity;
+                    break
                 case FormatTextEntity:
                     result = this.formatTextEntity;
                     break
@@ -3979,6 +3978,10 @@ class Grammar {
     static byteEntity = P.lazy(() => this.byteNumber.map(v => new ByteEntity(v)))
 
     static enumEntity = P.lazy(() => this.symbol.map(v => new EnumEntity(v)))
+
+    static enumDisplayValueEntity = P.lazy(() =>
+        P.regex(this.Regex.InsideString).map(v => new EnumDisplayValueEntity(v))
+    )
 
     static formatTextEntity = P.lazy(() =>
         P.seq(
@@ -10908,6 +10911,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ByteEntity,
         new ToStringSerializer(ByteEntity)
+    );
+
+    SerializerFactory.registerSerializer(
+        EnumDisplayValueEntity,
+        new ToStringSerializer(EnumDisplayValueEntity)
     );
 
     SerializerFactory.registerSerializer(
