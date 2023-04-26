@@ -142,6 +142,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         }
         switch (nodeEntity.getClass()) {
             case Configuration.paths.comment:
+            case Configuration.paths.materialGraphNodeComment:
                 return CommentNodeTemplate
             case Configuration.paths.createDelegate:
                 return NodeTemplate

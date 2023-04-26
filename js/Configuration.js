@@ -130,6 +130,7 @@ export default class Configuration {
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
+        materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",

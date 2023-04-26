@@ -173,6 +173,14 @@ export default class ObjectEntity extends IEntity {
             type: GuidEntity,
             showDefault: false,
         },
+        SizeX: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
+        SizeY: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
         NodePosX: {
             type: IntegerEntity,
             showDefault: false,
@@ -199,6 +207,10 @@ export default class ObjectEntity extends IEntity {
         },
         bCommentBubbleVisible: {
             type: Boolean,
+            showDefault: false,
+        },
+        Text: {
+            type: String,
             showDefault: false,
         },
         NodeComment: {
@@ -340,9 +352,12 @@ export default class ObjectEntity extends IEntity {
         /** @type {Number?} */ this.R
         /** @type {Number?} */ this.G
         /** @type {ObjectReferenceEntity?} */ this.MaterialExpression
+        /** @type {ObjectReferenceEntity?} */ this.MaterialExpressionComment
         /** @type {SymbolEntity?} */ this.MoveMode
         /** @type {String?} */ this.TimelineName
         /** @type {GuidEntity?} */ this.TimelineGuid
+        /** @type {IntegerEntity?} */ this.SizeX
+        /** @type {IntegerEntity?} */ this.SizeY
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IntegerEntity?} */ this.NodeWidth
@@ -350,6 +365,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {Boolean?} */ this.bCanRenameNode
         /** @type {Boolean?} */ this.bCommentBubblePinned
         /** @type {Boolean?} */ this.bCommentBubbleVisible
+        /** @type {String?} */ this.Text
         /** @type {String?} */ this.NodeComment
         /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay
         /** @type {IdentifierEntity?} */ this.EnabledState
@@ -425,8 +441,8 @@ export default class ObjectEntity extends IEntity {
     }
 
     getNodeWidth() {
-        return this.NodeWidth ??
-            this.getType() == Configuration.paths.comment ? Configuration.defaultCommentWidth : undefined
+        return this.NodeWidth
+            ?? this.isComment() ? Configuration.defaultCommentWidth : undefined
     }
 
     /** @param {Number} value */
@@ -438,8 +454,8 @@ export default class ObjectEntity extends IEntity {
     }
 
     getNodeHeight() {
-        return this.NodeHeight ??
-            this.getType() == Configuration.paths.comment ? Configuration.defaultCommentHeight : undefined
+        return this.NodeHeight
+            ?? this.isComment() ? Configuration.defaultCommentHeight : undefined
     }
 
     /** @param {Number} value */
@@ -504,8 +520,25 @@ export default class ObjectEntity extends IEntity {
         return false
     }
 
+    isComment() {
+        switch (this.getClass()) {
+            case Configuration.paths.comment:
+            case Configuration.paths.materialGraphNodeComment:
+                return true
+        }
+        return false
+    }
+
     isMaterial() {
         return this.getClass() === Configuration.paths.materialGraphNode || this.MaterialExpression !== undefined
+    }
+
+    /** @return {ObjectEntity} */
+    getMaterialSubobject() {
+        const expression = this.MaterialExpression ?? this.MaterialExpressionComment
+        return expression
+            ? this[Configuration.subObjectAttributeNameFromReference(expression, true)]
+            : null
     }
 
     isDevelopmentOnly() {

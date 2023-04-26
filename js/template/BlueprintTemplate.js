@@ -189,6 +189,7 @@ export default class BlueprintTemplate extends ITemplate {
     getCommentNodes(justSelected = false) {
         return this.blueprint.querySelectorAll(
             `ueb-node[data-type="${Configuration.paths.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
+            + `, ueb-node[data-type="${Configuration.paths.materialGraphNodeComment}"]${justSelected ? '[data-selected="true"]' : ''}`
         )
     }
 

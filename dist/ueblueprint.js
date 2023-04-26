@@ -154,6 +154,7 @@ class Configuration {
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
+        materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
@@ -2918,6 +2919,14 @@ class ObjectEntity extends IEntity {
             type: GuidEntity,
             showDefault: false,
         },
+        SizeX: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
+        SizeY: {
+            type: IntegerEntity,
+            showDefault: false,
+        },
         NodePosX: {
             type: IntegerEntity,
             showDefault: false,
@@ -3085,9 +3094,12 @@ class ObjectEntity extends IEntity {
         /** @type {Number?} */ this.R;
         /** @type {Number?} */ this.G;
         /** @type {ObjectReferenceEntity?} */ this.MaterialExpression;
+        /** @type {ObjectReferenceEntity?} */ this.MaterialExpressionComment;
         /** @type {SymbolEntity?} */ this.MoveMode;
         /** @type {String?} */ this.TimelineName;
         /** @type {GuidEntity?} */ this.TimelineGuid;
+        /** @type {IntegerEntity?} */ this.SizeX;
+        /** @type {IntegerEntity?} */ this.SizeY;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
         /** @type {IntegerEntity?} */ this.NodeWidth;
@@ -3170,8 +3182,8 @@ class ObjectEntity extends IEntity {
     }
 
     getNodeWidth() {
-        return this.NodeWidth ??
-            this.getType() == Configuration.paths.comment ? Configuration.defaultCommentWidth : undefined
+        return this.NodeWidth
+            ?? this.isComment() ? Configuration.defaultCommentWidth : undefined
     }
 
     /** @param {Number} value */
@@ -3180,11 +3192,18 @@ class ObjectEntity extends IEntity {
             this.NodeWidth = new IntegerEntity();
         }
         this.NodeWidth.value = value;
+        const materialComment = this.getMaterialSubobject();
+        if (materialComment) {
+            if (!materialComment.SizeX) {
+                materialComment.SizeX = new IntegerEntity();
+            }
+            materialComment.SizeX.value = value;
+        }
     }
 
     getNodeHeight() {
-        return this.NodeHeight ??
-            this.getType() == Configuration.paths.comment ? Configuration.defaultCommentHeight : undefined
+        return this.NodeHeight
+            ?? this.isComment() ? Configuration.defaultCommentHeight : undefined
     }
 
     /** @param {Number} value */
@@ -3193,6 +3212,13 @@ class ObjectEntity extends IEntity {
             this.NodeHeight = new IntegerEntity();
         }
         this.NodeHeight.value = value;
+        const materialComment = this.getMaterialSubobject();
+        if (materialComment) {
+            if (!materialComment.SizeY) {
+                materialComment.SizeY = new IntegerEntity();
+            }
+            materialComment.SizeY.value = value;
+        }
     }
 
     getNodePosX() {
@@ -3249,8 +3275,25 @@ class ObjectEntity extends IEntity {
         return false
     }
 
+    isComment() {
+        switch (this.getClass()) {
+            case Configuration.paths.comment:
+            case Configuration.paths.materialGraphNodeComment:
+                return true
+        }
+        return false
+    }
+
     isMaterial() {
         return this.getClass() === Configuration.paths.materialGraphNode || this.MaterialExpression !== undefined
+    }
+
+    /** @return {ObjectEntity} */
+    getMaterialSubobject() {
+        const expression = this.MaterialExpression ?? this.MaterialExpressionComment;
+        return expression
+            ? this[Configuration.subObjectAttributeNameFromReference(expression, true)]
+            : null
     }
 
     isDevelopmentOnly() {
@@ -5914,6 +5957,7 @@ class BlueprintTemplate extends ITemplate {
     getCommentNodes(justSelected = false) {
         return this.blueprint.querySelectorAll(
             `ueb-node[data-type="${Configuration.paths.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
+            + `, ueb-node[data-type="${Configuration.paths.materialGraphNodeComment}"]${justSelected ? '[data-selected="true"]' : ''}`
         )
     }
 
@@ -8069,6 +8113,7 @@ class NodeElement extends ISelectableDraggableElement {
         }
         switch (nodeEntity.getClass()) {
             case Configuration.paths.comment:
+            case Configuration.paths.materialGraphNodeComment:
                 return CommentNodeTemplate
             case Configuration.paths.createDelegate:
                 return NodeTemplate
@@ -10099,7 +10144,6 @@ class PinElement extends IElement {
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
         "real": RealPinTemplate,
-        "red": RealPinTemplate,
         "string": StringPinTemplate,
         [Configuration.paths.linearColor]: LinearColorPinTemplate,
         [Configuration.paths.rotator]: RotatorPinTemplate,
