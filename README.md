@@ -12,6 +12,9 @@ A stand alone editor implementation of the UE's Blueprint visual language. (WIP)
 - All the information shown in he graph is just the one embedded in the serialized text (in VS Code it should be able to access assets also).
 - Modern object oriented, clean, JavaScript codebase.
 
+## Demo:
+[Try it!](https://barsdeveloper.github.io/ueblueprint/)
+
 ## How to use:
 
 TODO
