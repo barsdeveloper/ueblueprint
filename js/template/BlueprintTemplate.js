@@ -62,6 +62,13 @@ export default class BlueprintTemplate extends ITemplate {
         super.initialize(element)
         this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables)
             .map(([k, v]) => `${k}:${v};`).join("")
+        const htmlTemplate =  /** @type {HTMLTemplateElement} */(
+            this.element.querySelector(":scope > template")
+        )?.content.textContent
+        if (htmlTemplate) {
+            this.element.requestUpdate()
+            this.element.updateComplete.then(() => this.getPasteInputObject().pasted(htmlTemplate))
+        }
     }
 
     setup() {

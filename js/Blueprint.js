@@ -81,6 +81,8 @@ export default class Blueprint extends IElement {
 
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
+    #xScrollingAnimationId = 0
+    #yScrollingAnimationId = 0
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */
@@ -126,14 +128,32 @@ export default class Blueprint extends IElement {
     scrollDelta(x = 0, y = 0, smooth = false, scrollTime = Configuration.smoothScrollTime) {
         if (smooth) {
             let previousScrollDelta = [0, 0]
-            Utility.animate(0, x, scrollTime, x => {
-                this.scrollDelta(x - previousScrollDelta[0], 0, false)
-                previousScrollDelta[0] = x
-            })
-            Utility.animate(0, y, scrollTime, y => {
-                this.scrollDelta(0, y - previousScrollDelta[1], false)
-                previousScrollDelta[1] = y
-            })
+            if (this.#xScrollingAnimationId) {
+                cancelAnimationFrame(this.#xScrollingAnimationId)
+            }
+            if (this.#yScrollingAnimationId) {
+                cancelAnimationFrame(this.#yScrollingAnimationId)
+            }
+            Utility.animate(
+                0,
+                x,
+                scrollTime,
+                x => {
+                    this.scrollDelta(x - previousScrollDelta[0], 0, false)
+                    previousScrollDelta[0] = x
+                },
+                id => this.#xScrollingAnimationId = id
+            )
+            Utility.animate(
+                0,
+                y,
+                scrollTime,
+                y => {
+                    this.scrollDelta(0, y - previousScrollDelta[1], false)
+                    previousScrollDelta[1] = y
+                },
+                id => this.#yScrollingAnimationId = id
+            )
         } else {
             const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize]
             let currentScroll = this.getScroll()

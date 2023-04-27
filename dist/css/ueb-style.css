@@ -257,7 +257,8 @@ ueb-node {
   font-weight: lighter;
 }
 
-ueb-node.ueb-node-style-minimal {
+ueb-node.ueb-node-style-minimal,
+ueb-node.ueb-node-style-comment {
   min-width: 0;
 }
 

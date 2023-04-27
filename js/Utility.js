@@ -257,8 +257,8 @@ export default class Utility {
             return [x, y]
         }
         return [
-            gridSize * Math.round(x / gridSize),
-            gridSize * Math.round(y / gridSize)
+            gridSize * Math.floor(x / gridSize),
+            gridSize * Math.floor(y / gridSize)
         ]
     }
 
@@ -424,10 +424,17 @@ export default class Utility {
         blueprint.dispatchEvent(event)
     }
 
-    static animate(from, to, intervalSeconds, callback, timingFunction = x => {
-        const v = x ** 3.5
-        return v / (v + ((1 - x) ** 3.5))
-    }) {
+    static animate(
+        from,
+        to,
+        intervalSeconds,
+        callback,
+        acknowledgeRequestAnimationId = id => { },
+        timingFunction = x => {
+            const v = x ** 3.5
+            return v / (v + ((1 - x) ** 3.5))
+        }
+    ) {
         let startTimestamp
         const doAnimation = currentTimestamp => {
             if (startTimestamp === undefined) {
@@ -437,11 +444,11 @@ export default class Utility {
             if (Utility.approximatelyEqual(delta, 1) || delta > 1) {
                 delta = 1
             } else {
-                requestAnimationFrame(doAnimation)
+                acknowledgeRequestAnimationId(requestAnimationFrame(doAnimation))
             }
             const currentValue = from + (to - from) * timingFunction(delta)
             callback(currentValue)
         }
-        requestAnimationFrame(doAnimation)
+        acknowledgeRequestAnimationId(requestAnimationFrame(doAnimation))
     }
 }

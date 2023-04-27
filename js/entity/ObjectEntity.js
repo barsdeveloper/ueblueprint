@@ -15,6 +15,7 @@ import UnionType from "./UnionType.js"
 import UnknownPinEntity from "./UnknownPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
+import MirroredEntity from "./MirroredEntity.js"
 
 export default class ObjectEntity extends IEntity {
 

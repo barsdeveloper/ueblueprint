@@ -746,8 +746,8 @@ class Utility {
             return [x, y]
         }
         return [
-            gridSize * Math.round(x / gridSize),
-            gridSize * Math.round(y / gridSize)
+            gridSize * Math.floor(x / gridSize),
+            gridSize * Math.floor(y / gridSize)
         ]
     }
 
@@ -913,10 +913,17 @@ class Utility {
         blueprint.dispatchEvent(event);
     }
 
-    static animate(from, to, intervalSeconds, callback, timingFunction = x => {
-        const v = x ** 3.5;
-        return v / (v + ((1 - x) ** 3.5))
-    }) {
+    static animate(
+        from,
+        to,
+        intervalSeconds,
+        callback,
+        acknowledgeRequestAnimationId = id => { },
+        timingFunction = x => {
+            const v = x ** 3.5;
+            return v / (v + ((1 - x) ** 3.5))
+        }
+    ) {
         let startTimestamp;
         const doAnimation = currentTimestamp => {
             if (startTimestamp === undefined) {
@@ -926,12 +933,12 @@ class Utility {
             if (Utility.approximatelyEqual(delta, 1) || delta > 1) {
                 delta = 1;
             } else {
-                requestAnimationFrame(doAnimation);
+                acknowledgeRequestAnimationId(requestAnimationFrame(doAnimation));
             }
             const currentValue = from + (to - from) * timingFunction(delta);
             callback(currentValue);
         };
-        requestAnimationFrame(doAnimation);
+        acknowledgeRequestAnimationId(requestAnimationFrame(doAnimation));
     }
 }
 
@@ -1270,6 +1277,10 @@ class SymbolEntity extends IEntity {
 }
 
 class EnumEntity extends SymbolEntity {
+
+}
+
+class EnumDisplayValueEntity extends EnumEntity {
 
 }
 
@@ -2100,10 +2111,6 @@ class VectorEntity extends IEntity {
 class SimpleSerializationVectorEntity extends VectorEntity {
 }
 
-class EnumDisplayValueEntity extends EnumEntity {
-
-}
-
 /**
  * @typedef {import("./IEntity.js").AnyValue} AnyValue
  * @typedef {import("./ObjectEntity.js").default} ObjectEntity
@@ -2764,6 +2771,42 @@ class VariableReferenceEntity extends IEntity {
         /** @type {String} */ this.MemberName;
         /** @type {GuidEntity} */ this.GuidEntity;
         /** @type {Boolean} */ this.bSelfContext;
+    }
+}
+
+/** @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor */
+
+class MirroredEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        type: {
+            ignored: true,
+        },
+        key: {
+            ignored: true,
+        },
+        object: {
+            ignored: true,
+        },
+    }
+
+    constructor(values = {}) {
+        super({});
+        /** @type {EntityConstructor} */ this.type;
+        /** @type {String} */ this.key;
+        /** @type {IEntity} */ this.object;
+    }
+
+    get() {
+        return this.object?.[this.key]
+    }
+
+
+    set(value) {
+        if (this.object[this.key]) {
+            this.object[this.key] = value;
+        }
     }
 }
 
@@ -3783,11 +3826,11 @@ class Grammar {
                 case ByteEntity:
                     result = this.byteEntity;
                     break
-                case EnumEntity:
-                    result = this.enumEntity;
-                    break
                 case EnumDisplayValueEntity:
                     result = this.enumDisplayValueEntity;
+                    break
+                case EnumEntity:
+                    result = this.enumEntity;
                     break
                 case FormatTextEntity:
                     result = this.formatTextEntity;
@@ -3977,11 +4020,11 @@ class Grammar {
 
     static byteEntity = P.lazy(() => this.byteNumber.map(v => new ByteEntity(v)))
 
-    static enumEntity = P.lazy(() => this.symbol.map(v => new EnumEntity(v)))
-
     static enumDisplayValueEntity = P.lazy(() =>
         P.regex(this.Regex.InsideString).map(v => new EnumDisplayValueEntity(v))
     )
+
+    static enumEntity = P.lazy(() => this.symbol.map(v => new EnumEntity(v)))
 
     static formatTextEntity = P.lazy(() =>
         P.seq(
@@ -5833,6 +5876,13 @@ class BlueprintTemplate extends ITemplate {
         super.initialize(element);
         this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables)
             .map(([k, v]) => `${k}:${v};`).join("");
+        const htmlTemplate =  /** @type {HTMLTemplateElement} */(
+            this.element.querySelector(":scope > template")
+        )?.content.textContent;
+        if (htmlTemplate) {
+            this.element.requestUpdate();
+            this.element.updateComplete.then(() => this.getPasteInputObject().pasted(htmlTemplate));
+        }
     }
 
     setup() {
@@ -7349,7 +7399,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
     /** @param {Number} value */
     setSizeX(value) {
         value = Math.round(value);
-        if (value >= Configuration.gridSet * Configuration.gridSize) {
+        if (value >= 2 * Configuration.gridSize) {
             this.element.setNodeWidth(value);
             return true
         }
@@ -7359,7 +7409,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
     /** @param {Number} value */
     setSizeY(value) {
         value = Math.round(value);
-        if (value >= 3 * Configuration.gridSize) {
+        if (value >= 2 * Configuration.gridSize) {
             this.element.setNodeHeight(value);
             return true
         }
@@ -8358,6 +8408,8 @@ class Blueprint extends IElement {
 
     /** @type {Map<String, Number>} */
     #nodeNameCounter = new Map()
+    #xScrollingAnimationId = 0
+    #yScrollingAnimationId = 0
     /** @type {NodeElement[]}" */
     nodes = []
     /** @type {LinkElement[]}" */
@@ -8403,14 +8455,32 @@ class Blueprint extends IElement {
     scrollDelta(x = 0, y = 0, smooth = false, scrollTime = Configuration.smoothScrollTime) {
         if (smooth) {
             let previousScrollDelta = [0, 0];
-            Utility.animate(0, x, scrollTime, x => {
-                this.scrollDelta(x - previousScrollDelta[0], 0, false);
-                previousScrollDelta[0] = x;
-            });
-            Utility.animate(0, y, scrollTime, y => {
-                this.scrollDelta(0, y - previousScrollDelta[1], false);
-                previousScrollDelta[1] = y;
-            });
+            if (this.#xScrollingAnimationId) {
+                cancelAnimationFrame(this.#xScrollingAnimationId);
+            }
+            if (this.#yScrollingAnimationId) {
+                cancelAnimationFrame(this.#yScrollingAnimationId);
+            }
+            Utility.animate(
+                0,
+                x,
+                scrollTime,
+                x => {
+                    this.scrollDelta(x - previousScrollDelta[0], 0, false);
+                    previousScrollDelta[0] = x;
+                },
+                id => this.#xScrollingAnimationId = id
+            );
+            Utility.animate(
+                0,
+                y,
+                scrollTime,
+                y => {
+                    this.scrollDelta(0, y - previousScrollDelta[1], false);
+                    previousScrollDelta[1] = y;
+                },
+                id => this.#yScrollingAnimationId = id
+            );
         } else {
             const maxScroll = [2 * Configuration.expandGridSize, 2 * Configuration.expandGridSize];
             let currentScroll = this.getScroll();

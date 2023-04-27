@@ -76,7 +76,7 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
     /** @param {Number} value */
     setSizeX(value) {
         value = Math.round(value)
-        if (value >= Configuration.gridSet * Configuration.gridSize) {
+        if (value >= 2 * Configuration.gridSize) {
             this.element.setNodeWidth(value)
             return true
         }
@@ -86,7 +86,7 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
     /** @param {Number} value */
     setSizeY(value) {
         value = Math.round(value)
-        if (value >= 3 * Configuration.gridSize) {
+        if (value >= 2 * Configuration.gridSize) {
             this.element.setNodeHeight(value)
             return true
         }
