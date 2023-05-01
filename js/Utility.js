@@ -1,20 +1,26 @@
 import ComputedType from "./entity/ComputedType.js"
 import Configuration from "./Configuration.js"
+import MirroredEntity from "./entity/MirroredEntity.js"
 import UnionType from "./entity/UnionType.js"
 
 /**
  * @typedef {import("./Blueprint.js").default} Blueprint
  * @typedef {import("./entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("./entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
- * @typedef {import("./entity/IEntity.js").AttributeInformation} TypeInformation
+ * @typedef {import("./entity/IEntity.js").AttributeInformation} AttributeInformation
  * @typedef {import("./entity/IEntity.js").default} IEntity
  * @typedef {import("./entity/IEntity.js").EntityConstructor} EntityConstructor
  * @typedef {import("./entity/LinearColorEntity.js").default} LinearColorEntity
  */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("./entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
+ */
+/**
+ * @template T
+ * @typedef {import("./entity/IEntity.js").TypeGetter<T>} TypeGetter
+ */
 
 export default class Utility {
-
-    static emptyObj = {}
 
     static booleanConverter = {
         fromAttribute: (value, type) => {
@@ -125,7 +131,7 @@ export default class Utility {
         attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
     ) {
         if (attribute?.constructor === Object) {
-            return /** @type {TypeInformation} */(attribute).serialized
+            return /** @type {AttributeInformation} */(attribute).serialized
         }
         return false
     }
@@ -176,10 +182,7 @@ export default class Utility {
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (
-            /** @type {IEntity?} */(a)?.equals
-            && /** @type {IEntity?} */(b)?.equals
-        ) {
+        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
             return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
         }
         a = Utility.sanitize(a)
@@ -199,8 +202,7 @@ export default class Utility {
     }
 
     /**
-     * @param {null | AnyValue | TypeInformation} value
-     * @returns {AnyValueConstructor}
+     * @param {null | AnyValue | AttributeInformation} value
      */
     static getType(value) {
         if (value === null) {
@@ -209,14 +211,17 @@ export default class Utility {
         if (value?.constructor === Object && value?.type instanceof Function) {
             return value.type
         }
-        return /** @type {AnyValueConstructor} */(value?.constructor)
+        return /** @type {AnyValueConstructor<any>} */(value?.constructor)
     }
 
     /**
      * @param {AnyValue} value
-     * @param {AnyValueConstructor} type
+     * @param {AnyValueConstructor<T>} type
      */
     static isValueOfType(value, type, acceptNull = false) {
+        if (type instanceof MirroredEntity) {
+            type = type.getTargetType()
+        }
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 

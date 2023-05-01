@@ -48,7 +48,7 @@ export default class Configuration {
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static indentation = "   "
     static keysSeparator = /[\.\(\)]/
-    static knotOffset = [-26, -16]
+    static knotOffset = [-Configuration.gridSize, -0.5 * Configuration.gridSize]
     static lineTracePattern = /LineTrace(Single|Multi)(\w*)/
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px

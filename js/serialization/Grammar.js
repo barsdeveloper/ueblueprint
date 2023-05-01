@@ -14,6 +14,7 @@ import KeyBindingEntity from "../entity/KeyBindingEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity.js"
 import MacroGraphReferenceEntity from "../entity/MacroGraphReferenceEntity.js"
+import MirroredEntity from "../entity/MirroredEntity.js"
 import NaturalNumberEntity from "../entity/NaturalNumberEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity.js"
@@ -172,6 +173,8 @@ export default class Grammar {
                     ? this.unknownValue
                     : P.alt(acc, cur)
                 )
+        } else if (type instanceof MirroredEntity) {
+            return this.grammarFor(type.type.attributes[type.key])
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type)
         } else {
@@ -331,8 +334,9 @@ export default class Grammar {
             valueSeparator,
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator)
+            const attributeValue = this.getAttribute(entityType, attributeKey)
             return this
-                .grammarFor(this.getAttribute(entityType, attributeKey))
+                .grammarFor(attributeValue)
                 .map(attributeValue =>
                     values => Utility.objectSet(values, attributeKey, attributeValue, true)
                 )
@@ -688,7 +692,6 @@ export default class Grammar {
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
                     this.inlinedArrayEntry,
-                    // Legacy subobject
                     this.subObjectEntity
                 )
             )

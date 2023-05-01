@@ -1,37 +1,42 @@
-import IEntity from "./IEntity.js"
 
-/** @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor */
+/**
+ * @typedef {import("./IEntity.js").default} IEntity
+ * @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor
+ */
 
-export default class MirroredEntity extends IEntity {
+export default class MirroredEntity {
 
     static attributes = {
-        ...super.attributes,
         type: {
             ignored: true,
         },
         key: {
             ignored: true,
         },
-        object: {
+        getter: {
             ignored: true,
         },
     }
 
-    constructor(values = {}) {
-        super({})
-        /** @type {EntityConstructor} */ this.type
-        /** @type {String} */ this.key
-        /** @type {IEntity} */ this.object
+    /**
+     * @param {EntityConstructor} type
+     * @param {String} key
+     */
+    constructor(type, key, getter = () => null) {
+        this.type = type
+        this.key = key
+        this.getter = getter
     }
 
     get() {
-        return this.object?.[this.key]
+        return this.getter()
     }
 
-
-    set(value) {
-        if (this.object[this.key]) {
-            this.object[this.key] = value
+    getTargetType() {
+        const result = this.type.attributes[this.key].type
+        if (result instanceof MirroredEntity) {
+            return result.getTargetType()
         }
+        return result
     }
 }

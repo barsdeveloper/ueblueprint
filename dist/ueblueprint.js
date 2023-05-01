@@ -72,7 +72,7 @@ class Configuration {
     static hexColorRegex = /^\s*#(?<r>[0-9a-fA-F]{2})(?<g>[0-9a-fA-F]{2})(?<b>[0-9a-fA-F]{2})([0-9a-fA-F]{2})?|#(?<rs>[0-9a-fA-F])(?<gs>[0-9a-fA-F])(?<bs>[0-9a-fA-F])\s*$/
     static indentation = "   "
     static keysSeparator = /[\.\(\)]/
-    static knotOffset = [-26, -16]
+    static knotOffset = [-Configuration.gridSize, -0.5 * Configuration.gridSize]
     static lineTracePattern = /LineTrace(Single|Multi)(\w*)/
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
@@ -493,18 +493,65 @@ class UnionType {
 }
 
 /**
+ * @typedef {import("./IEntity.js").default} IEntity
+ * @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor
+ */
+
+class MirroredEntity {
+
+    static attributes = {
+        type: {
+            ignored: true,
+        },
+        key: {
+            ignored: true,
+        },
+        getter: {
+            ignored: true,
+        },
+    }
+
+    /**
+     * @param {EntityConstructor} type
+     * @param {String} key
+     */
+    constructor(type, key, getter = () => null) {
+        this.type = type;
+        this.key = key;
+        this.getter = getter;
+    }
+
+    get() {
+        return this.getter()
+    }
+
+    getTargetType() {
+        const result = this.type.attributes[this.key].type;
+        if (result instanceof MirroredEntity) {
+            return result.getTargetType()
+        }
+        return result
+    }
+}
+
+/**
  * @typedef {import("./Blueprint.js").default} Blueprint
  * @typedef {import("./entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("./entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
- * @typedef {import("./entity/IEntity.js").AttributeInformation} TypeInformation
+ * @typedef {import("./entity/IEntity.js").AttributeInformation} AttributeInformation
  * @typedef {import("./entity/IEntity.js").default} IEntity
  * @typedef {import("./entity/IEntity.js").EntityConstructor} EntityConstructor
  * @typedef {import("./entity/LinearColorEntity.js").default} LinearColorEntity
  */
+/**
+ * @template {AnyValue} T
+ * @typedef {import("./entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
+ */
+/**
+ * @template T
+ * @typedef {import("./entity/IEntity.js").TypeGetter<T>} TypeGetter
+ */
 
 class Utility {
-
-    static emptyObj = {}
 
     static booleanConverter = {
         fromAttribute: (value, type) => {
@@ -614,7 +661,7 @@ class Utility {
         attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
     ) {
         if (attribute?.constructor === Object) {
-            return /** @type {TypeInformation} */(attribute).serialized
+            return /** @type {AttributeInformation} */(attribute).serialized
         }
         return false
     }
@@ -665,10 +712,7 @@ class Utility {
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (
-            /** @type {IEntity?} */(a)?.equals
-            && /** @type {IEntity?} */(b)?.equals
-        ) {
+        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
             return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
         }
         a = Utility.sanitize(a);
@@ -688,8 +732,7 @@ class Utility {
     }
 
     /**
-     * @param {null | AnyValue | TypeInformation} value
-     * @returns {AnyValueConstructor}
+     * @param {null | AnyValue | AttributeInformation} value
      */
     static getType(value) {
         if (value === null) {
@@ -698,14 +741,17 @@ class Utility {
         if (value?.constructor === Object && value?.type instanceof Function) {
             return value.type
         }
-        return /** @type {AnyValueConstructor} */(value?.constructor)
+        return /** @type {AnyValueConstructor<any>} */(value?.constructor)
     }
 
     /**
      * @param {AnyValue} value
-     * @param {AnyValueConstructor} type
+     * @param {AnyValueConstructor<T>} type
      */
     static isValueOfType(value, type, acceptNull = false) {
+        if (type instanceof MirroredEntity) {
+            type = type.getTargetType();
+        }
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 
@@ -2774,42 +2820,6 @@ class VariableReferenceEntity extends IEntity {
     }
 }
 
-/** @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor */
-
-class MirroredEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        type: {
-            ignored: true,
-        },
-        key: {
-            ignored: true,
-        },
-        object: {
-            ignored: true,
-        },
-    }
-
-    constructor(values = {}) {
-        super({});
-        /** @type {EntityConstructor} */ this.type;
-        /** @type {String} */ this.key;
-        /** @type {IEntity} */ this.object;
-    }
-
-    get() {
-        return this.object?.[this.key]
-    }
-
-
-    set(value) {
-        if (this.object[this.key]) {
-            this.object[this.key] = value;
-        }
-    }
-}
-
 class ObjectEntity extends IEntity {
 
     static attributes = {
@@ -3813,6 +3823,8 @@ class Grammar {
                     ? this.unknownValue
                     : P.alt(acc, cur)
                 );
+        } else if (type instanceof MirroredEntity) {
+            return this.grammarFor(type.type.attributes[type.key])
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type);
         } else {
@@ -3972,8 +3984,9 @@ class Grammar {
             valueSeparator,
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator);
+            const attributeValue = this.getAttribute(entityType, attributeKey);
             return this
-                .grammarFor(this.getAttribute(entityType, attributeKey))
+                .grammarFor(attributeValue)
                 .map(attributeValue =>
                     values => Utility.objectSet(values, attributeKey, attributeValue, true)
                 )
@@ -4329,7 +4342,6 @@ class Grammar {
                     this.customProperty,
                     this.createAttributeGrammar(ObjectEntity),
                     this.inlinedArrayEntry,
-                    // Legacy subobject
                     this.subObjectEntity
                 )
             )
@@ -5871,6 +5883,10 @@ class BlueprintTemplate extends ITemplate {
     /** @type {HTMLElement} */ nodesContainerElement
     viewportSize = [0, 0]
 
+    #setViewportSize() {
+
+    }
+
     /** @param {Blueprint} element */
     initialize(element) {
         super.initialize(element);
@@ -5881,7 +5897,13 @@ class BlueprintTemplate extends ITemplate {
         )?.content.textContent;
         if (htmlTemplate) {
             this.element.requestUpdate();
-            this.element.updateComplete.then(() => this.getPasteInputObject().pasted(htmlTemplate));
+            this.element.updateComplete.then(() => {
+                this.blueprint.mousePosition = [
+                    Math.round(this.viewportSize[0] / 2),
+                    Math.round(this.viewportSize[1] / 2),
+                ];
+                this.getPasteInputObject().pasted(htmlTemplate);
+            });
         }
     }
 
@@ -6066,13 +6088,27 @@ class BlueprintTemplate extends ITemplate {
     centerContentInViewport(smooth = true) {
         let avgX = 0;
         let avgY = 0;
+        let minX = Number.MAX_SAFE_INTEGER;
+        let maxX = Number.MIN_SAFE_INTEGER;
+        let minY = Number.MAX_SAFE_INTEGER;
+        let maxY = Number.MIN_SAFE_INTEGER;
         const nodes = this.blueprint.getNodes();
         for (const node of nodes) {
             avgX += node.leftBoundary() + node.rightBoundary();
             avgY += node.topBoundary() + node.bottomBoundary();
+            minX = Math.min(minX, node.leftBoundary());
+            maxX = Math.max(maxX, node.rightBoundary());
+            minY = Math.min(minY, node.topBoundary());
+            maxY = Math.max(maxY, node.bottomBoundary());
         }
-        avgX = nodes.length > 0 ? Math.round(avgX / (2 * nodes.length)) : 0;
-        avgY = nodes.length > 0 ? Math.round(avgY / (2 * nodes.length)) : 0;
+        avgX = Math.round(maxX - minX <= this.viewportSize[0]
+            ? (maxX + minX) / 2
+            : avgX / (2 * nodes.length)
+        );
+        avgY = Math.round(maxY - minY <= this.viewportSize[1]
+            ? (maxY + minY) / 2
+            : avgY / (2 * nodes.length)
+        );
         this.centerViewport(avgX, avgY, smooth);
     }
 }
@@ -6355,6 +6391,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
                 location => {
                     location[0] += Configuration.knotOffset[0];
                     location[1] += Configuration.knotOffset[1];
+                    location = Utility.snapToGrid(location[0], location[1], Configuration.gridSize);
                     this.#createKnot(location);
                 }
             )
@@ -10949,7 +10986,6 @@ function initializeSerializerFactory() {
             (array, insideString) =>
                 `(${array
                     .map(v =>
-                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString) + ","
                     )
                     .join("")
@@ -10999,7 +11035,6 @@ function initializeSerializerFactory() {
             (v, insideString) => {
                 let result = FormatTextEntity.lookbehind + "("
                     + v.value.map(v =>
-                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString)
                     ).join(", ")
                     + ")";
@@ -11056,6 +11091,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         MacroGraphReferenceEntity,
         new Serializer(MacroGraphReferenceEntity, Serializer.bracketsWrapped)
+    );
+
+    SerializerFactory.registerSerializer(
+        MirroredEntity,
+        new Serializer(MirroredEntity)
     );
 
     SerializerFactory.registerSerializer(

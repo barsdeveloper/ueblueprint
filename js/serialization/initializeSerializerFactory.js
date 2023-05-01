@@ -13,6 +13,7 @@ import KeyBindingEntity from "../entity/KeyBindingEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity.js"
 import MacroGraphReferenceEntity from "../entity/MacroGraphReferenceEntity.js"
+import MirroredEntity from "../entity/MirroredEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity.js"
 import ObjectSerializer from "./ObjectSerializer.js"
@@ -54,7 +55,6 @@ export default function initializeSerializerFactory() {
             (array, insideString) =>
                 `(${array
                     .map(v =>
-                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString) + ","
                     )
                     .join("")
@@ -104,7 +104,6 @@ export default function initializeSerializerFactory() {
             (v, insideString) => {
                 let result = FormatTextEntity.lookbehind + "("
                     + v.value.map(v =>
-                        // @ts-expect-error
                         SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString)
                     ).join(", ")
                     + ")"
@@ -161,6 +160,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         MacroGraphReferenceEntity,
         new Serializer(MacroGraphReferenceEntity, Serializer.bracketsWrapped)
+    )
+
+    SerializerFactory.registerSerializer(
+        MirroredEntity,
+        new Serializer(MirroredEntity)
     )
 
     SerializerFactory.registerSerializer(

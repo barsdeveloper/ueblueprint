@@ -57,6 +57,10 @@ export default class BlueprintTemplate extends ITemplate {
     /** @type {HTMLElement} */ nodesContainerElement
     viewportSize = [0, 0]
 
+    #setViewportSize() {
+
+    }
+
     /** @param {Blueprint} element */
     initialize(element) {
         super.initialize(element)
@@ -67,7 +71,13 @@ export default class BlueprintTemplate extends ITemplate {
         )?.content.textContent
         if (htmlTemplate) {
             this.element.requestUpdate()
-            this.element.updateComplete.then(() => this.getPasteInputObject().pasted(htmlTemplate))
+            this.element.updateComplete.then(() => {
+                this.blueprint.mousePosition = [
+                    Math.round(this.viewportSize[0] / 2),
+                    Math.round(this.viewportSize[1] / 2),
+                ]
+                this.getPasteInputObject().pasted(htmlTemplate)
+            })
         }
     }
 
@@ -252,13 +262,27 @@ export default class BlueprintTemplate extends ITemplate {
     centerContentInViewport(smooth = true) {
         let avgX = 0
         let avgY = 0
+        let minX = Number.MAX_SAFE_INTEGER
+        let maxX = Number.MIN_SAFE_INTEGER
+        let minY = Number.MAX_SAFE_INTEGER
+        let maxY = Number.MIN_SAFE_INTEGER
         const nodes = this.blueprint.getNodes()
         for (const node of nodes) {
             avgX += node.leftBoundary() + node.rightBoundary()
             avgY += node.topBoundary() + node.bottomBoundary()
+            minX = Math.min(minX, node.leftBoundary())
+            maxX = Math.max(maxX, node.rightBoundary())
+            minY = Math.min(minY, node.topBoundary())
+            maxY = Math.max(maxY, node.bottomBoundary())
         }
-        avgX = nodes.length > 0 ? Math.round(avgX / (2 * nodes.length)) : 0
-        avgY = nodes.length > 0 ? Math.round(avgY / (2 * nodes.length)) : 0
+        avgX = Math.round(maxX - minX <= this.viewportSize[0]
+            ? (maxX + minX) / 2
+            : avgX / (2 * nodes.length)
+        )
+        avgY = Math.round(maxY - minY <= this.viewportSize[1]
+            ? (maxY + minY) / 2
+            : avgY / (2 * nodes.length)
+        )
         this.centerViewport(avgX, avgY, smooth)
     }
 }
