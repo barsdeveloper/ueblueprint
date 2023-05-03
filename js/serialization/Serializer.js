@@ -136,7 +136,6 @@ export default class Serializer {
     /** @param {Boolean} insideString */
     doWriteValue(value, insideString, indentation = "") {
         const type = Utility.getType(value)
-        // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type)
         if (!serializer) {
             throw new Error(

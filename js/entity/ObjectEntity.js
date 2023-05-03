@@ -1,5 +1,4 @@
 import Configuration from "../Configuration.js"
-import FormatTextEntity from "./FormatTextEntity.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import GuidEntity from "./GuidEntity.js"
 import IdentifierEntity from "./IdentifierEntity.js"
@@ -7,6 +6,7 @@ import IEntity from "./IEntity.js"
 import IntegerEntity from "./IntegerEntity.js"
 import LinearColorEntity from "./LinearColorEntity.js"
 import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity.js"
+import MirroredEntity from "./MirroredEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PinEntity from "./PinEntity.js"
 import SVGIcon from "../SVGIcon.js"
@@ -15,7 +15,6 @@ import UnionType from "./UnionType.js"
 import UnknownPinEntity from "./UnknownPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
-import MirroredEntity from "./MirroredEntity.js"
 
 export default class ObjectEntity extends IEntity {
 
@@ -175,11 +174,23 @@ export default class ObjectEntity extends IEntity {
             showDefault: false,
         },
         SizeX: {
-            type: IntegerEntity,
+            type: new MirroredEntity(ObjectEntity, "NodeWidth"),
             showDefault: false,
         },
         SizeY: {
-            type: IntegerEntity,
+            type: new MirroredEntity(ObjectEntity, "NodeHeight"),
+            showDefault: false,
+        },
+        Text: {
+            type: new MirroredEntity(ObjectEntity, "NodeComment"),
+            showDefault: false,
+        },
+        MaterialExpressionEditorX: {
+            type: new MirroredEntity(ObjectEntity, "NodePosX"),
+            showDefault: false,
+        },
+        MaterialExpressionEditorY: {
+            type: new MirroredEntity(ObjectEntity, "NodePosY"),
             showDefault: false,
         },
         NodePosX: {
@@ -300,7 +311,7 @@ export default class ObjectEntity extends IEntity {
         }
     }
 
-    constructor(values, suppressWarns = false) {
+    constructor(values = {}, suppressWarns = false) {
         let keys = Object.keys(values)
         if (keys.some(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))) {
             let subObjectsValues = keys
@@ -357,8 +368,11 @@ export default class ObjectEntity extends IEntity {
         /** @type {SymbolEntity?} */ this.MoveMode
         /** @type {String?} */ this.TimelineName
         /** @type {GuidEntity?} */ this.TimelineGuid
-        /** @type {IntegerEntity?} */ this.SizeX
-        /** @type {IntegerEntity?} */ this.SizeY
+        /** @type {MirroredEntity?} */ this.SizeX
+        /** @type {MirroredEntity?} */ this.SizeY
+        /** @type {MirroredEntity?} */ this.Text
+        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorX
+        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IntegerEntity?} */ this.NodeWidth
@@ -390,11 +404,20 @@ export default class ObjectEntity extends IEntity {
                     })
             delete this["Pins"]
         }
-
-        this.Class.sanitize()
+        this.Class?.sanitize()
         if (this.MacroGraphReference) {
             this.MacroGraphReference.MacroGraph?.sanitize()
             this.MacroGraphReference.GraphBlueprint?.sanitize()
+        }
+        /** @type {ObjectEntity} */
+        const materialSubobject = this.getMaterialSubobject()
+        if (materialSubobject) {
+            const obj = materialSubobject
+            obj.SizeX && (obj.SizeX.getter = () => this.NodeWidth)
+            obj.SizeY && (obj.SizeY.getter = () => this.NodeHeight)
+            obj.Text && (obj.Text.getter = () => this.NodeComment)
+            obj.MaterialExpressionEditorX && (obj.MaterialExpressionEditorX.getter = () => this.NodePosX)
+            obj.MaterialExpressionEditorY && (obj.MaterialExpressionEditorY.getter = () => this.NodePosY)
         }
     }
 

@@ -435,6 +435,48 @@ class ComputedType {
 }
 
 /**
+ * @typedef {import("./IEntity.js").default} IEntity
+ * @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor
+ */
+
+class MirroredEntity {
+
+    static attributes = {
+        type: {
+            ignored: true,
+        },
+        key: {
+            ignored: true,
+        },
+        getter: {
+            ignored: true,
+        },
+    }
+
+    /**
+     * @param {EntityConstructor} type
+     * @param {String} key
+     */
+    constructor(type, key, getter = () => null) {
+        this.type = type;
+        this.key = key;
+        this.getter = getter;
+    }
+
+    get() {
+        return this.getter()
+    }
+
+    getTargetType() {
+        const result = this.type.attributes[this.key].type;
+        if (result instanceof MirroredEntity) {
+            return result.getTargetType()
+        }
+        return result
+    }
+}
+
+/**
  * @typedef {import("../entity/IEntity.js").default} IEntity
  * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
  */
@@ -489,48 +531,6 @@ class UnionType {
 
     getFirstType() {
         return this.#types[0]
-    }
-}
-
-/**
- * @typedef {import("./IEntity.js").default} IEntity
- * @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor
- */
-
-class MirroredEntity {
-
-    static attributes = {
-        type: {
-            ignored: true,
-        },
-        key: {
-            ignored: true,
-        },
-        getter: {
-            ignored: true,
-        },
-    }
-
-    /**
-     * @param {EntityConstructor} type
-     * @param {String} key
-     */
-    constructor(type, key, getter = () => null) {
-        this.type = type;
-        this.key = key;
-        this.getter = getter;
-    }
-
-    get() {
-        return this.getter()
-    }
-
-    getTargetType() {
-        const result = this.type.attributes[this.key].type;
-        if (result instanceof MirroredEntity) {
-            return result.getTargetType()
-        }
-        return result
     }
 }
 
@@ -989,10 +989,16 @@ class Utility {
 }
 
 /**
- * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
+ * @template {AnyValue} T
+ * @typedef {(new (...any) => T) | StringConstructor | NumberConstructor | BigIntConstructor | BooleanConstructor
+ *     | ArrayConstructor} AnyValueConstructor
+*/
+
+/**
+ * @typedef {IEntity | MirroredEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | UnionType[] | ComputedType} AttributeType
+ * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | UnionType[] | ComputedType | MirroredEntity} AttributeType
  * @typedef {{
  *     type?: AttributeType,
  *     default?: AnyValue | ValueSupplier,
@@ -1009,11 +1015,15 @@ class Utility {
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  */
-
 /**
- * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
- *     | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ * @template T
+ * @typedef {{
+ *     (value: Boolean): BooleanConstructor,
+ *     (value: Number): NumberConstructor,
+ *     (value: String): StringConstructor,
+ *     (value: BigInt): BigIntConstructor,
+ *     (value: T): typeof value.constructor,
+ * }} TypeGetter
  */
 
 class IEntity {
@@ -1064,20 +1074,12 @@ class IEntity {
             let value = values[attributeName];
             let attribute = attributes[attributeName];
 
-            if (!suppressWarns) {
+            if (!suppressWarns && value !== undefined) {
                 if (!(attributeName in attributes)) {
                     const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name;
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
                         + `defined in ${Self.name}.attributes`
-                    );
-                } else if (
-                    valuesNames.length > 0
-                    && !(attributeName in values)
-                    && !(!attribute.showDefault || attribute.ignored)
-                ) {
-                    console.warn(
-                        `UEBlueprint: ${Self.name} will add attribute ${attributeName} missing from the serialized data`
                     );
                 }
             }
@@ -1135,10 +1137,17 @@ class IEntity {
                 // Remember value can still be null
                 if (value?.constructor === String && attribute.serialized && defaultType !== String) {
                     value = SerializerFactory
-                        .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
+                        // @ts-expect-error
+                        .getSerializer(defaultType)
                         .read(/** @type {String} */(value));
                 }
-                assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)));
+                if (defaultType instanceof MirroredEntity && !(value instanceof MirroredEntity)) {
+                    value = undefined; // Value is discarded as it is mirrored from another one
+                    value = new MirroredEntity(defaultType.type, defaultType.key);
+                    this[attributeName] = value;
+                } else {
+                    assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)));
+                }
                 continue // We have a value, need nothing more
             }
             if (defaultType instanceof UnionType) {
@@ -1150,17 +1159,18 @@ class IEntity {
                     defaultType = defaultType.getFirstType();
                 }
             }
-            if (defaultValue === undefined) {
-                defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)());
-            }
-            if (!attribute.showDefault && !attribute.ignored) {
+            if (!attribute.showDefault) {
                 assignAttribute(undefined); // Declare undefined to preserve the order of attributes
                 continue
             }
+            // if (defaultValue === undefined) {
+            //     defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())
+            // }
             if (attribute.serialized) {
                 if (defaultType !== String && defaultValue.constructor === String) {
                     defaultValue = SerializerFactory
-                        .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
+                        // @ts-expect-error
+                        .getSerializer(defaultType)
                         .read(defaultValue);
                 }
             }
@@ -1171,19 +1181,42 @@ class IEntity {
         }
     }
 
+    /** @param {AttributeType} attributeType */
+    static defaultValueProviderFromType(attributeType) {
+        if (attributeType === Boolean) {
+            return false
+        } else if (attributeType === Number) {
+            return 0
+        } else if (attributeType === BigInt) {
+            return 0n
+        } else if (attributeType === String) {
+            return ""
+        } else if (attributeType === Array || attributeType instanceof Array) {
+            return () => []
+        } else if (attributeType instanceof UnionType) {
+            return this.defaultValueProviderFromType(attributeType.getFirstType())
+        } else if (attributeType instanceof MirroredEntity) {
+            return () => new MirroredEntity(attributeType.type, attributeType.key, attributeType.getter)
+        } else if (attributeType instanceof ComputedType) {
+            return undefined
+        } else {
+            return () => new attributeType()
+        }
+    }
+
     /** @param {AttributeDeclarations} attributes */
     static cleanupAttributes(attributes, prefix = "") {
         for (const attributeName in attributes) {
+            attributes[attributeName] = {
+                ...IEntity.defaultAttribute,
+                ...attributes[attributeName],
+            };
             const attribute = /** @type {AttributeInformation} */(attributes[attributeName]);
             if (attribute.type === undefined && !(attribute.default instanceof Function)) {
                 attribute.type = attribute.default instanceof Array
                     ? [Utility.getType(attribute.default[0])]
                     : Utility.getType(attribute.default);
             }
-            attributes[attributeName] = {
-                ...IEntity.defaultAttribute,
-                ...attribute,
-            };
             if (attribute.default === undefined) {
                 if (attribute.type === undefined) {
                     throw new Error(
@@ -1191,10 +1224,12 @@ class IEntity {
                         + attributeName
                     )
                 }
-                attribute[attributeName] = Utility.sanitize(undefined, attribute.type);
+                if (attribute.showDefault) {
+                    attribute.default = this.defaultValueProviderFromType(attribute.type);
+                }
             }
             if (attribute.default === null) {
-                attributes[attributeName].nullable = true;
+                attribute.nullable = true;
             }
         }
     }
@@ -1226,8 +1261,7 @@ class IEntity {
     }
 
     unexpectedKeys() {
-        return Object.keys(this).length
-            - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
+        return Object.keys(this).length - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
     }
 
     /** @param {IEntity} other */
@@ -2978,11 +3012,23 @@ class ObjectEntity extends IEntity {
             showDefault: false,
         },
         SizeX: {
-            type: IntegerEntity,
+            type: new MirroredEntity(ObjectEntity, "NodeWidth"),
             showDefault: false,
         },
         SizeY: {
-            type: IntegerEntity,
+            type: new MirroredEntity(ObjectEntity, "NodeHeight"),
+            showDefault: false,
+        },
+        Text: {
+            type: new MirroredEntity(ObjectEntity, "NodeComment"),
+            showDefault: false,
+        },
+        MaterialExpressionEditorX: {
+            type: new MirroredEntity(ObjectEntity, "NodePosX"),
+            showDefault: false,
+        },
+        MaterialExpressionEditorY: {
+            type: new MirroredEntity(ObjectEntity, "NodePosY"),
             showDefault: false,
         },
         NodePosX: {
@@ -3103,7 +3149,7 @@ class ObjectEntity extends IEntity {
         }
     }
 
-    constructor(values, suppressWarns = false) {
+    constructor(values = {}, suppressWarns = false) {
         let keys = Object.keys(values);
         if (keys.some(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))) {
             let subObjectsValues = keys
@@ -3160,8 +3206,11 @@ class ObjectEntity extends IEntity {
         /** @type {SymbolEntity?} */ this.MoveMode;
         /** @type {String?} */ this.TimelineName;
         /** @type {GuidEntity?} */ this.TimelineGuid;
-        /** @type {IntegerEntity?} */ this.SizeX;
-        /** @type {IntegerEntity?} */ this.SizeY;
+        /** @type {MirroredEntity?} */ this.SizeX;
+        /** @type {MirroredEntity?} */ this.SizeY;
+        /** @type {MirroredEntity?} */ this.Text;
+        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorX;
+        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
         /** @type {IntegerEntity?} */ this.NodeWidth;
@@ -3193,11 +3242,20 @@ class ObjectEntity extends IEntity {
                     });
             delete this["Pins"];
         }
-
-        this.Class.sanitize();
+        this.Class?.sanitize();
         if (this.MacroGraphReference) {
             this.MacroGraphReference.MacroGraph?.sanitize();
             this.MacroGraphReference.GraphBlueprint?.sanitize();
+        }
+        /** @type {ObjectEntity} */
+        const materialSubobject = this.getMaterialSubobject();
+        if (materialSubobject) {
+            const obj = materialSubobject;
+            obj.SizeX && (obj.SizeX.getter = () => this.NodeWidth);
+            obj.SizeY && (obj.SizeY.getter = () => this.NodeHeight);
+            obj.Text && (obj.Text.getter = () => this.NodeComment);
+            obj.MaterialExpressionEditorX && (obj.MaterialExpressionEditorX.getter = () => this.NodePosX);
+            obj.MaterialExpressionEditorY && (obj.MaterialExpressionEditorY.getter = () => this.NodePosY);
         }
     }
 
@@ -3672,7 +3730,7 @@ class UnknownKeysEntity extends IEntity {
     static attributes = {
         lookbehind: {
             default: "",
-            showDefault: false,
+            showDefault: true,
             ignored: true,
         },
     }
@@ -4581,7 +4639,6 @@ class Serializer {
     /** @param {Boolean} insideString */
     doWriteValue(value, insideString, indentation = "") {
         const type = Utility.getType(value);
-        // @ts-expect-error
         const serializer = SerializerFactory.getSerializer(type);
         if (!serializer) {
             throw new Error(
@@ -7376,6 +7433,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
 
     /** @param {NodeElement} element */
     initialize(element) {
+        super.initialize(element);
         if (element.entity.CommentColor) {
             this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber());
             this.#color.setFromHSVA(
@@ -11095,7 +11153,10 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         MirroredEntity,
-        new Serializer(MirroredEntity)
+        new CustomSerializer(
+            (v, insideString) => SerializerFactory.getSerializer(v.getTargetType()).write(v.get(), insideString),
+            MirroredEntity
+        )
     );
 
     SerializerFactory.registerSerializer(

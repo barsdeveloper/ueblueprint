@@ -16,6 +16,7 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
 
     /** @param {NodeElement} element */
     initialize(element) {
+        super.initialize(element)
         if (element.entity.CommentColor) {
             this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber())
             this.#color.setFromHSVA(

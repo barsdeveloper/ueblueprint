@@ -1,13 +1,20 @@
 import ComputedType from "./ComputedType.js"
+import MirroredEntity from "./MirroredEntity.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
 import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {IEntity | String | Number | BigInt | Boolean} AnySimpleValue
+ * @template {AnyValue} T
+ * @typedef {(new (...any) => T) | StringConstructor | NumberConstructor | BigIntConstructor | BooleanConstructor
+ *     | ArrayConstructor} AnyValueConstructor
+*/
+
+/**
+ * @typedef {IEntity | MirroredEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | UnionType[] | ComputedType} AttributeType
+ * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | UnionType[] | ComputedType | MirroredEntity} AttributeType
  * @typedef {{
  *     type?: AttributeType,
  *     default?: AnyValue | ValueSupplier,
@@ -24,11 +31,15 @@ import Utility from "../Utility.js"
  * }} AttributeDeclarations
  * @typedef {typeof IEntity} EntityConstructor
  */
-
 /**
- * @template {AnyValue} T
- * @typedef {(new () => T) | EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
- *     | BooleanConstructor | ArrayConstructor} AnyValueConstructor
+ * @template T
+ * @typedef {{
+ *     (value: Boolean): BooleanConstructor,
+ *     (value: Number): NumberConstructor,
+ *     (value: String): StringConstructor,
+ *     (value: BigInt): BigIntConstructor,
+ *     (value: T): typeof value.constructor,
+ * }} TypeGetter
  */
 
 export default class IEntity {
@@ -79,20 +90,12 @@ export default class IEntity {
             let value = values[attributeName]
             let attribute = attributes[attributeName]
 
-            if (!suppressWarns) {
+            if (!suppressWarns && value !== undefined) {
                 if (!(attributeName in attributes)) {
                     const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
                         + `defined in ${Self.name}.attributes`
-                    )
-                } else if (
-                    valuesNames.length > 0
-                    && !(attributeName in values)
-                    && !(!attribute.showDefault || attribute.ignored)
-                ) {
-                    console.warn(
-                        `UEBlueprint: ${Self.name} will add attribute ${attributeName} missing from the serialized data`
                     )
                 }
             }
@@ -150,10 +153,17 @@ export default class IEntity {
                 // Remember value can still be null
                 if (value?.constructor === String && attribute.serialized && defaultType !== String) {
                     value = SerializerFactory
-                        .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
+                        // @ts-expect-error
+                        .getSerializer(defaultType)
                         .read(/** @type {String} */(value))
                 }
-                assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
+                if (defaultType instanceof MirroredEntity && !(value instanceof MirroredEntity)) {
+                    value = undefined // Value is discarded as it is mirrored from another one
+                    value = new MirroredEntity(defaultType.type, defaultType.key)
+                    this[attributeName] = value
+                } else {
+                    assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
+                }
                 continue // We have a value, need nothing more
             }
             if (defaultType instanceof UnionType) {
@@ -165,17 +175,18 @@ export default class IEntity {
                     defaultType = defaultType.getFirstType()
                 }
             }
-            if (defaultValue === undefined) {
-                defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())
-            }
-            if (!attribute.showDefault && !attribute.ignored) {
+            if (!attribute.showDefault) {
                 assignAttribute(undefined) // Declare undefined to preserve the order of attributes
                 continue
             }
+            // if (defaultValue === undefined) {
+            //     defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())
+            // }
             if (attribute.serialized) {
                 if (defaultType !== String && defaultValue.constructor === String) {
                     defaultValue = SerializerFactory
-                        .getSerializer(/** @type {AnyValueConstructor<*>} */(defaultType))
+                        // @ts-expect-error
+                        .getSerializer(defaultType)
                         .read(defaultValue)
                 }
             }
@@ -186,18 +197,41 @@ export default class IEntity {
         }
     }
 
+    /** @param {AttributeType} attributeType */
+    static defaultValueProviderFromType(attributeType) {
+        if (attributeType === Boolean) {
+            return false
+        } else if (attributeType === Number) {
+            return 0
+        } else if (attributeType === BigInt) {
+            return 0n
+        } else if (attributeType === String) {
+            return ""
+        } else if (attributeType === Array || attributeType instanceof Array) {
+            return () => []
+        } else if (attributeType instanceof UnionType) {
+            return this.defaultValueProviderFromType(attributeType.getFirstType())
+        } else if (attributeType instanceof MirroredEntity) {
+            return () => new MirroredEntity(attributeType.type, attributeType.key, attributeType.getter)
+        } else if (attributeType instanceof ComputedType) {
+            return undefined
+        } else {
+            return () => new attributeType()
+        }
+    }
+
     /** @param {AttributeDeclarations} attributes */
     static cleanupAttributes(attributes, prefix = "") {
         for (const attributeName in attributes) {
+            attributes[attributeName] = {
+                ...IEntity.defaultAttribute,
+                ...attributes[attributeName],
+            }
             const attribute = /** @type {AttributeInformation} */(attributes[attributeName])
             if (attribute.type === undefined && !(attribute.default instanceof Function)) {
                 attribute.type = attribute.default instanceof Array
                     ? [Utility.getType(attribute.default[0])]
                     : Utility.getType(attribute.default)
-            }
-            attributes[attributeName] = {
-                ...IEntity.defaultAttribute,
-                ...attribute,
             }
             if (attribute.default === undefined) {
                 if (attribute.type === undefined) {
@@ -206,10 +240,12 @@ export default class IEntity {
                         + attributeName
                     )
                 }
-                attribute[attributeName] = Utility.sanitize(undefined, attribute.type)
+                if (attribute.showDefault) {
+                    attribute.default = this.defaultValueProviderFromType(attribute.type)
+                }
             }
             if (attribute.default === null) {
-                attributes[attributeName].nullable = true
+                attribute.nullable = true
             }
         }
     }
@@ -241,8 +277,7 @@ export default class IEntity {
     }
 
     unexpectedKeys() {
-        return Object.keys(this).length
-            - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
+        return Object.keys(this).length - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
     }
 
     /** @param {IEntity} other */

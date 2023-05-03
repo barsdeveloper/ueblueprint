@@ -164,7 +164,10 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         MirroredEntity,
-        new Serializer(MirroredEntity)
+        new CustomSerializer(
+            (v, insideString) => SerializerFactory.getSerializer(v.getTargetType()).write(v.get(), insideString),
+            MirroredEntity
+        )
     )
 
     SerializerFactory.registerSerializer(
