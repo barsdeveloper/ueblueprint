@@ -76,7 +76,7 @@ export default class IEntity {
         }
         /** @type {AttributeDeclarations?} */ this.attributes
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
-            // If values is not an object but the unique value this entity can have
+            // If values is not an object but the only value this entity can have
             values = {
                 [Object.keys(attributes)[0]]: values
             }
@@ -140,12 +140,6 @@ export default class IEntity {
             let defaultType = attribute.type
             if (defaultType instanceof ComputedType) {
                 defaultType = defaultType.compute(this)
-            }
-            if (defaultType instanceof UnionType) {
-                defaultType = defaultValue != undefined
-                    ? defaultType.types.find(type => defaultValue instanceof type || defaultValue.constructor == type)
-                    ?? defaultType.getFirstType()
-                    : defaultType.getFirstType()
             }
             if (defaultType instanceof Array) {
                 defaultType = Array

@@ -268,7 +268,7 @@ export default class PinEntity extends IEntity {
         })
         if (indexElement >= 0) {
             this.LinkedTo.splice(indexElement, 1)
-            if (this.LinkedTo.length === 0 && !PinEntity.attributes.LinkedTo.default) {
+            if (this.LinkedTo.length === 0 && PinEntity.attributes.LinkedTo.default === undefined) {
                 this.LinkedTo = undefined
             }
             return true

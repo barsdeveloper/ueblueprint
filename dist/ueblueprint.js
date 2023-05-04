@@ -1067,7 +1067,7 @@ class IEntity {
         }
         /** @type {AttributeDeclarations?} */ this.attributes;
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
-            // If values is not an object but the unique value this entity can have
+            // If values is not an object but the only value this entity can have
             values = {
                 [Object.keys(attributes)[0]]: values
             };
@@ -1131,12 +1131,6 @@ class IEntity {
             let defaultType = attribute.type;
             if (defaultType instanceof ComputedType) {
                 defaultType = defaultType.compute(this);
-            }
-            if (defaultType instanceof UnionType) {
-                defaultType = defaultValue != undefined
-                    ? defaultType.types.find(type => defaultValue instanceof type || defaultValue.constructor == type)
-                    ?? defaultType.getFirstType()
-                    : defaultType.getFirstType();
             }
             if (defaultType instanceof Array) {
                 defaultType = Array;
@@ -2428,7 +2422,7 @@ class PinEntity extends IEntity {
         });
         if (indexElement >= 0) {
             this.LinkedTo.splice(indexElement, 1);
-            if (this.LinkedTo.length === 0 && !PinEntity.attributes.LinkedTo.default) {
+            if (this.LinkedTo.length === 0 && PinEntity.attributes.LinkedTo.default === undefined) {
                 this.LinkedTo = undefined;
             }
             return true
