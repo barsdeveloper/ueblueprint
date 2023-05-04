@@ -28,6 +28,10 @@ export default class ObjectReferenceEntity extends IEntity {
         /** @type {String} */ this.path
     }
 
+    static createNoneInstance() {
+        return new ObjectReferenceEntity({ type: "None", path: "" })
+    }
+
     sanitize() {
         if (this.type && !this.type.startsWith("/")) {
             let deprecatedType = this.type + "_Deprecated"

@@ -5,12 +5,15 @@ export default class RotatorEntity extends IEntity {
     static attributes = {
         R: {
             default: 0,
+            expected: true,
         },
         P: {
             default: 0,
+            expected: true,
         },
         Y: {
             default: 0,
+            expected: true,
         },
     }
 

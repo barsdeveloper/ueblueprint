@@ -14,6 +14,7 @@ export default class PinTypeEntity extends IEntity {
         },
         PinSubCategoryObject: {
             type: ObjectReferenceEntity,
+            default: () => ObjectReferenceEntity.createNoneInstance(),
         },
         PinSubCategoryMemberReference: {
             type: FunctionReferenceEntity,

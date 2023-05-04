@@ -154,7 +154,7 @@ export default class Serializer {
             if (attribute.ignored) {
                 return false
             }
-            return !Utility.equals(attribute.default, value) || attribute.showDefault
+            return attribute.default !== undefined
         }
         return true
     }

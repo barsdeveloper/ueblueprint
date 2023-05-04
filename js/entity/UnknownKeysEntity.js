@@ -5,7 +5,6 @@ export default class UnknownKeysEntity extends IEntity {
     static attributes = {
         lookbehind: {
             default: "",
-            showDefault: true,
             ignored: true,
         },
     }

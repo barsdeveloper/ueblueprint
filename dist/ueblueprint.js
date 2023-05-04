@@ -230,7 +230,8 @@ class Configuration {
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class.type ? "_" + objectEntity.Class.type : "") + "_" + objectEntity.Name
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class?.type ? `_${objectEntity.Class.type}` : "")
+        + `_${objectEntity.Name}`
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
         this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
@@ -770,6 +771,12 @@ class Utility {
             }
             targetType = type;
         }
+        if (targetType instanceof MirroredEntity) {
+            if (value instanceof MirroredEntity) {
+                return value
+            }
+            return Utility.sanitize(value, targetType.getTargetType())
+        }
         if (targetType && !Utility.isValueOfType(value, targetType, true)) {
             value = targetType === BigInt
                 ? BigInt(value)
@@ -1002,7 +1009,6 @@ class Utility {
  * @typedef {{
  *     type?: AttributeType,
  *     default?: AnyValue | ValueSupplier,
- *     showDefault?: Boolean,
  *     nullable?: Boolean,
  *     ignored?: Boolean,
  *     serialized?: Boolean,
@@ -1032,7 +1038,6 @@ class IEntity {
     /** @type {AttributeDeclarations} */
     static attributes = {}
     static defaultAttribute = {
-        showDefault: true,
         nullable: false,
         ignored: false,
         serialized: false,
@@ -1050,7 +1055,7 @@ class IEntity {
                     attributes[k] = {
                         ...IEntity.defaultAttribute,
                         ...attributes[k],
-                        ...values.attributes[k]
+                        ...values.attributes[k],
                     };
                     if (!attributes[k].type) {
                         attributes[k].type = values[k] instanceof Array
@@ -1062,7 +1067,7 @@ class IEntity {
         }
         /** @type {AttributeDeclarations?} */ this.attributes;
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
-            // Where there is just one attribute, option can be the value of that attribute
+            // If values is not an object but the unique value this entity can have
             values = {
                 [Object.keys(attributes)[0]]: values
             };
@@ -1070,7 +1075,7 @@ class IEntity {
         const valuesNames = Object.keys(values);
         const attributesNames = Object.keys(attributes);
         const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames);
-        for (let attributeName of allAttributesNames) {
+        for (const attributeName of allAttributesNames) {
             let value = values[attributeName];
             let attribute = attributes[attributeName];
 
@@ -1085,26 +1090,12 @@ class IEntity {
             }
 
             if (!attribute) {
-                // Remember attributeName can come from the values and be not defined in the attributes
-                // In that case just assign it and skip the rest
+                // Remember attributeName can come from the values and be not defined in the attributes.
+                // In that case just assign it and skip the rest.
                 this[attributeName] = value;
                 continue
             }
 
-            let defaultValue = attribute.default;
-            let defaultType = attribute.type;
-            if (defaultType instanceof ComputedType) {
-                defaultType = defaultType.compute(this);
-            }
-            if (defaultType instanceof Array) {
-                defaultType = Array;
-            }
-            if (defaultValue instanceof Function) {
-                defaultValue = defaultValue(this);
-            }
-            if (defaultType === undefined) {
-                defaultType = Utility.getType(defaultValue);
-            }
             const assignAttribute = !attribute.predicate
                 ? v => this[attributeName] = v
                 : v => {
@@ -1133,6 +1124,27 @@ class IEntity {
                     this[attributeName] = v;
                 };
 
+            let defaultValue = attribute.default;
+            if (defaultValue instanceof Function) {
+                defaultValue = defaultValue(this);
+            }
+            let defaultType = attribute.type;
+            if (defaultType instanceof ComputedType) {
+                defaultType = defaultType.compute(this);
+            }
+            if (defaultType instanceof UnionType) {
+                defaultType = defaultValue != undefined
+                    ? defaultType.types.find(type => defaultValue instanceof type || defaultValue.constructor == type)
+                    ?? defaultType.getFirstType()
+                    : defaultType.getFirstType();
+            }
+            if (defaultType instanceof Array) {
+                defaultType = Array;
+            }
+            if (defaultType === undefined) {
+                defaultType = Utility.getType(defaultValue);
+            }
+
             if (value !== undefined) {
                 // Remember value can still be null
                 if (value?.constructor === String && attribute.serialized && defaultType !== String) {
@@ -1141,43 +1153,15 @@ class IEntity {
                         .getSerializer(defaultType)
                         .read(/** @type {String} */(value));
                 }
-                if (defaultType instanceof MirroredEntity && !(value instanceof MirroredEntity)) {
-                    value = undefined; // Value is discarded as it is mirrored from another one
-                    value = new MirroredEntity(defaultType.type, defaultType.key);
-                    this[attributeName] = value;
-                } else {
-                    assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)));
-                }
+                assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)));
                 continue // We have a value, need nothing more
             }
-            if (defaultType instanceof UnionType) {
-                if (defaultValue != undefined) {
-                    defaultType = defaultType.types.find(
-                        type => defaultValue instanceof type || defaultValue.constructor == type
-                    ) ?? defaultType.getFirstType();
-                } else {
-                    defaultType = defaultType.getFirstType();
-                }
+            if (defaultValue !== undefined) {
+                assignAttribute(Utility.sanitize(
+                    /** @type {AnyValue} */(defaultValue),
+                    /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
+                ));
             }
-            if (!attribute.showDefault) {
-                assignAttribute(undefined); // Declare undefined to preserve the order of attributes
-                continue
-            }
-            // if (defaultValue === undefined) {
-            //     defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())
-            // }
-            if (attribute.serialized) {
-                if (defaultType !== String && defaultValue.constructor === String) {
-                    defaultValue = SerializerFactory
-                        // @ts-expect-error
-                        .getSerializer(defaultType)
-                        .read(defaultValue);
-                }
-            }
-            assignAttribute(Utility.sanitize(
-                /** @type {AnyValue} */(defaultValue),
-                /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
-            ));
         }
     }
 
@@ -1217,16 +1201,11 @@ class IEntity {
                     ? [Utility.getType(attribute.default[0])]
                     : Utility.getType(attribute.default);
             }
-            if (attribute.default === undefined) {
-                if (attribute.type === undefined) {
-                    throw new Error(
-                        `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
-                        + attributeName
-                    )
-                }
-                if (attribute.showDefault) {
-                    attribute.default = this.defaultValueProviderFromType(attribute.type);
-                }
+            if (attribute.default === undefined && attribute.type === undefined) {
+                throw new Error(
+                    `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
+                    + attributeName
+                )
             }
             if (attribute.default === null) {
                 attribute.nullable = true;
@@ -1420,6 +1399,7 @@ class FormatTextEntity extends IEntity {
     static attributes = {
         value: {
             type: [new UnionType(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
+            default: [],
         },
     }
 
@@ -1514,6 +1494,10 @@ class ObjectReferenceEntity extends IEntity {
         /** @type {String} */ this.path;
     }
 
+    static createNoneInstance() {
+        return new ObjectReferenceEntity({ type: "None", path: "" })
+    }
+
     sanitize() {
         if (this.type && !this.type.startsWith("/")) {
             let deprecatedType = this.type + "_Deprecated";
@@ -1538,15 +1522,12 @@ class FunctionReferenceEntity extends IEntity {
     static attributes = {
         MemberParent: {
             type: ObjectReferenceEntity,
-            showDefault: false
         },
         MemberName: {
             type: String,
-            showDefault: false,
         },
         MemberGuid: {
             type: GuidEntity,
-            showDefault: false,
         },
     }
 
@@ -1691,14 +1672,17 @@ class LinearColorEntity extends IEntity {
     static attributes = {
         R: {
             type: RealUnitEntity,
+            default: () => new RealUnitEntity(),
             expected: true,
         },
         G: {
             type: RealUnitEntity,
+            default: () => new RealUnitEntity(),
             expected: true,
         },
         B: {
             type: RealUnitEntity,
+            default: () => new RealUnitEntity(),
             expected: true,
         },
         A: {
@@ -1707,17 +1691,17 @@ class LinearColorEntity extends IEntity {
         },
         H: {
             type: RealUnitEntity,
-            showDefault: true,
+            default: () => new RealUnitEntity(),
             ignored: true,
         },
         S: {
             type: RealUnitEntity,
-            showDefault: true,
+            default: () => new RealUnitEntity(),
             ignored: true,
         },
         V: {
             type: RealUnitEntity,
-            showDefault: true,
+            default: () => new RealUnitEntity(),
             ignored: true,
         },
     }
@@ -1933,12 +1917,15 @@ class MacroGraphReferenceEntity extends IEntity {
     static attributes = {
         MacroGraph: {
             type: ObjectReferenceEntity,
+            default: () => new ObjectReferenceEntity(),
         },
         GraphBlueprint: {
             type: ObjectReferenceEntity,
+            default: () => new ObjectReferenceEntity(),
         },
         GraphGuid: {
             type: GuidEntity,
+            default: () => new GuidEntity(),
         },
     }
 
@@ -2026,6 +2013,7 @@ class PinTypeEntity extends IEntity {
         },
         PinSubCategoryObject: {
             type: ObjectReferenceEntity,
+            default: () => ObjectReferenceEntity.createNoneInstance(),
         },
         PinSubCategoryMemberReference: {
             type: FunctionReferenceEntity,
@@ -2096,12 +2084,15 @@ class RotatorEntity extends IEntity {
     static attributes = {
         R: {
             default: 0,
+            expected: true,
         },
         P: {
             default: 0,
+            expected: true,
         },
         Y: {
             default: 0,
+            expected: true,
         },
     }
 
@@ -2225,37 +2216,33 @@ class PinEntity extends IEntity {
     static attributes = {
         PinId: {
             type: GuidEntity,
+            default: () => new GuidEntity()
         },
         PinName: {
             default: "",
         },
         PinFriendlyName: {
             type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
-            showDefault: false,
         },
         PinToolTip: {
             type: String,
-            showDefault: false,
         },
         Direction: {
             type: String,
-            showDefault: false,
         },
         PinType: {
             type: PinTypeEntity,
+            default: () => new PinTypeEntity(),
             inlined: true,
         },
         LinkedTo: {
             type: [PinReferenceEntity],
-            showDefault: false,
         },
         SubPins: {
             type: [PinReferenceEntity],
-            showDefault: false,
         },
         ParentPin: {
             type: PinReferenceEntity,
-            showDefault: false,
         },
         DefaultValue: {
             type: new ComputedType(
@@ -2263,15 +2250,12 @@ class PinEntity extends IEntity {
                 pinEntity => pinEntity.getEntityType(true) ?? String
             ),
             serialized: true,
-            showDefault: false,
         },
         AutogeneratedDefaultValue: {
             type: String,
-            showDefault: false,
         },
         DefaultObject: {
             type: ObjectReferenceEntity,
-            showDefault: false,
             default: null,
         },
         PersistentGuid: {
@@ -2444,7 +2428,7 @@ class PinEntity extends IEntity {
         });
         if (indexElement >= 0) {
             this.LinkedTo.splice(indexElement, 1);
-            if (this.LinkedTo.length === 0 && !PinEntity.attributes.LinkedTo.showDefault) {
+            if (this.LinkedTo.length === 0 && !PinEntity.attributes.LinkedTo.default) {
                 this.LinkedTo = undefined;
             }
             return true
@@ -2827,8 +2811,7 @@ class VariableReferenceEntity extends IEntity {
 
     static attributes = {
         MemberScope: {
-            default: "",
-            showDefault: false,
+            type: String,
         },
         MemberName: {
             default: "",
@@ -2837,8 +2820,7 @@ class VariableReferenceEntity extends IEntity {
             type: GuidEntity,
         },
         bSelfContext: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
     }
 
@@ -2865,230 +2847,163 @@ class ObjectEntity extends IEntity {
         },
         AxisKey: {
             type: SymbolEntity,
-            showDefault: false,
         },
         InputAxisKey: {
             type: SymbolEntity,
-            showDefault: false,
         },
         bIsPureFunc: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
         bIsConstFunc: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
         VariableReference: {
             type: VariableReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         SelfContextInfo: {
             type: SymbolEntity,
-            default: null,
-            showDefault: false,
         },
         DelegatePropertyName: {
             type: String,
-            showDefault: false,
         },
         DelegateOwnerClass: {
             type: ObjectReferenceEntity,
-            showDefault: false,
         },
         ComponentPropertyName: {
             type: String,
-            showDefault: false,
         },
         EventReference: {
             type: FunctionReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         FunctionReference: {
             type: FunctionReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         CustomFunctionName: {
             type: String,
-            showDefault: false,
         },
         TargetType: {
             type: ObjectReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         MacroGraphReference: {
             type: MacroGraphReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         Enum: {
             type: ObjectReferenceEntity,
-            showDefault: false,
         },
         EnumEntries: {
             type: [String],
-            showDefault: false,
             inlined: true,
         },
         InputKey: {
             type: SymbolEntity,
-            showDefault: false,
         },
         bOverrideFunction: {
             type: Boolean,
-            showDefault: false,
         },
         bInternalEvent: {
             type: Boolean,
-            showDefault: false,
         },
         bConsumeInput: {
             type: Boolean,
-            showDefault: false,
         },
         bExecuteWhenPaused: {
             type: Boolean,
-            showDefault: false,
         },
         bOverrideParentBinding: {
             type: Boolean,
-            showDefault: false,
         },
         bControl: {
             type: Boolean,
-            showDefault: false,
         },
         bAlt: {
             type: Boolean,
-            showDefault: false,
         },
         bShift: {
             type: Boolean,
-            showDefault: false,
         },
         bCommand: {
             type: Boolean,
-            showDefault: false,
         },
         CommentColor: {
             type: LinearColorEntity,
-            showDefault: false,
         },
         bCommentBubbleVisible_InDetailsPanel: {
             type: Boolean,
-            showDefault: false,
         },
         bColorCommentBubble: {
             type: Boolean,
-            default: false,
-            showDefault: false,
         },
         R: {
             type: Number,
-            showDefault: false,
         },
         G: {
             type: Number,
-            showDefault: false,
         },
         MaterialExpression: {
             type: ObjectReferenceEntity,
-            showDefault: false,
         },
         MoveMode: {
             type: SymbolEntity,
-            showDefault: false,
         },
         TimelineName: {
             type: String,
-            showDefault: false,
         },
         TimelineGuid: {
             type: GuidEntity,
-            showDefault: false,
         },
         SizeX: {
             type: new MirroredEntity(ObjectEntity, "NodeWidth"),
-            showDefault: false,
         },
         SizeY: {
             type: new MirroredEntity(ObjectEntity, "NodeHeight"),
-            showDefault: false,
         },
         Text: {
             type: new MirroredEntity(ObjectEntity, "NodeComment"),
-            showDefault: false,
         },
         MaterialExpressionEditorX: {
             type: new MirroredEntity(ObjectEntity, "NodePosX"),
-            showDefault: false,
         },
         MaterialExpressionEditorY: {
             type: new MirroredEntity(ObjectEntity, "NodePosY"),
-            showDefault: false,
         },
         NodePosX: {
             type: IntegerEntity,
-            showDefault: false,
         },
         NodePosY: {
             type: IntegerEntity,
-            showDefault: false,
         },
         NodeWidth: {
             type: IntegerEntity,
-            showDefault: false,
         },
         NodeHeight: {
             type: IntegerEntity,
-            showDefault: false,
         },
         bCanRenameNode: {
             type: Boolean,
-            showDefault: false,
         },
         bCommentBubblePinned: {
             type: Boolean,
-            showDefault: false,
         },
         bCommentBubbleVisible: {
             type: Boolean,
-            showDefault: false,
-        },
-        Text: {
-            type: String,
-            showDefault: false,
         },
         NodeComment: {
             type: String,
-            showDefault: false,
         },
         AdvancedPinDisplay: {
             type: IdentifierEntity,
-            default: null,
-            showDefault: false,
         },
         EnabledState: {
             type: IdentifierEntity,
-            default: null,
-            showDefault: false,
         },
         NodeGuid: {
             type: GuidEntity,
-            showDefault: false,
         },
         ErrorType: {
             type: IntegerEntity,
-            showDefault: false,
         },
         ErrorMsg: {
             type: String,
-            default: "",
-            showDefault: false,
         },
         CustomProperties: {
             type: [new UnionType(PinEntity, UnknownPinEntity)],
@@ -3260,7 +3175,7 @@ class ObjectEntity extends IEntity {
     }
 
     getClass() {
-        return this.Class.path ? this.Class.path : this.Class.type
+        return this.Class?.path ? this.Class.path : this.Class?.type ?? ""
     }
 
     getType() {
@@ -3690,24 +3605,19 @@ class TerminalTypeEntity extends IEntity {
 
     static attributes = {
         TerminalCategory: {
-            default: "",
-            showDefault: false,
+            type: String,
         },
         TerminalSubCategory: {
-            default: "",
-            showDefault: false,
+            type: String,
         },
         bTerminalIsConst: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
         bTerminalIsWeakPointer: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
         bTerminalIsUObjectWrapper: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
     }
 
@@ -3730,7 +3640,6 @@ class UnknownKeysEntity extends IEntity {
     static attributes = {
         lookbehind: {
             default: "",
-            showDefault: true,
             ignored: true,
         },
     }
@@ -3883,6 +3792,7 @@ class Grammar {
                 );
         } else if (type instanceof MirroredEntity) {
             return this.grammarFor(type.type.attributes[type.key])
+                .map(() => new MirroredEntity(type.type, type.key, type.getter))
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type);
         } else {
@@ -4162,9 +4072,7 @@ class Grammar {
     static naturalNumberEntity = P.lazy(() => this.naturalNumber.map(v => new NaturalNumberEntity(v)))
 
     static noneReferenceEntity = P.lazy(() =>
-        P.string("None").map(() =>
-            new ObjectReferenceEntity({ type: "None", path: "" })
-        )
+        P.string("None").map(() => ObjectReferenceEntity.createNoneInstance())
     )
 
     static typeReferenceEntity = P.lazy(() =>
@@ -4652,12 +4560,12 @@ class Serializer {
     showProperty(entity, key) {
         const attributes = /** @type {EntityConstructor} */(this.entityType).attributes;
         const attribute = attributes[key];
-        const value = entity[key];
+        entity[key];
         if (attribute?.constructor === Object) {
             if (attribute.ignored) {
                 return false
             }
-            return !Utility.equals(attribute.default, value) || attribute.showDefault
+            return attribute.default !== undefined
         }
         return true
     }
@@ -4735,7 +4643,7 @@ class ObjectSerializer extends Serializer {
             )
         }
         let result = indentation + "Begin Object"
-            + (entity.Class.type || entity.Class.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
+            + (entity.Class?.type || entity.Class?.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
             + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
             + "\n"
             + super.doWrite(
@@ -6277,13 +6185,12 @@ class IFromToPositionedTemplate extends ITemplate {
 class KnotEntity extends ObjectEntity {
 
     /**
-     * @param {Object} options
+     * @param {Object} values
      * @param {PinEntity} pinReferenceForType
      */
-    constructor(options = {}, pinReferenceForType = undefined) {
-        super(options, true);
-        this.Class = new ObjectReferenceEntity(Configuration.paths.knot);
-        this.Name = "K2Node_Knot";
+    constructor(values = {}, pinReferenceForType = undefined) {
+        values.Class = new ObjectReferenceEntity(Configuration.paths.knot);
+        values.Name = "K2Node_Knot";
         const inputPinEntity = new PinEntity(
             {
                 PinName: "InputPin",
@@ -6301,7 +6208,8 @@ class KnotEntity extends ObjectEntity {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
-        this.CustomProperties = [inputPinEntity, outputPinEntity];
+        values.CustomProperties = [inputPinEntity, outputPinEntity];
+        super(values, true);
     }
 }
 
