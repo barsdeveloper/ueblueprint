@@ -9,6 +9,7 @@ export default class FormatTextEntity extends IEntity {
     static attributes = {
         value: {
             type: [new UnionType(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
+            default: [],
         },
     }
 

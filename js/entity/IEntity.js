@@ -18,7 +18,6 @@ import Utility from "../Utility.js"
  * @typedef {{
  *     type?: AttributeType,
  *     default?: AnyValue | ValueSupplier,
- *     showDefault?: Boolean,
  *     nullable?: Boolean,
  *     ignored?: Boolean,
  *     serialized?: Boolean,
@@ -48,7 +47,6 @@ export default class IEntity {
     /** @type {AttributeDeclarations} */
     static attributes = {}
     static defaultAttribute = {
-        showDefault: true,
         nullable: false,
         ignored: false,
         serialized: false,
@@ -66,7 +64,7 @@ export default class IEntity {
                     attributes[k] = {
                         ...IEntity.defaultAttribute,
                         ...attributes[k],
-                        ...values.attributes[k]
+                        ...values.attributes[k],
                     }
                     if (!attributes[k].type) {
                         attributes[k].type = values[k] instanceof Array
@@ -78,7 +76,7 @@ export default class IEntity {
         }
         /** @type {AttributeDeclarations?} */ this.attributes
         if (values.constructor !== Object && Object.keys(attributes).length === 1) {
-            // Where there is just one attribute, option can be the value of that attribute
+            // If values is not an object but the only value this entity can have
             values = {
                 [Object.keys(attributes)[0]]: values
             }
@@ -86,7 +84,7 @@ export default class IEntity {
         const valuesNames = Object.keys(values)
         const attributesNames = Object.keys(attributes)
         const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames)
-        for (let attributeName of allAttributesNames) {
+        for (const attributeName of allAttributesNames) {
             let value = values[attributeName]
             let attribute = attributes[attributeName]
 
@@ -101,26 +99,12 @@ export default class IEntity {
             }
 
             if (!attribute) {
-                // Remember attributeName can come from the values and be not defined in the attributes
-                // In that case just assign it and skip the rest
+                // Remember attributeName can come from the values and be not defined in the attributes.
+                // In that case just assign it and skip the rest.
                 this[attributeName] = value
                 continue
             }
 
-            let defaultValue = attribute.default
-            let defaultType = attribute.type
-            if (defaultType instanceof ComputedType) {
-                defaultType = defaultType.compute(this)
-            }
-            if (defaultType instanceof Array) {
-                defaultType = Array
-            }
-            if (defaultValue instanceof Function) {
-                defaultValue = defaultValue(this)
-            }
-            if (defaultType === undefined) {
-                defaultType = Utility.getType(defaultValue)
-            }
             const assignAttribute = !attribute.predicate
                 ? v => this[attributeName] = v
                 : v => {
@@ -149,6 +133,21 @@ export default class IEntity {
                     this[attributeName] = v
                 }
 
+            let defaultValue = attribute.default
+            if (defaultValue instanceof Function) {
+                defaultValue = defaultValue(this)
+            }
+            let defaultType = attribute.type
+            if (defaultType instanceof ComputedType) {
+                defaultType = defaultType.compute(this)
+            }
+            if (defaultType instanceof Array) {
+                defaultType = Array
+            }
+            if (defaultType === undefined) {
+                defaultType = Utility.getType(defaultValue)
+            }
+
             if (value !== undefined) {
                 // Remember value can still be null
                 if (value?.constructor === String && attribute.serialized && defaultType !== String) {
@@ -157,43 +156,15 @@ export default class IEntity {
                         .getSerializer(defaultType)
                         .read(/** @type {String} */(value))
                 }
-                if (defaultType instanceof MirroredEntity && !(value instanceof MirroredEntity)) {
-                    value = undefined // Value is discarded as it is mirrored from another one
-                    value = new MirroredEntity(defaultType.type, defaultType.key)
-                    this[attributeName] = value
-                } else {
-                    assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
-                }
+                assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
                 continue // We have a value, need nothing more
             }
-            if (defaultType instanceof UnionType) {
-                if (defaultValue != undefined) {
-                    defaultType = defaultType.types.find(
-                        type => defaultValue instanceof type || defaultValue.constructor == type
-                    ) ?? defaultType.getFirstType()
-                } else {
-                    defaultType = defaultType.getFirstType()
-                }
+            if (defaultValue !== undefined) {
+                assignAttribute(Utility.sanitize(
+                    /** @type {AnyValue} */(defaultValue),
+                    /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
+                ))
             }
-            if (!attribute.showDefault) {
-                assignAttribute(undefined) // Declare undefined to preserve the order of attributes
-                continue
-            }
-            // if (defaultValue === undefined) {
-            //     defaultValue = Utility.sanitize(new /** @type {AnyValueConstructor<*>} */(defaultType)())
-            // }
-            if (attribute.serialized) {
-                if (defaultType !== String && defaultValue.constructor === String) {
-                    defaultValue = SerializerFactory
-                        // @ts-expect-error
-                        .getSerializer(defaultType)
-                        .read(defaultValue)
-                }
-            }
-            assignAttribute(Utility.sanitize(
-                /** @type {AnyValue} */(defaultValue),
-                /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
-            ))
         }
     }
 
@@ -233,16 +204,11 @@ export default class IEntity {
                     ? [Utility.getType(attribute.default[0])]
                     : Utility.getType(attribute.default)
             }
-            if (attribute.default === undefined) {
-                if (attribute.type === undefined) {
-                    throw new Error(
-                        `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
-                        + attributeName
-                    )
-                }
-                if (attribute.showDefault) {
-                    attribute.default = this.defaultValueProviderFromType(attribute.type)
-                }
+            if (attribute.default === undefined && attribute.type === undefined) {
+                throw new Error(
+                    `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
+                    + attributeName
+                )
             }
             if (attribute.default === null) {
                 attribute.nullable = true

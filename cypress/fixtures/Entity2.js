@@ -27,6 +27,7 @@ export default class Entity2 extends IEntity {
         },
         someEntity: {
             type: Entity1,
+            default: new Entity1()
         },
     }
 

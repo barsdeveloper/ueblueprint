@@ -175,6 +175,7 @@ export default class Grammar {
                 )
         } else if (type instanceof MirroredEntity) {
             return this.grammarFor(type.type.attributes[type.key])
+                .map(() => new MirroredEntity(type.type, type.key, type.getter))
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type)
         } else {
@@ -454,9 +455,7 @@ export default class Grammar {
     static naturalNumberEntity = P.lazy(() => this.naturalNumber.map(v => new NaturalNumberEntity(v)))
 
     static noneReferenceEntity = P.lazy(() =>
-        P.string("None").map(() =>
-            new ObjectReferenceEntity({ type: "None", path: "" })
-        )
+        P.string("None").map(() => ObjectReferenceEntity.createNoneInstance())
     )
 
     static typeReferenceEntity = P.lazy(() =>

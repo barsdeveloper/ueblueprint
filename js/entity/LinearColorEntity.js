@@ -7,14 +7,17 @@ export default class LinearColorEntity extends IEntity {
     static attributes = {
         R: {
             type: RealUnitEntity,
+            default: () => new RealUnitEntity(),
             expected: true,
         },
         G: {
             type: RealUnitEntity,
+            default: () => new RealUnitEntity(),
             expected: true,
         },
         B: {
             type: RealUnitEntity,
+            default: () => new RealUnitEntity(),
             expected: true,
         },
         A: {
@@ -23,17 +26,17 @@ export default class LinearColorEntity extends IEntity {
         },
         H: {
             type: RealUnitEntity,
-            showDefault: true,
+            default: () => new RealUnitEntity(),
             ignored: true,
         },
         S: {
             type: RealUnitEntity,
-            showDefault: true,
+            default: () => new RealUnitEntity(),
             ignored: true,
         },
         V: {
             type: RealUnitEntity,
-            showDefault: true,
+            default: () => new RealUnitEntity(),
             ignored: true,
         },
     }

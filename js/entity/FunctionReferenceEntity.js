@@ -7,15 +7,12 @@ export default class FunctionReferenceEntity extends IEntity {
     static attributes = {
         MemberParent: {
             type: ObjectReferenceEntity,
-            showDefault: false
         },
         MemberName: {
             type: String,
-            showDefault: false,
         },
         MemberGuid: {
             type: GuidEntity,
-            showDefault: false,
         },
     }
 

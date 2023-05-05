@@ -7,6 +7,7 @@ export default class Entity4 extends IEntity {
     static attributes = {
         first: {
             type: Entity3,
+            default: new Entity3(),
             inlined: true,
         },
         second: {

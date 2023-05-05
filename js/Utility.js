@@ -240,6 +240,12 @@ export default class Utility {
             }
             targetType = type
         }
+        if (targetType instanceof MirroredEntity) {
+            if (value instanceof MirroredEntity) {
+                return value
+            }
+            return Utility.sanitize(value, targetType.getTargetType())
+        }
         if (targetType && !Utility.isValueOfType(value, targetType, true)) {
             value = targetType === BigInt
                 ? BigInt(value)

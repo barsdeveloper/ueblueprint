@@ -28,7 +28,7 @@ export default class Entity3 extends IEntity {
             default: false,
         },
         golf: {
-            type: Array,
+            default: [],
         },
         hotel: {
             type: Array,
@@ -36,6 +36,7 @@ export default class Entity3 extends IEntity {
         },
         india: {
             type: [Number],
+            default: () => [],
         },
         juliett: {
             type: [String],
@@ -47,8 +48,6 @@ export default class Entity3 extends IEntity {
         },
         lima: {
             type: String,
-            default: "Foo",
-            showDefault: false,
         },
         mike: {
             type: new UnionType(Number, String, Array),
@@ -56,11 +55,14 @@ export default class Entity3 extends IEntity {
         },
         november: {
             type: new UnionType(Number, String, Array),
+            default: 0,
         },
         oscar: {
             type: Entity1,
+            default: () => new Entity1()
         },
         papa: {
+            type: Entity1,
             default: () => new Entity1({ a: 12, b: 13 }),
         },
         quebec: {
@@ -69,10 +71,12 @@ export default class Entity3 extends IEntity {
         },
         romeo: {
             type: Entity1,
+            default: new Entity1(),
             inlined: true,
         },
         sierra: {
             type: Entity2,
+            default: new Entity2(),
             inlined: true,
         }
     }

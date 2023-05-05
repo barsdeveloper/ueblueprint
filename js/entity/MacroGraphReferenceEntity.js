@@ -7,12 +7,15 @@ export default class MacroGraphReferenceEntity extends IEntity {
     static attributes = {
         MacroGraph: {
             type: ObjectReferenceEntity,
+            default: () => new ObjectReferenceEntity(),
         },
         GraphBlueprint: {
             type: ObjectReferenceEntity,
+            default: () => new ObjectReferenceEntity(),
         },
         GraphGuid: {
             type: GuidEntity,
+            default: () => new GuidEntity(),
         },
     }
 

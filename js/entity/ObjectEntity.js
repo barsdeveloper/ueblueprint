@@ -27,230 +27,163 @@ export default class ObjectEntity extends IEntity {
         },
         AxisKey: {
             type: SymbolEntity,
-            showDefault: false,
         },
         InputAxisKey: {
             type: SymbolEntity,
-            showDefault: false,
         },
         bIsPureFunc: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
         bIsConstFunc: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
         VariableReference: {
             type: VariableReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         SelfContextInfo: {
             type: SymbolEntity,
-            default: null,
-            showDefault: false,
         },
         DelegatePropertyName: {
             type: String,
-            showDefault: false,
         },
         DelegateOwnerClass: {
             type: ObjectReferenceEntity,
-            showDefault: false,
         },
         ComponentPropertyName: {
             type: String,
-            showDefault: false,
         },
         EventReference: {
             type: FunctionReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         FunctionReference: {
             type: FunctionReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         CustomFunctionName: {
             type: String,
-            showDefault: false,
         },
         TargetType: {
             type: ObjectReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         MacroGraphReference: {
             type: MacroGraphReferenceEntity,
-            default: null,
-            showDefault: false,
         },
         Enum: {
             type: ObjectReferenceEntity,
-            showDefault: false,
         },
         EnumEntries: {
             type: [String],
-            showDefault: false,
             inlined: true,
         },
         InputKey: {
             type: SymbolEntity,
-            showDefault: false,
         },
         bOverrideFunction: {
             type: Boolean,
-            showDefault: false,
         },
         bInternalEvent: {
             type: Boolean,
-            showDefault: false,
         },
         bConsumeInput: {
             type: Boolean,
-            showDefault: false,
         },
         bExecuteWhenPaused: {
             type: Boolean,
-            showDefault: false,
         },
         bOverrideParentBinding: {
             type: Boolean,
-            showDefault: false,
         },
         bControl: {
             type: Boolean,
-            showDefault: false,
         },
         bAlt: {
             type: Boolean,
-            showDefault: false,
         },
         bShift: {
             type: Boolean,
-            showDefault: false,
         },
         bCommand: {
             type: Boolean,
-            showDefault: false,
         },
         CommentColor: {
             type: LinearColorEntity,
-            showDefault: false,
         },
         bCommentBubbleVisible_InDetailsPanel: {
             type: Boolean,
-            showDefault: false,
         },
         bColorCommentBubble: {
             type: Boolean,
-            default: false,
-            showDefault: false,
         },
         R: {
             type: Number,
-            showDefault: false,
         },
         G: {
             type: Number,
-            showDefault: false,
         },
         MaterialExpression: {
             type: ObjectReferenceEntity,
-            showDefault: false,
         },
         MoveMode: {
             type: SymbolEntity,
-            showDefault: false,
         },
         TimelineName: {
             type: String,
-            showDefault: false,
         },
         TimelineGuid: {
             type: GuidEntity,
-            showDefault: false,
         },
         SizeX: {
             type: new MirroredEntity(ObjectEntity, "NodeWidth"),
-            showDefault: false,
         },
         SizeY: {
             type: new MirroredEntity(ObjectEntity, "NodeHeight"),
-            showDefault: false,
         },
         Text: {
             type: new MirroredEntity(ObjectEntity, "NodeComment"),
-            showDefault: false,
         },
         MaterialExpressionEditorX: {
             type: new MirroredEntity(ObjectEntity, "NodePosX"),
-            showDefault: false,
         },
         MaterialExpressionEditorY: {
             type: new MirroredEntity(ObjectEntity, "NodePosY"),
-            showDefault: false,
         },
         NodePosX: {
             type: IntegerEntity,
-            showDefault: false,
         },
         NodePosY: {
             type: IntegerEntity,
-            showDefault: false,
         },
         NodeWidth: {
             type: IntegerEntity,
-            showDefault: false,
         },
         NodeHeight: {
             type: IntegerEntity,
-            showDefault: false,
         },
         bCanRenameNode: {
             type: Boolean,
-            showDefault: false,
         },
         bCommentBubblePinned: {
             type: Boolean,
-            showDefault: false,
         },
         bCommentBubbleVisible: {
             type: Boolean,
-            showDefault: false,
-        },
-        Text: {
-            type: String,
-            showDefault: false,
         },
         NodeComment: {
             type: String,
-            showDefault: false,
         },
         AdvancedPinDisplay: {
             type: IdentifierEntity,
-            default: null,
-            showDefault: false,
         },
         EnabledState: {
             type: IdentifierEntity,
-            default: null,
-            showDefault: false,
         },
         NodeGuid: {
             type: GuidEntity,
-            showDefault: false,
         },
         ErrorType: {
             type: IntegerEntity,
-            showDefault: false,
         },
         ErrorMsg: {
             type: String,
-            default: "",
-            showDefault: false,
         },
         CustomProperties: {
             type: [new UnionType(PinEntity, UnknownPinEntity)],
@@ -422,7 +355,7 @@ export default class ObjectEntity extends IEntity {
     }
 
     getClass() {
-        return this.Class.path ? this.Class.path : this.Class.type
+        return this.Class?.path ? this.Class.path : this.Class?.type ?? ""
     }
 
     getType() {

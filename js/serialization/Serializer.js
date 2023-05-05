@@ -82,10 +82,7 @@ export default class Serializer {
     ) {
         let result = ""
         const attributes = IEntity.getAttributes(entity)
-        const keys = Utility.mergeArrays(
-            Object.keys(attributes),
-            Object.keys(entity)
-        )
+        const keys = Object.keys(entity)
         let first = true
         for (const key of keys) {
             const value = entity[key]
@@ -147,14 +144,9 @@ export default class Serializer {
     }
 
     showProperty(entity, key) {
-        const attributes = /** @type {EntityConstructor} */(this.entityType).attributes
-        const attribute = attributes[key]
-        const value = entity[key]
-        if (attribute?.constructor === Object) {
-            if (attribute.ignored) {
-                return false
-            }
-            return !Utility.equals(attribute.default, value) || attribute.showDefault
+        const attribute = /** @type {EntityConstructor} */(this.entityType).attributes[key]
+        if (attribute?.constructor === Object && attribute.ignored) {
+            return false
         }
         return true
     }

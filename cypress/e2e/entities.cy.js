@@ -132,7 +132,7 @@ describe("Entity initialization", () => {
             "india",
             "juliett",
             "kilo",
-            "lima",
+            // "lima", // Not defined by default
             "mike",
             "november",
             "oscar",
@@ -219,10 +219,6 @@ describe("Entity initialization", () => {
             .to.have.property("kilo")
             .which.is.an("array")
             .and.is.deep.equal([true, false, false, true, true])
-        )
-        it("has lima undefined", () => expect(entity)
-            .to.have.property("lima")
-            .which.is.undefined
         )
         it("has mike equal to Foo", () => expect(entity)
             .to.have.property("mike")

@@ -6,13 +6,12 @@ import PinEntity from "../PinEntity.js"
 export default class KnotEntity extends ObjectEntity {
 
     /**
-     * @param {Object} options
+     * @param {Object} values
      * @param {PinEntity} pinReferenceForType
      */
-    constructor(options = {}, pinReferenceForType = undefined) {
-        super(options, true)
-        this.Class = new ObjectReferenceEntity(Configuration.paths.knot)
-        this.Name = "K2Node_Knot"
+    constructor(values = {}, pinReferenceForType = undefined) {
+        values.Class = new ObjectReferenceEntity(Configuration.paths.knot)
+        values.Name = "K2Node_Knot"
         const inputPinEntity = new PinEntity(
             {
                 PinName: "InputPin",
@@ -30,6 +29,7 @@ export default class KnotEntity extends ObjectEntity {
             inputPinEntity.copyTypeFrom(pinReferenceForType)
             outputPinEntity.copyTypeFrom(pinReferenceForType)
         }
-        this.CustomProperties = [inputPinEntity, outputPinEntity]
+        values.CustomProperties = [inputPinEntity, outputPinEntity]
+        super(values, true)
     }
 }

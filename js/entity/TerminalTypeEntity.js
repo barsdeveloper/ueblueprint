@@ -4,24 +4,19 @@ export default class TerminalTypeEntity extends IEntity {
 
     static attributes = {
         TerminalCategory: {
-            default: "",
-            showDefault: false,
+            type: String,
         },
         TerminalSubCategory: {
-            default: "",
-            showDefault: false,
+            type: String,
         },
         bTerminalIsConst: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
         bTerminalIsWeakPointer: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
         bTerminalIsUObjectWrapper: {
-            default: false,
-            showDefault: false,
+            type: Boolean,
         },
     }
 
