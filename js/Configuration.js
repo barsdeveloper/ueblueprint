@@ -213,7 +213,7 @@ export default class Configuration {
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class?.path ? `_${objectEntity.Class.path}` : "")
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class ? `_${objectEntity.Class}` : "")
         + `_${objectEntity.Name}`
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>

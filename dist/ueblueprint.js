@@ -237,7 +237,7 @@ class Configuration {
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class?.path ? `_${objectEntity.Class.path}` : "")
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class ? `_${objectEntity.Class}` : "")
         + `_${objectEntity.Name}`
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
@@ -1605,6 +1605,10 @@ class ObjectReferenceEntity extends IEntity {
 
     getName() {
         return Utility.getNameFromPath(this.path)
+    }
+
+    toString() {
+        return `${this.type}'"${this.path}"'`
     }
 }
 
@@ -4220,8 +4224,8 @@ class Grammar {
         P.alt(
             this.noneReferenceEntity,
             this.fullReferenceEntity,
-            this.pathReferenceEntity,
             this.typeReferenceEntity,
+            this.pathReferenceEntity,
         )
     )
 
@@ -7831,7 +7835,7 @@ class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
-        switch (this.element.entity.PinType.ContainerType.toString()) {
+        switch (this.element.entity.PinType.ContainerType?.toString()) {
             case "Array": return SVGIcon.array
             case "Set": return SVGIcon.set
             case "Map": return SVGIcon.map

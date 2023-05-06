@@ -76,7 +76,7 @@ export default class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
-        switch (this.element.entity.PinType.ContainerType.toString()) {
+        switch (this.element.entity.PinType.ContainerType?.toString()) {
             case "Array": return SVGIcon.array
             case "Set": return SVGIcon.set
             case "Map": return SVGIcon.map

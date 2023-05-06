@@ -492,8 +492,8 @@ export default class Grammar {
         P.alt(
             this.noneReferenceEntity,
             this.fullReferenceEntity,
-            this.pathReferenceEntity,
             this.typeReferenceEntity,
+            this.pathReferenceEntity,
         )
     )
 

@@ -67,7 +67,7 @@ const tests = [
                 const pinObjects = Object.keys(entity)
                     .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
                     .map(k => /** @type {import("../../js/entity/ObjectEntity.js").default} */(entity[k]))
-                    .filter(v => v.getType())
+                    .filter(v => v.Class)
                 expect(pinObjects).to.be.of.length(4)
                 pinObjects.forEach(v => expect(v.getType()).to.be.equal(Configuration.paths.edGraphPinDeprecated))
                 expect(entity.getPinEntities()).to.be.of.length(4)

@@ -49,4 +49,8 @@ export default class ObjectReferenceEntity extends IEntity {
     getName() {
         return Utility.getNameFromPath(this.path)
     }
+
+    toString() {
+        return `${this.type}'"${this.path}"'`
+    }
 }
