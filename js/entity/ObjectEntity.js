@@ -27,6 +27,9 @@ export default class ObjectEntity extends IEntity {
         Name: {
             default: "",
         },
+        ExportPath: {
+            type: ObjectReferenceEntity,
+        },
         AxisKey: {
             type: SymbolEntity,
         },
@@ -270,6 +273,7 @@ export default class ObjectEntity extends IEntity {
         super(values, suppressWarns)
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
+        /** @type {ObjectReferenceEntity} */ this.ExportPath
         /** @type {SymbolEntity?} */ this.AxisKey
         /** @type {SymbolEntity?} */ this.InputAxisKey
         /** @type {Boolean?} */ this.bIsPureFunc

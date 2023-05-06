@@ -123,11 +123,14 @@ class Configuration {
         edGraph: "/Script/Engine.EdGraph",
         edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
+        eMaterialSamplerType: "/Script/Engine.EMaterialSamplerType",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
+        eSamplerSourceMode: "/Script/Engine.ESamplerSourceMode",
         eSearchCase: "/Script/CoreUObject.ESearchCase",
         eSearchDir: "/Script/CoreUObject.ESearchDir",
         eSpawnActorCollisionHandlingMethod: "/Script/Engine.ESpawnActorCollisionHandlingMethod",
+        eTextureMipValueMode: "/Script/Engine.ETextureMipValueMode",
         eTraceTypeQuery: "/Script/Engine.ETraceTypeQuery",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
@@ -234,7 +237,7 @@ class Configuration {
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class?.type ? `_${objectEntity.Class.type}` : "")
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class?.path ? `_${objectEntity.Class.path}` : "")
         + `_${objectEntity.Name}`
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
@@ -250,6 +253,26 @@ class Configuration {
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static CommonEnums = {
+        [this.paths.eMaterialSamplerType]: [
+            "Color",
+            "Grayscale",
+            "Alpha",
+            "Normal",
+            "Masks",
+            "Distance Field Font",
+            "Linear Color",
+            "Linear Grayscale",
+            "Data",
+            "External",
+            "Virtual Color",
+            "Virtual Grayscale",
+            "Virtual Alpha",
+            "Virtual Normal",
+            "Virtual Mask",
+            "Virtual Linear Color",
+            "Virtual Linear Grayscal",
+        ],
+        [this.paths.eSamplerSourceMode]: ["From texture asset", "Shared: Wrap", "Shared: Clamp", "Hidden"],
         [this.paths.eSpawnActorCollisionHandlingMethod]: [
             ["Undefined", "Default"],
             ["AlwaysSpawn", "Always Spawn, Ignore Collisions"],
@@ -260,6 +283,12 @@ class Configuration {
         [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
         [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
         [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
+        [this.paths.eTextureMipValueMode]: [
+            "None (use computed mip level)",
+            "MipLevel (absolute, 0 is full resolution)",
+            "MipBias (relative to the computed mip level)",
+            "Derivative (explicit derivative to compute mip level)",
+        ],
         [this.paths.eTraceTypeQuery]: [["TraceTypeQuery1", "Visibility"], ["TraceTypeQuery2", "Camera"]]
     }
     static ModifierKeys = [
@@ -2292,7 +2321,6 @@ class PinEntity extends IEntity {
         },
         DefaultObject: {
             type: ObjectReferenceEntity,
-            default: null,
         },
         PersistentGuid: {
             type: GuidEntity,
@@ -2889,6 +2917,9 @@ class ObjectEntity extends IEntity {
         Name: {
             default: "",
         },
+        ExportPath: {
+            type: ObjectReferenceEntity,
+        },
         AxisKey: {
             type: SymbolEntity,
         },
@@ -3132,6 +3163,7 @@ class ObjectEntity extends IEntity {
         super(values, suppressWarns);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
+        /** @type {ObjectReferenceEntity} */ this.ExportPath;
         /** @type {SymbolEntity?} */ this.AxisKey;
         /** @type {SymbolEntity?} */ this.InputAxisKey;
         /** @type {Boolean?} */ this.bIsPureFunc;
@@ -4661,6 +4693,7 @@ class ObjectSerializer extends Serializer {
         switch (key) {
             case "Class":
             case "Name":
+            case "ExportPath":
             case "CustomProperties":
                 // Serielized separately, check doWrite()
                 return false
@@ -4725,6 +4758,7 @@ class ObjectSerializer extends Serializer {
         let result = indentation + "Begin Object"
             + (entity.Class?.type || entity.Class?.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
             + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
+            + (entity.ExportPath?.type || entity.ExportPath?.path ? ` ExportPath=${this.doWriteValue(entity.ExportPath, insideString)}` : "")
             + "\n"
             + super.doWrite(
                 entity,
@@ -9343,7 +9377,7 @@ class IInputPinTemplate extends PinTemplate {
 
     #setInput = () => this.setInputs(this.getInputs(), true)
     /** @param {Event} event */
-    #onInputCheckWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
+    #checkWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
@@ -9360,7 +9394,7 @@ class IInputPinTemplate extends PinTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
-            this.element.addEventListener("input", this.#onInputCheckWrapHandler);
+            this.element.addEventListener("input", this.#checkWrapHandler);
             this.nameWidth = this.blueprint.scaleCorrect(
                 this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
             );
@@ -9378,13 +9412,15 @@ class IInputPinTemplate extends PinTemplate {
             this.element.addEventListener("focusout", this.#setInput);
         }
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
-            this.element.addEventListener("input", this.#onInputCheckWrapHandler);
+            this.element.addEventListener("input", this.#checkWrapHandler);
+            this.element.nodeElement.addEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler);
         }
     }
 
     cleanup() {
         super.cleanup();
-        this.element.removeEventListener("input", this.#onInputCheckWrapHandler);
+        this.element.nodeElement.removeEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler);
+        this.element.removeEventListener("input", this.#checkWrapHandler);
         this.element.removeEventListener("input", this.#setInput);
         this.element.removeEventListener("focusout", this.#setInput);
 

@@ -96,7 +96,6 @@ export default class PinEntity extends IEntity {
         },
         DefaultObject: {
             type: ObjectReferenceEntity,
-            default: null,
         },
         PersistentGuid: {
             type: GuidEntity,

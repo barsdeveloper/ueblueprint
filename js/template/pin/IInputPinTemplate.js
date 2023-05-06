@@ -39,7 +39,7 @@ export default class IInputPinTemplate extends PinTemplate {
 
     #setInput = () => this.setInputs(this.getInputs(), true)
     /** @param {Event} event */
-    #onInputCheckWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
+    #checkWrapHandler = event => this.#updateWrapClass(/** @type {HTMLElement} */(event.target))
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
@@ -56,7 +56,7 @@ export default class IInputPinTemplate extends PinTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
-            this.element.addEventListener("input", this.#onInputCheckWrapHandler)
+            this.element.addEventListener("input", this.#checkWrapHandler)
             this.nameWidth = this.blueprint.scaleCorrect(
                 this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
             )
@@ -74,13 +74,15 @@ export default class IInputPinTemplate extends PinTemplate {
             this.element.addEventListener("focusout", this.#setInput)
         }
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
-            this.element.addEventListener("input", this.#onInputCheckWrapHandler)
+            this.element.addEventListener("input", this.#checkWrapHandler)
+            this.element.nodeElement.addEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler)
         }
     }
 
     cleanup() {
         super.cleanup()
-        this.element.removeEventListener("input", this.#onInputCheckWrapHandler)
+        this.element.nodeElement.removeEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler)
+        this.element.removeEventListener("input", this.#checkWrapHandler)
         this.element.removeEventListener("input", this.#setInput)
         this.element.removeEventListener("focusout", this.#setInput)
 

@@ -99,11 +99,14 @@ export default class Configuration {
         edGraph: "/Script/Engine.EdGraph",
         edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
+        eMaterialSamplerType: "/Script/Engine.EMaterialSamplerType",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
+        eSamplerSourceMode: "/Script/Engine.ESamplerSourceMode",
         eSearchCase: "/Script/CoreUObject.ESearchCase",
         eSearchDir: "/Script/CoreUObject.ESearchDir",
         eSpawnActorCollisionHandlingMethod: "/Script/Engine.ESpawnActorCollisionHandlingMethod",
+        eTextureMipValueMode: "/Script/Engine.ETextureMipValueMode",
         eTraceTypeQuery: "/Script/Engine.ETraceTypeQuery",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
@@ -210,7 +213,7 @@ export default class Configuration {
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class?.type ? `_${objectEntity.Class.type}` : "")
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class?.path ? `_${objectEntity.Class.path}` : "")
         + `_${objectEntity.Name}`
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
@@ -226,6 +229,26 @@ export default class Configuration {
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static CommonEnums = {
+        [this.paths.eMaterialSamplerType]: [
+            "Color",
+            "Grayscale",
+            "Alpha",
+            "Normal",
+            "Masks",
+            "Distance Field Font",
+            "Linear Color",
+            "Linear Grayscale",
+            "Data",
+            "External",
+            "Virtual Color",
+            "Virtual Grayscale",
+            "Virtual Alpha",
+            "Virtual Normal",
+            "Virtual Mask",
+            "Virtual Linear Color",
+            "Virtual Linear Grayscal",
+        ],
+        [this.paths.eSamplerSourceMode]: ["From texture asset", "Shared: Wrap", "Shared: Clamp", "Hidden"],
         [this.paths.eSpawnActorCollisionHandlingMethod]: [
             ["Undefined", "Default"],
             ["AlwaysSpawn", "Always Spawn, Ignore Collisions"],
@@ -236,6 +259,12 @@ export default class Configuration {
         [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
         [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
         [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
+        [this.paths.eTextureMipValueMode]: [
+            "None (use computed mip level)",
+            "MipLevel (absolute, 0 is full resolution)",
+            "MipBias (relative to the computed mip level)",
+            "Derivative (explicit derivative to compute mip level)",
+        ],
         [this.paths.eTraceTypeQuery]: [["TraceTypeQuery1", "Visibility"], ["TraceTypeQuery2", "Camera"]]
     }
     static ModifierKeys = [
