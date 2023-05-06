@@ -160,6 +160,10 @@ class Configuration {
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
         materialExpressionConstant4Vector: "/Script/Engine.MaterialExpressionConstant4Vector",
+        materialExpressionLogarithm: "/Script/InterchangeImport.MaterialExpressionLogarithm",
+        materialExpressionLogarithm10: "/Script/Engine.MaterialExpressionLogarithm10",
+        materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
+        materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
@@ -208,6 +212,7 @@ class Configuration {
         "text": i$3`226, 121, 167`,
         "wildcard": i$3`128, 120, 120`,
     }
+    static pinColorMaterial = i$3`120, 120, 120`
     static pinInputWrapWidth = 147 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
@@ -2516,11 +2521,13 @@ class PinEntity extends IEntity {
 
     /** @return {CSSResult} */
     pinColor() {
-        if (this.PinType.PinCategory === "mask") {
+        if (this.PinType.PinCategory == "mask") {
             const result = Configuration.pinColor[this.PinType.PinSubCategory];
             if (result) {
                 return result
             }
+        } else if (this.PinType.PinCategory == "optional") {
+            return Configuration.pinColorMaterial
         }
         return Configuration.pinColor[this.getType()]
             ?? Configuration.pinColor[this.PinType.PinCategory.toLowerCase()]
@@ -3472,6 +3479,14 @@ class ObjectEntity extends IEntity {
                 if (input.length > 0) {
                     return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
                 }
+            case Configuration.paths.materialExpressionLogarithm:
+                return "Ln"
+            case Configuration.paths.materialExpressionLogarithm10:
+                return "Log10"
+            case Configuration.paths.materialExpressionLogarithm2:
+                return "Log2"
+            case Configuration.paths.materialExpressionSquareRoot:
+                return "Sqrt"
             case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()

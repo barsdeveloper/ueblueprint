@@ -287,11 +287,13 @@ export default class PinEntity extends IEntity {
 
     /** @return {CSSResult} */
     pinColor() {
-        if (this.PinType.PinCategory === "mask") {
+        if (this.PinType.PinCategory == "mask") {
             const result = Configuration.pinColor[this.PinType.PinSubCategory]
             if (result) {
                 return result
             }
+        } else if (this.PinType.PinCategory == "optional") {
+            return Configuration.pinColorMaterial
         }
         return Configuration.pinColor[this.getType()]
             ?? Configuration.pinColor[this.PinType.PinCategory.toLowerCase()]

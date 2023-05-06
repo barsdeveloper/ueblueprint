@@ -136,6 +136,10 @@ export default class Configuration {
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
         materialExpressionConstant4Vector: "/Script/Engine.MaterialExpressionConstant4Vector",
+        materialExpressionLogarithm: "/Script/InterchangeImport.MaterialExpressionLogarithm",
+        materialExpressionLogarithm10: "/Script/Engine.MaterialExpressionLogarithm10",
+        materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
+        materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
@@ -184,6 +188,7 @@ export default class Configuration {
         "text": css`226, 121, 167`,
         "wildcard": css`128, 120, 120`,
     }
+    static pinColorMaterial = css`120, 120, 120`
     static pinInputWrapWidth = 147 // px
     static removeEventName = "ueb-element-delete"
     static scale = {

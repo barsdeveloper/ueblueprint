@@ -578,6 +578,14 @@ export default class ObjectEntity extends IEntity {
                 if (input.length > 0) {
                     return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
                 }
+            case Configuration.paths.materialExpressionLogarithm:
+                return "Ln"
+            case Configuration.paths.materialExpressionLogarithm10:
+                return "Log10"
+            case Configuration.paths.materialExpressionLogarithm2:
+                return "Log2"
+            case Configuration.paths.materialExpressionSquareRoot:
+                return "Sqrt"
             case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()

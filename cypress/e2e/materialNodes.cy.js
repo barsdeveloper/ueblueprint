@@ -218,7 +218,7 @@ const tests = [
         pinName: ["Constant"],
         delegate: false,
         development: false,
-        additionalTest://R=4.000000,G=10.500000,B=2500.669922,A=0.330000
+        additionalTest:
             /** @param {import("../../js/element/NodeElement.js").default} node */
             node => {
                 /** 
@@ -235,6 +235,115 @@ const tests = [
                 expect(Utility.approximatelyEqual(constantPin.getDefaultValue().B, b)).to.be.true
                 expect(Utility.approximatelyEqual(constantPin.getDefaultValue().A, a)).to.be.true
             }
+    },
+    {
+        name: "Sqrt",
+        value: String.raw`
+            Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_24" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_24"'
+                Begin Object Class=/Script/Engine.MaterialExpressionSquareRoot Name="MaterialExpressionSquareRoot_0" ExportPath=/Script/Engine.MaterialExpressionSquareRoot'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_24.MaterialExpressionSquareRoot_0"'
+                End Object
+                Begin Object Name="MaterialExpressionSquareRoot_0" ExportPath=/Script/Engine.MaterialExpressionSquareRoot'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_24.MaterialExpressionSquareRoot_0"'
+                    MaterialExpressionEditorX=-1552
+                    MaterialExpressionEditorY=-416
+                    MaterialExpressionGuid=3F37EEB301AE4B0192673A114358C546
+                    Material=/Script/UnrealEd.PreviewMaterial'"/Engine/Transient.M_CobbleStone_Pebble"'
+                    bCollapsed=False
+                End Object
+                MaterialExpression=/Script/Engine.MaterialExpressionSquareRoot'"MaterialExpressionSquareRoot_0"'
+                NodePosX=-1552
+                NodePosY=-416
+                NodeGuid=5DB895BECADE486CB5F8A40B72C64637
+                CustomProperties Pin (PinId=9BEA4A9DE7DE411EB9590041B6137505,PinName="Input",PinFriendlyName=NSLOCTEXT("MaterialGraphNode", "Space", " "),PinType.PinCategory="required",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=4F7BCB72BB064C5FA9EDFC004EEF3591,PinName="Output",PinFriendlyName=NSLOCTEXT("MaterialGraphNode", "Space", " "),Direction="EGPD_Output",PinType.PinCategory="",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            End Object
+        `,
+        color: Configuration.nodeColors.green,
+        icon: false,
+        pins: 2,
+        pinName: [],
+        delegate: false,
+        development: false,
+    },
+    {
+        name: "Log10",
+        value: String.raw`
+            Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_26" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_26"'
+                Begin Object Class=/Script/Engine.MaterialExpressionLogarithm10 Name="MaterialExpressionLogarithm10_0" ExportPath=/Script/Engine.MaterialExpressionLogarithm10'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_26.MaterialExpressionLogarithm10_0"'
+                End Object
+                Begin Object Name="MaterialExpressionLogarithm10_0" ExportPath=/Script/Engine.MaterialExpressionLogarithm10'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_26.MaterialExpressionLogarithm10_0"'
+                    MaterialExpressionEditorX=-1699
+                    MaterialExpressionEditorY=-366
+                    MaterialExpressionGuid=D6C0D0C0B1C241C7BC5CAE85C32A967E
+                    Material=/Script/UnrealEd.PreviewMaterial'"/Engine/Transient.M_CobbleStone_Pebble"'
+                End Object
+                MaterialExpression=/Script/Engine.MaterialExpressionLogarithm10'"MaterialExpressionLogarithm10_0"'
+                NodePosX=-1699
+                NodePosY=-366
+                NodeGuid=7432C0BB32F74D54B23EB5FFEB9D7255
+                CustomProperties Pin (PinId=C3E922C93B644E5781F1C76FD70CA87D,PinName="X",PinType.PinCategory="required",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=48EB102C92F74A7E817286C32A8D217A,PinName="Output",PinFriendlyName=NSLOCTEXT("MaterialGraphNode", "Space", " "),Direction="EGPD_Output",PinType.PinCategory="",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            End Object
+        `,
+        color: Configuration.nodeColors.green,
+        icon: false,
+        pins: 2,
+        pinName: ["X"],
+        delegate: false,
+        development: false,
+    },
+    {
+        name: "Log2",
+        value: String.raw`
+            Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_25" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_25"'
+                Begin Object Class=/Script/Engine.MaterialExpressionLogarithm2 Name="MaterialExpressionLogarithm2_0" ExportPath=/Script/Engine.MaterialExpressionLogarithm2'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_25.MaterialExpressionLogarithm2_0"'
+                End Object
+                Begin Object Name="MaterialExpressionLogarithm2_0" ExportPath=/Script/Engine.MaterialExpressionLogarithm2'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_25.MaterialExpressionLogarithm2_0"'
+                    MaterialExpressionEditorX=-1343
+                    MaterialExpressionEditorY=-380
+                    MaterialExpressionGuid=DFB490DA67CD4FED91729623FA6F76F9
+                    Material=/Script/UnrealEd.PreviewMaterial'"/Engine/Transient.M_CobbleStone_Pebble"'
+                End Object
+                MaterialExpression=/Script/Engine.MaterialExpressionLogarithm2'"MaterialExpressionLogarithm2_0"'
+                NodePosX=-1343
+                NodePosY=-380
+                NodeGuid=C413E5EDE2484269AB5BB8E6E14FD5DC
+                CustomProperties Pin (PinId=AA0DC6E48E864B2483F3F5239FDBC26D,PinName="X",PinType.PinCategory="required",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=7E2CEF20073B4A8DBCA5AEAFBEA3BE0B,PinName="Output",PinFriendlyName=NSLOCTEXT("MaterialGraphNode", "Space", " "),Direction="EGPD_Output",PinType.PinCategory="",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            End Object
+        `,
+        color: Configuration.nodeColors.green,
+        icon: false,
+        pins: 2,
+        pinName: ["X"],
+        delegate: false,
+        development: false,
+    },
+    {
+        name: "Ln",
+        value: String.raw`
+            Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_27" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_27"'
+                Begin Object Class=/Script/InterchangeImport.MaterialExpressionLogarithm Name="MaterialExpressionLogarithm_0" ExportPath=/Script/InterchangeImport.MaterialExpressionLogarithm'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_27.MaterialExpressionLogarithm_0"'
+                End Object
+                Begin Object Name="MaterialExpressionLogarithm_0" ExportPath=/Script/InterchangeImport.MaterialExpressionLogarithm'"/Engine/Transient.M_CobbleStone_Pebble:MaterialGraph_0.MaterialGraphNode_27.MaterialExpressionLogarithm_0"'
+                    MaterialExpressionEditorX=-1808
+                    MaterialExpressionEditorY=-384
+                    MaterialExpressionGuid=A88BE2DBB50544539F7C340F1C521570
+                    Material=/Script/UnrealEd.PreviewMaterial'"/Engine/Transient.M_CobbleStone_Pebble"'
+                End Object
+                MaterialExpression=/Script/InterchangeImport.MaterialExpressionLogarithm'"MaterialExpressionLogarithm_0"'
+                NodePosX=-1808
+                NodePosY=-384
+                NodeGuid=7BC7C5E93F8F47BAB3C0086F9C2AE036
+                CustomProperties Pin (PinId=DCCD2C267163472C98FFD44B5AC004DD,PinName="Input",PinFriendlyName=NSLOCTEXT("MaterialGraphNode", "Space", " "),PinType.PinCategory="required",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=D0ACD287FE494F0D8CB682DC7EABDD07,PinName="Output",PinFriendlyName=NSLOCTEXT("MaterialGraphNode", "Space", " "),Direction="EGPD_Output",PinType.PinCategory="",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            End Object
+        `,
+        color: Configuration.nodeColors.green,
+        icon: false,
+        pins: 2,
+        pinName: [],
+        delegate: false,
+        development: false,
     },
 ]
 
