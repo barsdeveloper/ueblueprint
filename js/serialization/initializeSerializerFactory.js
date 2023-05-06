@@ -1,4 +1,5 @@
 import ByteEntity from "../entity/ByteEntity.js"
+import ColorChannelEntity from "../entity/ColorChannelEntity.js"
 import CustomSerializer from "./CustomSerializer.js"
 import EnumDisplayValueEntity from "../entity/EnumDisplayValueEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
@@ -20,7 +21,6 @@ import ObjectSerializer from "./ObjectSerializer.js"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
-import RealUnitEntity from "../entity/UnitRealEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
 import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
@@ -86,6 +86,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ByteEntity,
         new ToStringSerializer(ByteEntity)
+    )
+
+    SerializerFactory.registerSerializer(
+        ColorChannelEntity,
+        new ToStringSerializer(ColorChannelEntity)
     )
 
     SerializerFactory.registerSerializer(
@@ -210,11 +215,6 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         TerminalTypeEntity,
         new Serializer(TerminalTypeEntity, Serializer.bracketsWrapped)
-    )
-
-    SerializerFactory.registerSerializer(
-        RealUnitEntity,
-        new ToStringSerializer(RealUnitEntity)
     )
 
     SerializerFactory.registerSerializer(

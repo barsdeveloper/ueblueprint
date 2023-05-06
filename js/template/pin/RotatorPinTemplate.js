@@ -9,15 +9,15 @@ import Utility from "../../Utility.js"
 export default class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.R ?? 0)
     }
 
     #getP() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.P ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.P ?? 0)
     }
 
     #getY() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     setDefaultValue(values = [], rawValues = values) {

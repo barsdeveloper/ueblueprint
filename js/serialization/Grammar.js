@@ -1,4 +1,5 @@
 import ByteEntity from "../entity/ByteEntity.js"
+import ColorChannelEntity from "../entity/ColorChannelEntity.js"
 import Configuration from "../Configuration.js"
 import EnumDisplayValueEntity from "../entity/EnumDisplayValueEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
@@ -22,7 +23,6 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
-import RealUnitEntity from "../entity/UnitRealEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity.js"
@@ -83,7 +83,16 @@ export default class Grammar {
     static true = P.lazy(() => P.regex(/true/i).map(() => true))
     static false = P.lazy(() => P.regex(/false/i).map(() => false))
     static boolean = P.lazy(() => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false))
-    static number = P.lazy(() => P.regex(Grammar.Regex.Number).map(Number))
+    static number = P.lazy(() =>
+        this.regexMap(new RegExp(`(${Grammar.Regex.Number.source})|(\\+?inf)|(-inf)`), result => {
+            if (result[2] !== undefined) {
+                return Number.POSITIVE_INFINITY
+            } else if (result[3] !== undefined) {
+                return Number.NEGATIVE_INFINITY
+            }
+            return Number(result[1])
+        })
+    )
     static integer = P.lazy(() => P.regex(Grammar.Regex.Integer).map(Number))
     static bigInt = P.lazy(() => P.regex(Grammar.Regex.Integer).map(BigInt))
     static realUnit = P.lazy(() => P.regex(Grammar.Regex.RealUnit).map(Number))
@@ -189,6 +198,9 @@ export default class Grammar {
                 case ByteEntity:
                     result = this.byteEntity
                     break
+                case ColorChannelEntity:
+                    result = this.colorChannelEntity
+                    break
                 case EnumDisplayValueEntity:
                     result = this.enumDisplayValueEntity
                     break
@@ -245,9 +257,6 @@ export default class Grammar {
                     break
                 case TerminalTypeEntity:
                     result = this.pinTypeEntity
-                    break
-                case RealUnitEntity:
-                    result = this.realUnitEntity
                     break
                 case RotatorEntity:
                     result = this.rotatorEntity
@@ -384,6 +393,8 @@ export default class Grammar {
 
     static byteEntity = P.lazy(() => this.byteNumber.map(v => new ByteEntity(v)))
 
+    static colorChannelEntity = P.lazy(() => this.number.map(value => new ColorChannelEntity(value)))
+
     static enumDisplayValueEntity = P.lazy(() =>
         P.regex(this.Regex.InsideString).map(v => new EnumDisplayValueEntity(v))
     )
@@ -504,8 +515,6 @@ export default class Grammar {
     )
 
     static pinTypeEntity = P.lazy(() => this.createEntityGrammar(TerminalTypeEntity))
-
-    static realUnitEntity = P.lazy(() => this.realUnit.map(value => new RealUnitEntity(value)))
 
     static rotatorEntity = P.lazy(() => this.createEntityGrammar(RotatorEntity, false))
 

@@ -249,7 +249,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                 <div>
                     <div class="ueb-horizontal-slider">
                         <span class="ueb-horizontal-slider-text"
-                            .innerText="${Utility.minDecimals(Utility.roundDecimals(channelValue, 3))}">
+                            .innerText="${Utility.printNumber(Utility.roundDecimals(channelValue, 3))}">
                         </span>
                         <ueb-ui-slider></ueb-ui-slider>
                     </div>

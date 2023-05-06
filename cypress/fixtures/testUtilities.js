@@ -44,7 +44,10 @@ function generateNodeTest(nodeTest, getBlueprint) {
         } else if (nodeTest.icon === false) {
             it("It does not have an icon", () => expect(node.entity.nodeIcon()).to.be.undefined)
         }
-        it(`Has ${nodeTest.pins} pins`, () => expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(nodeTest.pins))
+        if (nodeTest.pins) {
+            it(`Has ${nodeTest.pins} pins`, () => expect(node.querySelectorAll("ueb-pin"))
+                .to.be.lengthOf(nodeTest.pins))
+        }
         if (nodeTest.pinNames) {
             it(
                 "Has correct pin names",

@@ -98,6 +98,37 @@ export default class Utility {
         return Math.round(num * power) / power
     }
 
+    /** @param {Number} num */
+    static printNumber(num) {
+        if (num == Number.POSITIVE_INFINITY) {
+            return "inf"
+        } else if (num == Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        return Utility.minDecimals(num)
+    }
+
+    /** @param {Number} num */
+    static printExponential(num) {
+        if (num == Number.POSITIVE_INFINITY) {
+            return "inf"
+        } else if (num == Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        const int = Math.round(num)
+        if (int >= 1000) {
+            const exp = Math.floor(Math.log10(int))
+            const dec = Math.round(num / 10 ** (exp - 2)) / 100
+            // Not using num.toExponential() because of the omitted leading 0 on the exponential
+            return `${dec}e+${exp < 10 ? "0" : ""}${exp}`
+        }
+        const intPart = Math.floor(num)
+        if (intPart == 0) {
+            return num.toString()
+        }
+        return this.roundDecimals(num, Math.max(0, 3 - Math.floor(num).toString().length)).toString()
+    }
+
     /**
      * @param {Number} a
      * @param {Number} b

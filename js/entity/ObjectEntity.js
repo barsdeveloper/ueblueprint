@@ -16,6 +16,8 @@ import UnknownPinEntity from "./UnknownPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
 
+/** @typedef {import("./VectorEntity.js").default} VectorEntity */
+
 export default class ObjectEntity extends IEntity {
 
     static attributes = {
@@ -120,6 +122,9 @@ export default class ObjectEntity extends IEntity {
             type: Number,
         },
         MaterialExpression: {
+            type: ObjectReferenceEntity,
+        },
+        MaterialExpressionComment: {
             type: ObjectReferenceEntity,
         },
         MoveMode: {
@@ -514,6 +519,7 @@ export default class ObjectEntity extends IEntity {
 
     /** @returns {String} */
     nodeDisplayName() {
+        let input
         switch (this.getType()) {
             case Configuration.paths.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
@@ -542,6 +548,32 @@ export default class ObjectEntity extends IEntity {
                 return "Construction Script"
             case Configuration.paths.ifThenElse:
                 return "Branch"
+            case Configuration.paths.materialExpressionConstant:
+                input ??= [this.getCustomproperties().find(pinEntity => pinEntity.PinName == "Value")?.DefaultValue]
+            case Configuration.paths.materialExpressionConstant2Vector:
+                input ??= [
+                    this.getCustomproperties().find(pinEntity => pinEntity.PinName == "X")?.DefaultValue,
+                    this.getCustomproperties().find(pinEntity => pinEntity.PinName == "Y")?.DefaultValue,
+                ]
+            case Configuration.paths.materialExpressionConstant3Vector:
+                if (!input) {
+                    /** @type {VectorEntity} */
+                    const vector = this.getCustomproperties()
+                        .find(pinEntity => pinEntity.PinName == "Constant")
+                        ?.DefaultValue
+                    input = [vector.X, vector.Y, vector.Z]
+                }
+            case Configuration.paths.materialExpressionConstant4Vector:
+                if (!input) {
+                    /** @type {LinearColorEntity} */
+                    const vector = this.getCustomproperties()
+                        .find(pinEntity => pinEntity.PinName == "Constant")
+                        ?.DefaultValue
+                    input = [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
+                }
+                if (input.length > 0) {
+                    return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
+                }
             case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
@@ -562,6 +594,9 @@ export default class ObjectEntity extends IEntity {
                 switchTarget = Utility.formatStringName(switchTarget)
             }
             return `Switch on ${switchTarget}`
+        }
+        if (this.isComment()) {
+            return this.NodeComment
         }
         const keyNameSymbol = this.getHIDAttribute()
         if (keyNameSymbol) {
@@ -654,6 +689,8 @@ export default class ObjectEntity extends IEntity {
     nodeColor() {
         switch (this.getType()) {
             case Configuration.paths.materialExpressionConstant2Vector:
+            case Configuration.paths.materialExpressionConstant3Vector:
+            case Configuration.paths.materialExpressionConstant4Vector:
                 return Configuration.nodeColors.yellow
             case Configuration.paths.materialExpressionTextureCoordinate:
                 return Configuration.nodeColors.red

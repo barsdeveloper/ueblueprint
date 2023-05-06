@@ -127,6 +127,7 @@ class Configuration {
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
         eSearchCase: "/Script/CoreUObject.ESearchCase",
         eSearchDir: "/Script/CoreUObject.ESearchDir",
+        eSpawnActorCollisionHandlingMethod: "/Script/Engine.ESpawnActorCollisionHandlingMethod",
         eTraceTypeQuery: "/Script/Engine.ETraceTypeQuery",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
@@ -152,10 +153,13 @@ class Configuration {
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
+        materialExpressionConstant: "/Script/Engine.MaterialExpressionConstant",
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
+        materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
+        materialExpressionConstant4Vector: "/Script/Engine.MaterialExpressionConstant4Vector",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
-        materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
+        materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
@@ -246,6 +250,13 @@ class Configuration {
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static CommonEnums = {
+        [this.paths.eSpawnActorCollisionHandlingMethod]: [
+            ["Undefined", "Default"],
+            ["AlwaysSpawn", "Always Spawn, Ignore Collisions"],
+            ["AdjustIfPossibleButAlwaysSpawn", "Try To Adjust Location, But Always Spawn"],
+            ["AdjustIfPossibleButDontSpawnIfColliding", "Try To Adjust Location, Don't Spawn If Still Colliding"],
+            ["DontSpawnIfColliding", "Do Not Spawn"],
+        ],
         [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
         [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
         [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
@@ -627,6 +638,37 @@ class Utility {
     static roundDecimals(num, decimals = 1) {
         const power = 10 ** decimals;
         return Math.round(num * power) / power
+    }
+
+    /** @param {Number} num */
+    static printNumber(num) {
+        if (num == Number.POSITIVE_INFINITY) {
+            return "inf"
+        } else if (num == Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        return Utility.minDecimals(num)
+    }
+
+    /** @param {Number} num */
+    static printExponential(num) {
+        if (num == Number.POSITIVE_INFINITY) {
+            return "inf"
+        } else if (num == Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        const int = Math.round(num);
+        if (int >= 1000) {
+            const exp = Math.floor(Math.log10(int));
+            const dec = Math.round(num / 10 ** (exp - 2)) / 100;
+            // Not using num.toExponential() because of the omitted leading 0 on the exponential
+            return `${dec}e+${exp < 10 ? "0" : ""}${exp}`
+        }
+        const intPart = Math.floor(num);
+        if (intPart == 0) {
+            return num.toString()
+        }
+        return this.roundDecimals(num, Math.max(0, 3 - Math.floor(num).toString().length)).toString()
     }
 
     /**
@@ -1302,6 +1344,32 @@ class ByteEntity extends IntegerEntity {
     }
 }
 
+class ColorChannelEntity extends IEntity {
+
+    static attributes = {
+        value: {
+            default: 0,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values = 0) {
+        super(values);
+        /** @type {Number} */ this.value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toFixed(6)
+    }
+}
+
 class SymbolEntity extends IEntity {
 
     static attributes = {
@@ -1635,67 +1703,41 @@ class KeyBindingEntity extends IEntity {
     }
 }
 
-class RealUnitEntity extends IEntity {
-
-    static attributes = {
-        value: {
-            default: 0,
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values = 0) {
-        super(values);
-        this.value = Utility.clamp(this.value, 0, 1);
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toFixed(6)
-    }
-}
-
 class LinearColorEntity extends IEntity {
 
     static attributes = {
         R: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             expected: true,
         },
         G: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             expected: true,
         },
         B: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             expected: true,
         },
         A: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(1),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(1),
         },
         H: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             ignored: true,
         },
         S: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             ignored: true,
         },
         V: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             ignored: true,
         },
     }
@@ -1748,13 +1790,13 @@ class LinearColorEntity extends IEntity {
             };
         }
         super(values);
-        /** @type {RealUnitEntity} */ this.R;
-        /** @type {RealUnitEntity} */ this.G;
-        /** @type {RealUnitEntity} */ this.B;
-        /** @type {RealUnitEntity} */ this.A;
-        /** @type {RealUnitEntity} */ this.H;
-        /** @type {RealUnitEntity} */ this.S;
-        /** @type {RealUnitEntity} */ this.V;
+        /** @type {ColorChannelEntity} */ this.R;
+        /** @type {ColorChannelEntity} */ this.G;
+        /** @type {ColorChannelEntity} */ this.B;
+        /** @type {ColorChannelEntity} */ this.A;
+        /** @type {ColorChannelEntity} */ this.H;
+        /** @type {ColorChannelEntity} */ this.S;
+        /** @type {ColorChannelEntity} */ this.V;
         this.#updateHSV();
     }
 
@@ -2310,8 +2352,14 @@ class PinEntity extends IEntity {
         if (category === "struct" || category === "object") {
             return this.PinType.PinSubCategoryObject.path
         }
-        if (category === "optional" && this.PinType.PinSubCategory === "red") {
-            return "real"
+        if (category === "optional") {
+            if (this.PinType.PinSubCategory === "red") {
+                return "real"
+            } else if (this.PinType.PinSubCategory === "rgb") {
+                return Configuration.paths.vector
+            } else if (this.PinType.PinSubCategory === "rgba") {
+                return Configuration.paths.linearColor
+            }
         }
         if (this.isEnum()) {
             return "enum"
@@ -2830,6 +2878,8 @@ class VariableReferenceEntity extends IEntity {
     }
 }
 
+/** @typedef {import("./VectorEntity.js").default} VectorEntity */
+
 class ObjectEntity extends IEntity {
 
     static attributes = {
@@ -2934,6 +2984,9 @@ class ObjectEntity extends IEntity {
             type: Number,
         },
         MaterialExpression: {
+            type: ObjectReferenceEntity,
+        },
+        MaterialExpressionComment: {
             type: ObjectReferenceEntity,
         },
         MoveMode: {
@@ -3328,6 +3381,7 @@ class ObjectEntity extends IEntity {
 
     /** @returns {String} */
     nodeDisplayName() {
+        let input;
         switch (this.getType()) {
             case Configuration.paths.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
@@ -3356,6 +3410,32 @@ class ObjectEntity extends IEntity {
                 return "Construction Script"
             case Configuration.paths.ifThenElse:
                 return "Branch"
+            case Configuration.paths.materialExpressionConstant:
+                input ??= [this.getCustomproperties().find(pinEntity => pinEntity.PinName == "Value")?.DefaultValue];
+            case Configuration.paths.materialExpressionConstant2Vector:
+                input ??= [
+                    this.getCustomproperties().find(pinEntity => pinEntity.PinName == "X")?.DefaultValue,
+                    this.getCustomproperties().find(pinEntity => pinEntity.PinName == "Y")?.DefaultValue,
+                ];
+            case Configuration.paths.materialExpressionConstant3Vector:
+                if (!input) {
+                    /** @type {VectorEntity} */
+                    const vector = this.getCustomproperties()
+                        .find(pinEntity => pinEntity.PinName == "Constant")
+                        ?.DefaultValue;
+                    input = [vector.X, vector.Y, vector.Z];
+                }
+            case Configuration.paths.materialExpressionConstant4Vector:
+                if (!input) {
+                    /** @type {LinearColorEntity} */
+                    const vector = this.getCustomproperties()
+                        .find(pinEntity => pinEntity.PinName == "Constant")
+                        ?.DefaultValue;
+                    input = [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf());
+                }
+                if (input.length > 0) {
+                    return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
+                }
             case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
@@ -3376,6 +3456,9 @@ class ObjectEntity extends IEntity {
                 switchTarget = Utility.formatStringName(switchTarget);
             }
             return `Switch on ${switchTarget}`
+        }
+        if (this.isComment()) {
+            return this.NodeComment
         }
         const keyNameSymbol = this.getHIDAttribute();
         if (keyNameSymbol) {
@@ -3468,6 +3551,8 @@ class ObjectEntity extends IEntity {
     nodeColor() {
         switch (this.getType()) {
             case Configuration.paths.materialExpressionConstant2Vector:
+            case Configuration.paths.materialExpressionConstant3Vector:
+            case Configuration.paths.materialExpressionConstant4Vector:
                 return Configuration.nodeColors.yellow
             case Configuration.paths.materialExpressionTextureCoordinate:
                 return Configuration.nodeColors.red
@@ -3694,7 +3779,16 @@ class Grammar {
     static true = P.lazy(() => P.regex(/true/i).map(() => true))
     static false = P.lazy(() => P.regex(/false/i).map(() => false))
     static boolean = P.lazy(() => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false))
-    static number = P.lazy(() => P.regex(Grammar.Regex.Number).map(Number))
+    static number = P.lazy(() =>
+        this.regexMap(new RegExp(`(${Grammar.Regex.Number.source})|(\\+?inf)|(-inf)`), result => {
+            if (result[2] !== undefined) {
+                return Number.POSITIVE_INFINITY
+            } else if (result[3] !== undefined) {
+                return Number.NEGATIVE_INFINITY
+            }
+            return Number(result[1])
+        })
+    )
     static integer = P.lazy(() => P.regex(Grammar.Regex.Integer).map(Number))
     static bigInt = P.lazy(() => P.regex(Grammar.Regex.Integer).map(BigInt))
     static realUnit = P.lazy(() => P.regex(Grammar.Regex.RealUnit).map(Number))
@@ -3800,6 +3894,9 @@ class Grammar {
                 case ByteEntity:
                     result = this.byteEntity;
                     break
+                case ColorChannelEntity:
+                    result = this.colorChannelEntity;
+                    break
                 case EnumDisplayValueEntity:
                     result = this.enumDisplayValueEntity;
                     break
@@ -3856,9 +3953,6 @@ class Grammar {
                     break
                 case TerminalTypeEntity:
                     result = this.pinTypeEntity;
-                    break
-                case RealUnitEntity:
-                    result = this.realUnitEntity;
                     break
                 case RotatorEntity:
                     result = this.rotatorEntity;
@@ -3995,6 +4089,8 @@ class Grammar {
 
     static byteEntity = P.lazy(() => this.byteNumber.map(v => new ByteEntity(v)))
 
+    static colorChannelEntity = P.lazy(() => this.number.map(value => new ColorChannelEntity(value)))
+
     static enumDisplayValueEntity = P.lazy(() =>
         P.regex(this.Regex.InsideString).map(v => new EnumDisplayValueEntity(v))
     )
@@ -4115,8 +4211,6 @@ class Grammar {
     )
 
     static pinTypeEntity = P.lazy(() => this.createEntityGrammar(TerminalTypeEntity))
-
-    static realUnitEntity = P.lazy(() => this.realUnit.map(value => new RealUnitEntity(value)))
 
     static rotatorEntity = P.lazy(() => this.createEntityGrammar(RotatorEntity, false))
 
@@ -9131,6 +9225,7 @@ class InputTemplate extends ITemplate {
     }
 }
 
+/** @extends {IElement<Object, InputTemplate>} */
 class InputElement extends IElement {
 
     static properties = {
@@ -9834,7 +9929,7 @@ class ColorPickerWindowTemplate extends WindowTemplate {
                 <div>
                     <div class="ueb-horizontal-slider">
                         <span class="ueb-horizontal-slider-text"
-                            .innerText="${Utility.minDecimals(Utility.roundDecimals(channelValue, 3))}">
+                            .innerText="${Utility.printNumber(Utility.roundDecimals(channelValue, 3))}">
                         </span>
                         <ueb-ui-slider></ueb-ui-slider>
                     </div>
@@ -10018,7 +10113,7 @@ class RealPinTemplate extends INumericPinTemplate {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${true}"
-                    .innerText="${Utility.minDecimals(this.element.getDefaultValue() ?? 0)}">
+                    .innerText="${Utility.printNumber(this.element.getDefaultValue() ?? 0)}">
                 </ueb-input>
             </div>
         `
@@ -10038,15 +10133,15 @@ class ReferencePinTemplate extends PinTemplate {
 class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.R ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.R ?? 0)
     }
 
     #getP() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.P ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.P ?? 0)
     }
 
     #getY() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -10090,11 +10185,11 @@ class StringPinTemplate extends IInputPinTemplate {
 class VectorInputPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
     }
 
     #getY() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     /**
@@ -10133,15 +10228,15 @@ class VectorInputPinTemplate extends INumericPinTemplate {
 class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
     }
 
     #getY() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     #getZ() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.Z ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
     }
 
     /**
@@ -10972,6 +11067,11 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        ColorChannelEntity,
+        new ToStringSerializer(ColorChannelEntity)
+    );
+
+    SerializerFactory.registerSerializer(
         EnumDisplayValueEntity,
         new ToStringSerializer(EnumDisplayValueEntity)
     );
@@ -11093,11 +11193,6 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         TerminalTypeEntity,
         new Serializer(TerminalTypeEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        RealUnitEntity,
-        new ToStringSerializer(RealUnitEntity)
     );
 
     SerializerFactory.registerSerializer(

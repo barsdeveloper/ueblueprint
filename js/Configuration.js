@@ -103,6 +103,7 @@ export default class Configuration {
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
         eSearchCase: "/Script/CoreUObject.ESearchCase",
         eSearchDir: "/Script/CoreUObject.ESearchDir",
+        eSpawnActorCollisionHandlingMethod: "/Script/Engine.ESpawnActorCollisionHandlingMethod",
         eTraceTypeQuery: "/Script/Engine.ETraceTypeQuery",
         event: "/Script/BlueprintGraph.K2Node_Event",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
@@ -128,10 +129,13 @@ export default class Configuration {
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
+        materialExpressionConstant: "/Script/Engine.MaterialExpressionConstant",
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
+        materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
+        materialExpressionConstant4Vector: "/Script/Engine.MaterialExpressionConstant4Vector",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
-        materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
+        materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
@@ -222,6 +226,13 @@ export default class Configuration {
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static CommonEnums = {
+        [this.paths.eSpawnActorCollisionHandlingMethod]: [
+            ["Undefined", "Default"],
+            ["AlwaysSpawn", "Always Spawn, Ignore Collisions"],
+            ["AdjustIfPossibleButAlwaysSpawn", "Try To Adjust Location, But Always Spawn"],
+            ["AdjustIfPossibleButDontSpawnIfColliding", "Try To Adjust Location, Don't Spawn If Still Colliding"],
+            ["DontSpawnIfColliding", "Do Not Spawn"],
+        ],
         [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
         [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
         [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],

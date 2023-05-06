@@ -1,42 +1,42 @@
+import ColorChannelEntity from "./ColorChannelEntity.js"
 import IEntity from "./IEntity.js"
-import RealUnitEntity from "./UnitRealEntity.js"
 import Utility from "../Utility.js"
 
 export default class LinearColorEntity extends IEntity {
 
     static attributes = {
         R: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             expected: true,
         },
         G: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             expected: true,
         },
         B: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             expected: true,
         },
         A: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(1),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(1),
         },
         H: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             ignored: true,
         },
         S: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             ignored: true,
         },
         V: {
-            type: RealUnitEntity,
-            default: () => new RealUnitEntity(),
+            type: ColorChannelEntity,
+            default: () => new ColorChannelEntity(),
             ignored: true,
         },
     }
@@ -89,13 +89,13 @@ export default class LinearColorEntity extends IEntity {
             }
         }
         super(values)
-        /** @type {RealUnitEntity} */ this.R
-        /** @type {RealUnitEntity} */ this.G
-        /** @type {RealUnitEntity} */ this.B
-        /** @type {RealUnitEntity} */ this.A
-        /** @type {RealUnitEntity} */ this.H
-        /** @type {RealUnitEntity} */ this.S
-        /** @type {RealUnitEntity} */ this.V
+        /** @type {ColorChannelEntity} */ this.R
+        /** @type {ColorChannelEntity} */ this.G
+        /** @type {ColorChannelEntity} */ this.B
+        /** @type {ColorChannelEntity} */ this.A
+        /** @type {ColorChannelEntity} */ this.H
+        /** @type {ColorChannelEntity} */ this.S
+        /** @type {ColorChannelEntity} */ this.V
         this.#updateHSV()
     }
 

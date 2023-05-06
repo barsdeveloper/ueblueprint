@@ -795,7 +795,8 @@ ueb-dropdown.ueb-pin-input {
 
 ueb-dropdown.ueb-pin-input select {
   padding: 6px;
-  width: 170px;
+  min-width: 170px;
+  max-width: 400px;
   background: none;
   font-size: 10px;
   letter-spacing: -0.2px;
@@ -1119,6 +1120,10 @@ ueb-ui-slider {
 
 .ueb-color-picker-advanced .ueb-horizontal-slider {
   flex-grow: 1;
+}
+
+ueb-ui-slider {
+  max-width: 100%;
 }
 
 .ueb-color-picker-r .ueb-horizontal-slider > ueb-ui-slider {

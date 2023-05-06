@@ -1,7 +1,6 @@
 import IEntity from "./IEntity.js"
-import Utility from "../Utility.js"
 
-export default class RealUnitEntity extends IEntity {
+export default class ColorChannelEntity extends IEntity {
 
     static attributes = {
         value: {
@@ -15,7 +14,7 @@ export default class RealUnitEntity extends IEntity {
 
     constructor(values = 0) {
         super(values)
-        this.value = Utility.clamp(this.value, 0, 1)
+        /** @type {Number} */ this.value
     }
 
     valueOf() {

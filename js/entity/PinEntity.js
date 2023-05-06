@@ -156,8 +156,14 @@ export default class PinEntity extends IEntity {
         if (category === "struct" || category === "object") {
             return this.PinType.PinSubCategoryObject.path
         }
-        if (category === "optional" && this.PinType.PinSubCategory === "red") {
-            return "real"
+        if (category === "optional") {
+            if (this.PinType.PinSubCategory === "red") {
+                return "real"
+            } else if (this.PinType.PinSubCategory === "rgb") {
+                return Configuration.paths.vector
+            } else if (this.PinType.PinSubCategory === "rgba") {
+                return Configuration.paths.linearColor
+            }
         }
         if (this.isEnum()) {
             return "enum"

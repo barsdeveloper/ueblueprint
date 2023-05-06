@@ -9,15 +9,15 @@ import VectorEntity from "../../entity/VectorEntity.js"
 export default class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
     }
 
     #getY() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     #getZ() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.Z ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
     }
 
     /**

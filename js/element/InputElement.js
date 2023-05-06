@@ -2,6 +2,7 @@ import IElement from "./IElement.js"
 import InputTemplate from "../template/pin/InputTemplate.js"
 import Utility from "../Utility.js"
 
+/** @extends {IElement<Object, InputTemplate>} */
 export default class InputElement extends IElement {
 
     static properties = {

@@ -9,11 +9,11 @@ import Vector2DEntity from "../../entity/Vector2DEntity.js"
 export default class VectorInputPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.X ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
     }
 
     #getY() {
-        return Utility.minDecimals(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
     }
 
     /**
