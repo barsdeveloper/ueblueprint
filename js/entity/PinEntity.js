@@ -1,6 +1,7 @@
 import ByteEntity from "./ByteEntity.js"
 import ComputedType from "./ComputedType.js"
 import Configuration from "../Configuration.js"
+import EnumDisplayValueEntity from "./EnumDisplayValueEntity.js"
 import EnumEntity from "./EnumEntity.js"
 import FormatTextEntity from "./FormatTextEntity.js"
 import GuidEntity from "./GuidEntity.js"
@@ -20,7 +21,6 @@ import UnionType from "./UnionType.js"
 import Utility from "../Utility.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import VectorEntity from "./VectorEntity.js"
-import EnumDisplayValueEntity from "./EnumDisplayValueEntity.js"
 
 /**
  * @typedef {import("./IEntity.js").AnyValue} AnyValue
@@ -180,7 +180,9 @@ export default class PinEntity extends IEntity {
     }
 
     getDisplayName() {
-        let result = Utility.formatStringName(this.PinFriendlyName?.toString() ?? this.PinName)
+        let result = this.PinFriendlyName
+            ? this.PinFriendlyName.toString()
+            : Utility.formatStringName(this.PinName ?? "")
         let match
         if (
             this.PinToolTip

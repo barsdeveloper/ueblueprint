@@ -604,7 +604,7 @@ ueb-pin.ueb-pin-input-wrap .ueb-pin-content {
   visibility: hidden;
 }
 
-ueb-node[data-advanced-display=Hidden] ueb-pin[data-advanced-view=true] {
+ueb-node[data-advanced-display=Hidden] ueb-pin[data-advanced-view=true][data-linked=false] {
   display: none;
 }
 

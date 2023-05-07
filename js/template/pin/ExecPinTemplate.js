@@ -16,6 +16,6 @@ export default class ExecPinTemplate extends PinTemplate {
         } else if (pinName === "execute" || pinName === "then") {
             return html``
         }
-        return html`${Utility.formatStringName(pinName)}`
+        return html`${this.element.getPinDisplayName()}`
     }
 }

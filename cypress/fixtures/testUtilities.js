@@ -53,8 +53,9 @@ function generateNodeTest(nodeTest, getBlueprint) {
                 "Has correct pin names",
                 () => expect(
                     [...node.querySelectorAll(".ueb-pin-content")]
-                        .map(elem => elem.querySelector(".ueb-pin-name") ?? elem)
-                        .map(elem => elem.innerText)
+                        .map(elem =>
+                            /** @type {HTMLElement} */(elem.querySelector(".ueb-pin-name") ?? elem).innerText.trim()
+                        )
                         .filter(name => name.length)
                 )
                     .to.be.deep.equal(nodeTest.pinNames))

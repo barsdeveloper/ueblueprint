@@ -52,7 +52,7 @@ const tests = [
         color: Configuration.nodeColors.red,
         icon: SVGIcon.event,
         pins: 8,
-        pinName: [
+        pinNames: [
             "Overlapped Component",
             "Other Actor",
             "Other Comp",

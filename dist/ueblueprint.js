@@ -32,6 +32,7 @@ var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html
 class Configuration {
     static nodeColors = {
         blue: i$3`84, 122, 156`,
+        darkBlue: i$3`19, 100, 137`,
         gray: i$3`150,150,150`,
         green: i$3`95, 129, 90`,
         lime: i$3`150, 160, 30`,
@@ -79,10 +80,14 @@ class Configuration {
     static linkMinWidth = 100 // px
     static nameRegexSpaceReplacement = new RegExp(
         "^K2(?:[Nn]ode)?_"
-        + "|(?<=[a-z])(?=[A-Z0-9])" // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
-        + "|(?<=[A-Z])(?=[A-Z][a-z](?![a-z]+_)|[0-9])" // ("ALPHABravo", "ALPHA2", "BTTask_") => ("ALPHA Bravo", "ALPHA 2", "BTTask")
-        + "|(?<=[014-9]|[23](?!D(?:[^a-z]|$)))(?=[a-zA-Z])" // ("3Times", "3D", "3Delta") => ("3 Times", "3D", "3 Delta")
-        + "|\\s*_+\\s*" // "Alpha__Bravo" => "Alpha Bravo"
+        // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
+        + "|(?<=[a-z])(?=[A-Z0-9])"
+        // ("ALPHABravo", "ALPHA2", "BTTask_", "UVs", UVser) => ("ALPHA Bravo", "ALPHA 2", "BTTask", "UVs", "U Vser")
+        + "|(?<=[A-Z](?<!(?<![a-zA-Z])U(?=Vs(?![a-z]))))(?=[A-Z][a-z](?![a-z]+_)|[0-9])"
+        // ("3Times", "3D", "3Delta") => ("3 Times", "3D", "3 Delta")
+        + "|(?<=[014-9]|[23](?!D(?:[^a-z]|$)))(?=[a-zA-Z])"
+        // "Alpha__Bravo" => "Alpha Bravo"
+        + "|\\s*_+\\s*"
         + "|\\s{2,}",
         "g"
     )
@@ -165,6 +170,7 @@ class Configuration {
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
         materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
+        materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
@@ -2414,7 +2420,9 @@ class PinEntity extends IEntity {
     }
 
     getDisplayName() {
-        let result = Utility.formatStringName(this.PinFriendlyName?.toString() ?? this.PinName);
+        let result = this.PinFriendlyName
+            ? this.PinFriendlyName.toString()
+            : Utility.formatStringName(this.PinName ?? "");
         let match;
         if (
             this.PinToolTip
@@ -3605,6 +3613,8 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.materialExpressionConstant3Vector:
             case Configuration.paths.materialExpressionConstant4Vector:
                 return Configuration.nodeColors.yellow
+            case Configuration.paths.materialExpressionTextureSample:
+                return Configuration.nodeColors.darkBlue
             case Configuration.paths.materialExpressionTextureCoordinate:
                 return Configuration.nodeColors.red
         }
@@ -9575,7 +9585,7 @@ class ExecPinTemplate extends PinTemplate {
         } else if (pinName === "execute" || pinName === "then") {
             return x``
         }
-        return x`${Utility.formatStringName(pinName)}`
+        return x`${this.element.getPinDisplayName()}`
     }
 }
 

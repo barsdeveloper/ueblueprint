@@ -704,6 +704,8 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.materialExpressionConstant3Vector:
             case Configuration.paths.materialExpressionConstant4Vector:
                 return Configuration.nodeColors.yellow
+            case Configuration.paths.materialExpressionTextureSample:
+                return Configuration.nodeColors.darkBlue
             case Configuration.paths.materialExpressionTextureCoordinate:
                 return Configuration.nodeColors.red
         }

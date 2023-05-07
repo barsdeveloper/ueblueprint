@@ -8,6 +8,7 @@ import { css } from "lit"
 export default class Configuration {
     static nodeColors = {
         blue: css`84, 122, 156`,
+        darkBlue: css`19, 100, 137`,
         gray: css`150,150,150`,
         green: css`95, 129, 90`,
         lime: css`150, 160, 30`,
@@ -55,10 +56,14 @@ export default class Configuration {
     static linkMinWidth = 100 // px
     static nameRegexSpaceReplacement = new RegExp(
         "^K2(?:[Nn]ode)?_"
-        + "|(?<=[a-z])(?=[A-Z0-9])" // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
-        + "|(?<=[A-Z])(?=[A-Z][a-z](?![a-z]+_)|[0-9])" // ("ALPHABravo", "ALPHA2", "BTTask_") => ("ALPHA Bravo", "ALPHA 2", "BTTask")
-        + "|(?<=[014-9]|[23](?!D(?:[^a-z]|$)))(?=[a-zA-Z])" // ("3Times", "3D", "3Delta") => ("3 Times", "3D", "3 Delta")
-        + "|\\s*_+\\s*" // "Alpha__Bravo" => "Alpha Bravo"
+        // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
+        + "|(?<=[a-z])(?=[A-Z0-9])"
+        // ("ALPHABravo", "ALPHA2", "BTTask_", "UVs", UVser) => ("ALPHA Bravo", "ALPHA 2", "BTTask", "UVs", "U Vser")
+        + "|(?<=[A-Z](?<!(?<![a-zA-Z])U(?=Vs(?![a-z]))))(?=[A-Z][a-z](?![a-z]+_)|[0-9])"
+        // ("3Times", "3D", "3Delta") => ("3 Times", "3D", "3 Delta")
+        + "|(?<=[014-9]|[23](?!D(?:[^a-z]|$)))(?=[a-zA-Z])"
+        // "Alpha__Bravo" => "Alpha Bravo"
+        + "|\\s*_+\\s*"
         + "|\\s{2,}",
         "g"
     )
@@ -141,6 +146,7 @@ export default class Configuration {
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
         materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
+        materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",

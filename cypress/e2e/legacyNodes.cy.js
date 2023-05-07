@@ -52,7 +52,7 @@ const tests = [
         color: Configuration.nodeColors.gray,
         icon: SVGIcon.flipflop,
         pins: 4,
-        pinName: ["A", "B", "IsA"],
+        pinNames: ["A", "B", "Is A"],
         delegate: false,
         development: false,
         additionalTest:
