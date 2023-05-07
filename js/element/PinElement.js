@@ -183,7 +183,7 @@ export default class PinElement extends IElement {
     }
 
     getPinDisplayName() {
-        return this.entity.getDisplayName()
+        return this.entity.pinDisplayName()
     }
 
     /** @return {CSSResult} */

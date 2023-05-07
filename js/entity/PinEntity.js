@@ -179,7 +179,7 @@ export default class PinEntity extends IEntity {
             : entity
     }
 
-    getDisplayName() {
+    pinDisplayName() {
         let result = this.PinFriendlyName
             ? this.PinFriendlyName.toString()
             : Utility.formatStringName(this.PinName ?? "")
