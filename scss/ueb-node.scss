@@ -152,10 +152,11 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 }
 
 .ueb-node-content {
-    display: flex;
+    display: grid;
+    grid-template: min-content 1fr / min-content min-content;
+    justify-content: space-between;
     padding: 2px 0;
     font-weight: 100;
-    white-space: nowrap;
 }
 
 .ueb-node-style-default .ueb-node-content {
@@ -163,13 +164,24 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 }
 
 .ueb-node-has-inputs .ueb-node-inputs {
+    grid-column: 1;
+    grid-row: 1 / span 2;
     padding-left: 10px;
 }
 
 .ueb-node-outputs {
-    margin-left: auto;
+    grid-column: 2;
+    grid-row: 1;
     padding-left: 20px;
     padding-right: 10px;
+}
+
+.ueb-node-addpin {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    padding: 4px 6px;
+    cursor: pointer;
 }
 
 .ueb-node-developmentonly {
@@ -219,6 +231,7 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-expansio
     visibility: hidden;
 }
 
+.ueb-node-addpin>svg,
 .ueb-node-expansion>svg {
     width: 16px;
     height: 16px;

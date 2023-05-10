@@ -1232,11 +1232,8 @@ class IEntity {
                 assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)));
                 continue // We have a value, need nothing more
             }
-            if (defaultValue !== undefined) {
-                assignAttribute(Utility.sanitize(
-                    /** @type {AnyValue} */(defaultValue),
-                    /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
-                ));
+            if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined
+                assignAttribute(defaultValue);
             }
         }
     }
@@ -2419,7 +2416,7 @@ class PinEntity extends IEntity {
             : entity
     }
 
-    getDisplayName() {
+    pinDisplayName() {
         let result = this.PinFriendlyName
             ? this.PinFriendlyName.toString()
             : Utility.formatStringName(this.PinName ?? "");
@@ -2799,6 +2796,12 @@ class SVGIcon {
         </svg>
     `
 
+    static plusCircle = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M8.00016 10.6667V5.33334M5.3335 8H10.6668M8.00016 1.33334C4.31826 1.33334 1.3335 4.3181 1.3335 8C1.3335 11.6819 4.31826 14.6667 8.00016 14.6667C11.6821 14.6667 14.6668 11.6819 14.6668 8C14.6668 4.3181 11.6821 1.33334 8.00016 1.33334Z"/>
+        </svg>
+    `
+
     static questionMark = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 15C9.10456 15 10 14.1046 10 13C10 11.8954 9.10456 11 8 11C6.89544 11 6 11.8954 6 13C6 14.1046 6.89544 15 8 15Z" fill="white" />
@@ -2939,16 +2942,28 @@ class ObjectEntity extends IEntity {
         ExportPath: {
             type: ObjectReferenceEntity,
         },
+        PinNames: {
+            type: [String],
+            default: undefined, // To keep the order, may be defined in additionalPinInserter()
+            inlined: true,
+        },
         AxisKey: {
             type: SymbolEntity,
         },
         InputAxisKey: {
             type: SymbolEntity,
         },
+        NumAdditionalInputs: {
+            type: Number,
+            default: undefined, // To keep the order, may be defined in additionalPinInserter()
+        },
         bIsPureFunc: {
             type: Boolean,
         },
         bIsConstFunc: {
+            type: Boolean,
+        },
+        bIsCaseSensitive: {
             type: Boolean,
         },
         VariableReference: {
@@ -3183,10 +3198,13 @@ class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
         /** @type {ObjectReferenceEntity} */ this.ExportPath;
+        /** @type {String[]} */ this.PinNames;
         /** @type {SymbolEntity?} */ this.AxisKey;
         /** @type {SymbolEntity?} */ this.InputAxisKey;
+        /** @type {Number?} */ this.NumAdditionalInputs;
         /** @type {Boolean?} */ this.bIsPureFunc;
         /** @type {Boolean?} */ this.bIsConstFunc;
+        /** @type {Boolean?} */ this.bIsCaseSensitive;
         /** @type {VariableReferenceEntity?} */ this.VariableReference;
         /** @type {SymbolEntity?} */ this.SelfContextInfo;
         /** @type {String?} */ this.DelegatePropertyName;
@@ -3544,11 +3562,14 @@ class ObjectEntity extends IEntity {
         let memberName = this.FunctionReference?.MemberName;
         if (memberName) {
             const memberParent = this.FunctionReference.MemberParent?.path ?? "";
-            if (memberName === "AddKey") {
-                let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex);
-                if (result) {
-                    return `Add Key (${Utility.formatStringName(result[1])})`
-                }
+            switch (memberName) {
+                case "AddKey":
+                    let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex);
+                    if (result) {
+                        return `Add Key (${Utility.formatStringName(result[1])})`
+                    }
+                case "Concat_StrStr":
+                    return "Append"
             }
             const memberNameTraceLineMatch = memberName.match(Configuration.lineTracePattern);
             if (memberNameTraceLineMatch) {
@@ -3721,6 +3742,89 @@ class ObjectEntity extends IEntity {
             return SVGIcon.event
         }
         return SVGIcon.functionSymbol
+    }
+
+    additionalPinInserter() {
+        /** @type {() => PinEntity[]} */
+        let pinEntities;
+        /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number) => String} */
+        let pinNameFromIndex;
+        /** @type {(pinEntity: PinEntity) => Number} */
+        let pinIndexFromEntity;
+        switch (this.getType()) {
+            case Configuration.paths.commutativeAssociativeBinaryOperator:
+                if (this.FunctionReference?.MemberName !== "Concat_StrStr") {
+                    break
+                }
+                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isInput());
+                pinIndexFromEntity = pinEntity =>
+                    pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
+                pinNameFromIndex = (index, min = -1, max = -1) => {
+                    const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1);
+                    this.NumAdditionalInputs = pinEntities().length - 1;
+                    return result
+                };
+                break
+            case Configuration.paths.switchInteger:
+                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+                pinIndexFromEntity = pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
+                pinNameFromIndex = (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString();
+                break
+            case Configuration.paths.switchName:
+            case Configuration.paths.switchString:
+                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+                pinIndexFromEntity = pinEntity => Number(pinEntity.PinName.match(/^\s*Case_(\d+)\s*$/)?.[1]);
+                pinNameFromIndex = (index, min = -1, max = -1) => {
+                    const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
+                    this.PinNames ??= [];
+                    this.PinNames.push(result);
+                    return result
+                };
+                break
+        }
+        if (pinEntities) {
+            return () => {
+                let min = Number.MAX_SAFE_INTEGER;
+                let max = Number.MIN_SAFE_INTEGER;
+                let values = [];
+                const modelPin = pinEntities().reduce((acc, cur) => {
+                    const value = pinIndexFromEntity(cur);
+                    if (!isNaN(value)) {
+                        values.push(value);
+                        min = Math.min(value, min);
+                        if (value > max) {
+                            max = value;
+                            return cur
+                        }
+                    } else if (acc === undefined) {
+                        return cur
+                    }
+                    return acc
+                });
+                if (min === Number.MAX_SAFE_INTEGER || max === Number.MIN_SAFE_INTEGER) {
+                    min = undefined;
+                    max = undefined;
+                }
+                if (!modelPin) {
+                    return null
+                }
+                values.sort();
+                let prev = values[0];
+                let index = values.findIndex(
+                    // Search for a gap
+                    value => {
+                        const result = value - prev > 1;
+                        prev = value;
+                        return result
+                    }
+                );
+                const newPin = new PinEntity(modelPin);
+                newPin.PinId = GuidEntity.generateGuid();
+                newPin.PinName = pinNameFromIndex(index, min, max);
+                this.CustomProperties.push(newPin);
+                return newPin
+            }
+        }
     }
 }
 
@@ -7178,6 +7282,7 @@ class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
  * @typedef {import("../../element/NodeElement.js").default} NodeElement
  * @typedef {import("../../element/PinElement.js").default} PinElement
  * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../entity/PinEntity.js").default} PinEntity
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -7186,9 +7291,25 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     /** @typedef {typeof NodeTemplate} NodeTemplateConstructor */
 
+    static nodeStyleClasses = ["ueb-node-style-default"]
+
     #hasSubtitle = false
 
-    static nodeStyleClasses = ["ueb-node-style-default"]
+    /** @type {() => PinEntity} */
+    pinInserter
+
+    /** @type {HTMLElement} */
+    inputContainer
+
+    /** @type {HTMLElement} */
+    outputContainer
+
+    addPinHandler = () => {
+        const pin = this.pinInserter?.();
+        if (pin) {
+            (pin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.createPinElement(pin));
+        }
+    }
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay();
@@ -7196,11 +7317,18 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.updateComplete.then(() => this.element.acknowledgeReflow());
     }
 
+    /** @param {PinEntity} pinEntity */
+    createPinElement(pinEntity) {
+        return /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+            .newObject(pinEntity, undefined, this.element)
+    }
+
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
         this.element.classList.add(.../** @type {NodeTemplateConstructor} */(this.constructor).nodeStyleClasses);
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
+        this.pinInserter = this.element.entity.additionalPinInserter();
     }
 
     getColor() {
@@ -7215,6 +7343,11 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                     <div class="ueb-node-content">
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
+                        ${this.pinInserter ? x`
+                            <div class="ueb-node-addpin" @click="${this.addPinHandler}">
+                                Add pin ${SVGIcon.plusCircle}
+                            </div>
+                        `: A}
                     </div>
                     ${this.element.entity.isDevelopmentOnly() ? x`
                         <div class="ueb-node-developmentonly">
@@ -7264,22 +7397,22 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
+        this.inputContainer = this.element.querySelector(".ueb-node-inputs");
+        this.outputContainer = this.element.querySelector(".ueb-node-outputs");
         this.setupPins();
         this.element.updateComplete.then(() => this.element.acknowledgeReflow());
     }
 
     setupPins() {
-        const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"));
-        const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"));
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
         let hasInput = false;
         let hasOutput = false;
         this.element.getPinElements().forEach(p => {
             if (p.isInput()) {
-                inputContainer.appendChild(p);
+                this.inputContainer.appendChild(p);
                 hasInput = true;
             } else if (p.isOutput()) {
-                outputContainer.appendChild(p);
+                this.outputContainer.appendChild(p);
                 hasOutput = true;
             }
         });
@@ -7296,10 +7429,8 @@ class NodeTemplate extends ISelectableDraggableTemplate {
             .filter(v => !v.isHidden())
             .map(pinEntity => {
                 this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName === "self" && pinEntity.getDisplayName() === "Target";
-                let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                    .newObject(pinEntity, undefined, this.element);
-                return pinElement
+                    || pinEntity.PinName === "self" && pinEntity.pinDisplayName() === "Target";
+                return this.createPinElement(pinEntity)
             })
     }
 
@@ -7873,7 +8004,7 @@ class PinTemplate extends ITemplate {
 
     renderName() {
         return x`
-            <span class="ueb-pin-name">${this.element.getPinDisplayName()}</span>
+            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>
         `
     }
 
@@ -7902,7 +8033,7 @@ class PinTemplate extends ITemplate {
 
     getLinkLocation() {
         const rect = this.iconElement.getBoundingClientRect();
-        const boundingLocation = [this.element.isInput() ? rect.left : rect.right, (rect.top + rect.bottom) / 2];
+        const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2];
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement);
         return this.blueprint.compensateTranslation(location[0], location[1])
     }
@@ -8071,7 +8202,7 @@ class KnotPinTemplate extends MinimalPinTemplate {
                 : this
         )
             .iconElement.getBoundingClientRect();
-        const boundingLocation = [this.element.isInput() ? rect.left : rect.right, (rect.top + rect.bottom) / 2];
+        const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2];
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement);
         return this.blueprint.compensateTranslation(location[0], location[1])
     }
@@ -10500,7 +10631,7 @@ class PinElement extends IElement {
     }
 
     getPinDisplayName() {
-        return this.entity.getDisplayName()
+        return this.entity.pinDisplayName()
     }
 
     /** @return {CSSResult} */

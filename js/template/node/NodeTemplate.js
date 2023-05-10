@@ -8,6 +8,7 @@ import Utility from "../../Utility.js"
  * @typedef {import("../../element/NodeElement.js").default} NodeElement
  * @typedef {import("../../element/PinElement.js").default} PinElement
  * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
+ * @typedef {import("../../entity/PinEntity.js").default} PinEntity
  * @typedef {import("lit").PropertyValues} PropertyValues
  */
 
@@ -16,9 +17,25 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     /** @typedef {typeof NodeTemplate} NodeTemplateConstructor */
 
+    static nodeStyleClasses = ["ueb-node-style-default"]
+
     #hasSubtitle = false
 
-    static nodeStyleClasses = ["ueb-node-style-default"]
+    /** @type {() => PinEntity} */
+    pinInserter
+
+    /** @type {HTMLElement} */
+    inputContainer
+
+    /** @type {HTMLElement} */
+    outputContainer
+
+    addPinHandler = () => {
+        const pin = this.pinInserter?.()
+        if (pin) {
+            (pin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.createPinElement(pin))
+        }
+    }
 
     toggleAdvancedDisplayHandler = () => {
         this.element.toggleShowAdvancedPinDisplay()
@@ -26,11 +43,18 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.updateComplete.then(() => this.element.acknowledgeReflow())
     }
 
+    /** @param {PinEntity} pinEntity */
+    createPinElement(pinEntity) {
+        return /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+            .newObject(pinEntity, undefined, this.element)
+    }
+
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
         this.element.classList.add(.../** @type {NodeTemplateConstructor} */(this.constructor).nodeStyleClasses)
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
+        this.pinInserter = this.element.entity.additionalPinInserter()
     }
 
     getColor() {
@@ -45,6 +69,11 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                     <div class="ueb-node-content">
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
+                        ${this.pinInserter ? html`
+                            <div class="ueb-node-addpin" @click="${this.addPinHandler}">
+                                Add pin ${SVGIcon.plusCircle}
+                            </div>
+                        `: nothing}
                     </div>
                     ${this.element.entity.isDevelopmentOnly() ? html`
                         <div class="ueb-node-developmentonly">
@@ -94,22 +123,22 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
+        this.inputContainer = this.element.querySelector(".ueb-node-inputs")
+        this.outputContainer = this.element.querySelector(".ueb-node-outputs")
         this.setupPins()
         this.element.updateComplete.then(() => this.element.acknowledgeReflow())
     }
 
     setupPins() {
-        const inputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-inputs"))
-        const outputContainer = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-outputs"))
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"))
         let hasInput = false
         let hasOutput = false
         this.element.getPinElements().forEach(p => {
             if (p.isInput()) {
-                inputContainer.appendChild(p)
+                this.inputContainer.appendChild(p)
                 hasInput = true
             } else if (p.isOutput()) {
-                outputContainer.appendChild(p)
+                this.outputContainer.appendChild(p)
                 hasOutput = true
             }
         })
@@ -127,9 +156,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             .map(pinEntity => {
                 this.#hasSubtitle = this.#hasSubtitle
                     || pinEntity.PinName === "self" && pinEntity.pinDisplayName() === "Target"
-                let pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-                    .newObject(pinEntity, undefined, this.element)
-                return pinElement
+                return this.createPinElement(pinEntity)
             })
     }
 
