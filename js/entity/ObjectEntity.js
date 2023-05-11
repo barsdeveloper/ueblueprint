@@ -835,22 +835,31 @@ export default class ObjectEntity extends IEntity {
     additionalPinInserter() {
         /** @type {() => PinEntity[]} */
         let pinEntities
-        /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number) => String} */
-        let pinNameFromIndex
         /** @type {(pinEntity: PinEntity) => Number} */
         let pinIndexFromEntity
+        /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number) => String} */
+        let pinNameFromIndex
         switch (this.getType()) {
             case Configuration.paths.commutativeAssociativeBinaryOperator:
-                if (this.FunctionReference?.MemberName !== "Concat_StrStr") {
-                    break
-                }
-                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput())
-                pinIndexFromEntity ??= pinEntity =>
-                    pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0)
-                pinNameFromIndex ??= (index, min = -1, max = -1) => {
-                    const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1)
-                    this.NumAdditionalInputs = pinEntities().length - 1
-                    return result
+                switch (this.FunctionReference?.MemberName) {
+                    case "BMax":
+                    case "BMin":
+                    case "Concat_StrStr":
+                    case "FMax":
+                    case "FMin":
+                    case "Max":
+                    case "MaxInt64":
+                    case "Min":
+                    case "MinInt64":
+                        pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput())
+                        pinIndexFromEntity ??= pinEntity =>
+                            pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0)
+                        pinNameFromIndex ??= (index, min = -1, max = -1) => {
+                            const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1)
+                            this.NumAdditionalInputs = pinEntities().length - 1
+                            return result
+                        }
+                        break
                 }
                 break
             case Configuration.paths.switchInteger:
@@ -909,6 +918,7 @@ export default class ObjectEntity extends IEntity {
                 const newPin = new PinEntity(modelPin)
                 newPin.PinId = GuidEntity.generateGuid()
                 newPin.PinName = pinNameFromIndex(index, min, max)
+                newPin.PinToolTip = undefined
                 this.CustomProperties.push(newPin)
                 return newPin
             }

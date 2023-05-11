@@ -1,6 +1,7 @@
 import { html, nothing } from "lit"
 import ElementFactory from "../../element/ElementFactory.js"
 import NodeTemplate from "./NodeTemplate.js"
+import SVGIcon from "../../SVGIcon.js"
 
 /**
  * @typedef {import("../../element/NodeElement.js").default} NodeElement
@@ -41,6 +42,11 @@ export default class VariableManagementNodeTemplate extends NodeTemplate {
                         ${this.#hasOutput ? html`
                             <div class="ueb-node-outputs"></div>
                         ` : nothing}
+                        ${this.pinInserter ? html`
+                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
+                                Add pin ${SVGIcon.plusCircle}
+                            </div>
+                        `: nothing}
                     </div>
                 </div>
             </div>
