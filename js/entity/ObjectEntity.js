@@ -896,7 +896,7 @@ export default class ObjectEntity extends IEntity {
                 if (!modelPin) {
                     return null
                 }
-                values.sort()
+                values.sort((a, b) => a < b ? -1 : a === b ? 0 : 1)
                 let prev = values[0]
                 let index = values.findIndex(
                     // Search for a gap
