@@ -844,25 +844,25 @@ export default class ObjectEntity extends IEntity {
                 if (this.FunctionReference?.MemberName !== "Concat_StrStr") {
                     break
                 }
-                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isInput())
-                pinIndexFromEntity = pinEntity =>
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput())
+                pinIndexFromEntity ??= pinEntity =>
                     pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0)
-                pinNameFromIndex = (index, min = -1, max = -1) => {
+                pinNameFromIndex ??= (index, min = -1, max = -1) => {
                     const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1)
                     this.NumAdditionalInputs = pinEntities().length - 1
                     return result
                 }
                 break
             case Configuration.paths.switchInteger:
-                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-                pinIndexFromEntity = pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1])
-                pinNameFromIndex = (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString()
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1])
+                pinNameFromIndex ??= (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString()
                 break
             case Configuration.paths.switchName:
             case Configuration.paths.switchString:
-                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-                pinIndexFromEntity = pinEntity => Number(pinEntity.PinName.match(/^\s*Case_(\d+)\s*$/)?.[1])
-                pinNameFromIndex = (index, min = -1, max = -1) => {
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case_(\d+)\s*$/)?.[1])
+                pinNameFromIndex ??= (index, min = -1, max = -1) => {
                     const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
                     this.PinNames ??= []
                     this.PinNames.push(result)

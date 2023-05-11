@@ -176,7 +176,7 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
     padding-right: 10px;
 }
 
-.ueb-node-addpin {
+.ueb-node-variadic {
     grid-column: 2;
     grid-row: 2;
     justify-self: end;
@@ -231,7 +231,7 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-node-expansio
     visibility: hidden;
 }
 
-.ueb-node-addpin>svg,
+.ueb-node-variadic>svg,
 .ueb-node-expansion>svg {
     width: 16px;
     height: 16px;

@@ -418,7 +418,7 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
   padding-right: 10px;
 }
 
-.ueb-node-addpin {
+.ueb-node-variadic {
   grid-column: 2;
   grid-row: 2;
   justify-self: end;
@@ -463,7 +463,7 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-expansion:ho
   visibility: hidden;
 }
 
-.ueb-node-addpin > svg,
+.ueb-node-variadic > svg,
 .ueb-node-expansion > svg {
   width: 16px;
   height: 16px;
@@ -694,6 +694,20 @@ ueb-pin[data-type=exec] .ueb-pin-icon {
 
 ueb-pin[data-linked=true] .ueb-pin-tofill {
   fill: currentColor;
+}
+
+ueb-pin.ueb-node-variadic-default {
+  position: relative;
+}
+ueb-pin.ueb-node-variadic-default::before {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  top: 0;
+  left: 6px;
+  background: linear-gradient(90deg, transparent 0, #404240 6px, #404240 calc(100% - 6px), transparent 100%);
 }
 
 .ueb-pin-name {

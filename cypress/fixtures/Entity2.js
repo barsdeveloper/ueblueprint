@@ -20,7 +20,7 @@ export default class Entity2 extends IEntity {
             default: false,
         },
         someObjectString: {
-            default: new String("gamma"),
+            default: "gamma",
         },
         someArray: {
             default: [400, 500, 600, 700, 800],

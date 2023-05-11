@@ -16,6 +16,6 @@ export default class ExecPinTemplate extends PinTemplate {
         } else if (pinName === "execute" || pinName === "then") {
             return html``
         }
-        return html`${this.element.getPinDisplayName()}`
+        return html`<span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>`
     }
 }

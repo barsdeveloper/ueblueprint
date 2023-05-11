@@ -181,6 +181,7 @@ class Configuration {
         select: "/Script/BlueprintGraph.K2Node_Select",
         spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
+        switchGameplayTag: "/Script/GameplayTagsEditor.GameplayTagsK2Node_SwitchGameplayTag",
         switchInteger: "/Script/BlueprintGraph.K2Node_SwitchInteger",
         switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
         switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
@@ -3756,25 +3757,25 @@ class ObjectEntity extends IEntity {
                 if (this.FunctionReference?.MemberName !== "Concat_StrStr") {
                     break
                 }
-                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isInput());
-                pinIndexFromEntity = pinEntity =>
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput());
+                pinIndexFromEntity ??= pinEntity =>
                     pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
-                pinNameFromIndex = (index, min = -1, max = -1) => {
+                pinNameFromIndex ??= (index, min = -1, max = -1) => {
                     const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1);
                     this.NumAdditionalInputs = pinEntities().length - 1;
                     return result
                 };
                 break
             case Configuration.paths.switchInteger:
-                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-                pinIndexFromEntity = pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
-                pinNameFromIndex = (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString();
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
+                pinNameFromIndex ??= (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString();
                 break
             case Configuration.paths.switchName:
             case Configuration.paths.switchString:
-                pinEntities = () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-                pinIndexFromEntity = pinEntity => Number(pinEntity.PinName.match(/^\s*Case_(\d+)\s*$/)?.[1]);
-                pinNameFromIndex = (index, min = -1, max = -1) => {
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case_(\d+)\s*$/)?.[1]);
+                pinNameFromIndex ??= (index, min = -1, max = -1) => {
                     const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
                     this.PinNames ??= [];
                     this.PinNames.push(result);
@@ -7304,10 +7305,18 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     /** @type {HTMLElement} */
     outputContainer
 
+    /** @type {PinElement} */
+    pinElement
+
     addPinHandler = () => {
         const pin = this.pinInserter?.();
         if (pin) {
-            (pin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.createPinElement(pin));
+            if (this.defaultPin && this.defaultPin.isInput() === pin.isInput()) {
+                this.defaultPin.before(this.createPinElement(pin));
+            } else {
+                (pin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.createPinElement(pin));
+            }
+            this.element.acknowledgeReflow();
         }
     }
 
@@ -7319,8 +7328,13 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     /** @param {PinEntity} pinEntity */
     createPinElement(pinEntity) {
-        return /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
-            .newObject(pinEntity, undefined, this.element)
+        const pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+            .newObject(pinEntity, undefined, this.element);
+        if (this.pinInserter && !this.defaultPin && pinElement.getPinName() === "Default") {
+            this.defaultPin = pinElement;
+            this.defaultPin.classList.add("ueb-node-variadic-default");
+        }
+        return pinElement
     }
 
     /** @param {NodeElement} element */
@@ -7344,7 +7358,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                         ${this.pinInserter ? x`
-                            <div class="ueb-node-addpin" @click="${this.addPinHandler}">
+                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
                                 Add pin ${SVGIcon.plusCircle}
                             </div>
                         `: A}
@@ -7407,7 +7421,10 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"));
         let hasInput = false;
         let hasOutput = false;
-        this.element.getPinElements().forEach(p => {
+        for (const p of this.element.getPinElements()) {
+            if (p === this.defaultPin) {
+                continue
+            }
             if (p.isInput()) {
                 this.inputContainer.appendChild(p);
                 hasInput = true;
@@ -7415,7 +7432,10 @@ class NodeTemplate extends ISelectableDraggableTemplate {
                 this.outputContainer.appendChild(p);
                 hasOutput = true;
             }
-        });
+        }
+        if (this.defaultPin) {
+            (this.defaultPin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.defaultPin);
+        }
         if (hasInput) {
             this.element.classList.add("ueb-node-has-inputs");
         }
@@ -9716,7 +9736,7 @@ class ExecPinTemplate extends PinTemplate {
         } else if (pinName === "execute" || pinName === "then") {
             return x``
         }
-        return x`${this.element.getPinDisplayName()}`
+        return x`<span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>`
     }
 }
 

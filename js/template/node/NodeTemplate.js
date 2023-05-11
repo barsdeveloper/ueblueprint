@@ -30,10 +30,18 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     /** @type {HTMLElement} */
     outputContainer
 
+    /** @type {PinElement} */
+    pinElement
+
     addPinHandler = () => {
         const pin = this.pinInserter?.()
         if (pin) {
-            (pin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.createPinElement(pin))
+            if (this.defaultPin && this.defaultPin.isInput() === pin.isInput()) {
+                this.defaultPin.before(this.createPinElement(pin))
+            } else {
+                (pin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.createPinElement(pin))
+            }
+            this.element.acknowledgeReflow()
         }
     }
 
@@ -45,8 +53,13 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
 
     /** @param {PinEntity} pinEntity */
     createPinElement(pinEntity) {
-        return /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
+        const pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
             .newObject(pinEntity, undefined, this.element)
+        if (this.pinInserter && !this.defaultPin && pinElement.getPinName() === "Default") {
+            this.defaultPin = pinElement
+            this.defaultPin.classList.add("ueb-node-variadic-default")
+        }
+        return pinElement
     }
 
     /** @param {NodeElement} element */
@@ -70,7 +83,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                         <div class="ueb-node-inputs"></div>
                         <div class="ueb-node-outputs"></div>
                         ${this.pinInserter ? html`
-                            <div class="ueb-node-addpin" @click="${this.addPinHandler}">
+                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
                                 Add pin ${SVGIcon.plusCircle}
                             </div>
                         `: nothing}
@@ -133,7 +146,10 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.nodeNameElement = /** @type {HTMLElement} */(this.element.querySelector(".ueb-node-name-text"))
         let hasInput = false
         let hasOutput = false
-        this.element.getPinElements().forEach(p => {
+        for (const p of this.element.getPinElements()) {
+            if (p === this.defaultPin) {
+                continue
+            }
             if (p.isInput()) {
                 this.inputContainer.appendChild(p)
                 hasInput = true
@@ -141,7 +157,10 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
                 this.outputContainer.appendChild(p)
                 hasOutput = true
             }
-        })
+        }
+        if (this.defaultPin) {
+            (this.defaultPin.isInput() ? this.inputContainer : this.outputContainer).appendChild(this.defaultPin)
+        }
         if (hasInput) {
             this.element.classList.add("ueb-node-has-inputs")
         }
