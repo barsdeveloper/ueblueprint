@@ -159,11 +159,8 @@ export default class IEntity {
                 assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
                 continue // We have a value, need nothing more
             }
-            if (defaultValue !== undefined) {
-                assignAttribute(Utility.sanitize(
-                    /** @type {AnyValue} */(defaultValue),
-                    /** @type {AnyValueConstructor<AnyValue>} */(defaultType)
-                ))
+            if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined
+                assignAttribute(defaultValue)
             }
         }
     }

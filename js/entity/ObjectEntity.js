@@ -30,16 +30,28 @@ export default class ObjectEntity extends IEntity {
         ExportPath: {
             type: ObjectReferenceEntity,
         },
+        PinNames: {
+            type: [String],
+            default: undefined, // To keep the order, may be defined in additionalPinInserter()
+            inlined: true,
+        },
         AxisKey: {
             type: SymbolEntity,
         },
         InputAxisKey: {
             type: SymbolEntity,
         },
+        NumAdditionalInputs: {
+            type: Number,
+            default: undefined, // To keep the order, may be defined in additionalPinInserter()
+        },
         bIsPureFunc: {
             type: Boolean,
         },
         bIsConstFunc: {
+            type: Boolean,
+        },
+        bIsCaseSensitive: {
             type: Boolean,
         },
         VariableReference: {
@@ -274,10 +286,13 @@ export default class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
         /** @type {ObjectReferenceEntity} */ this.ExportPath
+        /** @type {String[]} */ this.PinNames
         /** @type {SymbolEntity?} */ this.AxisKey
         /** @type {SymbolEntity?} */ this.InputAxisKey
+        /** @type {Number?} */ this.NumAdditionalInputs
         /** @type {Boolean?} */ this.bIsPureFunc
         /** @type {Boolean?} */ this.bIsConstFunc
+        /** @type {Boolean?} */ this.bIsCaseSensitive
         /** @type {VariableReferenceEntity?} */ this.VariableReference
         /** @type {SymbolEntity?} */ this.SelfContextInfo
         /** @type {String?} */ this.DelegatePropertyName
@@ -635,11 +650,14 @@ export default class ObjectEntity extends IEntity {
         let memberName = this.FunctionReference?.MemberName
         if (memberName) {
             const memberParent = this.FunctionReference.MemberParent?.path ?? ""
-            if (memberName === "AddKey") {
-                let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex)
-                if (result) {
-                    return `Add Key (${Utility.formatStringName(result[1])})`
-                }
+            switch (memberName) {
+                case "AddKey":
+                    let result = memberParent.match(ObjectEntity.sequencerScriptingNameRegex)
+                    if (result) {
+                        return `Add Key (${Utility.formatStringName(result[1])})`
+                    }
+                case "Concat_StrStr":
+                    return "Append"
             }
             const memberNameTraceLineMatch = memberName.match(Configuration.lineTracePattern)
             if (memberNameTraceLineMatch) {
@@ -812,5 +830,98 @@ export default class ObjectEntity extends IEntity {
             return SVGIcon.event
         }
         return SVGIcon.functionSymbol
+    }
+
+    additionalPinInserter() {
+        /** @type {() => PinEntity[]} */
+        let pinEntities
+        /** @type {(pinEntity: PinEntity) => Number} */
+        let pinIndexFromEntity
+        /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number) => String} */
+        let pinNameFromIndex
+        switch (this.getType()) {
+            case Configuration.paths.commutativeAssociativeBinaryOperator:
+                switch (this.FunctionReference?.MemberName) {
+                    case "BMax":
+                    case "BMin":
+                    case "Concat_StrStr":
+                    case "FMax":
+                    case "FMin":
+                    case "Max":
+                    case "MaxInt64":
+                    case "Min":
+                    case "MinInt64":
+                        pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput())
+                        pinIndexFromEntity ??= pinEntity =>
+                            pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0)
+                        pinNameFromIndex ??= (index, min = -1, max = -1) => {
+                            const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1)
+                            this.NumAdditionalInputs = pinEntities().length - 1
+                            return result
+                        }
+                        break
+                }
+                break
+            case Configuration.paths.switchInteger:
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1])
+                pinNameFromIndex ??= (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString()
+                break
+            case Configuration.paths.switchName:
+            case Configuration.paths.switchString:
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case_(\d+)\s*$/)?.[1])
+                pinNameFromIndex ??= (index, min = -1, max = -1) => {
+                    const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
+                    this.PinNames ??= []
+                    this.PinNames.push(result)
+                    return result
+                }
+                break
+        }
+        if (pinEntities) {
+            return () => {
+                let min = Number.MAX_SAFE_INTEGER
+                let max = Number.MIN_SAFE_INTEGER
+                let values = []
+                const modelPin = pinEntities().reduce((acc, cur) => {
+                    const value = pinIndexFromEntity(cur)
+                    if (!isNaN(value)) {
+                        values.push(value)
+                        min = Math.min(value, min)
+                        if (value > max) {
+                            max = value
+                            return cur
+                        }
+                    } else if (acc === undefined) {
+                        return cur
+                    }
+                    return acc
+                })
+                if (min === Number.MAX_SAFE_INTEGER || max === Number.MIN_SAFE_INTEGER) {
+                    min = undefined
+                    max = undefined
+                }
+                if (!modelPin) {
+                    return null
+                }
+                values.sort((a, b) => a < b ? -1 : a === b ? 0 : 1)
+                let prev = values[0]
+                let index = values.findIndex(
+                    // Search for a gap
+                    value => {
+                        const result = value - prev > 1
+                        prev = value
+                        return result
+                    }
+                )
+                const newPin = new PinEntity(modelPin)
+                newPin.PinId = GuidEntity.generateGuid()
+                newPin.PinName = pinNameFromIndex(index, min, max)
+                newPin.PinToolTip = undefined
+                this.CustomProperties.push(newPin)
+                return newPin
+            }
+        }
     }
 }
