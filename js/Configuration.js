@@ -88,6 +88,7 @@ export default class Configuration {
     static nodeReflowEventName = "ueb-node-reflow"
     static paths = {
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
+        ambientSound: "/Script/Engine.AmbientSound",
         blueprint: "/Script/Engine.Blueprint",
         blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
         blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
@@ -133,6 +134,7 @@ export default class Configuration {
         kismetMathLibrary: "/Script/Engine.KismetMathLibrary",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         linearColor: "/Script/CoreUObject.LinearColor",
+        literal: "/Script/BlueprintGraph.K2Node_Literal",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",

@@ -67,7 +67,7 @@ export default class Grammar {
         static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
         static Integer = /[\-\+]?\d+(?!\d|\.)/
         static MultilineWhitespace = /\s*\n\s*/
-        static Number = /[-\+]?\d+(?:\.\d+)?(?!\d|\.)/
+        static Number = /[-\+]?(?:\d*\.)?\d+(?!\d|\.)/
         static RealUnit = /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
         static Word = Grammar.separatedBy("[a-zA-Z]", "_")
         static Symbol = /[a-zA-Z_]\w*/

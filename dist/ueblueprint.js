@@ -112,6 +112,7 @@ class Configuration {
     static nodeReflowEventName = "ueb-node-reflow"
     static paths = {
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
+        ambientSound: "/Script/Engine.AmbientSound",
         blueprint: "/Script/Engine.Blueprint",
         blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
         blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
@@ -157,6 +158,7 @@ class Configuration {
         kismetMathLibrary: "/Script/Engine.KismetMathLibrary",
         knot: "/Script/BlueprintGraph.K2Node_Knot",
         linearColor: "/Script/CoreUObject.LinearColor",
+        literal: "/Script/BlueprintGraph.K2Node_Literal",
         macro: "/Script/BlueprintGraph.K2Node_MacroInstance",
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
@@ -2855,6 +2857,14 @@ class SVGIcon {
         </svg>
     `
 
+    static sound = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 5H3L7 1V15L3 11H0V5Z" fill="white"/>
+            <path opacity="0.5" d="M9 1C13 2.7 15 5.4 15 8C15 10.6 13 13.3 9 15C11.5 12.8 12.7 10.4 12.7 8C12.7 5.6 11.5 3.2 9 1Z" fill="white" />
+            <path opacity="0.5" d="M9 5C10.3 5.7 11 6.9 11 8C11 9.1 10.3 10.3 9 11C9.8 10 9.8 6 9 5Z" fill="white" />
+        </svg>
+    `
+
     static spawnActor = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10.38 12.62L7 11.5L10.38 10.38L11.5 7L12.63 10.38L16 11.5L12.63 12.62L11.5 16L10.38 12.62Z" fill="white"/>
@@ -2941,6 +2951,9 @@ class ObjectEntity extends IEntity {
             default: "",
         },
         ExportPath: {
+            type: ObjectReferenceEntity,
+        },
+        ObjectRef: {
             type: ObjectReferenceEntity,
         },
         PinNames: {
@@ -3198,7 +3211,8 @@ class ObjectEntity extends IEntity {
         super(values, suppressWarns);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
-        /** @type {ObjectReferenceEntity} */ this.ExportPath;
+        /** @type {ObjectReferenceEntity?} */ this.ExportPath;
+        /** @type {ObjectReferenceEntity?} */ this.ObjectRef;
         /** @type {String[]} */ this.PinNames;
         /** @type {SymbolEntity?} */ this.AxisKey;
         /** @type {SymbolEntity?} */ this.InputAxisKey;
@@ -3626,6 +3640,9 @@ class ObjectEntity extends IEntity {
             }
             return Utility.formatStringName(memberName)
         }
+        if (this.ObjectRef) {
+            return this.ObjectRef.getName()
+        }
         return Utility.formatStringName(this.getNameAndCounter()[0])
     }
 
@@ -3741,6 +3758,9 @@ class ObjectEntity extends IEntity {
         }
         if (this.getDelegatePin()) {
             return SVGIcon.event
+        }
+        if (this.ObjectRef?.type === Configuration.paths.ambientSound) {
+            return SVGIcon.sound
         }
         return SVGIcon.functionSymbol
     }
@@ -3939,7 +3959,7 @@ class Grammar {
         static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
         static Integer = /[\-\+]?\d+(?!\d|\.)/
         static MultilineWhitespace = /\s*\n\s*/
-        static Number = /[-\+]?\d+(?:\.\d+)?(?!\d|\.)/
+        static Number = /[-\+]?(?:\d*\.)?\d+(?!\d|\.)/
         static RealUnit = /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
         static Word = Grammar.separatedBy("[a-zA-Z]", "_")
         static Symbol = /[a-zA-Z_]\w*/
@@ -8484,9 +8504,12 @@ class NodeElement extends ISelectableDraggableElement {
                 return NodeTemplate
             case Configuration.paths.promotableOperator:
                 return VariableOperationNodeTemplate
-            case Configuration.paths.knot: return KnotNodeTemplate
-            case Configuration.paths.variableGet: return VariableAccessNodeTemplate
-            case Configuration.paths.variableSet: return VariableAccessNodeTemplate
+            case Configuration.paths.knot:
+                return KnotNodeTemplate
+            case Configuration.paths.literal:
+            case Configuration.paths.variableGet:
+            case Configuration.paths.variableSet:
+                return VariableAccessNodeTemplate
         }
         if (nodeEntity.isEvent()) {
             return EventNodeTemplate

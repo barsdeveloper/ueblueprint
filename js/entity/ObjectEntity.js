@@ -30,6 +30,9 @@ export default class ObjectEntity extends IEntity {
         ExportPath: {
             type: ObjectReferenceEntity,
         },
+        ObjectRef: {
+            type: ObjectReferenceEntity,
+        },
         PinNames: {
             type: [String],
             default: undefined, // To keep the order, may be defined in additionalPinInserter()
@@ -285,7 +288,8 @@ export default class ObjectEntity extends IEntity {
         super(values, suppressWarns)
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
-        /** @type {ObjectReferenceEntity} */ this.ExportPath
+        /** @type {ObjectReferenceEntity?} */ this.ExportPath
+        /** @type {ObjectReferenceEntity?} */ this.ObjectRef
         /** @type {String[]} */ this.PinNames
         /** @type {SymbolEntity?} */ this.AxisKey
         /** @type {SymbolEntity?} */ this.InputAxisKey
@@ -713,6 +717,9 @@ export default class ObjectEntity extends IEntity {
             }
             return Utility.formatStringName(memberName)
         }
+        if (this.ObjectRef) {
+            return this.ObjectRef.getName()
+        }
         return Utility.formatStringName(this.getNameAndCounter()[0])
     }
 
@@ -828,6 +835,9 @@ export default class ObjectEntity extends IEntity {
         }
         if (this.getDelegatePin()) {
             return SVGIcon.event
+        }
+        if (this.ObjectRef?.type === Configuration.paths.ambientSound) {
+            return SVGIcon.sound
         }
         return SVGIcon.functionSymbol
     }

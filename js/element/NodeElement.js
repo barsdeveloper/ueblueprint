@@ -148,9 +148,12 @@ export default class NodeElement extends ISelectableDraggableElement {
                 return NodeTemplate
             case Configuration.paths.promotableOperator:
                 return VariableOperationNodeTemplate
-            case Configuration.paths.knot: return KnotNodeTemplate
-            case Configuration.paths.variableGet: return VariableAccessNodeTemplate
-            case Configuration.paths.variableSet: return VariableAccessNodeTemplate
+            case Configuration.paths.knot:
+                return KnotNodeTemplate
+            case Configuration.paths.literal:
+            case Configuration.paths.variableGet:
+            case Configuration.paths.variableSet:
+                return VariableAccessNodeTemplate
         }
         if (nodeEntity.isEvent()) {
             return EventNodeTemplate
