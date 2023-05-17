@@ -30,7 +30,7 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"][data
 }
 
 .ueb-pin-wrapper {
-    display: flex;
+    display: inline-flex;
     min-height: 32px;
     align-items: center;
 }
