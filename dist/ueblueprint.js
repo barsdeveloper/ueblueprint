@@ -7384,15 +7384,13 @@ class NodeTemplate extends ISelectableDraggableTemplate {
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">${this.renderTop()}</div>
-                    <div class="ueb-node-content">
-                        <div class="ueb-node-inputs"></div>
-                        <div class="ueb-node-outputs"></div>
-                        ${this.pinInserter ? x`
-                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
-                                Add pin ${SVGIcon.plusCircle}
-                            </div>
-                        `: A}
-                    </div>
+                    <div class="ueb-node-inputs"></div>
+                    <div class="ueb-node-outputs"></div>
+                    ${this.pinInserter ? x`
+                        <div class="ueb-node-variadic" @click="${this.addPinHandler}">
+                            Add pin ${SVGIcon.plusCircle}
+                        </div>
+                    `: A}
                     ${this.element.entity.isDevelopmentOnly() ? x`
                         <div class="ueb-node-developmentonly">
                             <span class="ueb-node-developmentonly-text">Development Only</span>
@@ -7935,19 +7933,17 @@ class VariableManagementNodeTemplate extends NodeTemplate {
                             </div>
                         </div>
                     ` : A}
-                    <div class="ueb-node-content">
-                        ${this.#hasInput ? x`
-                            <div class="ueb-node-inputs"></div>
-                        ` : A}
-                        ${this.#hasOutput ? x`
-                            <div class="ueb-node-outputs"></div>
-                        ` : A}
-                        ${this.pinInserter ? x`
-                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
-                                Add pin ${SVGIcon.plusCircle}
-                            </div>
-                        `: A}
-                    </div>
+                    ${this.#hasInput ? x`
+                        <div class="ueb-node-inputs"></div>
+                    ` : A}
+                    ${this.#hasOutput ? x`
+                        <div class="ueb-node-outputs"></div>
+                    ` : A}
+                    ${this.pinInserter ? x`
+                        <div class="ueb-node-variadic" @click="${this.addPinHandler}">
+                            Add pin ${SVGIcon.plusCircle}
+                        </div>
+                    `: A}
                 </div>
             </div>
         `

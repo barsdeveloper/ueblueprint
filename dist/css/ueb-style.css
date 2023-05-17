@@ -294,7 +294,9 @@ ueb-node[data-selected=true] > .ueb-node-border {
 }
 
 .ueb-node-wrapper {
-  position: relative;
+  display: grid;
+  grid-template: "top top top" min-content "input center output" min-content "input center variadic" 1fr "development development development" min-content "expansion expansion expansion" min-content/min-content auto min-content;
+  justify-items: space-between;
   padding: 1px;
   box-shadow: inset 0 0 2px 0 black;
   border-radius: var(--ueb-node-radius);
@@ -318,6 +320,7 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node.ueb-node-styl
 }
 
 .ueb-node-top {
+  grid-area: top;
   color: #d0d0d0;
   font-size: calc(var(--ueb-font-size) + 1px);
   font-weight: 600;
@@ -406,14 +409,12 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
 }
 
 .ueb-node-has-inputs .ueb-node-inputs {
-  grid-column: 1;
-  grid-row: 1/span 2;
+  grid-area: input;
   padding-left: 10px;
 }
 
 .ueb-node-outputs {
-  grid-column: 2;
-  grid-row: 1;
+  grid-area: output;
   padding-left: 20px;
   padding-right: 10px;
 }
@@ -428,6 +429,7 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
 }
 
 .ueb-node-developmentonly {
+  grid-area: development;
   margin-top: 4px;
   padding: 2px;
   background: repeating-linear-gradient(-45deg, transparent 0, #57590a 1px, #57590a 11px, transparent 12px, transparent 24px);
@@ -447,6 +449,7 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
 }
 
 .ueb-node-expansion {
+  grid-area: expansion;
   display: none;
   text-align: center;
 }
