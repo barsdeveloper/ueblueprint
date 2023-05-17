@@ -29,6 +29,12 @@ export default class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
+    /** @type {HTMLElement} */
+    #wrapperElement
+    get wrapperElement() {
+        return this.#wrapperElement
+    }
+
     isNameRendered = true
 
     setup() {
@@ -62,9 +68,11 @@ export default class PinTemplate extends ITemplate {
                 ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : html``}
             </div>
         `
-        return this.element.isInput()
-            ? html`${icon}${content}`
-            : html`${content}${icon}`
+        return html`
+            <div class="ueb-pin-wrapper">
+                ${this.element.isInput() ? html`${icon}${content}` : html`${content}${icon}`}
+            </div>
+        `
     }
 
     renderIcon() {
@@ -81,7 +89,7 @@ export default class PinTemplate extends ITemplate {
 
     renderName() {
         return html`
-            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span >
+            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>
         `
     }
 
@@ -105,6 +113,7 @@ export default class PinTemplate extends ITemplate {
         super.firstUpdated(changedProperties)
         this.element.style.setProperty("--ueb-pin-color-rgb", this.element.entity.pinColor().cssText)
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element
+        this.#wrapperElement = this.element.querySelector(".ueb-pin-wrapper")
     }
 
     getLinkLocation() {
@@ -115,6 +124,6 @@ export default class PinTemplate extends ITemplate {
     }
 
     getClickableElement() {
-        return this.element
+        return this.#wrapperElement ?? this.element
     }
 }

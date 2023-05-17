@@ -65,7 +65,7 @@ ueb-node[data-selected="true"]>.ueb-node-border {
     overflow: hidden;
 }
 
-.ueb-node-outputs ueb-pin[data-type="exec"] {
+.ueb-node-outputs ueb-pin[data-type="exec"] .ueb-pin-wrapper {
     margin-right: -3px;
 }
 
