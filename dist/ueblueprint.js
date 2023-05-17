@@ -7995,12 +7995,6 @@ class PinTemplate extends ITemplate {
         return this.#iconElement
     }
 
-    /** @type {HTMLElement} */
-    #wrapperElement
-    get wrapperElement() {
-        return this.#wrapperElement
-    }
-
     isNameRendered = true
 
     setup() {
@@ -8021,7 +8015,7 @@ class PinTemplate extends ITemplate {
         return [
             new MouseCreateLink(this.element, this.blueprint, {
                 moveEverywhere: true,
-                draggableElement: this.#wrapperElement,
+                draggableElement: this.getClickableElement(),
             })
         ]
     }
@@ -8034,11 +8028,9 @@ class PinTemplate extends ITemplate {
                 ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : x``}
             </div>
         `;
-        return x`
-            <div class="ueb-pin-wrapper">
-                ${this.element.isInput() ? x`${icon}${content}` : x`${content}${icon}`}
-            </div>
-        `
+        return this.element.isInput()
+            ? x`${icon}${content}`
+            : x`${content}${icon}`
     }
 
     renderIcon() {
@@ -8055,7 +8047,7 @@ class PinTemplate extends ITemplate {
 
     renderName() {
         return x`
-            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>
+            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span >
         `
     }
 
@@ -8079,7 +8071,6 @@ class PinTemplate extends ITemplate {
         super.firstUpdated(changedProperties);
         this.element.style.setProperty("--ueb-pin-color-rgb", this.element.entity.pinColor().cssText);
         this.#iconElement = this.element.querySelector(".ueb-pin-icon svg") ?? this.element;
-        this.#wrapperElement = this.element.querySelector(".ueb-pin-wrapper");
     }
 
     getLinkLocation() {
@@ -8090,7 +8081,7 @@ class PinTemplate extends ITemplate {
     }
 
     getClickableElement() {
-        return this.#wrapperElement ?? this.element
+        return this.element
     }
 }
 
@@ -8108,9 +8099,7 @@ class MinimalPinTemplate extends PinTemplate {
 
     render() {
         return x`
-            <div class="ueb-pin-wrapper">
-                <div class="ueb-pin-icon">${this.renderIcon()}</div>
-            </div>
+            <div class="ueb-pin-icon">${this.renderIcon()}</div>
         `
     }
 }
