@@ -59,6 +59,7 @@ ueb-node[data-selected="true"]>.ueb-node-border {
         min-content auto min-content;
     justify-items: space-between;
     padding: 1px;
+    box-sizing: border-box;
     box-shadow: inset 0 0 2px 0 black;
     border-radius: var(--ueb-node-radius);
     background: rgba(14, 16, 10, 0.8);
@@ -181,7 +182,7 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 .ueb-node-outputs {
     grid-area: output;
     padding-left: 20px;
-    padding-right: 10px;
+    padding-right: 12px;
 }
 
 .ueb-node-variadic {
@@ -289,12 +290,13 @@ ueb-node.ueb-node-style-glass .ueb-node-name {
 }
 
 ueb-node.ueb-node-style-glass .ueb-node-outputs:first-child {
-    padding-left: 8px;
+    padding-left: 12px;
 }
 
 ueb-node.ueb-node-style-operation .ueb-node-top {
     grid-area: center;
     align-self: center;
+    justify-self: center;
     padding: 5px;
     font-size: 28px;
     z-index: -1;
@@ -364,12 +366,13 @@ ueb-node.ueb-node-style-comment .ueb-node-top {
     z-index: 1;
 }
 
-ueb-node.ueb-node-style-conversion .ueb-node-content::after {
+ueb-node.ueb-node-style-conversion .ueb-node-wrapper::after {
     content: "";
     display: block;
-    position: absolute;
-    top: calc(50% - 3px);
-    left: calc(50% - 3px);
+    grid-area: center;
+    align-self: center;
+    justify-self: center;
+    margin: 10px;
     width: 6px;
     height: 6px;
     border-radius: 3px;
