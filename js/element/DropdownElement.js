@@ -9,7 +9,7 @@ export default class DropdownElement extends IElement {
         options: {
             type: Object,
         },
-        selected: {
+        selectedOption: {
             type: String,
         },
     }
@@ -18,7 +18,7 @@ export default class DropdownElement extends IElement {
         super()
         super.initialize({}, new DropdownTemplate())
         this.options = /** @type {[String, String][]} */([])
-        this.selected = ""
+        this.selectedOption = ""
     }
 
     /** @param {[String, String][]} options */

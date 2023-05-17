@@ -9328,12 +9328,25 @@ class DropdownTemplate extends ITemplate {
     /** @type {HTMLSelectElement} */
     #selectElement
 
+    /** @type {HTMLSelectElement} */
+    #referenceSelectElement
+
+    #changeHandler = e => this.element.selectedOption = /** @type {HTMLSelectElement} */(e.target)
+        .selectedOptions[0]
+        .value
+
     render() {
         return x`
-            <select class="ueb-pin-input-content">
+            <select
+                class="ueb-pin-input-content"
+                @change="${this.#changeHandler}"
+            >
                 ${this.element.options.map(([k, v]) => x`
-                    <option value="${k}" ?selected="${k === this.element.selected}">${v}</option>
+                    <option value="${k}" ?selected="${k === this.element.selectedOption}">${v}</option>
                 `)}
+            </select>
+            <select style="visibility: hidden; position: fixed;">
+                <option>${this.element.selectedOption}</option>
             </select>
         `
     }
@@ -9341,9 +9354,17 @@ class DropdownTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.#selectElement = this.element.querySelector("select");
+        this.#selectElement = this.element.querySelector("select:first-child");
+        this.#referenceSelectElement = this.element.querySelector("select:last-child");
         const event = new Event("input", { bubbles: true });
         this.#selectElement.dispatchEvent(event);
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        const bounding = this.#referenceSelectElement.getBoundingClientRect();
+        this.element.style.setProperty("--ueb-dropdown-width", bounding.width + "px");
     }
 
     createInputObjects() {
@@ -9371,7 +9392,7 @@ class DropdownElement extends IElement {
         options: {
             type: Object,
         },
-        selected: {
+        selectedOption: {
             type: String,
         },
     }
@@ -9380,7 +9401,7 @@ class DropdownElement extends IElement {
         super();
         super.initialize({}, new DropdownTemplate());
         this.options = /** @type {[String, String][]} */([]);
-        this.selected = "";
+        this.selectedOption = "";
     }
 
     /** @param {[String, String][]} options */

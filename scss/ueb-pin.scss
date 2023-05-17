@@ -31,7 +31,7 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"][data
 
 .ueb-pin-wrapper {
     display: inline-flex;
-    min-height: 32px;
+    min-height: 30px;
     align-items: center;
 }
 
@@ -240,9 +240,9 @@ ueb-dropdown.ueb-pin-input {
     border-color: #404040;
 }
 
-ueb-dropdown.ueb-pin-input select {
+ueb-dropdown.ueb-pin-input .ueb-pin-input-content {
     padding: 6px;
-    min-width: 170px;
+    width: max(170px, var(--ueb-dropdown-width));
     max-width: 400px;
     background: none;
     font-size: 10px;
