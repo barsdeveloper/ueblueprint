@@ -397,14 +397,6 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
   color: #a9b78f;
 }
 
-.ueb-node-content {
-  display: grid;
-  grid-template: min-content 1fr/min-content min-content;
-  justify-content: space-between;
-  padding: 2px 0;
-  font-weight: 100;
-}
-
 .ueb-node-has-inputs .ueb-node-inputs {
   grid-area: input;
   padding-top: 6px;
@@ -599,6 +591,7 @@ ueb-pin {
           transparent);
   --ueb-pin-color: rgb(var(--ueb-pin-color-rgb));
   display: block;
+  margin: 6px 0;
 }
 
 ueb-pin.ueb-pin-input-wrap .ueb-pin-content {
@@ -620,8 +613,8 @@ ueb-node[data-advanced-display=Hidden] ueb-pin[data-advanced-view=true][data-lin
 .ueb-pin-wrapper {
   display: inline-flex;
   box-sizing: border-box;
-  padding: 6px 5px;
-  min-height: 30px;
+  padding: 3px 5px;
+  min-height: 24px;
   align-items: center;
 }
 
@@ -631,11 +624,6 @@ ueb-node.ueb-node-style-minimal .ueb-pin-wrapper {
 
 .ueb-node-top .ueb-pin-wrapper {
   padding: 2px 4px 2px 10px;
-}
-
-.ueb-node-content .ueb-pin-wrapper {
-  margin: 4px 0 0 0;
-  padding: 2px 2px;
 }
 
 ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover {

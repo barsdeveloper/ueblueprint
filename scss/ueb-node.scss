@@ -162,14 +162,6 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
     color: #a9b78f;
 }
 
-.ueb-node-content {
-    display: grid;
-    grid-template: min-content 1fr / min-content min-content;
-    justify-content: space-between;
-    padding: 2px 0;
-    font-weight: 100;
-}
-
 .ueb-node-has-inputs .ueb-node-inputs {
     grid-area: input;
     padding-top: 6px;
