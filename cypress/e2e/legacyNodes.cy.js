@@ -49,6 +49,7 @@ const tests = [
                 End Object
             End Object
         `,
+        size: [7.5, 8],
         color: Configuration.nodeColors.gray,
         icon: SVGIcon.flipflop,
         pins: 4,

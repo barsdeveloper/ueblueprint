@@ -2,8 +2,8 @@
 
 import Blueprint from "../../js/Blueprint.js"
 import Configuration from "../../js/Configuration.js"
-import Utility from "../../js/Utility.js"
 import NodeElement from "../../js/element/NodeElement.js"
+import Utility from "../../js/Utility.js"
 
 /** @param {String[]} words */
 function getFirstWordOrder(words) {

@@ -154,6 +154,7 @@ ueb-node.ueb-node-style-minimal {
 
 ueb-node.ueb-node-style-minimal ueb-pin {
   margin: 0;
+  padding: 0;
   min-height: 0;
 }
 
@@ -167,6 +168,7 @@ ueb-node.ueb-node-style-minimal .ueb-node-border {
 }
 
 ueb-node.ueb-node-style-minimal .ueb-pin-wrapper {
+  margin: 0;
   padding: 4px 6px;
 }
 
