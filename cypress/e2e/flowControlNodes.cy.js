@@ -138,7 +138,7 @@ const tests = [
                 CustomProperties Pin (PinId=B5207FF901074E8CB5152721DB154529,PinName="Completed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
             End Object
         `,
-        size: [14, 6],
+        size: [14.5, 6],
         color: Configuration.nodeColors.gray,
         icon: SVGIcon.loop,
         pins: 4,
@@ -447,7 +447,7 @@ const tests = [
                 CustomProperties Pin (PinId=FA2ED9343F4648D7A2EC9E8DB23C87BE,PinName="Case_0",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
             End Object
         `,
-        size: [15.5, 8.5],
+        size: [14.5, 8.5],
         color: Configuration.nodeColors.lime,
         icon: SVGIcon.switch,
         pins: 4,

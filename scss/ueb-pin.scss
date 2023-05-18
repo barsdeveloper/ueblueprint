@@ -11,6 +11,10 @@ ueb-pin {
             transparent);
     --ueb-pin-color: rgb(var(--ueb-pin-color-rgb));
     display: block;
+}
+
+.ueb-node-inputs ueb-pin,
+.ueb-node-outputs ueb-pin {
     margin: 6px 0;
 }
 
@@ -20,6 +24,7 @@ ueb-pin.ueb-pin-input-wrap .ueb-pin-content {
 
 .ueb-node-top ueb-pin {
     min-height: 0;
+    margin-left: 10px;
 }
 
 .ueb-zoom--10 ueb-pin {

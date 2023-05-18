@@ -52,7 +52,7 @@ ueb-node[data-selected="true"]>.ueb-node-border {
     grid-template:
         "top top top" min-content
         "input center output" min-content
-        "input center variadic" auto
+        "input center variadic" 1fr
         "development development development" min-content
         "expansion expansion expansion" min-content
         /
@@ -85,7 +85,7 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] ueb-node.ueb-node-
 .ueb-node-top {
     grid-area: top;
     color: #d0d0d0;
-    font-size: calc(var(--ueb-font-size) + 1px);
+    font-size: calc(var(--ueb-font-size) + 0.5px);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -99,10 +99,6 @@ ueb-node.ueb-node-style-event .ueb-node-top {
     justify-content: space-between;
     align-items: center;
     padding-right: 2px;
-}
-
-ueb-node.ueb-node-style-event .ueb-node-top ueb-pin {
-    margin-left: 10px;
 }
 
 .ueb-node-style-default .ueb-node-top {
@@ -130,6 +126,10 @@ ueb-node.ueb-node-style-event .ueb-node-top ueb-pin {
     background: radial-gradient(ellipse 100% 100% at 40% 50%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
     margin: -1px -15px;
     padding: 2px 15px;
+}
+
+.ueb-node-name:last-child {
+    padding-right: 25px;
 }
 
 .ueb-zoom--2 .ueb-node-name {
@@ -170,14 +170,24 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 
 .ueb-node-outputs {
     grid-area: output;
-    padding-left: 20px;
-    padding-right: 12px;
+}
+
+.ueb-node-outputs,
+.ueb-node-variadic {
+    padding-right: 10px;
+}
+
+.ueb-node-has-inputs .ueb-node-outputs,
+.ueb-node-has-inputs .ueb-node-variadic {
+    padding-left: 25px;
 }
 
 .ueb-node-variadic {
     grid-area: variadic;
-    align-self: end;
-    padding: 4px 6px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    align-self: start;
+    justify-self: end;
     white-space: nowrap;
     cursor: pointer;
 }
