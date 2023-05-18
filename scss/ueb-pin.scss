@@ -31,6 +31,8 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"][data
 
 .ueb-pin-wrapper {
     display: inline-flex;
+    box-sizing: border-box;
+    padding: 6px 5px;
     min-height: 30px;
     align-items: center;
 }

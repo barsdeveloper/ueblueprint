@@ -407,7 +407,8 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
 
 .ueb-node-has-inputs .ueb-node-inputs {
   grid-area: input;
-  padding-left: 10px;
+  padding-top: 6px;
+  padding-left: 5px;
 }
 
 .ueb-node-outputs {
@@ -618,6 +619,8 @@ ueb-node[data-advanced-display=Hidden] ueb-pin[data-advanced-view=true][data-lin
 
 .ueb-pin-wrapper {
   display: inline-flex;
+  box-sizing: border-box;
+  padding: 6px 5px;
   min-height: 30px;
   align-items: center;
 }

@@ -9761,7 +9761,7 @@ class EnumPinTemplate extends IInputPinTemplate {
             <ueb-dropdown
                 class="ueb-pin-input-wrapper ueb-pin-input"
                 .options="${this.#dropdownEntries}"
-                .selected="${this.element.defaultValue.value}"
+                .selectedOption="${this.element.defaultValue.value}"
             >
             </ueb-dropdown>
         `
