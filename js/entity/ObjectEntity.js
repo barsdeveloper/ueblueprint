@@ -872,6 +872,11 @@ export default class ObjectEntity extends IEntity {
                         break
                 }
                 break
+            case Configuration.paths.multiGate:
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1])
+                pinNameFromIndex ??= (index, min = -1, max = -1) => `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`
+                break
             case Configuration.paths.switchInteger:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
                 pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1])
@@ -880,7 +885,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.switchName:
             case Configuration.paths.switchString:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case_(\d+)\s*$/)?.[1])
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1])
                 pinNameFromIndex ??= (index, min = -1, max = -1) => {
                     const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
                     this.PinNames ??= []
@@ -894,20 +899,23 @@ export default class ObjectEntity extends IEntity {
                 let min = Number.MAX_SAFE_INTEGER
                 let max = Number.MIN_SAFE_INTEGER
                 let values = []
-                const modelPin = pinEntities().reduce((acc, cur) => {
-                    const value = pinIndexFromEntity(cur)
-                    if (!isNaN(value)) {
-                        values.push(value)
-                        min = Math.min(value, min)
-                        if (value > max) {
-                            max = value
+                const modelPin = pinEntities().reduce(
+                    (acc, cur) => {
+                        const value = pinIndexFromEntity(cur)
+                        if (!isNaN(value)) {
+                            values.push(value)
+                            min = Math.min(value, min)
+                            if (value > max) {
+                                max = value
+                                return cur
+                            }
+                        } else if (acc === undefined) {
                             return cur
                         }
-                    } else if (acc === undefined) {
-                        return cur
-                    }
-                    return acc
-                })
+                        return acc
+                    },
+                    undefined
+                )
                 if (min === Number.MAX_SAFE_INTEGER || max === Number.MIN_SAFE_INTEGER) {
                     min = undefined
                     max = undefined

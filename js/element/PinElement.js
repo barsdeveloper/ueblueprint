@@ -120,6 +120,9 @@ export default class PinElement extends IElement {
      * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
+        if (pinEntity.PinType.ContainerType?.toString() === "Array") {
+            return PinTemplate
+        }
         if (pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst) {
             return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
         }
