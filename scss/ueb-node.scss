@@ -66,6 +66,10 @@ ueb-node[data-selected="true"]>.ueb-node-border {
     overflow: hidden;
 }
 
+.ueb-node-style-operation .ueb-node-wrapper {
+    grid-template-rows: min-content 1fr 1fr min-content min-content;
+}
+
 .ueb-node-outputs ueb-pin[data-type="exec"] .ueb-pin-wrapper {
     margin-right: -3px;
     min-height: 26px;
@@ -298,6 +302,8 @@ ueb-node.ueb-node-style-operation .ueb-node-top {
     justify-self: center;
     padding: 5px;
     font-size: 28px;
+    font-stretch: condensed;
+    font-weight: bold;
     z-index: -1;
 }
 
@@ -307,8 +313,8 @@ ueb-node.ueb-node-style-operation .ueb-node-outputs {
 
 ueb-node.ueb-node-style-operation .ueb-node-variadic {
     align-self: start;
-    margin-top: 10px;
-    margin-left: -12px;
+    margin-top: 12px;
+    margin-left: -100px;
 }
 
 ueb-node:not(.ueb-node-style-comment) {

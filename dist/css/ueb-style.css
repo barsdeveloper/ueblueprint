@@ -1,17 +1,23 @@
 @font-face {
   font-family: "Roboto";
   font-weight: lighter;
-  src: url("../font/roboto-light.woff2") format("woff2"), url("../font/roboto-light.woff") format("woff");
+  src: url("../font/roboto-light.woff2") format("woff2");
 }
 @font-face {
   font-family: "Roboto";
   font-weight: normal;
-  src: url("../font/roboto-regular.woff2") format("woff2"), url("../font/roboto-regular.woff") format("woff");
+  src: url("../font/roboto-regular.woff2") format("woff2");
 }
 @font-face {
   font-family: "Roboto";
   font-weight: bold;
-  src: url("../font/roboto-bold.woff2") format("woff2"), url("../font/roboto-bold.woff") format("woff");
+  src: url("../font/roboto-bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Roboto";
+  font-weight: bold;
+  font-stretch: condensed;
+  src: url("../font/roboto-condensed-bold.woff2") format("woff2");
 }
 ueb-blueprint {
   --ueb-scale: 1;
@@ -308,6 +314,10 @@ ueb-node[data-selected=true] > .ueb-node-border {
   overflow: hidden;
 }
 
+.ueb-node-style-operation .ueb-node-wrapper {
+  grid-template-rows: min-content 1fr 1fr min-content min-content;
+}
+
 .ueb-node-outputs ueb-pin[data-type=exec] .ueb-pin-wrapper {
   margin-right: -3px;
   min-height: 26px;
@@ -524,6 +534,8 @@ ueb-node.ueb-node-style-operation .ueb-node-top {
   justify-self: center;
   padding: 5px;
   font-size: 28px;
+  font-stretch: condensed;
+  font-weight: bold;
   z-index: -1;
 }
 
@@ -533,8 +545,8 @@ ueb-node.ueb-node-style-operation .ueb-node-outputs {
 
 ueb-node.ueb-node-style-operation .ueb-node-variadic {
   align-self: start;
-  margin-top: 10px;
-  margin-left: -12px;
+  margin-top: 12px;
+  margin-left: -100px;
 }
 
 ueb-node:not(.ueb-node-style-comment) {
