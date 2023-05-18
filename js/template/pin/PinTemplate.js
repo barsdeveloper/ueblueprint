@@ -55,7 +55,7 @@ export default class PinTemplate extends ITemplate {
         return [
             new MouseCreateLink(this.element, this.blueprint, {
                 moveEverywhere: true,
-                draggableElement: this.#wrapperElement,
+                draggableElement: this.getClickableElement(),
             })
         ]
     }

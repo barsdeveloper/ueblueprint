@@ -79,15 +79,13 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">${this.renderTop()}</div>
-                    <div class="ueb-node-content">
-                        <div class="ueb-node-inputs"></div>
-                        <div class="ueb-node-outputs"></div>
-                        ${this.pinInserter ? html`
-                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
-                                Add pin ${SVGIcon.plusCircle}
-                            </div>
-                        `: nothing}
-                    </div>
+                    <div class="ueb-node-inputs"></div>
+                    <div class="ueb-node-outputs"></div>
+                    ${this.pinInserter ? html`
+                        <div class="ueb-node-variadic" @click="${this.addPinHandler}">
+                            Add pin ${SVGIcon.plusCircle}
+                        </div>
+                    `: nothing}
                     ${this.element.entity.isDevelopmentOnly() ? html`
                         <div class="ueb-node-developmentonly">
                             <span class="ueb-node-developmentonly-text">Development Only</span>

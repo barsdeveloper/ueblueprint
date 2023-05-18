@@ -35,19 +35,17 @@ export default class VariableManagementNodeTemplate extends NodeTemplate {
                             </div>
                         </div>
                     ` : nothing}
-                    <div class="ueb-node-content">
-                        ${this.#hasInput ? html`
-                            <div class="ueb-node-inputs"></div>
-                        ` : nothing}
-                        ${this.#hasOutput ? html`
-                            <div class="ueb-node-outputs"></div>
-                        ` : nothing}
-                        ${this.pinInserter ? html`
-                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
-                                Add pin ${SVGIcon.plusCircle}
-                            </div>
-                        `: nothing}
-                    </div>
+                    ${this.#hasInput ? html`
+                        <div class="ueb-node-inputs"></div>
+                    ` : nothing}
+                    ${this.#hasOutput ? html`
+                        <div class="ueb-node-outputs"></div>
+                    ` : nothing}
+                    ${this.pinInserter ? html`
+                        <div class="ueb-node-variadic" @click="${this.addPinHandler}">
+                            Add pin ${SVGIcon.plusCircle}
+                        </div>
+                    `: nothing}
                 </div>
             </div>
         `

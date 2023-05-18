@@ -18,6 +18,7 @@ const tests = [
                 CustomProperties Pin (PinId=0DE0B9A2469DB01A69BD5C8BB17D15BB,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Knot_8 C5BBC59C45ACF577B59616A9D79986B3,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
             End Object
         `,
+        size: [16, 5],
         color: Configuration.nodeColors.red,
         icon: SVGIcon.event,
         pins: 2,
@@ -49,6 +50,7 @@ const tests = [
                 CustomProperties UserDefinedPin (PinName="SweepResult",PinType=(PinCategory="struct",PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.HitResult"',bIsReference=True,bIsConst=True),DesiredPinDirection=EGPD_Output)
             End Object
         `,
+        size: [16.5, 16],
         color: Configuration.nodeColors.red,
         icon: SVGIcon.event,
         pins: 8,

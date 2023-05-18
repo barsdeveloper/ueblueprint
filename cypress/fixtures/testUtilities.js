@@ -1,6 +1,8 @@
 /// <reference types="cypress" />
 
 import Blueprint from "../../js/Blueprint.js"
+import Configuration from "../../js/Configuration.js"
+import NodeElement from "../../js/element/NodeElement.js"
 import Utility from "../../js/Utility.js"
 
 /** @param {String[]} words */
@@ -39,6 +41,23 @@ function generateNodeTest(nodeTest, getBlueprint) {
         it(
             "Has expected subtitle " + nodeTest.subtitle,
             () => expect(node.querySelector(".ueb-node-subtitle-text")?.innerText).to.be.equal(nodeTest.subtitle))
+        if (nodeTest.size) {
+            it("Has approximately the expected size", () => {
+                const bounding = node.getBoundingClientRect()
+                const expectedSize = [
+                    bounding.width / Configuration.gridSize,
+                    bounding.height / Configuration.gridSize,
+                ]
+                expect(Math.abs(nodeTest.size[0] - expectedSize[0])).to.be.lessThan(1.5)
+                expect(Math.abs(nodeTest.size[1] - expectedSize[1])).to.be.lessThan(1.5)
+                if (
+                    Math.abs(nodeTest.size[0] - expectedSize[0]) > 0.6
+                    || Math.abs(nodeTest.size[1] - expectedSize[1]) > 0.6
+                ) {
+                    console.error(`Node "${nodeTest.name}" size does not match`)
+                }
+            })
+        }
         if (nodeTest.icon) {
             it("Has the correct icon", () => expect(node.entity.nodeIcon()).to.be.deep.equal(nodeTest.icon))
         } else if (nodeTest.icon === false) {

@@ -3795,6 +3795,11 @@ class ObjectEntity extends IEntity {
                         break
                 }
                 break
+            case Configuration.paths.multiGate:
+                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
+                pinNameFromIndex ??= (index, min = -1, max = -1) => `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
+                break
             case Configuration.paths.switchInteger:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
                 pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
@@ -3803,7 +3808,7 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.switchName:
             case Configuration.paths.switchString:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case_(\d+)\s*$/)?.[1]);
+                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
                 pinNameFromIndex ??= (index, min = -1, max = -1) => {
                     const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
                     this.PinNames ??= [];
@@ -3817,20 +3822,23 @@ class ObjectEntity extends IEntity {
                 let min = Number.MAX_SAFE_INTEGER;
                 let max = Number.MIN_SAFE_INTEGER;
                 let values = [];
-                const modelPin = pinEntities().reduce((acc, cur) => {
-                    const value = pinIndexFromEntity(cur);
-                    if (!isNaN(value)) {
-                        values.push(value);
-                        min = Math.min(value, min);
-                        if (value > max) {
-                            max = value;
+                const modelPin = pinEntities().reduce(
+                    (acc, cur) => {
+                        const value = pinIndexFromEntity(cur);
+                        if (!isNaN(value)) {
+                            values.push(value);
+                            min = Math.min(value, min);
+                            if (value > max) {
+                                max = value;
+                                return cur
+                            }
+                        } else if (acc === undefined) {
                             return cur
                         }
-                    } else if (acc === undefined) {
-                        return cur
-                    }
-                    return acc
-                });
+                        return acc
+                    },
+                    undefined
+                );
                 if (min === Number.MAX_SAFE_INTEGER || max === Number.MIN_SAFE_INTEGER) {
                     min = undefined;
                     max = undefined;
@@ -7384,15 +7392,13 @@ class NodeTemplate extends ISelectableDraggableTemplate {
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top">${this.renderTop()}</div>
-                    <div class="ueb-node-content">
-                        <div class="ueb-node-inputs"></div>
-                        <div class="ueb-node-outputs"></div>
-                        ${this.pinInserter ? x`
-                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
-                                Add pin ${SVGIcon.plusCircle}
-                            </div>
-                        `: A}
-                    </div>
+                    <div class="ueb-node-inputs"></div>
+                    <div class="ueb-node-outputs"></div>
+                    ${this.pinInserter ? x`
+                        <div class="ueb-node-variadic" @click="${this.addPinHandler}">
+                            Add pin ${SVGIcon.plusCircle}
+                        </div>
+                    `: A}
                     ${this.element.entity.isDevelopmentOnly() ? x`
                         <div class="ueb-node-developmentonly">
                             <span class="ueb-node-developmentonly-text">Development Only</span>
@@ -7935,19 +7941,17 @@ class VariableManagementNodeTemplate extends NodeTemplate {
                             </div>
                         </div>
                     ` : A}
-                    <div class="ueb-node-content">
-                        ${this.#hasInput ? x`
-                            <div class="ueb-node-inputs"></div>
-                        ` : A}
-                        ${this.#hasOutput ? x`
-                            <div class="ueb-node-outputs"></div>
-                        ` : A}
-                        ${this.pinInserter ? x`
-                            <div class="ueb-node-variadic" @click="${this.addPinHandler}">
-                                Add pin ${SVGIcon.plusCircle}
-                            </div>
-                        `: A}
-                    </div>
+                    ${this.#hasInput ? x`
+                        <div class="ueb-node-inputs"></div>
+                    ` : A}
+                    ${this.#hasOutput ? x`
+                        <div class="ueb-node-outputs"></div>
+                    ` : A}
+                    ${this.pinInserter ? x`
+                        <div class="ueb-node-variadic" @click="${this.addPinHandler}">
+                            Add pin ${SVGIcon.plusCircle}
+                        </div>
+                    `: A}
                 </div>
             </div>
         `
@@ -8025,7 +8029,7 @@ class PinTemplate extends ITemplate {
         return [
             new MouseCreateLink(this.element, this.blueprint, {
                 moveEverywhere: true,
-                draggableElement: this.#wrapperElement,
+                draggableElement: this.getClickableElement(),
             })
         ]
     }
@@ -9332,12 +9336,22 @@ class DropdownTemplate extends ITemplate {
     /** @type {HTMLSelectElement} */
     #selectElement
 
+    /** @type {HTMLSelectElement} */
+    #referenceSelectElement
+
+    #changeHandler = e => this.element.selectedOption = /** @type {HTMLSelectElement} */(e.target)
+        .selectedOptions[0]
+        .value
+
     render() {
         return x`
-            <select class="ueb-pin-input-content">
+            <select class="ueb-pin-input-content" @change="${this.#changeHandler}">
                 ${this.element.options.map(([k, v]) => x`
-                    <option value="${k}" ?selected="${k === this.element.selected}">${v}</option>
+                    <option value="${k}" ?selected="${k === this.element.selectedOption}">${v}</option>
                 `)}
+            </select>
+            <select style="visibility: hidden; position: fixed;">
+                <option>${this.element.selectedOption}</option>
             </select>
         `
     }
@@ -9345,9 +9359,17 @@ class DropdownTemplate extends ITemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        this.#selectElement = this.element.querySelector("select");
+        this.#selectElement = this.element.querySelector("select:first-child");
+        this.#referenceSelectElement = this.element.querySelector("select:last-child");
         const event = new Event("input", { bubbles: true });
         this.#selectElement.dispatchEvent(event);
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        const bounding = this.#referenceSelectElement.getBoundingClientRect();
+        this.element.style.setProperty("--ueb-dropdown-width", bounding.width + "px");
     }
 
     createInputObjects() {
@@ -9375,7 +9397,7 @@ class DropdownElement extends IElement {
         options: {
             type: Object,
         },
-        selected: {
+        selectedOption: {
             type: String,
         },
     }
@@ -9384,7 +9406,7 @@ class DropdownElement extends IElement {
         super();
         super.initialize({}, new DropdownTemplate());
         this.options = /** @type {[String, String][]} */([]);
-        this.selected = "";
+        this.selectedOption = "";
     }
 
     /** @param {[String, String][]} options */
@@ -9744,7 +9766,7 @@ class EnumPinTemplate extends IInputPinTemplate {
             <ueb-dropdown
                 class="ueb-pin-input-wrapper ueb-pin-input"
                 .options="${this.#dropdownEntries}"
-                .selected="${this.element.defaultValue.value}"
+                .selectedOption="${this.element.defaultValue.value}"
             >
             </ueb-dropdown>
         `
@@ -10626,6 +10648,9 @@ class PinElement extends IElement {
      * @return {new () => PinTemplate}
      */
     static getTypeTemplate(pinEntity) {
+        if (pinEntity.PinType.ContainerType?.toString() === "Array") {
+            return PinTemplate
+        }
         if (pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst) {
             return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
         }
