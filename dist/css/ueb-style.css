@@ -315,12 +315,21 @@ ueb-node[data-selected=true] > .ueb-node-border {
 }
 
 .ueb-node-style-operation .ueb-node-wrapper {
-  grid-template-rows: min-content 1fr 1fr min-content min-content;
+  grid-template-rows: min-content auto auto min-content min-content;
 }
 
 .ueb-node-outputs ueb-pin[data-type=exec] .ueb-pin-wrapper {
   margin-right: -3px;
   min-height: 26px;
+}
+
+.ueb-node-style-operation .ueb-node-inputs {
+  align-self: center;
+}
+
+.ueb-node-style-operation:not(.ueb-node-is-variadic) .ueb-node-outputs {
+  grid-row: 2/4;
+  align-self: center;
 }
 
 ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-wrapper,
@@ -532,10 +541,11 @@ ueb-node.ueb-node-style-operation .ueb-node-top {
   grid-area: center;
   align-self: center;
   justify-self: center;
-  padding: 5px;
+  padding: 0 5px;
   font-size: 28px;
   font-stretch: condensed;
   font-weight: bold;
+  line-height: 100%;
   z-index: -1;
 }
 

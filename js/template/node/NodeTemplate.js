@@ -68,6 +68,9 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.classList.add(.../** @type {NodeTemplateConstructor} */(this.constructor).nodeStyleClasses)
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
         this.pinInserter = this.element.entity.additionalPinInserter()
+        if (this.pinInserter) {
+            this.element.classList.add("ueb-node-is-variadic")
+        }
     }
 
     getColor() {

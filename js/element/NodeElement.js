@@ -117,10 +117,10 @@ export default class NodeElement extends ISelectableDraggableElement {
                     return VariableOperationNodeTemplate
                 }
                 switch (nodeEntity.FunctionReference.MemberName) {
-                    case "Array_Add":
-                    case "Array_Identical":
                     case "Abs":
                     case "Array_Add":
+                    case "Array_Add":
+                    case "Array_Identical":
                     case "BMax":
                     case "BMin":
                     case "Exp":
@@ -130,6 +130,8 @@ export default class NodeElement extends ISelectableDraggableElement {
                     case "MaxInt64":
                     case "Min":
                     case "MinInt64":
+                    case "Sqrt":
+                    case "Square":
                         return VariableOperationNodeTemplate
                 }
             }

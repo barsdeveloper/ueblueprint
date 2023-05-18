@@ -181,6 +181,7 @@ class Configuration {
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
         select: "/Script/BlueprintGraph.K2Node_Select",
+        slateBlueprintLibrary: "/Script/UMG.SlateBlueprintLibrary",
         spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
         switchGameplayTag: "/Script/GameplayTagsEditor.GameplayTagsK2Node_SwitchGameplayTag",
@@ -3596,6 +3597,7 @@ class ObjectEntity extends IEntity {
                     )
             }
             switch (memberParent) {
+                case Configuration.paths.slateBlueprintLibrary:
                 case Configuration.paths.kismetMathLibrary:
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion nodes do not have visible names
@@ -3619,6 +3621,8 @@ class ObjectEntity extends IEntity {
                         case "MaxInt64": return "MAX"
                         case "Min": return "MIN"
                         case "MinInt64": return "MIN"
+                        case "Sqrt": return "SQRT"
+                        case "Square": return "^2"
                     }
                     break
                 case Configuration.paths.blueprintSetLibrary:
@@ -7381,6 +7385,9 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.classList.add(.../** @type {NodeTemplateConstructor} */(this.constructor).nodeStyleClasses);
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
         this.pinInserter = this.element.entity.additionalPinInserter();
+        if (this.pinInserter) {
+            this.element.classList.add("ueb-node-is-variadic");
+        }
     }
 
     getColor() {
@@ -8477,10 +8484,10 @@ class NodeElement extends ISelectableDraggableElement {
                     return VariableOperationNodeTemplate
                 }
                 switch (nodeEntity.FunctionReference.MemberName) {
-                    case "Array_Add":
-                    case "Array_Identical":
                     case "Abs":
                     case "Array_Add":
+                    case "Array_Add":
+                    case "Array_Identical":
                     case "BMax":
                     case "BMin":
                     case "Exp":
@@ -8490,6 +8497,8 @@ class NodeElement extends ISelectableDraggableElement {
                     case "MaxInt64":
                     case "Min":
                     case "MinInt64":
+                    case "Sqrt":
+                    case "Square":
                         return VariableOperationNodeTemplate
                 }
             }

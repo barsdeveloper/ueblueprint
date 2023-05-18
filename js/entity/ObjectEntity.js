@@ -673,6 +673,7 @@ export default class ObjectEntity extends IEntity {
                     )
             }
             switch (memberParent) {
+                case Configuration.paths.slateBlueprintLibrary:
                 case Configuration.paths.kismetMathLibrary:
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion nodes do not have visible names
@@ -696,6 +697,8 @@ export default class ObjectEntity extends IEntity {
                         case "MaxInt64": return "MAX"
                         case "Min": return "MIN"
                         case "MinInt64": return "MIN"
+                        case "Sqrt": return "SQRT"
+                        case "Square": return "^2"
                     }
                     break
                 case Configuration.paths.blueprintSetLibrary:
