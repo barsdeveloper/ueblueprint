@@ -118,6 +118,8 @@ export default class NodeElement extends ISelectableDraggableElement {
                 if (
                     memberName.startsWith("And_")
                     || memberName.startsWith("Boolean") // Boolean logic operations
+                    || memberName.startsWith("Cross_")
+                    || memberName.startsWith("Dot_")
                     || memberName.startsWith("Not_")
                     || memberName.startsWith("Or_")
                     || memberName.startsWith("Percent_")
@@ -125,22 +127,38 @@ export default class NodeElement extends ISelectableDraggableElement {
                 ) {
                     return VariableOperationNodeTemplate
                 }
-                switch (nodeEntity.FunctionReference.MemberName) {
+                switch (memberName) {
                     case "Abs":
                     case "Array_Add":
                     case "Array_Add":
                     case "Array_Identical":
                     case "BMax":
                     case "BMin":
+                    case "CrossProduct2D":
+                    case "DotProduct2D":
                     case "Exp":
                     case "FMax":
                     case "FMin":
+                    case "GetPI":
                     case "Max":
                     case "MaxInt64":
                     case "Min":
                     case "MinInt64":
                     case "Sqrt":
                     case "Square":
+                    case "Vector4_CrossProduct3":
+                    case "Vector4_DotProduct":
+                    case "Vector4_DotProduct3":
+                    // Trigonometry
+                    case "Acos":
+                    case "Asin":
+                    case "Cos":
+                    case "DegAcos":
+                    case "DegCos":
+                    case "DegSin":
+                    case "DegTan":
+                    case "Sin":
+                    case "Tan":
                         return VariableOperationNodeTemplate
                 }
             }

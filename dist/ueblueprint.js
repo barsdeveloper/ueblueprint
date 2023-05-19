@@ -3605,6 +3605,12 @@ class ObjectEntity extends IEntity {
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion nodes do not have visible names
                     }
+                    if (memberName.startsWith("Cross_")) {
+                        return "cross"
+                    }
+                    if (memberName.startsWith("Dot_")) {
+                        return "dot"
+                    }
                     if (memberName.startsWith("EqualEqual_")) {
                         return "=="
                     }
@@ -3654,6 +3660,13 @@ class ObjectEntity extends IEntity {
                         case "Not_PreBool": return "NOT"
                         case "Sqrt": return "SQRT"
                         case "Square": return "^2"
+                        // Dot products not repecting MemberName pattern
+                        case "CrossProduct2D": return "cross"
+                        case "Vector4_CrossProduct3": return "cross3"
+                        case "DotProduct2D":
+                        case "Vector4_DotProduct":
+                            return "dot"
+                        case "Vector4_DotProduct3": return "dot3"
                     }
                     break
                 case Configuration.paths.blueprintSetLibrary:
@@ -8523,6 +8536,8 @@ class NodeElement extends ISelectableDraggableElement {
                 if (
                     memberName.startsWith("And_")
                     || memberName.startsWith("Boolean") // Boolean logic operations
+                    || memberName.startsWith("Cross_")
+                    || memberName.startsWith("Dot_")
                     || memberName.startsWith("Not_")
                     || memberName.startsWith("Or_")
                     || memberName.startsWith("Percent_")
@@ -8530,22 +8545,38 @@ class NodeElement extends ISelectableDraggableElement {
                 ) {
                     return VariableOperationNodeTemplate
                 }
-                switch (nodeEntity.FunctionReference.MemberName) {
+                switch (memberName) {
                     case "Abs":
                     case "Array_Add":
                     case "Array_Add":
                     case "Array_Identical":
                     case "BMax":
                     case "BMin":
+                    case "CrossProduct2D":
+                    case "DotProduct2D":
                     case "Exp":
                     case "FMax":
                     case "FMin":
+                    case "GetPI":
                     case "Max":
                     case "MaxInt64":
                     case "Min":
                     case "MinInt64":
                     case "Sqrt":
                     case "Square":
+                    case "Vector4_CrossProduct3":
+                    case "Vector4_DotProduct":
+                    case "Vector4_DotProduct3":
+                    // Trigonometry
+                    case "Acos":
+                    case "Asin":
+                    case "Cos":
+                    case "DegAcos":
+                    case "DegCos":
+                    case "DegSin":
+                    case "DegTan":
+                    case "Sin":
+                    case "Tan":
                         return VariableOperationNodeTemplate
                 }
             }

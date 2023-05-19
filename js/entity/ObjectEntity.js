@@ -681,6 +681,12 @@ export default class ObjectEntity extends IEntity {
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion nodes do not have visible names
                     }
+                    if (memberName.startsWith("Cross_")) {
+                        return "cross"
+                    }
+                    if (memberName.startsWith("Dot_")) {
+                        return "dot"
+                    }
                     if (memberName.startsWith("EqualEqual_")) {
                         return "=="
                     }
@@ -730,6 +736,13 @@ export default class ObjectEntity extends IEntity {
                         case "Not_PreBool": return "NOT"
                         case "Sqrt": return "SQRT"
                         case "Square": return "^2"
+                        // Dot products not respecting MemberName pattern
+                        case "CrossProduct2D": return "cross"
+                        case "Vector4_CrossProduct3": return "cross3"
+                        case "DotProduct2D":
+                        case "Vector4_DotProduct":
+                            return "dot"
+                        case "Vector4_DotProduct3": return "dot3"
                     }
                     break
                 case Configuration.paths.blueprintSetLibrary:
