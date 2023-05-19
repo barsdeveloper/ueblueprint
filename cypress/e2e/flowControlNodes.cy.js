@@ -191,6 +191,7 @@ const tests = [
         pinNames: ["Reset", "Is Random", "Loop", "Start Index", "Out 0", "Out 1"],
         delegate: false,
         development: false,
+        variadic: true,
     },
     {
         name: "Do Once",
@@ -335,6 +336,7 @@ const tests = [
         ],
         delegate: false,
         development: false,
+        variadic: true,
     },
     {
         name: "Switch on String",
@@ -362,6 +364,7 @@ const tests = [
         pinNames: ["Selection", "Case 0", "Case 1", "Case 2", "Default"],
         delegate: false,
         development: false,
+        variadic: true,
     },
     {
         name: "Switch on Gameplay Tag",
@@ -454,6 +457,7 @@ const tests = [
         pinNames: ["Selection", "Case 0", "Default"],
         delegate: false,
         development: false,
+        variadic: true,
     },
     {
         name: "Switch on ENiagaraOrientationAxis",

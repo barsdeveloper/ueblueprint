@@ -3599,14 +3599,41 @@ class ObjectEntity extends IEntity {
             switch (memberParent) {
                 case Configuration.paths.slateBlueprintLibrary:
                 case Configuration.paths.kismetMathLibrary:
+                    if (memberName.startsWith("And_")) {
+                        return "&"
+                    }
                     if (memberName.startsWith("Conv_")) {
                         return "" // Conversion nodes do not have visible names
+                    }
+                    if (memberName.startsWith("EqualEqual_")) {
+                        return "=="
+                    }
+                    if (memberName.startsWith("Greater_")) {
+                        return ">"
+                    }
+                    if (memberName.startsWith("GreaterEqual_")) {
+                        return ">="
+                    }
+                    if (memberName.startsWith("Less_")) {
+                        return "<"
+                    }
+                    if (memberName.startsWith("LessEqual_")) {
+                        return "<="
+                    }
+                    if (memberName.startsWith("Not_")) {
+                        return "~"
+                    }
+                    if (memberName.startsWith("NotEqual_")) {
+                        return "!="
+                    }
+                    if (memberName.startsWith("Or_")) {
+                        return "|"
                     }
                     if (memberName.startsWith("Percent_")) {
                         return "%"
                     }
-                    if (memberName.startsWith("EqualEqual_")) {
-                        return "=="
+                    if (memberName.startsWith("Xor_")) {
+                        return "^"
                     }
                     const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
                     if (leadingLetter) {
@@ -3615,12 +3642,16 @@ class ObjectEntity extends IEntity {
                     }
                     switch (memberName) {
                         case "Abs": return "ABS"
+                        case "BooleanAND": return "AND"
+                        case "BooleanNAND": return "NAND"
+                        case "BooleanOR": return "OR"
                         case "Exp": return "e"
                         case "LineTraceSingle": return "Line Trace By Channel"
                         case "Max": return "MAX"
                         case "MaxInt64": return "MAX"
                         case "Min": return "MIN"
                         case "MinInt64": return "MIN"
+                        case "Not_PreBool": return "NOT"
                         case "Sqrt": return "SQRT"
                         case "Square": return "^2"
                     }
@@ -3779,8 +3810,13 @@ class ObjectEntity extends IEntity {
         switch (this.getType()) {
             case Configuration.paths.commutativeAssociativeBinaryOperator:
                 switch (this.FunctionReference?.MemberName) {
+                    case "And_Int64Int64":
+                    case "And_IntInt":
                     case "BMax":
                     case "BMin":
+                    case "BooleanAND":
+                    case "BooleanNAND":
+                    case "BooleanOR":
                     case "Concat_StrStr":
                     case "FMax":
                     case "FMin":
@@ -3788,6 +3824,8 @@ class ObjectEntity extends IEntity {
                     case "MaxInt64":
                     case "Min":
                     case "MinInt64":
+                    case "Or_Int64Int64":
+                    case "Or_IntInt":
                         pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput());
                         pinIndexFromEntity ??= pinEntity =>
                             pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
@@ -8473,14 +8511,23 @@ class NodeElement extends ISelectableDraggableElement {
             || nodeEntity.getClass() === Configuration.paths.callArrayFunction
         ) {
             const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
+            const memberName = nodeEntity.FunctionReference?.MemberName;
             if (
-                memberParent === Configuration.paths.kismetMathLibrary
-                || memberParent === Configuration.paths.kismetArrayLibrary
-            ) {
-                if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
+                memberName && (
+                    memberParent === Configuration.paths.kismetMathLibrary
+                    || memberParent === Configuration.paths.kismetArrayLibrary
+                )) {
+                if (memberName.startsWith("Conv_")) {
                     return VariableConversionNodeTemplate
                 }
-                if (nodeEntity.FunctionReference.MemberName?.startsWith("Percent_")) {
+                if (
+                    memberName.startsWith("And_")
+                    || memberName.startsWith("Boolean") // Boolean logic operations
+                    || memberName.startsWith("Not_")
+                    || memberName.startsWith("Or_")
+                    || memberName.startsWith("Percent_")
+                    || memberName.startsWith("Xor_")
+                ) {
                     return VariableOperationNodeTemplate
                 }
                 switch (nodeEntity.FunctionReference.MemberName) {

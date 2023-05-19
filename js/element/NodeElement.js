@@ -106,14 +106,23 @@ export default class NodeElement extends ISelectableDraggableElement {
             || nodeEntity.getClass() === Configuration.paths.callArrayFunction
         ) {
             const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
+            const memberName = nodeEntity.FunctionReference?.MemberName
             if (
-                memberParent === Configuration.paths.kismetMathLibrary
-                || memberParent === Configuration.paths.kismetArrayLibrary
-            ) {
-                if (nodeEntity.FunctionReference.MemberName?.startsWith("Conv_")) {
+                memberName && (
+                    memberParent === Configuration.paths.kismetMathLibrary
+                    || memberParent === Configuration.paths.kismetArrayLibrary
+                )) {
+                if (memberName.startsWith("Conv_")) {
                     return VariableConversionNodeTemplate
                 }
-                if (nodeEntity.FunctionReference.MemberName?.startsWith("Percent_")) {
+                if (
+                    memberName.startsWith("And_")
+                    || memberName.startsWith("Boolean") // Boolean logic operations
+                    || memberName.startsWith("Not_")
+                    || memberName.startsWith("Or_")
+                    || memberName.startsWith("Percent_")
+                    || memberName.startsWith("Xor_")
+                ) {
                     return VariableOperationNodeTemplate
                 }
                 switch (nodeEntity.FunctionReference.MemberName) {

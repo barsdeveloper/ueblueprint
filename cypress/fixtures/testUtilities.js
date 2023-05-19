@@ -91,6 +91,16 @@ function generateNodeTest(nodeTest, getBlueprint) {
                 nodeTest.additionalTest(node)
             })
         }
+        if (nodeTest.variadic) {
+            it(
+                "Can add new pins",
+                () => {
+                    const variadic = /** @type {HTMLElement} */(node.querySelector(".ueb-node-variadic"))
+                    expect(variadic).to.not.be.undefined
+                    variadic.click()
+                    expect(node.querySelectorAll("ueb-pin")).to.be.lengthOf(nodeTest.pins + 1)
+                })
+        }
     })
 }
 
