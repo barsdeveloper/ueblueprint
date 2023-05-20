@@ -29,7 +29,7 @@ ueb-link>svg {
 ueb-link .ueb-link-area path {
     visibility: visible;
     stroke: var(--ueb-link-color);
-    stroke-width: calc(2px / var(--ueb-scale));
+    stroke-width: calc(1.5px / var(--ueb-scale));
 }
 
 ueb-link[data-dragging="true"] .ueb-link-area path,

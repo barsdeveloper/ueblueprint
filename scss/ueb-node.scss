@@ -137,10 +137,14 @@ ueb-node.ueb-node-style-event .ueb-node-top {
 .ueb-node-name {
     display: flex;
     align-items: center;
-    justify-content: center;
     background: radial-gradient(ellipse 100% 100% at 40% 50%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
     margin: -1px -15px;
     padding: 2px 15px;
+    line-height: 120%;
+}
+
+.ueb-node-style-setter .ueb-node-name {
+    justify-content: center;
 }
 
 .ueb-node-name:last-child {
@@ -172,6 +176,7 @@ ueb-node[data-pure-function="true"] .ueb-node-name-symbol {
 }
 
 .ueb-node-subtitle-text {
+    padding-top: 1px;
     padding-right: 5px;
     font-weight: 100;
     font-style: italic;
