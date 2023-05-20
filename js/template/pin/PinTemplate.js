@@ -37,6 +37,18 @@ export default class PinTemplate extends ITemplate {
 
     isNameRendered = true
 
+    /** @param {PinElement<T>} element */
+    initialize(element) {
+        super.initialize(element)
+        if (this.element.nodeElement) {
+            const nodeTemplate = this.element.nodeElement.template
+            this.isNameRendered = !(
+                nodeTemplate instanceof VariableConversionNodeTemplate
+                || nodeTemplate instanceof VariableOperationNodeTemplate
+            )
+        }
+    }
+
     setup() {
         super.setup()
         this.element.nodeElement = this.element.closest("ueb-node")

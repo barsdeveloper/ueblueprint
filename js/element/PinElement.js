@@ -151,16 +151,15 @@ export default class PinElement extends IElement {
         template = new (PinElement.getTypeTemplate(entity))(),
         nodeElement = undefined
     ) {
+        this.nodeElement = nodeElement
+        this.advancedView = entity.bAdvancedView
+        this.isLinked = false
+        this.connectable = !entity.bNotConnectable
         super.initialize(entity, template)
-        this.pinId = this.entity.PinId
         this.pinType = this.entity.getType()
-        this.advancedView = this.entity.bAdvancedView
         this.defaultValue = this.entity.getDefaultValue()
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString())
-        this.isLinked = false
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden"
-        this.nodeElement = /** @type {NodeElement} */(nodeElement)
-        this.connectable = !entity.bNotConnectable
     }
 
     setup() {

@@ -3660,7 +3660,7 @@ class ObjectEntity extends IEntity {
                         case "Not_PreBool": return "NOT"
                         case "Sqrt": return "SQRT"
                         case "Square": return "^2"
-                        // Dot products not repecting MemberName pattern
+                        // Dot products not respecting MemberName pattern
                         case "CrossProduct2D": return "cross"
                         case "Vector4_CrossProduct3": return "cross3"
                         case "DotProduct2D":
@@ -8069,6 +8069,18 @@ class PinTemplate extends ITemplate {
 
     isNameRendered = true
 
+    /** @param {PinElement<T>} element */
+    initialize(element) {
+        super.initialize(element);
+        if (this.element.nodeElement) {
+            const nodeTemplate = this.element.nodeElement.template;
+            this.isNameRendered = !(
+                nodeTemplate instanceof VariableConversionNodeTemplate
+                || nodeTemplate instanceof VariableOperationNodeTemplate
+            );
+        }
+    }
+
     setup() {
         super.setup();
         this.element.nodeElement = this.element.closest("ueb-node");
@@ -10766,16 +10778,15 @@ class PinElement extends IElement {
         template = new (PinElement.getTypeTemplate(entity))(),
         nodeElement = undefined
     ) {
+        this.nodeElement = nodeElement;
+        this.advancedView = entity.bAdvancedView;
+        this.isLinked = false;
+        this.connectable = !entity.bNotConnectable;
         super.initialize(entity, template);
-        this.pinId = this.entity.PinId;
         this.pinType = this.entity.getType();
-        this.advancedView = this.entity.bAdvancedView;
         this.defaultValue = this.entity.getDefaultValue();
         this.color = PinElement.properties.color.converter.fromAttribute(this.getColor().toString());
-        this.isLinked = false;
         this.pinDirection = entity.isInput() ? "input" : entity.isOutput() ? "output" : "hidden";
-        this.nodeElement = /** @type {NodeElement} */(nodeElement);
-        this.connectable = !entity.bNotConnectable;
     }
 
     setup() {
