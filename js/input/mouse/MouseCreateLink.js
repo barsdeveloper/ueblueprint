@@ -44,6 +44,9 @@ export default class MouseCreateLink extends IMouseClickDrag {
             } else if (outputPin.entity.getType() === "exec" && outputPin.isLinked) {
                 this.link.setMessageReplaceOutputLink()
                 this.linkValid = true
+            } else if (a.pinType != b.pinType) {
+                this.link.setMessageTypesIncompatible(a, b)
+                this.linkValid = false
             } else {
                 this.link.setMessageCorrect()
                 this.linkValid = true

@@ -379,7 +379,7 @@ export default class Utility {
     static formatStringName(value = "") {
         return value
             // Remove leading b (for boolean values) or newlines
-            .replace(/^\s*b/, "")
+            .replace(/^\s*b(?=[A-Z])/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
             .replaceAll(Configuration.nameRegexSpaceReplacement, " ")
             .trim()

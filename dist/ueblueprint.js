@@ -965,7 +965,7 @@ class Utility {
     static formatStringName(value = "") {
         return value
             // Remove leading b (for boolean values) or newlines
-            .replace(/^\s*b/, "")
+            .replace(/^\s*b(?=[A-Z])/, "")
             // Insert a space where needed, possibly removing unnecessary elading characters
             .replaceAll(Configuration.nameRegexSpaceReplacement, " ")
             .trim()
@@ -2592,6 +2592,15 @@ class SVGIcon {
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
             <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
+        </svg>
+    `
+
+    static convert = x`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#3e7fbc" d="M 4 0 H 16 V 32 H 4 L 0 28 V 4 Z" />
+            <path fill="#bdd6ef" d="M 2 8 H 14 V 30 H 4 L 2 28 Z" />
+            <path fill="#bc3e4a" d="M 16 0 H 28 L 32 4 V 28 L 28 32 H 16 Z" />
+            <path fill="#efbdc1" d="M 18 8 H 30 V 27 L 27 30 H 18 Z" />
         </svg>
     `
 
@@ -7045,8 +7054,8 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     setMessageConvertType() {
-        this.linkMessageIcon = "ueb-icon-conver-type";
-        this.linkMessageText = `Convert ${this.source.pinType} to ${this.destination.pinType}.`;
+        this.linkMessageIcon = SVGIcon.convert;
+        this.linkMessageText = x`Convert ${this.source.pinType} to ${this.destination.pinType}.`;
     }
 
     setMessageCorrect() {
@@ -7065,7 +7074,7 @@ class LinkElement extends IFromToPositionedElement {
     }
 
     setMessagePlaceNode() {
-        this.linkMessageIcon = "ueb-icon-place-node";
+        this.linkMessageIcon = A;
         this.linkMessageText = x`Place a new node.`;
     }
 
@@ -7084,9 +7093,14 @@ class LinkElement extends IFromToPositionedElement {
         this.linkMessageText = x`Both are on the same node.`;
     }
 
-    setMEssagetypesIncompatible() {
+    /**
+     * @param {PinElement} a
+     * @param {PinElement} b
+     */
+    setMessageTypesIncompatible(a, b) {
         this.linkMessageIcon = SVGIcon.reject;
-        this.linkMessageText = x`${this.source.pinType} is not compatible with ${this.destination.pinType}.`;
+        this.linkMessageText =
+            x`${Utility.capitalFirstLetter(a.pinType)} is not compatible with ${Utility.capitalFirstLetter(b.pinType)}.`;
     }
 }
 
@@ -7872,6 +7886,9 @@ class MouseCreateLink extends IMouseClickDrag {
             } else if (outputPin.entity.getType() === "exec" && outputPin.isLinked) {
                 this.link.setMessageReplaceOutputLink();
                 this.linkValid = true;
+            } else if (a.pinType != b.pinType) {
+                this.link.setMessageTypesIncompatible(a, b);
+                this.linkValid = false;
             } else {
                 this.link.setMessageCorrect();
                 this.linkValid = true;

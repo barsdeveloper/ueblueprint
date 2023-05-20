@@ -51,6 +51,15 @@ export default class SVGIcon {
         </svg>
     `
 
+    static convert = html`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#3e7fbc" d="M 4 0 H 16 V 32 H 4 L 0 28 V 4 Z" />
+            <path fill="#bdd6ef" d="M 2 8 H 14 V 30 H 4 L 2 28 Z" />
+            <path fill="#bc3e4a" d="M 16 0 H 28 L 32 4 V 28 L 28 32 H 16 Z" />
+            <path fill="#efbdc1" d="M 18 8 H 30 V 27 L 27 30 H 18 Z" />
+        </svg>
+    `
+
     static correct = html`
         <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <path fill="#2da800" d="M 2 16 L 14 30 L 30 2 L 13 22 Z" />

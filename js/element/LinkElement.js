@@ -255,8 +255,8 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     setMessageConvertType() {
-        this.linkMessageIcon = "ueb-icon-conver-type"
-        this.linkMessageText = `Convert ${this.source.pinType} to ${this.destination.pinType}.`
+        this.linkMessageIcon = SVGIcon.convert
+        this.linkMessageText = html`Convert ${this.source.pinType} to ${this.destination.pinType}.`
     }
 
     setMessageCorrect() {
@@ -275,7 +275,7 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     setMessagePlaceNode() {
-        this.linkMessageIcon = "ueb-icon-place-node"
+        this.linkMessageIcon = nothing
         this.linkMessageText = html`Place a new node.`
     }
 
@@ -294,8 +294,13 @@ export default class LinkElement extends IFromToPositionedElement {
         this.linkMessageText = html`Both are on the same node.`
     }
 
-    setMEssagetypesIncompatible() {
+    /**
+     * @param {PinElement} a
+     * @param {PinElement} b
+     */
+    setMessageTypesIncompatible(a, b) {
         this.linkMessageIcon = SVGIcon.reject
-        this.linkMessageText = html`${this.source.pinType} is not compatible with ${this.destination.pinType}.`
+        this.linkMessageText =
+            html`${Utility.capitalFirstLetter(a.pinType)} is not compatible with ${Utility.capitalFirstLetter(b.pinType)}.`
     }
 }
