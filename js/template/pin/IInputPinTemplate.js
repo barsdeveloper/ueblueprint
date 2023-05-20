@@ -58,7 +58,7 @@ export default class IInputPinTemplate extends PinTemplate {
         if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
             this.element.addEventListener("input", this.#checkWrapHandler)
             this.nameWidth = this.blueprint.scaleCorrect(
-                this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width
+                this.element.querySelector(".ueb-pin-name")?.getBoundingClientRect().width ?? 0
             )
         }
         this.#inputWrapper = this.element.querySelector(".ueb-pin-input-wrapper")

@@ -316,6 +316,7 @@ ueb-node[data-selected=true] > .ueb-node-border {
 
 .ueb-node-style-operation .ueb-node-wrapper {
   grid-template-rows: min-content auto auto min-content min-content;
+  grid-template-columns: 50% 0% 1fr;
 }
 
 .ueb-node-outputs ueb-pin[data-type=exec] .ueb-pin-wrapper {
@@ -380,6 +381,7 @@ ueb-node.ueb-node-style-event .ueb-node-top {
 .ueb-node-name {
   display: flex;
   align-items: center;
+  justify-content: center;
   background: radial-gradient(ellipse 100% 100% at 40% 50%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
   margin: -1px -15px;
   padding: 2px 15px;
@@ -434,9 +436,8 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
   padding-right: 10px;
 }
 
-.ueb-node-has-inputs .ueb-node-outputs,
-.ueb-node-has-inputs .ueb-node-variadic {
-  padding-left: 25px;
+.ueb-node-has-inputs .ueb-node-inputs {
+  padding-right: 30px;
 }
 
 .ueb-node-variadic {
@@ -541,7 +542,7 @@ ueb-node.ueb-node-style-operation .ueb-node-top {
   grid-area: center;
   align-self: center;
   justify-self: center;
-  padding: 0 5px;
+  padding: 0;
   font-size: 28px;
   font-stretch: condensed;
   font-weight: bold;

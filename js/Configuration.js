@@ -199,7 +199,7 @@ export default class Configuration {
         "wildcard": css`128, 120, 120`,
     }
     static pinColorMaterial = css`120, 120, 120`
-    static pinInputWrapWidth = 147 // px
+    static pinInputWrapWidth = 135 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,

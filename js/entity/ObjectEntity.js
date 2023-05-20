@@ -675,6 +675,33 @@ export default class ObjectEntity extends IEntity {
             switch (memberParent) {
                 case Configuration.paths.slateBlueprintLibrary:
                 case Configuration.paths.kismetMathLibrary:
+                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
+                    if (leadingLetter) {
+                        // Some functions start with B or F (Like FCeil, FMax, BMin)
+                        memberName = leadingLetter[1]
+                    }
+                    switch (memberName) {
+                        case "Abs": return "ABS"
+                        case "BooleanAND": return "AND"
+                        case "BooleanNAND": return "NAND"
+                        case "BooleanOR": return "OR"
+                        case "Exp": return "e"
+                        case "LineTraceSingle": return "Line Trace By Channel"
+                        case "Max": return "MAX"
+                        case "MaxInt64": return "MAX"
+                        case "Min": return "MIN"
+                        case "MinInt64": return "MIN"
+                        case "Not_PreBool": return "NOT"
+                        case "Sqrt": return "SQRT"
+                        case "Square": return "^2"
+                        // Dot products not respecting MemberName pattern
+                        case "CrossProduct2D": return "cross"
+                        case "Vector4_CrossProduct3": return "cross3"
+                        case "DotProduct2D":
+                        case "Vector4_DotProduct":
+                            return "dot"
+                        case "Vector4_DotProduct3": return "dot3"
+                    }
                     if (memberName.startsWith("And_")) {
                         return "&"
                     }
@@ -716,33 +743,6 @@ export default class ObjectEntity extends IEntity {
                     }
                     if (memberName.startsWith("Xor_")) {
                         return "^"
-                    }
-                    const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
-                    if (leadingLetter) {
-                        // Some functions start with B or F (Like FCeil, FMax, BMin)
-                        memberName = leadingLetter[1]
-                    }
-                    switch (memberName) {
-                        case "Abs": return "ABS"
-                        case "BooleanAND": return "AND"
-                        case "BooleanNAND": return "NAND"
-                        case "BooleanOR": return "OR"
-                        case "Exp": return "e"
-                        case "LineTraceSingle": return "Line Trace By Channel"
-                        case "Max": return "MAX"
-                        case "MaxInt64": return "MAX"
-                        case "Min": return "MIN"
-                        case "MinInt64": return "MIN"
-                        case "Not_PreBool": return "NOT"
-                        case "Sqrt": return "SQRT"
-                        case "Square": return "^2"
-                        // Dot products not respecting MemberName pattern
-                        case "CrossProduct2D": return "cross"
-                        case "Vector4_CrossProduct3": return "cross3"
-                        case "DotProduct2D":
-                        case "Vector4_DotProduct":
-                            return "dot"
-                        case "Vector4_DotProduct3": return "dot3"
                     }
                     break
                 case Configuration.paths.blueprintSetLibrary:
