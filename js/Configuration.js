@@ -37,7 +37,7 @@ export default class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = css`12.5px`
+    static fontSize = css`13px`
     static gridAxisLineColor = css`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = css`#353535`
@@ -80,7 +80,7 @@ export default class Configuration {
     static minZoom = -12
     static mouseClickButton = 0
     static mouseRightClickButton = 2
-    static mouseWheelFactor = 0.2
+    static mouseWheelZoomThreshold = 80
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeName = (name, counter) => `${name}_${counter}`
@@ -199,7 +199,7 @@ export default class Configuration {
         "wildcard": css`128, 120, 120`,
     }
     static pinColorMaterial = css`120, 120, 120`
-    static pinInputWrapWidth = 135 // px
+    static pinInputWrapWidth = 143 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,

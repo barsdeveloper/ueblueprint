@@ -496,6 +496,7 @@ export default class ObjectEntity extends IEntity {
 
     isEvent() {
         switch (this.getClass()) {
+            case Configuration.paths.componentBoundEvent:
             case Configuration.paths.customEvent:
             case Configuration.paths.event:
             case Configuration.paths.inputAxisKeyEvent:

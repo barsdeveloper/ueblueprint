@@ -207,16 +207,21 @@ ueb-link > svg {
   z-index: 1;
 }
 
-ueb-link .ueb-link-area path {
+ueb-link .ueb-link-path {
   visibility: visible;
   stroke: var(--ueb-link-color);
   stroke-width: calc(1.5px / var(--ueb-scale));
+  transition: stroke-width 0.8s;
 }
 
-ueb-link[data-dragging=true] .ueb-link-area path,
-ueb-link .ueb-link-area:hover path {
+ueb-link .ueb-link-area {
+  visibility: visible;
+  stroke-width: 20px;
+}
+
+ueb-link[data-dragging=true] .ueb-link-path,
+.ueb-link-area:hover ~ .ueb-link-path {
   stroke-width: calc(6px / var(--ueb-scale));
-  transition: stroke-width 0.8s;
 }
 
 ueb-link[data-dragging=true] .ueb-link-message {
@@ -346,9 +351,14 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node.ueb-node-styl
 .ueb-node-top {
   grid-area: top;
   color: #d0d0d0;
-  font-size: calc(var(--ueb-font-size) + 0.5px);
+  font-size: var(--ueb-font-size);
   font-weight: 600;
+  line-height: 120%;
   white-space: nowrap;
+}
+
+ueb-node.ueb-node-style-setter .ueb-node-top {
+  max-height: 5px;
 }
 
 ueb-node.ueb-node-style-comment .ueb-node-top {
@@ -383,7 +393,6 @@ ueb-node.ueb-node-style-event .ueb-node-top {
   background: radial-gradient(ellipse 100% 100% at 40% 50%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
   margin: -1px -15px;
   padding: 2px 15px;
-  line-height: 120%;
 }
 
 .ueb-node-style-setter .ueb-node-name {
@@ -669,6 +678,7 @@ ueb-node.ueb-node-style-minimal .ueb-pin-wrapper {
 
 .ueb-node-top .ueb-pin-wrapper {
   padding: 2px 4px 2px 10px;
+  min-height: 0;
 }
 
 ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover {
@@ -755,12 +765,12 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-dir
 }
 
 .ueb-pin-input-wrapper {
-  display: flex;
+  display: inline-flex;
   padding-left: 8px;
 }
 
 .ueb-pin-input {
-  margin-left: 6px;
+  margin-left: 5px;
   border: 1px solid #a0a0a0;
   border-radius: 3px;
   padding: 0 4px 0 4px;
@@ -819,6 +829,7 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
   min-width: 10px;
   max-width: 400px;
   max-height: 16em;
+  font-size: 12.6px;
   background: none;
   color: inherit;
   overflow: auto;

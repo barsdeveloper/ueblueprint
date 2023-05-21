@@ -174,10 +174,9 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     render() {
         return html`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <g class="ueb-link-area">
-                    <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
-                    <use href="#${this.#uniqueId}" pointer-events="stroke" stroke-width="20" />
-                </g>
+                <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
+                <use href="#${this.#uniqueId}" class="ueb-link-area" pointer-events="all" />
+                <use href="#${this.#uniqueId}" class="ueb-link-path" pointer-events="none" />
             </svg>
             ${this.element.linkMessageIcon || this.element.linkMessageText ? html`
                 <div class="ueb-link-message">

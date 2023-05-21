@@ -99,9 +99,14 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] ueb-node.ueb-node-
 .ueb-node-top {
     grid-area: top;
     color: #d0d0d0;
-    font-size: calc(var(--ueb-font-size) + 0.5px);
+    font-size: var(--ueb-font-size);
     font-weight: 600;
+    line-height: 120%;
     white-space: nowrap;
+}
+
+ueb-node.ueb-node-style-setter .ueb-node-top {
+    max-height: 5px;
 }
 
 ueb-node.ueb-node-style-comment .ueb-node-top {
@@ -140,7 +145,6 @@ ueb-node.ueb-node-style-event .ueb-node-top {
     background: radial-gradient(ellipse 100% 100% at 40% 50%, rgba(0, 0, 0, 0.5) 20%, transparent 50%);
     margin: -1px -15px;
     padding: 2px 15px;
-    line-height: 120%;
 }
 
 .ueb-node-style-setter .ueb-node-name {

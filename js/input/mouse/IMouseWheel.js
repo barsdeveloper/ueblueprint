@@ -1,4 +1,3 @@
-import Configuration from "../../Configuration.js"
 import IPointing from "./IPointing.js"
 
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
@@ -9,7 +8,7 @@ export default class IMouseWheel extends IPointing {
     #mouseWheelHandler = e => {
         e.preventDefault()
         const location = this.locationFromEvent(e)
-        this.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location)
+        this.wheel(e.deltaY, location)
     }
 
     /** @param {WheelEvent} e */

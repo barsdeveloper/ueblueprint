@@ -49,6 +49,7 @@ ueb-node.ueb-node-style-minimal .ueb-pin-wrapper {
 
 .ueb-node-top .ueb-pin-wrapper {
     padding: 2px 4px 2px 10px;
+    min-height: 0;
 }
 
 ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:hover {
@@ -140,12 +141,12 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-dir
 }
 
 .ueb-pin-input-wrapper {
-    display: flex;
+    display: inline-flex;
     padding-left: 8px;
 }
 
 .ueb-pin-input {
-    margin-left: 6px;
+    margin-left: 5px;
     border: 1px solid #a0a0a0;
     border-radius: 3px;
     padding: 0 4px 0 4px;
@@ -208,6 +209,7 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     min-width: 10px;
     max-width: 400px;
     max-height: 16em;
+    font-size: 12.6px;
     background: none;
     color: inherit;
     overflow: auto;

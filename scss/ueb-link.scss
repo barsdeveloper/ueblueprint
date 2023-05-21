@@ -26,16 +26,21 @@ ueb-link>svg {
     z-index: 1;
 }
 
-ueb-link .ueb-link-area path {
+ueb-link .ueb-link-path {
     visibility: visible;
     stroke: var(--ueb-link-color);
     stroke-width: calc(1.5px / var(--ueb-scale));
+    transition: stroke-width 0.8s;
 }
 
-ueb-link[data-dragging="true"] .ueb-link-area path,
-ueb-link .ueb-link-area:hover path {
+ueb-link .ueb-link-area {
+    visibility: visible;
+    stroke-width: 20px;
+}
+
+ueb-link[data-dragging="true"] .ueb-link-path,
+.ueb-link-area:hover~.ueb-link-path {
     stroke-width: calc(6px / var(--ueb-scale));
-    transition: stroke-width 0.8s;
 }
 
 ueb-link[data-dragging="true"] .ueb-link-message {

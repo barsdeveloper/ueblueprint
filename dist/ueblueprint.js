@@ -61,7 +61,7 @@ class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = i$3`12.5px`
+    static fontSize = i$3`13px`
     static gridAxisLineColor = i$3`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = i$3`#353535`
@@ -104,7 +104,7 @@ class Configuration {
     static minZoom = -12
     static mouseClickButton = 0
     static mouseRightClickButton = 2
-    static mouseWheelFactor = 0.2
+    static mouseWheelZoomThreshold = 80
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragGeneralEventName = "ueb-node-drag-general"
     static nodeName = (name, counter) => `${name}_${counter}`
@@ -223,7 +223,7 @@ class Configuration {
         "wildcard": i$3`128, 120, 120`,
     }
     static pinColorMaterial = i$3`120, 120, 120`
-    static pinInputWrapWidth = 135 // px
+    static pinInputWrapWidth = 143 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
@@ -3429,6 +3429,7 @@ class ObjectEntity extends IEntity {
 
     isEvent() {
         switch (this.getClass()) {
+            case Configuration.paths.componentBoundEvent:
             case Configuration.paths.customEvent:
             case Configuration.paths.event:
             case Configuration.paths.inputAxisKeyEvent:
@@ -5336,7 +5337,7 @@ class IMouseWheel extends IPointing {
     #mouseWheelHandler = e => {
         e.preventDefault();
         const location = this.locationFromEvent(e);
-        this.wheel(Math.sign(e.deltaY * Configuration.mouseWheelFactor), location);
+        this.wheel(e.deltaY, location);
     }
 
     /** @param {WheelEvent} e */
@@ -5371,6 +5372,8 @@ class IMouseWheel extends IPointing {
 
 class Zoom extends IMouseWheel {
 
+    #accumulatedVariation = 0
+
     #enableZoonIn = false
     get enableZoonIn() {
         return this.#enableZoonIn
@@ -5383,12 +5386,18 @@ class Zoom extends IMouseWheel {
     }
 
     wheel(variation, location) {
+        this.#accumulatedVariation += -variation;
+        variation = this.#accumulatedVariation;
+        if (Math.abs(this.#accumulatedVariation) < Configuration.mouseWheelZoomThreshold) {
+            return
+        } else {
+            this.#accumulatedVariation = 0;
+        }
         let zoomLevel = this.blueprint.getZoom();
-        variation = -variation;
         if (!this.enableZoonIn && zoomLevel == 0 && variation > 0) {
             return
         }
-        zoomLevel += variation;
+        zoomLevel += Math.sign(variation);
         this.blueprint.setZoom(zoomLevel, location);
     }
 }
@@ -6785,10 +6794,9 @@ class LinkTemplate extends IFromToPositionedTemplate {
     render() {
         return x`
             <svg version="1.2" baseProfile="tiny" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <g class="ueb-link-area">
-                    <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
-                    <use href="#${this.#uniqueId}" pointer-events="stroke" stroke-width="20" />
-                </g>
+                <path id="${this.#uniqueId}" fill="none" vector-effect="non-scaling-stroke" d="${this.element.svgPathD}" />
+                <use href="#${this.#uniqueId}" class="ueb-link-area" pointer-events="all" />
+                <use href="#${this.#uniqueId}" class="ueb-link-path" pointer-events="none" />
             </svg>
             ${this.element.linkMessageIcon || this.element.linkMessageText ? x`
                 <div class="ueb-link-message">
