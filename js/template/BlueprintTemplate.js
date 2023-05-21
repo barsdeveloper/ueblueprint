@@ -77,6 +77,7 @@ export default class BlueprintTemplate extends ITemplate {
                     Math.round(this.viewportSize[1] / 2),
                 ]
                 this.getPasteInputObject().pasted(htmlTemplate)
+                this.blueprint.unselectAll()
             })
         }
     }

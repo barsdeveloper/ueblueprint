@@ -6227,6 +6227,7 @@ class BlueprintTemplate extends ITemplate {
                     Math.round(this.viewportSize[1] / 2),
                 ];
                 this.getPasteInputObject().pasted(htmlTemplate);
+                this.blueprint.unselectAll();
             });
         }
     }
@@ -7894,7 +7895,10 @@ class MouseCreateLink extends IMouseClickDrag {
             } else if (outputPin.entity.getType() === "exec" && outputPin.isLinked) {
                 this.link.setMessageReplaceOutputLink();
                 this.linkValid = true;
-            } else if (a.pinType != b.pinType) {
+            } else if (
+                (a.entity.PinType.PinCategory != "object" || b.entity.PinType.PinCategory != "object")
+                && a.pinType != b.pinType
+            ) {
                 this.link.setMessageTypesIncompatible(a, b);
                 this.linkValid = false;
             } else {
