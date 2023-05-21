@@ -676,6 +676,7 @@ export default class ObjectEntity extends IEntity {
             switch (memberParent) {
                 case Configuration.paths.slateBlueprintLibrary:
                 case Configuration.paths.kismetMathLibrary:
+                case Configuration.paths.timeManagementBlueprintLibrary:
                     const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
                     if (leadingLetter) {
                         // Some functions start with B or F (Like FCeil, FMax, BMin)
@@ -703,6 +704,9 @@ export default class ObjectEntity extends IEntity {
                             return "dot"
                         case "Vector4_DotProduct3": return "dot3"
                     }
+                    if (memberName.startsWith("Add_")) {
+                        return "+"
+                    }
                     if (memberName.startsWith("And_")) {
                         return "&"
                     }
@@ -729,6 +733,9 @@ export default class ObjectEntity extends IEntity {
                     }
                     if (memberName.startsWith("LessEqual_")) {
                         return "<="
+                    }
+                    if (memberName.startsWith("Multiply_")) {
+                        return String.fromCharCode(0x2a2f)
                     }
                     if (memberName.startsWith("Not_")) {
                         return "~"
@@ -899,7 +906,15 @@ export default class ObjectEntity extends IEntity {
         let pinNameFromIndex
         switch (this.getType()) {
             case Configuration.paths.commutativeAssociativeBinaryOperator:
+            case Configuration.paths.promotableOperator:
                 switch (this.FunctionReference?.MemberName) {
+                    default:
+                        if (
+                            !this.FunctionReference?.MemberName?.startsWith("Multiply_")
+                            && !this.FunctionReference?.MemberName?.startsWith("Add_")
+                        ) {
+                            break
+                        }
                     case "And_Int64Int64":
                     case "And_IntInt":
                     case "BMax":

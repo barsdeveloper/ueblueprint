@@ -165,6 +165,7 @@ export default class Configuration {
         switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
         switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
         timeline: "/Script/BlueprintGraph.K2Node_Timeline",
+        timeManagementBlueprintLibrary: "/Script/TimeManagement.TimeManagementBlueprintLibrary",
         transform: "/Script/CoreUObject.Transform",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",

@@ -3,9 +3,7 @@ import INumericPinTemplate from "./INumericPinTemplate.js"
 import Utility from "../../Utility.js"
 import VectorEntity from "../../entity/VectorEntity.js"
 
-/**
- * @extends INumericPinTemplate<VectorEntity>
- */
+/** @extends INumericPinTemplate<VectorEntity> */
 export default class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {

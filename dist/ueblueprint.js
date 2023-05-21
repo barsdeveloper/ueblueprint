@@ -189,6 +189,7 @@ class Configuration {
         switchName: "/Script/BlueprintGraph.K2Node_SwitchName",
         switchString: "/Script/BlueprintGraph.K2Node_SwitchString",
         timeline: "/Script/BlueprintGraph.K2Node_Timeline",
+        timeManagementBlueprintLibrary: "/Script/TimeManagement.TimeManagementBlueprintLibrary",
         transform: "/Script/CoreUObject.Transform",
         userDefinedEnum: "/Script/Engine.UserDefinedEnum",
         variableGet: "/Script/BlueprintGraph.K2Node_VariableGet",
@@ -3609,6 +3610,7 @@ class ObjectEntity extends IEntity {
             switch (memberParent) {
                 case Configuration.paths.slateBlueprintLibrary:
                 case Configuration.paths.kismetMathLibrary:
+                case Configuration.paths.timeManagementBlueprintLibrary:
                     const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
                     if (leadingLetter) {
                         // Some functions start with B or F (Like FCeil, FMax, BMin)
@@ -3636,6 +3638,9 @@ class ObjectEntity extends IEntity {
                             return "dot"
                         case "Vector4_DotProduct3": return "dot3"
                     }
+                    if (memberName.startsWith("Add_")) {
+                        return "+"
+                    }
                     if (memberName.startsWith("And_")) {
                         return "&"
                     }
@@ -3662,6 +3667,9 @@ class ObjectEntity extends IEntity {
                     }
                     if (memberName.startsWith("LessEqual_")) {
                         return "<="
+                    }
+                    if (memberName.startsWith("Multiply_")) {
+                        return String.fromCharCode(0x2a2f)
                     }
                     if (memberName.startsWith("Not_")) {
                         return "~"
@@ -3832,7 +3840,15 @@ class ObjectEntity extends IEntity {
         let pinNameFromIndex;
         switch (this.getType()) {
             case Configuration.paths.commutativeAssociativeBinaryOperator:
+            case Configuration.paths.promotableOperator:
                 switch (this.FunctionReference?.MemberName) {
+                    default:
+                        if (
+                            !this.FunctionReference?.MemberName?.startsWith("Multiply_")
+                            && !this.FunctionReference?.MemberName?.startsWith("Add_")
+                        ) {
+                            break
+                        }
                     case "And_Int64Int64":
                     case "And_IntInt":
                     case "BMax":
@@ -9761,7 +9777,8 @@ class IInputPinTemplate extends PinTemplate {
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
-        if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+        const Self = /** @type {typeof IInputPinTemplate} */(this.constructor);
+        if (Self.canWrapInput) {
             this.element.addEventListener("input", this.#checkWrapHandler);
             this.nameWidth = this.blueprint.scaleCorrect(
                 this.element.querySelector(".ueb-pin-name")?.getBoundingClientRect().width ?? 0
@@ -9779,7 +9796,7 @@ class IInputPinTemplate extends PinTemplate {
         } else {
             this.element.addEventListener("focusout", this.#setInput);
         }
-        if (/** @type {typeof IInputPinTemplate} */(this.constructor).canWrapInput) {
+        if (Self.canWrapInput) {
             this.element.addEventListener("input", this.#checkWrapHandler);
             this.element.nodeElement.addEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler);
         }
@@ -10626,9 +10643,7 @@ class VectorInputPinTemplate extends INumericPinTemplate {
     }
 }
 
-/**
- * @extends INumericPinTemplate<VectorEntity>
- */
+/** @extends INumericPinTemplate<VectorEntity> */
 class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {

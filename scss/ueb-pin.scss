@@ -141,7 +141,7 @@ ueb-node[data-type="/Script/BlueprintGraph.K2Node_VariableSet"] ueb-pin[data-dir
 }
 
 .ueb-pin-input-wrapper {
-    display: inline-flex;
+    display: flex;
     padding-left: 8px;
 }
 
@@ -209,7 +209,8 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     min-width: 10px;
     max-width: 400px;
     max-height: 16em;
-    font-size: 12.6px;
+    /* 0.96923 is to get an effective font size of 12.6px from --ueb-font-size which is 13 px */
+    font-size: calc(0.96923 * var(--ueb-font-size));
     white-space: nowrap;
     background: none;
     color: inherit;
