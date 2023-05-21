@@ -89,6 +89,7 @@ export default class Configuration {
     static paths = {
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
         ambientSound: "/Script/Engine.AmbientSound",
+        asyncAction: "/Script/BlueprintGraph.K2Node_AsyncAction",
         blueprint: "/Script/Engine.Blueprint",
         blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
         blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",

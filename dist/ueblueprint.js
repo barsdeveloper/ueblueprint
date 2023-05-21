@@ -113,6 +113,7 @@ class Configuration {
     static paths = {
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
         ambientSound: "/Script/Engine.AmbientSound",
+        asyncAction: "/Script/BlueprintGraph.K2Node_AsyncAction",
         blueprint: "/Script/Engine.Blueprint",
         blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
         blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
@@ -3067,6 +3068,15 @@ class ObjectEntity extends IEntity {
         bColorCommentBubble: {
             type: Boolean,
         },
+        ProxyFactoryFunctionName: {
+            type: String,
+        },
+        ProxyFactoryClass: {
+            type: ObjectReferenceEntity,
+        },
+        ProxyClass: {
+            type: ObjectReferenceEntity,
+        },
         R: {
             type: Number,
         },
@@ -3256,6 +3266,9 @@ class ObjectEntity extends IEntity {
         /** @type {LinearColorEntity?} */ this.CommentColor;
         /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel;
         /** @type {Boolean?} */ this.bColorCommentBubble;
+        /** @type {String?} */ this.ProxyFactoryFunctionName;
+        /** @type {ObjectReferenceEntity?} */ this.ProxyFactoryClass;
+        /** @type {ObjectReferenceEntity?} */ this.ProxyClass;
         /** @type {Number?} */ this.R;
         /** @type {Number?} */ this.G;
         /** @type {ObjectReferenceEntity?} */ this.MaterialExpression;
@@ -3479,6 +3492,10 @@ class ObjectEntity extends IEntity {
     nodeDisplayName() {
         let input;
         switch (this.getType()) {
+            case Configuration.paths.asyncAction:
+                if (this.ProxyFactoryFunctionName) {
+                    return Utility.formatStringName(this.ProxyFactoryFunctionName)
+                }
             case Configuration.paths.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
             case Configuration.paths.createDelegate:
@@ -3764,6 +3781,7 @@ class ObjectEntity extends IEntity {
 
     nodeIcon() {
         switch (this.getType()) {
+            case Configuration.paths.asyncAction:
             case Configuration.paths.addDelegate:
             case Configuration.paths.createDelegate:
             case Configuration.paths.functionEntry:

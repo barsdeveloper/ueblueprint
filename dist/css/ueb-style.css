@@ -1,17 +1,7 @@
 @font-face {
   font-family: "Roboto";
-  font-weight: lighter;
-  src: url("../font/roboto-light.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Roboto";
   font-weight: normal;
   src: url("../font/roboto-regular.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Roboto";
-  font-weight: bold;
-  src: url("../font/roboto-bold.woff2") format("woff2");
 }
 @font-face {
   font-family: "Roboto";
@@ -329,8 +319,9 @@ ueb-node[data-selected=true] > .ueb-node-border {
   min-height: 26px;
 }
 
-.ueb-node-style-operation .ueb-node-inputs {
+ueb-node.ueb-node-style-operation.ueb-node-has-inputs .ueb-node-inputs {
   align-self: center;
+  padding-right: 40px;
 }
 
 .ueb-node-style-operation:not(.ueb-node-is-variadic) .ueb-node-outputs {
@@ -352,8 +343,9 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node.ueb-node-styl
 .ueb-node-top {
   grid-area: top;
   color: #d0d0d0;
-  font-size: var(--ueb-font-size);
-  font-weight: 600;
+  /* 1.030769 is to get an effective font size of 13.4px from --ueb-font-size which is 13 px */
+  font-size: calc(1.030769 * var(--ueb-font-size));
+  font-weight: bold;
   line-height: 120%;
   white-space: nowrap;
 }
@@ -401,7 +393,7 @@ ueb-node.ueb-node-style-event .ueb-node-top {
 }
 
 .ueb-node-name:last-child {
-  padding-right: 16px;
+  padding-right: 26px;
 }
 
 .ueb-zoom--2 .ueb-node-name {
@@ -431,13 +423,19 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
 .ueb-node-subtitle-text {
   padding-top: 1px;
   padding-right: 5px;
+  /* 0.946154 is to get an effective font size of 12.3px from --ueb-font-size which is 13 px */
+  font-size: calc(0.946154 * var(--ueb-font-size));
   font-weight: 100;
   font-style: italic;
   color: #a9b78f;
 }
 
-.ueb-node-has-inputs .ueb-node-inputs {
+.ueb-node-inputs {
   grid-area: input;
+}
+
+ueb-node.ueb-node-has-inputs .ueb-node-inputs {
+  padding-right: 20px;
   padding-left: 5px;
 }
 
@@ -448,10 +446,6 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
 .ueb-node-outputs,
 .ueb-node-variadic {
   padding-right: 8px;
-}
-
-.ueb-node-has-inputs .ueb-node-inputs {
-  padding-right: 20px;
 }
 
 .ueb-node-variadic {

@@ -133,6 +133,15 @@ export default class ObjectEntity extends IEntity {
         bColorCommentBubble: {
             type: Boolean,
         },
+        ProxyFactoryFunctionName: {
+            type: String,
+        },
+        ProxyFactoryClass: {
+            type: ObjectReferenceEntity,
+        },
+        ProxyClass: {
+            type: ObjectReferenceEntity,
+        },
         R: {
             type: Number,
         },
@@ -322,6 +331,9 @@ export default class ObjectEntity extends IEntity {
         /** @type {LinearColorEntity?} */ this.CommentColor
         /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel
         /** @type {Boolean?} */ this.bColorCommentBubble
+        /** @type {String?} */ this.ProxyFactoryFunctionName
+        /** @type {ObjectReferenceEntity?} */ this.ProxyFactoryClass
+        /** @type {ObjectReferenceEntity?} */ this.ProxyClass
         /** @type {Number?} */ this.R
         /** @type {Number?} */ this.G
         /** @type {ObjectReferenceEntity?} */ this.MaterialExpression
@@ -545,6 +557,10 @@ export default class ObjectEntity extends IEntity {
     nodeDisplayName() {
         let input
         switch (this.getType()) {
+            case Configuration.paths.asyncAction:
+                if (this.ProxyFactoryFunctionName) {
+                    return Utility.formatStringName(this.ProxyFactoryFunctionName)
+                }
             case Configuration.paths.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
             case Configuration.paths.createDelegate:
@@ -830,6 +846,7 @@ export default class ObjectEntity extends IEntity {
 
     nodeIcon() {
         switch (this.getType()) {
+            case Configuration.paths.asyncAction:
             case Configuration.paths.addDelegate:
             case Configuration.paths.createDelegate:
             case Configuration.paths.functionEntry:
