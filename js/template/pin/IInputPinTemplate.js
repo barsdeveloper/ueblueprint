@@ -56,7 +56,7 @@ export default class IInputPinTemplate extends PinTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties)
         const Self = /** @type {typeof IInputPinTemplate} */(this.constructor)
-        if (Self.canWrapInput) {
+        if (Self.canWrapInput && this.isInputRendered()) {
             this.element.addEventListener("input", this.#checkWrapHandler)
             this.nameWidth = this.blueprint.scaleCorrect(
                 this.element.querySelector(".ueb-pin-name")?.getBoundingClientRect().width ?? 0
@@ -74,7 +74,7 @@ export default class IInputPinTemplate extends PinTemplate {
         } else {
             this.element.addEventListener("focusout", this.#setInput)
         }
-        if (Self.canWrapInput) {
+        if (Self.canWrapInput && this.isInputRendered()) {
             this.element.addEventListener("input", this.#checkWrapHandler)
             this.element.nodeElement.addEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler)
         }

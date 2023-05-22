@@ -645,7 +645,8 @@ ueb-pin {
 }
 
 ueb-pin.ueb-pin-input-wrap .ueb-pin-content {
-  display: block;
+  flex-direction: column;
+  align-items: start;
 }
 
 .ueb-node-top ueb-pin {
@@ -676,6 +677,7 @@ ueb-node.ueb-node-style-minimal .ueb-pin-wrapper {
 .ueb-node-top .ueb-pin-wrapper {
   padding: 2px 4px 2px 10px;
   min-height: 0;
+  vertical-align: bottom;
 }
 
 ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-pin-wrapper:hover {

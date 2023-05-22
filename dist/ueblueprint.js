@@ -98,7 +98,8 @@ class Configuration {
      */
     static linkRightSVGPath = (start, c1, c2) => {
         let end = 100 - start;
-        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, ${end.toFixed(3)} 100`
+        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, `
+            + `${end.toFixed(3)} 100`
     }
     static maxZoom = 7
     static minZoom = -12
@@ -148,6 +149,7 @@ class Configuration {
         forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
         forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
         functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
+        functionResult: "/Script/BlueprintGraph.K2Node_FunctionResult",
         getInputAxisKeyValue: "/Script/BlueprintGraph.K2Node_GetInputAxisKeyValue",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
@@ -264,6 +266,7 @@ class Configuration {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
     }
+    static unescapedBackslash = /(?<=(?:[^\\]|^)(?:\\\\)*)\\(?!\\)/
     static windowApplyEventName = "ueb-window-apply"
     static windowApplyButtonText = "OK"
     static windowCancelEventName = "ueb-window-cancel"
@@ -937,8 +940,8 @@ class Utility {
     /** @param {String} value */
     static unescapeString(value) {
         return value
-            .replaceAll("\\t", "\t") // Replace tab with \t
-            .replaceAll("\\n", "\n") // Replace newline with \n
+            .replaceAll(new RegExp(Configuration.unescapedBackslash.source + "t", "g"), "\t") // Replace tab with \t
+            .replaceAll(new RegExp(Configuration.unescapedBackslash.source + "n", "g"), "\n") // Replace newline with \n
             .replaceAll(new RegExp(`\\\\(${Configuration.stringEscapedCharacters.source})`, "g"), "$1")
     }
 
@@ -3520,7 +3523,11 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.forEachLoopWithBreak:
                 return "For Each Loop with Break"
             case Configuration.paths.functionEntry:
-                return "Construction Script"
+                return this.FunctionReference?.MemberName === "UserConstructionScript"
+                    ? "Construction Script"
+                    : this.FunctionReference?.MemberName
+            case Configuration.paths.functionResult:
+                return "Return Node"
             case Configuration.paths.ifThenElse:
                 return "Branch"
             case Configuration.paths.materialExpressionConstant:
@@ -3645,6 +3652,7 @@ class ObjectEntity extends IEntity {
                         case "Min": return "MIN"
                         case "MinInt64": return "MIN"
                         case "Not_PreBool": return "NOT"
+                        case "Sin": return "SIN"
                         case "Sqrt": return "SQRT"
                         case "Square": return "^2"
                         // Dot products not respecting MemberName pattern
@@ -3763,6 +3771,7 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.multiGate:
                 return Configuration.nodeColors.gray
             case Configuration.paths.functionEntry:
+            case Configuration.paths.functionResult:
                 return Configuration.nodeColors.violet
             case Configuration.paths.timeline:
                 return Configuration.nodeColors.yellow
@@ -3785,6 +3794,7 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.addDelegate:
             case Configuration.paths.createDelegate:
             case Configuration.paths.functionEntry:
+            case Configuration.paths.functionResult:
                 return SVGIcon.node
             case Configuration.paths.customEvent: return SVGIcon.event
             case Configuration.paths.doN: return SVGIcon.doN
@@ -8172,7 +8182,7 @@ class PinTemplate extends ITemplate {
         const content = x`
             <div class="ueb-pin-content">
                 ${this.isNameRendered ? this.renderName() : A}
-                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : x``}
+                ${this.isInputRendered() ? this.renderInput() : x``}
             </div>
         `;
         return x`
@@ -8198,6 +8208,12 @@ class PinTemplate extends ITemplate {
         return x`
             <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>
         `
+    }
+
+    isInputRendered() {
+        return this.element.isInput()
+            && !this.element.entity.bDefaultValueIsIgnored
+            && !this.element.entity.PinType.bIsReference
     }
 
     renderInput() {
@@ -9796,7 +9812,7 @@ class IInputPinTemplate extends PinTemplate {
     firstUpdated(changedProperties) {
         super.firstUpdated(changedProperties);
         const Self = /** @type {typeof IInputPinTemplate} */(this.constructor);
-        if (Self.canWrapInput) {
+        if (Self.canWrapInput && this.isInputRendered()) {
             this.element.addEventListener("input", this.#checkWrapHandler);
             this.nameWidth = this.blueprint.scaleCorrect(
                 this.element.querySelector(".ueb-pin-name")?.getBoundingClientRect().width ?? 0
@@ -9814,7 +9830,7 @@ class IInputPinTemplate extends PinTemplate {
         } else {
             this.element.addEventListener("focusout", this.#setInput);
         }
-        if (Self.canWrapInput) {
+        if (Self.canWrapInput && this.isInputRendered()) {
             this.element.addEventListener("input", this.#checkWrapHandler);
             this.element.nodeElement.addEventListener(Configuration.nodeReflowEventName, this.#checkWrapHandler);
         }

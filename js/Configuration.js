@@ -74,7 +74,8 @@ export default class Configuration {
      */
     static linkRightSVGPath = (start, c1, c2) => {
         let end = 100 - start
-        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, ${end.toFixed(3)} 100`
+        return `M ${start} 0 C ${c1.toFixed(3)} 0, ${c2.toFixed(3)} 0, 50 50 S ${(end - c1 + start).toFixed(3)} 100, `
+            + `${end.toFixed(3)} 100`
     }
     static maxZoom = 7
     static minZoom = -12
@@ -124,6 +125,7 @@ export default class Configuration {
         forLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoop",
         forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
         functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
+        functionResult: "/Script/BlueprintGraph.K2Node_FunctionResult",
         getInputAxisKeyValue: "/Script/BlueprintGraph.K2Node_GetInputAxisKeyValue",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
@@ -240,6 +242,7 @@ export default class Configuration {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
     }
+    static unescapedBackslash = /(?<=(?:[^\\]|^)(?:\\\\)*)\\(?!\\)/
     static windowApplyEventName = "ueb-window-apply"
     static windowApplyButtonText = "OK"
     static windowCancelEventName = "ueb-window-cancel"

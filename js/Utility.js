@@ -349,8 +349,8 @@ export default class Utility {
     /** @param {String} value */
     static unescapeString(value) {
         return value
-            .replaceAll("\\t", "\t") // Replace tab with \t
-            .replaceAll("\\n", "\n") // Replace newline with \n
+            .replaceAll(new RegExp(Configuration.unescapedBackslash.source + "t", "g"), "\t") // Replace tab with \t
+            .replaceAll(new RegExp(Configuration.unescapedBackslash.source + "n", "g"), "\n") // Replace newline with \n
             .replaceAll(new RegExp(`\\\\(${Configuration.stringEscapedCharacters.source})`, "g"), "$1")
     }
 

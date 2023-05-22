@@ -77,7 +77,7 @@ export default class PinTemplate extends ITemplate {
         const content = html`
             <div class="ueb-pin-content">
                 ${this.isNameRendered ? this.renderName() : nothing}
-                ${this.element.isInput() && !this.element.entity.bDefaultValueIsIgnored ? this.renderInput() : html``}
+                ${this.isInputRendered() ? this.renderInput() : html``}
             </div>
         `
         return html`
@@ -103,6 +103,12 @@ export default class PinTemplate extends ITemplate {
         return html`
             <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>
         `
+    }
+
+    isInputRendered() {
+        return this.element.isInput()
+            && !this.element.entity.bDefaultValueIsIgnored
+            && !this.element.entity.PinType.bIsReference
     }
 
     renderInput() {

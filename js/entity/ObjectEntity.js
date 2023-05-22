@@ -585,7 +585,11 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.forEachLoopWithBreak:
                 return "For Each Loop with Break"
             case Configuration.paths.functionEntry:
-                return "Construction Script"
+                return this.FunctionReference?.MemberName === "UserConstructionScript"
+                    ? "Construction Script"
+                    : this.FunctionReference?.MemberName
+            case Configuration.paths.functionResult:
+                return "Return Node"
             case Configuration.paths.ifThenElse:
                 return "Branch"
             case Configuration.paths.materialExpressionConstant:
@@ -710,6 +714,7 @@ export default class ObjectEntity extends IEntity {
                         case "Min": return "MIN"
                         case "MinInt64": return "MIN"
                         case "Not_PreBool": return "NOT"
+                        case "Sin": return "SIN"
                         case "Sqrt": return "SQRT"
                         case "Square": return "^2"
                         // Dot products not respecting MemberName pattern
@@ -828,6 +833,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.multiGate:
                 return Configuration.nodeColors.gray
             case Configuration.paths.functionEntry:
+            case Configuration.paths.functionResult:
                 return Configuration.nodeColors.violet
             case Configuration.paths.timeline:
                 return Configuration.nodeColors.yellow
@@ -850,6 +856,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.addDelegate:
             case Configuration.paths.createDelegate:
             case Configuration.paths.functionEntry:
+            case Configuration.paths.functionResult:
                 return SVGIcon.node
             case Configuration.paths.customEvent: return SVGIcon.event
             case Configuration.paths.doN: return SVGIcon.doN
