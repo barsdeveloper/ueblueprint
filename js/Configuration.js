@@ -149,6 +149,7 @@ export default class Configuration {
         materialExpressionLogarithm: "/Script/InterchangeImport.MaterialExpressionLogarithm",
         materialExpressionLogarithm10: "/Script/Engine.MaterialExpressionLogarithm10",
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
+        materialExpressionMaterialFunctionCall: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",

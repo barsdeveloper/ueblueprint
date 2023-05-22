@@ -173,6 +173,7 @@ class Configuration {
         materialExpressionLogarithm: "/Script/InterchangeImport.MaterialExpressionLogarithm",
         materialExpressionLogarithm10: "/Script/Engine.MaterialExpressionLogarithm10",
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
+        materialExpressionMaterialFunctionCall: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
@@ -3035,6 +3036,9 @@ class ObjectEntity extends IEntity {
         InputKey: {
             type: SymbolEntity,
         },
+        MaterialFunction: {
+            type: ObjectReferenceEntity,
+        },
         bOverrideFunction: {
             type: Boolean,
         },
@@ -3257,6 +3261,7 @@ class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity?} */ this.Enum;
         /** @type {String[]?} */ this.EnumEntries;
         /** @type {SymbolEntity?} */ this.InputKey;
+        /** @type {ObjectReferenceEntity?} */ this.MaterialFunction;
         /** @type {Boolean?} */ this.bOverrideFunction;
         /** @type {Boolean?} */ this.bInternalEvent;
         /** @type {Boolean?} */ this.bConsumeInput;
@@ -3556,12 +3561,19 @@ class ObjectEntity extends IEntity {
                 if (input.length > 0) {
                     return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
                 }
+                break
             case Configuration.paths.materialExpressionLogarithm:
                 return "Ln"
             case Configuration.paths.materialExpressionLogarithm10:
                 return "Log10"
             case Configuration.paths.materialExpressionLogarithm2:
                 return "Log2"
+            case Configuration.paths.materialExpressionMaterialFunctionCall:
+                const materialFunction = this.getMaterialSubobject()?.MaterialFunction;
+                if (materialFunction) {
+                    return materialFunction.getName()
+                }
+                break
             case Configuration.paths.materialExpressionSquareRoot:
                 return "Sqrt"
             case Configuration.paths.spawnActorFromClass:
@@ -3743,6 +3755,8 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.materialExpressionConstant3Vector:
             case Configuration.paths.materialExpressionConstant4Vector:
                 return Configuration.nodeColors.yellow
+            case Configuration.paths.materialExpressionMaterialFunctionCall:
+                return Configuration.nodeColors.blue
             case Configuration.paths.materialExpressionTextureSample:
                 return Configuration.nodeColors.darkBlue
             case Configuration.paths.materialExpressionTextureCoordinate:
