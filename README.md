@@ -22,8 +22,9 @@ A stand alone editor implementation of the UE's Blueprint visual language. (WIP)
 
 ## How to use:
 
+You can check `index.html` f0r a working example, the main steps are the following:
 1. Include `dist/css/ueb-style.css` stylesheet in your page.
-2. Define eventual CSS variables 
+2. Define eventual CSS variables .
 ```HTML
 <style>
     ueb-blueprint {
@@ -37,7 +38,7 @@ A stand alone editor implementation of the UE's Blueprint visual language. (WIP)
     import { Blueprint } from "./dist/ueblueprint.js"
 </script>
 ```
-4. Define your blueprint the by just writing the code inside a `ueb-blueprint`, inside a `template` element
+4. Define your blueprint the by just writing the code inside a `ueb-blueprint`, inside a `template` element.
 ```HTML
 <ueb-blueprint>
     <template>
