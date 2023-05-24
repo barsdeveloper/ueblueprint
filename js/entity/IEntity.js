@@ -184,6 +184,7 @@ export default class IEntity {
         } else if (attributeType instanceof ComputedType) {
             return undefined
         } else {
+            // @ts-expect-error
             return () => new attributeType()
         }
     }

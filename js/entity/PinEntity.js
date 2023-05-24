@@ -213,6 +213,7 @@ export default class PinEntity extends IEntity {
 
     getDefaultValue(maybeCreate = false) {
         if (this.DefaultValue === undefined && maybeCreate) {
+            // @ts-expect-error
             this.DefaultValue = new (this.getEntityType(true))()
         }
         return this.DefaultValue

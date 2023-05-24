@@ -22,4 +22,26 @@ A stand alone editor implementation of the UE's Blueprint visual language. (WIP)
 
 ## How to use:
 
-TODO
+1. Include `dist/css/ueb-style.css` stylesheet in your page.
+2. Define eventual CSS variables 
+```HTML
+<style>
+    ueb-blueprint {
+        --ueb-height: 500px;
+    }
+</style>
+```
+3. Import the class Blueprint in JavaScript (this library uses modules).
+```HTML
+<script type="module">
+    import { Blueprint } from "./dist/ueblueprint.js"
+</script>
+```
+4. Define your blueprint the by just writing the code inside a `ueb-blueprint`, inside a `template` element
+```HTML
+<ueb-blueprint>
+    <template>
+        ...                   
+    </template>
+</ueb-blueprint>
+```

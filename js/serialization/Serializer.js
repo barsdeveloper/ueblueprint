@@ -49,6 +49,7 @@ export default class Serializer {
 
     /** @param {T} value */
     write(value, insideString = false) {
+        // @ts-expect-error
         return this.doWrite(value, insideString)
     }
 

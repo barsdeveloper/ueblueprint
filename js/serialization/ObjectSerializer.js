@@ -74,6 +74,7 @@ export default class ObjectSerializer extends Serializer {
                 attributeSeparator,
                 trailingSeparator,
                 attributeValueConjunctionSign,
+                // @ts-expect-error
                 key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
             )
         }
