@@ -17,8 +17,6 @@ A stand alone editor implementation of the UE's Blueprint visual language. (WIP)
 
 ![img1](https://github.com/barsdeveloper/ueblueprint/assets/84736467/022704e7-2c9f-4595-9513-cd7770961e0d)
 
-![img2](https://github.com/barsdeveloper/ueblueprint/assets/84736467/cb46ad90-70ed-4aa6-81fd-831abd1519fb)
-
 
 ## How to use:
 
