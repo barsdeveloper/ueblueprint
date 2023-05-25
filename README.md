@@ -18,11 +18,23 @@ A stand alone editor implementation of the UE's Blueprint visual language. (WIP)
 ![img1](https://github.com/barsdeveloper/ueblueprint/assets/84736467/022704e7-2c9f-4595-9513-cd7770961e0d)
 
 
-## How to use:
+## Getting started:
 
-You can check `index.html` f0r a working example, the main steps are the following:
+### Run locally
+1) Open a terminal in the main folder.
+2) Run the following commands.
+```sh
+npm install
+npm run build
+npx http-server
+```
+3) Open the link you see in the last message printed.
+
+### Use in a web page
+
+You can check `index.html` for a working example, the main steps are the following:
 1. Include `dist/css/ueb-style.css` stylesheet in your page.
-2. Define eventual CSS variables .
+2. Define eventual CSS variables.
 ```HTML
 <style>
     ueb-blueprint {
