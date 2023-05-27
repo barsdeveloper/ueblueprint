@@ -1,4 +1,4 @@
-import IPointing from "./IPointing.js"
+import IPointing from "../IPointing.js"
 
 /**
  * @template {HTMLElement} T
@@ -15,7 +15,7 @@ export default class MouseDbClick extends IPointing {
             if (this.options.consumeEvent) {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
-            this.clickedPosition = this.locationFromEvent(e)
+            this.clickedPosition = this.locationFromMouseEvent(e)
             this.blueprint.mousePosition[0] = this.clickedPosition[0]
             this.blueprint.mousePosition[1] = this.clickedPosition[1]
             this.dbclicked(this.clickedPosition)

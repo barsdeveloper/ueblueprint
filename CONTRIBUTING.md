@@ -7,41 +7,23 @@ The only other external library that is used here is the awesome [Parsimmon](htt
 
 ## Setup
 
-Clone the repository then run the command:
+Clone the repository and run the following command in order to download the dependencies of the project.
 
-```
+```sh
 npm install
 ```
 
-In order to download the dependencies of the project.
+Run the following command to package the project (every time you make a change to the source code).
 
-An http server is also needed to test the changes, one option is `http-server`:
-
-```
-npm install -g http-server
-```
-
-In case of linux and permission error then:
-
-```
-npm config set prefix ~/.local
-```
-
-And try again the previous command. The path `~/.local/bin` should be added to the `$PATH` environment variable, therefor the following command will be available in the command line:
-
-```
-http-server
-```
-
-The example page will be available at the addreess `http://127.0.0.1:8080/`
-
-Now the iteration steps simply are: make a change to the code, then run:
-
-```
+```sh
 npm run build
 ```
 
-And refresh the HTML page possibly holding `Shift`.
+Finally launch a local webserver. The example webpage will be available at the addreess: `http://127.0.0.1:8080/`
+
+```sh
+npx http-server
+```
 
 ## Overview
 There are a few concepts that must be assimilated in order to understand the design. Those concepts are in general each mapped into a subfolder in `js/`.

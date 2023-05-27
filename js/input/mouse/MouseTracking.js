@@ -1,5 +1,5 @@
 import Configuration from "../../Configuration.js"
-import IPointing from "./IPointing.js"
+import IPointing from "../IPointing.js"
 
 export default class MouseTracking extends IPointing {
 
@@ -7,9 +7,9 @@ export default class MouseTracking extends IPointing {
     #mouseTracker = null
 
     /** @param {MouseEvent} e */
-    #mousemoveHandler= e => {
+    #mousemoveHandler = e => {
         e.preventDefault()
-        this.blueprint.mousePosition = this.locationFromEvent(e)
+        this.blueprint.mousePosition = this.locationFromMouseEvent(e)
     }
 
     /** @param {CustomEvent} e */
