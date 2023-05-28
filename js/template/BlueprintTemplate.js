@@ -12,6 +12,7 @@ import MouseTracking from "../input/mouse/MouseTracking.js"
 import Paste from "../input/common/Paste.js"
 import Select from "../input/mouse/Select.js"
 import Shortcut from "../Shortcut.js"
+import TouchScrollGraph from "../input/touch/TouchScrollGraph.js"
 import Unfocus from "../input/mouse/Unfocus.js"
 import Utility from "../Utility.js"
 import Zoom from "../input/mouse/Zoom.js"
@@ -127,6 +128,7 @@ export default class BlueprintTemplate extends ITemplate {
                 exitAnyButton: false,
                 moveEverywhere: true,
             }),
+            new TouchScrollGraph(this.blueprint),
             new Unfocus(this.element.getGridDOMElement(), this.element),
             new MouseTracking(this.element.getGridDOMElement(), this.element),
             new KeyboardEnableZoom(this.element.getGridDOMElement(), this.element),

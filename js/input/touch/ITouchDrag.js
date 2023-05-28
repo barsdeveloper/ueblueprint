@@ -4,6 +4,7 @@ import IPointing from "../IPointing.js"
 /**
  * @typedef {import("../../Blueprint.js").default} Blueprint
  * @typedef {import("../../element/IElement.js").default} IElement
+ * @typedef {import("../IPointing.js").TouchLocations } TouchLocations
  */
 
 /**
@@ -12,110 +13,73 @@ import IPointing from "../IPointing.js"
  */
 export default class ITouchDrag extends IPointing {
 
+    /** @type {Touch[]} */
+    touches = []
+
+    /** @type {TouchLocations} */
+    #previousClientLocation = []
+
     /** @param {TouchEvent} e  */
     #touchStartHandler = e => {
-        this.blueprint.setFocused(true)
-        if (e.touches.length === this.options.touchpointsCount) {
-            // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-            if (!this.options.strictTarget || e.target == e.currentTarget) {
-                if (this.options.consumeEvent) {
-                    e.stopImmediatePropagation() // Captured, don't call anyone else
-                }
-                // Attach the listeners
-                this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler)
-                document.addEventListener("mouseup", this.#mouseUpHandler)
-                this.clickedPosition = this.locationFromMouseEvent(e)
-                this.blueprint.mousePosition[0] = this.clickedPosition[0]
-                this.blueprint.mousePosition[1] = this.clickedPosition[1]
-                if (this.target instanceof IDraggableElement) {
-                    this.clickedOffset = [
-                        this.clickedPosition[0] - this.target.locationX,
-                        this.clickedPosition[1] - this.target.locationY,
-                    ]
-                }
-                this.clicked(this.clickedPosition)
-            }
+        // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+        if (
+            this.options.strictTarget && e.target !== e.currentTarget
+            || this.options.touchpointsCount !== e.touches.length
+        ) {
+            return
         }
+        // Attach the listeners
+        this.#movementListenedElement.addEventListener("touchmove", this.#touchStartedMovingHandler)
+        document.addEventListener("touchend", this.#touchEndHandler)
+        const locations = this.locationsFromTouchEvent(e)
+        this.touched(locations)
+        this.#previousClientLocation = ITouchDrag.clientLocationsFromTouchEvent(e)
     }
 
-    /** @param {MouseEvent} e  */
+    /** @param {TouchEvent} e  */
     #touchStartedMovingHandler = e => {
         if (this.options.consumeEvent) {
-            e.stopImmediatePropagation() // Captured, don't call anyone else
+            e.stopImmediatePropagation()
+            e.preventDefault()
         }
-        // Delegate from now on to this.#mouseMoveHandler
-        this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler)
-        this.#movementListenedElement.addEventListener("mousemove", this.#mouseMoveHandler)
-        // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-        const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin)
-        this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false
-        const location = this.locationFromMouseEvent(e)
+        // Delegate from now on to this.#touchMoveHandler
+        this.#movementListenedElement.removeEventListener("touchmove", this.#touchStartedMovingHandler)
+        this.#movementListenedElement.addEventListener("touchmove", this.#touchMoveHandler)
         // Do actual actions
-        this.lastLocation = Utility.snapToGrid(this.clickedPosition[0], this.clickedPosition[1], this.stepSize)
-        this.startDrag(location)
+        const locations = this.locationsFromTouchEvent(e)
+        this.startDrag(locations)
+        this.#previousClientLocation = ITouchDrag.clientLocationsFromTouchEvent(e)
         this.started = true
     }
 
-    /** @param {MouseEvent} e  */
+    /** @param {TouchEvent} e  */
     #touchMoveHandler = e => {
         if (this.options.consumeEvent) {
-            e.stopImmediatePropagation() // Captured, don't call anyone else
+            e.stopImmediatePropagation()
+            e.preventDefault()
         }
-        const location = this.locationFromMouseEvent(e)
-        const movement = [e.movementX, e.movementY]
-        this.dragTo(location, movement)
-        if (this.#trackingMouse) {
-            this.blueprint.mousePosition = location
-        }
-        if (this.options.scrollGraphEdge) {
-            const movementNorm = Math.sqrt(movement[0] * movement[0] + movement[1] * movement[1])
-            const threshold = this.blueprint.scaleCorrect(Configuration.edgeScrollThreshold)
-            const leftThreshold = this.blueprint.template.gridLeftVisibilityBoundary() + threshold
-            const rightThreshold = this.blueprint.template.gridRightVisibilityBoundary() - threshold
-            let scrollX = 0
-            if (location[0] < leftThreshold) {
-                scrollX = location[0] - leftThreshold
-            } else if (location[0] > rightThreshold) {
-                scrollX = location[0] - rightThreshold
-            }
-            const topThreshold = this.blueprint.template.gridTopVisibilityBoundary() + threshold
-            const bottomThreshold = this.blueprint.template.gridBottomVisibilityBoundary() - threshold
-            let scrollY = 0
-            if (location[1] < topThreshold) {
-                scrollY = location[1] - topThreshold
-            } else if (location[1] > bottomThreshold) {
-                scrollY = location[1] - bottomThreshold
-            }
-            scrollX = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollX) ** 3 * movementNorm * 0.6, -20, 20)
-            scrollY = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollY) ** 3 * movementNorm * 0.6, -20, 20)
-            this.blueprint.scrollDelta(scrollX, scrollY)
-        }
+        const locations = this.locationsFromTouchEvent(e)
+        const newClientLocations = ITouchDrag.clientLocationsFromTouchEvent(e)
+        this.dragTo(
+            locations,
+            ITouchDrag.computeOffsets(this.#previousClientLocation, newClientLocations)
+        )
+        this.#previousClientLocation = newClientLocations
     }
 
-    /** @param {MouseEvent} e  */
+    /** @param {TouchEvent} e  */
     #touchEndHandler = e => {
-        if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
-            if (this.options.consumeEvent) {
-                e.stopImmediatePropagation() // Captured, don't call anyone else
-            }
-            // Remove the handlers of "mousemove" and "mouseup"
-            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler)
-            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler)
-            document.removeEventListener("mouseup", this.#mouseUpHandler)
-            if (this.started) {
-                this.endDrag()
-            }
-            this.unclicked()
-            if (this.#trackingMouse) {
-                const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end)
-                this.target.dispatchEvent(dragEvent)
-                this.#trackingMouse = false
-            }
-            this.started = false
+        if (this.options.touchpointsCount !== e.touches.length) {
+            return
         }
+        this.#movementListenedElement.removeEventListener("touchmove", this.#touchStartHandler)
+        this.#movementListenedElement.removeEventListener("touchmove", this.#touchMoveHandler)
+        if (this.started) {
+            this.endDrag()
+        }
+        this.started = false
     }
 
-    #trackingMouse = false
     #movementListenedElement
     #draggableElement
 
@@ -123,7 +87,6 @@ export default class ITouchDrag extends IPointing {
     clickedPosition = [0, 0]
     lastLocation = [0, 0]
     started = false
-    stepSize = 1
 
     /**
      * @param {T} target
@@ -141,46 +104,64 @@ export default class ITouchDrag extends IPointing {
         this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize)
         this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace
         this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement)
-
         this.listenEvents()
+    }
+
+    /** @param {TouchEvent} touchEvent  */
+    static clientLocationsFromTouchEvent(touchEvent) {
+        /** @type {TouchLocations} */
+        const locations = {}
+        for (const touch of touchEvent.touches) {
+            locations[touch.identifier] = [touch.clientX, touch.clientY]
+        }
+        return locations
+    }
+
+    /**
+     * @param {TouchLocations} from
+     * @param {TouchLocations} to
+     */
+    static computeOffsets(from, to) {
+        /** @type {TouchLocations} */
+        const result = {}
+        for (const id in from) {
+            result[id] = [
+                to[id][0] - from[id][0],
+                to[id][1] - from[id][1],
+            ]
+        }
+        return result
     }
 
     listenEvents() {
         super.listenEvents()
-        this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler)
-        if (this.options.clickButton === Configuration.mouseRightClickButton) {
-            this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault())
-        }
+        this.#draggableElement.addEventListener("touchstart", this.#touchStartHandler)
     }
 
     unlistenEvents() {
         super.unlistenEvents()
-        this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler)
-    }
-
-    getEvent(eventName) {
-        return new CustomEvent(eventName, {
-            detail: {
-                tracker: this
-            },
-            bubbles: true,
-            cancelable: true
-        })
+        this.#draggableElement.removeEventListener("mousedown", this.#touchStartHandler)
     }
 
     /* Subclasses will override the following methods */
-    touched(location) {
+    /** @param {TouchLocations} locations */
+    touched(locations) {
     }
 
-    startDrag(location) {
+    /** @param {TouchLocations} locations */
+    startDrag(locations) {
     }
 
-    dragTo(location, offset) {
+    /**
+     * @param {TouchLocations} locations
+     * @param {TouchLocations} offsets
+     */
+    dragTo(locations, offsets) {
     }
 
     endDrag() {
     }
 
-    untouched(location) {
+    untouched() {
     }
 }

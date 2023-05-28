@@ -78,6 +78,7 @@ class Configuration {
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
+    static longTouchTime = 500 // ms
     static nameRegexSpaceReplacement = new RegExp(
         "^K2(?:[Nn]ode)?_"
         // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
@@ -736,6 +737,7 @@ class Utility {
     static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
         const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement);
         const bounding = movementElement.getBoundingClientRect();
+        /** @type {[Number, Number]} */
         let location = [
             Math.round((viewportLocation[0] - bounding.x) * scaleCorrection),
             Math.round((viewportLocation[1] - bounding.y) * scaleCorrection)
@@ -1267,6 +1269,7 @@ class IEntity {
         } else if (attributeType instanceof ComputedType) {
             return undefined
         } else {
+            // @ts-expect-error
             return () => new attributeType()
         }
     }
@@ -2460,6 +2463,7 @@ class PinEntity extends IEntity {
 
     getDefaultValue(maybeCreate = false) {
         if (this.DefaultValue === undefined && maybeCreate) {
+            // @ts-expect-error
             this.DefaultValue = new (this.getEntityType(true))();
         }
         return this.DefaultValue
@@ -4875,6 +4879,7 @@ class Serializer {
 
     /** @param {T} value */
     write(value, insideString = false) {
+        // @ts-expect-error
         return this.doWrite(value, insideString)
     }
 
@@ -5047,6 +5052,7 @@ class ObjectSerializer extends Serializer {
                 attributeSeparator,
                 trailingSeparator,
                 attributeValueConjunctionSign,
+                // @ts-expect-error
                 key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
             )
         }
@@ -5359,6 +5365,8 @@ class ITemplate {
     }
 }
 
+/** @typedef {{ [identifier: Number]: [Number, Number] }} TouchLocations */
+
 /**
  * @template {HTMLElement} T
  * @extends {IInput<T>}
@@ -5375,7 +5383,7 @@ class IPointing extends IInput {
     }
 
     /** @param {MouseEvent} mouseEvent */
-    locationFromEvent(mouseEvent) {
+    locationFromMouseEvent(mouseEvent) {
         const location = Utility.convertLocation(
             [mouseEvent.clientX, mouseEvent.clientY],
             this.movementSpace,
@@ -5384,6 +5392,23 @@ class IPointing extends IInput {
         return this.options.ignoreTranslateCompensate
             ? location
             : this.blueprint.compensateTranslation(location[0], location[1])
+    }
+
+    /** @param {TouchEvent} touchEvent */
+    locationsFromTouchEvent(touchEvent) {
+        /** @type {TouchLocations} */
+        const locations = {};
+        for (const touch of touchEvent.touches) {
+            locations[touch.identifier] = Utility.convertLocation(
+                [touch.clientX, touch.clientY],
+                this.movementSpace,
+                this.options.ignoreScale
+            );
+            if (!this.options.ignoreTranslateCompensate) {
+                locations[touch.identifier] = this.blueprint.compensateTranslation(location[0], location[1]);
+            }
+        }
+        return locations
     }
 }
 
@@ -5394,7 +5419,7 @@ class IMouseWheel extends IPointing {
     /** @param {WheelEvent} e */
     #mouseWheelHandler = e => {
         e.preventDefault();
-        const location = this.locationFromEvent(e);
+        const location = this.locationFromMouseEvent(e);
         this.wheel(e.deltaY, location);
     }
 
@@ -5830,24 +5855,25 @@ class IMouseClickDrag extends IPointing {
         switch (e.button) {
             case this.options.clickButton:
                 // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                if (!this.options.strictTarget || e.target == e.currentTarget) {
-                    if (this.options.consumeEvent) {
-                        e.stopImmediatePropagation(); // Captured, don't call anyone else
-                    }
-                    // Attach the listeners
-                    this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
-                    document.addEventListener("mouseup", this.#mouseUpHandler);
-                    this.clickedPosition = this.locationFromEvent(e);
-                    this.blueprint.mousePosition[0] = this.clickedPosition[0];
-                    this.blueprint.mousePosition[1] = this.clickedPosition[1];
-                    if (this.target instanceof IDraggableElement) {
-                        this.clickedOffset = [
-                            this.clickedPosition[0] - this.target.locationX,
-                            this.clickedPosition[1] - this.target.locationY,
-                        ];
-                    }
-                    this.clicked(this.clickedPosition);
+                if (this.options.strictTarget && e.target !== e.currentTarget) {
+                    break
                 }
+                if (this.options.consumeEvent) {
+                    e.stopImmediatePropagation();
+                }
+                // Attach the listeners
+                this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
+                document.addEventListener("mouseup", this.#mouseUpHandler);
+                this.clickedPosition = this.locationFromMouseEvent(e);
+                this.blueprint.mousePosition[0] = this.clickedPosition[0];
+                this.blueprint.mousePosition[1] = this.clickedPosition[1];
+                if (this.target instanceof IDraggableElement) {
+                    this.clickedOffset = [
+                        this.clickedPosition[0] - this.target.locationX,
+                        this.clickedPosition[1] - this.target.locationY,
+                    ];
+                }
+                this.clicked(this.clickedPosition);
                 break
             default:
                 if (!this.options.exitAnyButton) {
@@ -5868,7 +5894,7 @@ class IMouseClickDrag extends IPointing {
         // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
         const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin);
         this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
-        const location = this.locationFromEvent(e);
+        const location = this.locationFromMouseEvent(e);
         // Do actual actions
         this.lastLocation = Utility.snapToGrid(this.clickedPosition[0], this.clickedPosition[1], this.stepSize);
         this.startDrag(location);
@@ -5880,7 +5906,7 @@ class IMouseClickDrag extends IPointing {
         if (this.options.consumeEvent) {
             e.stopImmediatePropagation(); // Captured, don't call anyone else
         }
-        const location = this.locationFromEvent(e);
+        const location = this.locationFromMouseEvent(e);
         const movement = [e.movementX, e.movementY];
         this.dragTo(location, movement);
         if (this.#trackingMouse) {
@@ -5913,25 +5939,26 @@ class IMouseClickDrag extends IPointing {
 
     /** @param {MouseEvent} e  */
     #mouseUpHandler = e => {
-        if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
-            if (this.options.consumeEvent) {
-                e.stopImmediatePropagation(); // Captured, don't call anyone else
-            }
-            // Remove the handlers of "mousemove" and "mouseup"
-            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
-            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler);
-            document.removeEventListener("mouseup", this.#mouseUpHandler);
-            if (this.started) {
-                this.endDrag();
-            }
-            this.unclicked();
-            if (this.#trackingMouse) {
-                const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end);
-                this.target.dispatchEvent(dragEvent);
-                this.#trackingMouse = false;
-            }
-            this.started = false;
+        if (this.options.exitAnyButton && e.button !== this.options.clickButton) {
+            return
         }
+        if (this.options.consumeEvent) {
+            e.stopImmediatePropagation(); // Captured, don't call anyone else
+        }
+        // Remove the handlers of "mousemove" and "mouseup"
+        this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
+        this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler);
+        document.removeEventListener("mouseup", this.#mouseUpHandler);
+        if (this.started) {
+            this.endDrag();
+        }
+        this.unclicked();
+        if (this.#trackingMouse) {
+            const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end);
+            this.target.dispatchEvent(dragEvent);
+            this.#trackingMouse = false;
+        }
+        this.started = false;
     }
 
     #trackingMouse = false
@@ -6028,9 +6055,9 @@ class MouseTracking extends IPointing {
     #mouseTracker = null
 
     /** @param {MouseEvent} e */
-    #mousemoveHandler= e => {
+    #mousemoveHandler = e => {
         e.preventDefault();
-        this.blueprint.mousePosition = this.locationFromEvent(e);
+        this.blueprint.mousePosition = this.locationFromMouseEvent(e);
     }
 
     /** @param {CustomEvent} e */
@@ -6225,6 +6252,209 @@ class Unfocus extends IInput {
 }
 
 /**
+ * @typedef {import("../../Blueprint.js").default} Blueprint
+ * @typedef {import("../../element/IElement.js").default} IElement
+ * @typedef {import("../IPointing.js").TouchLocations } TouchLocations
+ */
+
+/**
+ * @template {IElement} T
+ * @extends {IPointing<T>}
+ */
+class ITouchDrag extends IPointing {
+
+    /** @type {Touch[]} */
+    touches = []
+
+    /** @type {TouchLocations} */
+    #previousClientLocation = []
+
+    /** @param {TouchEvent} e  */
+    #touchStartHandler = e => {
+        // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+        if (
+            this.options.strictTarget && e.target !== e.currentTarget
+            || this.options.touchpointsCount !== e.touches.length
+        ) {
+            return
+        }
+        // Attach the listeners
+        this.#movementListenedElement.addEventListener("touchmove", this.#touchStartedMovingHandler);
+        document.addEventListener("touchend", this.#touchEndHandler);
+        const locations = this.locationsFromTouchEvent(e);
+        this.touched(locations);
+        this.#previousClientLocation = ITouchDrag.clientLocationsFromTouchEvent(e);
+    }
+
+    /** @param {TouchEvent} e  */
+    #touchStartedMovingHandler = e => {
+        if (this.options.consumeEvent) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+        }
+        // Delegate from now on to this.#touchMoveHandler
+        this.#movementListenedElement.removeEventListener("touchmove", this.#touchStartedMovingHandler);
+        this.#movementListenedElement.addEventListener("touchmove", this.#touchMoveHandler);
+        // Do actual actions
+        const locations = this.locationsFromTouchEvent(e);
+        this.startDrag(locations);
+        this.#previousClientLocation = ITouchDrag.clientLocationsFromTouchEvent(e);
+        this.started = true;
+    }
+
+    /** @param {TouchEvent} e  */
+    #touchMoveHandler = e => {
+        if (this.options.consumeEvent) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+        }
+        const locations = this.locationsFromTouchEvent(e);
+        const newClientLocations = ITouchDrag.clientLocationsFromTouchEvent(e);
+        this.dragTo(
+            locations,
+            ITouchDrag.computeOffsets(this.#previousClientLocation, newClientLocations)
+        );
+        this.#previousClientLocation = newClientLocations;
+    }
+
+    /** @param {TouchEvent} e  */
+    #touchEndHandler = e => {
+        if (this.options.touchpointsCount !== e.touches.length) {
+            return
+        }
+        this.#movementListenedElement.removeEventListener("touchmove", this.#touchStartHandler);
+        this.#movementListenedElement.removeEventListener("touchmove", this.#touchMoveHandler);
+        if (this.started) {
+            this.endDrag();
+        }
+        this.started = false;
+    }
+
+    #movementListenedElement
+    #draggableElement
+
+    clickedOffset = [0, 0]
+    clickedPosition = [0, 0]
+    lastLocation = [0, 0]
+    started = false
+
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.touchpointsCount ??= 1;
+        options.consumeEvent ??= false;
+        options.draggableElement ??= target;
+        options.moveEverywhere ??= false;
+        options.movementSpace ??= blueprint?.getGridDOMElement();
+        options.scrollGraphEdge ??= false;
+        super(target, blueprint, options);
+        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
+        this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
+        this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement);
+        this.listenEvents();
+    }
+
+    /** @param {TouchEvent} touchEvent  */
+    static clientLocationsFromTouchEvent(touchEvent) {
+        /** @type {TouchLocations} */
+        const locations = {};
+        for (const touch of touchEvent.touches) {
+            locations[touch.identifier] = [touch.clientX, touch.clientY];
+        }
+        return locations
+    }
+
+    /**
+     * @param {TouchLocations} from
+     * @param {TouchLocations} to
+     */
+    static computeOffsets(from, to) {
+        /** @type {TouchLocations} */
+        const result = {};
+        for (const id in from) {
+            result[id] = [
+                to[id][0] - from[id][0],
+                to[id][1] - from[id][1],
+            ];
+        }
+        return result
+    }
+
+    listenEvents() {
+        super.listenEvents();
+        this.#draggableElement.addEventListener("touchstart", this.#touchStartHandler);
+    }
+
+    unlistenEvents() {
+        super.unlistenEvents();
+        this.#draggableElement.removeEventListener("mousedown", this.#touchStartHandler);
+    }
+
+    /* Subclasses will override the following methods */
+    /** @param {TouchLocations} locations */
+    touched(locations) {
+    }
+
+    /** @param {TouchLocations} locations */
+    startDrag(locations) {
+    }
+
+    /**
+     * @param {TouchLocations} locations
+     * @param {TouchLocations} offsets
+     */
+    dragTo(locations, offsets) {
+    }
+
+    endDrag() {
+    }
+
+    untouched() {
+    }
+}
+
+/**
+ * @typedef {import("../../Blueprint.js").default} Blueprint
+ * @typedef {import("../../element/IElement.js").default} IElement
+ * @typedef {import("../IPointing.js").TouchLocations } TouchLocations
+ */
+
+class TouchScrollGraph extends ITouchDrag {
+
+    /**
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
+    constructor(blueprint, options = {}) {
+        options.consumeEvent ??= true;
+        options.touchpointsCount ??= 1;
+        options.stepSize ??= 1;
+        options.ignoreTranslateCompensate ??= true;
+        super(blueprint.getGridDOMElement(), blueprint, options);
+    }
+
+    startDrag() {
+        this.blueprint.scrolling = true;
+    }
+
+    /**
+     * @param {TouchLocations} locations
+     * @param {TouchLocations} offsets
+     */
+    dragTo(locations, offsets) {
+        const offset = Object.values(offsets)[0];
+        this.blueprint.scrollDelta(-offset[0], -offset[1]);
+    }
+
+    endDrag() {
+        this.blueprint.scrolling = false;
+    }
+}
+
+/**
  * @typedef {import("../Blueprint.js").default} Blueprint
  * @typedef {import("../element/PinElement.js").default} PinElement
  * @typedef {import("../element/SelectorElement.js").default} SelectorElement
@@ -6335,6 +6565,7 @@ class BlueprintTemplate extends ITemplate {
                 exitAnyButton: false,
                 moveEverywhere: true,
             }),
+            new TouchScrollGraph(this.blueprint),
             new Unfocus(this.element.getGridDOMElement(), this.element),
             new MouseTracking(this.element.getGridDOMElement(), this.element),
             new KeyboardEnableZoom(this.element.getGridDOMElement(), this.element),
@@ -6646,7 +6877,7 @@ class MouseDbClick extends IPointing {
             if (this.options.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
-            this.clickedPosition = this.locationFromEvent(e);
+            this.clickedPosition = this.locationFromMouseEvent(e);
             this.blueprint.mousePosition[0] = this.clickedPosition[0];
             this.blueprint.mousePosition[1] = this.clickedPosition[1];
             this.dbclicked(this.clickedPosition);

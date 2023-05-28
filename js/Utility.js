@@ -144,6 +144,7 @@ export default class Utility {
     static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
         const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement)
         const bounding = movementElement.getBoundingClientRect()
+        /** @type {[Number, Number]} */
         let location = [
             Math.round((viewportLocation[0] - bounding.x) * scaleCorrection),
             Math.round((viewportLocation[1] - bounding.y) * scaleCorrection)

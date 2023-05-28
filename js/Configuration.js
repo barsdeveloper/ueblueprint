@@ -54,6 +54,7 @@ export default class Configuration {
     static linkCurveHeight = 15 // px
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
+    static longTouchTime = 500 // ms
     static nameRegexSpaceReplacement = new RegExp(
         "^K2(?:[Nn]ode)?_"
         // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
