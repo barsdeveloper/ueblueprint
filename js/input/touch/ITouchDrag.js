@@ -1,39 +1,35 @@
 import Configuration from "../../Configuration.js"
-import IPointing from "../IPointing.js"
+import ITouch from "./ITouch.js"
 
 /**
  * @typedef {import("../../Blueprint.js").default} Blueprint
  * @typedef {import("../../element/IElement.js").default} IElement
- * @typedef {import("../IPointing.js").TouchLocations } TouchLocations
+ * @typedef {import("./ITouch.js").TouchLocations } TouchLocations
  */
 
 /**
  * @template {IElement} T
- * @extends {IPointing<T>}
+ * @extends {ITouch<T>}
  */
-export default class ITouchDrag extends IPointing {
-
-    /** @type {Touch[]} */
-    touches = []
+export default class ITouchDrag extends ITouch {
 
     /** @type {TouchLocations} */
-    #previousClientLocation = []
+    #previousClientLocation = {}
 
     /** @param {TouchEvent} e  */
     #touchStartHandler = e => {
-        // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+        const availableTouches = this.locationsFromEvent(e)
         if (
             this.options.strictTarget && e.target !== e.currentTarget
-            || this.options.touchpointsCount !== e.touches.length
+            || this.options.touchpointsCount !== Object.keys(availableTouches).length
         ) {
             return
         }
         // Attach the listeners
         this.#movementListenedElement.addEventListener("touchmove", this.#touchStartedMovingHandler)
         document.addEventListener("touchend", this.#touchEndHandler)
-        const locations = this.locationsFromTouchEvent(e)
-        this.touched(locations)
-        this.#previousClientLocation = ITouchDrag.clientLocationsFromTouchEvent(e)
+        this.touched(availableTouches)
+        this.#previousClientLocation = this.clientLocationsFromEvent(e)
     }
 
     /** @param {TouchEvent} e  */
@@ -46,9 +42,9 @@ export default class ITouchDrag extends IPointing {
         this.#movementListenedElement.removeEventListener("touchmove", this.#touchStartedMovingHandler)
         this.#movementListenedElement.addEventListener("touchmove", this.#touchMoveHandler)
         // Do actual actions
-        const locations = this.locationsFromTouchEvent(e)
+        const locations = this.locationsFromEvent(e)
         this.startDrag(locations)
-        this.#previousClientLocation = ITouchDrag.clientLocationsFromTouchEvent(e)
+        this.#previousClientLocation = this.clientLocationsFromEvent(e)
         this.started = true
     }
 
@@ -58,8 +54,8 @@ export default class ITouchDrag extends IPointing {
             e.stopImmediatePropagation()
             e.preventDefault()
         }
-        const locations = this.locationsFromTouchEvent(e)
-        const newClientLocations = ITouchDrag.clientLocationsFromTouchEvent(e)
+        const locations = this.locationsFromEvent(e)
+        const newClientLocations = this.clientLocationsFromEvent(e)
         this.dragTo(
             locations,
             ITouchDrag.computeOffsets(this.#previousClientLocation, newClientLocations)
@@ -105,16 +101,6 @@ export default class ITouchDrag extends IPointing {
         this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace
         this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement)
         this.listenEvents()
-    }
-
-    /** @param {TouchEvent} touchEvent  */
-    static clientLocationsFromTouchEvent(touchEvent) {
-        /** @type {TouchLocations} */
-        const locations = {}
-        for (const touch of touchEvent.touches) {
-            locations[touch.identifier] = [touch.clientX, touch.clientY]
-        }
-        return locations
     }
 
     /**

@@ -1,6 +1,6 @@
 import Configuration from "../../Configuration.js"
 import IDraggableElement from "../../element/IDraggableElement.js"
-import IPointing from "../IPointing.js"
+import IPointing from "./IPointing.js"
 import Utility from "../../Utility.js"
 
 /**

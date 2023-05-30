@@ -3,7 +3,7 @@ import ITouchDrag from "./ITouchDrag.js"
 /**
  * @typedef {import("../../Blueprint.js").default} Blueprint
  * @typedef {import("../../element/IElement.js").default} IElement
- * @typedef {import("../IPointing.js").TouchLocations } TouchLocations
+ * @typedef {import("./ITouch.js").TouchLocations } TouchLocations
  */
 
 export default class TouchScrollGraph extends ITouchDrag {

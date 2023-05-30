@@ -1,5 +1,5 @@
 import Configuration from "../../Configuration.js"
-import IPointing from "../IPointing.js"
+import IPointing from "./IPointing.js"
 
 /**
  * @template {HTMLElement} T
