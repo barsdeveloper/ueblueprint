@@ -6211,8 +6211,11 @@ class Select extends IMouseClickDrag {
  */
 class ITouch extends IInput {
 
+    /** @type {Number[]} */
+    static #capturedTouches = []
+
     /** @type {TouchLocations} */
-    touches = {}
+    touchLocations = {}
 
     constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false;
@@ -6223,37 +6226,82 @@ class ITouch extends IInput {
         this.movementSpace = options.movementSpace;
     }
 
+    /** @param {Number} identifier */
+    captureTouch(identifier) {
+        const exists = ITouch.#capturedTouches.includes(identifier);
+        if (!exists) {
+            ITouch.#capturedTouches.push(identifier);
+            this.touchLocations[identifier] = [0, 0];
+        }
+        return exists
+    }
+
+    /** @param {Number} identifier */
+    releaseTouch(identifier) {
+        const index = ITouch.#capturedTouches.indexOf(identifier);
+        if (index < 0) {
+            return false
+        }
+        ITouch.#capturedTouches.splice(index, 1);
+        delete this.touchLocations[identifier];
+        return true
+    }
+
+    releaseAllTouches() {
+        const ids = Object.keys(this.touchLocations).map(Number);
+        if (ids.length === 0) {
+            return false
+        }
+        ids.forEach(id => this.releaseTouch(id));
+        return true
+    }
+
+    /** @param {TouchEvent} event */
+    availableTouches(event) {
+        return [...event.touches].map(v => v.identifier).filter(id => !ITouch.#capturedTouches.includes(id))
+    }
+
     /** @param {TouchEvent} event */
     locationsFromEvent(event) {
-        /** @type {TouchLocations} */
-        const locations = {};
         for (const touch of event.touches) {
-            if (touch.identifier in this.touches) {
+            if (!(touch.identifier in this.touchLocations)) {
                 continue
             }
-            locations[touch.identifier] = Utility.convertLocation(
+            this.touchLocations[touch.identifier] = Utility.convertLocation(
                 [touch.clientX, touch.clientY],
                 this.movementSpace,
                 this.options.ignoreScale
             );
             if (!this.options.ignoreTranslateCompensate) {
-                locations[touch.identifier] = this.blueprint.compensateTranslation(location[0], location[1]);
+                this.touchLocations[touch.identifier] = this.blueprint.compensateTranslation(location[0], location[1]);
             }
         }
-        return locations
+        return this.touchLocations
     }
 
-    /** @param {TouchEvent} touchEvent  */
-    clientLocationsFromEvent(touchEvent) {
-        /** @type {TouchLocations} */
-        const locations = {};
-        for (const touch of touchEvent.touches) {
-            if (touch.identifier in this.touches) {
+    /** @param {TouchEvent} event */
+    clientLocationsFromEvent(event) {
+        for (const touch of event.touches) {
+            if (!(touch.identifier in this.touchLocations)) {
                 continue
             }
-            locations[touch.identifier] = [touch.clientX, touch.clientY];
+            this.touchLocations[touch.identifier] = [touch.clientX, touch.clientY];
         }
-        return locations
+        return this.touchLocations
+    }
+
+    /** @param {TouchEvent} event */
+    releaseMissingTouches(event) {
+        let released = false;
+        const eventIds = [...event.touches].map(v => v.identifier);
+        for (const id in this.touchLocations) {
+            const identifier = Number(id);
+            if (!eventIds.includes(identifier)) {
+                this.releaseTouch(identifier);
+                released = true;
+            }
+        }
+        return released
     }
 }
 
@@ -6274,17 +6322,21 @@ class ITouchDrag extends ITouch {
 
     /** @param {TouchEvent} e  */
     #touchStartHandler = e => {
-        const availableTouches = this.locationsFromEvent(e);
+        let touchIds = this.availableTouches(e);
         if (
             this.options.strictTarget && e.target !== e.currentTarget
-            || this.options.touchpointsCount !== Object.keys(availableTouches).length
+            || touchIds.length < this.options.touchpointsCount
         ) {
             return
         }
+        if (touchIds.length > this.options.touchpointsCount) {
+            // Get just the touches needed
+            touchIds = touchIds.filter((v, i) => i < this.options.touchpointsCount);
+        }
+        touchIds.forEach(v => this.captureTouch(v));
         // Attach the listeners
         this.#movementListenedElement.addEventListener("touchmove", this.#touchStartedMovingHandler);
         document.addEventListener("touchend", this.#touchEndHandler);
-        this.touched(availableTouches);
         this.#previousClientLocation = this.clientLocationsFromEvent(e);
     }
 
@@ -6321,7 +6373,8 @@ class ITouchDrag extends ITouch {
 
     /** @param {TouchEvent} e  */
     #touchEndHandler = e => {
-        if (this.options.touchpointsCount !== e.touches.length) {
+        this.releaseMissingTouches(e);
+        if (Object.keys(this.touchLocations).length >= this.options.touchpointsCount) {
             return
         }
         this.#movementListenedElement.removeEventListener("touchmove", this.#touchStartHandler);

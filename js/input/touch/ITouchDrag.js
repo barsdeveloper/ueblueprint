@@ -18,17 +18,21 @@ export default class ITouchDrag extends ITouch {
 
     /** @param {TouchEvent} e  */
     #touchStartHandler = e => {
-        const availableTouches = this.locationsFromEvent(e)
+        let touchIds = this.availableTouches(e)
         if (
             this.options.strictTarget && e.target !== e.currentTarget
-            || this.options.touchpointsCount !== Object.keys(availableTouches).length
+            || touchIds.length < this.options.touchpointsCount
         ) {
             return
         }
+        if (touchIds.length > this.options.touchpointsCount) {
+            // Get just the touches needed
+            touchIds = touchIds.filter((v, i) => i < this.options.touchpointsCount)
+        }
+        touchIds.forEach(v => this.captureTouch(v))
         // Attach the listeners
         this.#movementListenedElement.addEventListener("touchmove", this.#touchStartedMovingHandler)
         document.addEventListener("touchend", this.#touchEndHandler)
-        this.touched(availableTouches)
         this.#previousClientLocation = this.clientLocationsFromEvent(e)
     }
 
@@ -65,7 +69,8 @@ export default class ITouchDrag extends ITouch {
 
     /** @param {TouchEvent} e  */
     #touchEndHandler = e => {
-        if (this.options.touchpointsCount !== e.touches.length) {
+        this.releaseMissingTouches(e)
+        if (Object.keys(this.touchLocations).length >= this.options.touchpointsCount) {
             return
         }
         this.#movementListenedElement.removeEventListener("touchmove", this.#touchStartHandler)
