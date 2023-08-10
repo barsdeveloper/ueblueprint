@@ -129,12 +129,4 @@ export default class IElement extends LitElement {
     isSameGraph(element) {
         return this.blueprint && this.blueprint == element?.blueprint
     }
-
-    /**
-     * @template {IInput} V
-     * @param {new (...args: any[]) => V} type
-     */
-    getInputObject(type) {
-        return /** @type {V} */(this.template.inputObjects.find(object => object.constructor == type))
-    }
 }

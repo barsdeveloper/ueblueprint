@@ -5125,6 +5125,42 @@ class Copy extends IInput {
     }
 }
 
+class Cut extends IInput {
+
+    static #serializer = new ObjectSerializer()
+
+    /** @type {(e: ClipboardEvent) => void} */
+    #cutHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus ??= true;
+        options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
+        super(target, blueprint, options);
+        let self = this;
+        this.#cutHandler = () => self.cut();
+    }
+
+    listenEvents() {
+        window.addEventListener("cut", this.#cutHandler);
+    }
+
+    unlistenEvents() {
+        window.removeEventListener("cut", this.#cutHandler);
+    }
+
+    getSerializedText() {
+        return this.blueprint
+            .getNodes(true)
+            .map(node => Cut.#serializer.write(node.entity, false))
+            .join("")
+    }
+
+    cut() {
+        this.blueprint.template.getCopyInputObject().copied();
+        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
+    }
+}
+
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
@@ -5247,68 +5283,6 @@ class IKeyboardShortcut extends IInput {
     }
 }
 
-class Shortcuts {
-    static deleteNodes = "Delete"
-    static duplicateNodes = "(bCtrl=True,Key=D)"
-    static selectAllNodes = "(bCtrl=True,Key=A)"
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
-}
-
-/** @typedef {import("../../Blueprint.js").default} Blueprint */
-
-class KeyboardCanc extends IKeyboardShortcut {
-
-    /**
-     * @param {HTMLElement} target
-     * @param {Blueprint} blueprint
-     * @param {Object} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options.activationKeys = Shortcuts.deleteNodes;
-        super(target, blueprint, options);
-    }
-
-    fire() {
-        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
-    }
-}
-
-class Cut extends IInput {
-
-    static #serializer = new ObjectSerializer()
-
-    /** @type {(e: ClipboardEvent) => void} */
-    #cutHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.listenOnFocus ??= true;
-        options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
-        super(target, blueprint, options);
-        let self = this;
-        this.#cutHandler = () => self.cut();
-    }
-
-    listenEvents() {
-        window.addEventListener("cut", this.#cutHandler);
-    }
-
-    unlistenEvents() {
-        window.removeEventListener("cut", this.#cutHandler);
-    }
-
-    getSerializedText() {
-        return this.blueprint
-            .getNodes(true)
-            .map(node => Cut.#serializer.write(node.entity, false))
-            .join("")
-    }
-
-    cut() {
-        this.blueprint.template.getCopyInputObject().copied();
-        this.blueprint.template.getInputObject(KeyboardCanc).fire();
-    }
-}
-
 /**
  * @typedef {import("../element/IElement.js").default} IElement
  * @typedef {import("../input/IInput.js").default} IInput
@@ -5338,14 +5312,6 @@ class ITemplate {
 
     createInputObjects() {
         return /** @type {IInput[]} */([])
-    }
-
-    /**
-     * @template {IInput} T
-     * @param {new (...any) => T} type
-     */
-    getInputObject(type) {
-        return /** @type {T} */(this.inputObjects.find(object => object.constructor == type))
     }
 
     setup() {
@@ -5379,6 +5345,13 @@ class ITemplate {
     inputSetup() {
         this.#inputObjects = this.createInputObjects();
     }
+}
+
+class Shortcuts {
+    static deleteNodes = "Delete"
+    static duplicateNodes = "(bCtrl=True,Key=D)"
+    static selectAllNodes = "(bCtrl=True,Key=A)"
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
 }
 
 /**
@@ -5500,31 +5473,12 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
     }
 
     fire() {
-        this.#zoomInputObject = this.blueprint.getInputObject(Zoom);
+        this.#zoomInputObject = this.blueprint.template.getZoomInputObject();
         this.#zoomInputObject.enableZoonIn = true;
     }
 
     unfire() {
         this.#zoomInputObject.enableZoonIn = false;
-    }
-}
-
-/** @typedef {import("../../Blueprint.js").default} Blueprint */
-
-class KeyboardSelectAll extends IKeyboardShortcut {
-
-    /**
-     * @param {HTMLElement} target
-     * @param {Blueprint} blueprint
-     * @param {Object} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options.activationKeys = Shortcuts.selectAllNodes;
-        super(target, blueprint, options);
-    }
-
-    fire() {
-        this.blueprint.selectAll();
     }
 }
 
@@ -5655,14 +5609,6 @@ class IElement extends s {
     /** @param {IElement} element */
     isSameGraph(element) {
         return this.blueprint && this.blueprint == element?.blueprint
-    }
-
-    /**
-     * @template {IInput} V
-     * @param {new (...args: any[]) => V} type
-     */
-    getInputObject(type) {
-        return /** @type {V} */(this.template.inputObjects.find(object => object.constructor == type))
     }
 }
 
@@ -6237,6 +6183,12 @@ class BlueprintTemplate extends ITemplate {
             this.viewportSize[1] = size.blockSize;
         }
     })
+    /** @type {Copy} */
+    #copyInputObject
+    /** @type {Paste} */
+    #pasteInputObject
+    /** @type {Zoom} */
+    #zoomInputObject
 
     /** @type {HTMLElement} */ headerElement
     /** @type {HTMLElement} */ overlayElement
@@ -6292,34 +6244,42 @@ class BlueprintTemplate extends ITemplate {
     }
 
     createInputObjects() {
+        const gridElement = this.element.getGridDOMElement();
+        this.#copyInputObject = new Copy(gridElement, this.blueprint);
+        this.#pasteInputObject = new Paste(gridElement, this.blueprint);
+        this.#zoomInputObject = new Zoom(gridElement, this.blueprint);
         return [
             ...super.createInputObjects(),
-            new Copy(this.element.getGridDOMElement(), this.element),
-            new Paste(this.element.getGridDOMElement(), this.element),
-            new Cut(this.element.getGridDOMElement(), this.element),
-            new IKeyboardShortcut(this.element.getGridDOMElement(), this.element, {
+            this.#copyInputObject,
+            this.#pasteInputObject,
+            this.#zoomInputObject,
+            new Cut(gridElement, this.blueprint),
+            new IKeyboardShortcut(gridElement, this.blueprint, {
                 activationKeys: Shortcuts.duplicateNodes
             }, () =>
                 this.blueprint.template.getPasteInputObject().pasted(
                     this.blueprint.template.getCopyInputObject().copied()
                 )
             ),
-            new KeyboardCanc(this.element.getGridDOMElement(), this.element),
-            new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
-            new Zoom(this.element.getGridDOMElement(), this.element),
-            new Select(this.element.getGridDOMElement(), this.element, {
+            new IKeyboardShortcut(gridElement, this.blueprint, {
+                activationKeys: Shortcuts.deleteNodes
+            }, () => this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))),
+            new IKeyboardShortcut(gridElement, this.blueprint, {
+                activationKeys: Shortcuts.selectAllNodes
+            }, () => this.blueprint.selectAll()),
+            new Select(gridElement, this.blueprint, {
                 clickButton: Configuration.mouseClickButton,
                 exitAnyButton: true,
                 moveEverywhere: true,
             }),
-            new MouseScrollGraph(this.element.getGridDOMElement(), this.element, {
+            new MouseScrollGraph(gridElement, this.blueprint, {
                 clickButton: Configuration.mouseRightClickButton,
                 exitAnyButton: false,
                 moveEverywhere: true,
             }),
-            new Unfocus(this.element.getGridDOMElement(), this.element),
-            new MouseTracking(this.element.getGridDOMElement(), this.element),
-            new KeyboardEnableZoom(this.element.getGridDOMElement(), this.element),
+            new Unfocus(gridElement, this.blueprint),
+            new MouseTracking(gridElement, this.blueprint),
+            new KeyboardEnableZoom(gridElement, this.blueprint),
         ]
     }
 
@@ -6409,11 +6369,15 @@ class BlueprintTemplate extends ITemplate {
     }
 
     getCopyInputObject() {
-        return this.getInputObject(Copy)
+        return this.#copyInputObject
     }
 
     getPasteInputObject() {
-        return this.getInputObject(Paste)
+        return this.#pasteInputObject
+    }
+
+    getZoomInputObject() {
+        return this.#zoomInputObject
     }
 
     /**

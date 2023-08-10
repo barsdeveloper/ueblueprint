@@ -4,9 +4,7 @@ import Copy from "../input/common/Copy.js"
 import Cut from "../input/common/Cut.js"
 import IKeyboardShortcut from "../input/keyboard/IKeyboardShortcut.js"
 import ITemplate from "./ITemplate.js"
-import KeyboardCanc from "../input/keyboard/KeyboardCanc.js"
 import KeyboardEnableZoom from "../input/keyboard/KeyboardEnableZoom.js"
-import KeyboardSelectAll from "../input/keyboard/KeyboardSelectAll.js"
 import MouseScrollGraph from "../input/mouse/MouseScrollGraph.js"
 import MouseTracking from "../input/mouse/MouseTracking.js"
 import Paste from "../input/common/Paste.js"
@@ -47,6 +45,12 @@ export default class BlueprintTemplate extends ITemplate {
             this.viewportSize[1] = size.blockSize
         }
     })
+    /** @type {Copy} */
+    #copyInputObject
+    /** @type {Paste} */
+    #pasteInputObject
+    /** @type {Zoom} */
+    #zoomInputObject
 
     /** @type {HTMLElement} */ headerElement
     /** @type {HTMLElement} */ overlayElement
@@ -102,34 +106,42 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     createInputObjects() {
+        const gridElement = this.element.getGridDOMElement()
+        this.#copyInputObject = new Copy(gridElement, this.blueprint)
+        this.#pasteInputObject = new Paste(gridElement, this.blueprint)
+        this.#zoomInputObject = new Zoom(gridElement, this.blueprint)
         return [
             ...super.createInputObjects(),
-            new Copy(this.element.getGridDOMElement(), this.element),
-            new Paste(this.element.getGridDOMElement(), this.element),
-            new Cut(this.element.getGridDOMElement(), this.element),
-            new IKeyboardShortcut(this.element.getGridDOMElement(), this.element, {
+            this.#copyInputObject,
+            this.#pasteInputObject,
+            this.#zoomInputObject,
+            new Cut(gridElement, this.blueprint),
+            new IKeyboardShortcut(gridElement, this.blueprint, {
                 activationKeys: Shortcuts.duplicateNodes
             }, () =>
                 this.blueprint.template.getPasteInputObject().pasted(
                     this.blueprint.template.getCopyInputObject().copied()
                 )
             ),
-            new KeyboardCanc(this.element.getGridDOMElement(), this.element),
-            new KeyboardSelectAll(this.element.getGridDOMElement(), this.element),
-            new Zoom(this.element.getGridDOMElement(), this.element),
-            new Select(this.element.getGridDOMElement(), this.element, {
+            new IKeyboardShortcut(gridElement, this.blueprint, {
+                activationKeys: Shortcuts.deleteNodes
+            }, () => this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))),
+            new IKeyboardShortcut(gridElement, this.blueprint, {
+                activationKeys: Shortcuts.selectAllNodes
+            }, () => this.blueprint.selectAll()),
+            new Select(gridElement, this.blueprint, {
                 clickButton: Configuration.mouseClickButton,
                 exitAnyButton: true,
                 moveEverywhere: true,
             }),
-            new MouseScrollGraph(this.element.getGridDOMElement(), this.element, {
+            new MouseScrollGraph(gridElement, this.blueprint, {
                 clickButton: Configuration.mouseRightClickButton,
                 exitAnyButton: false,
                 moveEverywhere: true,
             }),
-            new Unfocus(this.element.getGridDOMElement(), this.element),
-            new MouseTracking(this.element.getGridDOMElement(), this.element),
-            new KeyboardEnableZoom(this.element.getGridDOMElement(), this.element),
+            new Unfocus(gridElement, this.blueprint),
+            new MouseTracking(gridElement, this.blueprint),
+            new KeyboardEnableZoom(gridElement, this.blueprint),
         ]
     }
 
@@ -219,11 +231,15 @@ export default class BlueprintTemplate extends ITemplate {
     }
 
     getCopyInputObject() {
-        return this.getInputObject(Copy)
+        return this.#copyInputObject
     }
 
     getPasteInputObject() {
-        return this.getInputObject(Paste)
+        return this.#pasteInputObject
+    }
+
+    getZoomInputObject() {
+        return this.#zoomInputObject
     }
 
     /**

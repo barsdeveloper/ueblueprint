@@ -20,7 +20,7 @@ export default class KeyboardEnableZoom extends IKeyboardShortcut {
     }
 
     fire() {
-        this.#zoomInputObject = this.blueprint.getInputObject(Zoom)
+        this.#zoomInputObject = this.blueprint.template.getZoomInputObject()
         this.#zoomInputObject.enableZoonIn = true
     }
 

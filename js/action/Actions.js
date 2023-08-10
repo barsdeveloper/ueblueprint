@@ -1,8 +1,14 @@
 export default class Action {
 
-    apply() {
+    #blueprint
+    get blueprint() {
+        return this.#blueprint
     }
 
-    revert() {
+    constructor(blueprint) {
+        this.#blueprint = blueprint
+    }
+
+    fire() {
     }
 }

@@ -1,6 +1,5 @@
 import IInput from "../IInput.js"
 import ObjectSerializer from "../../serialization/ObjectSerializer.js"
-import KeyboardCanc from "../keyboard/KeyboardCanc.js"
 
 export default class Cut extends IInput {
 
@@ -34,6 +33,6 @@ export default class Cut extends IInput {
 
     cut() {
         this.blueprint.template.getCopyInputObject().copied()
-        this.blueprint.template.getInputObject(KeyboardCanc).fire()
+        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))
     }
 }
