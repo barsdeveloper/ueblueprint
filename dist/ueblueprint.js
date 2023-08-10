@@ -5093,7 +5093,7 @@ class Copy extends IInput {
         options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
         super(target, blueprint, options);
         let self = this;
-        this.#copyHandler = _ => self.copied();
+        this.#copyHandler = () => self.copied();
     }
 
     listenEvents() {
@@ -5267,7 +5267,7 @@ class Cut extends IInput {
         options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
         super(target, blueprint, options);
         let self = this;
-        this.#cutHandler = _ => self.cut();
+        this.#cutHandler = () => self.cut();
     }
 
     listenEvents() {
@@ -9745,7 +9745,7 @@ class BoolPinTemplate extends PinTemplate {
     /** @type {HTMLInputElement?} */
     #input
 
-    #onChangeHandler = _ => this.element.setDefaultValue(this.#input.checked)
+    #onChangeHandler = () => this.element.setDefaultValue(this.#input.checked)
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
@@ -11595,7 +11595,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new Serializer(InvariantTextEntity, (entity, v) => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
+        new Serializer(InvariantTextEntity, (entity, v) => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", () => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -11610,7 +11610,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new Serializer(LocalizedTextEntity, (entity, v) => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
+        new Serializer(LocalizedTextEntity, (entity, v) => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", () => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -11660,7 +11660,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
-        new Serializer(PinReferenceEntity, undefined, " ", false, "", _ => "")
+        new Serializer(PinReferenceEntity, undefined, " ", false, "", () => "")
     );
 
     SerializerFactory.registerSerializer(

@@ -10,7 +10,7 @@ export default class BoolPinTemplate extends PinTemplate {
     /** @type {HTMLInputElement?} */
     #input
 
-    #onChangeHandler = _ => this.element.setDefaultValue(this.#input.checked)
+    #onChangeHandler = () => this.element.setDefaultValue(this.#input.checked)
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
