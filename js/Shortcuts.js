@@ -1,4 +1,4 @@
-export default class Shortcut {
+export default class Shortcuts {
     static deleteNodes = "Delete"
     static duplicateNodes = "(bCtrl=True,Key=D)"
     static selectAllNodes = "(bCtrl=True,Key=A)"

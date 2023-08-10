@@ -5229,7 +5229,7 @@ class IKeyboardShortcut extends IInput {
     }
 }
 
-class Shortcut {
+class Shortcuts {
     static deleteNodes = "Delete"
     static duplicateNodes = "(bCtrl=True,Key=D)"
     static selectAllNodes = "(bCtrl=True,Key=A)"
@@ -5246,7 +5246,7 @@ class KeyboardCanc extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.activationKeys = Shortcut.deleteNodes;
+        options.activationKeys = Shortcuts.deleteNodes;
         super(target, blueprint, options);
     }
 
@@ -5477,7 +5477,7 @@ class KeyboardEnableZoom extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.activationKeys = Shortcut.enableZoomIn;
+        options.activationKeys = Shortcuts.enableZoomIn;
         super(target, blueprint, options);
     }
 
@@ -5501,7 +5501,7 @@ class KeyboardSelectAll extends IKeyboardShortcut {
      * @param {Object} options
      */
     constructor(target, blueprint, options = {}) {
-        options.activationKeys = Shortcut.selectAllNodes;
+        options.activationKeys = Shortcuts.selectAllNodes;
         super(target, blueprint, options);
     }
 
@@ -6320,7 +6320,7 @@ class BlueprintTemplate extends ITemplate {
             new Paste(this.element.getGridDOMElement(), this.element),
             new Cut(this.element.getGridDOMElement(), this.element),
             new KeyboardShortcutAction(this.element.getGridDOMElement(), this.element, {
-                activationKeys: Shortcut.duplicateNodes
+                activationKeys: Shortcuts.duplicateNodes
             }, () =>
                 this.blueprint.template.getPasteInputObject().pasted(
                     this.blueprint.template.getCopyInputObject().copied()

@@ -11,7 +11,7 @@ import MouseScrollGraph from "../input/mouse/MouseScrollGraph.js"
 import MouseTracking from "../input/mouse/MouseTracking.js"
 import Paste from "../input/common/Paste.js"
 import Select from "../input/mouse/Select.js"
-import Shortcut from "../Shortcut.js"
+import Shortcuts from "../Shortcuts.js"
 import Unfocus from "../input/mouse/Unfocus.js"
 import Utility from "../Utility.js"
 import Zoom from "../input/mouse/Zoom.js"
@@ -108,7 +108,7 @@ export default class BlueprintTemplate extends ITemplate {
             new Paste(this.element.getGridDOMElement(), this.element),
             new Cut(this.element.getGridDOMElement(), this.element),
             new KeyboardShortcutAction(this.element.getGridDOMElement(), this.element, {
-                activationKeys: Shortcut.duplicateNodes
+                activationKeys: Shortcuts.duplicateNodes
             }, () =>
                 this.blueprint.template.getPasteInputObject().pasted(
                     this.blueprint.template.getCopyInputObject().copied()
