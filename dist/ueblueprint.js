@@ -5133,6 +5133,10 @@ class Copy extends IInput {
  */
 class IKeyboardShortcut extends IInput {
 
+    static #ignoreEvent =
+        /** @param {IKeyboardShortcut} self */
+        self => { }
+
     /** @type {KeyBindingEntity[]} */
     #activationKeys
 
@@ -5143,8 +5147,13 @@ class IKeyboardShortcut extends IInput {
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options = {}) {
-        options.activateAnyKey ??= false;
+    constructor(
+        target,
+        blueprint,
+        options = {},
+        onKeyDown = IKeyboardShortcut.#ignoreEvent,
+        onKeyUp = IKeyboardShortcut.#ignoreEvent
+    ) {
         options.activationKeys ??= [];
         options.consumeEvent ??= true;
         options.listenOnFocus ??= true;
@@ -5166,6 +5175,8 @@ class IKeyboardShortcut extends IInput {
         });
 
         super(target, blueprint, options);
+        this.onKeyDown = onKeyDown;
+        this.onKeyUp = onKeyUp;
 
         this.#activationKeys = this.options.activationKeys ?? [];
 
@@ -5177,8 +5188,7 @@ class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyDownHandler = e => {
             if (
-                this.options.activateAnyKey
-                || self.#activationKeys.some(keyEntry =>
+                self.#activationKeys.some(keyEntry =>
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
@@ -5199,8 +5209,7 @@ class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyUpHandler = e => {
             if (
-                this.options.activateAnyKey
-                || self.#activationKeys.some(keyEntry =>
+                self.#activationKeys.some(keyEntry =>
                     keyEntry.bShift && e.key == "Shift"
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
@@ -5230,9 +5239,11 @@ class IKeyboardShortcut extends IInput {
     // Subclasses will want to override
 
     fire() {
+        this.onKeyDown(this);
     }
 
     unfire() {
+        this.onKeyUp(this);
     }
 }
 
@@ -5514,46 +5525,6 @@ class KeyboardSelectAll extends IKeyboardShortcut {
 
     fire() {
         this.blueprint.selectAll();
-    }
-}
-
-/** @typedef {import("../../Blueprint.js").default} Blueprint */
-
-/**
- * @template {HTMLElement} T
- * @extends IKeyboardShortcut<T>
- */
-class KeyboardShortcutAction extends IKeyboardShortcut {
-
-    static #ignoreEvent =
-        /** @param {KeyboardShortcutAction} self */
-        self => { }
-
-    /**
-     * @param {T} target
-     * @param {Blueprint} blueprint
-     * @param {Object} options
-     * @param {(self: KeyboardShortcutAction<T>) => void} onKeyDown
-     * @param {(self: KeyboardShortcutAction<T>) => void} onKeyUp
-     */
-    constructor(
-        target,
-        blueprint,
-        options,
-        onKeyDown = KeyboardShortcutAction.#ignoreEvent,
-        onKeyUp = KeyboardShortcutAction.#ignoreEvent
-    ) {
-        super(target, blueprint, options);
-        this.onKeyDown = onKeyDown;
-        this.onKeyUp = onKeyUp;
-    }
-
-    fire() {
-        this.onKeyDown(this);
-    }
-
-    unfire() {
-        this.onKeyUp(this);
     }
 }
 
@@ -6326,7 +6297,7 @@ class BlueprintTemplate extends ITemplate {
             new Copy(this.element.getGridDOMElement(), this.element),
             new Paste(this.element.getGridDOMElement(), this.element),
             new Cut(this.element.getGridDOMElement(), this.element),
-            new KeyboardShortcutAction(this.element.getGridDOMElement(), this.element, {
+            new IKeyboardShortcut(this.element.getGridDOMElement(), this.element, {
                 activationKeys: Shortcuts.duplicateNodes
             }, () =>
                 this.blueprint.template.getPasteInputObject().pasted(
@@ -7315,7 +7286,7 @@ class IDraggableTemplate extends ITemplate {
         return [
             ...super.createInputObjects(),
             this.createDraggableObject(),
-            new KeyboardShortcutAction(
+            new IKeyboardShortcut(
                 this.element,
                 this.blueprint,
                 {

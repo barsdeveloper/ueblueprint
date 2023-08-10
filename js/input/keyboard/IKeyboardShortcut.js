@@ -11,6 +11,10 @@ import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
  */
 export default class IKeyboardShortcut extends IInput {
 
+    static #ignoreEvent =
+        /** @param {IKeyboardShortcut} self */
+        self => { }
+
     /** @type {KeyBindingEntity[]} */
     #activationKeys
 
@@ -21,8 +25,13 @@ export default class IKeyboardShortcut extends IInput {
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options = {}) {
-        options.activateAnyKey ??= false
+    constructor(
+        target,
+        blueprint,
+        options = {},
+        onKeyDown = IKeyboardShortcut.#ignoreEvent,
+        onKeyUp = IKeyboardShortcut.#ignoreEvent
+    ) {
         options.activationKeys ??= []
         options.consumeEvent ??= true
         options.listenOnFocus ??= true
@@ -44,6 +53,8 @@ export default class IKeyboardShortcut extends IInput {
         })
 
         super(target, blueprint, options)
+        this.onKeyDown = onKeyDown
+        this.onKeyUp = onKeyUp
 
         this.#activationKeys = this.options.activationKeys ?? []
 
@@ -55,8 +66,7 @@ export default class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyDownHandler = e => {
             if (
-                this.options.activateAnyKey
-                || self.#activationKeys.some(keyEntry =>
+                self.#activationKeys.some(keyEntry =>
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
@@ -77,8 +87,7 @@ export default class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyUpHandler = e => {
             if (
-                this.options.activateAnyKey
-                || self.#activationKeys.some(keyEntry =>
+                self.#activationKeys.some(keyEntry =>
                     keyEntry.bShift && e.key == "Shift"
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
@@ -108,8 +117,10 @@ export default class IKeyboardShortcut extends IInput {
     // Subclasses will want to override
 
     fire() {
+        this.onKeyDown(this)
     }
 
     unfire() {
+        this.onKeyUp(this)
     }
 }

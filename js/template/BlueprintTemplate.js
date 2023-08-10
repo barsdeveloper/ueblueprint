@@ -2,11 +2,11 @@ import { html } from "lit"
 import Configuration from "../Configuration.js"
 import Copy from "../input/common/Copy.js"
 import Cut from "../input/common/Cut.js"
+import IKeyboardShortcut from "../input/keyboard/IKeyboardShortcut.js"
 import ITemplate from "./ITemplate.js"
 import KeyboardCanc from "../input/keyboard/KeyboardCanc.js"
 import KeyboardEnableZoom from "../input/keyboard/KeyboardEnableZoom.js"
 import KeyboardSelectAll from "../input/keyboard/KeyboardSelectAll.js"
-import KeyboardShortcutAction from "../input/keyboard/KeyboardShortcutAction.js"
 import MouseScrollGraph from "../input/mouse/MouseScrollGraph.js"
 import MouseTracking from "../input/mouse/MouseTracking.js"
 import Paste from "../input/common/Paste.js"
@@ -107,7 +107,7 @@ export default class BlueprintTemplate extends ITemplate {
             new Copy(this.element.getGridDOMElement(), this.element),
             new Paste(this.element.getGridDOMElement(), this.element),
             new Cut(this.element.getGridDOMElement(), this.element),
-            new KeyboardShortcutAction(this.element.getGridDOMElement(), this.element, {
+            new IKeyboardShortcut(this.element.getGridDOMElement(), this.element, {
                 activationKeys: Shortcuts.duplicateNodes
             }, () =>
                 this.blueprint.template.getPasteInputObject().pasted(
