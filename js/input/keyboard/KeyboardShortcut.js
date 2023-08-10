@@ -9,10 +9,10 @@ import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
  * @template {HTMLElement} T
  * @extends IInput<T>
  */
-export default class IKeyboardShortcut extends IInput {
+export default class KeyboardShortcut extends IInput {
 
     static #ignoreEvent =
-        /** @param {IKeyboardShortcut} self */
+        /** @param {KeyboardShortcut} self */
         self => { }
 
     /** @type {KeyBindingEntity[]} */
@@ -29,8 +29,8 @@ export default class IKeyboardShortcut extends IInput {
         target,
         blueprint,
         options = {},
-        onKeyDown = IKeyboardShortcut.#ignoreEvent,
-        onKeyUp = IKeyboardShortcut.#ignoreEvent
+        onKeyDown = KeyboardShortcut.#ignoreEvent,
+        onKeyUp = KeyboardShortcut.#ignoreEvent
     ) {
         options.activationKeys ??= []
         options.consumeEvent ??= true
@@ -114,7 +114,7 @@ export default class IKeyboardShortcut extends IInput {
         document.removeEventListener("keydown", this.keyDownHandler)
     }
 
-    // Subclasses will want to override
+    /* Subclasses can override */
 
     fire() {
         this.onKeyDown(this)

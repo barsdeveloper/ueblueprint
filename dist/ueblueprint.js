@@ -5161,16 +5161,80 @@ class Cut extends IInput {
     }
 }
 
+/**
+ * @typedef {import("../element/IElement.js").default} IElement
+ * @typedef {import("../input/IInput.js").default} IInput
+ * @typedef {import("lit").PropertyValues} PropertyValues
+ */
+
+/** @template {IElement} T */
+class ITemplate {
+
+    /** @type {T} */
+    element
+
+    get blueprint() {
+        return this.element.blueprint
+    }
+
+    /** @type {IInput[]} */
+    #inputObjects = []
+    get inputObjects() {
+        return this.#inputObjects
+    }
+
+    /** @param {T} element */
+    initialize(element) {
+        this.element = element;
+    }
+
+    createInputObjects() {
+        return /** @type {IInput[]} */([])
+    }
+
+    setup() {
+        this.#inputObjects.forEach(v => v.setup());
+    }
+
+    cleanup() {
+        this.#inputObjects.forEach(v => v.cleanup());
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    willUpdate(changedProperties) {
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    update(changedProperties) {
+    }
+
+    render() {
+        return x``
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    updated(changedProperties) {
+    }
+
+    inputSetup() {
+        this.#inputObjects = this.createInputObjects();
+    }
+}
+
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
  * @template {HTMLElement} T
  * @extends IInput<T>
  */
-class IKeyboardShortcut extends IInput {
+class KeyboardShortcut extends IInput {
 
     static #ignoreEvent =
-        /** @param {IKeyboardShortcut} self */
+        /** @param {KeyboardShortcut} self */
         self => { }
 
     /** @type {KeyBindingEntity[]} */
@@ -5187,8 +5251,8 @@ class IKeyboardShortcut extends IInput {
         target,
         blueprint,
         options = {},
-        onKeyDown = IKeyboardShortcut.#ignoreEvent,
-        onKeyUp = IKeyboardShortcut.#ignoreEvent
+        onKeyDown = KeyboardShortcut.#ignoreEvent,
+        onKeyUp = KeyboardShortcut.#ignoreEvent
     ) {
         options.activationKeys ??= [];
         options.consumeEvent ??= true;
@@ -5272,7 +5336,7 @@ class IKeyboardShortcut extends IInput {
         document.removeEventListener("keydown", this.keyDownHandler);
     }
 
-    // Subclasses will want to override
+    /* Subclasses can override */
 
     fire() {
         this.onKeyDown(this);
@@ -5280,70 +5344,6 @@ class IKeyboardShortcut extends IInput {
 
     unfire() {
         this.onKeyUp(this);
-    }
-}
-
-/**
- * @typedef {import("../element/IElement.js").default} IElement
- * @typedef {import("../input/IInput.js").default} IInput
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-/** @template {IElement} T */
-class ITemplate {
-
-    /** @type {T} */
-    element
-
-    get blueprint() {
-        return this.element.blueprint
-    }
-
-    /** @type {IInput[]} */
-    #inputObjects = []
-    get inputObjects() {
-        return this.#inputObjects
-    }
-
-    /** @param {T} element */
-    initialize(element) {
-        this.element = element;
-    }
-
-    createInputObjects() {
-        return /** @type {IInput[]} */([])
-    }
-
-    setup() {
-        this.#inputObjects.forEach(v => v.setup());
-    }
-
-    cleanup() {
-        this.#inputObjects.forEach(v => v.cleanup());
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    willUpdate(changedProperties) {
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    update(changedProperties) {
-    }
-
-    render() {
-        return x``
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    firstUpdated(changedProperties) {
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    updated(changedProperties) {
-    }
-
-    inputSetup() {
-        this.#inputObjects = this.createInputObjects();
     }
 }
 
@@ -5457,7 +5457,7 @@ class Zoom extends IMouseWheel {
 
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
-class KeyboardEnableZoom extends IKeyboardShortcut {
+class KeyboardEnableZoom extends KeyboardShortcut {
 
     /** @type {Zoom} */
     #zoomInputObject
@@ -6254,17 +6254,17 @@ class BlueprintTemplate extends ITemplate {
             this.#pasteInputObject,
             this.#zoomInputObject,
             new Cut(gridElement, this.blueprint),
-            new IKeyboardShortcut(gridElement, this.blueprint, {
+            new KeyboardShortcut(gridElement, this.blueprint, {
                 activationKeys: Shortcuts.duplicateNodes
             }, () =>
                 this.blueprint.template.getPasteInputObject().pasted(
                     this.blueprint.template.getCopyInputObject().copied()
                 )
             ),
-            new IKeyboardShortcut(gridElement, this.blueprint, {
+            new KeyboardShortcut(gridElement, this.blueprint, {
                 activationKeys: Shortcuts.deleteNodes
             }, () => this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))),
-            new IKeyboardShortcut(gridElement, this.blueprint, {
+            new KeyboardShortcut(gridElement, this.blueprint, {
                 activationKeys: Shortcuts.selectAllNodes
             }, () => this.blueprint.selectAll()),
             new Select(gridElement, this.blueprint, {
@@ -7250,7 +7250,7 @@ class IDraggableTemplate extends ITemplate {
         return [
             ...super.createInputObjects(),
             this.createDraggableObject(),
-            new IKeyboardShortcut(
+            new KeyboardShortcut(
                 this.element,
                 this.blueprint,
                 {

@@ -1,10 +1,10 @@
-import IKeyboardShortcut from "./IKeyboardShortcut.js"
+import KeyboardShortcut from "./KeyboardShortcut.js"
 import Shortcuts from "../../Shortcuts.js"
 import Zoom from "../mouse/Zoom.js"
 
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
-export default class KeyboardEnableZoom extends IKeyboardShortcut {
+export default class KeyboardEnableZoom extends KeyboardShortcut {
 
     /** @type {Zoom} */
     #zoomInputObject

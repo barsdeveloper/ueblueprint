@@ -2,9 +2,9 @@ import { html } from "lit"
 import Configuration from "../Configuration.js"
 import Copy from "../input/common/Copy.js"
 import Cut from "../input/common/Cut.js"
-import IKeyboardShortcut from "../input/keyboard/IKeyboardShortcut.js"
 import ITemplate from "./ITemplate.js"
 import KeyboardEnableZoom from "../input/keyboard/KeyboardEnableZoom.js"
+import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import MouseScrollGraph from "../input/mouse/MouseScrollGraph.js"
 import MouseTracking from "../input/mouse/MouseTracking.js"
 import Paste from "../input/common/Paste.js"
@@ -116,17 +116,17 @@ export default class BlueprintTemplate extends ITemplate {
             this.#pasteInputObject,
             this.#zoomInputObject,
             new Cut(gridElement, this.blueprint),
-            new IKeyboardShortcut(gridElement, this.blueprint, {
+            new KeyboardShortcut(gridElement, this.blueprint, {
                 activationKeys: Shortcuts.duplicateNodes
             }, () =>
                 this.blueprint.template.getPasteInputObject().pasted(
                     this.blueprint.template.getCopyInputObject().copied()
                 )
             ),
-            new IKeyboardShortcut(gridElement, this.blueprint, {
+            new KeyboardShortcut(gridElement, this.blueprint, {
                 activationKeys: Shortcuts.deleteNodes
             }, () => this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))),
-            new IKeyboardShortcut(gridElement, this.blueprint, {
+            new KeyboardShortcut(gridElement, this.blueprint, {
                 activationKeys: Shortcuts.selectAllNodes
             }, () => this.blueprint.selectAll()),
             new Select(gridElement, this.blueprint, {
