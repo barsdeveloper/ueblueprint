@@ -2,7 +2,7 @@ import Configuration from "../Configuration.js"
 
 /** @typedef {import("../Blueprint.js").default} Blueprint */
 
-/** @template {HTMLElement} T */
+/** @template {Element} T */
 export default class IInput {
 
     /** @type {T} */
@@ -16,6 +16,8 @@ export default class IInput {
     get blueprint() {
         return this.#blueprint
     }
+
+    consumeEvent = true
 
     /** @type {Object} */
     options
@@ -35,6 +37,7 @@ export default class IInput {
         options.unlistenOnTextEdit ??= false
         this.#target = target
         this.#blueprint = blueprint
+        this.consumeEvent = options.consumeEvent
         this.options = options
     }
 

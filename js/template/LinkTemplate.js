@@ -2,8 +2,11 @@ import { html, nothing } from "lit"
 import Configuration from "../Configuration.js"
 import ElementFactory from "../element/ElementFactory.js"
 import IFromToPositionedTemplate from "./IFromToPositionedTemplate.js"
+import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import KnotEntity from "../entity/objects/KnotEntity.js"
+import MouseClick from "../input/mouse/MouseClick.js"
 import MouseDbClick from "../input/mouse/MouseDbClick.js"
+import Shortcuts from "../Shortcuts.js"
 import Utility from "../Utility.js"
 
 /**
@@ -85,10 +88,11 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     createInputObjects() {
+        const linkArea = this.element.querySelector(".ueb-link-area")
         return [
             ...super.createInputObjects(),
             new MouseDbClick(
-                this.element.querySelector(".ueb-link-area"),
+                linkArea,
                 this.blueprint,
                 undefined,
                 /** @param {[Number, Number]} location */
@@ -97,8 +101,18 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
                     location[1] += Configuration.knotOffset[1]
                     location = Utility.snapToGrid(location[0], location[1], Configuration.gridSize)
                     this.#createKnot(location)
-                }
-            )
+                },
+            ),
+            new MouseClick(
+                linkArea,
+                this.blueprint,
+                {
+                    enablerKey: new KeyboardShortcut(this.blueprint, this.blueprint, {
+                        activationKeys: Shortcuts.enableLinkDelete,
+                    })
+                },
+                () => this.blueprint.removeGraphElement(this.element),
+            ),
         ]
     }
 

@@ -413,7 +413,7 @@ class Configuration {
 
 /** @typedef {import("../Blueprint.js").default} Blueprint */
 
-/** @template {HTMLElement} T */
+/** @template {Element} T */
 class IInput {
 
     /** @type {T} */
@@ -427,6 +427,8 @@ class IInput {
     get blueprint() {
         return this.#blueprint
     }
+
+    consumeEvent = true
 
     /** @type {Object} */
     options
@@ -446,6 +448,7 @@ class IInput {
         options.unlistenOnTextEdit ??= false;
         this.#target = target;
         this.#blueprint = blueprint;
+        this.consumeEvent = options.consumeEvent;
         this.options = options;
     }
 
@@ -5228,7 +5231,7 @@ class ITemplate {
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
- * @template {HTMLElement} T
+ * @template {Element} T
  * @extends IInput<T>
  */
 class KeyboardShortcut extends IInput {
@@ -5292,10 +5295,10 @@ class KeyboardShortcut extends IInput {
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
-                    && Configuration.Keys[keyEntry.Key] == e.code
+                    && Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {
-                if (options.consumeEvent) {
+                if (this.consumeEvent) {
                     e.preventDefault();
                     e.stopImmediatePropagation();
                 }
@@ -5314,10 +5317,10 @@ class KeyboardShortcut extends IInput {
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta"
-                    || Configuration.Keys[keyEntry.Key] == e.code
+                    || Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {
-                if (options.consumeEvent) {
+                if (this.consumeEvent) {
                     e.stopImmediatePropagation();
                 }
                 self.unfire();
@@ -5350,15 +5353,33 @@ class KeyboardShortcut extends IInput {
 class Shortcuts {
     static deleteNodes = "Delete"
     static duplicateNodes = "(bCtrl=True,Key=D)"
-    static selectAllNodes = "(bCtrl=True,Key=A)"
+    static enableLinkDelete = "LeftAlt"
     static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
+    static selectAllNodes = "(bCtrl=True,Key=A)"
 }
 
+/** @typedef {import("../keyboard/KeyboardShortcut.js").default} KeyboardShortcut */
+
 /**
- * @template {HTMLElement} T
+ * @template {Element} T
  * @extends {IInput<T>}
  */
 class IPointing extends IInput {
+
+    #location = [0, 0]
+    get location() {
+        return this.#location
+    }
+
+    /** @type {KeyboardShortcut?} */
+    #enablerKey
+    get enablerKey() {
+        return this.#enablerKey
+    }
+    #enablerActivated = true
+    get enablerActivated() {
+        return this.#enablerActivated
+    }
 
     constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false;
@@ -5367,30 +5388,54 @@ class IPointing extends IInput {
         super(target, blueprint, options);
         /** @type {HTMLElement} */
         this.movementSpace = options.movementSpace;
+        if (options.enablerKey) {
+            this.#enablerKey = options.enablerKey;
+            this.#enablerKey.onKeyDown = () => this.#enablerActivated = true;
+            this.#enablerKey.onKeyUp = () => this.#enablerActivated = false;
+            this.#enablerKey.consumeEvent = false;
+            this.#enablerKey.listenEvents();
+            this.#enablerActivated = false;
+        }
     }
 
     /** @param {MouseEvent} mouseEvent */
-    locationFromEvent(mouseEvent) {
-        const location = Utility.convertLocation(
+    setLocationFromEvent(mouseEvent) {
+        let location = Utility.convertLocation(
             [mouseEvent.clientX, mouseEvent.clientY],
             this.movementSpace,
             this.options.ignoreScale
         );
-        return this.options.ignoreTranslateCompensate
+        location = this.options.ignoreTranslateCompensate
             ? location
-            : this.blueprint.compensateTranslation(location[0], location[1])
+            : this.blueprint.compensateTranslation(location[0], location[1]);
+        this.#location[0] = location[0];
+        this.#location[1] = location[1];
+        return this.#location
     }
 }
 
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
-class IMouseWheel extends IPointing {
+class MouseWheel extends IPointing {
+
+    static #ignoreEvent =
+        /** @param {MouseWheel} self */
+        self => { }
+
+    #variation = 0
+    get variation() {
+        return this.#variation
+    }
 
     /** @param {WheelEvent} e */
     #mouseWheelHandler = e => {
+        if (this.enablerKey && !this.enablerActivated) {
+            return
+        }
         e.preventDefault();
-        const location = this.locationFromEvent(e);
-        this.wheel(e.deltaY, location);
+        this.#variation = e.deltaY;
+        this.setLocationFromEvent(e);
+        this.wheel();
     }
 
     /** @param {WheelEvent} e */
@@ -5401,11 +5446,17 @@ class IMouseWheel extends IPointing {
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options = {}) {
+    constructor(
+        target,
+        blueprint,
+        options = {},
+        onWheel = MouseWheel.#ignoreEvent,
+    ) {
         options.listenOnFocus = true;
         options.strictTarget ??= false;
         super(target, blueprint, options);
         this.strictTarget = options.strictTarget;
+        this.onWheel = onWheel;
     }
 
     listenEvents() {
@@ -5418,12 +5469,13 @@ class IMouseWheel extends IPointing {
         this.movementSpace.parentElement?.removeEventListener("wheel", this.#mouseParentWheelHandler);
     }
 
-    /* Subclasses will override the following method */
-    wheel(variation, location) {
+    /* Subclasses can override */
+    wheel() {
+        this.onWheel(this);
     }
 }
 
-class Zoom extends IMouseWheel {
+class Zoom extends MouseWheel {
 
     #accumulatedVariation = 0
 
@@ -5438,20 +5490,18 @@ class Zoom extends IMouseWheel {
         this.#enableZoonIn = value;
     }
 
-    wheel(variation, location) {
-        this.#accumulatedVariation += -variation;
-        variation = this.#accumulatedVariation;
+    wheel() {
+        this.#accumulatedVariation += -this.variation;
         if (Math.abs(this.#accumulatedVariation) < Configuration.mouseWheelZoomThreshold) {
             return
-        } else {
-            this.#accumulatedVariation = 0;
         }
         let zoomLevel = this.blueprint.getZoom();
-        if (!this.enableZoonIn && zoomLevel == 0 && variation > 0) {
+        if (!this.enableZoonIn && zoomLevel == 0 && this.#accumulatedVariation > 0) {
             return
         }
-        zoomLevel += Math.sign(variation);
-        this.blueprint.setZoom(zoomLevel, location);
+        zoomLevel += Math.sign(this.#accumulatedVariation);
+        this.blueprint.setZoom(zoomLevel, this.location);
+        this.#accumulatedVariation = 0;
     }
 }
 
@@ -5759,15 +5809,17 @@ class IMouseClickDrag extends IPointing {
             case this.options.clickButton:
                 // Either doesn't matter or consider the click only when clicking on the parent, not descandants
                 if (!this.options.strictTarget || e.target == e.currentTarget) {
-                    if (this.options.consumeEvent) {
+                    if (this.consumeEvent) {
                         e.stopImmediatePropagation(); // Captured, don't call anyone else
                     }
                     // Attach the listeners
                     this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
                     document.addEventListener("mouseup", this.#mouseUpHandler);
-                    this.clickedPosition = this.locationFromEvent(e);
-                    this.blueprint.mousePosition[0] = this.clickedPosition[0];
-                    this.blueprint.mousePosition[1] = this.clickedPosition[1];
+                    this.setLocationFromEvent(e);
+                    this.clickedPosition[0] = this.location[0];
+                    this.clickedPosition[1] = this.location[1];
+                    this.blueprint.mousePosition[0] = this.location[0];
+                    this.blueprint.mousePosition[1] = this.location[1];
                     if (this.target instanceof IDraggableElement) {
                         this.clickedOffset = [
                             this.clickedPosition[0] - this.target.locationX,
@@ -5787,7 +5839,7 @@ class IMouseClickDrag extends IPointing {
 
     /** @param {MouseEvent} e  */
     #mouseStartedMovingHandler = e => {
-        if (this.options.consumeEvent) {
+        if (this.consumeEvent) {
             e.stopImmediatePropagation(); // Captured, don't call anyone else
         }
         // Delegate from now on to this.#mouseMoveHandler
@@ -5796,19 +5848,19 @@ class IMouseClickDrag extends IPointing {
         // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
         const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin);
         this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
-        const location = this.locationFromEvent(e);
+        this.setLocationFromEvent(e);
         // Do actual actions
         this.lastLocation = Utility.snapToGrid(this.clickedPosition[0], this.clickedPosition[1], this.stepSize);
-        this.startDrag(location);
+        this.startDrag(this.location);
         this.started = true;
     }
 
     /** @param {MouseEvent} e  */
     #mouseMoveHandler = e => {
-        if (this.options.consumeEvent) {
+        if (this.consumeEvent) {
             e.stopImmediatePropagation(); // Captured, don't call anyone else
         }
-        const location = this.locationFromEvent(e);
+        const location = this.setLocationFromEvent(e);
         const movement = [e.movementX, e.movementY];
         this.dragTo(location, movement);
         if (this.#trackingMouse) {
@@ -5842,7 +5894,7 @@ class IMouseClickDrag extends IPointing {
     /** @param {MouseEvent} e  */
     #mouseUpHandler = e => {
         if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
-            if (this.options.consumeEvent) {
+            if (this.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             // Remove the handlers of "mousemove" and "mouseup"
@@ -5958,7 +6010,9 @@ class MouseTracking extends IPointing {
     /** @param {MouseEvent} e */
     #mousemoveHandler= e => {
         e.preventDefault();
-        this.blueprint.mousePosition = this.locationFromEvent(e);
+        this.setLocationFromEvent(e);
+        this.blueprint.mousePosition[0] = this.location[0];
+        this.blueprint.mousePosition[1] = this.location[1];
     }
 
     /** @param {CustomEvent} e */
@@ -6578,6 +6632,109 @@ class KnotEntity extends ObjectEntity {
 }
 
 /**
+ * @typedef {import("../../Blueprint.js").default} Blueprint 
+ * @typedef {import("../keyboard/KeyboardShortcut.js").default} KeyboardShortcut
+ */
+
+/**
+ * @template {Element} T
+ * @extends {IPointing<T>}
+ */
+class MouseClick extends IPointing {
+
+    static #ignoreEvent =
+        /** @param {MouseClick} self */
+        self => { }
+
+    /** @param {MouseEvent} e */
+    #mouseDownHandler = e => {
+        this.blueprint.setFocused(true);
+        if (this.enablerKey && !this.enablerActivated) {
+            return
+        }
+        switch (e.button) {
+            case this.options.clickButton:
+                // Either doesn't matter or consider the click only when clicking on the target, not descandants
+                if (!this.options.strictTarget || e.target === e.currentTarget) {
+                    if (this.consumeEvent) {
+                        e.stopImmediatePropagation(); // Captured, don't call anyone else
+                    }
+                    // Attach the listeners
+                    document.addEventListener("mouseup", this.#mouseUpHandler);
+                    this.setLocationFromEvent(e);
+                    this.clickedPosition[0] = this.location[0];
+                    this.clickedPosition[1] = this.location[1];
+                    this.blueprint.mousePosition[0] = this.location[0];
+                    this.blueprint.mousePosition[1] = this.location[1];
+                    this.clicked(this.clickedPosition);
+                }
+                break
+            default:
+                if (!this.options.exitAnyButton) {
+                    this.#mouseUpHandler(e);
+                }
+                break
+        }
+    }
+
+    /** @param {MouseEvent} e */
+    #mouseUpHandler = e => {
+        if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
+            if (this.consumeEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            }
+            // Remove the handlers of "mousemove" and "mouseup"
+            document.removeEventListener("mouseup", this.#mouseUpHandler);
+            this.unclicked();
+        }
+    }
+
+    clickedPosition = [0, 0]
+
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Object} options
+     */
+    constructor(
+        target,
+        blueprint,
+        options = {},
+        onClick = MouseClick.#ignoreEvent,
+        onUnclick = MouseClick.#ignoreEvent,
+    ) {
+        options.clickButton ??= Configuration.mouseClickButton;
+        options.consumeEvent ??= true;
+        options.exitAnyButton ??= true;
+        options.strictTarget ??= false;
+        super(target, blueprint, options);
+        this.onClick = onClick;
+        this.onUnclick = onUnclick;
+        this.listenEvents();
+    }
+
+    listenEvents() {
+        this.target.addEventListener("mousedown", this.#mouseDownHandler);
+        if (this.options.clickButton === Configuration.mouseRightClickButton) {
+            this.target.addEventListener("contextmenu", e => e.preventDefault());
+        }
+    }
+
+    unlistenEvents() {
+        this.target.removeEventListener("mousedown", this.#mouseDownHandler);
+    }
+
+    /* Subclasses will override the following methods */
+    clicked(location) {
+        this.onClick(this);
+    }
+
+    unclicked(location) {
+        this.onUnclick(this);
+    }
+}
+
+/**
  * @template {HTMLElement} T
  * @extends {IPointing<T>}
  */
@@ -6589,10 +6746,10 @@ class MouseDbClick extends IPointing {
     /** @param {MouseEvent} e */
     #mouseDbClickHandler = e => {
         if (!this.options.strictTarget || e.target === e.currentTarget) {
-            if (this.options.consumeEvent) {
+            if (this.consumeEvent) {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
-            this.clickedPosition = this.locationFromEvent(e);
+            this.clickedPosition = this.setLocationFromEvent(e);
             this.blueprint.mousePosition[0] = this.clickedPosition[0];
             this.blueprint.mousePosition[1] = this.clickedPosition[1];
             this.dbclicked(this.clickedPosition);
@@ -6710,10 +6867,11 @@ class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     createInputObjects() {
+        const linkArea = this.element.querySelector(".ueb-link-area");
         return [
             ...super.createInputObjects(),
             new MouseDbClick(
-                this.element.querySelector(".ueb-link-area"),
+                linkArea,
                 this.blueprint,
                 undefined,
                 /** @param {[Number, Number]} location */
@@ -6722,8 +6880,18 @@ class LinkTemplate extends IFromToPositionedTemplate {
                     location[1] += Configuration.knotOffset[1];
                     location = Utility.snapToGrid(location[0], location[1], Configuration.gridSize);
                     this.#createKnot(location);
-                }
-            )
+                },
+            ),
+            new MouseClick(
+                linkArea,
+                this.blueprint,
+                {
+                    enablerKey: new KeyboardShortcut(this.blueprint, this.blueprint, {
+                        activationKeys: Shortcuts.enableLinkDelete,
+                    })
+                },
+                () => this.blueprint.removeGraphElement(this.element),
+            ),
         ]
     }
 

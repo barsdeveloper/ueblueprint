@@ -1,11 +1,28 @@
 import IInput from "../IInput.js"
 import Utility from "../../Utility.js"
 
+/** @typedef {import("../keyboard/KeyboardShortcut.js").default} KeyboardShortcut */
+
 /**
- * @template {HTMLElement} T
+ * @template {Element} T
  * @extends {IInput<T>}
  */
 export default class IPointing extends IInput {
+
+    #location = [0, 0]
+    get location() {
+        return this.#location
+    }
+
+    /** @type {KeyboardShortcut?} */
+    #enablerKey
+    get enablerKey() {
+        return this.#enablerKey
+    }
+    #enablerActivated = true
+    get enablerActivated() {
+        return this.#enablerActivated
+    }
 
     constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false
@@ -14,17 +31,28 @@ export default class IPointing extends IInput {
         super(target, blueprint, options)
         /** @type {HTMLElement} */
         this.movementSpace = options.movementSpace
+        if (options.enablerKey) {
+            this.#enablerKey = options.enablerKey
+            this.#enablerKey.onKeyDown = () => this.#enablerActivated = true
+            this.#enablerKey.onKeyUp = () => this.#enablerActivated = false
+            this.#enablerKey.consumeEvent = false
+            this.#enablerKey.listenEvents()
+            this.#enablerActivated = false
+        }
     }
 
     /** @param {MouseEvent} mouseEvent */
-    locationFromEvent(mouseEvent) {
-        const location = Utility.convertLocation(
+    setLocationFromEvent(mouseEvent) {
+        let location = Utility.convertLocation(
             [mouseEvent.clientX, mouseEvent.clientY],
             this.movementSpace,
             this.options.ignoreScale
         )
-        return this.options.ignoreTranslateCompensate
+        location = this.options.ignoreTranslateCompensate
             ? location
             : this.blueprint.compensateTranslation(location[0], location[1])
+        this.#location[0] = location[0]
+        this.#location[1] = location[1]
+        return this.#location
     }
 }

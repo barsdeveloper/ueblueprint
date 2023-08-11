@@ -6,7 +6,7 @@ import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
- * @template {HTMLElement} T
+ * @template {Element} T
  * @extends IInput<T>
  */
 export default class KeyboardShortcut extends IInput {
@@ -70,10 +70,10 @@ export default class KeyboardShortcut extends IInput {
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
-                    && Configuration.Keys[keyEntry.Key] == e.code
+                    && Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {
-                if (options.consumeEvent) {
+                if (this.consumeEvent) {
                     e.preventDefault()
                     e.stopImmediatePropagation()
                 }
@@ -92,10 +92,10 @@ export default class KeyboardShortcut extends IInput {
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta"
-                    || Configuration.Keys[keyEntry.Key] == e.code
+                    || Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {
-                if (options.consumeEvent) {
+                if (this.consumeEvent) {
                     e.stopImmediatePropagation()
                 }
                 self.unfire()

@@ -12,10 +12,10 @@ export default class MouseDbClick extends IPointing {
     /** @param {MouseEvent} e */
     #mouseDbClickHandler = e => {
         if (!this.options.strictTarget || e.target === e.currentTarget) {
-            if (this.options.consumeEvent) {
+            if (this.consumeEvent) {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
-            this.clickedPosition = this.locationFromEvent(e)
+            this.clickedPosition = this.setLocationFromEvent(e)
             this.blueprint.mousePosition[0] = this.clickedPosition[0]
             this.blueprint.mousePosition[1] = this.clickedPosition[1]
             this.dbclicked(this.clickedPosition)

@@ -1,7 +1,7 @@
 import Configuration from "../../Configuration.js"
-import IMouseWheel from "./IMouseWheel.js"
+import MouseWheel from "./MouseWheel.js"
 
-export default class Zoom extends IMouseWheel {
+export default class Zoom extends MouseWheel {
 
     #accumulatedVariation = 0
 
@@ -16,19 +16,17 @@ export default class Zoom extends IMouseWheel {
         this.#enableZoonIn = value
     }
 
-    wheel(variation, location) {
-        this.#accumulatedVariation += -variation
-        variation = this.#accumulatedVariation
+    wheel() {
+        this.#accumulatedVariation += -this.variation
         if (Math.abs(this.#accumulatedVariation) < Configuration.mouseWheelZoomThreshold) {
             return
-        } else {
-            this.#accumulatedVariation = 0
         }
         let zoomLevel = this.blueprint.getZoom()
-        if (!this.enableZoonIn && zoomLevel == 0 && variation > 0) {
+        if (!this.enableZoonIn && zoomLevel == 0 && this.#accumulatedVariation > 0) {
             return
         }
-        zoomLevel += Math.sign(variation)
-        this.blueprint.setZoom(zoomLevel, location)
+        zoomLevel += Math.sign(this.#accumulatedVariation)
+        this.blueprint.setZoom(zoomLevel, this.location)
+        this.#accumulatedVariation = 0
     }
 }

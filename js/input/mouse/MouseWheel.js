@@ -2,13 +2,26 @@ import IPointing from "./IPointing.js"
 
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
-export default class IMouseWheel extends IPointing {
+export default class MouseWheel extends IPointing {
+
+    static #ignoreEvent =
+        /** @param {MouseWheel} self */
+        self => { }
+
+    #variation = 0
+    get variation() {
+        return this.#variation
+    }
 
     /** @param {WheelEvent} e */
     #mouseWheelHandler = e => {
+        if (this.enablerKey && !this.enablerActivated) {
+            return
+        }
         e.preventDefault()
-        const location = this.locationFromEvent(e)
-        this.wheel(e.deltaY, location)
+        this.#variation = e.deltaY
+        this.setLocationFromEvent(e)
+        this.wheel()
     }
 
     /** @param {WheelEvent} e */
@@ -19,11 +32,17 @@ export default class IMouseWheel extends IPointing {
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options = {}) {
+    constructor(
+        target,
+        blueprint,
+        options = {},
+        onWheel = MouseWheel.#ignoreEvent,
+    ) {
         options.listenOnFocus = true
         options.strictTarget ??= false
         super(target, blueprint, options)
         this.strictTarget = options.strictTarget
+        this.onWheel = onWheel
     }
 
     listenEvents() {
@@ -36,7 +55,8 @@ export default class IMouseWheel extends IPointing {
         this.movementSpace.parentElement?.removeEventListener("wheel", this.#mouseParentWheelHandler)
     }
 
-    /* Subclasses will override the following method */
-    wheel(variation, location) {
+    /* Subclasses can override */
+    wheel() {
+        this.onWheel(this)
     }
 }
