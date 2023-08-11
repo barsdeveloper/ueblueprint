@@ -32,7 +32,8 @@ var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html
 class Configuration {
     static nodeColors = {
         blue: i$3`84, 122, 156`,
-        darkBlue: i$3`19, 100, 137`,
+        darkBlue: i$3`32, 80, 128`,
+        darkTurquoise: i$3`19, 100, 137`,
         gray: i$3`150,150,150`,
         green: i$3`95, 129, 90`,
         lime: i$3`150, 160, 30`,
@@ -166,6 +167,7 @@ class Configuration {
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
+        makeStruct: "/Script/BlueprintGraph.K2Node_MakeStruct",
         materialExpressionConstant: "/Script/Engine.MaterialExpressionConstant",
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
@@ -3100,6 +3102,9 @@ class ObjectEntity extends IEntity {
         G: {
             type: Number,
         },
+        StructType: {
+            type: ObjectReferenceEntity,
+        },
         MaterialExpression: {
             type: ObjectReferenceEntity,
         },
@@ -3289,6 +3294,7 @@ class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity?} */ this.ProxyClass;
         /** @type {Number?} */ this.R;
         /** @type {Number?} */ this.G;
+        /** @type {ObjectReferenceEntity?} */ this.StructType;
         /** @type {ObjectReferenceEntity?} */ this.MaterialExpression;
         /** @type {ObjectReferenceEntity?} */ this.MaterialExpressionComment;
         /** @type {SymbolEntity?} */ this.MoveMode;
@@ -3545,6 +3551,10 @@ class ObjectEntity extends IEntity {
                 return "Return Node"
             case Configuration.paths.ifThenElse:
                 return "Branch"
+            case Configuration.paths.makeStruct:
+                if (this.StructType) {
+                    return `Make ${this.StructType.getName()}`
+                }
             case Configuration.paths.materialExpressionConstant:
                 input ??= [this.getCustomproperties().find(pinEntity => pinEntity.PinName == "Value")?.DefaultValue];
             case Configuration.paths.materialExpressionConstant2Vector:
@@ -3765,10 +3775,12 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.materialExpressionConstant3Vector:
             case Configuration.paths.materialExpressionConstant4Vector:
                 return Configuration.nodeColors.yellow
+            case Configuration.paths.makeStruct:
+                return Configuration.nodeColors.darkBlue
             case Configuration.paths.materialExpressionMaterialFunctionCall:
                 return Configuration.nodeColors.blue
             case Configuration.paths.materialExpressionTextureSample:
-                return Configuration.nodeColors.darkBlue
+                return Configuration.nodeColors.darkTurquoise
             case Configuration.paths.materialExpressionTextureCoordinate:
                 return Configuration.nodeColors.red
         }
@@ -3844,6 +3856,7 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.makeArray: return SVGIcon.makeArray
             case Configuration.paths.makeMap: return SVGIcon.makeMap
             case Configuration.paths.makeSet: return SVGIcon.makeSet
+            case Configuration.paths.makeStruct: return SVGIcon.makeStruct
             case Configuration.paths.select: return SVGIcon.select
             case Configuration.paths.spawnActorFromClass: return SVGIcon.spawnActor
             case Configuration.paths.timeline: return SVGIcon.timer
@@ -4089,15 +4102,6 @@ class Grammar {
         new RegExp(
             source + "(?:" + separator + source + ")"
             + (min === 1 ? "*" : min === 2 ? "+" : `{${min},}`)
-        )
-
-    static optWrappedIn = (source, l, r) =>
-        Grammar.regexMap(
-            new RegExp(
-                l + "(" + source + ")" + r
-                + "|" + "(" + source + ")"
-            ),
-            ([_0, a, b]) => a ?? b
         )
 
     static Regex = class {
@@ -8366,8 +8370,17 @@ class PinTemplate extends ITemplate {
     }
 
     renderName() {
+        let name = this.element.getPinDisplayName();
+        const nodeElement = this.element.nodeElement;
+        const pinName = this.element.getPinName();
+        if (
+            nodeElement.getType() == Configuration.paths.makeStruct
+            && pinName == nodeElement.entity.StructType.getName()
+        ) {
+            name = pinName;
+        }
         return x`
-            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>
+            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${name}</span>
         `
     }
 

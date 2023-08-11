@@ -1,4 +1,5 @@
 import { html, nothing } from "lit"
+import Configuration from "../../Configuration.js"
 import ITemplate from "../ITemplate.js"
 import MouseCreateLink from "../../input/mouse/MouseCreateLink.js"
 import SVGIcon from "../../SVGIcon.js"
@@ -100,8 +101,17 @@ export default class PinTemplate extends ITemplate {
     }
 
     renderName() {
+        let name = this.element.getPinDisplayName()
+        const nodeElement = this.element.nodeElement
+        const pinName = this.element.getPinName()
+        if (
+            nodeElement.getType() == Configuration.paths.makeStruct
+            && pinName == nodeElement.entity.StructType.getName()
+        ) {
+            name = pinName
+        }
         return html`
-            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${this.element.getPinDisplayName()}</span>
+            <span class="ueb-pin-name ueb-ellipsis-nowrap-text">${name}</span>
         `
     }
 

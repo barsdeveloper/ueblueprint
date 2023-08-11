@@ -151,6 +151,9 @@ export default class ObjectEntity extends IEntity {
         G: {
             type: Number,
         },
+        StructType: {
+            type: ObjectReferenceEntity,
+        },
         MaterialExpression: {
             type: ObjectReferenceEntity,
         },
@@ -340,6 +343,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity?} */ this.ProxyClass
         /** @type {Number?} */ this.R
         /** @type {Number?} */ this.G
+        /** @type {ObjectReferenceEntity?} */ this.StructType
         /** @type {ObjectReferenceEntity?} */ this.MaterialExpression
         /** @type {ObjectReferenceEntity?} */ this.MaterialExpressionComment
         /** @type {SymbolEntity?} */ this.MoveMode
@@ -596,6 +600,10 @@ export default class ObjectEntity extends IEntity {
                 return "Return Node"
             case Configuration.paths.ifThenElse:
                 return "Branch"
+            case Configuration.paths.makeStruct:
+                if (this.StructType) {
+                    return `Make ${this.StructType.getName()}`
+                }
             case Configuration.paths.materialExpressionConstant:
                 input ??= [this.getCustomproperties().find(pinEntity => pinEntity.PinName == "Value")?.DefaultValue]
             case Configuration.paths.materialExpressionConstant2Vector:
@@ -816,10 +824,12 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.materialExpressionConstant3Vector:
             case Configuration.paths.materialExpressionConstant4Vector:
                 return Configuration.nodeColors.yellow
+            case Configuration.paths.makeStruct:
+                return Configuration.nodeColors.darkBlue
             case Configuration.paths.materialExpressionMaterialFunctionCall:
                 return Configuration.nodeColors.blue
             case Configuration.paths.materialExpressionTextureSample:
-                return Configuration.nodeColors.darkBlue
+                return Configuration.nodeColors.darkTurquoise
             case Configuration.paths.materialExpressionTextureCoordinate:
                 return Configuration.nodeColors.red
         }
@@ -895,6 +905,7 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.makeArray: return SVGIcon.makeArray
             case Configuration.paths.makeMap: return SVGIcon.makeMap
             case Configuration.paths.makeSet: return SVGIcon.makeSet
+            case Configuration.paths.makeStruct: return SVGIcon.makeStruct
             case Configuration.paths.select: return SVGIcon.select
             case Configuration.paths.spawnActorFromClass: return SVGIcon.spawnActor
             case Configuration.paths.timeline: return SVGIcon.timer

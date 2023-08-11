@@ -83,7 +83,7 @@ function generateNodeTest(nodeTest, getBlueprint) {
         it("Maintains the order of attributes", () => {
             getBlueprint().selectAll()
             const value = getBlueprint().template.getCopyInputObject().getSerializedText()
-            const words = value.split("\n").map(row => row.match(/\s*(\w+(\s+\w+)*).+/)?.[1]).filter(v => v?.length > 0)
+            const words = value.split("\n").map(row => row.match(/\s*("?\w+(\s+\w+)*).+/)?.[1]).filter(v => v?.length > 0)
             expect(value).to.match(getFirstWordOrder(words))
         })
         if (nodeTest.additionalTest) {

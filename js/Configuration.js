@@ -8,7 +8,8 @@ import { css } from "lit"
 export default class Configuration {
     static nodeColors = {
         blue: css`84, 122, 156`,
-        darkBlue: css`19, 100, 137`,
+        darkBlue: css`32, 80, 128`,
+        darkTurquoise: css`19, 100, 137`,
         gray: css`150,150,150`,
         green: css`95, 129, 90`,
         lime: css`150, 160, 30`,
@@ -142,6 +143,7 @@ export default class Configuration {
         makeArray: "/Script/BlueprintGraph.K2Node_MakeArray",
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
+        makeStruct: "/Script/BlueprintGraph.K2Node_MakeStruct",
         materialExpressionConstant: "/Script/Engine.MaterialExpressionConstant",
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
