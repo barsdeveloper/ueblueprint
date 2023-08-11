@@ -128,13 +128,14 @@ export default class Grammar {
         ([_0, a, b, c, d]) => a ?? b ?? c ?? d
     )
     static symbol = P.regex(Grammar.Regex.Symbol)
+    static symbolQuoted = Grammar.regexMap(
+        new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
+        ([_0, v]) => v
+    )
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
-    static attributeNameOptQuotes = Grammar.regexMap(
-        new RegExp(
-            "(" + Grammar.Regex.DotSeparatedSymbols.source + ")"
-            + '|"' + "(" + Grammar.Regex.DotSeparatedSymbols.source + ")" + '"'
-        ),
-        ([_0, a, b]) => a ?? b
+    static attributeNameQuoted = Grammar.regexMap(
+        new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'),
+        ([_0, v]) => v
     )
     static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
     static commaSeparation = P.regex(/\s*,\s*(?!\))/)
@@ -345,7 +346,12 @@ export default class Grammar {
         return result
     }
 
-    static createAttributeGrammar(entityType, attributeName = this.attributeName, valueSeparator = this.equalSeparation) {
+    static createAttributeGrammar(
+        entityType,
+        attributeName = this.attributeName,
+        valueSeparator = this.equalSeparation,
+        handleObjectSet = (obj, k, v) => { }
+    ) {
         return P.seq(
             attributeName,
             valueSeparator,
@@ -355,7 +361,10 @@ export default class Grammar {
             return this
                 .grammarFor(attributeValue)
                 .map(attributeValue =>
-                    values => Utility.objectSet(values, attributeKey, attributeValue, true)
+                    values => {
+                        handleObjectSet(values, attributeKey, attributeValue)
+                        Utility.objectSet(values, attributeKey, attributeValue, true)
+                    }
                 )
         })
     }
@@ -668,13 +677,16 @@ export default class Grammar {
 
     static inlinedArrayEntry = P.lazy(() =>
         P.seq(
-            this.symbol,
+            P.alt(
+                this.symbol.map(v => [v, false]),
+                this.symbolQuoted.map(v => [v, true])
+            ),
             this.regexMap(
                 new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
                 v => v[1]
             )
         )
-            .chain(([symbol, index]) =>
+            .chain(([[symbol, quoted], index]) =>
                 this.grammarFor(ObjectEntity.attributes[symbol])
                     .map(currentValue =>
                         values => {
@@ -684,6 +696,7 @@ export default class Grammar {
                                     IEntity.defineAttributes(values, {})
                                 }
                                 Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+                                Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true)
                             }
                         }
                     )
@@ -705,7 +718,10 @@ export default class Grammar {
                 P.whitespace,
                 P.alt(
                     this.customProperty,
-                    this.createAttributeGrammar(ObjectEntity, this.attributeNameOptQuotes),
+                    this.createAttributeGrammar(ObjectEntity),
+                    this.createAttributeGrammar(ObjectEntity, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                    ),
                     this.inlinedArrayEntry,
                     this.subObjectEntity
                 )

@@ -23,6 +23,7 @@ import Utility from "../Utility.js"
  *     serialized?: Boolean,
  *     expected?: Boolean,
  *     inlined?: Boolean,
+ *     quoted?: Boolean,
  *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
  * @typedef {{
@@ -49,16 +50,17 @@ export default class IEntity {
     static defaultAttribute = {
         nullable: false,
         ignored: false,
-        serialized: false,
-        expected: false,
-        inlined: false,
+        serialized: false, // Value is written and read as string
+        expected: false, // Must be there
+        inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
+        quoted: false, // Key is serialized with quotes
     }
 
     constructor(values = {}, suppressWarns = false) {
         const Self = /** @type {EntityConstructor} */(this.constructor)
         let attributes = Self.attributes
         if (values.attributes) {
-            let attributes = { ...Self.attributes }
+            attributes = { ...Self.attributes }
             Utility.mergeArrays(Object.keys(attributes), Object.keys(values.attributes))
                 .forEach(k => {
                     attributes[k] = {
@@ -83,8 +85,11 @@ export default class IEntity {
         }
         const valuesNames = Object.keys(values)
         const attributesNames = Object.keys(attributes)
-        const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames)
+        const allAttributesNames = Utility.mergeArrays(valuesNames, attributesNames)
         for (const attributeName of allAttributesNames) {
+            if (attributeName == "attributes") {
+                continue
+            }
             let value = values[attributeName]
             let attribute = attributes[attributeName]
 
@@ -121,8 +126,8 @@ export default class IEntity {
                             set(v) {
                                 if (!attribute.predicate?.(v)) {
                                     console.warn(
-                                        `UEBlueprint: Tried to assign attribute ${attributeName} to`
-                                        + `${Self.name} not satisfying the predicate`
+                                        `UEBlueprint: Tried to assign attribute ${attributeName} to ${Self.name} not `
+                                        + "satisfying the predicate"
                                     )
                                     return
                                 }

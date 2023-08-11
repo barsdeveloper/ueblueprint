@@ -1109,6 +1109,7 @@ class Utility {
  *     serialized?: Boolean,
  *     expected?: Boolean,
  *     inlined?: Boolean,
+ *     quoted?: Boolean,
  *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
  * @typedef {{
@@ -1135,16 +1136,17 @@ class IEntity {
     static defaultAttribute = {
         nullable: false,
         ignored: false,
-        serialized: false,
-        expected: false,
-        inlined: false,
+        serialized: false, // Value is written and read as string
+        expected: false, // Must be there
+        inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
+        quoted: false, // Key is serialized with quotes
     }
 
     constructor(values = {}, suppressWarns = false) {
         const Self = /** @type {EntityConstructor} */(this.constructor);
         let attributes = Self.attributes;
         if (values.attributes) {
-            let attributes = { ...Self.attributes };
+            attributes = { ...Self.attributes };
             Utility.mergeArrays(Object.keys(attributes), Object.keys(values.attributes))
                 .forEach(k => {
                     attributes[k] = {
@@ -1169,8 +1171,11 @@ class IEntity {
         }
         const valuesNames = Object.keys(values);
         const attributesNames = Object.keys(attributes);
-        const allAttributesNames = Utility.mergeArrays(attributesNames, valuesNames);
+        const allAttributesNames = Utility.mergeArrays(valuesNames, attributesNames);
         for (const attributeName of allAttributesNames) {
+            if (attributeName == "attributes") {
+                continue
+            }
             let value = values[attributeName];
             let attribute = attributes[attributeName];
 
@@ -1207,8 +1212,8 @@ class IEntity {
                             set(v) {
                                 if (!attribute.predicate?.(v)) {
                                     console.warn(
-                                        `UEBlueprint: Tried to assign attribute ${attributeName} to`
-                                        + `${Self.name} not satisfying the predicate`
+                                        `UEBlueprint: Tried to assign attribute ${attributeName} to ${Self.name} not `
+                                        + "satisfying the predicate"
                                     );
                                     return
                                 }
@@ -4086,6 +4091,15 @@ class Grammar {
             + (min === 1 ? "*" : min === 2 ? "+" : `{${min},}`)
         )
 
+    static optWrappedIn = (source, l, r) =>
+        Grammar.regexMap(
+            new RegExp(
+                l + "(" + source + ")" + r
+                + "|" + "(" + source + ")"
+            ),
+            ([_0, a, b]) => a ?? b
+        )
+
     static Regex = class {
         static ByteInteger = /0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/ // A integer between 0 and 255
         static HexDigit = /[0-9a-fA-F]/
@@ -4156,13 +4170,14 @@ class Grammar {
         ([_0, a, b, c, d]) => a ?? b ?? c ?? d
     )
     static symbol = P.regex(Grammar.Regex.Symbol)
+    static symbolQuoted = Grammar.regexMap(
+        new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
+        ([_0, v]) => v
+    )
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
-    static attributeNameOptQuotes = Grammar.regexMap(
-        new RegExp(
-            "(" + Grammar.Regex.DotSeparatedSymbols.source + ")"
-            + '|"' + "(" + Grammar.Regex.DotSeparatedSymbols.source + ")" + '"'
-        ),
-        ([_0, a, b]) => a ?? b
+    static attributeNameQuoted = Grammar.regexMap(
+        new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'),
+        ([_0, v]) => v
     )
     static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
     static commaSeparation = P.regex(/\s*,\s*(?!\))/)
@@ -4373,7 +4388,12 @@ class Grammar {
         return result
     }
 
-    static createAttributeGrammar(entityType, attributeName = this.attributeName, valueSeparator = this.equalSeparation) {
+    static createAttributeGrammar(
+        entityType,
+        attributeName = this.attributeName,
+        valueSeparator = this.equalSeparation,
+        handleObjectSet = (obj, k, v) => { }
+    ) {
         return P.seq(
             attributeName,
             valueSeparator,
@@ -4383,7 +4403,10 @@ class Grammar {
             return this
                 .grammarFor(attributeValue)
                 .map(attributeValue =>
-                    values => Utility.objectSet(values, attributeKey, attributeValue, true)
+                    values => {
+                        handleObjectSet(values, attributeKey, attributeValue);
+                        Utility.objectSet(values, attributeKey, attributeValue, true);
+                    }
                 )
         })
     }
@@ -4696,13 +4719,16 @@ class Grammar {
 
     static inlinedArrayEntry = P.lazy(() =>
         P.seq(
-            this.symbol,
+            P.alt(
+                this.symbol.map(v => [v, false]),
+                this.symbolQuoted.map(v => [v, true])
+            ),
             this.regexMap(
                 new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
                 v => v[1]
             )
         )
-            .chain(([symbol, index]) =>
+            .chain(([[symbol, quoted], index]) =>
                 this.grammarFor(ObjectEntity.attributes[symbol])
                     .map(currentValue =>
                         values => {
@@ -4712,6 +4738,7 @@ class Grammar {
                                     IEntity.defineAttributes(values, {});
                                 }
                                 Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true);
+                                Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true);
                             }
                         }
                     )
@@ -4733,7 +4760,10 @@ class Grammar {
                 P.whitespace,
                 P.alt(
                     this.customProperty,
-                    this.createAttributeGrammar(ObjectEntity, this.attributeNameOptQuotes),
+                    this.createAttributeGrammar(ObjectEntity),
+                    this.createAttributeGrammar(ObjectEntity, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                    ),
                     this.inlinedArrayEntry,
                     this.subObjectEntity
                 )
@@ -4926,7 +4956,10 @@ class Serializer {
         for (const key of keys) {
             const value = entity[key];
             if (value !== undefined && this.showProperty(entity, key)) {
-                const keyValue = entity instanceof Array ? `(${key})` : key;
+                let keyValue = entity instanceof Array ? `(${key})` : key;
+                if (attributes[key]?.quoted) {
+                    keyValue = `"${keyValue}"`;
+                }
                 const isSerialized = Utility.isSerialized(entity, key);
                 if (first) {
                     first = false;

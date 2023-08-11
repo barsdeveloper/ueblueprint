@@ -88,7 +88,10 @@ export default class Serializer {
         for (const key of keys) {
             const value = entity[key]
             if (value !== undefined && this.showProperty(entity, key)) {
-                const keyValue = entity instanceof Array ? `(${key})` : key
+                let keyValue = entity instanceof Array ? `(${key})` : key
+                if (attributes[key]?.quoted) {
+                    keyValue = `"${keyValue}"`
+                }
                 const isSerialized = Utility.isSerialized(entity, key)
                 if (first) {
                     first = false
