@@ -6,10 +6,14 @@ import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
- * @template {HTMLElement} T
+ * @template {Element} T
  * @extends IInput<T>
  */
-export default class IKeyboardShortcut extends IInput {
+export default class KeyboardShortcut extends IInput {
+
+    static #ignoreEvent =
+        /** @param {KeyboardShortcut} self */
+        self => { }
 
     /** @type {KeyBindingEntity[]} */
     #activationKeys
@@ -21,8 +25,13 @@ export default class IKeyboardShortcut extends IInput {
      * @param {Blueprint} blueprint
      * @param {Object} options
      */
-    constructor(target, blueprint, options = {}) {
-        options.activateAnyKey ??= false
+    constructor(
+        target,
+        blueprint,
+        options = {},
+        onKeyDown = KeyboardShortcut.#ignoreEvent,
+        onKeyUp = KeyboardShortcut.#ignoreEvent
+    ) {
         options.activationKeys ??= []
         options.consumeEvent ??= true
         options.listenOnFocus ??= true
@@ -44,6 +53,8 @@ export default class IKeyboardShortcut extends IInput {
         })
 
         super(target, blueprint, options)
+        this.onKeyDown = onKeyDown
+        this.onKeyUp = onKeyUp
 
         this.#activationKeys = this.options.activationKeys ?? []
 
@@ -55,15 +66,14 @@ export default class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyDownHandler = e => {
             if (
-                this.options.activateAnyKey
-                || self.#activationKeys.some(keyEntry =>
+                self.#activationKeys.some(keyEntry =>
                     wantsShift(keyEntry) == e.shiftKey
                     && wantsCtrl(keyEntry) == e.ctrlKey
                     && wantsAlt(keyEntry) == e.altKey
-                    && Configuration.Keys[keyEntry.Key] == e.code
+                    && Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {
-                if (options.consumeEvent) {
+                if (this.consumeEvent) {
                     e.preventDefault()
                     e.stopImmediatePropagation()
                 }
@@ -77,16 +87,15 @@ export default class IKeyboardShortcut extends IInput {
         /** @param {KeyboardEvent} e */
         this.keyUpHandler = e => {
             if (
-                this.options.activateAnyKey
-                || self.#activationKeys.some(keyEntry =>
+                self.#activationKeys.some(keyEntry =>
                     keyEntry.bShift && e.key == "Shift"
                     || keyEntry.bCtrl && e.key == "Control"
                     || keyEntry.bAlt && e.key == "Alt"
                     || keyEntry.bCmd && e.key == "Meta"
-                    || Configuration.Keys[keyEntry.Key] == e.code
+                    || Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {
-                if (options.consumeEvent) {
+                if (this.consumeEvent) {
                     e.stopImmediatePropagation()
                 }
                 self.unfire()
@@ -105,11 +114,13 @@ export default class IKeyboardShortcut extends IInput {
         document.removeEventListener("keydown", this.keyDownHandler)
     }
 
-    // Subclasses will want to override
+    /* Subclasses can override */
 
     fire() {
+        this.onKeyDown(this)
     }
 
     unfire() {
+        this.onKeyUp(this)
     }
 }

@@ -13,7 +13,7 @@ export default class Copy extends IInput {
         options.unlistenOnTextEdit ??= true // No nodes copy if inside a text field, just text (default behavior)
         super(target, blueprint, options)
         let self = this
-        this.#copyHandler = _ => self.copied()
+        this.#copyHandler = () => self.copied()
     }
 
     listenEvents() {

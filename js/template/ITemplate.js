@@ -31,14 +31,6 @@ export default class ITemplate {
         return /** @type {IInput[]} */([])
     }
 
-    /**
-     * @template {IInput} T
-     * @param {new (...any) => T} type
-     */
-    getInputObject(type) {
-        return /** @type {T} */(this.inputObjects.find(object => object.constructor == type))
-    }
-
     setup() {
         this.#inputObjects.forEach(v => v.setup())
     }

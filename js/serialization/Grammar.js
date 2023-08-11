@@ -129,6 +129,13 @@ export default class Grammar {
     )
     static symbol = P.regex(Grammar.Regex.Symbol)
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
+    static attributeNameOptQuotes = Grammar.regexMap(
+        new RegExp(
+            "(" + Grammar.Regex.DotSeparatedSymbols.source + ")"
+            + '|"' + "(" + Grammar.Regex.DotSeparatedSymbols.source + ")" + '"'
+        ),
+        ([_0, a, b]) => a ?? b
+    )
     static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
     static commaSeparation = P.regex(/\s*,\s*(?!\))/)
     static equalSeparation = P.regex(/\s*=\s*/)
@@ -338,9 +345,9 @@ export default class Grammar {
         return result
     }
 
-    static createAttributeGrammar(entityType, valueSeparator = this.equalSeparation) {
+    static createAttributeGrammar(entityType, attributeName = this.attributeName, valueSeparator = this.equalSeparation) {
         return P.seq(
-            this.attributeName,
+            attributeName,
             valueSeparator,
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator)
@@ -698,7 +705,7 @@ export default class Grammar {
                 P.whitespace,
                 P.alt(
                     this.customProperty,
-                    this.createAttributeGrammar(ObjectEntity),
+                    this.createAttributeGrammar(ObjectEntity, this.attributeNameOptQuotes),
                     this.inlinedArrayEntry,
                     this.subObjectEntity
                 )

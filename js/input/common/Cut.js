@@ -1,6 +1,5 @@
 import IInput from "../IInput.js"
 import ObjectSerializer from "../../serialization/ObjectSerializer.js"
-import KeyboardCanc from "../keybaord/KeyboardCanc.js"
 
 export default class Cut extends IInput {
 
@@ -14,7 +13,7 @@ export default class Cut extends IInput {
         options.unlistenOnTextEdit ??= true // No nodes copy if inside a text field, just text (default behavior)
         super(target, blueprint, options)
         let self = this
-        this.#cutHandler = _ => self.cut()
+        this.#cutHandler = () => self.cut()
     }
 
     listenEvents() {
@@ -34,6 +33,6 @@ export default class Cut extends IInput {
 
     cut() {
         this.blueprint.template.getCopyInputObject().copied()
-        this.blueprint.template.getInputObject(KeyboardCanc).fire()
+        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))
     }
 }

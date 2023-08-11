@@ -1,6 +1,6 @@
 import Configuration from "../Configuration.js"
 import ITemplate from "./ITemplate.js"
-import KeyboardShortcutAction from "../input/keybaord/KeyboardShortcutAction.js"
+import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable.js"
 
 /** @typedef {import("../element/IDraggableElement.js").default} IDraggableElement */
@@ -25,7 +25,7 @@ export default class IDraggableTemplate extends ITemplate {
         return [
             ...super.createInputObjects(),
             this.createDraggableObject(),
-            new KeyboardShortcutAction(
+            new KeyboardShortcut(
                 this.element,
                 this.blueprint,
                 {

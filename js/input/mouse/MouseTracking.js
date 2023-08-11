@@ -9,7 +9,9 @@ export default class MouseTracking extends IPointing {
     /** @param {MouseEvent} e */
     #mousemoveHandler= e => {
         e.preventDefault()
-        this.blueprint.mousePosition = this.locationFromEvent(e)
+        this.setLocationFromEvent(e)
+        this.blueprint.mousePosition[0] = this.location[0]
+        this.blueprint.mousePosition[1] = this.location[1]
     }
 
     /** @param {CustomEvent} e */

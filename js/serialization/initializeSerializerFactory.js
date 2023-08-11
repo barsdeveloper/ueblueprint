@@ -144,7 +144,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new Serializer(InvariantTextEntity, (entity, v) => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
+        new Serializer(InvariantTextEntity, (entity, v) => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", () => "")
     )
 
     SerializerFactory.registerSerializer(
@@ -159,7 +159,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new Serializer(LocalizedTextEntity, (entity, v) => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", _ => "")
+        new Serializer(LocalizedTextEntity, (entity, v) => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", () => "")
     )
 
     SerializerFactory.registerSerializer(
@@ -209,7 +209,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
-        new Serializer(PinReferenceEntity, undefined, " ", false, "", _ => "")
+        new Serializer(PinReferenceEntity, undefined, " ", false, "", () => "")
     )
 
     SerializerFactory.registerSerializer(
