@@ -44,7 +44,7 @@ export default class Serializer {
      * @returns {T}
      */
     read(value) {
-        return this.doRead(value)
+        return this.doRead(value.trim())
     }
 
     /** @param {T} value */

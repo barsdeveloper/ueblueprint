@@ -1,7 +1,7 @@
 import ComputedType from "./entity/ComputedType.js"
 import Configuration from "./Configuration.js"
 import MirroredEntity from "./entity/MirroredEntity.js"
-import UnionType from "./entity/UnionType.js"
+import Union from "./entity/Union.js"
 
 /**
  * @typedef {import("./Blueprint.js").default} Blueprint
@@ -264,10 +264,10 @@ export default class Utility {
         if (targetType instanceof ComputedType) {
             return value // The type is computed, can't say anything about it
         }
-        if (targetType instanceof UnionType) {
-            let type = targetType.types.find(t => Utility.isValueOfType(value, t, false))
+        if (targetType instanceof Union) {
+            let type = targetType.values.find(t => Utility.isValueOfType(value, t, false))
             if (!type) {
-                type = targetType.getFirstType()
+                type = targetType.values[0]
             }
             targetType = type
         }

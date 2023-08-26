@@ -40,6 +40,20 @@ describe("Serializer", () => {
             serializer.read(`LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Hit Bone Name")`)
                 .toString()
         ).to.be.equal("Out Hit Hit Bone Name"))
+        it("Test 3", () => expect(
+            serializer.read(String.raw`LOCGEN_FORMAT_ORDERED(
+                NSLOCTEXT(
+                    "PCGSettings",
+                    "OverridableParamPinTooltip",
+                    "{0}Attribute type is \"{1}\" and its exact name is \"{2}\""
+                ),
+                "If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\n",
+                "float",
+                "InRangeMin"
+            )`)
+                .toString()
+    
+        ).to.be.equal(`If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\nAttribute type is "float" and its exact name is "InRangeMin"`))
     })
 
     context("GuidEntity", () => {

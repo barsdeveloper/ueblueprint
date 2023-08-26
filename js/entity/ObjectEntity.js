@@ -11,7 +11,7 @@ import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PinEntity from "./PinEntity.js"
 import SVGIcon from "../SVGIcon.js"
 import SymbolEntity from "./SymbolEntity.js"
-import UnionType from "./UnionType.js"
+import Union from "./Union.js"
 import UnknownPinEntity from "./UnknownPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
@@ -35,7 +35,6 @@ export default class ObjectEntity extends IEntity {
         },
         PinNames: {
             type: [String],
-            default: undefined, // To keep the order, may be defined in additionalPinInserter()
             inlined: true,
         },
         AxisKey: {
@@ -46,7 +45,6 @@ export default class ObjectEntity extends IEntity {
         },
         NumAdditionalInputs: {
             type: Number,
-            default: undefined, // To keep the order, may be defined in additionalPinInserter()
         },
         bIsPureFunc: {
             type: Boolean,
@@ -224,7 +222,7 @@ export default class ObjectEntity extends IEntity {
             type: String,
         },
         CustomProperties: {
-            type: [new UnionType(PinEntity, UnknownPinEntity)],
+            type: [new Union(PinEntity, UnknownPinEntity)],
         },
     }
 

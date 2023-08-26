@@ -7,10 +7,15 @@ import Entity3 from "../fixtures/Entity3.js"
 import entity3Value from "../fixtures/serializedEntity3.js"
 import Entity4 from "../fixtures/Entity4.js"
 import entity4Value from "../fixtures/serializedEntity4.js"
+import Entity5 from "../fixtures/Entity5.js"
+import entity5Value1 from "../fixtures/serializedEntity5-1.js"
+import EntityF from "../fixtures/EntityF.js"
 import Grammar from "../../js/serialization/Grammar.js"
 import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory.js"
+import ObjectSerializer from "../../js/serialization/ObjectSerializer.js"
 import Serializer from "../../js/serialization/Serializer.js"
 import SerializerFactory from "../../js/serialization/SerializerFactory.js"
+import UnknownKeysEntity from "../../js/entity/UnknownKeysEntity.js"
 
 describe("Entity initialization", () => {
     before(() => {
@@ -297,5 +302,33 @@ describe("Entity initialization", () => {
         it("can serialize", () =>
             expect(SerializerFactory.getSerializer(Entity4).write(entity)).to.equal(entity4Value)
         )
+    })
+
+    context("Entity5", () => {
+        let entity = new Entity5()
+        before(() => {
+            initializeSerializerFactory()
+            SerializerFactory.registerSerializer(
+                Entity5,
+                new ObjectSerializer()
+            )
+            SerializerFactory.registerSerializer(
+                EntityF,
+                new Serializer(UnknownKeysEntity, (entity, string) => `${entity.lookbehind ?? ""}(${string})`)
+            )
+        })
+        it("can serialize/deserialize", () => {
+            expect(entity = SerializerFactory.getSerializer(Entity5).read(entity5Value1)).to.deep.equal({
+                Name: "",
+                key1: "Value 1",
+                key2: {
+                    lookbehind: "Foo",
+                    arg1: 55,
+                    arg2: "Argument 2",
+                },
+            })
+            expect(entity.key2).to.be.instanceof(UnknownKeysEntity)
+            expect(SerializerFactory.getSerializer(Entity5).write(entity)).to.equal(entity5Value1)
+        })
     })
 })

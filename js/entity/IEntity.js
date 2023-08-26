@@ -1,7 +1,7 @@
 import ComputedType from "./ComputedType.js"
 import MirroredEntity from "./MirroredEntity.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
-import UnionType from "./UnionType.js"
+import Union from "./Union.js"
 import Utility from "../Utility.js"
 
 /**
@@ -14,7 +14,7 @@ import Utility from "../Utility.js"
  * @typedef {IEntity | MirroredEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | UnionType[] | ComputedType | MirroredEntity} AttributeType
+ * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | Union | Union[] | ComputedType | MirroredEntity} AttributeType
  * @typedef {{
  *     type?: AttributeType,
  *     default?: AnyValue | ValueSupplier,
@@ -182,8 +182,8 @@ export default class IEntity {
             return ""
         } else if (attributeType === Array || attributeType instanceof Array) {
             return () => []
-        } else if (attributeType instanceof UnionType) {
-            return this.defaultValueProviderFromType(attributeType.getFirstType())
+        } else if (attributeType instanceof Union) {
+            return this.defaultValueProviderFromType(attributeType.values[0])
         } else if (attributeType instanceof MirroredEntity) {
             return () => new MirroredEntity(attributeType.type, attributeType.key, attributeType.getter)
         } else if (attributeType instanceof ComputedType) {

@@ -17,7 +17,7 @@ import RotatorEntity from "./RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEntity.js"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity.js"
-import UnionType from "./UnionType.js"
+import Union from "./Union.js"
 import Utility from "../Utility.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import VectorEntity from "./VectorEntity.js"
@@ -62,7 +62,7 @@ export default class PinEntity extends IEntity {
             default: "",
         },
         PinFriendlyName: {
-            type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
+            type: new Union(LocalizedTextEntity, FormatTextEntity, String),
         },
         PinToolTip: {
             type: String,
