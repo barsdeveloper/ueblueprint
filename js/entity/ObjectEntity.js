@@ -33,6 +33,10 @@ export default class ObjectEntity extends IEntity {
         ObjectRef: {
             type: ObjectReferenceEntity,
         },
+        PinTags: {
+            type: [null],
+            inlined: true,
+        },
         PinNames: {
             type: [String],
             inlined: true,
@@ -303,6 +307,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {String} */ this.Name
         /** @type {ObjectReferenceEntity?} */ this.ExportPath
         /** @type {ObjectReferenceEntity?} */ this.ObjectRef
+        /** @type {null[]} */ this.PinTags
         /** @type {String[]} */ this.PinNames
         /** @type {SymbolEntity?} */ this.AxisKey
         /** @type {SymbolEntity?} */ this.InputAxisKey
@@ -991,13 +996,23 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.multiGate:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
                 pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1])
-                pinNameFromIndex ??= (index, min = -1, max = -1) => `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`
+                pinNameFromIndex ??= (index, min = -1, max = -1) =>
+                    `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`
                 break
             case Configuration.paths.switchInteger:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
                 pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1])
                 pinNameFromIndex ??= (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString()
                 break
+            case Configuration.paths.switchGameplayTag:
+                pinNameFromIndex ??= (index, min = -1, max = -1) => {
+                    const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
+                    this.PinNames ??= []
+                    this.PinNames.push(result)
+                    delete this.PinTags[this.PinTags.length - 1]
+                    this.PinTags[this.PinTags.length] = null
+                    return result
+                }
             case Configuration.paths.switchName:
             case Configuration.paths.switchString:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())

@@ -130,6 +130,7 @@ export default class Grammar {
     static symbol = P.regex(Grammar.Regex.Symbol)
     static symbolQuoted = Grammar.regexMap(
         new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
+        /** @type {(_0: String, v: String) => String} */
         ([_0, v]) => v
     )
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
@@ -694,28 +695,30 @@ export default class Grammar {
     static inlinedArrayEntry = P.lazy(() =>
         P.seq(
             P.alt(
+                this.symbolQuoted.map(v => [v, true]),
                 this.symbol.map(v => [v, false]),
-                this.symbolQuoted.map(v => [v, true])
             ),
             this.regexMap(
                 new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-                v => v[1]
+                v => Number(v[1])
             )
         )
-            .chain(([[symbol, quoted], index]) =>
-                this.grammarFor(ObjectEntity.attributes[symbol])
-                    .map(currentValue =>
-                        values => {
-                            (values[symbol] ??= [])[index] = currentValue
-                            if (!ObjectEntity.attributes[symbol]?.inlined) {
-                                if (!values.attributes) {
-                                    IEntity.defineAttributes(values, {})
-                                }
-                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+            .chain(
+                /** @param {[[String, Boolean], Number]} param */
+                ([[symbol, quoted], index]) =>
+                    this.grammarFor(ObjectEntity.attributes[symbol])
+                        .map(currentValue =>
+                            values => {
+                                (values[symbol] ??= [])[index] = currentValue
                                 Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true)
+                                if (!ObjectEntity.attributes[symbol]?.inlined) {
+                                    if (!values.attributes) {
+                                        IEntity.defineAttributes(values, {})
+                                    }
+                                    Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+                                }
                             }
-                        }
-                    )
+                        )
             )
     )
 

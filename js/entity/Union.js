@@ -15,6 +15,3 @@ export default class Union {
         this.#values = values
     }
 }
-
-let x = new Union(1, "alpha").values
-let y = new Union().values
