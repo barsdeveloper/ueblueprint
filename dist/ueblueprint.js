@@ -582,22 +582,21 @@ class SerializerFactory {
     }
 }
 
-/** @typedef {import("./IEntity.js").AnyValueConstructor<*>} AnyValueConstructor */
+/**
+ * @template {any[]} U
+ * @template {[...U]} T
+ */
+class Union {
 
-class UnionType {
-
-    #types
-    get types() {
-        return this.#types
+    /** @type {T} */
+    #values
+    get values() {
+        return this.#values
     }
 
-    /** @param  {...AnyValueConstructor} types */
-    constructor(...types) {
-        this.#types = types;
-    }
-
-    getFirstType() {
-        return this.#types[0]
+    /** @param  {T} values */
+    constructor(...values) {
+        this.#values = values;
     }
 }
 
@@ -861,10 +860,10 @@ class Utility {
         if (targetType instanceof ComputedType) {
             return value // The type is computed, can't say anything about it
         }
-        if (targetType instanceof UnionType) {
-            let type = targetType.types.find(t => Utility.isValueOfType(value, t, false));
+        if (targetType instanceof Union) {
+            let type = targetType.values.find(t => Utility.isValueOfType(value, t, false));
             if (!type) {
-                type = targetType.getFirstType();
+                type = targetType.values[0];
             }
             targetType = type;
         }
@@ -1102,7 +1101,7 @@ class Utility {
  * @typedef {IEntity | MirroredEntity | String | Number | BigInt | Boolean} AnySimpleValue
  * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | UnionType | UnionType[] | ComputedType | MirroredEntity} AttributeType
+ * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | Union | Union[] | ComputedType | MirroredEntity} AttributeType
  * @typedef {{
  *     type?: AttributeType,
  *     default?: AnyValue | ValueSupplier,
@@ -1270,8 +1269,8 @@ class IEntity {
             return ""
         } else if (attributeType === Array || attributeType instanceof Array) {
             return () => []
-        } else if (attributeType instanceof UnionType) {
-            return this.defaultValueProviderFromType(attributeType.getFirstType())
+        } else if (attributeType instanceof Union) {
+            return this.defaultValueProviderFromType(attributeType.values[0])
         } else if (attributeType instanceof MirroredEntity) {
             return () => new MirroredEntity(attributeType.type, attributeType.key, attributeType.getter)
         } else if (attributeType instanceof ComputedType) {
@@ -1515,10 +1514,10 @@ class LocalizedTextEntity extends IEntity {
 
 class FormatTextEntity extends IEntity {
 
-    static lookbehind = "LOCGEN_FORMAT_NAMED"
+    static lookbehind = new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")
     static attributes = {
         value: {
-            type: [new UnionType(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
+            type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
             default: [],
         },
     }
@@ -1538,12 +1537,21 @@ class FormatTextEntity extends IEntity {
             return ""
         }
         const values = this.value.slice(1).map(v => v.toString());
-        return pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
-            const argLocation = values.indexOf(arg) + 1;
-            return argLocation > 0 && argLocation < values.length
-                ? values[argLocation]
-                : substring
-        })
+        return this.lookbehind == "LOCGEN_FORMAT_NAMED"
+            ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
+                const argLocation = values.indexOf(arg) + 1;
+                return argLocation > 0 && argLocation < values.length
+                    ? values[argLocation]
+                    : substring
+            })
+            : this.lookbehind == "LOCGEN_FORMAT_ORDERED"
+                ? pattern.replaceAll(/\{(\d+)\}/g, (substring, arg) => {
+                    const argValue = Number(arg);
+                    return argValue < values.length
+                        ? values[argValue]
+                        : substring
+                })
+                : ""
     }
 }
 
@@ -2320,7 +2328,7 @@ class PinEntity extends IEntity {
             default: "",
         },
         PinFriendlyName: {
-            type: new UnionType(LocalizedTextEntity, FormatTextEntity, String),
+            type: new Union(LocalizedTextEntity, FormatTextEntity, String),
         },
         PinToolTip: {
             type: String,
@@ -2984,9 +2992,12 @@ class ObjectEntity extends IEntity {
         ObjectRef: {
             type: ObjectReferenceEntity,
         },
+        PinTags: {
+            type: [null],
+            inlined: true,
+        },
         PinNames: {
             type: [String],
-            default: undefined, // To keep the order, may be defined in additionalPinInserter()
             inlined: true,
         },
         AxisKey: {
@@ -2997,7 +3008,6 @@ class ObjectEntity extends IEntity {
         },
         NumAdditionalInputs: {
             type: Number,
-            default: undefined, // To keep the order, may be defined in additionalPinInserter()
         },
         bIsPureFunc: {
             type: Boolean,
@@ -3175,7 +3185,7 @@ class ObjectEntity extends IEntity {
             type: String,
         },
         CustomProperties: {
-            type: [new UnionType(PinEntity, UnknownPinEntity)],
+            type: [new Union(PinEntity, UnknownPinEntity)],
         },
     }
 
@@ -3256,6 +3266,7 @@ class ObjectEntity extends IEntity {
         /** @type {String} */ this.Name;
         /** @type {ObjectReferenceEntity?} */ this.ExportPath;
         /** @type {ObjectReferenceEntity?} */ this.ObjectRef;
+        /** @type {null[]} */ this.PinTags;
         /** @type {String[]} */ this.PinNames;
         /** @type {SymbolEntity?} */ this.AxisKey;
         /** @type {SymbolEntity?} */ this.InputAxisKey;
@@ -3944,13 +3955,23 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.multiGate:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
                 pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
-                pinNameFromIndex ??= (index, min = -1, max = -1) => `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
+                pinNameFromIndex ??= (index, min = -1, max = -1) =>
+                    `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
                 break
             case Configuration.paths.switchInteger:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
                 pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
                 pinNameFromIndex ??= (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString();
                 break
+            case Configuration.paths.switchGameplayTag:
+                pinNameFromIndex ??= (index, min = -1, max = -1) => {
+                    const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
+                    this.PinNames ??= [];
+                    this.PinNames.push(result);
+                    delete this.PinTags[this.PinTags.length - 1];
+                    this.PinTags[this.PinTags.length] = null;
+                    return result
+                };
             case Configuration.paths.switchName:
             case Configuration.paths.switchString:
                 pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
@@ -4176,6 +4197,7 @@ class Grammar {
     static symbol = P.regex(Grammar.Regex.Symbol)
     static symbolQuoted = Grammar.regexMap(
         new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
+        /** @type {(_0: String, v: String) => String} */
         ([_0, v]) => v
     )
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
@@ -4229,8 +4251,8 @@ class Grammar {
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
                 P.regex(/\s*(?:,\s*)?\)/),
             ).map(([_0, values, _3]) => values);
-        } else if (type instanceof UnionType) {
-            result = type.types
+        } else if (type instanceof Union) {
+            result = type.values
                 .map(v => this.grammarFor(undefined, v))
                 .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
                     ? this.unknownValue
@@ -4371,8 +4393,8 @@ class Grammar {
     static getAttribute(entityType, key) {
         let result;
         let type;
-        if (entityType instanceof UnionType) {
-            for (let t of entityType.types) {
+        if (entityType instanceof Union) {
+            for (let t of entityType.values) {
                 if (result = this.getAttribute(t, key)) {
                     return result
                 }
@@ -4421,15 +4443,23 @@ class Grammar {
      */
     static createEntityGrammar = (entityType, acceptUnknownKeys = true) =>
         P.seq(
-            entityType.lookbehind.length
-                ? P.regex(new RegExp(`${entityType.lookbehind}\\s*\\(\\s*`))
-                : P.regex(/\(\s*/),
+            this.regexMap(
+                entityType.lookbehind instanceof Union
+                    ? new RegExp(`(${entityType.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
+                    : entityType.lookbehind.constructor == String && entityType.lookbehind.length
+                        ? new RegExp(`(${entityType.lookbehind})\\s*\\(\\s*`)
+                        : /()\(\s*/,
+                result => result[1]
+            ),
             this.createAttributeGrammar(entityType).sepBy1(this.commaSeparation),
-            P.regex(/\s*(?:,\s*)?\)/),
+            P.regex(/\s*(?:,\s*)?\)/), // trailing comma
         )
-            .map(([_0, attributes, _2]) => {
+            .map(([lookbehind, attributes, _2]) => {
                 let values = {};
                 attributes.forEach(attributeSetter => attributeSetter(values));
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
                 return values
             })
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
@@ -4465,10 +4495,17 @@ class Grammar {
 
     static formatTextEntity = P.lazy(() =>
         P.seq(
-            P.regex(new RegExp(`${FormatTextEntity.lookbehind}\\s*`)),
+            this.regexMap(
+                new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                result => result[1]
+            ),
             this.grammarFor(FormatTextEntity.attributes.value)
         )
-            .map(([_0, values]) => new FormatTextEntity(values))
+            .map(([lookbehind, values]) => {
+                const result = new FormatTextEntity(values);
+                result.lookbehind = lookbehind;
+                return result
+            })
     )
 
     static functionReferenceEntity = P.lazy(() => this.createEntityGrammar(FunctionReferenceEntity))
@@ -4513,12 +4550,13 @@ class Grammar {
                 + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
                 + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
                 + String.raw`(?:,\s+)?`
-                + String.raw`\)`
+                + String.raw`\)`,
+                "m"
             ),
             matchResult => new LocalizedTextEntity({
-                namespace: matchResult[1],
-                key: matchResult[2],
-                value: matchResult[3]
+                namespace: Utility.unescapeString(matchResult[1]),
+                key: Utility.unescapeString(matchResult[2]),
+                value: Utility.unescapeString(matchResult[3]),
             })
         )
     )
@@ -4705,7 +4743,7 @@ class Grammar {
             this.unknownKeysEntity,
             this.symbolEntity,
             this.grammarFor(undefined, [PinReferenceEntity]),
-            this.grammarFor(undefined, [new UnionType(Number, String, SymbolEntity)]),
+            this.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
         )
     )
 
@@ -4724,28 +4762,30 @@ class Grammar {
     static inlinedArrayEntry = P.lazy(() =>
         P.seq(
             P.alt(
+                this.symbolQuoted.map(v => [v, true]),
                 this.symbol.map(v => [v, false]),
-                this.symbolQuoted.map(v => [v, true])
             ),
             this.regexMap(
                 new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-                v => v[1]
+                v => Number(v[1])
             )
         )
-            .chain(([[symbol, quoted], index]) =>
-                this.grammarFor(ObjectEntity.attributes[symbol])
-                    .map(currentValue =>
-                        values => {
-                            (values[symbol] ??= [])[index] = currentValue;
-                            if (!ObjectEntity.attributes[symbol]?.inlined) {
-                                if (!values.attributes) {
-                                    IEntity.defineAttributes(values, {});
-                                }
-                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true);
+            .chain(
+                /** @param {[[String, Boolean], Number]} param */
+                ([[symbol, quoted], index]) =>
+                    this.grammarFor(ObjectEntity.attributes[symbol])
+                        .map(currentValue =>
+                            values => {
+                                (values[symbol] ??= [])[index] = currentValue;
                                 Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true);
+                                if (!ObjectEntity.attributes[symbol]?.inlined) {
+                                    if (!values.attributes) {
+                                        IEntity.defineAttributes(values, {});
+                                    }
+                                    Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true);
+                                }
                             }
-                        }
-                    )
+                        )
             )
     )
 
@@ -4916,7 +4956,7 @@ class Serializer {
      * @returns {T}
      */
     read(value) {
-        return this.doRead(value)
+        return this.doRead(value.trim())
     }
 
     /** @param {T} value */

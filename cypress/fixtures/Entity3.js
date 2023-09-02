@@ -1,7 +1,7 @@
 import Entity1 from "./Entity1.js"
 import Entity2 from "./Entity2.js"
 import IEntity from "../../js/entity/IEntity.js"
-import UnionType from "../../js/entity/UnionType.js"
+import Union from "../../js/entity/Union.js"
 
 export default class Entity3 extends IEntity {
 
@@ -50,11 +50,11 @@ export default class Entity3 extends IEntity {
             type: String,
         },
         mike: {
-            type: new UnionType(Number, String, Array),
+            type: new Union(Number, String, Array),
             default: "Bar",
         },
         november: {
-            type: new UnionType(Number, String, Array),
+            type: new Union(Number, String, Array),
             default: 0,
         },
         oscar: {

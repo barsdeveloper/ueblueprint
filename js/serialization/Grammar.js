@@ -29,7 +29,7 @@ import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVect
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
 import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
-import UnionType from "../entity/UnionType.js"
+import Union from "../entity/Union.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import UnknownPinEntity from "../entity/UnknownPinEntity.js"
 import Utility from "../Utility.js"
@@ -130,6 +130,7 @@ export default class Grammar {
     static symbol = P.regex(Grammar.Regex.Symbol)
     static symbolQuoted = Grammar.regexMap(
         new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
+        /** @type {(_0: String, v: String) => String} */
         ([_0, v]) => v
     )
     static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
@@ -183,8 +184,8 @@ export default class Grammar {
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
                 P.regex(/\s*(?:,\s*)?\)/),
             ).map(([_0, values, _3]) => values)
-        } else if (type instanceof UnionType) {
-            result = type.types
+        } else if (type instanceof Union) {
+            result = type.values
                 .map(v => this.grammarFor(undefined, v))
                 .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
                     ? this.unknownValue
@@ -325,8 +326,8 @@ export default class Grammar {
     static getAttribute(entityType, key) {
         let result
         let type
-        if (entityType instanceof UnionType) {
-            for (let t of entityType.types) {
+        if (entityType instanceof Union) {
+            for (let t of entityType.values) {
                 if (result = this.getAttribute(t, key)) {
                     return result
                 }
@@ -375,15 +376,23 @@ export default class Grammar {
      */
     static createEntityGrammar = (entityType, acceptUnknownKeys = true) =>
         P.seq(
-            entityType.lookbehind.length
-                ? P.regex(new RegExp(`${entityType.lookbehind}\\s*\\(\\s*`))
-                : P.regex(/\(\s*/),
+            this.regexMap(
+                entityType.lookbehind instanceof Union
+                    ? new RegExp(`(${entityType.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
+                    : entityType.lookbehind.constructor == String && entityType.lookbehind.length
+                        ? new RegExp(`(${entityType.lookbehind})\\s*\\(\\s*`)
+                        : /()\(\s*/,
+                result => result[1]
+            ),
             this.createAttributeGrammar(entityType).sepBy1(this.commaSeparation),
-            P.regex(/\s*(?:,\s*)?\)/),
+            P.regex(/\s*(?:,\s*)?\)/), // trailing comma
         )
-            .map(([_0, attributes, _2]) => {
+            .map(([lookbehind, attributes, _2]) => {
                 let values = {}
                 attributes.forEach(attributeSetter => attributeSetter(values))
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind
+                }
                 return values
             })
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
@@ -419,10 +428,17 @@ export default class Grammar {
 
     static formatTextEntity = P.lazy(() =>
         P.seq(
-            P.regex(new RegExp(`${FormatTextEntity.lookbehind}\\s*`)),
+            this.regexMap(
+                new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                result => result[1]
+            ),
             this.grammarFor(FormatTextEntity.attributes.value)
         )
-            .map(([_0, values]) => new FormatTextEntity(values))
+            .map(([lookbehind, values]) => {
+                const result = new FormatTextEntity(values)
+                result.lookbehind = lookbehind
+                return result
+            })
     )
 
     static functionReferenceEntity = P.lazy(() => this.createEntityGrammar(FunctionReferenceEntity))
@@ -467,12 +483,13 @@ export default class Grammar {
                 + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
                 + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
                 + String.raw`(?:,\s+)?`
-                + String.raw`\)`
+                + String.raw`\)`,
+                "m"
             ),
             matchResult => new LocalizedTextEntity({
-                namespace: matchResult[1],
-                key: matchResult[2],
-                value: matchResult[3]
+                namespace: Utility.unescapeString(matchResult[1]),
+                key: Utility.unescapeString(matchResult[2]),
+                value: Utility.unescapeString(matchResult[3]),
             })
         )
     )
@@ -659,7 +676,7 @@ export default class Grammar {
             this.unknownKeysEntity,
             this.symbolEntity,
             this.grammarFor(undefined, [PinReferenceEntity]),
-            this.grammarFor(undefined, [new UnionType(Number, String, SymbolEntity)]),
+            this.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
         )
     )
 
@@ -678,28 +695,30 @@ export default class Grammar {
     static inlinedArrayEntry = P.lazy(() =>
         P.seq(
             P.alt(
+                this.symbolQuoted.map(v => [v, true]),
                 this.symbol.map(v => [v, false]),
-                this.symbolQuoted.map(v => [v, true])
             ),
             this.regexMap(
                 new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-                v => v[1]
+                v => Number(v[1])
             )
         )
-            .chain(([[symbol, quoted], index]) =>
-                this.grammarFor(ObjectEntity.attributes[symbol])
-                    .map(currentValue =>
-                        values => {
-                            (values[symbol] ??= [])[index] = currentValue
-                            if (!ObjectEntity.attributes[symbol]?.inlined) {
-                                if (!values.attributes) {
-                                    IEntity.defineAttributes(values, {})
-                                }
-                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+            .chain(
+                /** @param {[[String, Boolean], Number]} param */
+                ([[symbol, quoted], index]) =>
+                    this.grammarFor(ObjectEntity.attributes[symbol])
+                        .map(currentValue =>
+                            values => {
+                                (values[symbol] ??= [])[index] = currentValue
                                 Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true)
+                                if (!ObjectEntity.attributes[symbol]?.inlined) {
+                                    if (!values.attributes) {
+                                        IEntity.defineAttributes(values, {})
+                                    }
+                                    Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+                                }
                             }
-                        }
-                    )
+                        )
             )
     )
 

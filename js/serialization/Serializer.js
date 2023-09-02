@@ -4,9 +4,9 @@ import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
  * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
  */
 
 /** @template {AnyValue} T */
@@ -44,7 +44,7 @@ export default class Serializer {
      * @returns {T}
      */
     read(value) {
-        return this.doRead(value)
+        return this.doRead(value.trim())
     }
 
     /** @param {T} value */
