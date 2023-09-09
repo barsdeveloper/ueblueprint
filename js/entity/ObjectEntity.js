@@ -217,6 +217,12 @@ export default class ObjectEntity extends IEntity {
         NodeHeight: {
             type: IntegerEntity,
         },
+        Graph: {
+            type: ObjectReferenceEntity,
+        },
+        SubgraphInstance: {
+            type: String,
+        },
         SettingsInterface: {
             type: ObjectReferenceEntity,
         },
@@ -387,11 +393,13 @@ export default class ObjectEntity extends IEntity {
         /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY
         /** @type {MirroredEntity?} */ this.PositionX
         /** @type {MirroredEntity?} */ this.PositionY
-        /** @type {ObjectReferenceEntity} */ this.PCGNode
+        /** @type {ObjectReferenceEntity?} */ this.PCGNode
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IntegerEntity?} */ this.NodeWidth
         /** @type {IntegerEntity?} */ this.NodeHeight
+        /** @type {ObjectReferenceEntity?} */ this.Graph
+        /** @type {String?} */ this.SubgraphInstance
         /** @type {ObjectReferenceEntity?} */ this.SettingsInterface
         /** @type {Boolean?} */ this.bExposeToLibrary
         /** @type {Boolean?} */ this.bCanRenameNode
@@ -611,6 +619,14 @@ export default class ObjectEntity extends IEntity {
             : null
     }
 
+    /** @return {ObjectEntity} */
+    getSubgraphObject() {
+        const node = this.SubgraphInstance
+        return node
+            ? this[Configuration.subObjectAttributeNameFromName(node)]
+            : null
+    }
+
     isDevelopmentOnly() {
         const nodeClass = this.getClass()
         return this.EnabledState?.toString() === "DevelopmentOnly"
@@ -756,9 +772,19 @@ export default class ObjectEntity extends IEntity {
             let result = this.getPcgSubobject().nodeDisplayName()
             return result
         }
+        const subgraphObject = this.getSubgraphObject()
+        if (subgraphObject) {
+            return subgraphObject.Graph.getName()
+        }
         const settingsObject = this.getSettingsObject()
-        if (settingsObject &&  settingsObject.BlueprintElementInstance) {
-            return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
+        if (settingsObject) {
+            if (settingsObject.BlueprintElementInstance) {
+                return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
+            }
+            const settingsSubgraphObject = settingsObject.getSubgraphObject()
+            if (settingsSubgraphObject && settingsSubgraphObject.Graph) {
+                return settingsSubgraphObject.Graph.getName()
+            }
         }
         let memberName = this.FunctionReference?.MemberName
         if (memberName) {

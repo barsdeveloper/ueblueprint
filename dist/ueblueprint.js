@@ -185,6 +185,7 @@ class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
+        pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
@@ -205,7 +206,7 @@ class Configuration {
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
-        
+
     }
     static pinColor = {
         [this.paths.rotator]: i$3`157, 177, 251`,
@@ -267,6 +268,7 @@ class Configuration {
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
         this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
+    static subObjectAttributeNameFromName = name => this.subObjectAttributeNamePrefix + "_" + name
     static switchTargetPattern = /\/Script\/[\w\.\/\:]+K2Node_Switch([A-Z]\w+)+/
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
@@ -3287,6 +3289,12 @@ class ObjectEntity extends IEntity {
         NodeHeight: {
             type: IntegerEntity,
         },
+        Graph: {
+            type: ObjectReferenceEntity,
+        },
+        SubgraphInstance: {
+            type: String,
+        },
         SettingsInterface: {
             type: ObjectReferenceEntity,
         },
@@ -3457,11 +3465,13 @@ class ObjectEntity extends IEntity {
         /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY;
         /** @type {MirroredEntity?} */ this.PositionX;
         /** @type {MirroredEntity?} */ this.PositionY;
-        /** @type {ObjectReferenceEntity} */ this.PCGNode;
+        /** @type {ObjectReferenceEntity?} */ this.PCGNode;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
         /** @type {IntegerEntity?} */ this.NodeWidth;
         /** @type {IntegerEntity?} */ this.NodeHeight;
+        /** @type {ObjectReferenceEntity?} */ this.Graph;
+        /** @type {String?} */ this.SubgraphInstance;
         /** @type {ObjectReferenceEntity?} */ this.SettingsInterface;
         /** @type {Boolean?} */ this.bExposeToLibrary;
         /** @type {Boolean?} */ this.bCanRenameNode;
@@ -3681,6 +3691,14 @@ class ObjectEntity extends IEntity {
             : null
     }
 
+    /** @return {ObjectEntity} */
+    getSubgraphObject() {
+        const node = this.SubgraphInstance;
+        return node
+            ? this[Configuration.subObjectAttributeNameFromName(node)]
+            : null
+    }
+
     isDevelopmentOnly() {
         const nodeClass = this.getClass();
         return this.EnabledState?.toString() === "DevelopmentOnly"
@@ -3826,9 +3844,19 @@ class ObjectEntity extends IEntity {
             let result = this.getPcgSubobject().nodeDisplayName();
             return result
         }
+        const subgraphObject = this.getSubgraphObject();
+        if (subgraphObject) {
+            return subgraphObject.Graph.getName()
+        }
         const settingsObject = this.getSettingsObject();
-        if (settingsObject &&  settingsObject.BlueprintElementInstance) {
-            return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
+        if (settingsObject) {
+            if (settingsObject.BlueprintElementInstance) {
+                return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
+            }
+            const settingsSubgraphObject = settingsObject.getSubgraphObject();
+            if (settingsSubgraphObject && settingsSubgraphObject.Graph) {
+                return settingsSubgraphObject.Graph.getName()
+            }
         }
         let memberName = this.FunctionReference?.MemberName;
         if (memberName) {

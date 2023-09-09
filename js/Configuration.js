@@ -161,6 +161,7 @@ export default class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
+        pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
@@ -181,7 +182,7 @@ export default class Configuration {
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
-        
+
     }
     static pinColor = {
         [this.paths.rotator]: css`157, 177, 251`,
@@ -243,6 +244,7 @@ export default class Configuration {
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
         this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
+    static subObjectAttributeNameFromName = name => this.subObjectAttributeNamePrefix + "_" + name
     static switchTargetPattern = /\/Script\/[\w\.\/\:]+K2Node_Switch([A-Z]\w+)+/
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
