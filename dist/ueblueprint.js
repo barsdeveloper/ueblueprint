@@ -4860,8 +4860,9 @@ class Grammar {
 
     static unknownKeysEntity = P.lazy(() =>
         P.seq(
+            // Lookbehind
             this.regexMap(
-                new RegExp(`(${this.Regex.Symbol.source}\\s*)?\\(\\s*`),
+                new RegExp(`(${this.Regex.Path.source}\\s*)?\\(\\s*`),
                 result => result[1] ?? ""
             ),
             this.attributeName
