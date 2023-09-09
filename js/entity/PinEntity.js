@@ -54,6 +54,7 @@ export default class PinEntity extends IEntity {
     }
     static lookbehind = "Pin"
     static attributes = {
+        ...super.attributes,
         PinId: {
             type: GuidEntity,
             default: () => new GuidEntity()

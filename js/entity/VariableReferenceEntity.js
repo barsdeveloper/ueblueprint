@@ -4,6 +4,7 @@ import GuidEntity from "./GuidEntity.js"
 export default class VariableReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         MemberScope: {
             type: String,
         },

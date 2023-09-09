@@ -239,13 +239,14 @@ export default class Utility {
         if (value === null) {
             return null
         }
-        if (value?.constructor === Object && value?.type instanceof Function) {
-            return value.type
+        if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
+            return /** @type {AttributeInformation} */(value).type
         }
         return /** @type {AnyValueConstructor<any>} */(value?.constructor)
     }
 
     /**
+     * @template {AnyValue} T
      * @param {AnyValue} value
      * @param {AnyValueConstructor<T>} type
      */
@@ -257,7 +258,7 @@ export default class Utility {
     }
 
     /** @param {AnyValue} value */
-    static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
+    static sanitize(value, targetType = /** @type {AnyValueConstructor<typeof value>} */(value?.constructor)) {
         if (targetType instanceof Array) {
             targetType = targetType[0]
         }
@@ -279,8 +280,8 @@ export default class Utility {
         }
         if (targetType && !Utility.isValueOfType(value, targetType, true)) {
             value = targetType === BigInt
-                ? BigInt(value)
-                : new targetType(value)
+                ? BigInt(/** @type {Number} */(value))
+                : new /** @type {EntityConstructor} */(targetType)(value)
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String || value instanceof BigInt) {
             value = value.valueOf() // Get the relative primitive value

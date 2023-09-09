@@ -21,11 +21,15 @@ import VariableReferenceEntity from "./VariableReferenceEntity.js"
 export default class ObjectEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         Class: {
             type: ObjectReferenceEntity,
         },
         Name: {
             default: "",
+        },
+        Archetype: {
+            type: ObjectReferenceEntity,
         },
         ExportPath: {
             type: ObjectReferenceEntity,
@@ -186,6 +190,9 @@ export default class ObjectEntity extends IEntity {
         MaterialExpressionEditorY: {
             type: new MirroredEntity(ObjectEntity, "NodePosY"),
         },
+        PCGNode: {
+            type: ObjectReferenceEntity,
+        },
         NodePosX: {
             type: IntegerEntity,
         },
@@ -305,6 +312,7 @@ export default class ObjectEntity extends IEntity {
         super(values, suppressWarns)
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
+        /** @type {ObjectReferenceEntity?} */ this.Archetype
         /** @type {ObjectReferenceEntity?} */ this.ExportPath
         /** @type {ObjectReferenceEntity?} */ this.ObjectRef
         /** @type {null[]} */ this.PinTags
@@ -357,6 +365,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {MirroredEntity?} */ this.Text
         /** @type {MirroredEntity?} */ this.MaterialExpressionEditorX
         /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY
+        /** @type {ObjectReferenceEntity} */ this.PCGNode
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IntegerEntity?} */ this.NodeWidth
@@ -550,6 +559,18 @@ export default class ObjectEntity extends IEntity {
             : null
     }
 
+    isPcg() {
+        return this.getClass() === Configuration.paths.pcgEditorGraphNode
+    }
+
+    /** @return {ObjectEntity} */
+    getPcgSubobject() {
+        const node = this.PCGNode
+        return node
+            ? this[Configuration.subObjectAttributeNameFromReference(node, true)]
+            : null
+    }
+
     isDevelopmentOnly() {
         const nodeClass = this.getClass()
         return this.EnabledState?.toString() === "DevelopmentOnly"
@@ -686,12 +707,13 @@ export default class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.paths.macro) {
             return Utility.formatStringName(this.MacroGraphReference?.getMacroName())
         }
-        if (this.isMaterial() && this.MaterialExpression) {
-            const materialObject = /** @type {ObjectEntity} */(
-                this[Configuration.subObjectAttributeNameFromReference(this.MaterialExpression, true)]
-            )
-            let result = materialObject.nodeDisplayName()
+        if (this.isMaterial() && this.getMaterialSubobject()) {
+            let result = this.getMaterialSubobject().nodeDisplayName()
             result = result.match(/Material Expression (.+)/)?.[1] ?? result
+            return result
+        }
+        if (this.isPcg() && this.getPcgSubobject()) {
+            let result = this.getPcgSubobject().nodeDisplayName()
             return result
         }
         let memberName = this.FunctionReference?.MemberName

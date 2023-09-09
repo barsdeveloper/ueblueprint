@@ -15,6 +15,7 @@ export default class ObjectSerializer extends Serializer {
         switch (key) {
             case "Class":
             case "Name":
+            case "Archetype":
             case "ExportPath":
             case "CustomProperties":
                 // Serielized separately, check doWrite()
@@ -81,6 +82,7 @@ export default class ObjectSerializer extends Serializer {
         let result = indentation + "Begin Object"
             + (entity.Class?.type || entity.Class?.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
             + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
+            + (entity.Archetype ? ` Archetype=${this.doWriteValue(entity.Archetype, insideString)}` : "")
             + (entity.ExportPath?.type || entity.ExportPath?.path ? ` ExportPath=${this.doWriteValue(entity.ExportPath, insideString)}` : "")
             + "\n"
             + super.doWrite(

@@ -7,6 +7,7 @@ import { css } from "lit"
 
 export default class Configuration {
     static nodeColors = {
+        black: css`20, 20, 20`,
         blue: css`84, 122, 156`,
         darkBlue: css`32, 80, 128`,
         darkTurquoise: css`19, 100, 137`,
@@ -159,6 +160,7 @@ export default class Configuration {
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
+        pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
@@ -179,6 +181,7 @@ export default class Configuration {
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
+        
     }
     static pinColor = {
         [this.paths.rotator]: css`157, 177, 251`,

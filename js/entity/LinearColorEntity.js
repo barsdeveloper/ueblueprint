@@ -5,6 +5,7 @@ import Utility from "../Utility.js"
 export default class LinearColorEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         R: {
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),

@@ -44,9 +44,14 @@ import Utility from "../Utility.js"
 
 export default class IEntity {
 
+    /** @type {String | Union<String[]>} */
     static lookbehind = ""
     /** @type {AttributeDeclarations} */
-    static attributes = {}
+    static attributes = {
+        lookbehind: {
+            ignored: true,
+        }
+    }
     static defaultAttribute = {
         nullable: false,
         ignored: false,
@@ -57,6 +62,7 @@ export default class IEntity {
     }
 
     constructor(values = {}, suppressWarns = false) {
+        /** @type {String} */ this.lookbehind
         const Self = /** @type {EntityConstructor} */(this.constructor)
         let attributes = Self.attributes
         if (values.attributes) {
@@ -77,12 +83,6 @@ export default class IEntity {
             IEntity.defineAttributes(this, attributes)
         }
         /** @type {AttributeDeclarations?} */ this.attributes
-        if (values.constructor !== Object && Object.keys(attributes).length === 1) {
-            // If values is not an object but the only value this entity can have
-            values = {
-                [Object.keys(attributes)[0]]: values
-            }
-        }
         const valuesNames = Object.keys(values)
         const attributesNames = Object.keys(attributes)
         const allAttributesNames = Utility.mergeArrays(valuesNames, attributesNames)
@@ -207,7 +207,7 @@ export default class IEntity {
                     ? [Utility.getType(attribute.default[0])]
                     : Utility.getType(attribute.default)
             }
-            if (attribute.default === undefined && attribute.type === undefined) {
+            if (!attribute.ignored && attribute.default === undefined && attribute.type === undefined) {
                 throw new Error(
                     `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
                     + attributeName
@@ -243,6 +243,12 @@ export default class IEntity {
             configurable: false,
         })
         object.attributes = attributes
+    }
+
+    getLookbehind() {
+        let lookbehind = this.lookbehind ?? /** @type {EntityConstructor} */(this.constructor).lookbehind
+        lookbehind = lookbehind instanceof Union ? lookbehind.values[0] : lookbehind
+        return lookbehind
     }
 
     unexpectedKeys() {

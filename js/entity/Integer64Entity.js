@@ -16,6 +16,12 @@ export default class Integer64Entity extends IEntity {
 
     /** @param {BigInt | Number} value */
     constructor(value = 0) {
+        if (value.constructor !== Object) {
+            value = {
+                // @ts-expect-error
+                value: value,
+            }
+        }
         super(value)
         /** @type {BigInt | Number} */ this.value
     }

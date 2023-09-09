@@ -3,6 +3,7 @@ import IEntity from "./IEntity.js"
 export default class IdentifierEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -18,6 +19,11 @@ export default class IdentifierEntity extends IEntity {
     }
 
     constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            }
+        }
         super(values)
         /** @type {String} */ this.value
     }

@@ -5,6 +5,7 @@ import IEntity from "./IEntity.js"
 export default class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         type: {
             default: "",
         },

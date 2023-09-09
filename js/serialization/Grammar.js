@@ -429,13 +429,16 @@ export default class Grammar {
     static formatTextEntity = P.lazy(() =>
         P.seq(
             this.regexMap(
+                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
                 new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
                 result => result[1]
             ),
             this.grammarFor(FormatTextEntity.attributes.value)
         )
             .map(([lookbehind, values]) => {
-                const result = new FormatTextEntity(values)
+                const result = new FormatTextEntity({
+                    value: values,
+                })
                 result.lookbehind = lookbehind
                 return result
             })

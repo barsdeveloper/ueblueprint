@@ -15,6 +15,12 @@ export default class IntegerEntity extends IEntity {
     }
 
     constructor(value = 0) {
+        if (value.constructor !== Object) {
+            // @ts-expect-error
+            value = {
+                value: value,
+            }
+        }
         super(value)
         /** @type {Number} */ this.value
     }

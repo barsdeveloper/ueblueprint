@@ -5,6 +5,7 @@ import PathSymbolEntity from "./PathSymbolEntity.js"
 export default class PinReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         objectName: {
             type: PathSymbolEntity,
         },

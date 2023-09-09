@@ -89,6 +89,11 @@ export default class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
+        if (this.element.nodeElement.entity.isPcg()) {
+            switch (this.element.entity.getType()) {
+                case "Concrete Data": return this.element.isInput() ? SVGIcon.pcgIn : SVGIcon.pcgOut
+            }
+        }
         switch (this.element.entity.PinType.ContainerType?.toString()) {
             case "Array": return SVGIcon.array
             case "Set": return SVGIcon.set

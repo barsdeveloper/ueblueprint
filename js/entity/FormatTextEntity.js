@@ -7,6 +7,7 @@ export default class FormatTextEntity extends IEntity {
 
     static lookbehind = new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")
     static attributes = {
+        ...super.attributes,
         value: {
             type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
             default: [],
