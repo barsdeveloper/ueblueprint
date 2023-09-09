@@ -48,7 +48,7 @@ export default class ObjectReferenceEntity extends IEntity {
     }
 
     getName() {
-        return Utility.getNameFromPath(this.path)
+        return Utility.getNameFromPath(this.path.replace(/_C$/, ""))
     }
 
     toString() {

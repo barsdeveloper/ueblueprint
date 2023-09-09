@@ -37,6 +37,12 @@ export default class ObjectEntity extends IEntity {
         ObjectRef: {
             type: ObjectReferenceEntity,
         },
+        BlueprintElementType: {
+            type: ObjectReferenceEntity
+        },
+        BlueprintElementInstance: {
+            type: ObjectReferenceEntity
+        },
         PinTags: {
             type: [null],
             inlined: true,
@@ -190,6 +196,12 @@ export default class ObjectEntity extends IEntity {
         MaterialExpressionEditorY: {
             type: new MirroredEntity(ObjectEntity, "NodePosY"),
         },
+        PositionX: {
+            type: new MirroredEntity(ObjectEntity, "NodePosX"),
+        },
+        PositionY: {
+            type: new MirroredEntity(ObjectEntity, "NodePosY"),
+        },
         PCGNode: {
             type: ObjectReferenceEntity,
         },
@@ -204,6 +216,12 @@ export default class ObjectEntity extends IEntity {
         },
         NodeHeight: {
             type: IntegerEntity,
+        },
+        SettingsInterface: {
+            type: ObjectReferenceEntity,
+        },
+        bExposeToLibrary: {
+            type: Boolean,
         },
         bCanRenameNode: {
             type: Boolean,
@@ -315,6 +333,8 @@ export default class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity?} */ this.Archetype
         /** @type {ObjectReferenceEntity?} */ this.ExportPath
         /** @type {ObjectReferenceEntity?} */ this.ObjectRef
+        /** @type {ObjectReferenceEntity?} */ this.BlueprintElementType
+        /** @type {ObjectReferenceEntity?} */ this.BlueprintElementInstance
         /** @type {null[]} */ this.PinTags
         /** @type {String[]} */ this.PinNames
         /** @type {SymbolEntity?} */ this.AxisKey
@@ -365,11 +385,15 @@ export default class ObjectEntity extends IEntity {
         /** @type {MirroredEntity?} */ this.Text
         /** @type {MirroredEntity?} */ this.MaterialExpressionEditorX
         /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY
+        /** @type {MirroredEntity?} */ this.PositionX
+        /** @type {MirroredEntity?} */ this.PositionY
         /** @type {ObjectReferenceEntity} */ this.PCGNode
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IntegerEntity?} */ this.NodeWidth
         /** @type {IntegerEntity?} */ this.NodeHeight
+        /** @type {ObjectReferenceEntity?} */ this.SettingsInterface
+        /** @type {Boolean?} */ this.bExposeToLibrary
         /** @type {Boolean?} */ this.bCanRenameNode
         /** @type {Boolean?} */ this.bCommentBubblePinned
         /** @type {Boolean?} */ this.bCommentBubbleVisible
@@ -412,10 +436,18 @@ export default class ObjectEntity extends IEntity {
             obj.MaterialExpressionEditorX && (obj.MaterialExpressionEditorX.getter = () => this.NodePosX)
             obj.MaterialExpressionEditorY && (obj.MaterialExpressionEditorY.getter = () => this.NodePosY)
         }
+        /** @type {ObjectEntity} */
+        const pcgObject = this.getPcgSubobject()
+        if (pcgObject) {
+            pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX)
+            pcgObject.PositionY && (pcgObject.PositionX.getter = () => this.NodePosY)
+        }
     }
 
     getClass() {
-        return this.Class?.path ? this.Class.path : this.Class?.type ?? ""
+        return (this.Class?.path ? this.Class.path : this.Class?.type)
+            ?? (this.ExportPath?.path ? this.ExportPath.path : this.ExportPath?.type)
+            ?? ""
     }
 
     getType() {
@@ -571,6 +603,14 @@ export default class ObjectEntity extends IEntity {
             : null
     }
 
+    /** @return {ObjectEntity} */
+    getSettingsObject() {
+        const settings = this.SettingsInterface
+        return settings
+            ? this[Configuration.subObjectAttributeNameFromReference(settings, true)]
+            : null
+    }
+
     isDevelopmentOnly() {
         const nodeClass = this.getClass()
         return this.EnabledState?.toString() === "DevelopmentOnly"
@@ -715,6 +755,10 @@ export default class ObjectEntity extends IEntity {
         if (this.isPcg() && this.getPcgSubobject()) {
             let result = this.getPcgSubobject().nodeDisplayName()
             return result
+        }
+        const settingsObject = this.getSettingsObject()
+        if (settingsObject &&  settingsObject.BlueprintElementInstance) {
+            return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
         }
         let memberName = this.FunctionReference?.MemberName
         if (memberName) {
