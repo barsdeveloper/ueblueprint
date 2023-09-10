@@ -100,6 +100,10 @@ ueb-pin[data-connectable="false"] .ueb-pin-icon {
     vertical-align: top;
 }
 
+ueb-pin[data-direction="output"] .ueb-pin-reflect-output {
+    transform: scaleX(-1);
+}
+
 ueb-pin[data-type="exec"] .ueb-pin-icon {
     width: 15px;
     height: 15px;
@@ -108,6 +112,10 @@ ueb-pin[data-type="exec"] .ueb-pin-icon {
 
 ueb-pin[data-linked="true"] .ueb-pin-tofill {
     fill: currentColor;
+}
+
+ueb-pin[data-linked="true"] .ueb-pin-tostroke {
+    stroke: black;
 }
 
 ueb-pin.ueb-node-variadic-default {

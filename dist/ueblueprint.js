@@ -185,6 +185,8 @@ class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
+        pcgEditorGraphNodeInput:"/Script/PCGEditor.PCGEditorGraphNodeInput",
+        pcgEditorGraphNodeOutput:"/Script/PCGEditor.PCGEditorGraphNodeOutput",
         pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
@@ -212,6 +214,8 @@ class Configuration {
         [this.paths.rotator]: i$3`157, 177, 251`,
         [this.paths.transform]: i$3`227, 103, 0`,
         [this.paths.vector]: i$3`251, 198, 34`,
+        "Any": i$3`132, 132, 132`,
+        "Any[]": i$3`132, 132, 132`,
         "blue": i$3`0, 0, 255`,
         "bool": i$3`147, 0, 0`,
         "byte": i$3`0, 109, 99`,
@@ -226,10 +230,15 @@ class Configuration {
         "interface": i$3`238, 252, 168`,
         "name": i$3`201, 128, 251`,
         "object": i$3`0, 167, 240`,
+        "Point": i$3`63, 137, 255`,
+        "Point[]": i$3`63, 137, 255`,
+        "Poly Line Data": i$3`63, 137, 255`,
         "real": i$3`54, 208, 0`,
         "red": i$3`255, 0, 0`,
         "string": i$3`251, 0, 209`,
         "struct": i$3`0, 88, 201`,
+        "Surface": i$3`69, 196, 126`,
+        "Surface[]": i$3`69, 196, 126`,
         "text": i$3`226, 121, 167`,
         "wildcard": i$3`128, 120, 120`,
     }
@@ -2394,6 +2403,13 @@ class PinEntity extends IEntity {
     static lookbehind = "Pin"
     static attributes = {
         ...super.attributes,
+        objectEntity: {
+            ignored: true,
+        },
+        pinIndex: {
+            type: Number,
+            ignored: true,
+        },
         PinId: {
             type: GuidEntity,
             default: () => new GuidEntity()
@@ -2466,6 +2482,8 @@ class PinEntity extends IEntity {
 
     constructor(values = {}, suppressWarns = false) {
         super(values, suppressWarns);
+        /** @type {ObjectEntity} */ this.objectEntity;
+        /** @type {Number} */ this.pinIndex;
         /** @type {GuidEntity} */ this.PinId;
         /** @type {String} */ this.PinName;
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName;
@@ -2506,6 +2524,33 @@ class PinEntity extends IEntity {
         }
         if (this.isEnum()) {
             return "enum"
+        }
+        if (this.objectEntity?.isPcg()) {
+            const pcgSuboject = this.objectEntity.getPcgSubobject();
+            const pinObjectReference = this.isInput()
+                ? pcgSuboject.InputPins?.[this.pinIndex]
+                : pcgSuboject.OutputPins?.[this.pinIndex];
+            if (pinObjectReference) {
+                /** @type {ObjectEntity} */
+                const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)];
+                let allowedTypes = pinObject.Properties?.AllowedTypes.toString() ?? "";
+                if (allowedTypes == "") {
+                    allowedTypes = this.PinType.PinCategory ?? "";
+                    if (allowedTypes == "") {
+                        allowedTypes = "Any";
+                    }
+                }
+                if (allowedTypes) {
+                    if (
+                        pinObject.Properties.bAllowMultipleData !== false
+                        && pinObject.Properties.bAllowMultipleConnections !== false
+                        && !this.isOutput()
+                    ) {
+                        allowedTypes += "[]";
+                    }
+                    return allowedTypes
+                }
+            }
         }
         return category
     }
@@ -2909,41 +2954,23 @@ class SVGIcon {
         </svg>
     `
 
-    static pcgIn = x`
-        <svg viewBox="4 4 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" style="enable-background:new 0 0 36 36;">
-            <style type="text/css">
-                .ueb-st0{fill-rule:evenodd;clip-rule:evenodd;fill:#808080;stroke:#464646;stroke-linecap:round;}
-                .ueb-st1{fill-rule:evenodd;clip-rule:evenodd;fill:#C0C0C0;stroke:#464646;stroke-linecap:round;}
-                .ueb-st2{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
-                .ueb-st3{fill:#464646;}
-                .ueb-st4{fill-rule:evenodd;clip-rule:evenodd;fill:#202020;stroke:#A0A0A0;stroke-width:1.5;}
-            </style>
-            <path class="ueb-st0" d="M25.8,32.2V17.5c0-1.7,1.3-3.1,3-3.1s3,1.3,3,3.1v14.7c0,1.8-1.3,3.2-3,3.2C27,35.5,25.8,34,25.8,32.2z" />
-            <path class="ueb-st1" d="M18.8,30.1V11.8c0-2.4,1.8-4.3,4-4.3s4,1.9,4,4.3v18.4c0,2.4-1.8,4.3-4,4.3C20.5,34.5,18.8,32.5,18.8,30.1z" />
-            <g>
-                <path class="ueb-st2" d="M21.3,6.4v21.3c0,3.2-2.4,5.8-5.5,5.8s-5.5-2.5-5.5-5.8V6.3c0-3.2,2.4-5.8,5.5-5.8C18.8,0.5,21.2,3,21.3,6.4z" />
-                <path class="ueb-st3" d="M15.8,33c-2.9,0-5-2.3-5-5.3V6.3c0-3,2.2-5.3,5-5.3s5,2.3,5,5.3v21.3C20.8,30.6,18.6,33,15.8,33 M15.8,34c3.3,0,6-2.8,6-6.3V6.3c0-3.5-2.6-6.3-6-6.3s-6,2.7-6,6.3v21.3C9.8,31.1,12.4,34,15.8,34L15.8,34z" />
-            </g>
-            <circle class="ueb-st4" cx="10.2" cy="9" r="6" />
-            <circle class="ueb-st4" cx="10.2" cy="17" r="6" />
-            <circle class="ueb-st4" cx="10.2" cy="25" r="6" />
+    static pcgPinStack = x`
+        <svg version="1.1" viewBox="6 8 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.5)"  d="M25.8,32.2V17.5c0-1.7,1.3-3.1,3-3.1s3,1.3,3,3.1v14.7c0,1.8-1.3,3.2-3,3.2C27,35.5,25.8,34,25.8,32.2z" />
+            <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.75)" d="M18.8,30.1V11.8c0-2.4,1.8-4.3,4-4.3s4,1.9,4,4.3v18.4c0,2.4-1.8,4.3-4,4.3C20.5,34.5,18.8,32.5,18.8,30.1z" />
+            <path stroke="black" stroke-width="1" fill="currentColor" d="M21.3,6.4v21.3c0,3.2-2.4,5.8-5.5,5.8s-5.5-2.5-5.5-5.8V6.3c0-3.2,2.4-5.8,5.5-5.8C18.8,0.5,21.2,3,21.3,6.4z" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="9" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="17" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="25" r="6" />
         </svg>
     `
 
-    static pcgOut = x`
-        <svg viewBox="4 4 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" style="enable-background:new 0 0 36 36;">
-            <style type="text/css">
-                .ueb-st0{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
-                .ueb-st1{fill:#464646;}
-                .ueb-st2{fill-rule:evenodd;clip-rule:evenodd;fill:#202020;stroke:#A0A0A0;stroke-width:1.5;}
-            </style>
-            <g>
-                <path class="ueb-st0" d="M14.8,34.5c-3.1,0-5.5-2.6-5.5-5.8V7.3c0-3.3,2.4-5.8,5.5-5.8s5.5,2.6,5.5,5.8v21.3C20.2,31.9,17.8,34.5,14.8,34.5z" />
-                <path class="ueb-st1" d="M14.8,2c2.8,0,5,2.3,5,5.3v21.3c0,3-2.2,5.3-5,5.3s-5-2.3-5-5.3V7.3C9.8,4.3,11.9,2,14.8,2 M14.8,1c-3.4,0-6,2.8-6,6.3v21.3c0,3.6,2.6,6.3,6,6.3s6-2.8,6-6.3V7.3C20.8,3.8,18.1,1,14.8,1L14.8,1z" />
-            </g>
-            <circle class="ueb-st2" cx="20.2" cy="10" r="6" />
-            <circle class="ueb-st2" cx="20.2" cy="18" r="6" />
-            <circle class="ueb-st2" cx="20.2" cy="26" r="6" />
+    static pcgPin = x`
+        <svg class="ueb-pin-reflect-output" version="1.1" viewBox="8 8 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="black" stroke-width="1" fill="currentColor" d="M21.2,34.5c-3.1,0-5.5-2.6-5.5-5.8V7.3c0-3.3,2.4-5.8,5.5-5.8s5.5,2.6,5.5,5.8v21.3C26.8,31.9,24.3,34.5,21.2,34.5z" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="10" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="18" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="26" r="6" />
         </svg>
     `
 
@@ -3298,6 +3325,14 @@ class ObjectEntity extends IEntity {
         SettingsInterface: {
             type: ObjectReferenceEntity,
         },
+        InputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
+        },
+        OutputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
+        },
         bExposeToLibrary: {
             type: Boolean,
         },
@@ -3408,82 +3443,84 @@ class ObjectEntity extends IEntity {
         super(values, suppressWarns);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
-        /** @type {ObjectReferenceEntity?} */ this.Archetype;
-        /** @type {ObjectReferenceEntity?} */ this.ExportPath;
-        /** @type {ObjectReferenceEntity?} */ this.ObjectRef;
-        /** @type {ObjectReferenceEntity?} */ this.BlueprintElementType;
-        /** @type {ObjectReferenceEntity?} */ this.BlueprintElementInstance;
+        /** @type {ObjectReferenceEntity} */ this.Archetype;
+        /** @type {ObjectReferenceEntity} */ this.ExportPath;
+        /** @type {ObjectReferenceEntity} */ this.ObjectRef;
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType;
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance;
         /** @type {null[]} */ this.PinTags;
         /** @type {String[]} */ this.PinNames;
-        /** @type {SymbolEntity?} */ this.AxisKey;
-        /** @type {SymbolEntity?} */ this.InputAxisKey;
-        /** @type {Number?} */ this.NumAdditionalInputs;
-        /** @type {Boolean?} */ this.bIsPureFunc;
-        /** @type {Boolean?} */ this.bIsConstFunc;
-        /** @type {Boolean?} */ this.bIsCaseSensitive;
-        /** @type {VariableReferenceEntity?} */ this.VariableReference;
-        /** @type {SymbolEntity?} */ this.SelfContextInfo;
-        /** @type {String?} */ this.DelegatePropertyName;
-        /** @type {ObjectReferenceEntity?} */ this.DelegateOwnerClass;
-        /** @type {FunctionReferenceEntity?} */ this.ComponentPropertyName;
-        /** @type {FunctionReferenceEntity?} */ this.EventReference;
-        /** @type {FunctionReferenceEntity?} */ this.FunctionReference;
+        /** @type {SymbolEntity} */ this.AxisKey;
+        /** @type {SymbolEntity} */ this.InputAxisKey;
+        /** @type {Number} */ this.NumAdditionalInputs;
+        /** @type {Boolean} */ this.bIsPureFunc;
+        /** @type {Boolean} */ this.bIsConstFunc;
+        /** @type {Boolean} */ this.bIsCaseSensitive;
+        /** @type {VariableReferenceEntity} */ this.VariableReference;
+        /** @type {SymbolEntity} */ this.SelfContextInfo;
+        /** @type {String} */ this.DelegatePropertyName;
+        /** @type {ObjectReferenceEntity} */ this.DelegateOwnerClass;
+        /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName;
+        /** @type {FunctionReferenceEntity} */ this.EventReference;
+        /** @type {FunctionReferenceEntity} */ this.FunctionReference;
         /** @type {String} */ this.CustomFunctionName;
-        /** @type {ObjectReferenceEntity?} */ this.TargetType;
-        /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference;
-        /** @type {ObjectReferenceEntity?} */ this.Enum;
-        /** @type {String[]?} */ this.EnumEntries;
-        /** @type {SymbolEntity?} */ this.InputKey;
-        /** @type {ObjectReferenceEntity?} */ this.MaterialFunction;
-        /** @type {Boolean?} */ this.bOverrideFunction;
-        /** @type {Boolean?} */ this.bInternalEvent;
-        /** @type {Boolean?} */ this.bConsumeInput;
-        /** @type {Boolean?} */ this.bExecuteWhenPaused;
-        /** @type {Boolean?} */ this.bOverrideParentBinding;
-        /** @type {Boolean?} */ this.bControl;
-        /** @type {Boolean?} */ this.bAlt;
-        /** @type {Boolean?} */ this.bShift;
-        /** @type {Boolean?} */ this.bCommand;
-        /** @type {LinearColorEntity?} */ this.CommentColor;
-        /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel;
-        /** @type {Boolean?} */ this.bColorCommentBubble;
-        /** @type {String?} */ this.ProxyFactoryFunctionName;
-        /** @type {ObjectReferenceEntity?} */ this.ProxyFactoryClass;
-        /** @type {ObjectReferenceEntity?} */ this.ProxyClass;
-        /** @type {Number?} */ this.R;
-        /** @type {Number?} */ this.G;
-        /** @type {ObjectReferenceEntity?} */ this.StructType;
-        /** @type {ObjectReferenceEntity?} */ this.MaterialExpression;
-        /** @type {ObjectReferenceEntity?} */ this.MaterialExpressionComment;
-        /** @type {SymbolEntity?} */ this.MoveMode;
-        /** @type {String?} */ this.TimelineName;
-        /** @type {GuidEntity?} */ this.TimelineGuid;
-        /** @type {MirroredEntity?} */ this.SizeX;
-        /** @type {MirroredEntity?} */ this.SizeY;
-        /** @type {MirroredEntity?} */ this.Text;
-        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorX;
-        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY;
-        /** @type {MirroredEntity?} */ this.PositionX;
-        /** @type {MirroredEntity?} */ this.PositionY;
-        /** @type {ObjectReferenceEntity?} */ this.PCGNode;
+        /** @type {ObjectReferenceEntity} */ this.TargetType;
+        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference;
+        /** @type {ObjectReferenceEntity} */ this.Enum;
+        /** @type {String[]} */ this.EnumEntries;
+        /** @type {SymbolEntity} */ this.InputKey;
+        /** @type {ObjectReferenceEntity} */ this.MaterialFunction;
+        /** @type {Boolean} */ this.bOverrideFunction;
+        /** @type {Boolean} */ this.bInternalEvent;
+        /** @type {Boolean} */ this.bConsumeInput;
+        /** @type {Boolean} */ this.bExecuteWhenPaused;
+        /** @type {Boolean} */ this.bOverrideParentBinding;
+        /** @type {Boolean} */ this.bControl;
+        /** @type {Boolean} */ this.bAlt;
+        /** @type {Boolean} */ this.bShift;
+        /** @type {Boolean} */ this.bCommand;
+        /** @type {LinearColorEntity} */ this.CommentColor;
+        /** @type {Boolean} */ this.bCommentBubbleVisible_InDetailsPanel;
+        /** @type {Boolean} */ this.bColorCommentBubble;
+        /** @type {String} */ this.ProxyFactoryFunctionName;
+        /** @type {ObjectReferenceEntity} */ this.ProxyFactoryClass;
+        /** @type {ObjectReferenceEntity} */ this.ProxyClass;
+        /** @type {Number} */ this.R;
+        /** @type {Number} */ this.G;
+        /** @type {ObjectReferenceEntity} */ this.StructType;
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpression;
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment;
+        /** @type {SymbolEntity} */ this.MoveMode;
+        /** @type {String} */ this.TimelineName;
+        /** @type {GuidEntity} */ this.TimelineGuid;
+        /** @type {MirroredEntity} */ this.SizeX;
+        /** @type {MirroredEntity} */ this.SizeY;
+        /** @type {MirroredEntity} */ this.Text;
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX;
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY;
+        /** @type {MirroredEntity} */ this.PositionX;
+        /** @type {MirroredEntity} */ this.PositionY;
+        /** @type {ObjectReferenceEntity} */ this.PCGNode;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
-        /** @type {IntegerEntity?} */ this.NodeWidth;
-        /** @type {IntegerEntity?} */ this.NodeHeight;
-        /** @type {ObjectReferenceEntity?} */ this.Graph;
-        /** @type {String?} */ this.SubgraphInstance;
-        /** @type {ObjectReferenceEntity?} */ this.SettingsInterface;
-        /** @type {Boolean?} */ this.bExposeToLibrary;
-        /** @type {Boolean?} */ this.bCanRenameNode;
-        /** @type {Boolean?} */ this.bCommentBubblePinned;
-        /** @type {Boolean?} */ this.bCommentBubbleVisible;
-        /** @type {String?} */ this.Text;
-        /** @type {String?} */ this.NodeComment;
-        /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
-        /** @type {IdentifierEntity?} */ this.EnabledState;
+        /** @type {IntegerEntity} */ this.NodeWidth;
+        /** @type {IntegerEntity} */ this.NodeHeight;
+        /** @type {ObjectReferenceEntity} */ this.Graph;
+        /** @type {String} */ this.SubgraphInstance;
+        /** @type {ObjectReferenceEntity} */ this.SettingsInterface;
+        /** @type {ObjectReferenceEntity[]} */ this.InputPins;
+        /** @type {ObjectReferenceEntity[]} */ this.OutputPins;
+        /** @type {Boolean} */ this.bExposeToLibrary;
+        /** @type {Boolean} */ this.bCanRenameNode;
+        /** @type {Boolean} */ this.bCommentBubblePinned;
+        /** @type {Boolean} */ this.bCommentBubbleVisible;
+        /** @type {String} */ this.Text;
+        /** @type {String} */ this.NodeComment;
+        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay;
+        /** @type {IdentifierEntity} */ this.EnabledState;
         /** @type {GuidEntity} */ this.NodeGuid;
-        /** @type {IntegerEntity?} */ this.ErrorType;
-        /** @type {String?} */ this.ErrorMsg;
+        /** @type {IntegerEntity} */ this.ErrorType;
+        /** @type {String} */ this.ErrorMsg;
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
 
         // Legacy nodes cleanup
@@ -3522,6 +3559,16 @@ class ObjectEntity extends IEntity {
             pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX);
             pcgObject.PositionY && (pcgObject.PositionX.getter = () => this.NodePosY);
         }
+        let inputIndex = 0;
+        let outputIndex = 0;
+        this.CustomProperties?.forEach((pinEntity, i) => {
+            pinEntity.objectEntity = this;
+            pinEntity.pinIndex = pinEntity.isInput()
+                ? inputIndex++
+                : pinEntity.isOutput()
+                    ? outputIndex++
+                    : i;
+        });
     }
 
     getClass() {
@@ -3673,6 +3720,7 @@ class ObjectEntity extends IEntity {
 
     isPcg() {
         return this.getClass() === Configuration.paths.pcgEditorGraphNode
+            || this.getPcgSubobject()
     }
 
     /** @return {ObjectEntity} */
@@ -3797,6 +3845,10 @@ class ObjectEntity extends IEntity {
                 break
             case Configuration.paths.materialExpressionSquareRoot:
                 return "Sqrt"
+            case Configuration.paths.pcgEditorGraphNodeInput:
+                return "Input"
+            case Configuration.paths.pcgEditorGraphNodeOutput:
+                return "Output"
             case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
@@ -3999,6 +4051,9 @@ class ObjectEntity extends IEntity {
                 return Configuration.nodeColors.darkTurquoise
             case Configuration.paths.materialExpressionTextureCoordinate:
                 return Configuration.nodeColors.red
+            case Configuration.paths.pcgEditorGraphNodeInput:
+            case Configuration.paths.pcgEditorGraphNodeOutput:
+                return Configuration.nodeColors.red
         }
         switch (this.getClass()) {
             case Configuration.paths.callFunction:
@@ -4086,7 +4141,7 @@ class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.paths.macro) {
             return SVGIcon.macro
         }
-        if (this.isMaterial()) {
+        if (this.isMaterial() || this.isPcg()) {
             return undefined
         }
         const hidValue = this.getHIDAttribute()?.toString();
@@ -4792,7 +4847,7 @@ class Grammar {
     )
 
     static fullReferenceEntity = P.lazy(() =>
-        P.seq(this.typeReference, P.optWhitespace, this.pathQuotes)
+        P.seq(this.typeReference, P.regex(Grammar.Regex.InlineOptWhitespace), this.pathQuotes)
             .map(([type, _2, path]) =>
                 new ObjectReferenceEntity({ type: type, path: path })
             )
@@ -8618,7 +8673,16 @@ class PinTemplate extends ITemplate {
     renderIcon() {
         if (this.element.nodeElement.entity.isPcg()) {
             switch (this.element.entity.getType()) {
-                case "Concrete Data": return this.element.isInput() ? SVGIcon.pcgIn : SVGIcon.pcgOut
+                case "Any":
+                case "Point":
+                case "Spatial":
+                case "Surface":
+                    return SVGIcon.pcgPin
+                case "Any[]":
+                case "Point[]":
+                case "Spatial[]":
+                case "Surface[]":
+                    return SVGIcon.pcgPinStack
             }
         }
         switch (this.element.entity.PinType.ContainerType?.toString()) {

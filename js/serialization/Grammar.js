@@ -518,7 +518,7 @@ export default class Grammar {
     )
 
     static fullReferenceEntity = P.lazy(() =>
-        P.seq(this.typeReference, P.optWhitespace, this.pathQuotes)
+        P.seq(this.typeReference, P.regex(Grammar.Regex.InlineOptWhitespace), this.pathQuotes)
             .map(([type, _2, path]) =>
                 new ObjectReferenceEntity({ type: type, path: path })
             )

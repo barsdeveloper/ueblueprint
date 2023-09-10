@@ -226,6 +226,14 @@ export default class ObjectEntity extends IEntity {
         SettingsInterface: {
             type: ObjectReferenceEntity,
         },
+        InputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
+        },
+        OutputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
+        },
         bExposeToLibrary: {
             type: Boolean,
         },
@@ -336,82 +344,84 @@ export default class ObjectEntity extends IEntity {
         super(values, suppressWarns)
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {String} */ this.Name
-        /** @type {ObjectReferenceEntity?} */ this.Archetype
-        /** @type {ObjectReferenceEntity?} */ this.ExportPath
-        /** @type {ObjectReferenceEntity?} */ this.ObjectRef
-        /** @type {ObjectReferenceEntity?} */ this.BlueprintElementType
-        /** @type {ObjectReferenceEntity?} */ this.BlueprintElementInstance
+        /** @type {ObjectReferenceEntity} */ this.Archetype
+        /** @type {ObjectReferenceEntity} */ this.ExportPath
+        /** @type {ObjectReferenceEntity} */ this.ObjectRef
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance
         /** @type {null[]} */ this.PinTags
         /** @type {String[]} */ this.PinNames
-        /** @type {SymbolEntity?} */ this.AxisKey
-        /** @type {SymbolEntity?} */ this.InputAxisKey
-        /** @type {Number?} */ this.NumAdditionalInputs
-        /** @type {Boolean?} */ this.bIsPureFunc
-        /** @type {Boolean?} */ this.bIsConstFunc
-        /** @type {Boolean?} */ this.bIsCaseSensitive
-        /** @type {VariableReferenceEntity?} */ this.VariableReference
-        /** @type {SymbolEntity?} */ this.SelfContextInfo
-        /** @type {String?} */ this.DelegatePropertyName
-        /** @type {ObjectReferenceEntity?} */ this.DelegateOwnerClass
-        /** @type {FunctionReferenceEntity?} */ this.ComponentPropertyName
-        /** @type {FunctionReferenceEntity?} */ this.EventReference
-        /** @type {FunctionReferenceEntity?} */ this.FunctionReference
+        /** @type {SymbolEntity} */ this.AxisKey
+        /** @type {SymbolEntity} */ this.InputAxisKey
+        /** @type {Number} */ this.NumAdditionalInputs
+        /** @type {Boolean} */ this.bIsPureFunc
+        /** @type {Boolean} */ this.bIsConstFunc
+        /** @type {Boolean} */ this.bIsCaseSensitive
+        /** @type {VariableReferenceEntity} */ this.VariableReference
+        /** @type {SymbolEntity} */ this.SelfContextInfo
+        /** @type {String} */ this.DelegatePropertyName
+        /** @type {ObjectReferenceEntity} */ this.DelegateOwnerClass
+        /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName
+        /** @type {FunctionReferenceEntity} */ this.EventReference
+        /** @type {FunctionReferenceEntity} */ this.FunctionReference
         /** @type {String} */ this.CustomFunctionName
-        /** @type {ObjectReferenceEntity?} */ this.TargetType
-        /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference
-        /** @type {ObjectReferenceEntity?} */ this.Enum
-        /** @type {String[]?} */ this.EnumEntries
-        /** @type {SymbolEntity?} */ this.InputKey
-        /** @type {ObjectReferenceEntity?} */ this.MaterialFunction
-        /** @type {Boolean?} */ this.bOverrideFunction
-        /** @type {Boolean?} */ this.bInternalEvent
-        /** @type {Boolean?} */ this.bConsumeInput
-        /** @type {Boolean?} */ this.bExecuteWhenPaused
-        /** @type {Boolean?} */ this.bOverrideParentBinding
-        /** @type {Boolean?} */ this.bControl
-        /** @type {Boolean?} */ this.bAlt
-        /** @type {Boolean?} */ this.bShift
-        /** @type {Boolean?} */ this.bCommand
-        /** @type {LinearColorEntity?} */ this.CommentColor
-        /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel
-        /** @type {Boolean?} */ this.bColorCommentBubble
-        /** @type {String?} */ this.ProxyFactoryFunctionName
-        /** @type {ObjectReferenceEntity?} */ this.ProxyFactoryClass
-        /** @type {ObjectReferenceEntity?} */ this.ProxyClass
-        /** @type {Number?} */ this.R
-        /** @type {Number?} */ this.G
-        /** @type {ObjectReferenceEntity?} */ this.StructType
-        /** @type {ObjectReferenceEntity?} */ this.MaterialExpression
-        /** @type {ObjectReferenceEntity?} */ this.MaterialExpressionComment
-        /** @type {SymbolEntity?} */ this.MoveMode
-        /** @type {String?} */ this.TimelineName
-        /** @type {GuidEntity?} */ this.TimelineGuid
-        /** @type {MirroredEntity?} */ this.SizeX
-        /** @type {MirroredEntity?} */ this.SizeY
-        /** @type {MirroredEntity?} */ this.Text
-        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorX
-        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY
-        /** @type {MirroredEntity?} */ this.PositionX
-        /** @type {MirroredEntity?} */ this.PositionY
-        /** @type {ObjectReferenceEntity?} */ this.PCGNode
+        /** @type {ObjectReferenceEntity} */ this.TargetType
+        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference
+        /** @type {ObjectReferenceEntity} */ this.Enum
+        /** @type {String[]} */ this.EnumEntries
+        /** @type {SymbolEntity} */ this.InputKey
+        /** @type {ObjectReferenceEntity} */ this.MaterialFunction
+        /** @type {Boolean} */ this.bOverrideFunction
+        /** @type {Boolean} */ this.bInternalEvent
+        /** @type {Boolean} */ this.bConsumeInput
+        /** @type {Boolean} */ this.bExecuteWhenPaused
+        /** @type {Boolean} */ this.bOverrideParentBinding
+        /** @type {Boolean} */ this.bControl
+        /** @type {Boolean} */ this.bAlt
+        /** @type {Boolean} */ this.bShift
+        /** @type {Boolean} */ this.bCommand
+        /** @type {LinearColorEntity} */ this.CommentColor
+        /** @type {Boolean} */ this.bCommentBubbleVisible_InDetailsPanel
+        /** @type {Boolean} */ this.bColorCommentBubble
+        /** @type {String} */ this.ProxyFactoryFunctionName
+        /** @type {ObjectReferenceEntity} */ this.ProxyFactoryClass
+        /** @type {ObjectReferenceEntity} */ this.ProxyClass
+        /** @type {Number} */ this.R
+        /** @type {Number} */ this.G
+        /** @type {ObjectReferenceEntity} */ this.StructType
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpression
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment
+        /** @type {SymbolEntity} */ this.MoveMode
+        /** @type {String} */ this.TimelineName
+        /** @type {GuidEntity} */ this.TimelineGuid
+        /** @type {MirroredEntity} */ this.SizeX
+        /** @type {MirroredEntity} */ this.SizeY
+        /** @type {MirroredEntity} */ this.Text
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY
+        /** @type {MirroredEntity} */ this.PositionX
+        /** @type {MirroredEntity} */ this.PositionY
+        /** @type {ObjectReferenceEntity} */ this.PCGNode
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
-        /** @type {IntegerEntity?} */ this.NodeWidth
-        /** @type {IntegerEntity?} */ this.NodeHeight
-        /** @type {ObjectReferenceEntity?} */ this.Graph
-        /** @type {String?} */ this.SubgraphInstance
-        /** @type {ObjectReferenceEntity?} */ this.SettingsInterface
-        /** @type {Boolean?} */ this.bExposeToLibrary
-        /** @type {Boolean?} */ this.bCanRenameNode
-        /** @type {Boolean?} */ this.bCommentBubblePinned
-        /** @type {Boolean?} */ this.bCommentBubbleVisible
-        /** @type {String?} */ this.Text
-        /** @type {String?} */ this.NodeComment
-        /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay
-        /** @type {IdentifierEntity?} */ this.EnabledState
+        /** @type {IntegerEntity} */ this.NodeWidth
+        /** @type {IntegerEntity} */ this.NodeHeight
+        /** @type {ObjectReferenceEntity} */ this.Graph
+        /** @type {String} */ this.SubgraphInstance
+        /** @type {ObjectReferenceEntity} */ this.SettingsInterface
+        /** @type {ObjectReferenceEntity[]} */ this.InputPins
+        /** @type {ObjectReferenceEntity[]} */ this.OutputPins
+        /** @type {Boolean} */ this.bExposeToLibrary
+        /** @type {Boolean} */ this.bCanRenameNode
+        /** @type {Boolean} */ this.bCommentBubblePinned
+        /** @type {Boolean} */ this.bCommentBubbleVisible
+        /** @type {String} */ this.Text
+        /** @type {String} */ this.NodeComment
+        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay
+        /** @type {IdentifierEntity} */ this.EnabledState
         /** @type {GuidEntity} */ this.NodeGuid
-        /** @type {IntegerEntity?} */ this.ErrorType
-        /** @type {String?} */ this.ErrorMsg
+        /** @type {IntegerEntity} */ this.ErrorType
+        /** @type {String} */ this.ErrorMsg
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
 
         // Legacy nodes cleanup
@@ -450,6 +460,16 @@ export default class ObjectEntity extends IEntity {
             pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX)
             pcgObject.PositionY && (pcgObject.PositionX.getter = () => this.NodePosY)
         }
+        let inputIndex = 0
+        let outputIndex = 0
+        this.CustomProperties?.forEach((pinEntity, i) => {
+            pinEntity.objectEntity = this
+            pinEntity.pinIndex = pinEntity.isInput()
+                ? inputIndex++
+                : pinEntity.isOutput()
+                    ? outputIndex++
+                    : i
+        })
     }
 
     getClass() {
@@ -601,6 +621,7 @@ export default class ObjectEntity extends IEntity {
 
     isPcg() {
         return this.getClass() === Configuration.paths.pcgEditorGraphNode
+            || this.getPcgSubobject()
     }
 
     /** @return {ObjectEntity} */
@@ -725,6 +746,10 @@ export default class ObjectEntity extends IEntity {
                 break
             case Configuration.paths.materialExpressionSquareRoot:
                 return "Sqrt"
+            case Configuration.paths.pcgEditorGraphNodeInput:
+                return "Input"
+            case Configuration.paths.pcgEditorGraphNodeOutput:
+                return "Output"
             case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
@@ -927,6 +952,9 @@ export default class ObjectEntity extends IEntity {
                 return Configuration.nodeColors.darkTurquoise
             case Configuration.paths.materialExpressionTextureCoordinate:
                 return Configuration.nodeColors.red
+            case Configuration.paths.pcgEditorGraphNodeInput:
+            case Configuration.paths.pcgEditorGraphNodeOutput:
+                return Configuration.nodeColors.red
         }
         switch (this.getClass()) {
             case Configuration.paths.callFunction:
@@ -1014,7 +1042,7 @@ export default class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.paths.macro) {
             return SVGIcon.macro
         }
-        if (this.isMaterial()) {
+        if (this.isMaterial() || this.isPcg()) {
             return undefined
         }
         const hidValue = this.getHIDAttribute()?.toString()

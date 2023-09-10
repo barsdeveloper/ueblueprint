@@ -265,41 +265,23 @@ export default class SVGIcon {
         </svg>
     `
 
-    static pcgIn = html`
-        <svg viewBox="4 4 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" style="enable-background:new 0 0 36 36;">
-            <style type="text/css">
-                .ueb-st0{fill-rule:evenodd;clip-rule:evenodd;fill:#808080;stroke:#464646;stroke-linecap:round;}
-                .ueb-st1{fill-rule:evenodd;clip-rule:evenodd;fill:#C0C0C0;stroke:#464646;stroke-linecap:round;}
-                .ueb-st2{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
-                .ueb-st3{fill:#464646;}
-                .ueb-st4{fill-rule:evenodd;clip-rule:evenodd;fill:#202020;stroke:#A0A0A0;stroke-width:1.5;}
-            </style>
-            <path class="ueb-st0" d="M25.8,32.2V17.5c0-1.7,1.3-3.1,3-3.1s3,1.3,3,3.1v14.7c0,1.8-1.3,3.2-3,3.2C27,35.5,25.8,34,25.8,32.2z" />
-            <path class="ueb-st1" d="M18.8,30.1V11.8c0-2.4,1.8-4.3,4-4.3s4,1.9,4,4.3v18.4c0,2.4-1.8,4.3-4,4.3C20.5,34.5,18.8,32.5,18.8,30.1z" />
-            <g>
-                <path class="ueb-st2" d="M21.3,6.4v21.3c0,3.2-2.4,5.8-5.5,5.8s-5.5-2.5-5.5-5.8V6.3c0-3.2,2.4-5.8,5.5-5.8C18.8,0.5,21.2,3,21.3,6.4z" />
-                <path class="ueb-st3" d="M15.8,33c-2.9,0-5-2.3-5-5.3V6.3c0-3,2.2-5.3,5-5.3s5,2.3,5,5.3v21.3C20.8,30.6,18.6,33,15.8,33 M15.8,34c3.3,0,6-2.8,6-6.3V6.3c0-3.5-2.6-6.3-6-6.3s-6,2.7-6,6.3v21.3C9.8,31.1,12.4,34,15.8,34L15.8,34z" />
-            </g>
-            <circle class="ueb-st4" cx="10.2" cy="9" r="6" />
-            <circle class="ueb-st4" cx="10.2" cy="17" r="6" />
-            <circle class="ueb-st4" cx="10.2" cy="25" r="6" />
+    static pcgPinStack = html`
+        <svg version="1.1" viewBox="6 8 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.5)"  d="M25.8,32.2V17.5c0-1.7,1.3-3.1,3-3.1s3,1.3,3,3.1v14.7c0,1.8-1.3,3.2-3,3.2C27,35.5,25.8,34,25.8,32.2z" />
+            <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.75)" d="M18.8,30.1V11.8c0-2.4,1.8-4.3,4-4.3s4,1.9,4,4.3v18.4c0,2.4-1.8,4.3-4,4.3C20.5,34.5,18.8,32.5,18.8,30.1z" />
+            <path stroke="black" stroke-width="1" fill="currentColor" d="M21.3,6.4v21.3c0,3.2-2.4,5.8-5.5,5.8s-5.5-2.5-5.5-5.8V6.3c0-3.2,2.4-5.8,5.5-5.8C18.8,0.5,21.2,3,21.3,6.4z" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="9" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="17" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="25" r="6" />
         </svg>
     `
 
-    static pcgOut = html`
-        <svg viewBox="4 4 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" style="enable-background:new 0 0 36 36;">
-            <style type="text/css">
-                .ueb-st0{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
-                .ueb-st1{fill:#464646;}
-                .ueb-st2{fill-rule:evenodd;clip-rule:evenodd;fill:#202020;stroke:#A0A0A0;stroke-width:1.5;}
-            </style>
-            <g>
-                <path class="ueb-st0" d="M14.8,34.5c-3.1,0-5.5-2.6-5.5-5.8V7.3c0-3.3,2.4-5.8,5.5-5.8s5.5,2.6,5.5,5.8v21.3C20.2,31.9,17.8,34.5,14.8,34.5z" />
-                <path class="ueb-st1" d="M14.8,2c2.8,0,5,2.3,5,5.3v21.3c0,3-2.2,5.3-5,5.3s-5-2.3-5-5.3V7.3C9.8,4.3,11.9,2,14.8,2 M14.8,1c-3.4,0-6,2.8-6,6.3v21.3c0,3.6,2.6,6.3,6,6.3s6-2.8,6-6.3V7.3C20.8,3.8,18.1,1,14.8,1L14.8,1z" />
-            </g>
-            <circle class="ueb-st2" cx="20.2" cy="10" r="6" />
-            <circle class="ueb-st2" cx="20.2" cy="18" r="6" />
-            <circle class="ueb-st2" cx="20.2" cy="26" r="6" />
+    static pcgPin = html`
+        <svg class="ueb-pin-reflect-output" version="1.1" viewBox="8 8 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="black" stroke-width="1" fill="currentColor" d="M21.2,34.5c-3.1,0-5.5-2.6-5.5-5.8V7.3c0-3.3,2.4-5.8,5.5-5.8s5.5,2.6,5.5,5.8v21.3C26.8,31.9,24.3,34.5,21.2,34.5z" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="10" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="18" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="26" r="6" />
         </svg>
     `
 
