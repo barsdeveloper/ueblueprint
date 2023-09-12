@@ -130,7 +130,7 @@ export default class NodeElement extends ISelectableDraggableElement {
                 switch (memberName) {
                     case "Abs":
                     case "Array_Add":
-                    case "Array_Add":
+                    case "Array_AddUnique":
                     case "Array_Identical":
                     case "BMax":
                     case "BMin":

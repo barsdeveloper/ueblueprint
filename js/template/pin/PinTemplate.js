@@ -92,13 +92,12 @@ export default class PinTemplate extends ITemplate {
         if (this.element.nodeElement.entity.isPcg()) {
             switch (this.element.entity.getType()) {
                 case "Any":
-                case "Point":
-                case "Spatial":
-                case "Surface":
                     return SVGIcon.pcgPin
-                case "Any[]":
                 case "Point[]":
-                case "Spatial[]":
+                    if (this.element.isOutput()) {
+                        return SVGIcon.pcgPin
+                    }
+                case "Any[]":
                 case "Surface[]":
                     return SVGIcon.pcgPinStack
             }

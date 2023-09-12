@@ -196,6 +196,12 @@ export default class ObjectEntity extends IEntity {
         MaterialExpressionEditorY: {
             type: new MirroredEntity(ObjectEntity, "NodePosY"),
         },
+        NodeTitle: {
+            type: String,
+        },
+        NodeTitleColor: {
+            type: LinearColorEntity,
+        },
         PositionX: {
             type: new MirroredEntity(ObjectEntity, "NodePosX"),
         },
@@ -399,6 +405,8 @@ export default class ObjectEntity extends IEntity {
         /** @type {MirroredEntity} */ this.Text
         /** @type {MirroredEntity} */ this.MaterialExpressionEditorX
         /** @type {MirroredEntity} */ this.MaterialExpressionEditorY
+        /** @type {String} */ this.NodeTitle
+        /** @type {LinearColorEntity} */ this.NodeTitleColor
         /** @type {MirroredEntity} */ this.PositionX
         /** @type {MirroredEntity} */ this.PositionY
         /** @type {ObjectReferenceEntity} */ this.PCGNode
@@ -794,7 +802,8 @@ export default class ObjectEntity extends IEntity {
             return result
         }
         if (this.isPcg() && this.getPcgSubobject()) {
-            let result = this.getPcgSubobject().nodeDisplayName()
+            let pcgSubobject = this.getPcgSubobject()
+            let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle : pcgSubobject.nodeDisplayName()
             return result
         }
         const subgraphObject = this.getSubgraphObject()
@@ -929,6 +938,14 @@ export default class ObjectEntity extends IEntity {
                         }
                     }
                     break
+                case Configuration.paths.kismetArrayLibrary:
+                    {
+                        const arrayOperationMath = memberName.match(/Array_(\w+)/)
+                        if (arrayOperationMath) {
+                            return arrayOperationMath[1].toUpperCase()
+                        }
+                    }
+                    break
             }
             return Utility.formatStringName(memberName)
         }
@@ -989,6 +1006,10 @@ export default class ObjectEntity extends IEntity {
         }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
+        }
+        const pcgSubobject = this.getPcgSubobject()
+        if (pcgSubobject && pcgSubobject.NodeTitleColor) {
+            return pcgSubobject.NodeTitleColor.toCSSRGBValues()
         }
         if (this.bIsPureFunc) {
             return Configuration.nodeColors.green

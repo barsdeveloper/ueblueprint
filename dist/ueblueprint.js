@@ -232,7 +232,6 @@ class Configuration {
         "object": i$3`0, 167, 240`,
         "Point": i$3`63, 137, 255`,
         "Point[]": i$3`63, 137, 255`,
-        "Poly Line Data": i$3`63, 137, 255`,
         "real": i$3`54, 208, 0`,
         "red": i$3`255, 0, 0`,
         "string": i$3`251, 0, 209`,
@@ -2021,6 +2020,13 @@ class LinearColorEntity extends IEntity {
         this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a);
     }
 
+    toCSSRGBValues() {
+        const r = Math.round(this.R.value * 255);
+        const g = Math.round(this.G.value * 255);
+        const b = Math.round(this.B.value * 255);
+        return i$3`${r}, ${g}, ${b}`
+    }
+
     toRGBA() {
         return [
             Math.round(this.R.value * 255),
@@ -2533,7 +2539,7 @@ class PinEntity extends IEntity {
             if (pinObjectReference) {
                 /** @type {ObjectEntity} */
                 const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)];
-                let allowedTypes = pinObject.Properties?.AllowedTypes.toString() ?? "";
+                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? "";
                 if (allowedTypes == "") {
                     allowedTypes = this.PinType.PinCategory ?? "";
                     if (allowedTypes == "") {
@@ -2544,7 +2550,6 @@ class PinEntity extends IEntity {
                     if (
                         pinObject.Properties.bAllowMultipleData !== false
                         && pinObject.Properties.bAllowMultipleConnections !== false
-                        && !this.isOutput()
                     ) {
                         allowedTypes += "[]";
                     }
@@ -3295,6 +3300,12 @@ class ObjectEntity extends IEntity {
         MaterialExpressionEditorY: {
             type: new MirroredEntity(ObjectEntity, "NodePosY"),
         },
+        NodeTitle: {
+            type: String,
+        },
+        NodeTitleColor: {
+            type: LinearColorEntity,
+        },
         PositionX: {
             type: new MirroredEntity(ObjectEntity, "NodePosX"),
         },
@@ -3498,6 +3509,8 @@ class ObjectEntity extends IEntity {
         /** @type {MirroredEntity} */ this.Text;
         /** @type {MirroredEntity} */ this.MaterialExpressionEditorX;
         /** @type {MirroredEntity} */ this.MaterialExpressionEditorY;
+        /** @type {String} */ this.NodeTitle;
+        /** @type {LinearColorEntity} */ this.NodeTitleColor;
         /** @type {MirroredEntity} */ this.PositionX;
         /** @type {MirroredEntity} */ this.PositionY;
         /** @type {ObjectReferenceEntity} */ this.PCGNode;
@@ -3893,7 +3906,8 @@ class ObjectEntity extends IEntity {
             return result
         }
         if (this.isPcg() && this.getPcgSubobject()) {
-            let result = this.getPcgSubobject().nodeDisplayName();
+            let pcgSubobject = this.getPcgSubobject();
+            let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle : pcgSubobject.nodeDisplayName();
             return result
         }
         const subgraphObject = this.getSubgraphObject();
@@ -4028,6 +4042,14 @@ class ObjectEntity extends IEntity {
                         }
                     }
                     break
+                case Configuration.paths.kismetArrayLibrary:
+                    {
+                        const arrayOperationMath = memberName.match(/Array_(\w+)/);
+                        if (arrayOperationMath) {
+                            return arrayOperationMath[1].toUpperCase()
+                        }
+                    }
+                    break
             }
             return Utility.formatStringName(memberName)
         }
@@ -4088,6 +4110,10 @@ class ObjectEntity extends IEntity {
         }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
+        }
+        const pcgSubobject = this.getPcgSubobject();
+        if (pcgSubobject && pcgSubobject.NodeTitleColor) {
+            return pcgSubobject.NodeTitleColor.toCSSRGBValues()
         }
         if (this.bIsPureFunc) {
             return Configuration.nodeColors.green
@@ -8674,13 +8700,12 @@ class PinTemplate extends ITemplate {
         if (this.element.nodeElement.entity.isPcg()) {
             switch (this.element.entity.getType()) {
                 case "Any":
-                case "Point":
-                case "Spatial":
-                case "Surface":
                     return SVGIcon.pcgPin
-                case "Any[]":
                 case "Point[]":
-                case "Spatial[]":
+                    if (this.element.isOutput()) {
+                        return SVGIcon.pcgPin
+                    }
+                case "Any[]":
                 case "Surface[]":
                     return SVGIcon.pcgPinStack
             }
@@ -9140,7 +9165,7 @@ class NodeElement extends ISelectableDraggableElement {
                 switch (memberName) {
                     case "Abs":
                     case "Array_Add":
-                    case "Array_Add":
+                    case "Array_AddUnique":
                     case "Array_Identical":
                     case "BMax":
                     case "BMin":

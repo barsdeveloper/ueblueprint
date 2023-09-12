@@ -185,7 +185,7 @@ export default class PinEntity extends IEntity {
             if (pinObjectReference) {
                 /** @type {ObjectEntity} */
                 const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)]
-                let allowedTypes = pinObject.Properties?.AllowedTypes.toString() ?? ""
+                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? ""
                 if (allowedTypes == "") {
                     allowedTypes = this.PinType.PinCategory ?? ""
                     if (allowedTypes == "") {
@@ -196,7 +196,6 @@ export default class PinEntity extends IEntity {
                     if (
                         pinObject.Properties.bAllowMultipleData !== false
                         && pinObject.Properties.bAllowMultipleConnections !== false
-                        && !this.isOutput()
                     ) {
                         allowedTypes += "[]"
                     }
