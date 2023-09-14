@@ -4,6 +4,7 @@ export default class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -14,6 +15,11 @@ export default class InvariantTextEntity extends IEntity {
     }
 
     constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            }
+        }
         super(values)
         /** @type {String} */ this.value
     }

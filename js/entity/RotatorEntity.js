@@ -3,6 +3,7 @@ import IEntity from "./IEntity.js"
 export default class RotatorEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         R: {
             default: 0,
             expected: true,

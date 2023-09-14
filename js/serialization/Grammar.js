@@ -429,13 +429,16 @@ export default class Grammar {
     static formatTextEntity = P.lazy(() =>
         P.seq(
             this.regexMap(
+                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
                 new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
                 result => result[1]
             ),
             this.grammarFor(FormatTextEntity.attributes.value)
         )
             .map(([lookbehind, values]) => {
-                const result = new FormatTextEntity(values)
+                const result = new FormatTextEntity({
+                    value: values,
+                })
                 result.lookbehind = lookbehind
                 return result
             })
@@ -515,7 +518,7 @@ export default class Grammar {
     )
 
     static fullReferenceEntity = P.lazy(() =>
-        P.seq(this.typeReference, P.optWhitespace, this.pathQuotes)
+        P.seq(this.typeReference, P.regex(Grammar.Regex.InlineOptWhitespace), this.pathQuotes)
             .map(([type, _2, path]) =>
                 new ObjectReferenceEntity({ type: type, path: path })
             )
@@ -611,8 +614,9 @@ export default class Grammar {
 
     static unknownKeysEntity = P.lazy(() =>
         P.seq(
+            // Lookbehind
             this.regexMap(
-                new RegExp(`(${this.Regex.Symbol.source}\\s*)?\\(\\s*`),
+                new RegExp(`(${this.Regex.Path.source}\\s*)?\\(\\s*`),
                 result => result[1] ?? ""
             ),
             this.attributeName

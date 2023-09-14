@@ -5,6 +5,7 @@ export default class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
     static attributes = {
+        ...super.attributes,
         namespace: {
             default: "",
         },

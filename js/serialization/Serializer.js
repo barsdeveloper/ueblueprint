@@ -5,8 +5,12 @@ import Utility from "../Utility.js"
 
 /**
  * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
  * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
+ */
+
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
  */
 
 /** @template {AnyValue} T */
@@ -21,7 +25,7 @@ export default class Serializer {
     /** @type {(entity: AnyValue, serialized: String) => String} */
     static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
-    /** @param {AnyValueConstructor} entityType */
+    /** @param {AnyValueConstructor<T>} entityType */
     constructor(
         entityType,
         /** @type {(entity: T, serialized: String) => String} */
@@ -148,6 +152,7 @@ export default class Serializer {
     }
 
     showProperty(entity, key) {
+        // @ts-expect-error
         const attribute = /** @type {EntityConstructor} */(this.entityType).attributes[key]
         if (attribute?.constructor === Object && attribute.ignored) {
             return false

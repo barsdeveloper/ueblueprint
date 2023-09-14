@@ -54,6 +54,14 @@ export default class PinEntity extends IEntity {
     }
     static lookbehind = "Pin"
     static attributes = {
+        ...super.attributes,
+        objectEntity: {
+            ignored: true,
+        },
+        pinIndex: {
+            type: Number,
+            ignored: true,
+        },
         PinId: {
             type: GuidEntity,
             default: () => new GuidEntity()
@@ -126,6 +134,8 @@ export default class PinEntity extends IEntity {
 
     constructor(values = {}, suppressWarns = false) {
         super(values, suppressWarns)
+        /** @type {ObjectEntity} */ this.objectEntity
+        /** @type {Number} */ this.pinIndex
         /** @type {GuidEntity} */ this.PinId
         /** @type {String} */ this.PinName
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName
@@ -166,6 +176,32 @@ export default class PinEntity extends IEntity {
         }
         if (this.isEnum()) {
             return "enum"
+        }
+        if (this.objectEntity?.isPcg()) {
+            const pcgSuboject = this.objectEntity.getPcgSubobject()
+            const pinObjectReference = this.isInput()
+                ? pcgSuboject.InputPins?.[this.pinIndex]
+                : pcgSuboject.OutputPins?.[this.pinIndex]
+            if (pinObjectReference) {
+                /** @type {ObjectEntity} */
+                const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)]
+                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? ""
+                if (allowedTypes == "") {
+                    allowedTypes = this.PinType.PinCategory ?? ""
+                    if (allowedTypes == "") {
+                        allowedTypes = "Any"
+                    }
+                }
+                if (allowedTypes) {
+                    if (
+                        pinObject.Properties.bAllowMultipleData !== false
+                        && pinObject.Properties.bAllowMultipleConnections !== false
+                    ) {
+                        allowedTypes += "[]"
+                    }
+                    return allowedTypes
+                }
+            }
         }
         return category
     }

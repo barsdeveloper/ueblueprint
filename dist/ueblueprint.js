@@ -31,6 +31,7 @@ var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html
 
 class Configuration {
     static nodeColors = {
+        black: i$3`20, 20, 20`,
         blue: i$3`84, 122, 156`,
         darkBlue: i$3`32, 80, 128`,
         darkTurquoise: i$3`19, 100, 137`,
@@ -183,6 +184,10 @@ class Configuration {
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
+        pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
+        pcgEditorGraphNodeInput:"/Script/PCGEditor.PCGEditorGraphNodeInput",
+        pcgEditorGraphNodeOutput:"/Script/PCGEditor.PCGEditorGraphNodeOutput",
+        pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
@@ -203,11 +208,14 @@ class Configuration {
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
+
     }
     static pinColor = {
         [this.paths.rotator]: i$3`157, 177, 251`,
         [this.paths.transform]: i$3`227, 103, 0`,
         [this.paths.vector]: i$3`251, 198, 34`,
+        "Any": i$3`132, 132, 132`,
+        "Any[]": i$3`132, 132, 132`,
         "blue": i$3`0, 0, 255`,
         "bool": i$3`147, 0, 0`,
         "byte": i$3`0, 109, 99`,
@@ -222,11 +230,19 @@ class Configuration {
         "interface": i$3`238, 252, 168`,
         "name": i$3`201, 128, 251`,
         "object": i$3`0, 167, 240`,
+        "Param": i$3`255, 166, 39`,
+        "Param[]": i$3`255, 166, 39`,
+        "Point": i$3`63, 137, 255`,
+        "Point[]": i$3`63, 137, 255`,
         "real": i$3`54, 208, 0`,
         "red": i$3`255, 0, 0`,
         "string": i$3`251, 0, 209`,
         "struct": i$3`0, 88, 201`,
+        "Surface": i$3`69, 196, 126`,
+        "Surface[]": i$3`69, 196, 126`,
         "text": i$3`226, 121, 167`,
+        "Volume": i$3`230, 69, 188`,
+        "Volume[]": i$3`230, 69, 188`,
         "wildcard": i$3`128, 120, 120`,
     }
     static pinColorMaterial = i$3`120, 120, 120`
@@ -264,6 +280,7 @@ class Configuration {
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
         this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
+    static subObjectAttributeNameFromName = name => this.subObjectAttributeNamePrefix + "_" + name
     static switchTargetPattern = /\/Script\/[\w\.\/\:]+K2Node_Switch([A-Z]\w+)+/
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",
@@ -583,8 +600,8 @@ class SerializerFactory {
 }
 
 /**
- * @template {any[]} U
  * @template {[...U]} T
+ * @template {any[]} U
  */
 class Union {
 
@@ -835,13 +852,14 @@ class Utility {
         if (value === null) {
             return null
         }
-        if (value?.constructor === Object && value?.type instanceof Function) {
-            return value.type
+        if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
+            return /** @type {AttributeInformation} */(value).type
         }
         return /** @type {AnyValueConstructor<any>} */(value?.constructor)
     }
 
     /**
+     * @template {AnyValue} T
      * @param {AnyValue} value
      * @param {AnyValueConstructor<T>} type
      */
@@ -853,7 +871,7 @@ class Utility {
     }
 
     /** @param {AnyValue} value */
-    static sanitize(value, targetType = /** @type {AnyValueConstructor} */(value?.constructor)) {
+    static sanitize(value, targetType = /** @type {AnyValueConstructor<typeof value>} */(value?.constructor)) {
         if (targetType instanceof Array) {
             targetType = targetType[0];
         }
@@ -875,8 +893,8 @@ class Utility {
         }
         if (targetType && !Utility.isValueOfType(value, targetType, true)) {
             value = targetType === BigInt
-                ? BigInt(value)
-                : new targetType(value);
+                ? BigInt(/** @type {Number} */(value))
+                : new /** @type {EntityConstructor} */(targetType)(value);
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String || value instanceof BigInt) {
             value = value.valueOf(); // Get the relative primitive value
@@ -1131,9 +1149,14 @@ class Utility {
 
 class IEntity {
 
+    /** @type {String | Union<String[]>} */
     static lookbehind = ""
     /** @type {AttributeDeclarations} */
-    static attributes = {}
+    static attributes = {
+        lookbehind: {
+            ignored: true,
+        }
+    }
     static defaultAttribute = {
         nullable: false,
         ignored: false,
@@ -1144,6 +1167,7 @@ class IEntity {
     }
 
     constructor(values = {}, suppressWarns = false) {
+        /** @type {String} */ this.lookbehind;
         const Self = /** @type {EntityConstructor} */(this.constructor);
         let attributes = Self.attributes;
         if (values.attributes) {
@@ -1164,12 +1188,6 @@ class IEntity {
             IEntity.defineAttributes(this, attributes);
         }
         /** @type {AttributeDeclarations?} */ this.attributes;
-        if (values.constructor !== Object && Object.keys(attributes).length === 1) {
-            // If values is not an object but the only value this entity can have
-            values = {
-                [Object.keys(attributes)[0]]: values
-            };
-        }
         const valuesNames = Object.keys(values);
         const attributesNames = Object.keys(attributes);
         const allAttributesNames = Utility.mergeArrays(valuesNames, attributesNames);
@@ -1294,7 +1312,7 @@ class IEntity {
                     ? [Utility.getType(attribute.default[0])]
                     : Utility.getType(attribute.default);
             }
-            if (attribute.default === undefined && attribute.type === undefined) {
+            if (!attribute.ignored && attribute.default === undefined && attribute.type === undefined) {
                 throw new Error(
                     `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
                     + attributeName
@@ -1330,6 +1348,12 @@ class IEntity {
             configurable: false,
         });
         object.attributes = attributes;
+    }
+
+    getLookbehind() {
+        let lookbehind = this.lookbehind ?? /** @type {EntityConstructor} */(this.constructor).lookbehind;
+        lookbehind = lookbehind instanceof Union ? lookbehind.values[0] : lookbehind;
+        return lookbehind
     }
 
     unexpectedKeys() {
@@ -1369,6 +1393,12 @@ class IntegerEntity extends IEntity {
     }
 
     constructor(value = 0) {
+        if (value.constructor !== Object) {
+            // @ts-expect-error
+            value = {
+                value: value,
+            };
+        }
         super(value);
         /** @type {Number} */ this.value;
     }
@@ -1404,6 +1434,7 @@ class ByteEntity extends IntegerEntity {
 class ColorChannelEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         value: {
             default: 0,
         },
@@ -1414,6 +1445,12 @@ class ColorChannelEntity extends IEntity {
     }
 
     constructor(values = 0) {
+        if (values.constructor !== Object) {
+            // @ts-expect-error
+            values = {
+                value: values,
+            };
+        }
         super(values);
         /** @type {Number} */ this.value;
     }
@@ -1430,6 +1467,7 @@ class ColorChannelEntity extends IEntity {
 class SymbolEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -1441,6 +1479,11 @@ class SymbolEntity extends IEntity {
 
     /** @param {String | Object} values */
     constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            };
+        }
         super(values);
         /** @type {String} */ this.value;
     }
@@ -1466,6 +1509,7 @@ class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -1476,6 +1520,11 @@ class InvariantTextEntity extends IEntity {
     }
 
     constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            };
+        }
         super(values);
         /** @type {String} */ this.value;
     }
@@ -1485,6 +1534,7 @@ class LocalizedTextEntity extends IEntity {
 
     static lookbehind = "NSLOCTEXT"
     static attributes = {
+        ...super.attributes,
         namespace: {
             default: "",
         },
@@ -1516,6 +1566,7 @@ class FormatTextEntity extends IEntity {
 
     static lookbehind = new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")
     static attributes = {
+        ...super.attributes,
         value: {
             type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
             default: [],
@@ -1558,6 +1609,7 @@ class FormatTextEntity extends IEntity {
 class GuidEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -1583,6 +1635,11 @@ class GuidEntity extends IEntity {
         if (!values) {
             values = GuidEntity.generateGuid().value;
         }
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            };
+        }
         super(values);
         /** @type {String} */ this.value;
     }
@@ -1599,6 +1656,7 @@ class GuidEntity extends IEntity {
 class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         type: {
             default: "",
         },
@@ -1641,7 +1699,7 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     getName() {
-        return Utility.getNameFromPath(this.path)
+        return Utility.getNameFromPath(this.path.replace(/_C$/, ""))
     }
 
     toString() {
@@ -1652,6 +1710,7 @@ class ObjectReferenceEntity extends IEntity {
 class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         MemberParent: {
             type: ObjectReferenceEntity,
         },
@@ -1678,6 +1737,7 @@ class FunctionReferenceEntity extends IEntity {
 class IdentifierEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -1693,6 +1753,11 @@ class IdentifierEntity extends IEntity {
     }
 
     constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            };
+        }
         super(values);
         /** @type {String} */ this.value;
     }
@@ -1722,6 +1787,12 @@ class Integer64Entity extends IEntity {
 
     /** @param {BigInt | Number} value */
     constructor(value = 0) {
+        if (value.constructor !== Object) {
+            value = {
+                // @ts-expect-error
+                value: value,
+            };
+        }
         super(value);
         /** @type {BigInt | Number} */ this.value;
     }
@@ -1738,6 +1809,7 @@ class Integer64Entity extends IEntity {
 class KeyBindingEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         ActionName: {
             default: "",
         },
@@ -1776,6 +1848,7 @@ class KeyBindingEntity extends IEntity {
 class LinearColorEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         R: {
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),
@@ -1951,6 +2024,24 @@ class LinearColorEntity extends IEntity {
         this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a);
     }
 
+    toDimmedColor(minV = 0) {
+        const result = new LinearColorEntity();
+        result.setFromRGBANumber(this.toNumber());
+        result.setFromHSVA(
+            result.H.value,
+            result.S.value * 0.6,
+            Math.pow(result.V.value + minV, 0.55) * 0.7
+        );
+        return result
+    }
+
+    toCSSRGBValues() {
+        const r = Math.round(this.R.value * 255);
+        const g = Math.round(this.G.value * 255);
+        const b = Math.round(this.B.value * 255);
+        return i$3`${r}, ${g}, ${b}`
+    }
+
     toRGBA() {
         return [
             Math.round(this.R.value * 255),
@@ -2021,6 +2112,7 @@ class LinearColorEntity extends IEntity {
 class MacroGraphReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         MacroGraph: {
             type: ObjectReferenceEntity,
             default: () => new ObjectReferenceEntity(),
@@ -2063,6 +2155,7 @@ class NaturalNumberEntity extends IntegerEntity {
 class PathSymbolEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -2073,6 +2166,11 @@ class PathSymbolEntity extends IEntity {
     }
 
     constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            };
+        }
         super(values);
         /** @type {String} */ this.value;
     }
@@ -2089,6 +2187,7 @@ class PathSymbolEntity extends IEntity {
 class PinReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         objectName: {
             type: PathSymbolEntity,
         },
@@ -2111,6 +2210,7 @@ class PinReferenceEntity extends IEntity {
 class PinTypeEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         PinCategory: {
             default: "",
         },
@@ -2188,6 +2288,7 @@ class PinTypeEntity extends IEntity {
 class RotatorEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         R: {
             default: 0,
             expected: true,
@@ -2232,6 +2333,7 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
 class Vector2DEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         X: {
             default: 0,
             expected: true,
@@ -2259,6 +2361,7 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
 class VectorEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         X: {
             default: 0,
             expected: true,
@@ -2320,6 +2423,14 @@ class PinEntity extends IEntity {
     }
     static lookbehind = "Pin"
     static attributes = {
+        ...super.attributes,
+        objectEntity: {
+            ignored: true,
+        },
+        pinIndex: {
+            type: Number,
+            ignored: true,
+        },
         PinId: {
             type: GuidEntity,
             default: () => new GuidEntity()
@@ -2392,6 +2503,8 @@ class PinEntity extends IEntity {
 
     constructor(values = {}, suppressWarns = false) {
         super(values, suppressWarns);
+        /** @type {ObjectEntity} */ this.objectEntity;
+        /** @type {Number} */ this.pinIndex;
         /** @type {GuidEntity} */ this.PinId;
         /** @type {String} */ this.PinName;
         /** @type {LocalizedTextEntity | String} */ this.PinFriendlyName;
@@ -2432,6 +2545,32 @@ class PinEntity extends IEntity {
         }
         if (this.isEnum()) {
             return "enum"
+        }
+        if (this.objectEntity?.isPcg()) {
+            const pcgSuboject = this.objectEntity.getPcgSubobject();
+            const pinObjectReference = this.isInput()
+                ? pcgSuboject.InputPins?.[this.pinIndex]
+                : pcgSuboject.OutputPins?.[this.pinIndex];
+            if (pinObjectReference) {
+                /** @type {ObjectEntity} */
+                const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)];
+                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? "";
+                if (allowedTypes == "") {
+                    allowedTypes = this.PinType.PinCategory ?? "";
+                    if (allowedTypes == "") {
+                        allowedTypes = "Any";
+                    }
+                }
+                if (allowedTypes) {
+                    if (
+                        pinObject.Properties.bAllowMultipleData !== false
+                        && pinObject.Properties.bAllowMultipleConnections !== false
+                    ) {
+                        allowedTypes += "[]";
+                    }
+                    return allowedTypes
+                }
+            }
         }
         return category
     }
@@ -2651,16 +2790,16 @@ class SVGIcon {
 
     static doOnce = x`
         <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white"/>
-            <path d="M6 6H5L4.98752 2.42387L4 2.8642V1.893L5.89305 1H6V6Z" fill="white"/>
-            <rect x="4" y="5" width="3" height="1" fill="white"/>
+            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white" />
+            <path d="M6 6H5L4.98752 2.42387L4 2.8642V1.893L5.89305 1H6V6Z" fill="white" />
+            <rect x="4" y="5" width="3" height="1" fill="white" />
         </svg>
     `
 
     static enum = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill="white" d="M9 5V0H2V16H14V5H9ZM3.2 4.4L4.5 4H4.6V7H4V4.7L3.2 4.9V4.4ZM4.7 14.8C4.6 14.9 4.3 15 4 15C3.7 15 3.5 14.9 3.3 14.8C3.1 14.6 3 14.4 3 14.2H3.6C3.6 14.3 3.6 14.4 3.7 14.5C3.8 14.6 3.9 14.6 4 14.6C4.1 14.6 4.2 14.6 4.3 14.5C4.4 14.4 4.4 14.3 4.4 14.2C4.4 13.9 4.2 13.8 3.9 13.8H3.7V13.3H4C4.1 13.3 4.3 13.3 4.3 13.2C4.4 13.1 4.4 13 4.4 12.9C4.4 12.8 4.4 12.7 4.3 12.6C4.2 12.5 4.1 12.5 4 12.5C3.9 12.5 3.8 12.5 3.7 12.6C3.6 12.7 3.6 12.7 3.6 12.8H3C3 12.6 3 12.5 3.1 12.4C3.2 12.3 3.3 12.2 3.4 12.1C3.7 12 3.8 12 4 12C4.3 12 4.6 12.1 4.7 12.2C4.9 12.4 5 12.6 5 12.8C5 12.9 5 13.1 4.9 13.2C4.8 13.3 4.7 13.4 4.6 13.5C4.8 13.6 4.9 13.6 5 13.8C5 13.8 5 14 5 14.1C5 14.4 4.9 14.6 4.7 14.8ZM5.1 11H3.1V10.6L4.1 9.6C4.2 9.5 4.3 9.3 4.4 9.2C4.4 9.1 4.4 9 4.4 8.9C4.4 8.8 4.4 8.7 4.3 8.6C4.2 8.5 4.1 8.5 4 8.5C3.9 8.5 3.8 8.5 3.7 8.6C3.6 8.7 3.6 8.8 3.6 9H3C3 8.8 3 8.7 3.1 8.5C3.2 8.4 3.3 8.2 3.5 8.1C3.7 8 3.8 8 4 8C4.3 8 4.5 8.1 4.7 8.2C4.9 8.4 5 8.6 5 8.8C5 9 5 9.1 4.9 9.3C4.8 9.4 4.7 9.6 4.5 9.8L3.8 10.5H5.1V11ZM12 15H6V14H12V15ZM12 11H6V10H12V11ZM12 7H6V6H12V7Z" />
-            <path d="M9 0H8L14 6V5L9 0Z" fill="white"/>
+            <path d="M9 0H8L14 6V5L9 0Z" fill="white" />
         </svg>
     `
 
@@ -2688,9 +2827,9 @@ class SVGIcon {
 
     static flipflop = x`
         <svg  viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 2L10 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            <path d="M6 2L2 14" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            <path d="M6 2L10 14" stroke="white" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round"/>
+            <path d="M14 2L10 14" stroke="white" stroke-width="2" stroke-linecap="round" />
+            <path d="M6 2L2 14" stroke="white" stroke-width="2" stroke-linecap="round" />
+            <path d="M6 2L10 14" stroke="white" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" />
         </svg>
     `
 
@@ -2763,12 +2902,12 @@ class SVGIcon {
 
     static map = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 0H0V4H4V0Z" fill="currentColor"/>
-            <path d="M4 6H0V10H4V6Z" fill="currentColor"/>
-            <path d="M4 12H0V16H4V12Z" fill="currentColor"/>
-            <path d="M16 0H6V4H16V0Z" fill="white"/>
-            <path d="M16 6H6V10H16V6Z" fill="white"/>
-            <path d="M16 12H6V16H16V12Z" fill="white"/>
+            <path d="M4 0H0V4H4V0Z" fill="currentColor" />
+            <path d="M4 6H0V10H4V6Z" fill="currentColor" />
+            <path d="M4 12H0V16H4V12Z" fill="currentColor" />
+            <path d="M16 0H6V4H16V0Z" fill="white" />
+            <path d="M16 6H6V10H16V6Z" fill="white" />
+            <path d="M16 12H6V16H16V12Z" fill="white" />
         </svg>
     `
 
@@ -2803,12 +2942,12 @@ class SVGIcon {
 
     static makeSet = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white"/>
-            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white"/>
-            <path d="M6 8.00205V7.43062C6.40147 7.37088 6.79699 7.28299 7.18286 7.16777C7.30414 7.11578 7.40659 7.03462 7.47858 6.93348C7.57165 6.81021 7.63108 6.66933 7.65215 6.52205C7.6832 6.31181 7.69609 6.09976 7.69072 5.88777C7.67539 5.53753 7.70341 5.18685 7.77429 4.84205C7.81918 4.66059 7.92446 4.49533 8.07643 4.36777C8.26269 4.22923 8.48285 4.13138 8.71929 4.08205C9.01252 4.02392 9.31249 3.99706 9.61287 4.00205H9.85715V4.57348C9.66398 4.58307 9.47806 4.64211 9.32179 4.7435C9.16552 4.84489 9.04559 4.9843 8.97644 5.14491C8.92057 5.24999 8.89621 5.36613 8.90572 5.48205C8.90572 5.64205 8.90572 5.95062 8.86715 6.40205C8.85805 6.6136 8.81697 6.8231 8.74501 7.02491C8.69216 7.17345 8.60697 7.3113 8.49429 7.43062C8.33135 7.64 8.1415 7.83177 7.92858 8.00205" fill="white"/>
-            <path d="M7.92858 8.00195C8.14537 8.18165 8.33547 8.3852 8.49429 8.60767C8.60419 8.72229 8.6892 8.85404 8.74501 8.99624C8.81697 9.19805 8.85805 9.40755 8.86715 9.6191C8.89286 10.0724 8.90572 10.381 8.90572 10.5448C8.89679 10.6607 8.92112 10.7767 8.97644 10.882C9.05077 11.0375 9.17272 11.1714 9.32842 11.2683C9.48411 11.3653 9.66731 11.4215 9.85715 11.4305V12.002H9.61287C9.31086 12.0112 9.0087 11.9881 8.71286 11.9334C8.47744 11.8816 8.25788 11.784 8.07001 11.6477C7.91926 11.5193 7.81421 11.3543 7.76786 11.1734C7.69764 10.8285 7.66962 10.4779 7.68429 10.1277C7.69081 9.91186 7.67791 9.69593 7.64572 9.48195C7.62465 9.33468 7.56522 9.1938 7.47215 9.07052C7.40016 8.96939 7.29771 8.88822 7.17643 8.83624C6.79266 8.72131 6.3993 8.63342 6 8.57338V8.00195" fill="white"/>
-            <path d="M13.0712 8.00197C12.8582 7.83169 12.6684 7.63992 12.5054 7.43054C12.3942 7.31461 12.3091 7.18076 12.2547 7.03626C12.1828 6.83445 12.1417 6.62495 12.1326 6.4134C12.1326 5.96197 12.094 5.6534 12.094 5.4934C12.1058 5.37369 12.0814 5.25334 12.0233 5.14483C11.9541 4.98422 11.8342 4.84481 11.6779 4.74342C11.5217 4.64203 11.3357 4.58299 11.1426 4.5734V4.00197H11.3869C11.6889 3.99277 11.991 4.01579 12.2869 4.07054C12.5233 4.11987 12.7435 4.21772 12.9297 4.35626C13.0817 4.48382 13.187 4.64908 13.2319 4.83054C13.3027 5.17534 13.3308 5.52602 13.3154 5.87626C13.3094 6.09206 13.3223 6.30795 13.354 6.52197C13.3751 6.66925 13.4345 6.81013 13.5276 6.9334C13.5996 7.03454 13.702 7.1157 13.8233 7.16769C14.2071 7.28262 14.6004 7.37051 14.9997 7.43054V8.00197" fill="white"/>
-            <path d="M14.9997 8.00195V8.57338C14.5983 8.63312 14.2027 8.72102 13.8169 8.83624C13.6956 8.88822 13.5931 8.96939 13.5212 9.07052C13.4281 9.1938 13.3686 9.33468 13.3476 9.48195C13.3154 9.69593 13.3025 9.91186 13.309 10.1277C13.3237 10.4779 13.2957 10.8285 13.2254 11.1734C13.1791 11.3543 13.074 11.5193 12.9233 11.6477C12.7354 11.784 12.5159 11.8816 12.2804 11.9334C11.9846 11.9881 11.6824 12.0112 11.3804 12.002H11.1426V11.4305C11.3353 11.4196 11.5205 11.36 11.6765 11.2588C11.8325 11.1576 11.9528 11.0189 12.0233 10.8591C12.0786 10.7539 12.1029 10.6378 12.094 10.522C12.094 10.3543 12.1069 10.0458 12.1326 9.59624C12.1417 9.38469 12.1828 9.17519 12.2547 8.97338C12.3105 8.83119 12.3955 8.69943 12.5054 8.58481C12.666 8.37037 12.856 8.17457 13.0712 8.00195" fill="white"/>
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
+            <path d="M6 8.00205V7.43062C6.40147 7.37088 6.79699 7.28299 7.18286 7.16777C7.30414 7.11578 7.40659 7.03462 7.47858 6.93348C7.57165 6.81021 7.63108 6.66933 7.65215 6.52205C7.6832 6.31181 7.69609 6.09976 7.69072 5.88777C7.67539 5.53753 7.70341 5.18685 7.77429 4.84205C7.81918 4.66059 7.92446 4.49533 8.07643 4.36777C8.26269 4.22923 8.48285 4.13138 8.71929 4.08205C9.01252 4.02392 9.31249 3.99706 9.61287 4.00205H9.85715V4.57348C9.66398 4.58307 9.47806 4.64211 9.32179 4.7435C9.16552 4.84489 9.04559 4.9843 8.97644 5.14491C8.92057 5.24999 8.89621 5.36613 8.90572 5.48205C8.90572 5.64205 8.90572 5.95062 8.86715 6.40205C8.85805 6.6136 8.81697 6.8231 8.74501 7.02491C8.69216 7.17345 8.60697 7.3113 8.49429 7.43062C8.33135 7.64 8.1415 7.83177 7.92858 8.00205" fill="white" />
+            <path d="M7.92858 8.00195C8.14537 8.18165 8.33547 8.3852 8.49429 8.60767C8.60419 8.72229 8.6892 8.85404 8.74501 8.99624C8.81697 9.19805 8.85805 9.40755 8.86715 9.6191C8.89286 10.0724 8.90572 10.381 8.90572 10.5448C8.89679 10.6607 8.92112 10.7767 8.97644 10.882C9.05077 11.0375 9.17272 11.1714 9.32842 11.2683C9.48411 11.3653 9.66731 11.4215 9.85715 11.4305V12.002H9.61287C9.31086 12.0112 9.0087 11.9881 8.71286 11.9334C8.47744 11.8816 8.25788 11.784 8.07001 11.6477C7.91926 11.5193 7.81421 11.3543 7.76786 11.1734C7.69764 10.8285 7.66962 10.4779 7.68429 10.1277C7.69081 9.91186 7.67791 9.69593 7.64572 9.48195C7.62465 9.33468 7.56522 9.1938 7.47215 9.07052C7.40016 8.96939 7.29771 8.88822 7.17643 8.83624C6.79266 8.72131 6.3993 8.63342 6 8.57338V8.00195" fill="white" />
+            <path d="M13.0712 8.00197C12.8582 7.83169 12.6684 7.63992 12.5054 7.43054C12.3942 7.31461 12.3091 7.18076 12.2547 7.03626C12.1828 6.83445 12.1417 6.62495 12.1326 6.4134C12.1326 5.96197 12.094 5.6534 12.094 5.4934C12.1058 5.37369 12.0814 5.25334 12.0233 5.14483C11.9541 4.98422 11.8342 4.84481 11.6779 4.74342C11.5217 4.64203 11.3357 4.58299 11.1426 4.5734V4.00197H11.3869C11.6889 3.99277 11.991 4.01579 12.2869 4.07054C12.5233 4.11987 12.7435 4.21772 12.9297 4.35626C13.0817 4.48382 13.187 4.64908 13.2319 4.83054C13.3027 5.17534 13.3308 5.52602 13.3154 5.87626C13.3094 6.09206 13.3223 6.30795 13.354 6.52197C13.3751 6.66925 13.4345 6.81013 13.5276 6.9334C13.5996 7.03454 13.702 7.1157 13.8233 7.16769C14.2071 7.28262 14.6004 7.37051 14.9997 7.43054V8.00197" fill="white" />
+            <path d="M14.9997 8.00195V8.57338C14.5983 8.63312 14.2027 8.72102 13.8169 8.83624C13.6956 8.88822 13.5931 8.96939 13.5212 9.07052C13.4281 9.1938 13.3686 9.33468 13.3476 9.48195C13.3154 9.69593 13.3025 9.91186 13.309 10.1277C13.3237 10.4779 13.2957 10.8285 13.2254 11.1734C13.1791 11.3543 13.074 11.5193 12.9233 11.6477C12.7354 11.784 12.5159 11.8816 12.2804 11.9334C11.9846 11.9881 11.6824 12.0112 11.3804 12.002H11.1426V11.4305C11.3353 11.4196 11.5205 11.36 11.6765 11.2588C11.8325 11.1576 11.9528 11.0189 12.0233 10.8591C12.0786 10.7539 12.1029 10.6378 12.094 10.522C12.094 10.3543 12.1069 10.0458 12.1326 9.59624C12.1417 9.38469 12.1828 9.17519 12.2547 8.97338C12.3105 8.83119 12.3955 8.69943 12.5054 8.58481C12.666 8.37037 12.856 8.17457 13.0712 8.00195" fill="white" />
         </svg>
     `
 
@@ -2822,22 +2961,56 @@ class SVGIcon {
 
     static mouse = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white"/>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 0C11 0.595745 13.4 3.31915 13.9143 6.6383H8.85714V0ZM7.14286 0C5 0.595745 2.6 3.31915 2.08571 6.6383H7.14286V0ZM8.85714 8.34043H7.14286H2C2 12.5957 3.02857 16 8 16C12.9714 16 14 12.5957 14 8.34043H8.85714Z" fill="white"/>
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 0C11 0.595745 13.4 3.31915 13.9143 6.6383H8.85714V0ZM7.14286 0C5 0.595745 2.6 3.31915 2.08571 6.6383H7.14286V0ZM8.85714 8.34043H7.14286H2C2 12.5957 3.02857 16 8 16C12.9714 16 14 12.5957 14 8.34043H8.85714Z" fill="white" />
         </svg>
     `
 
     static node = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="16" height="15" rx="1" fill="white" fill-opacity="0.5"/>
-            <rect x="0.5" y="0.5" width="15" height="14" rx="0.5" stroke="white"/>
-            <rect x="1" width="14" height="5" fill="white"/>
+            <rect width="16" height="15" rx="1" fill="white" fill-opacity="0.5" />
+            <rect x="0.5" y="0.5" width="15" height="14" rx="0.5" stroke="white" />
+            <rect x="1" width="14" height="5" fill="white" />
+        </svg>
+    `
+
+    static pcgPinStack = x`
+        <svg version="1.1" viewBox="6 8 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.5)"  d="M25.8,32.2V17.5c0-1.7,1.3-3.1,3-3.1s3,1.3,3,3.1v14.7c0,1.8-1.3,3.2-3,3.2C27,35.5,25.8,34,25.8,32.2z" />
+            <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.75)" d="M18.8,30.1V11.8c0-2.4,1.8-4.3,4-4.3s4,1.9,4,4.3v18.4c0,2.4-1.8,4.3-4,4.3C20.5,34.5,18.8,32.5,18.8,30.1z" />
+            <path stroke="black" stroke-width="1" fill="currentColor" d="M21.3,6.4v21.3c0,3.2-2.4,5.8-5.5,5.8s-5.5-2.5-5.5-5.8V6.3c0-3.2,2.4-5.8,5.5-5.8C18.8,0.5,21.2,3,21.3,6.4z" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="9" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="17" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="25" r="6" />
+        </svg>
+    `
+
+    static pcgPin = x`
+        <svg class="ueb-pin-reflect-output" version="1.1" viewBox="8 8 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="black" stroke-width="1" fill="currentColor" d="M21.2,34.5c-3.1,0-5.5-2.6-5.5-5.8V7.3c0-3.3,2.4-5.8,5.5-5.8s5.5,2.6,5.5,5.8v21.3C26.8,31.9,24.3,34.5,21.2,34.5z" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="10" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="18" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="26" r="6" />
+        </svg>
+    `
+
+    static pcgPinParam = x`
+        <svg class="ueb-pin-reflect-output" version="1.1" viewBox="8 8 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path class="ueb-pin-tofill" stroke="currentcolor" stroke-width="1" d="M8,18c-2.5,0-4.5-2-4.5-4.5S5.5,9,8,9h20c2.5,0,4.5,2,4.5,4.5S30.5,18,28,18H8z" />
+            <path fill="currentColor" d="M31,27.5H13c-0.5,0-1-0.4-1-1v-4c0-0.5,0.4-1,1-1h18c0.5,0,1,0.4,1,1v4C32,27.1,31.6,27.5,31,27.5z" />
+        </svg>
+    `
+
+    static pcgSpatialPin = x`
+        <svg version="1.1" viewBox="8 8 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="#ffffff" stroke-width="1" fill="#808080" d="M20.5,33h-10c-2.8,0-5-2.2-5-5V8c0-2.8,2.2-5,5-5h10c2.8,0,5,2.2,5,5v20C25.5,30.8,23.3,33,20.5,33z" />
+            <circle class="ueb-pin-tofill" stroke="#ffffff" stroke-width="1" fill="#202020" cx="23.7" cy="18" r="10" />
         </svg>
     `
 
     static plusCircle = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M8.00016 10.6667V5.33334M5.3335 8H10.6668M8.00016 1.33334C4.31826 1.33334 1.3335 4.3181 1.3335 8C1.3335 11.6819 4.31826 14.6667 8.00016 14.6667C11.6821 14.6667 14.6668 11.6819 14.6668 8C14.6668 4.3181 11.6821 1.33334 8.00016 1.33334Z"/>
+            <path stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M8.00016 10.6667V5.33334M5.3335 8H10.6668M8.00016 1.33334C4.31826 1.33334 1.3335 4.3181 1.3335 8C1.3335 11.6819 4.31826 14.6667 8.00016 14.6667C11.6821 14.6667 14.6668 11.6819 14.6668 8C14.6668 4.3181 11.6821 1.33334 8.00016 1.33334Z" />
         </svg>
     `
 
@@ -2895,7 +3068,7 @@ class SVGIcon {
 
     static sound = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 5H3L7 1V15L3 11H0V5Z" fill="white"/>
+            <path d="M0 5H3L7 1V15L3 11H0V5Z" fill="white" />
             <path opacity="0.5" d="M9 1C13 2.7 15 5.4 15 8C15 10.6 13 13.3 9 15C11.5 12.8 12.7 10.4 12.7 8C12.7 5.6 11.5 3.2 9 1Z" fill="white" />
             <path opacity="0.5" d="M9 5C10.3 5.7 11 6.9 11 8C11 9.1 10.3 10.3 9 11C9.8 10 9.8 6 9 5Z" fill="white" />
         </svg>
@@ -2903,11 +3076,11 @@ class SVGIcon {
 
     static spawnActor = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10.38 12.62L7 11.5L10.38 10.38L11.5 7L12.63 10.38L16 11.5L12.63 12.62L11.5 16L10.38 12.62Z" fill="white"/>
-            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4 14H2L3 10L0 14V16H10L9 14H4Z" fill="white"/>
-            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M2 6C1.9996 7.10384 2.30372 8.1864 2.87889 9.12854C3.45406 10.0707 4.27798 10.8359 5.26 11.34L9 9L11.5 5L13.78 7.6C13.9251 7.07902 13.9991 6.54081 14 6C14 4.4087 13.3679 2.88258 12.2426 1.75736C11.1174 0.63214 9.5913 0 8 0C6.4087 0 4.88258 0.63214 3.75736 1.75736C2.63214 2.88258 2 4.4087 2 6V6Z" fill="white"/>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.22005 0.810059H8.00005C6.62265 0.810056 5.30153 1.35654 4.32663 2.32957C3.35172 3.30259 2.8027 4.62266 2.80005 6.00006C2.79984 7.03987 3.11257 8.05567 3.69756 8.91532C4.28255 9.77497 5.11271 10.4387 6.08005 10.8201L7.17005 10.1401C6.16687 9.86642 5.28119 9.27116 4.64894 8.44562C4.01669 7.62008 3.6728 6.60989 3.67005 5.57006C3.66886 4.34318 4.14143 3.16323 4.98917 2.27635C5.83692 1.38948 6.99437 0.864185 8.22005 0.810059V0.810059Z" fill="white"/>
-            <path d="M10.0401 5.16001C10.7028 5.16001 11.2401 4.62275 11.2401 3.96001C11.2401 3.29727 10.7028 2.76001 10.0401 2.76001C9.37735 2.76001 8.84009 3.29727 8.84009 3.96001C8.84009 4.62275 9.37735 5.16001 10.0401 5.16001Z" fill="white"/>
+            <path d="M10.38 12.62L7 11.5L10.38 10.38L11.5 7L12.63 10.38L16 11.5L12.63 12.62L11.5 16L10.38 12.62Z" fill="white" />
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4 14H2L3 10L0 14V16H10L9 14H4Z" fill="white" />
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M2 6C1.9996 7.10384 2.30372 8.1864 2.87889 9.12854C3.45406 10.0707 4.27798 10.8359 5.26 11.34L9 9L11.5 5L13.78 7.6C13.9251 7.07902 13.9991 6.54081 14 6C14 4.4087 13.3679 2.88258 12.2426 1.75736C11.1174 0.63214 9.5913 0 8 0C6.4087 0 4.88258 0.63214 3.75736 1.75736C2.63214 2.88258 2 4.4087 2 6V6Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.22005 0.810059H8.00005C6.62265 0.810056 5.30153 1.35654 4.32663 2.32957C3.35172 3.30259 2.8027 4.62266 2.80005 6.00006C2.79984 7.03987 3.11257 8.05567 3.69756 8.91532C4.28255 9.77497 5.11271 10.4387 6.08005 10.8201L7.17005 10.1401C6.16687 9.86642 5.28119 9.27116 4.64894 8.44562C4.01669 7.62008 3.6728 6.60989 3.67005 5.57006C3.66886 4.34318 4.14143 3.16323 4.98917 2.27635C5.83692 1.38948 6.99437 0.864185 8.22005 0.810059V0.810059Z" fill="white" />
+            <path d="M10.0401 5.16001C10.7028 5.16001 11.2401 4.62275 11.2401 3.96001C11.2401 3.29727 10.7028 2.76001 10.0401 2.76001C9.37735 2.76001 8.84009 3.29727 8.84009 3.96001C8.84009 4.62275 9.37735 5.16001 10.0401 5.16001Z" fill="white" />
         </svg>
     `
 
@@ -2924,15 +3097,15 @@ class SVGIcon {
 
     static timer = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5ZM8 14.1C4.6 14.1 1.9 11.4 1.9 8C1.9 4.6 4.6 1.90002 8 1.90002C11.4 1.90002 14.1 4.6 14.1 8C14.1 11.4 11.4 14.1 8 14.1Z" fill="white"/>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.60003 3.19995H7.40002V8.49994L10.5 11.4999L11.4 10.5999L8.60003 7.99994V3.19995Z" fill="white"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5ZM8 14.1C4.6 14.1 1.9 11.4 1.9 8C1.9 4.6 4.6 1.90002 8 1.90002C11.4 1.90002 14.1 4.6 14.1 8C14.1 11.4 11.4 14.1 8 14.1Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.60003 3.19995H7.40002V8.49994L10.5 11.4999L11.4 10.5999L8.60003 7.99994V3.19995Z" fill="white" />
         </svg>
     `
 
     static touchpad = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path  fill="white" fill-rule="evenodd" clip-rule="evenodd" d="M13 0H3C2.4 0 2 0.4 2 1V15C2 15.6 2.4 16 3 16H13C13.6 16 14 15.6 14 15V1C14 0.4 13.6 0 13 0ZM8 15.5C7.2 15.5 6.5 14.8 6.5 14C6.5 13.2 7.2 12.5 8 12.5C8.8 12.5 9.5 13.2 9.5 14C9.5 14.8 8.8 15.5 8 15.5ZM13 12H3V1H13V12Z" />
-            <path opacity="0.5" d="M13 1H3V12H13V1Z" fill="white"/>
+            <path opacity="0.5" d="M13 1H3V12H13V1Z" fill="white" />
         </svg>
     `
 }
@@ -2949,6 +3122,7 @@ class UnknownPinEntity extends PinEntity {
 class VariableReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         MemberScope: {
             type: String,
         },
@@ -2980,17 +3154,27 @@ class VariableReferenceEntity extends IEntity {
 class ObjectEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         Class: {
             type: ObjectReferenceEntity,
         },
         Name: {
             default: "",
         },
+        Archetype: {
+            type: ObjectReferenceEntity,
+        },
         ExportPath: {
             type: ObjectReferenceEntity,
         },
         ObjectRef: {
             type: ObjectReferenceEntity,
+        },
+        BlueprintElementType: {
+            type: ObjectReferenceEntity
+        },
+        BlueprintElementInstance: {
+            type: ObjectReferenceEntity
         },
         PinTags: {
             type: [null],
@@ -3145,6 +3329,21 @@ class ObjectEntity extends IEntity {
         MaterialExpressionEditorY: {
             type: new MirroredEntity(ObjectEntity, "NodePosY"),
         },
+        NodeTitle: {
+            type: String,
+        },
+        NodeTitleColor: {
+            type: LinearColorEntity,
+        },
+        PositionX: {
+            type: new MirroredEntity(ObjectEntity, "NodePosX"),
+        },
+        PositionY: {
+            type: new MirroredEntity(ObjectEntity, "NodePosY"),
+        },
+        PCGNode: {
+            type: ObjectReferenceEntity,
+        },
         NodePosX: {
             type: IntegerEntity,
         },
@@ -3156,6 +3355,26 @@ class ObjectEntity extends IEntity {
         },
         NodeHeight: {
             type: IntegerEntity,
+        },
+        Graph: {
+            type: ObjectReferenceEntity,
+        },
+        SubgraphInstance: {
+            type: String,
+        },
+        SettingsInterface: {
+            type: ObjectReferenceEntity,
+        },
+        InputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
+        },
+        OutputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
+        },
+        bExposeToLibrary: {
+            type: Boolean,
         },
         bCanRenameNode: {
             type: Boolean,
@@ -3264,72 +3483,86 @@ class ObjectEntity extends IEntity {
         super(values, suppressWarns);
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {String} */ this.Name;
-        /** @type {ObjectReferenceEntity?} */ this.ExportPath;
-        /** @type {ObjectReferenceEntity?} */ this.ObjectRef;
+        /** @type {ObjectReferenceEntity} */ this.Archetype;
+        /** @type {ObjectReferenceEntity} */ this.ExportPath;
+        /** @type {ObjectReferenceEntity} */ this.ObjectRef;
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType;
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance;
         /** @type {null[]} */ this.PinTags;
         /** @type {String[]} */ this.PinNames;
-        /** @type {SymbolEntity?} */ this.AxisKey;
-        /** @type {SymbolEntity?} */ this.InputAxisKey;
-        /** @type {Number?} */ this.NumAdditionalInputs;
-        /** @type {Boolean?} */ this.bIsPureFunc;
-        /** @type {Boolean?} */ this.bIsConstFunc;
-        /** @type {Boolean?} */ this.bIsCaseSensitive;
-        /** @type {VariableReferenceEntity?} */ this.VariableReference;
-        /** @type {SymbolEntity?} */ this.SelfContextInfo;
-        /** @type {String?} */ this.DelegatePropertyName;
-        /** @type {ObjectReferenceEntity?} */ this.DelegateOwnerClass;
-        /** @type {FunctionReferenceEntity?} */ this.ComponentPropertyName;
-        /** @type {FunctionReferenceEntity?} */ this.EventReference;
-        /** @type {FunctionReferenceEntity?} */ this.FunctionReference;
+        /** @type {SymbolEntity} */ this.AxisKey;
+        /** @type {SymbolEntity} */ this.InputAxisKey;
+        /** @type {Number} */ this.NumAdditionalInputs;
+        /** @type {Boolean} */ this.bIsPureFunc;
+        /** @type {Boolean} */ this.bIsConstFunc;
+        /** @type {Boolean} */ this.bIsCaseSensitive;
+        /** @type {VariableReferenceEntity} */ this.VariableReference;
+        /** @type {SymbolEntity} */ this.SelfContextInfo;
+        /** @type {String} */ this.DelegatePropertyName;
+        /** @type {ObjectReferenceEntity} */ this.DelegateOwnerClass;
+        /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName;
+        /** @type {FunctionReferenceEntity} */ this.EventReference;
+        /** @type {FunctionReferenceEntity} */ this.FunctionReference;
         /** @type {String} */ this.CustomFunctionName;
-        /** @type {ObjectReferenceEntity?} */ this.TargetType;
-        /** @type {MacroGraphReferenceEntity?} */ this.MacroGraphReference;
-        /** @type {ObjectReferenceEntity?} */ this.Enum;
-        /** @type {String[]?} */ this.EnumEntries;
-        /** @type {SymbolEntity?} */ this.InputKey;
-        /** @type {ObjectReferenceEntity?} */ this.MaterialFunction;
-        /** @type {Boolean?} */ this.bOverrideFunction;
-        /** @type {Boolean?} */ this.bInternalEvent;
-        /** @type {Boolean?} */ this.bConsumeInput;
-        /** @type {Boolean?} */ this.bExecuteWhenPaused;
-        /** @type {Boolean?} */ this.bOverrideParentBinding;
-        /** @type {Boolean?} */ this.bControl;
-        /** @type {Boolean?} */ this.bAlt;
-        /** @type {Boolean?} */ this.bShift;
-        /** @type {Boolean?} */ this.bCommand;
-        /** @type {LinearColorEntity?} */ this.CommentColor;
-        /** @type {Boolean?} */ this.bCommentBubbleVisible_InDetailsPanel;
-        /** @type {Boolean?} */ this.bColorCommentBubble;
-        /** @type {String?} */ this.ProxyFactoryFunctionName;
-        /** @type {ObjectReferenceEntity?} */ this.ProxyFactoryClass;
-        /** @type {ObjectReferenceEntity?} */ this.ProxyClass;
-        /** @type {Number?} */ this.R;
-        /** @type {Number?} */ this.G;
-        /** @type {ObjectReferenceEntity?} */ this.StructType;
-        /** @type {ObjectReferenceEntity?} */ this.MaterialExpression;
-        /** @type {ObjectReferenceEntity?} */ this.MaterialExpressionComment;
-        /** @type {SymbolEntity?} */ this.MoveMode;
-        /** @type {String?} */ this.TimelineName;
-        /** @type {GuidEntity?} */ this.TimelineGuid;
-        /** @type {MirroredEntity?} */ this.SizeX;
-        /** @type {MirroredEntity?} */ this.SizeY;
-        /** @type {MirroredEntity?} */ this.Text;
-        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorX;
-        /** @type {MirroredEntity?} */ this.MaterialExpressionEditorY;
+        /** @type {ObjectReferenceEntity} */ this.TargetType;
+        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference;
+        /** @type {ObjectReferenceEntity} */ this.Enum;
+        /** @type {String[]} */ this.EnumEntries;
+        /** @type {SymbolEntity} */ this.InputKey;
+        /** @type {ObjectReferenceEntity} */ this.MaterialFunction;
+        /** @type {Boolean} */ this.bOverrideFunction;
+        /** @type {Boolean} */ this.bInternalEvent;
+        /** @type {Boolean} */ this.bConsumeInput;
+        /** @type {Boolean} */ this.bExecuteWhenPaused;
+        /** @type {Boolean} */ this.bOverrideParentBinding;
+        /** @type {Boolean} */ this.bControl;
+        /** @type {Boolean} */ this.bAlt;
+        /** @type {Boolean} */ this.bShift;
+        /** @type {Boolean} */ this.bCommand;
+        /** @type {LinearColorEntity} */ this.CommentColor;
+        /** @type {Boolean} */ this.bCommentBubbleVisible_InDetailsPanel;
+        /** @type {Boolean} */ this.bColorCommentBubble;
+        /** @type {String} */ this.ProxyFactoryFunctionName;
+        /** @type {ObjectReferenceEntity} */ this.ProxyFactoryClass;
+        /** @type {ObjectReferenceEntity} */ this.ProxyClass;
+        /** @type {Number} */ this.R;
+        /** @type {Number} */ this.G;
+        /** @type {ObjectReferenceEntity} */ this.StructType;
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpression;
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment;
+        /** @type {SymbolEntity} */ this.MoveMode;
+        /** @type {String} */ this.TimelineName;
+        /** @type {GuidEntity} */ this.TimelineGuid;
+        /** @type {MirroredEntity} */ this.SizeX;
+        /** @type {MirroredEntity} */ this.SizeY;
+        /** @type {MirroredEntity} */ this.Text;
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX;
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY;
+        /** @type {String} */ this.NodeTitle;
+        /** @type {LinearColorEntity} */ this.NodeTitleColor;
+        /** @type {MirroredEntity} */ this.PositionX;
+        /** @type {MirroredEntity} */ this.PositionY;
+        /** @type {ObjectReferenceEntity} */ this.PCGNode;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
-        /** @type {IntegerEntity?} */ this.NodeWidth;
-        /** @type {IntegerEntity?} */ this.NodeHeight;
-        /** @type {Boolean?} */ this.bCanRenameNode;
-        /** @type {Boolean?} */ this.bCommentBubblePinned;
-        /** @type {Boolean?} */ this.bCommentBubbleVisible;
-        /** @type {String?} */ this.Text;
-        /** @type {String?} */ this.NodeComment;
-        /** @type {IdentifierEntity?} */ this.AdvancedPinDisplay;
-        /** @type {IdentifierEntity?} */ this.EnabledState;
+        /** @type {IntegerEntity} */ this.NodeWidth;
+        /** @type {IntegerEntity} */ this.NodeHeight;
+        /** @type {ObjectReferenceEntity} */ this.Graph;
+        /** @type {String} */ this.SubgraphInstance;
+        /** @type {ObjectReferenceEntity} */ this.SettingsInterface;
+        /** @type {ObjectReferenceEntity[]} */ this.InputPins;
+        /** @type {ObjectReferenceEntity[]} */ this.OutputPins;
+        /** @type {Boolean} */ this.bExposeToLibrary;
+        /** @type {Boolean} */ this.bCanRenameNode;
+        /** @type {Boolean} */ this.bCommentBubblePinned;
+        /** @type {Boolean} */ this.bCommentBubbleVisible;
+        /** @type {String} */ this.Text;
+        /** @type {String} */ this.NodeComment;
+        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay;
+        /** @type {IdentifierEntity} */ this.EnabledState;
         /** @type {GuidEntity} */ this.NodeGuid;
-        /** @type {IntegerEntity?} */ this.ErrorType;
-        /** @type {String?} */ this.ErrorMsg;
+        /** @type {IntegerEntity} */ this.ErrorType;
+        /** @type {String} */ this.ErrorMsg;
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
 
         // Legacy nodes cleanup
@@ -3362,10 +3595,28 @@ class ObjectEntity extends IEntity {
             obj.MaterialExpressionEditorX && (obj.MaterialExpressionEditorX.getter = () => this.NodePosX);
             obj.MaterialExpressionEditorY && (obj.MaterialExpressionEditorY.getter = () => this.NodePosY);
         }
+        /** @type {ObjectEntity} */
+        const pcgObject = this.getPcgSubobject();
+        if (pcgObject) {
+            pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX);
+            pcgObject.PositionY && (pcgObject.PositionY.getter = () => this.NodePosY);
+        }
+        let inputIndex = 0;
+        let outputIndex = 0;
+        this.CustomProperties?.forEach((pinEntity, i) => {
+            pinEntity.objectEntity = this;
+            pinEntity.pinIndex = pinEntity.isInput()
+                ? inputIndex++
+                : pinEntity.isOutput()
+                    ? outputIndex++
+                    : i;
+        });
     }
 
     getClass() {
-        return this.Class?.path ? this.Class.path : this.Class?.type ?? ""
+        return (this.Class?.path ? this.Class.path : this.Class?.type)
+            ?? (this.ExportPath?.path ? this.ExportPath.path : this.ExportPath?.type)
+            ?? ""
     }
 
     getType() {
@@ -3509,6 +3760,35 @@ class ObjectEntity extends IEntity {
             : null
     }
 
+    isPcg() {
+        return this.getClass() === Configuration.paths.pcgEditorGraphNode
+            || this.getPcgSubobject()
+    }
+
+    /** @return {ObjectEntity} */
+    getPcgSubobject() {
+        const node = this.PCGNode;
+        return node
+            ? this[Configuration.subObjectAttributeNameFromReference(node, true)]
+            : null
+    }
+
+    /** @return {ObjectEntity} */
+    getSettingsObject() {
+        const settings = this.SettingsInterface;
+        return settings
+            ? this[Configuration.subObjectAttributeNameFromReference(settings, true)]
+            : null
+    }
+
+    /** @return {ObjectEntity} */
+    getSubgraphObject() {
+        const node = this.SubgraphInstance;
+        return node
+            ? this[Configuration.subObjectAttributeNameFromName(node)]
+            : null
+    }
+
     isDevelopmentOnly() {
         const nodeClass = this.getClass();
         return this.EnabledState?.toString() === "DevelopmentOnly"
@@ -3607,6 +3887,10 @@ class ObjectEntity extends IEntity {
                 break
             case Configuration.paths.materialExpressionSquareRoot:
                 return "Sqrt"
+            case Configuration.paths.pcgEditorGraphNodeInput:
+                return "Input"
+            case Configuration.paths.pcgEditorGraphNodeOutput:
+                return "Output"
             case Configuration.paths.spawnActorFromClass:
                 return `SpawnActor ${Utility.formatStringName(
                     this.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
@@ -3645,13 +3929,29 @@ class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.paths.macro) {
             return Utility.formatStringName(this.MacroGraphReference?.getMacroName())
         }
-        if (this.isMaterial() && this.MaterialExpression) {
-            const materialObject = /** @type {ObjectEntity} */(
-                this[Configuration.subObjectAttributeNameFromReference(this.MaterialExpression, true)]
-            );
-            let result = materialObject.nodeDisplayName();
+        if (this.isMaterial() && this.getMaterialSubobject()) {
+            let result = this.getMaterialSubobject().nodeDisplayName();
             result = result.match(/Material Expression (.+)/)?.[1] ?? result;
             return result
+        }
+        if (this.isPcg() && this.getPcgSubobject()) {
+            let pcgSubobject = this.getPcgSubobject();
+            let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle : pcgSubobject.nodeDisplayName();
+            return result
+        }
+        const subgraphObject = this.getSubgraphObject();
+        if (subgraphObject) {
+            return subgraphObject.Graph.getName()
+        }
+        const settingsObject = this.getSettingsObject();
+        if (settingsObject) {
+            if (settingsObject.BlueprintElementInstance) {
+                return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
+            }
+            const settingsSubgraphObject = settingsObject.getSubgraphObject();
+            if (settingsSubgraphObject && settingsSubgraphObject.Graph) {
+                return settingsSubgraphObject.Graph.getName()
+            }
         }
         let memberName = this.FunctionReference?.MemberName;
         if (memberName) {
@@ -3771,6 +4071,14 @@ class ObjectEntity extends IEntity {
                         }
                     }
                     break
+                case Configuration.paths.kismetArrayLibrary:
+                    {
+                        const arrayOperationMath = memberName.match(/Array_(\w+)/);
+                        if (arrayOperationMath) {
+                            return arrayOperationMath[1].toUpperCase()
+                        }
+                    }
+                    break
             }
             return Utility.formatStringName(memberName)
         }
@@ -3793,6 +4101,9 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.materialExpressionTextureSample:
                 return Configuration.nodeColors.darkTurquoise
             case Configuration.paths.materialExpressionTextureCoordinate:
+                return Configuration.nodeColors.red
+            case Configuration.paths.pcgEditorGraphNodeInput:
+            case Configuration.paths.pcgEditorGraphNodeOutput:
                 return Configuration.nodeColors.red
         }
         switch (this.getClass()) {
@@ -3828,6 +4139,15 @@ class ObjectEntity extends IEntity {
         }
         if (this.isEvent()) {
             return Configuration.nodeColors.red
+        }
+        if (this.isComment()) {
+            return (this.CommentColor ? this.CommentColor : LinearColorEntity.getWhite())
+                .toDimmedColor()
+                .toCSSRGBValues()
+        }
+        const pcgSubobject = this.getPcgSubobject();
+        if (pcgSubobject && pcgSubobject.NodeTitleColor) {
+            return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
         }
         if (this.bIsPureFunc) {
             return Configuration.nodeColors.green
@@ -3881,7 +4201,7 @@ class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.paths.macro) {
             return SVGIcon.macro
         }
-        if (this.isMaterial()) {
+        if (this.isMaterial() || this.isPcg()) {
             return undefined
         }
         const hidValue = this.getHIDAttribute()?.toString();
@@ -4054,6 +4374,7 @@ var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_minExports);
 class TerminalTypeEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         TerminalCategory: {
             type: String,
         },
@@ -4088,6 +4409,7 @@ class TerminalTypeEntity extends IEntity {
 class UnknownKeysEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         lookbehind: {
             default: "",
             ignored: true,
@@ -4496,13 +4818,16 @@ class Grammar {
     static formatTextEntity = P.lazy(() =>
         P.seq(
             this.regexMap(
+                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
                 new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
                 result => result[1]
             ),
             this.grammarFor(FormatTextEntity.attributes.value)
         )
             .map(([lookbehind, values]) => {
-                const result = new FormatTextEntity(values);
+                const result = new FormatTextEntity({
+                    value: values,
+                });
                 result.lookbehind = lookbehind;
                 return result
             })
@@ -4582,7 +4907,7 @@ class Grammar {
     )
 
     static fullReferenceEntity = P.lazy(() =>
-        P.seq(this.typeReference, P.optWhitespace, this.pathQuotes)
+        P.seq(this.typeReference, P.regex(Grammar.Regex.InlineOptWhitespace), this.pathQuotes)
             .map(([type, _2, path]) =>
                 new ObjectReferenceEntity({ type: type, path: path })
             )
@@ -4678,8 +5003,9 @@ class Grammar {
 
     static unknownKeysEntity = P.lazy(() =>
         P.seq(
+            // Lookbehind
             this.regexMap(
-                new RegExp(`(${this.Regex.Symbol.source}\\s*)?\\(\\s*`),
+                new RegExp(`(${this.Regex.Path.source}\\s*)?\\(\\s*`),
                 result => result[1] ?? ""
             ),
             this.attributeName
@@ -4916,9 +5242,13 @@ class Grammar {
 }
 
 /**
- * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
  * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
+ * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
+ */
+
+/**
+ * @template {AnyValue} T
+ * @typedef {import("../entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
  */
 
 /** @template {AnyValue} T */
@@ -4933,7 +5263,7 @@ class Serializer {
     /** @type {(entity: AnyValue, serialized: String) => String} */
     static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
-    /** @param {AnyValueConstructor} entityType */
+    /** @param {AnyValueConstructor<T>} entityType */
     constructor(
         entityType,
         /** @type {(entity: T, serialized: String) => String} */
@@ -5060,6 +5390,7 @@ class Serializer {
     }
 
     showProperty(entity, key) {
+        // @ts-expect-error
         const attribute = /** @type {EntityConstructor} */(this.entityType).attributes[key];
         if (attribute?.constructor === Object && attribute.ignored) {
             return false
@@ -5078,6 +5409,7 @@ class ObjectSerializer extends Serializer {
         switch (key) {
             case "Class":
             case "Name":
+            case "Archetype":
             case "ExportPath":
             case "CustomProperties":
                 // Serielized separately, check doWrite()
@@ -5144,6 +5476,7 @@ class ObjectSerializer extends Serializer {
         let result = indentation + "Begin Object"
             + (entity.Class?.type || entity.Class?.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
             + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
+            + (entity.Archetype ? ` Archetype=${this.doWriteValue(entity.Archetype, insideString)}` : "")
             + (entity.ExportPath?.type || entity.ExportPath?.path ? ` ExportPath=${this.doWriteValue(entity.ExportPath, insideString)}` : "")
             + "\n"
             + super.doWrite(
@@ -7996,28 +8329,15 @@ class IResizeableTemplate extends NodeTemplate {
 
 class CommentNodeTemplate extends IResizeableTemplate {
 
-    #color = LinearColorEntity.getWhite()
     #selectableAreaHeight = 0
 
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
-        if (element.entity.CommentColor) {
-            this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber());
-            this.#color.setFromHSVA(
-                this.#color.H.value,
-                this.#color.S.value,
-                Math.pow(this.#color.V.value, 0.45) * 0.67
-            );
-        }
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable");
         element.sizeX = 25 * Configuration.gridSize;
         element.sizeY = 6 * Configuration.gridSize;
         super.initialize(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
-    }
-
-    getColor() {
-        return i$3`${Math.round(this.#color.R.value * 255)}, ${Math.round(this.#color.G.value * 255)}, ${Math.round(this.#color.B.value * 255)}`
     }
 
     getDraggableElement() {
@@ -8398,6 +8718,29 @@ class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
+        if (this.element.nodeElement.entity.isPcg()) {
+            switch (this.element.entity.getType()) {
+                case "Any":
+                    return SVGIcon.pcgPin
+                case "Param":
+                case "Param[]":
+                    return SVGIcon.pcgPinParam
+                case "Spatial":
+                case "Spatial[]":
+                    return SVGIcon.pcgSpatialPin
+                case "Any[]":
+                case "Point[]":
+                case "Surface[]":
+                case "Volume[]":
+                    if (this.element.isOutput()) {
+                        return SVGIcon.pcgPin
+                    }
+                case "Point":
+                case "Surface":
+                case "Volume":
+                    return SVGIcon.pcgPinStack
+            }
+        }
         switch (this.element.entity.PinType.ContainerType?.toString()) {
             case "Array": return SVGIcon.array
             case "Set": return SVGIcon.set
@@ -8853,7 +9196,7 @@ class NodeElement extends ISelectableDraggableElement {
                 switch (memberName) {
                     case "Abs":
                     case "Array_Add":
-                    case "Array_Add":
+                    case "Array_AddUnique":
                     case "Array_Identical":
                     case "BMax":
                     case "BMin":
@@ -11754,7 +12097,7 @@ function initializeSerializerFactory() {
         FormatTextEntity,
         new CustomSerializer(
             (v, insideString) => {
-                let result = FormatTextEntity.lookbehind + "("
+                let result = v.getLookbehind() + "("
                     + v.value.map(v =>
                         SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString)
                     ).join(", ")
@@ -11791,7 +12134,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new Serializer(InvariantTextEntity, (entity, v) => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", () => "")
+        new Serializer(InvariantTextEntity, (entity, v) => `${entity.getLookbehind()}(${v})`, ", ", false, "", () => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -11806,7 +12149,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new Serializer(LocalizedTextEntity, (entity, v) => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", () => "")
+        new Serializer(LocalizedTextEntity, (entity, v) => `${entity.getLookbehind()}(${v})`, ", ", false, "", () => "")
     );
 
     SerializerFactory.registerSerializer(
@@ -11851,7 +12194,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new Serializer(PinEntity, (entity, v) => `${PinEntity.lookbehind} (${v})`, ",", true)
+        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
     );
 
     SerializerFactory.registerSerializer(
@@ -11912,7 +12255,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         UnknownKeysEntity,
-        new Serializer(UnknownKeysEntity, (entity, string) => `${entity.lookbehind ?? ""}(${string})`)
+        new Serializer(UnknownKeysEntity, (entity, string) => `${entity.getLookbehind() ?? ""}(${string})`)
     );
 
     SerializerFactory.registerSerializer(

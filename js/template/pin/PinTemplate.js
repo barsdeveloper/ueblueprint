@@ -89,6 +89,29 @@ export default class PinTemplate extends ITemplate {
     }
 
     renderIcon() {
+        if (this.element.nodeElement.entity.isPcg()) {
+            switch (this.element.entity.getType()) {
+                case "Any":
+                    return SVGIcon.pcgPin
+                case "Param":
+                case "Param[]":
+                    return SVGIcon.pcgPinParam
+                case "Spatial":
+                case "Spatial[]":
+                    return SVGIcon.pcgSpatialPin
+                case "Any[]":
+                case "Point[]":
+                case "Surface[]":
+                case "Volume[]":
+                    if (this.element.isOutput()) {
+                        return SVGIcon.pcgPin
+                    }
+                case "Point":
+                case "Surface":
+                case "Volume":
+                    return SVGIcon.pcgPinStack
+            }
+        }
         switch (this.element.entity.PinType.ContainerType?.toString()) {
             case "Array": return SVGIcon.array
             case "Set": return SVGIcon.set

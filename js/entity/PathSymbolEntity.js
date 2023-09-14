@@ -3,6 +3,7 @@ import IEntity from "./IEntity.js"
 export default class PathSymbolEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -13,6 +14,11 @@ export default class PathSymbolEntity extends IEntity {
     }
 
     constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            }
+        }
         super(values)
         /** @type {String} */ this.value
     }

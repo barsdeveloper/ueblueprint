@@ -4,6 +4,7 @@ import IEntity from "./IEntity.js"
 export default class KeyBindingEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         ActionName: {
             default: "",
         },

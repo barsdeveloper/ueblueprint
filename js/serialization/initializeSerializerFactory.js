@@ -107,7 +107,7 @@ export default function initializeSerializerFactory() {
         FormatTextEntity,
         new CustomSerializer(
             (v, insideString) => {
-                let result = FormatTextEntity.lookbehind + "("
+                let result = v.getLookbehind() + "("
                     + v.value.map(v =>
                         SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString)
                     ).join(", ")
@@ -144,7 +144,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         InvariantTextEntity,
-        new Serializer(InvariantTextEntity, (entity, v) => `${InvariantTextEntity.lookbehind}(${v})`, ", ", false, "", () => "")
+        new Serializer(InvariantTextEntity, (entity, v) => `${entity.getLookbehind()}(${v})`, ", ", false, "", () => "")
     )
 
     SerializerFactory.registerSerializer(
@@ -159,7 +159,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         LocalizedTextEntity,
-        new Serializer(LocalizedTextEntity, (entity, v) => `${LocalizedTextEntity.lookbehind}(${v})`, ", ", false, "", () => "")
+        new Serializer(LocalizedTextEntity, (entity, v) => `${entity.getLookbehind()}(${v})`, ", ", false, "", () => "")
     )
 
     SerializerFactory.registerSerializer(
@@ -204,7 +204,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new Serializer(PinEntity, (entity, v) => `${PinEntity.lookbehind} (${v})`, ",", true)
+        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
     )
 
     SerializerFactory.registerSerializer(
@@ -265,7 +265,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         UnknownKeysEntity,
-        new Serializer(UnknownKeysEntity, (entity, string) => `${entity.lookbehind ?? ""}(${string})`)
+        new Serializer(UnknownKeysEntity, (entity, string) => `${entity.getLookbehind() ?? ""}(${string})`)
     )
 
     SerializerFactory.registerSerializer(

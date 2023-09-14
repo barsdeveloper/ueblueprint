@@ -1,6 +1,6 @@
 /**
- * @template {any[]} U
  * @template {[...U]} T
+ * @template {any[]} U
  */
 export default class Union {
 

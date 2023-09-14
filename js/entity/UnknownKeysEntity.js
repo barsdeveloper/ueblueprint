@@ -3,6 +3,7 @@ import IEntity from "./IEntity.js"
 export default class UnknownKeysEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         lookbehind: {
             default: "",
             ignored: true,

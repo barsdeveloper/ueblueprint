@@ -5,6 +5,7 @@ import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 export default class MacroGraphReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         MacroGraph: {
             type: ObjectReferenceEntity,
             default: () => new ObjectReferenceEntity(),

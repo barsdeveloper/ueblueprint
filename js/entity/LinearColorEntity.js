@@ -1,10 +1,12 @@
 import ColorChannelEntity from "./ColorChannelEntity.js"
 import IEntity from "./IEntity.js"
 import Utility from "../Utility.js"
+import { css } from "lit"
 
 export default class LinearColorEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         R: {
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),
@@ -178,6 +180,24 @@ export default class LinearColorEntity extends IEntity {
     setFromWheelLocation(x, y, v, a) {
         const [r, theta] = Utility.getPolarCoordinates(x, y, true)
         this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a)
+    }
+
+    toDimmedColor(minV = 0) {
+        const result = new LinearColorEntity()
+        result.setFromRGBANumber(this.toNumber())
+        result.setFromHSVA(
+            result.H.value,
+            result.S.value * 0.6,
+            Math.pow(result.V.value + minV, 0.55) * 0.7
+        )
+        return result
+    }
+
+    toCSSRGBValues() {
+        const r = Math.round(this.R.value * 255)
+        const g = Math.round(this.G.value * 255)
+        const b = Math.round(this.B.value * 255)
+        return css`${r}, ${g}, ${b}`
     }
 
     toRGBA() {

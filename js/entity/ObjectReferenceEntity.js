@@ -5,6 +5,7 @@ import IEntity from "./IEntity.js"
 export default class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         type: {
             default: "",
         },
@@ -47,7 +48,7 @@ export default class ObjectReferenceEntity extends IEntity {
     }
 
     getName() {
-        return Utility.getNameFromPath(this.path)
+        return Utility.getNameFromPath(this.path.replace(/_C$/, ""))
     }
 
     toString() {

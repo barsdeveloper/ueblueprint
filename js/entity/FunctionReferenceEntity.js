@@ -5,6 +5,7 @@ import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 export default class FunctionReferenceEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         MemberParent: {
             type: ObjectReferenceEntity,
         },

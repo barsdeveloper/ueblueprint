@@ -7,6 +7,7 @@ import { css } from "lit"
 
 export default class Configuration {
     static nodeColors = {
+        black: css`20, 20, 20`,
         blue: css`84, 122, 156`,
         darkBlue: css`32, 80, 128`,
         darkTurquoise: css`19, 100, 137`,
@@ -159,6 +160,10 @@ export default class Configuration {
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
+        pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
+        pcgEditorGraphNodeInput:"/Script/PCGEditor.PCGEditorGraphNodeInput",
+        pcgEditorGraphNodeOutput:"/Script/PCGEditor.PCGEditorGraphNodeOutput",
+        pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
@@ -179,11 +184,14 @@ export default class Configuration {
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
+
     }
     static pinColor = {
         [this.paths.rotator]: css`157, 177, 251`,
         [this.paths.transform]: css`227, 103, 0`,
         [this.paths.vector]: css`251, 198, 34`,
+        "Any": css`132, 132, 132`,
+        "Any[]": css`132, 132, 132`,
         "blue": css`0, 0, 255`,
         "bool": css`147, 0, 0`,
         "byte": css`0, 109, 99`,
@@ -198,11 +206,19 @@ export default class Configuration {
         "interface": css`238, 252, 168`,
         "name": css`201, 128, 251`,
         "object": css`0, 167, 240`,
+        "Param": css`255, 166, 39`,
+        "Param[]": css`255, 166, 39`,
+        "Point": css`63, 137, 255`,
+        "Point[]": css`63, 137, 255`,
         "real": css`54, 208, 0`,
         "red": css`255, 0, 0`,
         "string": css`251, 0, 209`,
         "struct": css`0, 88, 201`,
+        "Surface": css`69, 196, 126`,
+        "Surface[]": css`69, 196, 126`,
         "text": css`226, 121, 167`,
+        "Volume": css`230, 69, 188`,
+        "Volume[]": css`230, 69, 188`,
         "wildcard": css`128, 120, 120`,
     }
     static pinColorMaterial = css`120, 120, 120`
@@ -240,6 +256,7 @@ export default class Configuration {
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
         this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
+    static subObjectAttributeNameFromName = name => this.subObjectAttributeNamePrefix + "_" + name
     static switchTargetPattern = /\/Script\/[\w\.\/\:]+K2Node_Switch([A-Z]\w+)+/
     static trackingMouseEventName = {
         begin: "ueb-tracking-mouse-begin",

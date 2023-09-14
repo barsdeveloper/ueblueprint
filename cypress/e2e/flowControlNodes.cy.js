@@ -409,7 +409,7 @@ const tests = [
                 CustomProperties Pin (PinId=62464A0DADE0407382DA61A0593EBE12,PinName="Case_14",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
             End Object
         `,
-        size: [16, 20],
+        size: [15, 36],
         color: Configuration.nodeColors.lime,
         icon: SVGIcon.switch,
         pins: 18,

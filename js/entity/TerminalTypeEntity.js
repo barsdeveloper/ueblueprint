@@ -3,6 +3,7 @@ import IEntity from "./IEntity.js"
 export default class TerminalTypeEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         TerminalCategory: {
             type: String,
         },

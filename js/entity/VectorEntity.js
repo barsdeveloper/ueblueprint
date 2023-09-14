@@ -3,6 +3,7 @@ import IEntity from "./IEntity.js"
 export default class VectorEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         X: {
             default: 0,
             expected: true,

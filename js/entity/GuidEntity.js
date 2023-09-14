@@ -3,6 +3,7 @@ import IEntity from "./IEntity.js"
 export default class GuidEntity extends IEntity {
 
     static attributes = {
+        ...super.attributes,
         value: {
             default: "",
         },
@@ -27,6 +28,11 @@ export default class GuidEntity extends IEntity {
     constructor(values) {
         if (!values) {
             values = GuidEntity.generateGuid().value
+        }
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            }
         }
         super(values)
         /** @type {String} */ this.value
