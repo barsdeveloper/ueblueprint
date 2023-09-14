@@ -1007,9 +1007,14 @@ export default class ObjectEntity extends IEntity {
         if (this.isEvent()) {
             return Configuration.nodeColors.red
         }
+        if (this.isComment()) {
+            return (this.CommentColor ? this.CommentColor : LinearColorEntity.getWhite())
+                .toDimmedColor()
+                .toCSSRGBValues()
+        }
         const pcgSubobject = this.getPcgSubobject()
         if (pcgSubobject && pcgSubobject.NodeTitleColor) {
-            return pcgSubobject.NodeTitleColor.toCSSRGBValues()
+            return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
         }
         if (this.bIsPureFunc) {
             return Configuration.nodeColors.green

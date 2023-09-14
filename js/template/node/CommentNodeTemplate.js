@@ -1,7 +1,6 @@
-import { css, html } from "lit"
+import { html } from "lit"
 import Configuration from "../../Configuration.js"
 import IResizeableTemplate from "../IResizeableTemplate.js"
-import LinearColorEntity from "../../entity/LinearColorEntity.js"
 import Utility from "../../Utility.js"
 
 /**
@@ -11,28 +10,15 @@ import Utility from "../../Utility.js"
 
 export default class CommentNodeTemplate extends IResizeableTemplate {
 
-    #color = LinearColorEntity.getWhite()
     #selectableAreaHeight = 0
 
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
-        if (element.entity.CommentColor) {
-            this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber())
-            this.#color.setFromHSVA(
-                this.#color.H.value,
-                this.#color.S.value,
-                Math.pow(this.#color.V.value, 0.45) * 0.67
-            )
-        }
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable")
         element.sizeX = 25 * Configuration.gridSize
         element.sizeY = 6 * Configuration.gridSize
         super.initialize(element) // Keep it at the end because it calls this.getColor() where this.#color must be initialized
-    }
-
-    getColor() {
-        return css`${Math.round(this.#color.R.value * 255)}, ${Math.round(this.#color.G.value * 255)}, ${Math.round(this.#color.B.value * 255)}`
     }
 
     getDraggableElement() {

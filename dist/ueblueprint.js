@@ -2020,6 +2020,17 @@ class LinearColorEntity extends IEntity {
         this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a);
     }
 
+    toDimmedColor(minV = 0) {
+        const result = new LinearColorEntity();
+        result.setFromRGBANumber(this.toNumber());
+        result.setFromHSVA(
+            result.H.value,
+            result.S.value * 0.6,
+            Math.pow(result.V.value + minV, 0.55) * 0.7
+        );
+        return result
+    }
+
     toCSSRGBValues() {
         const r = Math.round(this.R.value * 255);
         const g = Math.round(this.G.value * 255);
@@ -4111,9 +4122,14 @@ class ObjectEntity extends IEntity {
         if (this.isEvent()) {
             return Configuration.nodeColors.red
         }
+        if (this.isComment()) {
+            return (this.CommentColor ? this.CommentColor : LinearColorEntity.getWhite())
+                .toDimmedColor()
+                .toCSSRGBValues()
+        }
         const pcgSubobject = this.getPcgSubobject();
         if (pcgSubobject && pcgSubobject.NodeTitleColor) {
-            return pcgSubobject.NodeTitleColor.toCSSRGBValues()
+            return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
         }
         if (this.bIsPureFunc) {
             return Configuration.nodeColors.green
@@ -8295,28 +8311,15 @@ class IResizeableTemplate extends NodeTemplate {
 
 class CommentNodeTemplate extends IResizeableTemplate {
 
-    #color = LinearColorEntity.getWhite()
     #selectableAreaHeight = 0
 
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
-        if (element.entity.CommentColor) {
-            this.#color.setFromRGBANumber(element.entity.CommentColor.toNumber());
-            this.#color.setFromHSVA(
-                this.#color.H.value,
-                this.#color.S.value,
-                Math.pow(this.#color.V.value, 0.45) * 0.67
-            );
-        }
         element.classList.add("ueb-node-style-comment", "ueb-node-resizeable");
         element.sizeX = 25 * Configuration.gridSize;
         element.sizeY = 6 * Configuration.gridSize;
         super.initialize(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
-    }
-
-    getColor() {
-        return i$3`${Math.round(this.#color.R.value * 255)}, ${Math.round(this.#color.G.value * 255)}, ${Math.round(this.#color.B.value * 255)}`
     }
 
     getDraggableElement() {

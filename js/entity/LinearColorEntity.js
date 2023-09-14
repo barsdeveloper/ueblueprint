@@ -182,6 +182,17 @@ export default class LinearColorEntity extends IEntity {
         this.setFromHSVA(1 - theta / (2 * Math.PI), r, v, a)
     }
 
+    toDimmedColor(minV = 0) {
+        const result = new LinearColorEntity()
+        result.setFromRGBANumber(this.toNumber())
+        result.setFromHSVA(
+            result.H.value,
+            result.S.value * 0.6,
+            Math.pow(result.V.value + minV, 0.55) * 0.7
+        )
+        return result
+    }
+
     toCSSRGBValues() {
         const r = Math.round(this.R.value * 255)
         const g = Math.round(this.G.value * 255)
