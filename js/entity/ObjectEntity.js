@@ -211,6 +211,9 @@ export default class ObjectEntity extends IEntity {
         PCGNode: {
             type: ObjectReferenceEntity,
         },
+        Operation: {
+            type: SymbolEntity,
+        },
         NodePosX: {
             type: IntegerEntity,
         },
@@ -410,6 +413,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {MirroredEntity} */ this.PositionX
         /** @type {MirroredEntity} */ this.PositionY
         /** @type {ObjectReferenceEntity} */ this.PCGNode
+        /** @type {String} */ this.Operation
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IntegerEntity} */ this.NodeWidth
@@ -815,6 +819,12 @@ export default class ObjectEntity extends IEntity {
             if (settingsObject.BlueprintElementInstance) {
                 return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
             }
+            if (settingsObject.Operation) {
+                const match = settingsObject.Name.match(/PCGMetadata(\w+)Settings_\d+/)
+                if (match) {
+                    return Utility.formatStringName(match[1] + ": " + settingsObject.Operation)
+                }
+            }
             const settingsSubgraphObject = settingsObject.getSubgraphObject()
             if (settingsSubgraphObject && settingsSubgraphObject.Graph) {
                 return settingsSubgraphObject.Graph.getName()
@@ -885,6 +895,9 @@ export default class ObjectEntity extends IEntity {
                     if (memberName.startsWith("Cross_")) {
                         return "cross"
                     }
+                    if (memberName.startsWith("Divide_")) {
+                        return String.fromCharCode(0x00f7)
+                    }
                     if (memberName.startsWith("Dot_")) {
                         return "dot"
                     }
@@ -917,6 +930,9 @@ export default class ObjectEntity extends IEntity {
                     }
                     if (memberName.startsWith("Percent_")) {
                         return "%"
+                    }
+                    if (memberName.startsWith("Subtract_")) {
+                        return "-"
                     }
                     if (memberName.startsWith("Xor_")) {
                         return "^"
@@ -1023,6 +1039,9 @@ export default class ObjectEntity extends IEntity {
     }
 
     nodeIcon() {
+        if (this.isMaterial() || this.isPcg()) {
+            return undefined
+        }
         switch (this.getType()) {
             case Configuration.paths.asyncAction:
             case Configuration.paths.addDelegate:
@@ -1068,9 +1087,6 @@ export default class ObjectEntity extends IEntity {
         if (this.getClass() === Configuration.paths.macro) {
             return SVGIcon.macro
         }
-        if (this.isMaterial() || this.isPcg()) {
-            return undefined
-        }
         const hidValue = this.getHIDAttribute()?.toString()
         if (hidValue) {
             if (hidValue.includes("Mouse")) {
@@ -1107,8 +1123,10 @@ export default class ObjectEntity extends IEntity {
                 switch (this.FunctionReference?.MemberName) {
                     default:
                         if (
-                            !this.FunctionReference?.MemberName?.startsWith("Multiply_")
-                            && !this.FunctionReference?.MemberName?.startsWith("Add_")
+                            !this.FunctionReference?.MemberName?.startsWith("Add_")
+                            && !this.FunctionReference?.MemberName?.startsWith("Subtract_")
+                            && !this.FunctionReference?.MemberName?.startsWith("Multiply_")
+                            && !this.FunctionReference?.MemberName?.startsWith("Divide_")
                         ) {
                             break
                         }
@@ -1128,6 +1146,7 @@ export default class ObjectEntity extends IEntity {
                     case "MinInt64":
                     case "Or_Int64Int64":
                     case "Or_IntInt":
+
                         pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput())
                         pinIndexFromEntity ??= pinEntity =>
                             pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0)
