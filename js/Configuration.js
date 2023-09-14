@@ -206,6 +206,8 @@ export default class Configuration {
         "interface": css`238, 252, 168`,
         "name": css`201, 128, 251`,
         "object": css`0, 167, 240`,
+        "Param": css`255, 166, 39`,
+        "Param[]": css`255, 166, 39`,
         "Point": css`63, 137, 255`,
         "Point[]": css`63, 137, 255`,
         "real": css`54, 208, 0`,
@@ -215,6 +217,8 @@ export default class Configuration {
         "Surface": css`69, 196, 126`,
         "Surface[]": css`69, 196, 126`,
         "text": css`226, 121, 167`,
+        "Volume": css`230, 69, 188`,
+        "Volume[]": css`230, 69, 188`,
         "wildcard": css`128, 120, 120`,
     }
     static pinColorMaterial = css`120, 120, 120`

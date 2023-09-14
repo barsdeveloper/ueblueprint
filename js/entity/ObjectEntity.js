@@ -466,7 +466,7 @@ export default class ObjectEntity extends IEntity {
         const pcgObject = this.getPcgSubobject()
         if (pcgObject) {
             pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX)
-            pcgObject.PositionY && (pcgObject.PositionX.getter = () => this.NodePosY)
+            pcgObject.PositionY && (pcgObject.PositionY.getter = () => this.NodePosY)
         }
         let inputIndex = 0
         let outputIndex = 0
