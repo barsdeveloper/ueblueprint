@@ -319,7 +319,6 @@ describe("Entity initialization", () => {
         })
         it("can serialize/deserialize", () => {
             expect(entity = SerializerFactory.getSerializer(Entity5).read(entity5Value1)).to.deep.equal({
-                Name: "",
                 key1: "Value 1",
                 key2: {
                     lookbehind: "Foo",
@@ -327,7 +326,7 @@ describe("Entity initialization", () => {
                     arg2: "Argument 2",
                 },
             })
-            expect(entity.key2).to.be.instanceof(UnknownKeysEntity)
+            expect(entity.key2).to.be.instanceof(EntityF)
             expect(SerializerFactory.getSerializer(Entity5).write(entity)).to.equal(entity5Value1)
         })
     })

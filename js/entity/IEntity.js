@@ -88,6 +88,9 @@ export default class IEntity extends Serializable {
         const valuesNames = Object.keys(values)
         const attributesNames = Object.keys(attributes)
         const allAttributesNames = Utility.mergeArrays(valuesNames, attributesNames)
+        if (valuesNames.includes("lookbehind")) {
+            this.lookbehind = undefined // To keep it first
+        }
         for (const attributeName of allAttributesNames) {
             if (attributeName == "attributes") {
                 continue

@@ -1,7 +1,7 @@
 import EntityF from "./EntityF.js"
-import IEntity from "../../js/entity/IEntity.js"
+import ObjectEntity from "../../js/entity/ObjectEntity.js"
 
-export default class Entity5 extends IEntity {
+export default class Entity5 extends ObjectEntity {
 
     static attributes = {
         key1: {

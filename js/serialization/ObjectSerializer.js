@@ -31,7 +31,7 @@ export default class ObjectSerializer extends Serializer {
 
     /** @param {String} value */
     doRead(value) {
-        const parseResult = Grammar.grammarFor(this.entityType).parse(value)
+        const parseResult = Grammar.grammarFor(undefined, this.entityType).parse(value)
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }
