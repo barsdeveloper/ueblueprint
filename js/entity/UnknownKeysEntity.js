@@ -20,7 +20,7 @@ export default class UnknownKeysEntity extends IEntity {
         return Parsimmon.seq(
             // Lookbehind
             Grammar.regexMap(
-                new RegExp(`(${Grammar.Regex.Path.source}\\s*)?\\(\\s*`),
+                new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
                 result => result[1] ?? ""
             ),
             Grammar.attributeName
