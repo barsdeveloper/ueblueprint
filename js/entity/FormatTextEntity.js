@@ -15,29 +15,29 @@ export default class FormatTextEntity extends IEntity {
             default: [],
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Parsimmon.lazy(() =>
+        Parsimmon.seq(
+            Grammar.regexMap(
+                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+                new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                result => result[1]
+            ),
+            Grammar.grammarFor(FormatTextEntity.attributes.value)
+        )
+            .map(([lookbehind, values]) => {
+                const result = new FormatTextEntity({
+                    value: values,
+                })
+                result.lookbehind = lookbehind
+                return result
+            })
+    )
 
     static getGrammar() {
-        return Parsimmon.lazy(() =>
-            Parsimmon.seq(
-                Grammar.regexMap(
-                    // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                    new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
-                    result => result[1]
-                ),
-                Grammar.grammarFor(FormatTextEntity.attributes.value)
-            )
-                .map(([lookbehind, values]) => {
-                    const result = new FormatTextEntity({
-                        value: values,
-                    })
-                    result.lookbehind = lookbehind
-                    return result
-                })
-        )
+        return FormatTextEntity.#grammar
     }
 
     constructor(values) {

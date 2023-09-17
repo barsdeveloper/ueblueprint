@@ -9,13 +9,13 @@ export default class SymbolEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.symbol.map(v => new SymbolEntity(v))
 
     static getGrammar() {
-        return Grammar.symbol.map(v => new SymbolEntity(v))
+        return SymbolEntity.#grammar
     }
 
     /** @param {String | Object} values */

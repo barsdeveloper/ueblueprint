@@ -19,13 +19,13 @@ export default class VariableReferenceEntity extends IEntity {
             type: Boolean,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.createEntityGrammar(VariableReferenceEntity)
 
     static getGrammar() {
-        return Grammar.createEntityGrammar(VariableReferenceEntity)
+        return VariableReferenceEntity.#grammar
     }
 
     constructor(values) {

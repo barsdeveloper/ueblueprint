@@ -22,6 +22,34 @@ import VariableReferenceEntity from "./VariableReferenceEntity.js"
 
 export default class ObjectEntity extends IEntity {
 
+    static #keyName = {
+        "A_AccentGrave": "à",
+        "Add": "Num +",
+        "C_Cedille": "ç",
+        "Decimal": "Num .",
+        "Divide": "Num /",
+        "E_AccentAigu": "é",
+        "E_AccentGrave": "è",
+        "F1": "F1", // Otherwise F and number will be separated
+        "F10": "F10",
+        "F11": "F11",
+        "F12": "F12",
+        "F2": "F2",
+        "F3": "F3",
+        "F4": "F4",
+        "F5": "F5",
+        "F6": "F6",
+        "F7": "F7",
+        "F8": "F8",
+        "F9": "F9",
+        "Gamepad_Special_Left_X": "Touchpad Button X Axis",
+        "Gamepad_Special_Left_Y": "Touchpad Button Y Axis",
+        "Mouse2D": "Mouse XY 2D-Axis",
+        "Multiply": "Num *",
+        "Section": "§",
+        "Subtract": "Num -",
+        "Tilde": "`",
+    }
     static attributes = {
         ...super.attributes,
         Class: {
@@ -281,118 +309,77 @@ export default class ObjectEntity extends IEntity {
     }
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
-    static #keyName = {
-        "A_AccentGrave": "à",
-        "Add": "Num +",
-        "C_Cedille": "ç",
-        "Decimal": "Num .",
-        "Divide": "Num /",
-        "E_AccentAigu": "é",
-        "E_AccentGrave": "è",
-        "F1": "F1", // Otherwise F and number will be separated
-        "F10": "F10",
-        "F11": "F11",
-        "F12": "F12",
-        "F2": "F2",
-        "F3": "F3",
-        "F4": "F4",
-        "F5": "F5",
-        "F6": "F6",
-        "F7": "F7",
-        "F8": "F8",
-        "F9": "F9",
-        "Gamepad_Special_Left_X": "Touchpad Button X Axis",
-        "Gamepad_Special_Left_Y": "Touchpad Button Y Axis",
-        "Mouse2D": "Mouse XY 2D-Axis",
-        "Multiply": "Num *",
-        "Section": "§",
-        "Subtract": "Num -",
-        "Tilde": "`",
-    }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
-
-    static customPropertyGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.regex(/CustomProperties\s+/),
-            Grammar.grammarFor(
-                undefined,
-                (this.attributes.CustomProperties ?? ObjectEntity.attributes.CustomProperties).type[0]
-            ),
-        ).map(([_0, pin]) => values => {
-            if (!values.CustomProperties) {
-                values.CustomProperties = []
-            }
-            values.CustomProperties.push(pin)
-        })
-    }
-
-    static inlinedArrayEntryGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.alt(
-                Grammar.symbolQuoted.map(v => [v, true]),
-                Grammar.symbol.map(v => [v, false]),
-            ),
-            Grammar.regexMap(
-                new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-                v => Number(v[1])
-            )
+    static #customPropertyGrammar = Parsimmon.seq(
+        Parsimmon.regex(/CustomProperties\s+/),
+        Grammar.grammarFor(
+            undefined,
+            (this.attributes.CustomProperties ?? ObjectEntity.attributes.CustomProperties).type[0]
+        ),
+    ).map(([_0, pin]) => values => {
+        if (!values.CustomProperties) {
+            values.CustomProperties = []
+        }
+        values.CustomProperties.push(pin)
+    })
+    static #inlinedArrayEntryGrammar = Parsimmon.seq(
+        Parsimmon.alt(
+            Grammar.symbolQuoted.map(v => [v, true]),
+            Grammar.symbol.map(v => [v, false]),
+        ),
+        Grammar.regexMap(
+            new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
+            v => Number(v[1])
         )
-            .chain(
-                /** @param {[[String, Boolean], Number]} param */
-                ([[symbol, quoted], index]) =>
-                    Grammar.grammarFor(this.attributes[symbol])
-                        .map(currentValue =>
-                            values => {
-                                (values[symbol] ??= [])[index] = currentValue
-                                Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true)
-                                if (!this.attributes[symbol]?.inlined) {
-                                    if (!values.attributes) {
-                                        IEntity.defineAttributes(values, {})
-                                    }
-                                    Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+    )
+        .chain(
+            /** @param {[[String, Boolean], Number]} param */
+            ([[symbol, quoted], index]) =>
+                Grammar.grammarFor(this.attributes[symbol])
+                    .map(currentValue =>
+                        values => {
+                            (values[symbol] ??= [])[index] = currentValue
+                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true)
+                            if (!this.attributes[symbol]?.inlined) {
+                                if (!values.attributes) {
+                                    IEntity.defineAttributes(values, {})
                                 }
+                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
                             }
-                        )
-            )
-    }
-
-    static subObjectGrammar() {
-        return Parsimmon.lazy(() =>
-            this.objectGrammar()
-                .map(object =>
-                    values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
-                )
+                        }
+                    )
         )
-    }
-
-    static objectGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.regex(/Begin\s+Object/),
-            Parsimmon.seq(
-                Parsimmon.whitespace,
-                Parsimmon.alt(
-                    this.customPropertyGrammar(),
-                    Grammar.createAttributeGrammar(this),
-                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
-                    ),
-                    this.inlinedArrayEntryGrammar(),
-                    this.subObjectGrammar()
-                )
+    static #subObjectGrammar = Parsimmon.lazy(() =>
+        this.#objectGrammar
+            .map(object =>
+                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
             )
-                .map(([_0, entry]) => entry)
-                .many(),
-            Parsimmon.regex(/\s+End\s+Object/),
+    )
+    static #objectGrammar = Parsimmon.seq(
+        Parsimmon.regex(/Begin\s+Object/),
+        Parsimmon.seq(
+            Parsimmon.whitespace,
+            Parsimmon.alt(
+                this.#customPropertyGrammar,
+                Grammar.createAttributeGrammar(this),
+                Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                    Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                ),
+                this.#inlinedArrayEntryGrammar,
+                this.#subObjectGrammar
+            )
         )
-            .map(([_0, attributes, _2]) => {
-                let values = {}
-                attributes.forEach(attributeSetter => attributeSetter(values))
-                return new this(values)
-            })
-    }
+            .map(([_0, entry]) => entry)
+            .many(),
+        Parsimmon.regex(/\s+End\s+Object/),
+    )
+        .map(([_0, attributes, _2]) => {
+            let values = {}
+            attributes.forEach(attributeSetter => attributeSetter(values))
+            return new this(values)
+        })
 
     /** @param {String} value */
     static keyName(value) {
@@ -414,16 +401,16 @@ export default class ObjectEntity extends IEntity {
     }
 
     static getGrammar() {
-        return this.objectGrammar()
+        return this.#objectGrammar
     }
 
     static getMultipleObjectsGrammar() {
         return Parsimmon.seq(
             Parsimmon.optWhitespace,
-            this.objectGrammar(),
+            this.#objectGrammar,
             Parsimmon.seq(
                 Parsimmon.whitespace,
-                this.objectGrammar(),
+                this.#objectGrammar,
             )
                 .map(([_0, object]) => object)
                 .many(),

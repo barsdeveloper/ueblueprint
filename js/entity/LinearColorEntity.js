@@ -44,10 +44,10 @@ export default class LinearColorEntity extends IEntity {
             ignored: true,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.createEntityGrammar(LinearColorEntity, false)
 
     /** @param {Number} x */
     static linearToSRGB(x) {
@@ -84,7 +84,7 @@ export default class LinearColorEntity extends IEntity {
     }
 
     static getGrammar() {
-        return Grammar.createEntityGrammar(LinearColorEntity, false)
+        return LinearColorEntity.#grammar
     }
 
     static getLinearColorFromHexGrammar() {

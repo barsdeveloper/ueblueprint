@@ -10,13 +10,13 @@ export default class Integer64Entity extends IEntity {
             predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.bigInt.map(v => new Integer64Entity(v))
 
     static getGrammar() {
-        return Grammar.bigInt.map(v => new Integer64Entity(v))
+        return Integer64Entity.#grammar
     }
 
     /** @param {BigInt | Number} value */

@@ -18,13 +18,13 @@ export default class VectorEntity extends IEntity {
             expected: true,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.createEntityGrammar(VectorEntity, false)
 
     static getGrammar() {
-        return Grammar.createEntityGrammar(VectorEntity, false)
+        return VectorEntity.#grammar
     }
 
     constructor(values) {

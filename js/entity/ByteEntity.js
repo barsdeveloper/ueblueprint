@@ -10,13 +10,13 @@ export default class ByteEntity extends IntegerEntity {
             predicate: v => v % 1 == 0 && v >= 0 && v < 1 << 8,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.byteNumber.map(v => new ByteEntity(v))
 
     static getGrammar() {
-        return Grammar.byteNumber.map(v => new ByteEntity(v))
+        return ByteEntity.#grammar
     }
 
     constructor(values = 0) {

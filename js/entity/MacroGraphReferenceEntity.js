@@ -20,13 +20,13 @@ export default class MacroGraphReferenceEntity extends IEntity {
             default: () => new GuidEntity(),
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.createEntityGrammar(MacroGraphReferenceEntity)
 
     static getGrammar() {
-        return Grammar.createEntityGrammar(MacroGraphReferenceEntity)
+        return MacroGraphReferenceEntity.#grammar
     }
 
     constructor(values) {

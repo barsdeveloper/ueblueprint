@@ -14,13 +14,13 @@ export default class Vector2DEntity extends IEntity {
             expected: true,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.createEntityGrammar(Vector2DEntity, false)
 
     static getGrammar() {
-        return Grammar.createEntityGrammar(Vector2DEntity, false)
+        return Vector2DEntity.#grammar
     }
 
     constructor(values) {

@@ -14,22 +14,22 @@ export default class PinReferenceEntity extends IEntity {
             type: GuidEntity,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Parsimmon.seq(
+        PathSymbolEntity.getGrammar(),
+        Parsimmon.whitespace,
+        GuidEntity.getGrammar()
+    ).map(
+        ([objectName, _1, pinGuid]) => new PinReferenceEntity({
+            objectName: objectName,
+            pinGuid: pinGuid,
+        })
+    )
 
     static getGrammar() {
-        return Parsimmon.seq(
-            PathSymbolEntity.getGrammar(),
-            Parsimmon.whitespace,
-            GuidEntity.getGrammar()
-        ).map(
-            ([objectName, _1, pinGuid]) => new PinReferenceEntity({
-                objectName: objectName,
-                pinGuid: pinGuid,
-            })
-        )
+        return PinReferenceEntity.#grammar
     }
 
     constructor(values) {

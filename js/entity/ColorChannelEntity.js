@@ -9,13 +9,13 @@ export default class ColorChannelEntity extends IEntity {
             default: 0,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.number.map(value => new ColorChannelEntity(value))
 
     static getGrammar() {
-        return Grammar.number.map(value => new ColorChannelEntity(value))
+        return ColorChannelEntity.#grammar
     }
 
     constructor(values = 0) {

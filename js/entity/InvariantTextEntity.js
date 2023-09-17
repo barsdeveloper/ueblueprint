@@ -11,22 +11,22 @@ export default class InvariantTextEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Parsimmon.alt(
+        Parsimmon.seq(
+            Parsimmon.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*\\(`)),
+            Grammar.grammarFor(InvariantTextEntity.attributes.value),
+            Parsimmon.regex(/\s*\)/)
+        )
+            .map(([_0, value, _2]) => value),
+        Parsimmon.regex(new RegExp(InvariantTextEntity.lookbehind)) // InvariantTextEntity can not have arguments
+            .map(() => "")
+    ).map(value => new InvariantTextEntity(value))
 
     static getGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Parsimmon.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*\\(`)),
-                Grammar.grammarFor(InvariantTextEntity.attributes.value),
-                Parsimmon.regex(/\s*\)/)
-            )
-                .map(([_0, value, _2]) => value),
-            Parsimmon.regex(new RegExp(InvariantTextEntity.lookbehind)) // InvariantTextEntity can not have arguments
-                .map(() => "")
-        ).map(value => new InvariantTextEntity(value))
+        return InvariantTextEntity.#grammar
     }
 
     constructor(values) {

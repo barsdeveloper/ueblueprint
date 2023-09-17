@@ -10,13 +10,13 @@ export default class IntegerEntity extends IEntity {
             predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.integer.map(v => new IntegerEntity(v))
 
     static getGrammar() {
-        return Grammar.integer.map(v => new IntegerEntity(v))
+        return IntegerEntity.#grammar
     }
 
     constructor(value = 0) {

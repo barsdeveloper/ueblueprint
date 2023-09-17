@@ -30,18 +30,18 @@ export default class ObjectReferenceEntity extends IEntity {
     static pathReferenceGrammar = Grammar.path.map(path =>
         new ObjectReferenceEntity({ type: "", path: path })
     )
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Parsimmon.alt(
+        ObjectReferenceEntity.noneReferenceGrammar,
+        ObjectReferenceEntity.fullReferenceGrammar,
+        ObjectReferenceEntity.typeReferenceGrammar,
+        ObjectReferenceEntity.pathReferenceGrammar,
+    )
 
     static getGrammar() {
-        return Parsimmon.alt(
-            ObjectReferenceEntity.noneReferenceGrammar,
-            ObjectReferenceEntity.fullReferenceGrammar,
-            ObjectReferenceEntity.typeReferenceGrammar,
-            ObjectReferenceEntity.pathReferenceGrammar,
-        )
+        return ObjectReferenceEntity.#grammar
     }
 
     constructor(values = {}) {

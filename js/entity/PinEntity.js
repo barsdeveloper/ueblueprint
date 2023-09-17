@@ -128,13 +128,13 @@ export default class PinEntity extends IEntity {
             default: false,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.createEntityGrammar(PinEntity)
 
     static getGrammar() {
-        return Grammar.createEntityGrammar(PinEntity)
+        return PinEntity.#grammar
     }
 
     constructor(values = {}, suppressWarns = false) {

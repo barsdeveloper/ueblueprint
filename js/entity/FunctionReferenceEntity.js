@@ -17,13 +17,13 @@ export default class FunctionReferenceEntity extends IEntity {
             type: GuidEntity,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.createEntityGrammar(FunctionReferenceEntity)
 
     static getGrammar() {
-        return Grammar.createEntityGrammar(FunctionReferenceEntity)
+        return FunctionReferenceEntity.#grammar
     }
 
     constructor(values) {

@@ -9,18 +9,17 @@ export default class IdentifierEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
-
     static attributeConverter = {
         fromAttribute: (value, type) => new IdentifierEntity(value),
         toAttribute: (value, type) => value.toString()
     }
+    static #grammar = Grammar.symbol.map(v => new IdentifierEntity(v))
 
     static getGrammar() {
-        return Grammar.symbol.map(v => new IdentifierEntity(v))
+        return IdentifierEntity.#grammar
     }
 
     constructor(values) {

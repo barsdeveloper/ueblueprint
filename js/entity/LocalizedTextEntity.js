@@ -17,28 +17,28 @@ export default class LocalizedTextEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static #grammar = Grammar.regexMap(
+        new RegExp(
+            String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
+            + String.raw`(?:,\s+)?`
+            + String.raw`\)`,
+            "m"
+        ),
+        matchResult => new LocalizedTextEntity({
+            namespace: Utility.unescapeString(matchResult[1]),
+            key: Utility.unescapeString(matchResult[2]),
+            value: Utility.unescapeString(matchResult[3]),
+        })
+    )
 
     static getGrammar() {
-        return Grammar.regexMap(
-            new RegExp(
-                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-                + String.raw`(?:,\s+)?`
-                + String.raw`\)`,
-                "m"
-            ),
-            matchResult => new LocalizedTextEntity({
-                namespace: Utility.unescapeString(matchResult[1]),
-                key: Utility.unescapeString(matchResult[2]),
-                value: Utility.unescapeString(matchResult[3]),
-            })
-        )
+        return LocalizedTextEntity.#grammar
     }
 
     constructor(values) {
