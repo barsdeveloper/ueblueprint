@@ -25,7 +25,7 @@ export default class UnknownKeysEntity extends IEntity {
             ),
             Grammar.attributeName
                 .skip(Grammar.equalSeparation)
-                .chain((attributeName) =>
+                .chain(attributeName =>
                     Grammar.unknownValue
                         .map(attributeValue =>
                             values => values[attributeName] = attributeValue
@@ -40,7 +40,7 @@ export default class UnknownKeysEntity extends IEntity {
                     values.lookbehind = lookbehind
                 }
                 attributes.forEach(attributeSetter => attributeSetter(values))
-                return new UnknownKeysEntity(values)
+                return new this(values)
             })
     }
 

@@ -581,7 +581,9 @@ const P$1 = Parsimmon;
 
 class Serializable {
     static getGrammar() {
-        return /** @type {Parsimmon.Parser<Serializable>} */(P$1.fail("Unimplemented getGrammar() method in " + this.name))
+        return /** @type {Parsimmon.Parser<Serializable>} */(P$1.fail(
+            "Unimplemented getGrammar() method in " + this.name)
+        )
     }
 }
 
@@ -11957,7 +11959,7 @@ class UnknownKeysEntity extends IEntity {
                     values.lookbehind = lookbehind;
                 }
                 attributes.forEach(attributeSetter => attributeSetter(values));
-                return new UnknownKeysEntity(values)
+                return new this(values)
             })
     }
 

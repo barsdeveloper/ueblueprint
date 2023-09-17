@@ -52,7 +52,7 @@ describe("Serializer", () => {
                 "InRangeMin"
             )`)
                 .toString()
-    
+
         ).to.be.equal(`If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\nAttribute type is "float" and its exact name is "InRangeMin"`))
     })
 
