@@ -4,6 +4,7 @@ import Configuration from "../Configuration.js"
 import EnumDisplayValueEntity from "./EnumDisplayValueEntity.js"
 import EnumEntity from "./EnumEntity.js"
 import FormatTextEntity from "./FormatTextEntity.js"
+import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 import Integer64Entity from "./Integer64Entity.js"
@@ -130,6 +131,10 @@ export default class PinEntity extends IEntity {
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Grammar.createEntityGrammar(PinEntity)
     }
 
     constructor(values = {}, suppressWarns = false) {

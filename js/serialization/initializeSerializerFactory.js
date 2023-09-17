@@ -5,6 +5,7 @@ import EnumDisplayValueEntity from "../entity/EnumDisplayValueEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity.js"
+import Grammar from "./Grammar.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import IdentifierEntity from "../entity/IdentifierEntity.js"
 import Integer64Entity from "../entity/Integer64Entity.js"
@@ -18,6 +19,7 @@ import MirroredEntity from "../entity/MirroredEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity.js"
 import ObjectSerializer from "./ObjectSerializer.js"
+import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
@@ -30,6 +32,7 @@ import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVector
 import SymbolEntity from "../entity/SymbolEntity.js"
 import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
 import ToStringSerializer from "./ToStringSerializer.js"
+import Union from "../entity/Union.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
@@ -37,6 +40,30 @@ import Vector2DEntity from "../entity/Vector2DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
 
 /** @typedef {import("../entity/IEntity.js").AnySimpleValue} AnySimpleValue */
+
+Grammar.unknownValue =
+    Parsimmon.alt(
+        // Remember to keep the order, otherwise parsing might fail
+        Grammar.boolean,
+        GuidEntity.getGrammar(),
+        ObjectReferenceEntity.noneReferenceGrammar,
+        Grammar.null,
+        Grammar.number,
+        Grammar.string,
+        ObjectReferenceEntity.fullReferenceGrammar,
+        LocalizedTextEntity.getGrammar(),
+        InvariantTextEntity.getGrammar(),
+        FormatTextEntity.getGrammar(),
+        PinReferenceEntity.getGrammar(),
+        VectorEntity.getGrammar(),
+        RotatorEntity.getGrammar(),
+        LinearColorEntity.getGrammar(),
+        Vector2DEntity.getGrammar(),
+        UnknownKeysEntity.getGrammar(),
+        SymbolEntity.getGrammar(),
+        Grammar.grammarFor(undefined, [PinReferenceEntity]),
+        Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
+    )
 
 export default function initializeSerializerFactory() {
 

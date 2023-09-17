@@ -310,7 +310,7 @@ describe("Entity initialization", () => {
             initializeSerializerFactory()
             SerializerFactory.registerSerializer(
                 Entity5,
-                new ObjectSerializer()
+                new ObjectSerializer(Entity5)
             )
             SerializerFactory.registerSerializer(
                 EntityF,

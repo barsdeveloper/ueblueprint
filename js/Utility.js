@@ -246,9 +246,9 @@ export default class Utility {
     }
 
     /**
-     * @template {AnyValue} T
-     * @param {AnyValue} value
-     * @param {AnyValueConstructor<T>} type
+     * @template {new (...args: any) => any} C
+     * @param {C} type
+     * @returns {value is InstanceType<C>}
      */
     static isValueOfType(value, type, acceptNull = false) {
         if (type instanceof MirroredEntity) {

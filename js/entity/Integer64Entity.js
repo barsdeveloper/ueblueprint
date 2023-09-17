@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class Integer64Entity extends IEntity {
@@ -12,6 +13,10 @@ export default class Integer64Entity extends IEntity {
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Grammar.bigInt.map(v => new Integer64Entity(v))
     }
 
     /** @param {BigInt | Number} value */

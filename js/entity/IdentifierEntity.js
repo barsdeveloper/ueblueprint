@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class IdentifierEntity extends IEntity {
@@ -16,6 +17,10 @@ export default class IdentifierEntity extends IEntity {
     static attributeConverter = {
         fromAttribute: (value, type) => new IdentifierEntity(value),
         toAttribute: (value, type) => value.toString()
+    }
+
+    static getGrammar() {
+        return Grammar.symbol.map(v => new IdentifierEntity(v))
     }
 
     constructor(values) {

@@ -1,4 +1,5 @@
 import IntegerEntity from "./IntegerEntity.js"
+import Grammar from "../serialization/Grammar.js"
 
 export default class ByteEntity extends IntegerEntity {
 
@@ -12,6 +13,10 @@ export default class ByteEntity extends IntegerEntity {
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Grammar.byteNumber.map(v => new ByteEntity(v))
     }
 
     constructor(values = 0) {

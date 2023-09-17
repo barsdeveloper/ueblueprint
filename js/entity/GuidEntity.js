@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class GuidEntity extends IEntity {
@@ -23,6 +24,10 @@ export default class GuidEntity extends IEntity {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8)
         })
         return new GuidEntity({ value: guid })
+    }
+
+    static getGrammar() {
+        return Grammar.guid.map(v => new GuidEntity(v))
     }
 
     constructor(values) {

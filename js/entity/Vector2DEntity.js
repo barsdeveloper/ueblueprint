@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class Vector2DEntity extends IEntity {
@@ -16,6 +17,10 @@ export default class Vector2DEntity extends IEntity {
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Grammar.createEntityGrammar(Vector2DEntity, false)
     }
 
     constructor(values) {

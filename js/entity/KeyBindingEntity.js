@@ -1,5 +1,7 @@
+import Grammar from "../serialization/Grammar.js"
 import IdentifierEntity from "./IdentifierEntity.js"
 import IEntity from "./IEntity.js"
+import Parsimmon from "parsimmon"
 
 export default class KeyBindingEntity extends IEntity {
 
@@ -27,6 +29,15 @@ export default class KeyBindingEntity extends IEntity {
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Parsimmon.alt(
+            IdentifierEntity.getGrammar().map(identifier => new KeyBindingEntity({
+                Key: identifier
+            })),
+            Grammar.createEntityGrammar(KeyBindingEntity)
+        )
     }
 
     constructor(values = {}) {

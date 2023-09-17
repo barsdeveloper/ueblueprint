@@ -1,5 +1,6 @@
 import ComputedType from "./ComputedType.js"
 import MirroredEntity from "./MirroredEntity.js"
+import Serializable from "../serialization/Serializable.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
 import Union from "./Union.js"
 import Utility from "../Utility.js"
@@ -42,7 +43,7 @@ import Utility from "../Utility.js"
  * }} TypeGetter
  */
 
-export default class IEntity {
+export default class IEntity extends Serializable {
 
     /** @type {String | Union<String[]>} */
     static lookbehind = ""
@@ -62,6 +63,7 @@ export default class IEntity {
     }
 
     constructor(values = {}, suppressWarns = false) {
+        super()
         /** @type {String} */ this.lookbehind
         const Self = /** @type {EntityConstructor} */(this.constructor)
         let attributes = Self.attributes
@@ -219,6 +221,11 @@ export default class IEntity {
         }
     }
 
+    /**
+     * @template {new (...args: any) => any} C
+     * @param {C} type
+     * @returns {value is InstanceType<C>}
+     */
     static isValueOfType(value, type) {
         return value != null && (value instanceof type || value.constructor === type)
     }

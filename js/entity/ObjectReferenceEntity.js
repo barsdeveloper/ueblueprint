@@ -1,6 +1,8 @@
 import Configuration from "../Configuration.js"
-import Utility from "../Utility.js"
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
+import Parsimmon from "parsimmon"
+import Utility from "../Utility.js"
 
 export default class ObjectReferenceEntity extends IEntity {
 
@@ -13,9 +15,33 @@ export default class ObjectReferenceEntity extends IEntity {
             default: "",
         },
     }
+    static noneReferenceGrammar = Parsimmon.string("None").map(() => ObjectReferenceEntity.createNoneInstance())
+    static fullReferenceGrammar = Parsimmon.seq(
+        Grammar.typeReference,
+        Parsimmon.regex(Grammar.Regex.InlineOptWhitespace),
+        Grammar.pathQuotes
+    )
+        .map(([type, _2, path]) =>
+            new ObjectReferenceEntity({ type: type, path: path })
+        )
+    static typeReferenceGrammar = Grammar.typeReference.map(v =>
+        new ObjectReferenceEntity({ type: v, path: "" })
+    )
+    static pathReferenceGrammar = Grammar.path.map(path =>
+        new ObjectReferenceEntity({ type: "", path: path })
+    )
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Parsimmon.alt(
+            ObjectReferenceEntity.noneReferenceGrammar,
+            ObjectReferenceEntity.fullReferenceGrammar,
+            ObjectReferenceEntity.typeReferenceGrammar,
+            ObjectReferenceEntity.pathReferenceGrammar,
+        )
     }
 
     constructor(values = {}) {

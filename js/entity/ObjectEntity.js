@@ -1,5 +1,6 @@
 import Configuration from "../Configuration.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
+import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "./GuidEntity.js"
 import IdentifierEntity from "./IdentifierEntity.js"
 import IEntity from "./IEntity.js"
@@ -8,6 +9,7 @@ import LinearColorEntity from "./LinearColorEntity.js"
 import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity.js"
 import MirroredEntity from "./MirroredEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
+import Parsimmon from "parsimmon"
 import PinEntity from "./PinEntity.js"
 import SVGIcon from "../SVGIcon.js"
 import SymbolEntity from "./SymbolEntity.js"
@@ -19,7 +21,6 @@ import VariableReferenceEntity from "./VariableReferenceEntity.js"
 /** @typedef {import("./VectorEntity.js").default} VectorEntity */
 
 export default class ObjectEntity extends IEntity {
-
     static attributes = {
         ...super.attributes,
         Class: {
@@ -278,6 +279,70 @@ export default class ObjectEntity extends IEntity {
         },
     }
 
+    static #customPropertyGrammar = Parsimmon.seq(
+        Parsimmon.regex(/CustomProperties\s+/),
+        Grammar.grammarFor(undefined, ObjectEntity.attributes.CustomProperties.type[0]),
+    ).map(([_0, pin]) => values => {
+        if (!values.CustomProperties) {
+            values.CustomProperties = []
+        }
+        values.CustomProperties.push(pin)
+    })
+    static #inlinedArrayEntryGrammar = Parsimmon.seq(
+        Parsimmon.alt(
+            Grammar.symbolQuoted.map(v => [v, true]),
+            Grammar.symbol.map(v => [v, false]),
+        ),
+        Grammar.regexMap(
+            new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
+            v => Number(v[1])
+        )
+    )
+        .chain(
+            /** @param {[[String, Boolean], Number]} param */
+            ([[symbol, quoted], index]) =>
+                Grammar.grammarFor(ObjectEntity.attributes[symbol])
+                    .map(currentValue =>
+                        values => {
+                            (values[symbol] ??= [])[index] = currentValue
+                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true)
+                            if (!ObjectEntity.attributes[symbol]?.inlined) {
+                                if (!values.attributes) {
+                                    IEntity.defineAttributes(values, {})
+                                }
+                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+                            }
+                        }
+                    )
+        )
+    static #subObjectGrammar = Parsimmon.lazy(() =>
+        ObjectEntity.#objectGrammar
+            .map(object =>
+                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+            )
+    )
+    static #objectGrammar = Parsimmon.seq(
+        Parsimmon.regex(/Begin\s+Object/),
+        Parsimmon.seq(
+            Parsimmon.whitespace,
+            Parsimmon.alt(
+                ObjectEntity.#customPropertyGrammar,
+                Grammar.createAttributeGrammar(ObjectEntity),
+                Grammar.createAttributeGrammar(ObjectEntity, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                    Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                ),
+                ObjectEntity.#inlinedArrayEntryGrammar,
+                ObjectEntity.#subObjectGrammar
+            )
+        )
+            .map(([_0, entry]) => entry)
+            .many(),
+        Parsimmon.regex(/\s+End\s+Object/),
+    ).map(([_0, attributes, _2]) => {
+        let values = {}
+        attributes.forEach(attributeSetter => attributeSetter(values))
+        return new ObjectEntity(values)
+    })
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
     static #keyName = {
@@ -330,6 +395,24 @@ export default class ObjectEntity extends IEntity {
                 return "Num " + result
             }
         }
+    }
+
+    static getGrammar() {
+        return ObjectEntity.#objectGrammar
+    }
+
+    static getMultipleObjectsGrammar() {
+        return Parsimmon.seq(
+            Parsimmon.optWhitespace,
+            ObjectEntity.#objectGrammar,
+            Parsimmon.seq(
+                Parsimmon.whitespace,
+                ObjectEntity.#objectGrammar,
+            )
+                .map(([_0, object]) => object)
+                .many(),
+            Parsimmon.optWhitespace
+        ).map(([_0, first, remaining, _4]) => [first, ...remaining])
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -1043,8 +1126,9 @@ export default class ObjectEntity extends IEntity {
             return undefined
         }
         switch (this.getType()) {
-            case Configuration.paths.asyncAction:
             case Configuration.paths.addDelegate:
+            case Configuration.paths.asyncAction:
+            case Configuration.paths.callDelegate:
             case Configuration.paths.createDelegate:
             case Configuration.paths.functionEntry:
             case Configuration.paths.functionResult:

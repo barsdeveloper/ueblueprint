@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class RotatorEntity extends IEntity {
@@ -20,6 +21,10 @@ export default class RotatorEntity extends IEntity {
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Grammar.createEntityGrammar(RotatorEntity, false)
     }
 
     constructor(values) {

@@ -97,6 +97,7 @@ export default class Configuration {
         blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
         blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
+        callDelegate: "/Script/BlueprintGraph.K2Node_CallDelegate",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
@@ -184,7 +185,6 @@ export default class Configuration {
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
-
     }
     static pinColor = {
         [this.paths.rotator]: css`157, 177, 251`,

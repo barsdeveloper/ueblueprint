@@ -1,4 +1,5 @@
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PathSymbolEntity from "./PathSymbolEntity.js"
@@ -47,6 +48,10 @@ export default class PinTypeEntity extends IEntity {
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Grammar.createEntityGrammar(PinTypeEntity)
     }
 
     constructor(values = {}, suppressWarns = false) {

@@ -1,5 +1,6 @@
-import IEntity from "./IEntity.js"
+import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "./GuidEntity.js"
+import IEntity from "./IEntity.js"
 
 export default class VariableReferenceEntity extends IEntity {
 
@@ -21,6 +22,10 @@ export default class VariableReferenceEntity extends IEntity {
 
     static {
         this.cleanupAttributes(this.attributes)
+    }
+
+    static getGrammar() {
+        return Grammar.createEntityGrammar(VariableReferenceEntity)
     }
 
     constructor(values) {
