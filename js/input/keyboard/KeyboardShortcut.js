@@ -1,5 +1,4 @@
 import Configuration from "../../Configuration.js"
-import Grammar from "../../serialization/Grammar.js"
 import IInput from "../IInput.js"
 import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 

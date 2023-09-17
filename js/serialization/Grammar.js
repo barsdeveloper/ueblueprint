@@ -2,9 +2,9 @@ import Configuration from "../Configuration.js"
 import IEntity from "../entity/IEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
 import Parsimmon from "parsimmon"
+import Serializable from "./Serializable.js"
 import Union from "../entity/Union.js"
 import Utility from "../Utility.js"
-import Serializable from "./Serializable.js"
 
 /**
  * @typedef {import ("../entity/IEntity").AnyValue} AnyValue
