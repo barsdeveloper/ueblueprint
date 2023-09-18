@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class Integer64Entity extends IEntity {
@@ -9,9 +10,13 @@ export default class Integer64Entity extends IEntity {
             predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.bigInt.map(v => new this(v))
     }
 
     /** @param {BigInt | Number} value */

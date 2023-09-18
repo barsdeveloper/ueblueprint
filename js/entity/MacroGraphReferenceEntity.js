@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
@@ -19,9 +20,13 @@ export default class MacroGraphReferenceEntity extends IEntity {
             default: () => new GuidEntity(),
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {

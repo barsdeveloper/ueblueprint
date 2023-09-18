@@ -1,5 +1,6 @@
-import IEntity from "./IEntity.js"
+import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "./GuidEntity.js"
+import IEntity from "./IEntity.js"
 
 export default class VariableReferenceEntity extends IEntity {
 
@@ -18,9 +19,13 @@ export default class VariableReferenceEntity extends IEntity {
             type: Boolean,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {

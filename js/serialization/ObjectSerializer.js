@@ -7,8 +7,8 @@ import SerializerFactory from "./SerializerFactory.js"
 
 export default class ObjectSerializer extends Serializer {
 
-    constructor() {
-        super(ObjectEntity, undefined, "\n", true, undefined, Serializer.same)
+    constructor(entityType = ObjectEntity) {
+        super(entityType, undefined, "\n", true, undefined, Serializer.same)
     }
 
     showProperty(entity, key) {
@@ -31,7 +31,7 @@ export default class ObjectSerializer extends Serializer {
 
     /** @param {String} value */
     doRead(value) {
-        const parseResult = Grammar.objectEntity.parse(value)
+        const parseResult = Grammar.grammarFor(undefined, this.entityType).parse(value)
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }
@@ -43,7 +43,7 @@ export default class ObjectSerializer extends Serializer {
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
-        const parseResult = Grammar.multipleObject.parse(value)
+        const parseResult = ObjectEntity.getMultipleObjectsGrammar().parse(value)
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }

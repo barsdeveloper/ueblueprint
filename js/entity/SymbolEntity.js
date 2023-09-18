@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class SymbolEntity extends IEntity {
@@ -8,9 +9,13 @@ export default class SymbolEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
     }
 
     /** @param {String | Object} values */

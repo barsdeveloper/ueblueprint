@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 import Utility from "../Utility.js"
 
@@ -16,9 +17,28 @@ export default class LocalizedTextEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.regexMap(
+            new RegExp(
+                String.raw`${this.lookbehind}\s*\(`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
+                + String.raw`(?:,\s+)?`
+                + String.raw`\)`,
+                "m"
+            ),
+            matchResult => new this({
+                namespace: Utility.unescapeString(matchResult[1]),
+                key: Utility.unescapeString(matchResult[2]),
+                value: Utility.unescapeString(matchResult[3]),
+            })
+        )
     }
 
     constructor(values) {

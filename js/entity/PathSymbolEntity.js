@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class PathSymbolEntity extends IEntity {
@@ -8,9 +9,13 @@ export default class PathSymbolEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
+    }
+    static #grammar = Grammar.symbol.map(v => new PathSymbolEntity(v))
+
+    static createGrammar() {
+        return PathSymbolEntity.#grammar
     }
 
     constructor(values) {

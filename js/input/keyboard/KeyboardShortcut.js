@@ -1,5 +1,4 @@
 import Configuration from "../../Configuration.js"
-import Grammar from "../../serialization/Grammar.js"
 import IInput from "../IInput.js"
 import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 
@@ -44,7 +43,7 @@ export default class KeyboardShortcut extends IInput {
                 return v
             }
             if (typeof v === "string") {
-                const parsed = Grammar.keyBindingEntity.parse(v)
+                const parsed = KeyBindingEntity.createGrammar().parse(v)
                 if (parsed.status) {
                     return parsed.value
                 }

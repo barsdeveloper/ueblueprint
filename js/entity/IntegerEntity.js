@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class IntegerEntity extends IEntity {
@@ -9,9 +10,13 @@ export default class IntegerEntity extends IEntity {
             predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.integer.map(v => new this(v))
     }
 
     constructor(value = 0) {

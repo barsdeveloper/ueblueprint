@@ -16,7 +16,7 @@ const t$2=window,e$3=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.native
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$2="$lit$",n$2=`lit$${(Math.random()+"").slice(9)}$`,l$1="?"+n$2,h=`<${l$1}>`,r=document,u=()=>r.createComment(""),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,c=Array.isArray,v=t=>c(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),a="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${a}(?:([^\\s"'>=/]+)(${a}*=${a}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,w=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=w(1),T=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),E=new WeakMap,C=r.createTreeWalker(r,129,null,!1);function P$1(t,i){if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e$1?e$1.createHTML(i):i}const V=(t,i)=>{const s=t.length-1,e=[];let l,r=2===i?"<svg>":"",u=f;for(let i=0;i<s;i++){const s=t[i];let d,c,v=-1,a=0;for(;a<s.length&&(u.lastIndex=a,c=u.exec(s),null!==c);)a=u.lastIndex,u===f?"!--"===c[1]?u=_:void 0!==c[1]?u=m:void 0!==c[2]?(y.test(c[2])&&(l=RegExp("</"+c[2],"g")),u=p):void 0!==c[3]&&(u=p):u===p?">"===c[0]?(u=null!=l?l:f,v=-1):void 0===c[1]?v=-2:(v=u.lastIndex-c[2].length,d=c[1],u=void 0===c[3]?p:'"'===c[3]?$:g):u===$||u===g?u=p:u===_||u===m?u=f:(u=p,l=void 0);const w=u===p&&t[i+1].startsWith("/>")?" ":"";r+=u===f?s+h:v>=0?(e.push(d),s.slice(0,v)+o$2+s.slice(v)+n$2+w):s+n$2+(-2===v?(e.push(void 0),i):w);}return [P$1(t,r+(t[s]||"<?>")+(2===i?"</svg>":"")),e]};class N{constructor({strings:t,_$litType$:i},e){let h;this.parts=[];let r=0,d=0;const c=t.length-1,v=this.parts,[a,f]=V(t,i);if(this.el=N.createElement(a,e),C.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(h=C.nextNode())&&v.length<c;){if(1===h.nodeType){if(h.hasAttributes()){const t=[];for(const i of h.getAttributeNames())if(i.endsWith(o$2)||i.startsWith(n$2)){const s=f[d++];if(t.push(i),void 0!==s){const t=h.getAttribute(s.toLowerCase()+o$2).split(n$2),i=/([.?@])?(.*)/.exec(s);v.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?H:"?"===i[1]?L:"@"===i[1]?z:k});}else v.push({type:6,index:r});}for(const i of t)h.removeAttribute(i);}if(y.test(h.tagName)){const t=h.textContent.split(n$2),i=t.length-1;if(i>0){h.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)h.append(t[s],u()),C.nextNode(),v.push({type:2,index:++r});h.append(t[i],u());}}}else if(8===h.nodeType)if(h.data===l$1)v.push({type:2,index:r});else {let t=-1;for(;-1!==(t=h.data.indexOf(n$2,t+1));)v.push({type:7,index:r}),t+=n$2.length-1;}r++;}}static createElement(t,i){const s=r.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){var o,n,l,h;if(i===T)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=S(t,r._$AS(t,i.values),r,e)),i}class M{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:r).importNode(s,!0);C.currentNode=o;let n=C.nextNode(),l=0,h=0,u=e[0];for(;void 0!==u;){if(l===u.index){let i;2===u.type?i=new R(n,n.nextSibling,this,t):1===u.type?i=new u.ctor(n,u.name,u.strings,this,t):6===u.type&&(i=new Z(n,this,t)),this._$AV.push(i),u=e[++h];}l!==(null==u?void 0:u.index)&&(n=C.nextNode(),l++);}return C.currentNode=r,o}v(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class R{constructor(t,i,s,e){var o;this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cp=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cp}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===(null==t?void 0:t.nodeType)&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=S(this,t,i),d(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.g(t):void 0!==t.nodeType?this.$(t):v(t)?this.T(t):this._(t);}k(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}$(t){this._$AH!==t&&(this._$AR(),this._$AH=this.k(t));}_(t){this._$AH!==A&&d(this._$AH)?this._$AA.nextSibling.data=t:this.$(r.createTextNode(t)),this._$AH=t;}g(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=N.createElement(P$1(e.h,e.h[0]),this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.v(s);else {const t=new M(o,this),i=t.u(this.options);t.v(s),this.$(i),this._$AH=t;}}_$AC(t){let i=E.get(t.strings);return void 0===i&&E.set(t.strings,i=new N(t)),i}T(t){c(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new R(this.k(u()),this.k(u()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cp=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class k{constructor(t,i,s,e,o){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=S(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==T,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=S(this,e[s+l],i,l),h===T&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===A?t=A:t!==A&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class H extends k{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===A?void 0:t;}}const I=s$1?s$1.emptyScript:"";class L extends k{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==A?this.element.setAttribute(this.name,I):this.element.removeAttribute(this.name);}}class z extends k{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=S(this,t,i,0))&&void 0!==s?s:A)===T)return;const e=this._$AH,o=t===A&&e!==A||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==A&&(e===A||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){S(this,t);}}const B=i$2.litHtmlPolyfillSupport;null==B||B(N,R),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.8.0");const D=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new R(i.insertBefore(u(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
+var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$2="$lit$",n$2=`lit$${(Math.random()+"").slice(9)}$`,l$1="?"+n$2,h=`<${l$1}>`,r=document,u=()=>r.createComment(""),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,c=Array.isArray,v=t=>c(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),a="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${a}(?:([^\\s"'>=/]+)(${a}*=${a}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,w=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=w(1),T=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),E=new WeakMap,C=r.createTreeWalker(r,129,null,!1);function P$2(t,i){if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e$1?e$1.createHTML(i):i}const V=(t,i)=>{const s=t.length-1,e=[];let l,r=2===i?"<svg>":"",u=f;for(let i=0;i<s;i++){const s=t[i];let d,c,v=-1,a=0;for(;a<s.length&&(u.lastIndex=a,c=u.exec(s),null!==c);)a=u.lastIndex,u===f?"!--"===c[1]?u=_:void 0!==c[1]?u=m:void 0!==c[2]?(y.test(c[2])&&(l=RegExp("</"+c[2],"g")),u=p):void 0!==c[3]&&(u=p):u===p?">"===c[0]?(u=null!=l?l:f,v=-1):void 0===c[1]?v=-2:(v=u.lastIndex-c[2].length,d=c[1],u=void 0===c[3]?p:'"'===c[3]?$:g):u===$||u===g?u=p:u===_||u===m?u=f:(u=p,l=void 0);const w=u===p&&t[i+1].startsWith("/>")?" ":"";r+=u===f?s+h:v>=0?(e.push(d),s.slice(0,v)+o$2+s.slice(v)+n$2+w):s+n$2+(-2===v?(e.push(void 0),i):w);}return [P$2(t,r+(t[s]||"<?>")+(2===i?"</svg>":"")),e]};class N{constructor({strings:t,_$litType$:i},e){let h;this.parts=[];let r=0,d=0;const c=t.length-1,v=this.parts,[a,f]=V(t,i);if(this.el=N.createElement(a,e),C.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(h=C.nextNode())&&v.length<c;){if(1===h.nodeType){if(h.hasAttributes()){const t=[];for(const i of h.getAttributeNames())if(i.endsWith(o$2)||i.startsWith(n$2)){const s=f[d++];if(t.push(i),void 0!==s){const t=h.getAttribute(s.toLowerCase()+o$2).split(n$2),i=/([.?@])?(.*)/.exec(s);v.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?H:"?"===i[1]?L:"@"===i[1]?z:k});}else v.push({type:6,index:r});}for(const i of t)h.removeAttribute(i);}if(y.test(h.tagName)){const t=h.textContent.split(n$2),i=t.length-1;if(i>0){h.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)h.append(t[s],u()),C.nextNode(),v.push({type:2,index:++r});h.append(t[i],u());}}}else if(8===h.nodeType)if(h.data===l$1)v.push({type:2,index:r});else {let t=-1;for(;-1!==(t=h.data.indexOf(n$2,t+1));)v.push({type:7,index:r}),t+=n$2.length-1;}r++;}}static createElement(t,i){const s=r.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){var o,n,l,h;if(i===T)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=S(t,r._$AS(t,i.values),r,e)),i}class M{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:r).importNode(s,!0);C.currentNode=o;let n=C.nextNode(),l=0,h=0,u=e[0];for(;void 0!==u;){if(l===u.index){let i;2===u.type?i=new R(n,n.nextSibling,this,t):1===u.type?i=new u.ctor(n,u.name,u.strings,this,t):6===u.type&&(i=new Z(n,this,t)),this._$AV.push(i),u=e[++h];}l!==(null==u?void 0:u.index)&&(n=C.nextNode(),l++);}return C.currentNode=r,o}v(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class R{constructor(t,i,s,e){var o;this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cp=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cp}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===(null==t?void 0:t.nodeType)&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=S(this,t,i),d(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.g(t):void 0!==t.nodeType?this.$(t):v(t)?this.T(t):this._(t);}k(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}$(t){this._$AH!==t&&(this._$AR(),this._$AH=this.k(t));}_(t){this._$AH!==A&&d(this._$AH)?this._$AA.nextSibling.data=t:this.$(r.createTextNode(t)),this._$AH=t;}g(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=N.createElement(P$2(e.h,e.h[0]),this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.v(s);else {const t=new M(o,this),i=t.u(this.options);t.v(s),this.$(i),this._$AH=t;}}_$AC(t){let i=E.get(t.strings);return void 0===i&&E.set(t.strings,i=new N(t)),i}T(t){c(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new R(this.k(u()),this.k(u()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cp=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class k{constructor(t,i,s,e,o){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=S(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==T,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=S(this,e[s+l],i,l),h===T&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===A?t=A:t!==A&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class H extends k{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===A?void 0:t;}}const I=s$1?s$1.emptyScript:"";class L extends k{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==A?this.element.setAttribute(this.name,I):this.element.removeAttribute(this.name);}}class z extends k{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=S(this,t,i,0))&&void 0!==s?s:A)===T)return;const e=this._$AH,o=t===A&&e!==A||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==A&&(e===A||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){S(this,t);}}const B=i$2.litHtmlPolyfillSupport;null==B||B(N,R),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.8.0");const D=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new R(i.insertBefore(u(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
 
 /**
  * @license
@@ -121,6 +121,7 @@ class Configuration {
         blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
         blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
+        callDelegate: "/Script/BlueprintGraph.K2Node_CallDelegate",
         callFunction: "/Script/BlueprintGraph.K2Node_CallFunction",
         comment: "/Script/UnrealEd.EdGraphNode_Comment",
         commutativeAssociativeBinaryOperator: "/Script/BlueprintGraph.K2Node_CommutativeAssociativeBinaryOperator",
@@ -208,7 +209,6 @@ class Configuration {
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
-
     }
     static pinColor = {
         [this.paths.rotator]: i$3`157, 177, 251`,
@@ -560,6 +560,37 @@ class MirroredEntity {
     }
 }
 
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
+var parsimmon_umd_min = {exports: {}};
+
+parsimmon_umd_min.exports;
+
+(function (module, exports) {
+	!function(n,t){module.exports=t();}("undefined"!=typeof self?self:commonjsGlobal,function(){return function(n){var t={};function r(e){if(t[e])return t[e].exports;var u=t[e]={i:e,l:!1,exports:{}};return n[e].call(u.exports,u,u.exports,r),u.l=!0,u.exports}return r.m=n,r.c=t,r.d=function(n,t,e){r.o(n,t)||Object.defineProperty(n,t,{configurable:!1,enumerable:!0,get:e});},r.r=function(n){Object.defineProperty(n,"__esModule",{value:!0});},r.n=function(n){var t=n&&n.__esModule?function(){return n.default}:function(){return n};return r.d(t,"a",t),t},r.o=function(n,t){return Object.prototype.hasOwnProperty.call(n,t)},r.p="",r(r.s=0)}([function(n,t,r){function e(n){if(!(this instanceof e))return new e(n);this._=n;}var u=e.prototype;function o(n,t){for(var r=0;r<n;r++)t(r);}function i(n,t,r){return function(n,t){o(t.length,function(r){n(t[r],r,t);});}(function(r,e,u){t=n(t,r,e,u);},r),t}function a(n,t){return i(function(t,r,e,u){return t.concat([n(r,e,u)])},[],t)}function f(n,t){var r={v:0,buf:t};return o(n,function(){var n;r={v:r.v<<1|(n=r.buf,n[0]>>7),buf:function(n){var t=i(function(n,t,r,e){return n.concat(r===e.length-1?Buffer.from([t,0]).readUInt16BE(0):e.readUInt16BE(r))},[],n);return Buffer.from(a(function(n){return (n<<1&65535)>>8},t))}(r.buf)};}),r}function c(){return "undefined"!=typeof Buffer}function s(){if(!c())throw new Error("Buffer global does not exist; please use webpack if you need to parse Buffers in the browser.")}function l(n){s();var t=i(function(n,t){return n+t},0,n);if(t%8!=0)throw new Error("The bits ["+n.join(", ")+"] add up to "+t+" which is not an even number of bytes; the total should be divisible by 8");var r,u=t/8,o=(r=function(n){return n>48},i(function(n,t){return n||(r(t)?t:n)},null,n));if(o)throw new Error(o+" bit range requested exceeds 48 bit (6 byte) Number max.");return new e(function(t,r){var e=u+r;return e>t.length?x(r,u.toString()+" bytes"):b(e,i(function(n,t){var r=f(t,n.buf);return {coll:n.coll.concat(r.v),buf:r.buf}},{coll:[],buf:t.slice(r,e)},n).coll)})}function h(n,t){return new e(function(r,e){return s(),e+t>r.length?x(e,t+" bytes for "+n):b(e+t,r.slice(e,e+t))})}function p(n,t){if("number"!=typeof(r=t)||Math.floor(r)!==r||t<0||t>6)throw new Error(n+" requires integer length in range [0, 6].");var r;}function d(n){return p("uintBE",n),h("uintBE("+n+")",n).map(function(t){return t.readUIntBE(0,n)})}function v(n){return p("uintLE",n),h("uintLE("+n+")",n).map(function(t){return t.readUIntLE(0,n)})}function g(n){return p("intBE",n),h("intBE("+n+")",n).map(function(t){return t.readIntBE(0,n)})}function m(n){return p("intLE",n),h("intLE("+n+")",n).map(function(t){return t.readIntLE(0,n)})}function y(n){return n instanceof e}function E(n){return "[object Array]"==={}.toString.call(n)}function w(n){return c()&&Buffer.isBuffer(n)}function b(n,t){return {status:!0,index:n,value:t,furthest:-1,expected:[]}}function x(n,t){return E(t)||(t=[t]),{status:!1,index:-1,value:null,furthest:n,expected:t}}function B(n,t){if(!t)return n;if(n.furthest>t.furthest)return n;var r=n.furthest===t.furthest?function(n,t){if(function(){if(void 0!==e._supportsSet)return e._supportsSet;var n="undefined"!=typeof Set;return e._supportsSet=n,n}()&&Array.from){for(var r=new Set(n),u=0;u<t.length;u++)r.add(t[u]);var o=Array.from(r);return o.sort(),o}for(var i={},a=0;a<n.length;a++)i[n[a]]=!0;for(var f=0;f<t.length;f++)i[t[f]]=!0;var c=[];for(var s in i)({}).hasOwnProperty.call(i,s)&&c.push(s);return c.sort(),c}(n.expected,t.expected):t.expected;return {status:n.status,index:n.index,value:n.value,furthest:t.furthest,expected:r}}var j={};function S(n,t){if(w(n))return {offset:t,line:-1,column:-1};n in j||(j[n]={});for(var r=j[n],e=0,u=0,o=0,i=t;i>=0;){if(i in r){e=r[i].line,0===o&&(o=r[i].lineStart);break}("\n"===n.charAt(i)||"\r"===n.charAt(i)&&"\n"!==n.charAt(i+1))&&(u++,0===o&&(o=i+1)),i--;}var a=e+u,f=t-o;return r[t]={line:a,lineStart:o},{offset:t,line:a+1,column:f+1}}function _(n){if(!y(n))throw new Error("not a parser: "+n)}function L(n,t){return "string"==typeof n?n.charAt(t):n[t]}function O(n){if("number"!=typeof n)throw new Error("not a number: "+n)}function k(n){if("function"!=typeof n)throw new Error("not a function: "+n)}function P(n){if("string"!=typeof n)throw new Error("not a string: "+n)}var q=2,A=3,I=8,F=5*I,M=4*I,z="  ";function R(n,t){return new Array(t+1).join(n)}function U(n,t,r){var e=t-n.length;return e<=0?n:R(r,e)+n}function W(n,t,r,e){return {from:n-t>0?n-t:0,to:n+r>e?e:n+r}}function D(n,t){var r,e,u,o,f,c=t.index,s=c.offset,l=1;if(s===n.length)return "Got the end of the input";if(w(n)){var h=s-s%I,p=s-h,d=W(h,F,M+I,n.length),v=a(function(n){return a(function(n){return U(n.toString(16),2,"0")},n)},function(n,t){var r=n.length,e=[],u=0;if(r<=t)return [n.slice()];for(var o=0;o<r;o++)e[u]||e.push([]),e[u].push(n[o]),(o+1)%t==0&&u++;return e}(n.slice(d.from,d.to).toJSON().data,I));o=function(n){return 0===n.from&&1===n.to?{from:n.from,to:n.to}:{from:n.from/I,to:Math.floor(n.to/I)}}(d),e=h/I,r=3*p,p>=4&&(r+=1),l=2,u=a(function(n){return n.length<=4?n.join(" "):n.slice(0,4).join(" ")+"  "+n.slice(4).join(" ")},v),(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2);}else {var g=n.split(/\r\n|[\n\r\u2028\u2029]/);r=c.column-1,e=c.line-1,o=W(e,q,A,g.length),u=g.slice(o.from,o.to),f=o.to.toString().length;}var m=e-o.from;return w(n)&&(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2),i(function(t,e,u){var i,a=u===m,c=a?"> ":z;return i=w(n)?U((8*(o.from+u)).toString(16),f,"0"):U((o.from+u+1).toString(),f," "),[].concat(t,[c+i+" | "+e],a?[z+R(" ",f)+" | "+U("",r," ")+R("^",l)]:[])},[],u).join("\n")}function N(n,t){return ["\n","-- PARSING FAILED "+R("-",50),"\n\n",D(n,t),"\n\n",(r=t.expected,1===r.length?"Expected:\n\n"+r[0]:"Expected one of the following: \n\n"+r.join(", ")),"\n"].join("");var r;}function G(n){return void 0!==n.flags?n.flags:[n.global?"g":"",n.ignoreCase?"i":"",n.multiline?"m":"",n.unicode?"u":"",n.sticky?"y":""].join("")}function C(){for(var n=[].slice.call(arguments),t=n.length,r=0;r<t;r+=1)_(n[r]);return e(function(r,e){for(var u,o=new Array(t),i=0;i<t;i+=1){if(!(u=B(n[i]._(r,e),u)).status)return u;o[i]=u.value,e=u.index;}return B(b(e,o),u)})}function J(){var n=[].slice.call(arguments);if(0===n.length)throw new Error("seqMap needs at least one argument");var t=n.pop();return k(t),C.apply(null,n).map(function(n){return t.apply(null,n)})}function T(){var n=[].slice.call(arguments),t=n.length;if(0===t)return Y("zero alternates");for(var r=0;r<t;r+=1)_(n[r]);return e(function(t,r){for(var e,u=0;u<n.length;u+=1)if((e=B(n[u]._(t,r),e)).status)return e;return e})}function V(n,t){return H(n,t).or(X([]))}function H(n,t){return _(n),_(t),J(n,t.then(n).many(),function(n,t){return [n].concat(t)})}function K(n){P(n);var t="'"+n+"'";return e(function(r,e){var u=e+n.length,o=r.slice(e,u);return o===n?b(u,o):x(e,t)})}function Q(n,t){!function(n){if(!(n instanceof RegExp))throw new Error("not a regexp: "+n);for(var t=G(n),r=0;r<t.length;r++){var e=t.charAt(r);if("i"!==e&&"m"!==e&&"u"!==e&&"s"!==e)throw new Error('unsupported regexp flag "'+e+'": '+n)}}(n),arguments.length>=2?O(t):t=0;var r=function(n){return RegExp("^(?:"+n.source+")",G(n))}(n),u=""+n;return e(function(n,e){var o=r.exec(n.slice(e));if(o){if(0<=t&&t<=o.length){var i=o[0],a=o[t];return b(e+i.length,a)}return x(e,"valid match group (0 to "+o.length+") in "+u)}return x(e,u)})}function X(n){return e(function(t,r){return b(r,n)})}function Y(n){return e(function(t,r){return x(r,n)})}function Z(n){if(y(n))return e(function(t,r){var e=n._(t,r);return e.index=r,e.value="",e});if("string"==typeof n)return Z(K(n));if(n instanceof RegExp)return Z(Q(n));throw new Error("not a string, regexp, or parser: "+n)}function $(n){return _(n),e(function(t,r){var e=n._(t,r),u=t.slice(r,e.index);return e.status?x(r,'not "'+u+'"'):b(r,null)})}function nn(n){return k(n),e(function(t,r){var e=L(t,r);return r<t.length&&n(e)?b(r+1,e):x(r,"a character/byte matching "+n)})}function tn(n,t){arguments.length<2&&(t=n,n=void 0);var r=e(function(n,e){return r._=t()._,r._(n,e)});return n?r.desc(n):r}function rn(){return Y("fantasy-land/empty")}u.parse=function(n){if("string"!=typeof n&&!w(n))throw new Error(".parse must be called with a string or Buffer as its argument");var t,r=this.skip(an)._(n,0);return t=r.status?{status:!0,value:r.value}:{status:!1,index:S(n,r.furthest),expected:r.expected},delete j[n],t},u.tryParse=function(n){var t=this.parse(n);if(t.status)return t.value;var r=N(n,t),e=new Error(r);throw e.type="ParsimmonError",e.result=t,e},u.assert=function(n,t){return this.chain(function(r){return n(r)?X(r):Y(t)})},u.or=function(n){return T(this,n)},u.trim=function(n){return this.wrap(n,n)},u.wrap=function(n,t){return J(n,this,t,function(n,t){return t})},u.thru=function(n){return n(this)},u.then=function(n){return _(n),C(this,n).map(function(n){return n[1]})},u.many=function(){var n=this;return e(function(t,r){for(var e=[],u=void 0;;){if(!(u=B(n._(t,r),u)).status)return B(b(r,e),u);if(r===u.index)throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");r=u.index,e.push(u.value);}})},u.tieWith=function(n){return P(n),this.map(function(t){if(function(n){if(!E(n))throw new Error("not an array: "+n)}(t),t.length){P(t[0]);for(var r=t[0],e=1;e<t.length;e++)P(t[e]),r+=n+t[e];return r}return ""})},u.tie=function(){return this.tieWith("")},u.times=function(n,t){var r=this;return arguments.length<2&&(t=n),O(n),O(t),e(function(e,u){for(var o=[],i=void 0,a=void 0,f=0;f<n;f+=1){if(a=B(i=r._(e,u),a),!i.status)return a;u=i.index,o.push(i.value);}for(;f<t&&(a=B(i=r._(e,u),a),i.status);f+=1)u=i.index,o.push(i.value);return B(b(u,o),a)})},u.result=function(n){return this.map(function(){return n})},u.atMost=function(n){return this.times(0,n)},u.atLeast=function(n){return J(this.times(n),this.many(),function(n,t){return n.concat(t)})},u.map=function(n){k(n);var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(b(u.index,n(u.value)),u):u})},u.contramap=function(n){k(n);var t=this;return e(function(r,e){var u=t.parse(n(r.slice(e)));return u.status?b(e+r.length,u.value):u})},u.promap=function(n,t){return k(n),k(t),this.contramap(n).map(t)},u.skip=function(n){return C(this,n).map(function(n){return n[0]})},u.mark=function(){return J(en,this,en,function(n,t,r){return {start:n,value:t,end:r}})},u.node=function(n){return J(en,this,en,function(t,r,e){return {name:n,value:r,start:t,end:e}})},u.sepBy=function(n){return V(this,n)},u.sepBy1=function(n){return H(this,n)},u.lookahead=function(n){return this.skip(Z(n))},u.notFollowedBy=function(n){return this.skip($(n))},u.desc=function(n){E(n)||(n=[n]);var t=this;return e(function(r,e){var u=t._(r,e);return u.status||(u.expected=n),u})},u.fallback=function(n){return this.or(X(n))},u.ap=function(n){return J(n,this,function(n,t){return n(t)})},u.chain=function(n){var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(n(u.value)._(r,u.index),u):u})},u.concat=u.or,u.empty=rn,u.of=X,u["fantasy-land/ap"]=u.ap,u["fantasy-land/chain"]=u.chain,u["fantasy-land/concat"]=u.concat,u["fantasy-land/empty"]=u.empty,u["fantasy-land/of"]=u.of,u["fantasy-land/map"]=u.map;var en=e(function(n,t){return b(t,S(n,t))}),un=e(function(n,t){return t>=n.length?x(t,"any character/byte"):b(t+1,L(n,t))}),on=e(function(n,t){return b(n.length,n.slice(t))}),an=e(function(n,t){return t<n.length?x(t,"EOF"):b(t,null)}),fn=Q(/[0-9]/).desc("a digit"),cn=Q(/[0-9]*/).desc("optional digits"),sn=Q(/[a-z]/i).desc("a letter"),ln=Q(/[a-z]*/i).desc("optional letters"),hn=Q(/\s*/).desc("optional whitespace"),pn=Q(/\s+/).desc("whitespace"),dn=K("\r"),vn=K("\n"),gn=K("\r\n"),mn=T(gn,vn,dn).desc("newline"),yn=T(mn,an);e.all=on,e.alt=T,e.any=un,e.cr=dn,e.createLanguage=function(n){var t={};for(var r in n)({}).hasOwnProperty.call(n,r)&&function(r){t[r]=tn(function(){return n[r](t)});}(r);return t},e.crlf=gn,e.custom=function(n){return e(n(b,x))},e.digit=fn,e.digits=cn,e.empty=rn,e.end=yn,e.eof=an,e.fail=Y,e.formatError=N,e.index=en,e.isParser=y,e.lazy=tn,e.letter=sn,e.letters=ln,e.lf=vn,e.lookahead=Z,e.makeFailure=x,e.makeSuccess=b,e.newline=mn,e.noneOf=function(n){return nn(function(t){return n.indexOf(t)<0}).desc("none of '"+n+"'")},e.notFollowedBy=$,e.of=X,e.oneOf=function(n){for(var t=n.split(""),r=0;r<t.length;r++)t[r]="'"+t[r]+"'";return nn(function(t){return n.indexOf(t)>=0}).desc(t)},e.optWhitespace=hn,e.Parser=e,e.range=function(n,t){return nn(function(r){return n<=r&&r<=t}).desc(n+"-"+t)},e.regex=Q,e.regexp=Q,e.sepBy=V,e.sepBy1=H,e.seq=C,e.seqMap=J,e.seqObj=function(){for(var n,t={},r=0,u=(n=arguments,Array.prototype.slice.call(n)),o=u.length,i=0;i<o;i+=1){var a=u[i];if(!y(a)){if(E(a)&&2===a.length&&"string"==typeof a[0]&&y(a[1])){var f=a[0];if(Object.prototype.hasOwnProperty.call(t,f))throw new Error("seqObj: duplicate key "+f);t[f]=!0,r++;continue}throw new Error("seqObj arguments must be parsers or [string, parser] array pairs.")}}if(0===r)throw new Error("seqObj expects at least one named parser, found zero");return e(function(n,t){for(var r,e={},i=0;i<o;i+=1){var a,f;if(E(u[i])?(a=u[i][0],f=u[i][1]):(a=null,f=u[i]),!(r=B(f._(n,t),r)).status)return r;a&&(e[a]=r.value),t=r.index;}return B(b(t,e),r)})},e.string=K,e.succeed=X,e.takeWhile=function(n){return k(n),e(function(t,r){for(var e=r;e<t.length&&n(L(t,e));)e++;return b(e,t.slice(r,e))})},e.test=nn,e.whitespace=pn,e["fantasy-land/empty"]=rn,e["fantasy-land/of"]=X,e.Binary={bitSeq:l,bitSeqObj:function(n){s();var t={},r=0,e=a(function(n){if(E(n)){var e=n;if(2!==e.length)throw new Error("["+e.join(", ")+"] should be length 2, got length "+e.length);if(P(e[0]),O(e[1]),Object.prototype.hasOwnProperty.call(t,e[0]))throw new Error("duplicate key in bitSeqObj: "+e[0]);return t[e[0]]=!0,r++,e}return O(n),[null,n]},n);if(r<1)throw new Error("bitSeqObj expects at least one named pair, got ["+n.join(", ")+"]");var u=a(function(n){return n[0]},e);return l(a(function(n){return n[1]},e)).map(function(n){return i(function(n,t){return null!==t[0]&&(n[t[0]]=t[1]),n},{},a(function(t,r){return [t,n[r]]},u))})},byte:function(n){if(s(),O(n),n>255)throw new Error("Value specified to byte constructor ("+n+"=0x"+n.toString(16)+") is larger in value than a single byte.");var t=(n>15?"0x":"0x0")+n.toString(16);return e(function(r,e){var u=L(r,e);return u===n?b(e+1,u):x(e,t)})},buffer:function(n){return h("buffer",n).map(function(n){return Buffer.from(n)})},encodedString:function(n,t){return h("string",t).map(function(t){return t.toString(n)})},uintBE:d,uint8BE:d(1),uint16BE:d(2),uint32BE:d(4),uintLE:v,uint8LE:v(1),uint16LE:v(2),uint32LE:v(4),intBE:g,int8BE:g(1),int16BE:g(2),int32BE:g(4),intLE:m,int8LE:m(1),int16LE:m(2),int32LE:m(4),floatBE:h("floatBE",4).map(function(n){return n.readFloatBE(0)}),floatLE:h("floatLE",4).map(function(n){return n.readFloatLE(0)}),doubleBE:h("doubleBE",8).map(function(n){return n.readDoubleBE(0)}),doubleLE:h("doubleLE",8).map(function(n){return n.readDoubleLE(0)})},n.exports=e;}])}); 
+} (parsimmon_umd_min, parsimmon_umd_min.exports));
+
+var parsimmon_umd_minExports = parsimmon_umd_min.exports;
+var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_minExports);
+
+const P$1 = Parsimmon;
+
+class Serializable {
+
+    static grammar = this.createGrammar()
+
+    /** @protected */
+    static createGrammar() {
+        return /** @type {Parsimmon.Parser<Serializable>} */(P$1.fail(
+            "Unimplemented createGrammar() method in " + this.name)
+        )
+    }
+}
+
 /**
  * @typedef {import("../entity/IEntity.js").default} IEntity
  * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
@@ -859,9 +890,9 @@ class Utility {
     }
 
     /**
-     * @template {AnyValue} T
-     * @param {AnyValue} value
-     * @param {AnyValueConstructor<T>} type
+     * @template {new (...args: any) => any} C
+     * @param {C} type
+     * @returns {value is InstanceType<C>}
      */
     static isValueOfType(value, type, acceptNull = false) {
         if (type instanceof MirroredEntity) {
@@ -1147,7 +1178,7 @@ class Utility {
  * }} TypeGetter
  */
 
-class IEntity {
+class IEntity extends Serializable {
 
     /** @type {String | Union<String[]>} */
     static lookbehind = ""
@@ -1167,6 +1198,7 @@ class IEntity {
     }
 
     constructor(values = {}, suppressWarns = false) {
+        super();
         /** @type {String} */ this.lookbehind;
         const Self = /** @type {EntityConstructor} */(this.constructor);
         let attributes = Self.attributes;
@@ -1191,6 +1223,9 @@ class IEntity {
         const valuesNames = Object.keys(values);
         const attributesNames = Object.keys(attributes);
         const allAttributesNames = Utility.mergeArrays(valuesNames, attributesNames);
+        if (valuesNames.includes("lookbehind")) {
+            this.lookbehind = undefined; // To keep it first
+        }
         for (const attributeName of allAttributesNames) {
             if (attributeName == "attributes") {
                 continue
@@ -1324,6 +1359,11 @@ class IEntity {
         }
     }
 
+    /**
+     * @template {new (...args: any) => any} C
+     * @param {C} type
+     * @returns {value is InstanceType<C>}
+     */
     static isValueOfType(value, type) {
         return value != null && (value instanceof type || value.constructor === type)
     }
@@ -1378,232 +1418,303 @@ class IEntity {
     }
 }
 
-class IntegerEntity extends IEntity {
+/**
+ * @typedef {import ("../entity/IEntity").AnyValue} AnyValue
+ * @typedef {import ("../entity/IEntity").AttributeType} AttributeType
+ * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
+ * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
+ */
+/**
+ * @template {AnyValue} T
+ * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
+ */
 
-    static attributes = {
-        ...super.attributes,
-        value: {
-            default: 0,
-            predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
-        },
+let P = Parsimmon;
+
+class Grammar {
+
+    static separatedBy = (source, separator, min = 1) =>
+        new RegExp(
+            source + "(?:" + separator + source + ")"
+            + (min === 1 ? "*" : min === 2 ? "+" : `{${min},}`)
+        )
+
+    static Regex = class {
+        static ByteInteger = /0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/ // A integer between 0 and 255
+        static HexDigit = /[0-9a-fA-F]/
+        static InlineOptWhitespace = /[^\S\n]*/
+        static InlineWhitespace = /[^\S\n]+/
+        static InsideString = /(?:[^"\\]|\\.)*/
+        static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
+        static Integer = /[\-\+]?\d+(?!\d|\.)/
+        static MultilineWhitespace = /\s*\n\s*/
+        static Number = /[-\+]?(?:\d*\.)?\d+(?!\d|\.)/
+        static RealUnit = /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
+        static Word = Grammar.separatedBy("[a-zA-Z]", "_")
+        static Symbol = /[a-zA-Z_]\w*/
+        static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
+        static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
+        static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
+        static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
     }
 
-    static {
-        this.cleanupAttributes(this.attributes);
+    /*   ---   Primitive   ---   */
+
+    static null = P.lazy(() => P.regex(/\(\s*\)/).map(() => null))
+    static true = P.lazy(() => P.regex(/true/i).map(() => true))
+    static false = P.lazy(() => P.regex(/false/i).map(() => false))
+    static boolean = P.lazy(() => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false))
+    static number = P.lazy(() =>
+        this.regexMap(new RegExp(`(${Grammar.Regex.Number.source})|(\\+?inf)|(-inf)`), result => {
+            if (result[2] !== undefined) {
+                return Number.POSITIVE_INFINITY
+            } else if (result[3] !== undefined) {
+                return Number.NEGATIVE_INFINITY
+            }
+            return Number(result[1])
+        })
+    )
+    static integer = P.lazy(() => P.regex(Grammar.Regex.Integer).map(Number))
+    static bigInt = P.lazy(() => P.regex(Grammar.Regex.Integer).map(BigInt))
+    static realUnit = P.lazy(() => P.regex(Grammar.Regex.RealUnit).map(Number))
+    static naturalNumber = P.lazy(() => P.regex(/\d+/).map(Number))
+    static byteNumber = P.lazy(() => P.regex(Grammar.Regex.ByteInteger).map(Number))
+    static string = P.lazy(() =>
+        Grammar.regexMap(
+            new RegExp(`"(${Grammar.Regex.InsideString.source})"`),
+            ([_0, value]) => value
+        )
+            .map((insideString) => Utility.unescapeString(insideString))
+    )
+
+    /*   ---   Fragment   ---   */
+
+    static colorValue = this.byteNumber
+    static word = P.regex(Grammar.Regex.Word)
+    static pathQuotes = Grammar.regexMap(
+        new RegExp(
+            `'"(` + Grammar.Regex.InsideString.source + `)"'`
+            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+            + `|"(` + Grammar.Regex.InsideString.source + `)"`
+        ),
+        ([_0, a, b, c]) => a ?? b ?? c
+    )
+    static path = Grammar.regexMap(
+        new RegExp(
+            `'"(` + Grammar.Regex.InsideString.source + `)"'`
+            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+            + `|"(` + Grammar.Regex.InsideString.source + `)"`
+            + `|(` + Grammar.Regex.Path.source + `)`
+        ),
+        ([_0, a, b, c, d]) => a ?? b ?? c ?? d
+    )
+    static symbol = P.regex(Grammar.Regex.Symbol)
+    static symbolQuoted = Grammar.regexMap(
+        new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
+        /** @type {(_0: String, v: String) => String} */
+        ([_0, v]) => v
+    )
+    static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
+    static attributeNameQuoted = Grammar.regexMap(
+        new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'),
+        ([_0, v]) => v
+    )
+    static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
+    static commaSeparation = P.regex(/\s*,\s*(?!\))/)
+    static equalSeparation = P.regex(/\s*=\s*/)
+    static typeReference = P.alt(P.regex(Grammar.Regex.Path), this.symbol)
+    static hexColorChannel = P.regex(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
+
+    /*   ---   Factory   ---   */
+
+    /**
+     * @template T
+     * @param {RegExp} re
+     * @param {(execResult) => T} mapper
+     */
+    static regexMap(re, mapper) {
+        const anchored = RegExp("^(?:" + re.source + ")", re.flags);
+        const expected = "" + re;
+        return P((input, i) => {
+            const match = anchored.exec(input.slice(i));
+            if (match) {
+                return P.makeSuccess(i + match[0].length, mapper(match))
+            }
+            return P.makeFailure(i, expected)
+        })
     }
 
-    constructor(value = 0) {
-        if (value.constructor !== Object) {
+    /**
+      * @param {AttributeType} type
+      * @returns {Parsimmon.Parser<any>}
+      */
+    static grammarFor(
+        attribute,
+        type = attribute?.constructor === Object
+            ? attribute.type
+            : attribute?.constructor,
+        defaultGrammar = this.unknownValue
+    ) {
+        let result = defaultGrammar;
+        if (type instanceof Array) {
+            if (attribute?.inlined) {
+                return this.grammarFor(undefined, type[0])
+            }
+            result = P.seq(
+                P.regex(/\(\s*/),
+                this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
+                P.regex(/\s*(?:,\s*)?\)/),
+            ).map(([_0, values, _3]) => values);
+        } else if (type instanceof Union) {
+            result = type.values
+                .map(v => this.grammarFor(undefined, v))
+                .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
+                    ? this.unknownValue
+                    : P.alt(acc, cur)
+                );
+        } else if (type instanceof MirroredEntity) {
+            return this.grammarFor(type.type.attributes[type.key])
+                .map(() => new MirroredEntity(type.type, type.key, type.getter))
+        } else if (attribute?.constructor === Object) {
+            result = this.grammarFor(undefined, type);
+        } else {
+            switch (type) {
+                case BigInt:
+                    result = this.bigInt;
+                    break
+                case Boolean:
+                    result = this.boolean;
+                    break
+                case Number:
+                    result = this.number;
+                    break
+                case String:
+                    result = this.string;
+                    break
+                default:
+                    if (type?.prototype instanceof Serializable) {
+                        // @ts-expect-error
+                        return /** @type {typeof Serializable} */(type).grammar
+                    }
+            }
+        }
+        if (attribute?.constructor === Object) {
+            if (attribute.serialized && type.constructor !== String) {
+                if (result == this.unknownValue) {
+                    result = this.string;
+                } else {
+                    result = P.seq(P.string('"'), result, P.string('"'));
+                }
+            }
+            if (attribute.nullable) {
+                result = P.alt(result, this.null);
+            }
+        }
+        return result
+    }
+
+    /**
+     * @template {AnyValue} T
+     * @param {AnyValueConstructor<T>} entityType
+     * @param {String[]} key
+     * @returns {AttributeInformation}
+     */
+    static getAttribute(entityType, key) {
+        let result;
+        let type;
+        if (entityType instanceof Union) {
+            for (let t of entityType.values) {
+                if (result = this.getAttribute(t, key)) {
+                    return result
+                }
+            }
+        }
+        if (entityType instanceof IEntity.constructor) {
             // @ts-expect-error
-            value = {
-                value: value,
-            };
+            result = entityType.attributes[key[0]];
+            type = result?.type;
+        } else if (entityType instanceof Array) {
+            result = entityType[key[0]];
+            type = result;
         }
-        super(value);
-        /** @type {Number} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
-
-class ByteEntity extends IntegerEntity {
-
-    static attributes = {
-        ...super.attributes,
-        value: {
-            ...super.attributes.value,
-            predicate: v => v % 1 == 0 && v >= 0 && v < 1 << 8,
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values = 0) {
-        super(values);
-    }
-}
-
-class ColorChannelEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        value: {
-            default: 0,
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            // @ts-expect-error
-            values = {
-                value: values,
-            };
+        if (key.length > 1) {
+            return this.getAttribute(type, key.slice(1))
         }
-        super(values);
-        /** @type {Number} */ this.value;
+        return result
     }
 
-    valueOf() {
-        return this.value
+    static createAttributeGrammar(
+        entityType,
+        attributeName = this.attributeName,
+        valueSeparator = this.equalSeparation,
+        handleObjectSet = (obj, k, v) => { }
+    ) {
+        return P.seq(
+            attributeName,
+            valueSeparator,
+        ).chain(([attributeName, _1]) => {
+            const attributeKey = attributeName.split(Configuration.keysSeparator);
+            const attributeValue = this.getAttribute(entityType, attributeKey);
+            return this
+                .grammarFor(attributeValue)
+                .map(attributeValue =>
+                    values => {
+                        handleObjectSet(values, attributeKey, attributeValue);
+                        Utility.objectSet(values, attributeKey, attributeValue, true);
+                    }
+                )
+        })
     }
 
-    toString() {
-        return this.value.toFixed(6)
-    }
-}
-
-class SymbolEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        value: {
-            default: "",
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    /** @param {String | Object} values */
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value
-    }
-}
-
-class EnumEntity extends SymbolEntity {
-
-}
-
-class EnumDisplayValueEntity extends EnumEntity {
-
-}
-
-class InvariantTextEntity extends IEntity {
-
-    static lookbehind = "INVTEXT"
-    static attributes = {
-        ...super.attributes,
-        value: {
-            default: "",
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
-    }
-}
-
-class LocalizedTextEntity extends IEntity {
-
-    static lookbehind = "NSLOCTEXT"
-    static attributes = {
-        ...super.attributes,
-        namespace: {
-            default: "",
-        },
-        key: {
-            default: "",
-        },
-        value: {
-            default: "",
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.namespace;
-        /** @type {String} */ this.key;
-        /** @type {String} */ this.value;
-    }
-
-    toString() {
-        return Utility.capitalFirstLetter(this.value)
-    }
-}
-
-class FormatTextEntity extends IEntity {
-
-    static lookbehind = new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")
-    static attributes = {
-        ...super.attributes,
-        value: {
-            type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
-            default: [],
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {(String | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} */ this.value;
-    }
-
-    toString() {
-        const pattern = this.value?.[0]?.toString(); // The pattern is always the first element of the array
-        if (!pattern) {
-            return ""
-        }
-        const values = this.value.slice(1).map(v => v.toString());
-        return this.lookbehind == "LOCGEN_FORMAT_NAMED"
-            ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
-                const argLocation = values.indexOf(arg) + 1;
-                return argLocation > 0 && argLocation < values.length
-                    ? values[argLocation]
-                    : substring
+    /**
+     * @template {IEntity} T
+     * @param {new (...args: any) => T} entityType
+     * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
+     * @returns {Parsimmon.Parser<T>}
+     */
+    static createEntityGrammar = (entityType, acceptUnknownKeys = true) =>
+        P.seq(
+            this.regexMap(
+                entityType.lookbehind instanceof Union
+                    ? new RegExp(`(${entityType.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
+                    : entityType.lookbehind.constructor == String && entityType.lookbehind.length
+                        ? new RegExp(`(${entityType.lookbehind})\\s*\\(\\s*`)
+                        : /()\(\s*/,
+                result => result[1]
+            ),
+            this.createAttributeGrammar(entityType).sepBy1(this.commaSeparation),
+            P.regex(/\s*(?:,\s*)?\)/), // trailing comma
+        )
+            .map(([lookbehind, attributes, _2]) => {
+                let values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                return values
             })
-            : this.lookbehind == "LOCGEN_FORMAT_ORDERED"
-                ? pattern.replaceAll(/\{(\d+)\}/g, (substring, arg) => {
-                    const argValue = Number(arg);
-                    return argValue < values.length
-                        ? values[argValue]
-                        : substring
-                })
-                : ""
-    }
+            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
+            .chain(values => {
+                let totalKeys = Object.keys(values);
+                let missingKey;
+                // Check missing values
+                if (
+                    Object.keys(/** @type {AttributeInformation} */(entityType.attributes))
+                        .filter(key => entityType.attributes[key].expected)
+                        .find(key => !totalKeys.includes(key) && (missingKey = key))
+                ) {
+                    return P.fail("Missing key " + missingKey)
+                }
+                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length;
+                if (!acceptUnknownKeys && unknownKeys > 0) {
+                    return P.fail("Too many unknown keys")
+                }
+                return P.succeed(new entityType(values))
+            })
+
+    /*   ---   Entity   ---   */
+
+    static unknownValue // Defined in initializeSerializerFactor to avoid circular include
 }
 
 class GuidEntity extends IEntity {
@@ -1614,9 +1725,13 @@ class GuidEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.guid.map(v => new this(v))
     }
 
     static generateGuid(random = true) {
@@ -1664,9 +1779,33 @@ class ObjectReferenceEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static noneReferenceGrammar = Parsimmon.string("None").map(() => this.createNoneInstance())
+    static fullReferenceGrammar = Parsimmon.seq(
+        Grammar.typeReference,
+        Parsimmon.regex(Grammar.Regex.InlineOptWhitespace),
+        Grammar.pathQuotes
+    )
+        .map(([type, _2, path]) =>
+            new this({ type: type, path: path })
+        )
+    static typeReferenceGrammar = Grammar.typeReference.map(v =>
+        new this({ type: v, path: "" })
+    )
+    static pathReferenceGrammar = Grammar.path.map(path =>
+        new this({ type: "", path: path })
+    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.alt(
+            this.noneReferenceGrammar,
+            this.fullReferenceGrammar,
+            this.typeReferenceGrammar,
+            this.pathReferenceGrammar,
+        )
     }
 
     constructor(values = {}) {
@@ -1721,9 +1860,13 @@ class FunctionReferenceEntity extends IEntity {
             type: GuidEntity,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {
@@ -1742,14 +1885,17 @@ class IdentifierEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
     }
-
     static attributeConverter = {
         fromAttribute: (value, type) => new IdentifierEntity(value),
         toAttribute: (value, type) => value.toString()
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
     }
 
     constructor(values) {
@@ -1771,30 +1917,33 @@ class IdentifierEntity extends IEntity {
     }
 }
 
-class Integer64Entity extends IEntity {
+class IntegerEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
         value: {
-            default: 0n,
-            predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
+            default: 0,
+            predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
     }
+    static grammar = this.createGrammar()
 
-    /** @param {BigInt | Number} value */
+    static createGrammar() {
+        return Grammar.integer.map(v => new this(v))
+    }
+
     constructor(value = 0) {
         if (value.constructor !== Object) {
+            // @ts-expect-error
             value = {
-                // @ts-expect-error
                 value: value,
             };
         }
         super(value);
-        /** @type {BigInt | Number} */ this.value;
+        /** @type {Number} */ this.value;
     }
 
     valueOf() {
@@ -1806,42 +1955,40 @@ class Integer64Entity extends IEntity {
     }
 }
 
-class KeyBindingEntity extends IEntity {
+class ColorChannelEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        ActionName: {
-            default: "",
-        },
-        bShift: {
-            default: false,
-        },
-        bCtrl: {
-            default: false,
-        },
-        bAlt: {
-            default: false,
-        },
-        bCmd: {
-            default: false,
-        },
-        Key: {
-            type: IdentifierEntity,
+        value: {
+            default: 0,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
     }
+    static grammar = this.createGrammar()
 
-    constructor(values = {}) {
-        super(values, true);
-        /** @type {String} */ this.ActionName;
-        /** @type {Boolean} */ this.bShift;
-        /** @type {Boolean} */ this.bCtrl;
-        /** @type {Boolean} */ this.bAlt;
-        /** @type {Boolean} */ this.bCmd;
-        /** @type {IdentifierEntity} */ this.Key;
+    static createGrammar() {
+        return Grammar.number.map(value => new this(value))
+    }
+
+    constructor(values = 0) {
+        if (values.constructor !== Object) {
+            // @ts-expect-error
+            values = {
+                value: values,
+            };
+        }
+        super(values);
+        /** @type {Number} */ this.value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toFixed(6)
     }
 }
 
@@ -1884,10 +2031,10 @@ class LinearColorEntity extends IEntity {
             ignored: true,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
     }
+    static grammar = this.createGrammar()
 
     /** @param {Number} x */
     static linearToSRGB(x) {
@@ -1921,6 +2068,69 @@ class LinearColorEntity extends IEntity {
             G: 1,
             B: 1,
         })
+    }
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
+    }
+
+    static getLinearColorFromHexGrammar() {
+        return Grammar.regexMap(new RegExp(
+            `#(${Grammar.Regex.HexDigit.source
+            }{2})(${Grammar.Regex.HexDigit.source
+            }{2})(${Grammar.Regex.HexDigit.source
+            }{2})(${Grammar.Regex.HexDigit.source
+            }{2})?`
+        ),
+            v => [v[1], v[2], v[3], v[4] ?? "FF"])
+            .map(([R, G, B, A]) => new this({
+                R: parseInt(R, 16) / 255,
+                G: parseInt(G, 16) / 255,
+                B: parseInt(B, 16) / 255,
+                A: parseInt(A, 16) / 255,
+            }))
+    }
+
+    static getLinearColorRGBListGrammar() {
+        return Parsimmon.seq(
+            Grammar.byteNumber,
+            Grammar.commaSeparation,
+            Grammar.byteNumber,
+            Grammar.commaSeparation,
+            Grammar.byteNumber,
+        ).map(([R, _1, G, _3, B]) => new this({
+            R: R / 255,
+            G: G / 255,
+            B: B / 255,
+            A: 1,
+        }))
+    }
+
+    static getLinearColorRGBGrammar() {
+        return Parsimmon.seq(
+            Parsimmon.regex(/rgb\s*\(\s*/),
+            this.getLinearColorRGBListGrammar(),
+            Parsimmon.regex(/\s*\)/)
+        )
+            .map(([_0, linearColor, _2]) => linearColor)
+    }
+
+    static getLinearColorRGBAGrammar() {
+        return Parsimmon.seq(
+            Parsimmon.regex(/rgba\s*\(\s*/),
+            this.getLinearColorRGBListGrammar(),
+            Parsimmon.regex(/\s*\)/)
+        )
+            .map(([_0, linearColor, _2]) => linearColor)
+    }
+
+    static getLinearColorFromAnyFormat() {
+        return Parsimmon.alt(
+            this.getLinearColorFromHexGrammar(),
+            this.getLinearColorRGBAGrammar(),
+            this.getLinearColorRGBGrammar(),
+            this.getLinearColorRGBListGrammar(),
+        )
     }
 
     constructor(values) {
@@ -2126,9 +2336,13 @@ class MacroGraphReferenceEntity extends IEntity {
             default: () => new GuidEntity(),
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {
@@ -2144,11 +2358,273 @@ class MacroGraphReferenceEntity extends IEntity {
     }
 }
 
-class NaturalNumberEntity extends IntegerEntity {
+class ByteEntity extends IntegerEntity {
+
+    static attributes = {
+        ...super.attributes,
+        value: {
+            ...super.attributes.value,
+            predicate: v => v % 1 == 0 && v >= 0 && v < 1 << 8,
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.byteNumber.map(v => new this(v))
+    }
 
     constructor(values = 0) {
         super(values);
-        this.value = Math.round(Utility.clamp(this.value, 0));
+    }
+}
+
+class SymbolEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        value: {
+            default: "",
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
+    }
+
+    /** @param {String | Object} values */
+    constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            };
+        }
+        super(values);
+        /** @type {String} */ this.value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
+class EnumEntity extends SymbolEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
+    }
+}
+
+class EnumDisplayValueEntity extends EnumEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.regex(Grammar.Regex.InsideString).map(v => new this(v))
+    }
+}
+
+class InvariantTextEntity extends IEntity {
+
+    static lookbehind = "INVTEXT"
+    static attributes = {
+        ...super.attributes,
+        value: {
+            default: "",
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Parsimmon.regex(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                Grammar.grammarFor(this.attributes.value),
+                Parsimmon.regex(/\s*\)/)
+            )
+                .map(([_0, value, _2]) => value),
+            Parsimmon.regex(new RegExp(this.lookbehind)) // InvariantTextEntity can not have arguments
+                .map(() => "")
+        ).map(value => new this(value))
+    }
+
+    constructor(values) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            };
+        }
+        super(values);
+        /** @type {String} */ this.value;
+    }
+}
+
+class LocalizedTextEntity extends IEntity {
+
+    static lookbehind = "NSLOCTEXT"
+    static attributes = {
+        ...super.attributes,
+        namespace: {
+            default: "",
+        },
+        key: {
+            default: "",
+        },
+        value: {
+            default: "",
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.regexMap(
+            new RegExp(
+                String.raw`${this.lookbehind}\s*\(`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
+                + String.raw`(?:,\s+)?`
+                + String.raw`\)`,
+                "m"
+            ),
+            matchResult => new this({
+                namespace: Utility.unescapeString(matchResult[1]),
+                key: Utility.unescapeString(matchResult[2]),
+                value: Utility.unescapeString(matchResult[3]),
+            })
+        )
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.namespace;
+        /** @type {String} */ this.key;
+        /** @type {String} */ this.value;
+    }
+
+    toString() {
+        return Utility.capitalFirstLetter(this.value)
+    }
+}
+
+class FormatTextEntity extends IEntity {
+
+    static lookbehind = new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")
+    static attributes = {
+        ...super.attributes,
+        value: {
+            type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
+            default: [],
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.lazy(() =>
+            Parsimmon.seq(
+                Grammar.regexMap(
+                    // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+                    new RegExp(`(${this.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                    result => result[1]
+                ),
+                Grammar.grammarFor(this.attributes.value)
+            )
+                .map(([lookbehind, values]) => {
+                    const result = new this({
+                        value: values,
+                    });
+                    result.lookbehind = lookbehind;
+                    return result
+                })
+        )
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {(String | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} */ this.value;
+    }
+
+    toString() {
+        const pattern = this.value?.[0]?.toString(); // The pattern is always the first element of the array
+        if (!pattern) {
+            return ""
+        }
+        const values = this.value.slice(1).map(v => v.toString());
+        return this.lookbehind == "LOCGEN_FORMAT_NAMED"
+            ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
+                const argLocation = values.indexOf(arg) + 1;
+                return argLocation > 0 && argLocation < values.length
+                    ? values[argLocation]
+                    : substring
+            })
+            : this.lookbehind == "LOCGEN_FORMAT_ORDERED"
+                ? pattern.replaceAll(/\{(\d+)\}/g, (substring, arg) => {
+                    const argValue = Number(arg);
+                    return argValue < values.length
+                        ? values[argValue]
+                        : substring
+                })
+                : ""
+    }
+}
+
+class Integer64Entity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        value: {
+            default: 0n,
+            predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.bigInt.map(v => new this(v))
+    }
+
+    /** @param {BigInt | Number} value */
+    constructor(value = 0) {
+        if (value.constructor !== Object) {
+            value = {
+                // @ts-expect-error
+                value: value,
+            };
+        }
+        super(value);
+        /** @type {BigInt | Number} */ this.value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
     }
 }
 
@@ -2160,9 +2636,13 @@ class PathSymbolEntity extends IEntity {
             default: "",
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static #grammar = Grammar.symbol.map(v => new PathSymbolEntity(v))
+
+    static createGrammar() {
+        return PathSymbolEntity.#grammar
     }
 
     constructor(values) {
@@ -2195,9 +2675,22 @@ class PinReferenceEntity extends IEntity {
             type: GuidEntity,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.seq(
+            PathSymbolEntity.createGrammar(),
+            Parsimmon.whitespace,
+            GuidEntity.createGrammar()
+        ).map(
+            ([objectName, _1, pinGuid]) => new this({
+                objectName: objectName,
+                pinGuid: pinGuid,
+            })
+        )
     }
 
     constructor(values) {
@@ -2248,9 +2741,13 @@ class PinTypeEntity extends IEntity {
             default: false,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -2302,9 +2799,13 @@ class RotatorEntity extends IEntity {
             expected: true,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
     }
 
     constructor(values) {
@@ -2328,6 +2829,27 @@ class RotatorEntity extends IEntity {
 }
 
 class SimpleSerializationRotatorEntity extends RotatorEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+            ).map(([p, _1, y, _3, r]) =>
+                new this({
+                    R: r,
+                    P: p,
+                    Y: y,
+                })
+            ),
+            RotatorEntity.createGrammar()
+        )
+    }
 }
 
 class Vector2DEntity extends IEntity {
@@ -2343,9 +2865,13 @@ class Vector2DEntity extends IEntity {
             expected: true,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
     }
 
     constructor(values) {
@@ -2356,6 +2882,22 @@ class Vector2DEntity extends IEntity {
 }
 
 class SimpleSerializationVector2DEntity extends Vector2DEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+            ).map(([x, _1, y]) => new this({
+                X: x,
+                Y: y,
+            })),
+            Vector2DEntity.createGrammar()
+        )
+    }
 }
 
 class VectorEntity extends IEntity {
@@ -2375,9 +2917,13 @@ class VectorEntity extends IEntity {
             expected: true,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(VectorEntity, false)
     }
 
     constructor(values) {
@@ -2389,6 +2935,25 @@ class VectorEntity extends IEntity {
 }
 
 class SimpleSerializationVectorEntity extends VectorEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+            ).map(([x, _1, y, _3, z]) => new this({
+                X: x,
+                Y: y,
+                Z: z,
+            })),
+            VectorEntity.createGrammar()
+        )
+    }
 }
 
 /**
@@ -2496,9 +3061,13 @@ class PinEntity extends IEntity {
             default: false,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -3113,6 +3682,27 @@ class SVGIcon {
 class UnknownPinEntity extends PinEntity {
 
     static lookbehind = ""
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.lazy(() => Parsimmon.seq(
+            Grammar.regexMap(
+                new RegExp(`${Grammar.Regex.Symbol.source}\\s*\\(\\s*`),
+                result => result[1] ?? ""
+            ),
+            Grammar.createAttributeGrammar(this).sepBy1(Grammar.commaSeparation),
+            Parsimmon.regex(/\s*(?:,\s*)?\)/)
+        )
+            .map(([lookbehind, attributes, _2]) => {
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
+        )
+    }
 
     constructor(values = {}) {
         super(values, true);
@@ -3136,9 +3726,13 @@ class VariableReferenceEntity extends IEntity {
             type: Boolean,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {
@@ -3153,13 +3747,41 @@ class VariableReferenceEntity extends IEntity {
 
 class ObjectEntity extends IEntity {
 
+    static #keyName = {
+        "A_AccentGrave": "à",
+        "Add": "Num +",
+        "C_Cedille": "ç",
+        "Decimal": "Num .",
+        "Divide": "Num /",
+        "E_AccentAigu": "é",
+        "E_AccentGrave": "è",
+        "F1": "F1", // Otherwise F and number will be separated
+        "F10": "F10",
+        "F11": "F11",
+        "F12": "F12",
+        "F2": "F2",
+        "F3": "F3",
+        "F4": "F4",
+        "F5": "F5",
+        "F6": "F6",
+        "F7": "F7",
+        "F8": "F8",
+        "F9": "F9",
+        "Gamepad_Special_Left_X": "Touchpad Button X Axis",
+        "Gamepad_Special_Left_Y": "Touchpad Button Y Axis",
+        "Mouse2D": "Mouse XY 2D-Axis",
+        "Multiply": "Num *",
+        "Section": "§",
+        "Subtract": "Num -",
+        "Tilde": "`",
+    }
     static attributes = {
         ...super.attributes,
         Class: {
             type: ObjectReferenceEntity,
         },
         Name: {
-            default: "",
+            type: String,
         },
         Archetype: {
             type: ObjectReferenceEntity,
@@ -3410,40 +4032,85 @@ class ObjectEntity extends IEntity {
             type: [new Union(PinEntity, UnknownPinEntity)],
         },
     }
-
-    static nameRegex = /^(\w+?)(?:_(\d+))?$/
-    static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
-    static #keyName = {
-        "A_AccentGrave": "à",
-        "Add": "Num +",
-        "C_Cedille": "ç",
-        "Decimal": "Num .",
-        "Divide": "Num /",
-        "E_AccentAigu": "é",
-        "E_AccentGrave": "è",
-        "F1": "F1", // Otherwise F and number will be separated
-        "F10": "F10",
-        "F11": "F11",
-        "F12": "F12",
-        "F2": "F2",
-        "F3": "F3",
-        "F4": "F4",
-        "F5": "F5",
-        "F6": "F6",
-        "F7": "F7",
-        "F8": "F8",
-        "F9": "F9",
-        "Gamepad_Special_Left_X": "Touchpad Button X Axis",
-        "Gamepad_Special_Left_Y": "Touchpad Button Y Axis",
-        "Mouse2D": "Mouse XY 2D-Axis",
-        "Multiply": "Num *",
-        "Section": "§",
-        "Subtract": "Num -",
-        "Tilde": "`",
-    }
-
     static {
         this.cleanupAttributes(this.attributes);
+    }
+    static nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
+    static customPropertyGrammar = Parsimmon.seq(
+        Parsimmon.regex(/CustomProperties\s+/),
+        Grammar.grammarFor(
+            undefined,
+            (this.attributes.CustomProperties ?? ObjectEntity.attributes.CustomProperties).type[0]
+        ),
+    ).map(([_0, pin]) => values => {
+        if (!values.CustomProperties) {
+            values.CustomProperties = [];
+        }
+        values.CustomProperties.push(pin);
+    })
+    static inlinedArrayEntryGrammar = Parsimmon.seq(
+        Parsimmon.alt(
+            Grammar.symbolQuoted.map(v => [v, true]),
+            Grammar.symbol.map(v => [v, false]),
+        ),
+        Grammar.regexMap(
+            new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
+            v => Number(v[1])
+        )
+    )
+        .chain(
+            /** @param {[[String, Boolean], Number]} param */
+            ([[symbol, quoted], index]) =>
+                Grammar.grammarFor(this.attributes[symbol])
+                    .map(currentValue =>
+                        values => {
+                            (values[symbol] ??= [])[index] = currentValue;
+                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true);
+                            if (!this.attributes[symbol]?.inlined) {
+                                if (!values.attributes) {
+                                    IEntity.defineAttributes(values, {});
+                                }
+                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true);
+                            }
+                        }
+                    )
+        )
+    static grammar = this.createGrammar()
+
+    static createSubObjectGrammar() {
+        return Parsimmon.lazy(() =>
+            this.createGrammar()
+                .map(object =>
+                    values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+                )
+        )
+    }
+
+    static createGrammar() {
+        return Parsimmon.seq(
+            Parsimmon.regex(/Begin\s+Object/),
+            Parsimmon.seq(
+                Parsimmon.whitespace,
+                Parsimmon.alt(
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this),
+                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                    ),
+                    this.inlinedArrayEntryGrammar,
+                    this.createSubObjectGrammar()
+                )
+            )
+                .map(([_0, entry]) => entry)
+                .many(),
+            Parsimmon.regex(/\s+End\s+Object/),
+        )
+            .map(([_0, attributes, _2]) => {
+                let values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
     }
 
     /** @param {String} value */
@@ -3463,6 +4130,21 @@ class ObjectEntity extends IEntity {
                 return "Num " + result
             }
         }
+    }
+
+    static getMultipleObjectsGrammar() {
+        return Parsimmon.seq(
+            Parsimmon.optWhitespace,
+            this.grammar,
+            Parsimmon.seq(
+                Parsimmon.whitespace,
+                this.grammar,
+            )
+                .map(([_0, object]) => object)
+                .many(),
+            Parsimmon.optWhitespace
+        )
+            .map(([_0, first, remaining, _4]) => [first, ...remaining])
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -4176,8 +4858,9 @@ class ObjectEntity extends IEntity {
             return undefined
         }
         switch (this.getType()) {
-            case Configuration.paths.asyncAction:
             case Configuration.paths.addDelegate:
+            case Configuration.paths.asyncAction:
+            case Configuration.paths.callDelegate:
             case Configuration.paths.createDelegate:
             case Configuration.paths.functionEntry:
             case Configuration.paths.functionResult:
@@ -4373,893 +5056,6 @@ class ObjectEntity extends IEntity {
     }
 }
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
-
-var parsimmon_umd_min = {exports: {}};
-
-parsimmon_umd_min.exports;
-
-(function (module, exports) {
-	!function(n,t){module.exports=t();}("undefined"!=typeof self?self:commonjsGlobal,function(){return function(n){var t={};function r(e){if(t[e])return t[e].exports;var u=t[e]={i:e,l:!1,exports:{}};return n[e].call(u.exports,u,u.exports,r),u.l=!0,u.exports}return r.m=n,r.c=t,r.d=function(n,t,e){r.o(n,t)||Object.defineProperty(n,t,{configurable:!1,enumerable:!0,get:e});},r.r=function(n){Object.defineProperty(n,"__esModule",{value:!0});},r.n=function(n){var t=n&&n.__esModule?function(){return n.default}:function(){return n};return r.d(t,"a",t),t},r.o=function(n,t){return Object.prototype.hasOwnProperty.call(n,t)},r.p="",r(r.s=0)}([function(n,t,r){function e(n){if(!(this instanceof e))return new e(n);this._=n;}var u=e.prototype;function o(n,t){for(var r=0;r<n;r++)t(r);}function i(n,t,r){return function(n,t){o(t.length,function(r){n(t[r],r,t);});}(function(r,e,u){t=n(t,r,e,u);},r),t}function a(n,t){return i(function(t,r,e,u){return t.concat([n(r,e,u)])},[],t)}function f(n,t){var r={v:0,buf:t};return o(n,function(){var n;r={v:r.v<<1|(n=r.buf,n[0]>>7),buf:function(n){var t=i(function(n,t,r,e){return n.concat(r===e.length-1?Buffer.from([t,0]).readUInt16BE(0):e.readUInt16BE(r))},[],n);return Buffer.from(a(function(n){return (n<<1&65535)>>8},t))}(r.buf)};}),r}function c(){return "undefined"!=typeof Buffer}function s(){if(!c())throw new Error("Buffer global does not exist; please use webpack if you need to parse Buffers in the browser.")}function l(n){s();var t=i(function(n,t){return n+t},0,n);if(t%8!=0)throw new Error("The bits ["+n.join(", ")+"] add up to "+t+" which is not an even number of bytes; the total should be divisible by 8");var r,u=t/8,o=(r=function(n){return n>48},i(function(n,t){return n||(r(t)?t:n)},null,n));if(o)throw new Error(o+" bit range requested exceeds 48 bit (6 byte) Number max.");return new e(function(t,r){var e=u+r;return e>t.length?x(r,u.toString()+" bytes"):b(e,i(function(n,t){var r=f(t,n.buf);return {coll:n.coll.concat(r.v),buf:r.buf}},{coll:[],buf:t.slice(r,e)},n).coll)})}function h(n,t){return new e(function(r,e){return s(),e+t>r.length?x(e,t+" bytes for "+n):b(e+t,r.slice(e,e+t))})}function p(n,t){if("number"!=typeof(r=t)||Math.floor(r)!==r||t<0||t>6)throw new Error(n+" requires integer length in range [0, 6].");var r;}function d(n){return p("uintBE",n),h("uintBE("+n+")",n).map(function(t){return t.readUIntBE(0,n)})}function v(n){return p("uintLE",n),h("uintLE("+n+")",n).map(function(t){return t.readUIntLE(0,n)})}function g(n){return p("intBE",n),h("intBE("+n+")",n).map(function(t){return t.readIntBE(0,n)})}function m(n){return p("intLE",n),h("intLE("+n+")",n).map(function(t){return t.readIntLE(0,n)})}function y(n){return n instanceof e}function E(n){return "[object Array]"==={}.toString.call(n)}function w(n){return c()&&Buffer.isBuffer(n)}function b(n,t){return {status:!0,index:n,value:t,furthest:-1,expected:[]}}function x(n,t){return E(t)||(t=[t]),{status:!1,index:-1,value:null,furthest:n,expected:t}}function B(n,t){if(!t)return n;if(n.furthest>t.furthest)return n;var r=n.furthest===t.furthest?function(n,t){if(function(){if(void 0!==e._supportsSet)return e._supportsSet;var n="undefined"!=typeof Set;return e._supportsSet=n,n}()&&Array.from){for(var r=new Set(n),u=0;u<t.length;u++)r.add(t[u]);var o=Array.from(r);return o.sort(),o}for(var i={},a=0;a<n.length;a++)i[n[a]]=!0;for(var f=0;f<t.length;f++)i[t[f]]=!0;var c=[];for(var s in i)({}).hasOwnProperty.call(i,s)&&c.push(s);return c.sort(),c}(n.expected,t.expected):t.expected;return {status:n.status,index:n.index,value:n.value,furthest:t.furthest,expected:r}}var j={};function S(n,t){if(w(n))return {offset:t,line:-1,column:-1};n in j||(j[n]={});for(var r=j[n],e=0,u=0,o=0,i=t;i>=0;){if(i in r){e=r[i].line,0===o&&(o=r[i].lineStart);break}("\n"===n.charAt(i)||"\r"===n.charAt(i)&&"\n"!==n.charAt(i+1))&&(u++,0===o&&(o=i+1)),i--;}var a=e+u,f=t-o;return r[t]={line:a,lineStart:o},{offset:t,line:a+1,column:f+1}}function _(n){if(!y(n))throw new Error("not a parser: "+n)}function L(n,t){return "string"==typeof n?n.charAt(t):n[t]}function O(n){if("number"!=typeof n)throw new Error("not a number: "+n)}function k(n){if("function"!=typeof n)throw new Error("not a function: "+n)}function P(n){if("string"!=typeof n)throw new Error("not a string: "+n)}var q=2,A=3,I=8,F=5*I,M=4*I,z="  ";function R(n,t){return new Array(t+1).join(n)}function U(n,t,r){var e=t-n.length;return e<=0?n:R(r,e)+n}function W(n,t,r,e){return {from:n-t>0?n-t:0,to:n+r>e?e:n+r}}function D(n,t){var r,e,u,o,f,c=t.index,s=c.offset,l=1;if(s===n.length)return "Got the end of the input";if(w(n)){var h=s-s%I,p=s-h,d=W(h,F,M+I,n.length),v=a(function(n){return a(function(n){return U(n.toString(16),2,"0")},n)},function(n,t){var r=n.length,e=[],u=0;if(r<=t)return [n.slice()];for(var o=0;o<r;o++)e[u]||e.push([]),e[u].push(n[o]),(o+1)%t==0&&u++;return e}(n.slice(d.from,d.to).toJSON().data,I));o=function(n){return 0===n.from&&1===n.to?{from:n.from,to:n.to}:{from:n.from/I,to:Math.floor(n.to/I)}}(d),e=h/I,r=3*p,p>=4&&(r+=1),l=2,u=a(function(n){return n.length<=4?n.join(" "):n.slice(0,4).join(" ")+"  "+n.slice(4).join(" ")},v),(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2);}else {var g=n.split(/\r\n|[\n\r\u2028\u2029]/);r=c.column-1,e=c.line-1,o=W(e,q,A,g.length),u=g.slice(o.from,o.to),f=o.to.toString().length;}var m=e-o.from;return w(n)&&(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2),i(function(t,e,u){var i,a=u===m,c=a?"> ":z;return i=w(n)?U((8*(o.from+u)).toString(16),f,"0"):U((o.from+u+1).toString(),f," "),[].concat(t,[c+i+" | "+e],a?[z+R(" ",f)+" | "+U("",r," ")+R("^",l)]:[])},[],u).join("\n")}function N(n,t){return ["\n","-- PARSING FAILED "+R("-",50),"\n\n",D(n,t),"\n\n",(r=t.expected,1===r.length?"Expected:\n\n"+r[0]:"Expected one of the following: \n\n"+r.join(", ")),"\n"].join("");var r;}function G(n){return void 0!==n.flags?n.flags:[n.global?"g":"",n.ignoreCase?"i":"",n.multiline?"m":"",n.unicode?"u":"",n.sticky?"y":""].join("")}function C(){for(var n=[].slice.call(arguments),t=n.length,r=0;r<t;r+=1)_(n[r]);return e(function(r,e){for(var u,o=new Array(t),i=0;i<t;i+=1){if(!(u=B(n[i]._(r,e),u)).status)return u;o[i]=u.value,e=u.index;}return B(b(e,o),u)})}function J(){var n=[].slice.call(arguments);if(0===n.length)throw new Error("seqMap needs at least one argument");var t=n.pop();return k(t),C.apply(null,n).map(function(n){return t.apply(null,n)})}function T(){var n=[].slice.call(arguments),t=n.length;if(0===t)return Y("zero alternates");for(var r=0;r<t;r+=1)_(n[r]);return e(function(t,r){for(var e,u=0;u<n.length;u+=1)if((e=B(n[u]._(t,r),e)).status)return e;return e})}function V(n,t){return H(n,t).or(X([]))}function H(n,t){return _(n),_(t),J(n,t.then(n).many(),function(n,t){return [n].concat(t)})}function K(n){P(n);var t="'"+n+"'";return e(function(r,e){var u=e+n.length,o=r.slice(e,u);return o===n?b(u,o):x(e,t)})}function Q(n,t){!function(n){if(!(n instanceof RegExp))throw new Error("not a regexp: "+n);for(var t=G(n),r=0;r<t.length;r++){var e=t.charAt(r);if("i"!==e&&"m"!==e&&"u"!==e&&"s"!==e)throw new Error('unsupported regexp flag "'+e+'": '+n)}}(n),arguments.length>=2?O(t):t=0;var r=function(n){return RegExp("^(?:"+n.source+")",G(n))}(n),u=""+n;return e(function(n,e){var o=r.exec(n.slice(e));if(o){if(0<=t&&t<=o.length){var i=o[0],a=o[t];return b(e+i.length,a)}return x(e,"valid match group (0 to "+o.length+") in "+u)}return x(e,u)})}function X(n){return e(function(t,r){return b(r,n)})}function Y(n){return e(function(t,r){return x(r,n)})}function Z(n){if(y(n))return e(function(t,r){var e=n._(t,r);return e.index=r,e.value="",e});if("string"==typeof n)return Z(K(n));if(n instanceof RegExp)return Z(Q(n));throw new Error("not a string, regexp, or parser: "+n)}function $(n){return _(n),e(function(t,r){var e=n._(t,r),u=t.slice(r,e.index);return e.status?x(r,'not "'+u+'"'):b(r,null)})}function nn(n){return k(n),e(function(t,r){var e=L(t,r);return r<t.length&&n(e)?b(r+1,e):x(r,"a character/byte matching "+n)})}function tn(n,t){arguments.length<2&&(t=n,n=void 0);var r=e(function(n,e){return r._=t()._,r._(n,e)});return n?r.desc(n):r}function rn(){return Y("fantasy-land/empty")}u.parse=function(n){if("string"!=typeof n&&!w(n))throw new Error(".parse must be called with a string or Buffer as its argument");var t,r=this.skip(an)._(n,0);return t=r.status?{status:!0,value:r.value}:{status:!1,index:S(n,r.furthest),expected:r.expected},delete j[n],t},u.tryParse=function(n){var t=this.parse(n);if(t.status)return t.value;var r=N(n,t),e=new Error(r);throw e.type="ParsimmonError",e.result=t,e},u.assert=function(n,t){return this.chain(function(r){return n(r)?X(r):Y(t)})},u.or=function(n){return T(this,n)},u.trim=function(n){return this.wrap(n,n)},u.wrap=function(n,t){return J(n,this,t,function(n,t){return t})},u.thru=function(n){return n(this)},u.then=function(n){return _(n),C(this,n).map(function(n){return n[1]})},u.many=function(){var n=this;return e(function(t,r){for(var e=[],u=void 0;;){if(!(u=B(n._(t,r),u)).status)return B(b(r,e),u);if(r===u.index)throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");r=u.index,e.push(u.value);}})},u.tieWith=function(n){return P(n),this.map(function(t){if(function(n){if(!E(n))throw new Error("not an array: "+n)}(t),t.length){P(t[0]);for(var r=t[0],e=1;e<t.length;e++)P(t[e]),r+=n+t[e];return r}return ""})},u.tie=function(){return this.tieWith("")},u.times=function(n,t){var r=this;return arguments.length<2&&(t=n),O(n),O(t),e(function(e,u){for(var o=[],i=void 0,a=void 0,f=0;f<n;f+=1){if(a=B(i=r._(e,u),a),!i.status)return a;u=i.index,o.push(i.value);}for(;f<t&&(a=B(i=r._(e,u),a),i.status);f+=1)u=i.index,o.push(i.value);return B(b(u,o),a)})},u.result=function(n){return this.map(function(){return n})},u.atMost=function(n){return this.times(0,n)},u.atLeast=function(n){return J(this.times(n),this.many(),function(n,t){return n.concat(t)})},u.map=function(n){k(n);var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(b(u.index,n(u.value)),u):u})},u.contramap=function(n){k(n);var t=this;return e(function(r,e){var u=t.parse(n(r.slice(e)));return u.status?b(e+r.length,u.value):u})},u.promap=function(n,t){return k(n),k(t),this.contramap(n).map(t)},u.skip=function(n){return C(this,n).map(function(n){return n[0]})},u.mark=function(){return J(en,this,en,function(n,t,r){return {start:n,value:t,end:r}})},u.node=function(n){return J(en,this,en,function(t,r,e){return {name:n,value:r,start:t,end:e}})},u.sepBy=function(n){return V(this,n)},u.sepBy1=function(n){return H(this,n)},u.lookahead=function(n){return this.skip(Z(n))},u.notFollowedBy=function(n){return this.skip($(n))},u.desc=function(n){E(n)||(n=[n]);var t=this;return e(function(r,e){var u=t._(r,e);return u.status||(u.expected=n),u})},u.fallback=function(n){return this.or(X(n))},u.ap=function(n){return J(n,this,function(n,t){return n(t)})},u.chain=function(n){var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(n(u.value)._(r,u.index),u):u})},u.concat=u.or,u.empty=rn,u.of=X,u["fantasy-land/ap"]=u.ap,u["fantasy-land/chain"]=u.chain,u["fantasy-land/concat"]=u.concat,u["fantasy-land/empty"]=u.empty,u["fantasy-land/of"]=u.of,u["fantasy-land/map"]=u.map;var en=e(function(n,t){return b(t,S(n,t))}),un=e(function(n,t){return t>=n.length?x(t,"any character/byte"):b(t+1,L(n,t))}),on=e(function(n,t){return b(n.length,n.slice(t))}),an=e(function(n,t){return t<n.length?x(t,"EOF"):b(t,null)}),fn=Q(/[0-9]/).desc("a digit"),cn=Q(/[0-9]*/).desc("optional digits"),sn=Q(/[a-z]/i).desc("a letter"),ln=Q(/[a-z]*/i).desc("optional letters"),hn=Q(/\s*/).desc("optional whitespace"),pn=Q(/\s+/).desc("whitespace"),dn=K("\r"),vn=K("\n"),gn=K("\r\n"),mn=T(gn,vn,dn).desc("newline"),yn=T(mn,an);e.all=on,e.alt=T,e.any=un,e.cr=dn,e.createLanguage=function(n){var t={};for(var r in n)({}).hasOwnProperty.call(n,r)&&function(r){t[r]=tn(function(){return n[r](t)});}(r);return t},e.crlf=gn,e.custom=function(n){return e(n(b,x))},e.digit=fn,e.digits=cn,e.empty=rn,e.end=yn,e.eof=an,e.fail=Y,e.formatError=N,e.index=en,e.isParser=y,e.lazy=tn,e.letter=sn,e.letters=ln,e.lf=vn,e.lookahead=Z,e.makeFailure=x,e.makeSuccess=b,e.newline=mn,e.noneOf=function(n){return nn(function(t){return n.indexOf(t)<0}).desc("none of '"+n+"'")},e.notFollowedBy=$,e.of=X,e.oneOf=function(n){for(var t=n.split(""),r=0;r<t.length;r++)t[r]="'"+t[r]+"'";return nn(function(t){return n.indexOf(t)>=0}).desc(t)},e.optWhitespace=hn,e.Parser=e,e.range=function(n,t){return nn(function(r){return n<=r&&r<=t}).desc(n+"-"+t)},e.regex=Q,e.regexp=Q,e.sepBy=V,e.sepBy1=H,e.seq=C,e.seqMap=J,e.seqObj=function(){for(var n,t={},r=0,u=(n=arguments,Array.prototype.slice.call(n)),o=u.length,i=0;i<o;i+=1){var a=u[i];if(!y(a)){if(E(a)&&2===a.length&&"string"==typeof a[0]&&y(a[1])){var f=a[0];if(Object.prototype.hasOwnProperty.call(t,f))throw new Error("seqObj: duplicate key "+f);t[f]=!0,r++;continue}throw new Error("seqObj arguments must be parsers or [string, parser] array pairs.")}}if(0===r)throw new Error("seqObj expects at least one named parser, found zero");return e(function(n,t){for(var r,e={},i=0;i<o;i+=1){var a,f;if(E(u[i])?(a=u[i][0],f=u[i][1]):(a=null,f=u[i]),!(r=B(f._(n,t),r)).status)return r;a&&(e[a]=r.value),t=r.index;}return B(b(t,e),r)})},e.string=K,e.succeed=X,e.takeWhile=function(n){return k(n),e(function(t,r){for(var e=r;e<t.length&&n(L(t,e));)e++;return b(e,t.slice(r,e))})},e.test=nn,e.whitespace=pn,e["fantasy-land/empty"]=rn,e["fantasy-land/of"]=X,e.Binary={bitSeq:l,bitSeqObj:function(n){s();var t={},r=0,e=a(function(n){if(E(n)){var e=n;if(2!==e.length)throw new Error("["+e.join(", ")+"] should be length 2, got length "+e.length);if(P(e[0]),O(e[1]),Object.prototype.hasOwnProperty.call(t,e[0]))throw new Error("duplicate key in bitSeqObj: "+e[0]);return t[e[0]]=!0,r++,e}return O(n),[null,n]},n);if(r<1)throw new Error("bitSeqObj expects at least one named pair, got ["+n.join(", ")+"]");var u=a(function(n){return n[0]},e);return l(a(function(n){return n[1]},e)).map(function(n){return i(function(n,t){return null!==t[0]&&(n[t[0]]=t[1]),n},{},a(function(t,r){return [t,n[r]]},u))})},byte:function(n){if(s(),O(n),n>255)throw new Error("Value specified to byte constructor ("+n+"=0x"+n.toString(16)+") is larger in value than a single byte.");var t=(n>15?"0x":"0x0")+n.toString(16);return e(function(r,e){var u=L(r,e);return u===n?b(e+1,u):x(e,t)})},buffer:function(n){return h("buffer",n).map(function(n){return Buffer.from(n)})},encodedString:function(n,t){return h("string",t).map(function(t){return t.toString(n)})},uintBE:d,uint8BE:d(1),uint16BE:d(2),uint32BE:d(4),uintLE:v,uint8LE:v(1),uint16LE:v(2),uint32LE:v(4),intBE:g,int8BE:g(1),int16BE:g(2),int32BE:g(4),intLE:m,int8LE:m(1),int16LE:m(2),int32LE:m(4),floatBE:h("floatBE",4).map(function(n){return n.readFloatBE(0)}),floatLE:h("floatLE",4).map(function(n){return n.readFloatLE(0)}),doubleBE:h("doubleBE",8).map(function(n){return n.readDoubleBE(0)}),doubleLE:h("doubleLE",8).map(function(n){return n.readDoubleLE(0)})},n.exports=e;}])}); 
-} (parsimmon_umd_min, parsimmon_umd_min.exports));
-
-var parsimmon_umd_minExports = parsimmon_umd_min.exports;
-var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_minExports);
-
-class TerminalTypeEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        TerminalCategory: {
-            type: String,
-        },
-        TerminalSubCategory: {
-            type: String,
-        },
-        bTerminalIsConst: {
-            type: Boolean,
-        },
-        bTerminalIsWeakPointer: {
-            type: Boolean,
-        },
-        bTerminalIsUObjectWrapper: {
-            type: Boolean,
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.TerminalCategory;
-        /** @type {String} */ this.TerminalSubCategory;
-        /** @type {Boolean} */ this.bTerminalIsConst;
-        /** @type {Boolean} */ this.bTerminalIsWeakPointer;
-        /** @type {Boolean} */ this.bTerminalIsUObjectWrapper;
-    }
-}
-
-class UnknownKeysEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        lookbehind: {
-            default: "",
-            ignored: true,
-        },
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-
-    constructor(values) {
-        super(values, true);
-        /** @type {String} */ this.lookbehind;
-    }
-}
-
-/**
- * @typedef {import ("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import ("../entity/IEntity").AttributeType} AttributeType
- * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
- * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
- */
-
-let P = Parsimmon;
-
-class Grammar {
-
-    static separatedBy = (source, separator, min = 1) =>
-        new RegExp(
-            source + "(?:" + separator + source + ")"
-            + (min === 1 ? "*" : min === 2 ? "+" : `{${min},}`)
-        )
-
-    static Regex = class {
-        static ByteInteger = /0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/ // A integer between 0 and 255
-        static HexDigit = /[0-9a-fA-F]/
-        static InlineOptWhitespace = /[^\S\n]*/
-        static InlineWhitespace = /[^\S\n]+/
-        static InsideString = /(?:[^"\\]|\\.)*/
-        static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
-        static Integer = /[\-\+]?\d+(?!\d|\.)/
-        static MultilineWhitespace = /\s*\n\s*/
-        static Number = /[-\+]?(?:\d*\.)?\d+(?!\d|\.)/
-        static RealUnit = /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
-        static Word = Grammar.separatedBy("[a-zA-Z]", "_")
-        static Symbol = /[a-zA-Z_]\w*/
-        static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
-        static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
-        static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
-        static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
-    }
-
-    /*   ---   Primitive   ---   */
-
-    static null = P.lazy(() => P.regex(/\(\s*\)/).map(() => null))
-    static true = P.lazy(() => P.regex(/true/i).map(() => true))
-    static false = P.lazy(() => P.regex(/false/i).map(() => false))
-    static boolean = P.lazy(() => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false))
-    static number = P.lazy(() =>
-        this.regexMap(new RegExp(`(${Grammar.Regex.Number.source})|(\\+?inf)|(-inf)`), result => {
-            if (result[2] !== undefined) {
-                return Number.POSITIVE_INFINITY
-            } else if (result[3] !== undefined) {
-                return Number.NEGATIVE_INFINITY
-            }
-            return Number(result[1])
-        })
-    )
-    static integer = P.lazy(() => P.regex(Grammar.Regex.Integer).map(Number))
-    static bigInt = P.lazy(() => P.regex(Grammar.Regex.Integer).map(BigInt))
-    static realUnit = P.lazy(() => P.regex(Grammar.Regex.RealUnit).map(Number))
-    static naturalNumber = P.lazy(() => P.regex(/\d+/).map(Number))
-    static byteNumber = P.lazy(() => P.regex(Grammar.Regex.ByteInteger).map(Number))
-    static string = P.lazy(() =>
-        Grammar.regexMap(
-            new RegExp(`"(${Grammar.Regex.InsideString.source})"`),
-            ([_0, value]) => value
-        )
-            .map((insideString) => Utility.unescapeString(insideString))
-    )
-
-    /*   ---   Fragment   ---   */
-
-    static colorValue = this.byteNumber
-    static word = P.regex(Grammar.Regex.Word)
-    static pathQuotes = Grammar.regexMap(
-        new RegExp(
-            `'"(` + Grammar.Regex.InsideString.source + `)"'`
-            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-            + `|"(` + Grammar.Regex.InsideString.source + `)"`
-        ),
-        ([_0, a, b, c]) => a ?? b ?? c
-    )
-    static path = Grammar.regexMap(
-        new RegExp(
-            `'"(` + Grammar.Regex.InsideString.source + `)"'`
-            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-            + `|"(` + Grammar.Regex.InsideString.source + `)"`
-            + `|(` + Grammar.Regex.Path.source + `)`
-        ),
-        ([_0, a, b, c, d]) => a ?? b ?? c ?? d
-    )
-    static symbol = P.regex(Grammar.Regex.Symbol)
-    static symbolQuoted = Grammar.regexMap(
-        new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
-        /** @type {(_0: String, v: String) => String} */
-        ([_0, v]) => v
-    )
-    static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
-    static attributeNameQuoted = Grammar.regexMap(
-        new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'),
-        ([_0, v]) => v
-    )
-    static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
-    static commaSeparation = P.regex(/\s*,\s*(?!\))/)
-    static equalSeparation = P.regex(/\s*=\s*/)
-    static typeReference = P.alt(P.regex(Grammar.Regex.Path), this.symbol)
-    static hexColorChannel = P.regex(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
-
-    /*   ---   Factory   ---   */
-
-    /**
-     * @template T
-     * @param {RegExp} re
-     * @param {(execResult) => T} mapper
-     */
-    static regexMap(re, mapper) {
-        const anchored = RegExp("^(?:" + re.source + ")", re.flags);
-        const expected = "" + re;
-        return P((input, i) => {
-            const match = anchored.exec(input.slice(i));
-            if (match) {
-                return P.makeSuccess(i + match[0].length, mapper(match))
-            }
-            return P.makeFailure(i, expected)
-        })
-    }
-
-    /**
-      * @param {AttributeType} type
-      * @returns {Parsimmon.Parser<any>}
-      */
-    static grammarFor(
-        attribute,
-        type = attribute?.constructor === Object
-            ? attribute.type
-            : attribute?.constructor,
-        defaultGrammar = this.unknownValue
-    ) {
-        let result = defaultGrammar;
-        if (type instanceof Array) {
-            if (attribute?.inlined) {
-                return this.grammarFor(undefined, type[0])
-            }
-            result = P.seq(
-                P.regex(/\(\s*/),
-                this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
-                P.regex(/\s*(?:,\s*)?\)/),
-            ).map(([_0, values, _3]) => values);
-        } else if (type instanceof Union) {
-            result = type.values
-                .map(v => this.grammarFor(undefined, v))
-                .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
-                    ? this.unknownValue
-                    : P.alt(acc, cur)
-                );
-        } else if (type instanceof MirroredEntity) {
-            return this.grammarFor(type.type.attributes[type.key])
-                .map(() => new MirroredEntity(type.type, type.key, type.getter))
-        } else if (attribute?.constructor === Object) {
-            result = this.grammarFor(undefined, type);
-        } else {
-            switch (type) {
-                case BigInt:
-                    result = this.bigInt;
-                    break
-                case Boolean:
-                    result = this.boolean;
-                    break
-                case ByteEntity:
-                    result = this.byteEntity;
-                    break
-                case ColorChannelEntity:
-                    result = this.colorChannelEntity;
-                    break
-                case EnumDisplayValueEntity:
-                    result = this.enumDisplayValueEntity;
-                    break
-                case EnumEntity:
-                    result = this.enumEntity;
-                    break
-                case FormatTextEntity:
-                    result = this.formatTextEntity;
-                    break
-                case FunctionReferenceEntity:
-                    result = this.functionReferenceEntity;
-                    break
-                case GuidEntity:
-                    result = this.guidEntity;
-                    break
-                case IdentifierEntity:
-                    result = this.identifierEntity;
-                    break
-                case Integer64Entity:
-                    result = this.integer64Entity;
-                    break
-                case IntegerEntity:
-                    result = this.integerEntity;
-                    break
-                case InvariantTextEntity:
-                    result = this.invariantTextEntity;
-                    break
-                case KeyBindingEntity:
-                    result = this.keyBindingEntity;
-                    break
-                case LinearColorEntity:
-                    result = this.linearColorEntity;
-                    break
-                case LocalizedTextEntity:
-                    result = this.localizedTextEntity;
-                    break
-                case MacroGraphReferenceEntity:
-                    result = this.macroGraphReferenceEntity;
-                    break
-                case Number:
-                    result = this.number;
-                    break
-                case ObjectReferenceEntity:
-                    result = this.objectReferenceEntity;
-                    break
-                case PathSymbolEntity:
-                    result = this.pathSymbolEntity;
-                    break
-                case PinEntity:
-                    result = this.pinEntity;
-                    break
-                case PinReferenceEntity:
-                    result = this.pinReferenceEntity;
-                    break
-                case TerminalTypeEntity:
-                    result = this.pinTypeEntity;
-                    break
-                case RotatorEntity:
-                    result = this.rotatorEntity;
-                    break
-                case SimpleSerializationRotatorEntity:
-                    result = this.simpleSerializationRotatorEntity;
-                    break
-                case SimpleSerializationVector2DEntity:
-                    result = this.simpleSerializationVector2DEntity;
-                    break
-                case SimpleSerializationVectorEntity:
-                    result = this.simpleSerializationVectorEntity;
-                    break
-                case String:
-                    result = this.string;
-                    break
-                case SymbolEntity:
-                    result = this.symbolEntity;
-                    break
-                case UnknownKeysEntity:
-                    result = this.unknownKeysEntity;
-                    break
-                case UnknownPinEntity:
-                    result = this.unknownPinEntity;
-                    break
-                case VariableReferenceEntity:
-                    result = this.variableReferenceEntity;
-                    break
-                case Vector2DEntity:
-                    result = this.vector2DEntity;
-                    break
-                case VectorEntity:
-                    result = this.vectorEntity;
-                    break
-            }
-        }
-        if (attribute?.constructor === Object) {
-            if (attribute.serialized && type.constructor !== String) {
-                if (result == this.unknownValue) {
-                    result = this.string;
-                } else {
-                    result = P.seq(P.string('"'), result, P.string('"'));
-                }
-            }
-            if (attribute.nullable) {
-                result = P.alt(result, this.null);
-            }
-        }
-        return result
-    }
-
-    /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entityType
-     * @param {String[]} key
-     * @returns {AttributeInformation}
-     */
-    static getAttribute(entityType, key) {
-        let result;
-        let type;
-        if (entityType instanceof Union) {
-            for (let t of entityType.values) {
-                if (result = this.getAttribute(t, key)) {
-                    return result
-                }
-            }
-        }
-        if (entityType instanceof IEntity.constructor) {
-            // @ts-expect-error
-            result = entityType.attributes[key[0]];
-            type = result?.type;
-        } else if (entityType instanceof Array) {
-            result = entityType[key[0]];
-            type = result;
-        }
-        if (key.length > 1) {
-            return this.getAttribute(type, key.slice(1))
-        }
-        return result
-    }
-
-    static createAttributeGrammar(
-        entityType,
-        attributeName = this.attributeName,
-        valueSeparator = this.equalSeparation,
-        handleObjectSet = (obj, k, v) => { }
-    ) {
-        return P.seq(
-            attributeName,
-            valueSeparator,
-        ).chain(([attributeName, _1]) => {
-            const attributeKey = attributeName.split(Configuration.keysSeparator);
-            const attributeValue = this.getAttribute(entityType, attributeKey);
-            return this
-                .grammarFor(attributeValue)
-                .map(attributeValue =>
-                    values => {
-                        handleObjectSet(values, attributeKey, attributeValue);
-                        Utility.objectSet(values, attributeKey, attributeValue, true);
-                    }
-                )
-        })
-    }
-
-    /**
-     * @param {EntityConstructor} entityType
-     * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
-     */
-    static createEntityGrammar = (entityType, acceptUnknownKeys = true) =>
-        P.seq(
-            this.regexMap(
-                entityType.lookbehind instanceof Union
-                    ? new RegExp(`(${entityType.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
-                    : entityType.lookbehind.constructor == String && entityType.lookbehind.length
-                        ? new RegExp(`(${entityType.lookbehind})\\s*\\(\\s*`)
-                        : /()\(\s*/,
-                result => result[1]
-            ),
-            this.createAttributeGrammar(entityType).sepBy1(this.commaSeparation),
-            P.regex(/\s*(?:,\s*)?\)/), // trailing comma
-        )
-            .map(([lookbehind, attributes, _2]) => {
-                let values = {};
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                if (lookbehind.length) {
-                    values.lookbehind = lookbehind;
-                }
-                return values
-            })
-            // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
-            .chain(values => {
-                let totalKeys = Object.keys(values);
-                let missingKey;
-                // Check missing values
-                if (
-                    Object.keys(/** @type {AttributeInformation} */(entityType.attributes))
-                        .filter(key => entityType.attributes[key].expected)
-                        .find(key => !totalKeys.includes(key) && (missingKey = key))
-                ) {
-                    return P.fail("Missing key " + missingKey)
-                }
-                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length;
-                if (!acceptUnknownKeys && unknownKeys > 0) {
-                    return P.fail("Too many unknown keys")
-                }
-                return P.succeed(new entityType(values))
-            })
-
-    /*   ---   Entity   ---   */
-
-    static byteEntity = P.lazy(() => this.byteNumber.map(v => new ByteEntity(v)))
-
-    static colorChannelEntity = P.lazy(() => this.number.map(value => new ColorChannelEntity(value)))
-
-    static enumDisplayValueEntity = P.lazy(() =>
-        P.regex(this.Regex.InsideString).map(v => new EnumDisplayValueEntity(v))
-    )
-
-    static enumEntity = P.lazy(() => this.symbol.map(v => new EnumEntity(v)))
-
-    static formatTextEntity = P.lazy(() =>
-        P.seq(
-            this.regexMap(
-                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
-                result => result[1]
-            ),
-            this.grammarFor(FormatTextEntity.attributes.value)
-        )
-            .map(([lookbehind, values]) => {
-                const result = new FormatTextEntity({
-                    value: values,
-                });
-                result.lookbehind = lookbehind;
-                return result
-            })
-    )
-
-    static functionReferenceEntity = P.lazy(() => this.createEntityGrammar(FunctionReferenceEntity))
-
-    static guidEntity = P.lazy(() => this.guid.map(v => new GuidEntity(v)))
-
-    static identifierEntity = P.lazy(() => this.symbol.map(v => new IdentifierEntity(v)))
-
-    static integer64Entity = P.lazy(() => this.bigInt.map(v => new Integer64Entity(v)))
-
-    static integerEntity = P.lazy(() => this.integer.map(v => new IntegerEntity(v)))
-
-    static invariantTextEntity = P.lazy(() =>
-        P.alt(
-            P.seq(
-                P.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*\\(`)),
-                this.grammarFor(InvariantTextEntity.attributes.value),
-                P.regex(/\s*\)/)
-            )
-                .map(([_0, value, _2]) => value),
-            P.regex(new RegExp(InvariantTextEntity.lookbehind)) // InvariantTextEntity can not have arguments
-                .map(() => "")
-        ).map(value => new InvariantTextEntity(value))
-    )
-
-    static keyBindingEntity = P.lazy(() =>
-        P.alt(
-            this.identifierEntity.map(identifier => new KeyBindingEntity({
-                Key: identifier
-            })),
-            this.createEntityGrammar(KeyBindingEntity)
-        )
-    )
-
-    static linearColorEntity = P.lazy(() => this.createEntityGrammar(LinearColorEntity, false))
-
-    static localizedTextEntity = P.lazy(() =>
-        Grammar.regexMap(
-            new RegExp(
-                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-                + String.raw`(?:,\s+)?`
-                + String.raw`\)`,
-                "m"
-            ),
-            matchResult => new LocalizedTextEntity({
-                namespace: Utility.unescapeString(matchResult[1]),
-                key: Utility.unescapeString(matchResult[2]),
-                value: Utility.unescapeString(matchResult[3]),
-            })
-        )
-    )
-
-    static macroGraphReferenceEntity = P.lazy(() => this.createEntityGrammar(MacroGraphReferenceEntity))
-
-    static naturalNumberEntity = P.lazy(() => this.naturalNumber.map(v => new NaturalNumberEntity(v)))
-
-    static noneReferenceEntity = P.lazy(() =>
-        P.string("None").map(() => ObjectReferenceEntity.createNoneInstance())
-    )
-
-    static typeReferenceEntity = P.lazy(() =>
-        this.typeReference.map(v =>
-            new ObjectReferenceEntity({ type: v, path: "" })
-        )
-    )
-
-    static pathReferenceEntity = P.lazy(() =>
-        this.path.map(path =>
-            new ObjectReferenceEntity({ type: "", path: path })
-        )
-    )
-
-    static fullReferenceEntity = P.lazy(() =>
-        P.seq(this.typeReference, P.regex(Grammar.Regex.InlineOptWhitespace), this.pathQuotes)
-            .map(([type, _2, path]) =>
-                new ObjectReferenceEntity({ type: type, path: path })
-            )
-    )
-
-    static objectReferenceEntity = P.lazy(() =>
-        P.alt(
-            this.noneReferenceEntity,
-            this.fullReferenceEntity,
-            this.typeReferenceEntity,
-            this.pathReferenceEntity,
-        )
-    )
-
-    static pathSymbolEntity = P.lazy(() => this.symbol.map(v => new PathSymbolEntity(v)))
-
-    static pinEntity = P.lazy(() => this.createEntityGrammar(PinEntity))
-
-    static pinReferenceEntity = P.lazy(() =>
-        P.seq(
-            this.pathSymbolEntity,
-            P.whitespace,
-            this.guidEntity
-        ).map(
-            ([objectName, _1, pinGuid]) => new PinReferenceEntity({
-                objectName: objectName,
-                pinGuid: pinGuid,
-            })
-        )
-    )
-
-    static pinTypeEntity = P.lazy(() => this.createEntityGrammar(TerminalTypeEntity))
-
-    static rotatorEntity = P.lazy(() => this.createEntityGrammar(RotatorEntity, false))
-
-    static simpleSerializationRotatorEntity = P.lazy(() =>
-        P.alt(
-            P.seq(
-                this.number,
-                this.commaSeparation,
-                this.number,
-                this.commaSeparation,
-                this.number,
-            ).map(([p, _1, y, _3, r]) =>
-                new SimpleSerializationRotatorEntity({
-                    R: r,
-                    P: p,
-                    Y: y,
-                })
-            ),
-            this.rotatorEntity
-        )
-    )
-
-    static vector2DEntity = P.lazy(() => this.createEntityGrammar(Vector2DEntity, false))
-
-    static simpleSerializationVector2DEntity = P.lazy(() =>
-        P.alt(
-            P.seq(
-                this.number,
-                this.commaSeparation,
-                this.number,
-            ).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
-                X: x,
-                Y: y,
-            })),
-            this.vector2DEntity
-        )
-    )
-
-    static vectorEntity = P.lazy(() => this.createEntityGrammar(VectorEntity, false))
-
-    static simpleSerializationVectorEntity = P.lazy(() =>
-        P.alt(
-            P.seq(
-                this.number,
-                this.commaSeparation,
-                this.number,
-                this.commaSeparation,
-                this.number,
-            ).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
-                X: x,
-                Y: y,
-                Z: z,
-            })),
-            this.vectorEntity
-        )
-    )
-
-    static symbolEntity = P.lazy(() => this.symbol.map(v => new SymbolEntity(v)))
-
-    static variableReferenceEntity = P.lazy(() => this.createEntityGrammar(VariableReferenceEntity))
-
-    static unknownKeysEntity = P.lazy(() =>
-        P.seq(
-            // Lookbehind
-            this.regexMap(
-                new RegExp(`(${this.Regex.Path.source}\\s*)?\\(\\s*`),
-                result => result[1] ?? ""
-            ),
-            this.attributeName
-                .skip(this.equalSeparation)
-                .chain((attributeName) =>
-                    this.unknownValue
-                        .map(attributeValue =>
-                            values => values[attributeName] = attributeValue
-                        )
-                )
-                .sepBy1(this.commaSeparation),
-            P.regex(/\s*(?:,\s*)?\)/),
-        )
-            .map(([lookbehind, attributes, _2]) => {
-                let values = {};
-                if (lookbehind.length) {
-                    values.lookbehind = lookbehind;
-                }
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return new UnknownKeysEntity(values)
-            })
-    )
-
-    static unknownPinEntity = P.lazy(() =>
-        P.seq(
-            this.regexMap(
-                new RegExp(`${this.Regex.Symbol.source}\\s*\\(\\s*`),
-                result => result[1] ?? ""
-            ),
-            this.createAttributeGrammar(this.unknownPinEntity).sepBy1(this.commaSeparation),
-            P.regex(/\s*(?:,\s*)?\)/)
-        )
-            .map(([lookbehind, attributes, _2]) => {
-                let values = {};
-                if (lookbehind.length) {
-                    values.lookbehind = lookbehind;
-                }
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return new UnknownPinEntity(values)
-            })
-    )
-
-    static unknownValue = P.lazy(() =>
-        P.alt(
-            // Remember to keep the order, otherwise parsing might fail
-            this.boolean,
-            this.guidEntity,
-            this.noneReferenceEntity,
-            this.null,
-            this.number,
-            this.string,
-            this.fullReferenceEntity,
-            this.localizedTextEntity,
-            this.invariantTextEntity,
-            this.formatTextEntity,
-            this.pinReferenceEntity,
-            this.vectorEntity,
-            this.rotatorEntity,
-            this.linearColorEntity,
-            this.vector2DEntity,
-            this.unknownKeysEntity,
-            this.symbolEntity,
-            this.grammarFor(undefined, [PinReferenceEntity]),
-            this.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
-        )
-    )
-
-    static customProperty = P.lazy(() =>
-        P.seq(
-            P.regex(/CustomProperties\s+/),
-            this.grammarFor(undefined, ObjectEntity.attributes.CustomProperties.type[0]),
-        ).map(([_0, pin]) => values => {
-            if (!values.CustomProperties) {
-                values.CustomProperties = [];
-            }
-            values.CustomProperties.push(pin);
-        })
-    )
-
-    static inlinedArrayEntry = P.lazy(() =>
-        P.seq(
-            P.alt(
-                this.symbolQuoted.map(v => [v, true]),
-                this.symbol.map(v => [v, false]),
-            ),
-            this.regexMap(
-                new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-                v => Number(v[1])
-            )
-        )
-            .chain(
-                /** @param {[[String, Boolean], Number]} param */
-                ([[symbol, quoted], index]) =>
-                    this.grammarFor(ObjectEntity.attributes[symbol])
-                        .map(currentValue =>
-                            values => {
-                                (values[symbol] ??= [])[index] = currentValue;
-                                Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true);
-                                if (!ObjectEntity.attributes[symbol]?.inlined) {
-                                    if (!values.attributes) {
-                                        IEntity.defineAttributes(values, {});
-                                    }
-                                    Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true);
-                                }
-                            }
-                        )
-            )
-    )
-
-    static subObjectEntity = P.lazy(() =>
-        this.objectEntity
-            .map(object =>
-                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
-            )
-    )
-
-    /** @type {Parsimmon.Parser<ObjectEntity>} */
-    static objectEntity = P.lazy(() =>
-        P.seq(
-            P.regex(/Begin\s+Object/),
-            P.seq(
-                P.whitespace,
-                P.alt(
-                    this.customProperty,
-                    this.createAttributeGrammar(ObjectEntity),
-                    this.createAttributeGrammar(ObjectEntity, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
-                    ),
-                    this.inlinedArrayEntry,
-                    this.subObjectEntity
-                )
-            )
-                .map(([_0, entry]) => entry)
-                .many(),
-            P.regex(/\s+End\s+Object/),
-        ).map(
-            ([_0, attributes, _2]) => {
-                let values = {};
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return new ObjectEntity(values)
-            }
-        )
-    )
-
-    static multipleObject = P.lazy(() =>
-        P.seq(
-            P.optWhitespace,
-            this.objectEntity,
-            P.seq(
-                P.whitespace,
-                this.objectEntity,
-            )
-                .map(([_0, object]) => object)
-                .many(),
-            P.optWhitespace
-        ).map(([_0, first, remaining, _4]) => [first, ...remaining])
-    )
-
-    /*   ---   Others   ---   */
-
-    static linearColorFromHex = P.lazy(() =>
-        Grammar.regexMap(new RegExp(
-            `#(${Grammar.Regex.HexDigit.source
-            }{2})(${Grammar.Regex.HexDigit.source
-            }{2})(${Grammar.Regex.HexDigit.source
-            }{2})(${this.Regex.HexDigit.source
-            }{2})?`
-        ),
-            v => [v[1], v[2], v[3], v[4] ?? "FF"])
-            .map(([R, G, B, A]) => new LinearColorEntity({
-                R: parseInt(R, 16) / 255,
-                G: parseInt(G, 16) / 255,
-                B: parseInt(B, 16) / 255,
-                A: parseInt(A, 16) / 255,
-            }))
-    )
-
-    static linearColorRGBList = P.lazy(() =>
-        P.seq(
-            this.byteNumber,
-            this.commaSeparation,
-            this.byteNumber,
-            this.commaSeparation,
-            this.byteNumber,
-        ).map(([R, _1, G, _3, B]) => new LinearColorEntity({
-            R: R / 255,
-            G: G / 255,
-            B: B / 255,
-            A: 1,
-        }))
-    )
-
-    static linearColorRGBAList = P.lazy(() =>
-        P.seq(
-            this.byteNumber,
-            this.commaSeparation,
-            this.byteNumber,
-            this.commaSeparation,
-            this.byteNumber,
-            this.commaSeparation,
-            this.byteNumber,
-        ).map(([R, _1, G, _3, B, _5, A]) => new LinearColorEntity({
-            R: R / 255,
-            G: G / 255,
-            B: B / 255,
-            A: A,
-        }))
-    )
-
-    static linearColorRGB = P.lazy(() =>
-        P.seq(
-            P.regex(/rgb\s*\(\s*/),
-            this.linearColorRGBList,
-            P.regex(/\s*\)/)
-        ).map(([_0, linearColor, _2]) => linearColor)
-    )
-
-    static linearColorRGBA = P.lazy(() =>
-        P.seq(
-            P.regex(/rgba\s*\(\s*/),
-            this.linearColorRGBAList,
-            P.regex(/\s*\)/)
-        ).map(([_0, linearColor, _2]) => linearColor)
-    )
-
-    static linearColorFromAnyFormat = P.lazy(() =>
-        P.alt(
-            this.linearColorFromHex,
-            this.linearColorRGBA,
-            this.linearColorRGB,
-            this.linearColorRGBList,
-        )
-    )
-}
-
 /**
  * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
@@ -5420,8 +5216,8 @@ class Serializer {
 
 class ObjectSerializer extends Serializer {
 
-    constructor() {
-        super(ObjectEntity, undefined, "\n", true, undefined, Serializer.same);
+    constructor(entityType = ObjectEntity) {
+        super(entityType, undefined, "\n", true, undefined, Serializer.same);
     }
 
     showProperty(entity, key) {
@@ -5444,7 +5240,7 @@ class ObjectSerializer extends Serializer {
 
     /** @param {String} value */
     doRead(value) {
-        const parseResult = Grammar.objectEntity.parse(value);
+        const parseResult = Grammar.grammarFor(undefined, this.entityType).parse(value);
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }
@@ -5456,7 +5252,7 @@ class ObjectSerializer extends Serializer {
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
-        const parseResult = Grammar.multipleObject.parse(value);
+        const parseResult = ObjectEntity.getMultipleObjectsGrammar().parse(value);
         if (!parseResult.status) {
             throw new Error("Error when trying to parse the object.")
         }
@@ -5657,6 +5453,54 @@ class ITemplate {
     }
 }
 
+class KeyBindingEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        ActionName: {
+            default: "",
+        },
+        bShift: {
+            default: false,
+        },
+        bCtrl: {
+            default: false,
+        },
+        bAlt: {
+            default: false,
+        },
+        bCmd: {
+            default: false,
+        },
+        Key: {
+            type: IdentifierEntity,
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.alt(
+            IdentifierEntity.grammar.map(identifier => new this({
+                Key: identifier
+            })),
+            Grammar.createEntityGrammar(this)
+        )
+    }
+
+    constructor(values = {}) {
+        super(values, true);
+        /** @type {String} */ this.ActionName;
+        /** @type {Boolean} */ this.bShift;
+        /** @type {Boolean} */ this.bCtrl;
+        /** @type {Boolean} */ this.bAlt;
+        /** @type {Boolean} */ this.bCmd;
+        /** @type {IdentifierEntity} */ this.Key;
+    }
+}
+
 /** @typedef {import("../../Blueprint.js").default} Blueprint */
 
 /**
@@ -5698,7 +5542,7 @@ class KeyboardShortcut extends IInput {
                 return v
             }
             if (typeof v === "string") {
-                const parsed = Grammar.keyBindingEntity.parse(v);
+                const parsed = KeyBindingEntity.createGrammar().parse(v);
                 if (parsed.status) {
                     return parsed.value
                 }
@@ -11342,7 +11186,7 @@ class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<GuidEntity>} */(Grammar.guidEntity.parse(value)).value
+                    ? /** @type {Success<GuidEntity>} */(GuidEntity.grammar.parse(value)).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
             },
@@ -11363,7 +11207,7 @@ class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<LinearColorEntity>} */(Grammar.linearColorFromAnyFormat.parse(value)).value
+                    ? /** @type {Success<LinearColorEntity>} */(LinearColorEntity.getLinearColorFromAnyFormat().parse(value)).value
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
             },
@@ -12018,6 +11862,41 @@ class CustomSerializer extends Serializer {
     }
 }
 
+class TerminalTypeEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        TerminalCategory: {
+            type: String,
+        },
+        TerminalSubCategory: {
+            type: String,
+        },
+        bTerminalIsConst: {
+            type: Boolean,
+        },
+        bTerminalIsWeakPointer: {
+            type: Boolean,
+        },
+        bTerminalIsUObjectWrapper: {
+            type: Boolean,
+        },
+    }
+
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.TerminalCategory;
+        /** @type {String} */ this.TerminalSubCategory;
+        /** @type {Boolean} */ this.bTerminalIsConst;
+        /** @type {Boolean} */ this.bTerminalIsWeakPointer;
+        /** @type {Boolean} */ this.bTerminalIsUObjectWrapper;
+    }
+}
+
 /**
  * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
  * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
@@ -12045,7 +11924,79 @@ class ToStringSerializer extends Serializer {
     }
 }
 
+class UnknownKeysEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        lookbehind: {
+            default: "",
+            ignored: true,
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.seq(
+            // Lookbehind
+            Grammar.regexMap(
+                new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
+                result => result[1] ?? ""
+            ),
+            Grammar.attributeName
+                .skip(Grammar.equalSeparation)
+                .chain(attributeName =>
+                    Grammar.unknownValue
+                        .map(attributeValue =>
+                            values => values[attributeName] = attributeValue
+                        )
+                )
+                .sepBy1(Grammar.commaSeparation),
+            Parsimmon.regex(/\s*(?:,\s*)?\)/),
+        )
+            .map(([lookbehind, attributes, _2]) => {
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
+    }
+
+    constructor(values) {
+        super(values, true);
+        /** @type {String} */ this.lookbehind;
+    }
+}
+
 /** @typedef {import("../entity/IEntity.js").AnySimpleValue} AnySimpleValue */
+
+Grammar.unknownValue =
+    Parsimmon.alt(
+        // Remember to keep the order, otherwise parsing might fail
+        Grammar.boolean,
+        GuidEntity.createGrammar(),
+        ObjectReferenceEntity.noneReferenceGrammar,
+        Grammar.null,
+        Grammar.number,
+        Grammar.string,
+        ObjectReferenceEntity.fullReferenceGrammar,
+        LocalizedTextEntity.createGrammar(),
+        InvariantTextEntity.createGrammar(),
+        FormatTextEntity.createGrammar(),
+        PinReferenceEntity.createGrammar(),
+        VectorEntity.createGrammar(),
+        RotatorEntity.createGrammar(),
+        LinearColorEntity.createGrammar(),
+        Vector2DEntity.createGrammar(),
+        UnknownKeysEntity.createGrammar(),
+        SymbolEntity.createGrammar(),
+        Grammar.grammarFor(undefined, [PinReferenceEntity]),
+        Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
+    );
 
 function initializeSerializerFactory() {
 

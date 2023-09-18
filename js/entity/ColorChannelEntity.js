@@ -1,3 +1,4 @@
+import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class ColorChannelEntity extends IEntity {
@@ -8,9 +9,13 @@ export default class ColorChannelEntity extends IEntity {
             default: 0,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.number.map(value => new this(value))
     }
 
     constructor(values = 0) {
