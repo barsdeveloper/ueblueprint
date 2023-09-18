@@ -6,6 +6,7 @@ export default class Serializable {
 
     static grammar = this.createGrammar()
 
+    /** @protected */
     static createGrammar() {
         return /** @type {Parsimmon.Parser<Serializable>} */(P.fail(
             "Unimplemented createGrammar() method in " + this.name)

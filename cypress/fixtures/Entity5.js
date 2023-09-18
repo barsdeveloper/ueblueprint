@@ -11,8 +11,8 @@ export default class Entity5 extends ObjectEntity {
             type: EntityF,
         },
     }
-
     static {
         this.cleanupAttributes(this.attributes)
     }
+    static grammar = this.createGrammar()
 }

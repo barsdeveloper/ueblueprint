@@ -583,6 +583,7 @@ class Serializable {
 
     static grammar = this.createGrammar()
 
+    /** @protected */
     static createGrammar() {
         return /** @type {Parsimmon.Parser<Serializable>} */(P$1.fail(
             "Unimplemented createGrammar() method in " + this.name)
@@ -1593,7 +1594,7 @@ class Grammar {
                 default:
                     if (type?.prototype instanceof Serializable) {
                         // @ts-expect-error
-                        return /** @type {typeof Serializable} */(type).createGrammar()
+                        return /** @type {typeof Serializable} */(type).grammar
                     }
             }
         }
@@ -11185,7 +11186,7 @@ class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<GuidEntity>} */(GuidEntity.createGrammar().parse(value)).value
+                    ? /** @type {Success<GuidEntity>} */(GuidEntity.grammar.parse(value)).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
             },
