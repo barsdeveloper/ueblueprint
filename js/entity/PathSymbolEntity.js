@@ -14,7 +14,7 @@ export default class PathSymbolEntity extends IEntity {
     }
     static #grammar = Grammar.symbol.map(v => new PathSymbolEntity(v))
 
-    static getGrammar() {
+    static createGrammar() {
         return PathSymbolEntity.#grammar
     }
 

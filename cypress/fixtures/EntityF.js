@@ -15,7 +15,7 @@ export default class EntityF extends IEntity {
         },
     }
 
-    static getGrammar() {
+    static createGrammar() {
         return Grammar.createEntityGrammar(this, false)
     }
 

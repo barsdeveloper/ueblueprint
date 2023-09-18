@@ -23,10 +23,10 @@ export default class MacroGraphReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.createEntityGrammar(MacroGraphReferenceEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return MacroGraphReferenceEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {

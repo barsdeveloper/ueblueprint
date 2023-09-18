@@ -13,10 +13,10 @@ export default class ByteEntity extends IntegerEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.byteNumber.map(v => new ByteEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return ByteEntity.#grammar
+    static createGrammar() {
+        return Grammar.byteNumber.map(v => new this(v))
     }
 
     constructor(values = 0) {

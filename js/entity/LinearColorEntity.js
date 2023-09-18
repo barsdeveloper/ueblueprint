@@ -47,7 +47,7 @@ export default class LinearColorEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.createEntityGrammar(LinearColorEntity, false)
+    static grammar = this.createGrammar()
 
     /** @param {Number} x */
     static linearToSRGB(x) {
@@ -83,8 +83,8 @@ export default class LinearColorEntity extends IEntity {
         })
     }
 
-    static getGrammar() {
-        return LinearColorEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
     }
 
     static getLinearColorFromHexGrammar() {
@@ -96,7 +96,7 @@ export default class LinearColorEntity extends IEntity {
             }{2})?`
         ),
             v => [v[1], v[2], v[3], v[4] ?? "FF"])
-            .map(([R, G, B, A]) => new LinearColorEntity({
+            .map(([R, G, B, A]) => new this({
                 R: parseInt(R, 16) / 255,
                 G: parseInt(G, 16) / 255,
                 B: parseInt(B, 16) / 255,
@@ -111,7 +111,7 @@ export default class LinearColorEntity extends IEntity {
             Grammar.byteNumber,
             Grammar.commaSeparation,
             Grammar.byteNumber,
-        ).map(([R, _1, G, _3, B]) => new LinearColorEntity({
+        ).map(([R, _1, G, _3, B]) => new this({
             R: R / 255,
             G: G / 255,
             B: B / 255,
@@ -122,7 +122,7 @@ export default class LinearColorEntity extends IEntity {
     static getLinearColorRGBGrammar() {
         return Parsimmon.seq(
             Parsimmon.regex(/rgb\s*\(\s*/),
-            LinearColorEntity.getLinearColorRGBListGrammar(),
+            this.getLinearColorRGBListGrammar(),
             Parsimmon.regex(/\s*\)/)
         )
             .map(([_0, linearColor, _2]) => linearColor)
@@ -131,7 +131,7 @@ export default class LinearColorEntity extends IEntity {
     static getLinearColorRGBAGrammar() {
         return Parsimmon.seq(
             Parsimmon.regex(/rgba\s*\(\s*/),
-            LinearColorEntity.getLinearColorRGBListGrammar(),
+            this.getLinearColorRGBListGrammar(),
             Parsimmon.regex(/\s*\)/)
         )
             .map(([_0, linearColor, _2]) => linearColor)
@@ -139,10 +139,10 @@ export default class LinearColorEntity extends IEntity {
 
     static getLinearColorFromAnyFormat() {
         return Parsimmon.alt(
-            LinearColorEntity.getLinearColorFromHexGrammar(),
-            LinearColorEntity.getLinearColorRGBAGrammar(),
-            LinearColorEntity.getLinearColorRGBGrammar(),
-            LinearColorEntity.getLinearColorRGBListGrammar(),
+            this.getLinearColorFromHexGrammar(),
+            this.getLinearColorRGBAGrammar(),
+            this.getLinearColorRGBGrammar(),
+            this.getLinearColorRGBListGrammar(),
         )
     }
 

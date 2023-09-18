@@ -12,10 +12,10 @@ export default class SymbolEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.symbol.map(v => new SymbolEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return SymbolEntity.#grammar
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
     }
 
     /** @param {String | Object} values */

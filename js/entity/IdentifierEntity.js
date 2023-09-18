@@ -16,10 +16,10 @@ export default class IdentifierEntity extends IEntity {
         fromAttribute: (value, type) => new IdentifierEntity(value),
         toAttribute: (value, type) => value.toString()
     }
-    static #grammar = Grammar.symbol.map(v => new IdentifierEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return IdentifierEntity.#grammar
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
     }
 
     constructor(values) {

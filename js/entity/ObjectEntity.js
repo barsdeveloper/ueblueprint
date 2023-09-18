@@ -307,12 +307,12 @@ export default class ObjectEntity extends IEntity {
             type: [new Union(PinEntity, UnknownPinEntity)],
         },
     }
-    static nameRegex = /^(\w+?)(?:_(\d+))?$/
-    static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #customPropertyGrammar = Parsimmon.seq(
+    static nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
+    static customPropertyGrammar = Parsimmon.seq(
         Parsimmon.regex(/CustomProperties\s+/),
         Grammar.grammarFor(
             undefined,
@@ -324,7 +324,7 @@ export default class ObjectEntity extends IEntity {
         }
         values.CustomProperties.push(pin)
     })
-    static #inlinedArrayEntryGrammar = Parsimmon.seq(
+    static inlinedArrayEntryGrammar = Parsimmon.seq(
         Parsimmon.alt(
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
@@ -351,35 +351,42 @@ export default class ObjectEntity extends IEntity {
                         }
                     )
         )
-    static #subObjectGrammar = Parsimmon.lazy(() =>
-        this.#objectGrammar
-            .map(object =>
-                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
-            )
-    )
-    static #objectGrammar = Parsimmon.seq(
-        Parsimmon.regex(/Begin\s+Object/),
-        Parsimmon.seq(
-            Parsimmon.whitespace,
-            Parsimmon.alt(
-                this.#customPropertyGrammar,
-                Grammar.createAttributeGrammar(this),
-                Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                    Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
-                ),
-                this.#inlinedArrayEntryGrammar,
-                this.#subObjectGrammar
-            )
+    static grammar = this.createGrammar()
+
+    static createSubObjectGrammar() {
+        return Parsimmon.lazy(() =>
+            this.createGrammar()
+                .map(object =>
+                    values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+                )
         )
-            .map(([_0, entry]) => entry)
-            .many(),
-        Parsimmon.regex(/\s+End\s+Object/),
-    )
-        .map(([_0, attributes, _2]) => {
-            let values = {}
-            attributes.forEach(attributeSetter => attributeSetter(values))
-            return new this(values)
-        })
+    }
+
+    static createGrammar() {
+        return Parsimmon.seq(
+            Parsimmon.regex(/Begin\s+Object/),
+            Parsimmon.seq(
+                Parsimmon.whitespace,
+                Parsimmon.alt(
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this),
+                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                    ),
+                    this.inlinedArrayEntryGrammar,
+                    this.createSubObjectGrammar()
+                )
+            )
+                .map(([_0, entry]) => entry)
+                .many(),
+            Parsimmon.regex(/\s+End\s+Object/),
+        )
+            .map(([_0, attributes, _2]) => {
+                let values = {}
+                attributes.forEach(attributeSetter => attributeSetter(values))
+                return new this(values)
+            })
+    }
 
     /** @param {String} value */
     static keyName(value) {
@@ -400,17 +407,13 @@ export default class ObjectEntity extends IEntity {
         }
     }
 
-    static getGrammar() {
-        return this.#objectGrammar
-    }
-
     static getMultipleObjectsGrammar() {
         return Parsimmon.seq(
             Parsimmon.optWhitespace,
-            this.#objectGrammar,
+            this.grammar,
             Parsimmon.seq(
                 Parsimmon.whitespace,
-                this.#objectGrammar,
+                this.grammar,
             )
                 .map(([_0, object]) => object)
                 .many(),

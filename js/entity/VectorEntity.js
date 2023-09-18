@@ -21,10 +21,10 @@ export default class VectorEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.createEntityGrammar(VectorEntity, false)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return VectorEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(VectorEntity, false)
     }
 
     constructor(values) {

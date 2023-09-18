@@ -4,9 +4,9 @@ import Parsimmon from "parsimmon"
 
 export default class EnumDisplayValueEntity extends EnumEntity {
 
-    static #grammar = Parsimmon.regex(Grammar.Regex.InsideString).map(v => new EnumDisplayValueEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return EnumDisplayValueEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.regex(Grammar.Regex.InsideString).map(v => new this(v))
     }
 }

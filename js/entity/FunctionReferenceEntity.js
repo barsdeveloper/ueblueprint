@@ -20,10 +20,10 @@ export default class FunctionReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.createEntityGrammar(FunctionReferenceEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return FunctionReferenceEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {

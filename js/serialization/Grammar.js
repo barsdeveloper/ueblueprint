@@ -182,7 +182,7 @@ export default class Grammar {
                 default:
                     if (type?.prototype instanceof Serializable) {
                         // @ts-expect-error
-                        return /** @type {typeof Serializable} */(type).getGrammar()
+                        return /** @type {typeof Serializable} */(type).createGrammar()
                     }
             }
         }

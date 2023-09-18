@@ -29,15 +29,15 @@ export default class KeyBindingEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Parsimmon.alt(
-        IdentifierEntity.getGrammar().map(identifier => new KeyBindingEntity({
-            Key: identifier
-        })),
-        Grammar.createEntityGrammar(KeyBindingEntity)
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return KeyBindingEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.alt(
+            IdentifierEntity.grammar.map(identifier => new this({
+                Key: identifier
+            })),
+            Grammar.createEntityGrammar(this)
+        )
     }
 
     constructor(values = {}) {

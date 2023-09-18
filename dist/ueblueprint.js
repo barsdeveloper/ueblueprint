@@ -580,9 +580,12 @@ var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_minExports);
 const P$1 = Parsimmon;
 
 class Serializable {
-    static getGrammar() {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
         return /** @type {Parsimmon.Parser<Serializable>} */(P$1.fail(
-            "Unimplemented getGrammar() method in " + this.name)
+            "Unimplemented createGrammar() method in " + this.name)
         )
     }
 }
@@ -1590,7 +1593,7 @@ class Grammar {
                 default:
                     if (type?.prototype instanceof Serializable) {
                         // @ts-expect-error
-                        return /** @type {typeof Serializable} */(type).getGrammar()
+                        return /** @type {typeof Serializable} */(type).createGrammar()
                     }
             }
         }
@@ -1724,7 +1727,11 @@ class GuidEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.guid.map(v => new GuidEntity(v))
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.guid.map(v => new this(v))
+    }
 
     static generateGuid(random = true) {
         let values = new Uint32Array(4);
@@ -1736,10 +1743,6 @@ class GuidEntity extends IEntity {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
         });
         return new GuidEntity({ value: guid })
-    }
-
-    static getGrammar() {
-        return GuidEntity.#grammar
     }
 
     constructor(values) {
@@ -1775,33 +1778,33 @@ class ObjectReferenceEntity extends IEntity {
             default: "",
         },
     }
-    static noneReferenceGrammar = Parsimmon.string("None").map(() => ObjectReferenceEntity.createNoneInstance())
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static noneReferenceGrammar = Parsimmon.string("None").map(() => this.createNoneInstance())
     static fullReferenceGrammar = Parsimmon.seq(
         Grammar.typeReference,
         Parsimmon.regex(Grammar.Regex.InlineOptWhitespace),
         Grammar.pathQuotes
     )
         .map(([type, _2, path]) =>
-            new ObjectReferenceEntity({ type: type, path: path })
+            new this({ type: type, path: path })
         )
     static typeReferenceGrammar = Grammar.typeReference.map(v =>
-        new ObjectReferenceEntity({ type: v, path: "" })
+        new this({ type: v, path: "" })
     )
     static pathReferenceGrammar = Grammar.path.map(path =>
-        new ObjectReferenceEntity({ type: "", path: path })
+        new this({ type: "", path: path })
     )
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-    static #grammar = Parsimmon.alt(
-        ObjectReferenceEntity.noneReferenceGrammar,
-        ObjectReferenceEntity.fullReferenceGrammar,
-        ObjectReferenceEntity.typeReferenceGrammar,
-        ObjectReferenceEntity.pathReferenceGrammar,
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return ObjectReferenceEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.alt(
+            this.noneReferenceGrammar,
+            this.fullReferenceGrammar,
+            this.typeReferenceGrammar,
+            this.pathReferenceGrammar,
+        )
     }
 
     constructor(values = {}) {
@@ -1859,10 +1862,10 @@ class FunctionReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(FunctionReferenceEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return FunctionReferenceEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {
@@ -1888,10 +1891,10 @@ class IdentifierEntity extends IEntity {
         fromAttribute: (value, type) => new IdentifierEntity(value),
         toAttribute: (value, type) => value.toString()
     }
-    static #grammar = Grammar.symbol.map(v => new IdentifierEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return IdentifierEntity.#grammar
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
     }
 
     constructor(values) {
@@ -1925,10 +1928,10 @@ class IntegerEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.integer.map(v => new IntegerEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return IntegerEntity.#grammar
+    static createGrammar() {
+        return Grammar.integer.map(v => new this(v))
     }
 
     constructor(value = 0) {
@@ -1962,10 +1965,10 @@ class ColorChannelEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.number.map(value => new ColorChannelEntity(value))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return ColorChannelEntity.#grammar
+    static createGrammar() {
+        return Grammar.number.map(value => new this(value))
     }
 
     constructor(values = 0) {
@@ -2030,7 +2033,7 @@ class LinearColorEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(LinearColorEntity, false)
+    static grammar = this.createGrammar()
 
     /** @param {Number} x */
     static linearToSRGB(x) {
@@ -2066,8 +2069,8 @@ class LinearColorEntity extends IEntity {
         })
     }
 
-    static getGrammar() {
-        return LinearColorEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
     }
 
     static getLinearColorFromHexGrammar() {
@@ -2079,7 +2082,7 @@ class LinearColorEntity extends IEntity {
             }{2})?`
         ),
             v => [v[1], v[2], v[3], v[4] ?? "FF"])
-            .map(([R, G, B, A]) => new LinearColorEntity({
+            .map(([R, G, B, A]) => new this({
                 R: parseInt(R, 16) / 255,
                 G: parseInt(G, 16) / 255,
                 B: parseInt(B, 16) / 255,
@@ -2094,7 +2097,7 @@ class LinearColorEntity extends IEntity {
             Grammar.byteNumber,
             Grammar.commaSeparation,
             Grammar.byteNumber,
-        ).map(([R, _1, G, _3, B]) => new LinearColorEntity({
+        ).map(([R, _1, G, _3, B]) => new this({
             R: R / 255,
             G: G / 255,
             B: B / 255,
@@ -2105,7 +2108,7 @@ class LinearColorEntity extends IEntity {
     static getLinearColorRGBGrammar() {
         return Parsimmon.seq(
             Parsimmon.regex(/rgb\s*\(\s*/),
-            LinearColorEntity.getLinearColorRGBListGrammar(),
+            this.getLinearColorRGBListGrammar(),
             Parsimmon.regex(/\s*\)/)
         )
             .map(([_0, linearColor, _2]) => linearColor)
@@ -2114,7 +2117,7 @@ class LinearColorEntity extends IEntity {
     static getLinearColorRGBAGrammar() {
         return Parsimmon.seq(
             Parsimmon.regex(/rgba\s*\(\s*/),
-            LinearColorEntity.getLinearColorRGBListGrammar(),
+            this.getLinearColorRGBListGrammar(),
             Parsimmon.regex(/\s*\)/)
         )
             .map(([_0, linearColor, _2]) => linearColor)
@@ -2122,10 +2125,10 @@ class LinearColorEntity extends IEntity {
 
     static getLinearColorFromAnyFormat() {
         return Parsimmon.alt(
-            LinearColorEntity.getLinearColorFromHexGrammar(),
-            LinearColorEntity.getLinearColorRGBAGrammar(),
-            LinearColorEntity.getLinearColorRGBGrammar(),
-            LinearColorEntity.getLinearColorRGBListGrammar(),
+            this.getLinearColorFromHexGrammar(),
+            this.getLinearColorRGBAGrammar(),
+            this.getLinearColorRGBGrammar(),
+            this.getLinearColorRGBListGrammar(),
         )
     }
 
@@ -2335,10 +2338,10 @@ class MacroGraphReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(MacroGraphReferenceEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return MacroGraphReferenceEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {
@@ -2366,10 +2369,10 @@ class ByteEntity extends IntegerEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.byteNumber.map(v => new ByteEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return ByteEntity.#grammar
+    static createGrammar() {
+        return Grammar.byteNumber.map(v => new this(v))
     }
 
     constructor(values = 0) {
@@ -2388,10 +2391,10 @@ class SymbolEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.symbol.map(v => new SymbolEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return SymbolEntity.#grammar
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
     }
 
     /** @param {String | Object} values */
@@ -2416,19 +2419,19 @@ class SymbolEntity extends IEntity {
 
 class EnumEntity extends SymbolEntity {
 
-    static #grammar = Grammar.symbol.map(v => new EnumEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return EnumEntity.#grammar
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
     }
 }
 
 class EnumDisplayValueEntity extends EnumEntity {
 
-    static #grammar = Parsimmon.regex(Grammar.Regex.InsideString).map(v => new EnumDisplayValueEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return EnumDisplayValueEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.regex(Grammar.Regex.InsideString).map(v => new this(v))
     }
 }
 
@@ -2444,19 +2447,19 @@ class InvariantTextEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Parsimmon.alt(
-        Parsimmon.seq(
-            Parsimmon.regex(new RegExp(`${InvariantTextEntity.lookbehind}\\s*\\(`)),
-            Grammar.grammarFor(InvariantTextEntity.attributes.value),
-            Parsimmon.regex(/\s*\)/)
-        )
-            .map(([_0, value, _2]) => value),
-        Parsimmon.regex(new RegExp(InvariantTextEntity.lookbehind)) // InvariantTextEntity can not have arguments
-            .map(() => "")
-    ).map(value => new InvariantTextEntity(value))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return InvariantTextEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Parsimmon.regex(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                Grammar.grammarFor(this.attributes.value),
+                Parsimmon.regex(/\s*\)/)
+            )
+                .map(([_0, value, _2]) => value),
+            Parsimmon.regex(new RegExp(this.lookbehind)) // InvariantTextEntity can not have arguments
+                .map(() => "")
+        ).map(value => new this(value))
     }
 
     constructor(values) {
@@ -2488,25 +2491,25 @@ class LocalizedTextEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.regexMap(
-        new RegExp(
-            String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-            + String.raw`(?:,\s+)?`
-            + String.raw`\)`,
-            "m"
-        ),
-        matchResult => new LocalizedTextEntity({
-            namespace: Utility.unescapeString(matchResult[1]),
-            key: Utility.unescapeString(matchResult[2]),
-            value: Utility.unescapeString(matchResult[3]),
-        })
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return LocalizedTextEntity.#grammar
+    static createGrammar() {
+        return Grammar.regexMap(
+            new RegExp(
+                String.raw`${this.lookbehind}\s*\(`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
+                + String.raw`(?:,\s+)?`
+                + String.raw`\)`,
+                "m"
+            ),
+            matchResult => new this({
+                namespace: Utility.unescapeString(matchResult[1]),
+                key: Utility.unescapeString(matchResult[2]),
+                value: Utility.unescapeString(matchResult[3]),
+            })
+        )
     }
 
     constructor(values) {
@@ -2534,26 +2537,26 @@ class FormatTextEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Parsimmon.lazy(() =>
-        Parsimmon.seq(
-            Grammar.regexMap(
-                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                new RegExp(`(${FormatTextEntity.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
-                result => result[1]
-            ),
-            Grammar.grammarFor(FormatTextEntity.attributes.value)
-        )
-            .map(([lookbehind, values]) => {
-                const result = new FormatTextEntity({
-                    value: values,
-                });
-                result.lookbehind = lookbehind;
-                return result
-            })
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return FormatTextEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.lazy(() =>
+            Parsimmon.seq(
+                Grammar.regexMap(
+                    // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+                    new RegExp(`(${this.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                    result => result[1]
+                ),
+                Grammar.grammarFor(this.attributes.value)
+            )
+                .map(([lookbehind, values]) => {
+                    const result = new this({
+                        value: values,
+                    });
+                    result.lookbehind = lookbehind;
+                    return result
+                })
+        )
     }
 
     constructor(values) {
@@ -2597,10 +2600,10 @@ class Integer64Entity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.bigInt.map(v => new Integer64Entity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return Integer64Entity.#grammar
+    static createGrammar() {
+        return Grammar.bigInt.map(v => new this(v))
     }
 
     /** @param {BigInt | Number} value */
@@ -2637,7 +2640,7 @@ class PathSymbolEntity extends IEntity {
     }
     static #grammar = Grammar.symbol.map(v => new PathSymbolEntity(v))
 
-    static getGrammar() {
+    static createGrammar() {
         return PathSymbolEntity.#grammar
     }
 
@@ -2674,19 +2677,19 @@ class PinReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Parsimmon.seq(
-        PathSymbolEntity.getGrammar(),
-        Parsimmon.whitespace,
-        GuidEntity.getGrammar()
-    ).map(
-        ([objectName, _1, pinGuid]) => new PinReferenceEntity({
-            objectName: objectName,
-            pinGuid: pinGuid,
-        })
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return PinReferenceEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.seq(
+            PathSymbolEntity.createGrammar(),
+            Parsimmon.whitespace,
+            GuidEntity.createGrammar()
+        ).map(
+            ([objectName, _1, pinGuid]) => new this({
+                objectName: objectName,
+                pinGuid: pinGuid,
+            })
+        )
     }
 
     constructor(values) {
@@ -2740,10 +2743,10 @@ class PinTypeEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(PinTypeEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return PinTypeEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -2798,10 +2801,10 @@ class RotatorEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(RotatorEntity, false)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return RotatorEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
     }
 
     constructor(values) {
@@ -2826,25 +2829,25 @@ class RotatorEntity extends IEntity {
 
 class SimpleSerializationRotatorEntity extends RotatorEntity {
 
-    static #grammar = Parsimmon.alt(
-        Parsimmon.seq(
-            Grammar.number,
-            Grammar.commaSeparation,
-            Grammar.number,
-            Grammar.commaSeparation,
-            Grammar.number,
-        ).map(([p, _1, y, _3, r]) =>
-            new SimpleSerializationRotatorEntity({
-                R: r,
-                P: p,
-                Y: y,
-            })
-        ),
-        RotatorEntity.getGrammar()
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return SimpleSerializationRotatorEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+            ).map(([p, _1, y, _3, r]) =>
+                new this({
+                    R: r,
+                    P: p,
+                    Y: y,
+                })
+            ),
+            RotatorEntity.createGrammar()
+        )
     }
 }
 
@@ -2864,10 +2867,10 @@ class Vector2DEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(Vector2DEntity, false)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return Vector2DEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
     }
 
     constructor(values) {
@@ -2879,20 +2882,20 @@ class Vector2DEntity extends IEntity {
 
 class SimpleSerializationVector2DEntity extends Vector2DEntity {
 
-    static #grammar = Parsimmon.alt(
-        Parsimmon.seq(
-            Grammar.number,
-            Grammar.commaSeparation,
-            Grammar.number,
-        ).map(([x, _1, y]) => new SimpleSerializationVector2DEntity({
-            X: x,
-            Y: y,
-        })),
-        Vector2DEntity.getGrammar()
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return SimpleSerializationVector2DEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+            ).map(([x, _1, y]) => new this({
+                X: x,
+                Y: y,
+            })),
+            Vector2DEntity.createGrammar()
+        )
     }
 }
 
@@ -2916,10 +2919,10 @@ class VectorEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(VectorEntity, false)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return VectorEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(VectorEntity, false)
     }
 
     constructor(values) {
@@ -2932,23 +2935,23 @@ class VectorEntity extends IEntity {
 
 class SimpleSerializationVectorEntity extends VectorEntity {
 
-    static #grammar = Parsimmon.alt(
-        Parsimmon.seq(
-            Grammar.number,
-            Grammar.commaSeparation,
-            Grammar.number,
-            Grammar.commaSeparation,
-            Grammar.number,
-        ).map(([x, _1, y, _3, z]) => new SimpleSerializationVectorEntity({
-            X: x,
-            Y: y,
-            Z: z,
-        })),
-        VectorEntity.getGrammar()
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return SimpleSerializationVectorEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+                Grammar.commaSeparation,
+                Grammar.number,
+            ).map(([x, _1, y, _3, z]) => new this({
+                X: x,
+                Y: y,
+                Z: z,
+            })),
+            VectorEntity.createGrammar()
+        )
     }
 }
 
@@ -3060,10 +3063,10 @@ class PinEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(PinEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return PinEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -3677,27 +3680,27 @@ class SVGIcon {
 
 class UnknownPinEntity extends PinEntity {
 
-    static #grammar = Parsimmon.lazy(() => Parsimmon.seq(
-        Grammar.regexMap(
-            new RegExp(`${Grammar.Regex.Symbol.source}\\s*\\(\\s*`),
-            result => result[1] ?? ""
-        ),
-        Grammar.createAttributeGrammar(UnknownPinEntity.#grammar).sepBy1(Grammar.commaSeparation),
-        Parsimmon.regex(/\s*(?:,\s*)?\)/)
-    )
-        .map(([lookbehind, attributes, _2]) => {
-            let values = {};
-            if (lookbehind.length) {
-                values.lookbehind = lookbehind;
-            }
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new UnknownPinEntity(values)
-        })
-    )
     static lookbehind = ""
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return UnknownPinEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.lazy(() => Parsimmon.seq(
+            Grammar.regexMap(
+                new RegExp(`${Grammar.Regex.Symbol.source}\\s*\\(\\s*`),
+                result => result[1] ?? ""
+            ),
+            Grammar.createAttributeGrammar(this).sepBy1(Grammar.commaSeparation),
+            Parsimmon.regex(/\s*(?:,\s*)?\)/)
+        )
+            .map(([lookbehind, attributes, _2]) => {
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
+        )
     }
 
     constructor(values = {}) {
@@ -3725,10 +3728,10 @@ class VariableReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Grammar.createEntityGrammar(VariableReferenceEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return VariableReferenceEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {
@@ -4028,12 +4031,12 @@ class ObjectEntity extends IEntity {
             type: [new Union(PinEntity, UnknownPinEntity)],
         },
     }
-    static nameRegex = /^(\w+?)(?:_(\d+))?$/
-    static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #customPropertyGrammar = Parsimmon.seq(
+    static nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
+    static customPropertyGrammar = Parsimmon.seq(
         Parsimmon.regex(/CustomProperties\s+/),
         Grammar.grammarFor(
             undefined,
@@ -4045,7 +4048,7 @@ class ObjectEntity extends IEntity {
         }
         values.CustomProperties.push(pin);
     })
-    static #inlinedArrayEntryGrammar = Parsimmon.seq(
+    static inlinedArrayEntryGrammar = Parsimmon.seq(
         Parsimmon.alt(
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
@@ -4072,35 +4075,42 @@ class ObjectEntity extends IEntity {
                         }
                     )
         )
-    static #subObjectGrammar = Parsimmon.lazy(() =>
-        this.#objectGrammar
-            .map(object =>
-                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
-            )
-    )
-    static #objectGrammar = Parsimmon.seq(
-        Parsimmon.regex(/Begin\s+Object/),
-        Parsimmon.seq(
-            Parsimmon.whitespace,
-            Parsimmon.alt(
-                this.#customPropertyGrammar,
-                Grammar.createAttributeGrammar(this),
-                Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                    Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
-                ),
-                this.#inlinedArrayEntryGrammar,
-                this.#subObjectGrammar
-            )
+    static grammar = this.createGrammar()
+
+    static createSubObjectGrammar() {
+        return Parsimmon.lazy(() =>
+            this.createGrammar()
+                .map(object =>
+                    values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+                )
         )
-            .map(([_0, entry]) => entry)
-            .many(),
-        Parsimmon.regex(/\s+End\s+Object/),
-    )
-        .map(([_0, attributes, _2]) => {
-            let values = {};
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        })
+    }
+
+    static createGrammar() {
+        return Parsimmon.seq(
+            Parsimmon.regex(/Begin\s+Object/),
+            Parsimmon.seq(
+                Parsimmon.whitespace,
+                Parsimmon.alt(
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this),
+                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                    ),
+                    this.inlinedArrayEntryGrammar,
+                    this.createSubObjectGrammar()
+                )
+            )
+                .map(([_0, entry]) => entry)
+                .many(),
+            Parsimmon.regex(/\s+End\s+Object/),
+        )
+            .map(([_0, attributes, _2]) => {
+                let values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
+    }
 
     /** @param {String} value */
     static keyName(value) {
@@ -4121,17 +4131,13 @@ class ObjectEntity extends IEntity {
         }
     }
 
-    static getGrammar() {
-        return this.#objectGrammar
-    }
-
     static getMultipleObjectsGrammar() {
         return Parsimmon.seq(
             Parsimmon.optWhitespace,
-            this.#objectGrammar,
+            this.grammar,
             Parsimmon.seq(
                 Parsimmon.whitespace,
-                this.#objectGrammar,
+                this.grammar,
             )
                 .map(([_0, object]) => object)
                 .many(),
@@ -5472,15 +5478,15 @@ class KeyBindingEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Parsimmon.alt(
-        IdentifierEntity.getGrammar().map(identifier => new KeyBindingEntity({
-            Key: identifier
-        })),
-        Grammar.createEntityGrammar(KeyBindingEntity)
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return KeyBindingEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.alt(
+            IdentifierEntity.grammar.map(identifier => new this({
+                Key: identifier
+            })),
+            Grammar.createEntityGrammar(this)
+        )
     }
 
     constructor(values = {}) {
@@ -5535,7 +5541,7 @@ class KeyboardShortcut extends IInput {
                 return v
             }
             if (typeof v === "string") {
-                const parsed = KeyBindingEntity.getGrammar().parse(v);
+                const parsed = KeyBindingEntity.createGrammar().parse(v);
                 if (parsed.status) {
                     return parsed.value
                 }
@@ -11179,7 +11185,7 @@ class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<GuidEntity>} */(GuidEntity.getGrammar().parse(value)).value
+                    ? /** @type {Success<GuidEntity>} */(GuidEntity.createGrammar().parse(value)).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
             },
@@ -11929,34 +11935,34 @@ class UnknownKeysEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static #grammar = Parsimmon.seq(
-        // Lookbehind
-        Grammar.regexMap(
-            new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
-            result => result[1] ?? ""
-        ),
-        Grammar.attributeName
-            .skip(Grammar.equalSeparation)
-            .chain(attributeName =>
-                Grammar.unknownValue
-                    .map(attributeValue =>
-                        values => values[attributeName] = attributeValue
-                    )
-            )
-            .sepBy1(Grammar.commaSeparation),
-        Parsimmon.regex(/\s*(?:,\s*)?\)/),
-    )
-        .map(([lookbehind, attributes, _2]) => {
-            let values = {};
-            if (lookbehind.length) {
-                values.lookbehind = lookbehind;
-            }
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        })
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return UnknownKeysEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.seq(
+            // Lookbehind
+            Grammar.regexMap(
+                new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
+                result => result[1] ?? ""
+            ),
+            Grammar.attributeName
+                .skip(Grammar.equalSeparation)
+                .chain(attributeName =>
+                    Grammar.unknownValue
+                        .map(attributeValue =>
+                            values => values[attributeName] = attributeValue
+                        )
+                )
+                .sepBy1(Grammar.commaSeparation),
+            Parsimmon.regex(/\s*(?:,\s*)?\)/),
+        )
+            .map(([lookbehind, attributes, _2]) => {
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
     }
 
     constructor(values) {
@@ -11971,22 +11977,22 @@ Grammar.unknownValue =
     Parsimmon.alt(
         // Remember to keep the order, otherwise parsing might fail
         Grammar.boolean,
-        GuidEntity.getGrammar(),
+        GuidEntity.createGrammar(),
         ObjectReferenceEntity.noneReferenceGrammar,
         Grammar.null,
         Grammar.number,
         Grammar.string,
         ObjectReferenceEntity.fullReferenceGrammar,
-        LocalizedTextEntity.getGrammar(),
-        InvariantTextEntity.getGrammar(),
-        FormatTextEntity.getGrammar(),
-        PinReferenceEntity.getGrammar(),
-        VectorEntity.getGrammar(),
-        RotatorEntity.getGrammar(),
-        LinearColorEntity.getGrammar(),
-        Vector2DEntity.getGrammar(),
-        UnknownKeysEntity.getGrammar(),
-        SymbolEntity.getGrammar(),
+        LocalizedTextEntity.createGrammar(),
+        InvariantTextEntity.createGrammar(),
+        FormatTextEntity.createGrammar(),
+        PinReferenceEntity.createGrammar(),
+        VectorEntity.createGrammar(),
+        RotatorEntity.createGrammar(),
+        LinearColorEntity.createGrammar(),
+        Vector2DEntity.createGrammar(),
+        UnknownKeysEntity.createGrammar(),
+        SymbolEntity.createGrammar(),
         Grammar.grammarFor(undefined, [PinReferenceEntity]),
         Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
     );

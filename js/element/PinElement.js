@@ -60,7 +60,7 @@ export default class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<GuidEntity>} */(GuidEntity.getGrammar().parse(value)).value
+                    ? /** @type {Success<GuidEntity>} */(GuidEntity.createGrammar().parse(value)).value
                     : null,
                 toAttribute: (value, type) => value?.toString(),
             },

@@ -17,10 +17,10 @@ export default class Vector2DEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.createEntityGrammar(Vector2DEntity, false)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return Vector2DEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
     }
 
     constructor(values) {

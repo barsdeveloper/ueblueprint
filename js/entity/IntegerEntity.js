@@ -13,10 +13,10 @@ export default class IntegerEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.integer.map(v => new IntegerEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return IntegerEntity.#grammar
+    static createGrammar() {
+        return Grammar.integer.map(v => new this(v))
     }
 
     constructor(value = 0) {

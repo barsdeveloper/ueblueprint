@@ -48,10 +48,10 @@ export default class PinTypeEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.createEntityGrammar(PinTypeEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return PinTypeEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values = {}, suppressWarns = false) {

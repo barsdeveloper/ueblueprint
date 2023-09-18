@@ -13,10 +13,10 @@ export default class Integer64Entity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.bigInt.map(v => new Integer64Entity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return Integer64Entity.#grammar
+    static createGrammar() {
+        return Grammar.bigInt.map(v => new this(v))
     }
 
     /** @param {BigInt | Number} value */

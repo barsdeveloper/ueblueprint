@@ -21,10 +21,10 @@ export default class RotatorEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.createEntityGrammar(RotatorEntity, false)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return RotatorEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
     }
 
     constructor(values) {

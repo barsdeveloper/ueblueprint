@@ -12,7 +12,11 @@ export default class GuidEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.guid.map(v => new GuidEntity(v))
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.guid.map(v => new this(v))
+    }
 
     static generateGuid(random = true) {
         let values = new Uint32Array(4)
@@ -24,10 +28,6 @@ export default class GuidEntity extends IEntity {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8)
         })
         return new GuidEntity({ value: guid })
-    }
-
-    static getGrammar() {
-        return GuidEntity.#grammar
     }
 
     constructor(values) {

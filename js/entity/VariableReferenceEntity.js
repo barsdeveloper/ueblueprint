@@ -22,10 +22,10 @@ export default class VariableReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.createEntityGrammar(VariableReferenceEntity)
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return VariableReferenceEntity.#grammar
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
     }
 
     constructor(values) {

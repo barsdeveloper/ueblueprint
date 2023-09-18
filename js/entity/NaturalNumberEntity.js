@@ -4,10 +4,10 @@ import Utility from "../Utility.js"
 
 export default class NaturalNumberEntity extends IntegerEntity {
 
-    static #grammar = Grammar.naturalNumber.map(v => new NaturalNumberEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return NaturalNumberEntity.#grammar
+    static createGrammar() {
+        return Grammar.naturalNumber.map(v => new this(v))
     }
 
     constructor(values = 0) {

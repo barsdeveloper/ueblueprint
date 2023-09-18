@@ -15,33 +15,33 @@ export default class ObjectReferenceEntity extends IEntity {
             default: "",
         },
     }
-    static noneReferenceGrammar = Parsimmon.string("None").map(() => ObjectReferenceEntity.createNoneInstance())
+    static {
+        this.cleanupAttributes(this.attributes)
+    }
+    static noneReferenceGrammar = Parsimmon.string("None").map(() => this.createNoneInstance())
     static fullReferenceGrammar = Parsimmon.seq(
         Grammar.typeReference,
         Parsimmon.regex(Grammar.Regex.InlineOptWhitespace),
         Grammar.pathQuotes
     )
         .map(([type, _2, path]) =>
-            new ObjectReferenceEntity({ type: type, path: path })
+            new this({ type: type, path: path })
         )
     static typeReferenceGrammar = Grammar.typeReference.map(v =>
-        new ObjectReferenceEntity({ type: v, path: "" })
+        new this({ type: v, path: "" })
     )
     static pathReferenceGrammar = Grammar.path.map(path =>
-        new ObjectReferenceEntity({ type: "", path: path })
+        new this({ type: "", path: path })
     )
-    static {
-        this.cleanupAttributes(this.attributes)
-    }
-    static #grammar = Parsimmon.alt(
-        ObjectReferenceEntity.noneReferenceGrammar,
-        ObjectReferenceEntity.fullReferenceGrammar,
-        ObjectReferenceEntity.typeReferenceGrammar,
-        ObjectReferenceEntity.pathReferenceGrammar,
-    )
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return ObjectReferenceEntity.#grammar
+    static createGrammar() {
+        return Parsimmon.alt(
+            this.noneReferenceGrammar,
+            this.fullReferenceGrammar,
+            this.typeReferenceGrammar,
+            this.pathReferenceGrammar,
+        )
     }
 
     constructor(values = {}) {

@@ -3,9 +3,9 @@ import SymbolEntity from "./SymbolEntity.js"
 
 export default class EnumEntity extends SymbolEntity {
 
-    static #grammar = Grammar.symbol.map(v => new EnumEntity(v))
+    static grammar = this.createGrammar()
 
-    static getGrammar() {
-        return EnumEntity.#grammar
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
     }
 }
