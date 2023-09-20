@@ -6,17 +6,6 @@ import Serializable from "./Serializable.js"
 import Union from "../entity/Union.js"
 import Utility from "../Utility.js"
 
-/**
- * @typedef {import ("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import ("../entity/IEntity").AttributeType} AttributeType
- * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
- * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
- */
-
 let P = Parsimmon
 
 export default class Grammar {

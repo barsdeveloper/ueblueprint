@@ -5,13 +5,6 @@ import LinkElement from "./element/LinkElement.js"
 import NodeElement from "./element/NodeElement.js"
 import Utility from "./Utility.js"
 
-/**
- * @typedef {import("./element/PinElement.js").default} PinElement
- * @typedef {import("./entity/PinReferenceEntity.js").default} PinReferenceEntity
- * @typedef {import("./template/node/CommentNodeTemplate.js").default} CommentNodeTemplate
- * @typedef {typeof Blueprint} BlueprintConstructor
- */
-
 /** @extends {IElement<Object, BlueprintTemplate>} */
 export default class Blueprint extends IElement {
 
@@ -203,14 +196,14 @@ export default class Blueprint extends IElement {
     getViewportSize() {
         return [
             this.template.viewportElement.clientWidth,
-            this.template.viewportElement.clientHeight
+            this.template.viewportElement.clientHeight,
         ]
     }
 
     getScrollMax() {
         return [
             this.template.viewportElement.scrollWidth - this.template.viewportElement.clientWidth,
-            this.template.viewportElement.scrollHeight - this.template.viewportElement.clientHeight
+            this.template.viewportElement.scrollHeight - this.template.viewportElement.clientHeight,
         ]
     }
 

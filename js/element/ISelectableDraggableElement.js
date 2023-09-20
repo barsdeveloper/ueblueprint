@@ -2,17 +2,6 @@ import Configuration from "../Configuration.js"
 import IDraggableElement from "./IDraggableElement.js"
 import Utility from "../Utility.js"
 
-/**
- * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent
- * @typedef {import("../entity/IEntity.js").default} IEntity
- * @typedef {import("../template/ISelectableDraggableTemplate.js").default} ISelectableDraggableTemplate
- */
-
-/**
- * @template {IEntity} T
- * @template {ISelectableDraggableTemplate} U
- * @extends {IDraggableElement<T, U>}
- */
 export default class ISelectableDraggableElement extends IDraggableElement {
 
     static properties = {

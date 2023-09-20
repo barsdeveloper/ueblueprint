@@ -14,14 +14,6 @@ import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTempl
 import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate.js"
 
-/**
- * @typedef {import("./IDraggableElement.js").DragEvent} DragEvent
- * @typedef {import("./IElement.js").default} IElement
- * @typedef {import("../entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
- * @typedef {import("./PinElement.js").default} PinElement
- * @typedef {typeof NodeElement} NodeElementConstructor
- */
-
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 export default class NodeElement extends ISelectableDraggableElement {
 

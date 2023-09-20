@@ -3,11 +3,6 @@ import Configuration from "../../Configuration.js"
 import IResizeableTemplate from "../IResizeableTemplate.js"
 import Utility from "../../Utility.js"
 
-/**
- * @typedef {import("../../element/NodeElement.js").default} NodeElement
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
 export default class CommentNodeTemplate extends IResizeableTemplate {
 
     #selectableAreaHeight = 0

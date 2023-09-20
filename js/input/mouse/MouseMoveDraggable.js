@@ -2,10 +2,6 @@ import IMouseClickDrag from "./IMouseClickDrag.js"
 import Utility from "../../Utility.js"
 
 /**
- * @typedef {import("../../element/IDraggableElement.js").default} IDraggableElement
- */
-
-/**
  * @template {IDraggableElement} T
  * @extends {IMouseClickDrag<T>}
  */

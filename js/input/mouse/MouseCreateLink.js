@@ -2,14 +2,6 @@ import Configuration from "../../Configuration.js"
 import ElementFactory from "../../element/ElementFactory.js"
 import IMouseClickDrag from "./IMouseClickDrag.js"
 
-/**
- * @typedef {import("../../Blueprint.js").default} Blueprint
- * @typedef {import("../../element/LinkElement.js").default} LinkElement
- * @typedef {import("../../element/LinkElement.js").LinkElementConstructor} LinkElementConstructor
- * @typedef {import("../../element/PinElement.js").default} PinElement
- * @typedef {import("../../template/pin/KnotPinTemplate.js").default} KnotPinTemplate
- */
-
 /** @extends IMouseClickDrag<PinElement> */
 export default class MouseCreateLink extends IMouseClickDrag {
 

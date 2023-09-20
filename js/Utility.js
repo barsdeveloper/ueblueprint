@@ -3,23 +3,6 @@ import Configuration from "./Configuration.js"
 import MirroredEntity from "./entity/MirroredEntity.js"
 import Union from "./entity/Union.js"
 
-/**
- * @typedef {import("./Blueprint.js").default} Blueprint
- * @typedef {import("./entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("./entity/IEntity.js").AttributeInformation} AttributeInformation
- * @typedef {import("./entity/IEntity.js").default} IEntity
- * @typedef {import("./entity/IEntity.js").EntityConstructor} EntityConstructor
- * @typedef {import("./entity/LinearColorEntity.js").default} LinearColorEntity
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("./entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
- */
-/**
- * @template T
- * @typedef {import("./entity/IEntity.js").TypeGetter<T>} TypeGetter
- */
-
 export default class Utility {
 
     static booleanConverter = {
@@ -233,7 +216,9 @@ export default class Utility {
     }
 
     /**
-     * @param {null | AnyValue | AttributeInformation} value
+     * @template {AnyValue} T
+     * @param {T} value
+     * @returns {new (...args: any) => T}
      */
     static getType(value) {
         if (value === null) {
@@ -246,7 +231,8 @@ export default class Utility {
     }
 
     /**
-     * @template {new (...args: any) => any} C
+     * @template {AnyValue} V
+     * @template {AnyValueConstructor<V>} C
      * @param {C} type
      * @returns {value is InstanceType<C>}
      */
@@ -257,7 +243,7 @@ export default class Utility {
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 
-    /** @param {AnyValue} value */
+    /** @param {AnyValue | Object} value */
     static sanitize(value, targetType = /** @type {AnyValueConstructor<typeof value>} */(value?.constructor)) {
         if (targetType instanceof Array) {
             targetType = targetType[0]
@@ -283,7 +269,7 @@ export default class Utility {
                 ? BigInt(/** @type {Number} */(value))
                 : new /** @type {EntityConstructor} */(targetType)(value)
         }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String || value instanceof BigInt) {
+        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
             value = value.valueOf() // Get the relative primitive value
         }
         return value

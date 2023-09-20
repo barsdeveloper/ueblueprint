@@ -3,17 +3,7 @@ import IEntity from "../entity/IEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
-/**
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
- */
-
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
- */
-
-/** @template {AnyValue} T */
+/** @template {SimpleValue} T */
 export default class Serializer {
 
     /** @type {(v: String) => String} */

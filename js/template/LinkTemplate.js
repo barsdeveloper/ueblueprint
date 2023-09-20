@@ -9,15 +9,6 @@ import MouseDbClick from "../input/mouse/MouseDbClick.js"
 import Shortcuts from "../Shortcuts.js"
 import Utility from "../Utility.js"
 
-/**
- * @typedef {import("../element/LinkElement.js").default} LinkElement
- * @typedef {import("../element/LinkElement.js").LinkElementConstructor} LinkElementConstructor
- * @typedef {import("../element/NodeElement.js").NodeElementConstructor} NodeElementConstructor
- * @typedef {import("./node/KnotNodeTemplate.js").default} KnotNodeTemplate
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-
 /** @extends {IFromToPositionedTemplate<LinkElement>} */
 export default class LinkTemplate extends IFromToPositionedTemplate {
 

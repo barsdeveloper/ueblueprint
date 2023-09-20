@@ -1,17 +1,3 @@
-/**
- * @typedef {import("../entity/IEntity.js").default} IEntity
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- */
-
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("./Serializer.js").default<T>} Serializer
- */
-
 export default class SerializerFactory {
 
     /** @type {Map<AnyValueConstructor<AnyValue>, Serializer<AnyValue>>} */
@@ -28,11 +14,36 @@ export default class SerializerFactory {
 
     /**
      * @template {AnyValue} T
-     * @param {new (...any) => T} entity
-     * @returns {Serializer<T>}
+     * @typedef {{
+     *     (entity: new (...args: any) => T) : Serializer<T>
+     *     (entity: BigIntConstructor): Serializer<BigInt>;
+     * }} SerializerGetter
      */
-    static getSerializer(entity) {
+    /**
+     * @template {AnyValue} T
+     * @type {SerializerGetter<T>}
+     */
+    static getSerializer = 
+    /**
+     * @param {T} entity
+     * @returns {Serializer<T>}
+     */    
+    (entity) => {
         // @ts-expect-error
         return SerializerFactory.#serializers.get(entity)
     }
 }
+
+let x
+/**
+ * @template T
+ * @param {T} v
+ * @returns {InstanceType<T>}
+ */
+function a(v) {
+    return x
+}
+
+class A {}
+
+let aaaaa = a(BigInt)

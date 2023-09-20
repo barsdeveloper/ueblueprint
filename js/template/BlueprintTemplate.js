@@ -14,14 +14,6 @@ import Unfocus from "../input/mouse/Unfocus.js"
 import Utility from "../Utility.js"
 import Zoom from "../input/mouse/Zoom.js"
 
-/**
- * @typedef {import("../Blueprint.js").default} Blueprint
- * @typedef {import("../element/PinElement.js").default} PinElement
- * @typedef {import("../element/SelectorElement.js").default} SelectorElement
- * @typedef {import("../entity/PinReferenceEntity.js").default} PinReferenceEntity
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
 /** @extends ITemplate<Blueprint> */
 export default class BlueprintTemplate extends ITemplate {
 

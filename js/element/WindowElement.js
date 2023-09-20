@@ -3,8 +3,6 @@ import Configuration from "../Configuration.js"
 import IDraggableElement from "./IDraggableElement.js"
 import WindowTemplate from "../template/window/WindowTemplate.js"
 
-/** @typedef {typeof WindowElement} WindowElementConstructor */
-
 /**
  * @template {WindowTemplate} T
  * @extends {IDraggableElement<Object, T>}

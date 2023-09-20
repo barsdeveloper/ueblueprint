@@ -1,8 +1,6 @@
 import IInput from "../IInput.js"
 import Utility from "../../Utility.js"
 
-/** @typedef {import("../keyboard/KeyboardShortcut.js").default} KeyboardShortcut */
-
 /**
  * @template {Element} T
  * @extends {IInput<T>}

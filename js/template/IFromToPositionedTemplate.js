@@ -1,11 +1,6 @@
 import ITemplate from "./ITemplate.js"
 
 /**
- * @typedef {import("../element/IFromToPositionedElement.js").default} IFromToPositionedElement
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-/**
  * @template {IFromToPositionedElement} T
  * @extends {ITemplate<T>}
  */

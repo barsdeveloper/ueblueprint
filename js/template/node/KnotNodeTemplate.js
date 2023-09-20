@@ -4,12 +4,6 @@ import ElementFactory from "../../element/ElementFactory.js"
 import KnotPinTemplate from "../pin/KnotPinTemplate.js"
 import NodeTemplate from "./NodeTemplate.js"
 
-/**
- * @typedef {import("../../element/NodeElement.js").default} NodeElement
- * @typedef {import("../../element/PinElement.js").default} PinElement
- * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
- */
-
 export default class KnotNodeTemplate extends NodeTemplate {
 
     static #traversedPin = new Set()

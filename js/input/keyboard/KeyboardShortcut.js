@@ -2,8 +2,6 @@ import Configuration from "../../Configuration.js"
 import IInput from "../IInput.js"
 import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 
-/** @typedef {import("../../Blueprint.js").default} Blueprint */
-
 /**
  * @template {Element} T
  * @extends IInput<T>

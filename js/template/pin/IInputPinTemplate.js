@@ -3,10 +3,8 @@ import Configuration from "../../Configuration.js"
 import PinTemplate from "./PinTemplate.js"
 import Utility from "../../Utility.js"
 
-/** @typedef {import("lit").PropertyValues} PropertyValues */
-
 /**
- * @template T
+ * @template {AnyValue} T
  * @extends PinTemplate<T>
  */
 export default class IInputPinTemplate extends PinTemplate {

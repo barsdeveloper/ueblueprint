@@ -5,14 +5,6 @@ import LinkTemplate from "../template/LinkTemplate.js"
 import SVGIcon from "../SVGIcon.js"
 import Utility from "../Utility.js"
 
-/**
- * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent
- * @typedef {import("./PinElement.js").default} PinElement
- * @typedef {import("lit").TemplateResult<1>} TemplateResult
- * @typedef {typeof LinkElement} LinkElementConstructor
- */
-
-/** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 export default class LinkElement extends IFromToPositionedElement {
 
     static properties = {

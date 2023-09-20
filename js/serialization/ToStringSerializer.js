@@ -2,11 +2,6 @@ import Serializer from "./Serializer.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
- */
-
-/**
  * @template {AnyValue} T
  * @extends {Serializer<T>}
  */

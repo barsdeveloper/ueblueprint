@@ -1,10 +1,5 @@
 import { css } from "lit"
 
-/**
- * @typedef {import("./entity/ObjectEntity.js").default} ObjectEntity
- * @typedef {import("./entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
- */
-
 export default class Configuration {
     static nodeColors = {
         black: css`20, 20, 20`,

@@ -3,17 +3,6 @@ import Configuration from "../../Configuration.js"
 import IInputPinTemplate from "./IInputPinTemplate.js"
 import Utility from "../../Utility.js"
 
-/**
- * @typedef {import("../../element/DropdownElement.js").default} DropdownElement
- * @typedef {import("../../element/PinElement.js").AnyValue} AnyValue
- * @typedef {import("../../entity/EnumEntity.js").default} EnumEntity
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("../../element/PinElement.js").default<T>} PinElement
- */
-
 /** @extends IInputPinTemplate<EnumEntity> */
 export default class EnumPinTemplate extends IInputPinTemplate {
 

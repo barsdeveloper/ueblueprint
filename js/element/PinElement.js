@@ -22,18 +22,6 @@ import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate.js"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
 
 /**
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("./LinkElement.js").LinkElementConstructor} LinkElementConstructor
- * @typedef {import("./NodeElement.js").default} NodeElement
- * @typedef {import("lit").CSSResult} CSSResult
- * @typedef {typeof PinElement} PinElementConstructor
- */
-/**
- * @template T
- * @typedef {import("parsimmon").Success<T>} Success
- */
-
-/**
  * @template {AnyValue} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */

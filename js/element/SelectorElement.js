@@ -2,8 +2,6 @@ import FastSelectionModel from "../selection/FastSelectionModel.js"
 import IFromToPositionedElement from "./IFromToPositionedElement.js"
 import SelectorTemplate from "../template/SelectorTemplate.js"
 
-/** @typedef {import("../Blueprint.js").BlueprintConstructor} BlueprintConstructor */
-
 /** @extends {IFromToPositionedElement<Object, SelectorTemplate>} */
 export default class SelectorElement extends IFromToPositionedElement {
 

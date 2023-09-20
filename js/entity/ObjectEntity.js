@@ -18,8 +18,6 @@ import UnknownPinEntity from "./UnknownPinEntity.js"
 import Utility from "../Utility.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
 
-/** @typedef {import("./VectorEntity.js").default} VectorEntity */
-
 export default class ObjectEntity extends IEntity {
 
     static #keyName = {
@@ -305,7 +303,7 @@ export default class ObjectEntity extends IEntity {
         },
         CustomProperties: {
             type: [new Union(PinEntity, UnknownPinEntity)],
-        },
+        }
     }
     static {
         this.cleanupAttributes(this.attributes)
@@ -316,7 +314,7 @@ export default class ObjectEntity extends IEntity {
         Parsimmon.regex(/CustomProperties\s+/),
         Grammar.grammarFor(
             undefined,
-            (this.attributes.CustomProperties ?? ObjectEntity.attributes.CustomProperties).type[0]
+            this.attributes.CustomProperties.type[0]
         ),
     ).map(([_0, pin]) => values => {
         if (!values.CustomProperties) {
@@ -382,7 +380,7 @@ export default class ObjectEntity extends IEntity {
             Parsimmon.regex(/\s+End\s+Object/),
         )
             .map(([_0, attributes, _2]) => {
-                let values = {}
+                const values = {}
                 attributes.forEach(attributeSetter => attributeSetter(values))
                 return new this(values)
             })
@@ -390,6 +388,7 @@ export default class ObjectEntity extends IEntity {
 
     /** @param {String} value */
     static keyName(value) {
+        /** @type {String} */
         let result = ObjectEntity.#keyName[value]
         if (result) {
             return result
@@ -400,7 +399,7 @@ export default class ObjectEntity extends IEntity {
         }
         const match = value.match(/NumPad([a-zA-Z]+)/)
         if (match) {
-            result = Utility.numberFromText(match[1])
+            result = Utility.numberFromText(match[1]).toString()
             if (result) {
                 return "Num " + result
             }
@@ -410,10 +409,10 @@ export default class ObjectEntity extends IEntity {
     static getMultipleObjectsGrammar() {
         return Parsimmon.seq(
             Parsimmon.optWhitespace,
-            this.grammar,
+            this.createGrammar(),
             Parsimmon.seq(
                 Parsimmon.whitespace,
-                this.grammar,
+                this.createGrammar(),
             )
                 .map(([_0, object]) => object)
                 .many(),

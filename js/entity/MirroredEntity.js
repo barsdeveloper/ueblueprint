@@ -1,9 +1,3 @@
-
-/**
- * @typedef {import("./IEntity.js").default} IEntity
- * @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor
- */
-
 export default class MirroredEntity {
 
     static attributes = {
@@ -19,7 +13,7 @@ export default class MirroredEntity {
     }
 
     /**
-     * @param {EntityConstructor} type
+     * @param {typeof IEntity} type
      * @param {String} key
      */
     constructor(type, key, getter = () => null) {

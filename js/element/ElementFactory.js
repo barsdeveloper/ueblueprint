@@ -1,8 +1,3 @@
-/**
- * @typedef {import("./IElement.js").default} IElement
- * @typedef {new (...args) => IElement} ElementConstructor
- */
-
 export default class ElementFactory {
 
     /** @type {Map<String, ElementConstructor>} */

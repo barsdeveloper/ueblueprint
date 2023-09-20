@@ -1,7 +1,5 @@
 import IEntity from "./IEntity.js"
 
-/** @typedef {import("./ObjectEntity.js").default} ObjectEntity */
-
 export default class Base64ObjectsEncoded extends IEntity {
 
     static attributes = {

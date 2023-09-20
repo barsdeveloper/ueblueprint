@@ -7,11 +7,6 @@ import LinearColorEntity from "../../entity/LinearColorEntity.js"
 import Utility from "../../Utility.js"
 import WindowTemplate from "./WindowTemplate.js"
 
-/**
- * @typedef {import("../../element/WindowElement.js").default} WindowElement
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
 export default class ColorPickerWindowTemplate extends WindowTemplate {
 
     /** @type {ColorHandlerElement} */ #wheelHandler

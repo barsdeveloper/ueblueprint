@@ -4,11 +4,6 @@ import ElementFactory from "../../element/ElementFactory.js"
 import MinimalPinTemplate from "../pin/MinimalPinTemplate.js"
 import NodeTemplate from "./NodeTemplate.js"
 
-/**
- * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
 export default class EventNodeTemplate extends NodeTemplate {
 
     static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-event"]
