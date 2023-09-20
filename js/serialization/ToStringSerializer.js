@@ -2,12 +2,12 @@ import Serializer from "./Serializer.js"
 import Utility from "../Utility.js"
 
 /**
- * @template {AnyValue} T
+ * @template {SimpleValue} T
  * @extends {Serializer<T>}
  */
 export default class ToStringSerializer extends Serializer {
 
-    /** @param {AnyValueConstructor} entityType */
+    /** @param {SimpleValueType<T>} entityType */
     constructor(entityType) {
         super(entityType)
     }

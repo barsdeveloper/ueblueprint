@@ -19,14 +19,14 @@ export default class IntegerEntity extends IEntity {
         return Grammar.integer.map(v => new this(v))
     }
 
+    /** @param {Number | AttributeInformation} value */
     constructor(value = 0) {
-        if (value.constructor !== Object) {
-            // @ts-expect-error
-            value = {
+        super(value.constructor === Object
+            ? value
+            : {
                 value: value,
             }
-        }
-        super(value)
+        )
         /** @type {Number} */ this.value
     }
 

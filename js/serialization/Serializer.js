@@ -9,13 +9,13 @@ export default class Serializer {
     /** @type {(v: String) => String} */
     static same = v => v
 
-    /** @type {(entity: AnyValue, serialized: String) => String} */
+    /** @type {(entity: SimpleValue, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
 
-    /** @type {(entity: AnyValue, serialized: String) => String} */
+    /** @type {(entity: SimpleValue, serialized: String) => String} */
     static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
-    /** @param {AnyValueConstructor<T>} entityType */
+    /** @param {SimpleValueType<T>} entityType */
     constructor(
         entityType,
         /** @type {(entity: T, serialized: String) => String} */
@@ -142,7 +142,6 @@ export default class Serializer {
     }
 
     showProperty(entity, key) {
-        // @ts-expect-error
         const attribute = /** @type {EntityConstructor} */(this.entityType).attributes[key]
         if (attribute?.constructor === Object && attribute.ignored) {
             return false

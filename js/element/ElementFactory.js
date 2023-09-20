@@ -1,11 +1,11 @@
 export default class ElementFactory {
 
-    /** @type {Map<String, Constructor<IElement>>} */
+    /** @type {Map<String, AnyConstructor<IElement>>} */
     static #elementConstructors = new Map()
 
     /**
      * @param {String} tagName
-     * @param {Constructor<IElement>} entityConstructor
+     * @param {AnyConstructor<IElement>} entityConstructor
      */
     static registerElement(tagName, entityConstructor) {
         ElementFactory.#elementConstructors.set(tagName, entityConstructor)

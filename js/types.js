@@ -1,16 +1,34 @@
 /**
  * @template T
- * @typedef {abstract new (...args: any) => T} Constructor
- */
-/** 
- * @typedef {Constructor<any> | BigIntConstructor} AnyConstructor
+ * @typedef {new (...args: any) => T} AnyConstructor
  */
 /**
- * @template {AnyConstructor} T
- * @typedef {T extends Constructor<infer R>
- *     ? R
+ * @typedef {IEntity | String | Number | BigInt | Boolean | Array | MirroredEntity} SimpleValue
+ * @typedef {SimpleValue | Union | Union[]} AnyValue
+ * @typedef {SimpleValueType<IEntity> | SimpleValueType<IEntity>[] | MirroredEntity | Union | Union[] | ComputedType} AttributeType
+ * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
+ */
+/**
+ * @template {SimpleValue} T
+ * @typedef {AnyConstructor<T> | StringConstructor | NumberConstructor | BigIntConstructor
+ *     | BooleanConstructor | ArrayConstructor} SimpleValueType
+ */
+/**
+ * @template T
+ * @typedef {T extends StringConstructor
+ *     ? String
+ *     : T extends NumberConstructor
+ *     ? Number
  *     : T extends BigIntConstructor
  *     ? BigInt
+ *     : T extends BooleanConstructor
+ *     ? Boolean
+ *     : T extends ArrayConstructor
+ *     ? Array
+ *     : T extends MirroredEntity
+ *     ? MirroredEntity
+ *     : T extends AnyConstructor<infer R>
+ *     ? R
  *     : any
  * } ConstructedType
  */
@@ -27,24 +45,11 @@
  *     quoted?: Boolean,
  *     predicate?: (value: AnyValue) => Boolean,
  * }} AttributeInformation
+ * @typedef {{ [key: String]: AttributeInformation }} AttributeDeclarations
  */
 
 /**
- * @template {AnyValue} T
- * @typedef {Constructor<T>} AnyValueConstructor
- */
-/**
- * @typedef {IEntity | String | Number | BigInt | Boolean} SimpleValue
- * @typedef {SimpleValue | SimpleValue[] | Union | Union[]} AnyValue
- * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {Constructor<IEntity> | StringConstructor | NumberConstructor | BigIntConstructor | BooleanConstructor} SimpleType
- * @typedef {SimpleType | SimpleType[] | MirroredEntity | Union | Union[] | ComputedType} AttributeType
- * @typedef {{
- *     [key: String]: AttributeInformation
- * }} AttributeDeclarations
- * @typedef {CustomEvent<{
- *     value: [Number, Number]
- * }>} UEBDragEvent
+ * @typedef {CustomEvent<{ value: [Number, Number] }>} UEBDragEvent
  */
 /**
  * @template T
@@ -59,6 +64,8 @@
 
 /**
  * @typedef {typeof import("./Blueprint.js").default} BlueprintConstructor
+ * @typedef {typeof import("./element/NodeElement.js").default} NodeElementConstructor
+ * @typedef {typeof import("./entity/IEntity.js").default} EntityConstructor
  */
 
 /**
@@ -162,6 +169,10 @@
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
+ */
+/**
+ * @template {SimpleValue} T
+ * @typedef {import("./serialization/Serializer.js").default<T>} Serializer
  */
 /**
  * @template T

@@ -102,10 +102,7 @@ export default class PinElement extends IElement {
     /** @type {NodeElement} */
     nodeElement
 
-    /**
-     * @param {PinEntity<any>} pinEntity
-     * @return {new () => PinTemplate}
-     */
+    /** @param {PinEntity<any>} pinEntity */
     static getTypeTemplate(pinEntity) {
         if (pinEntity.PinType.ContainerType?.toString() === "Array") {
             return PinTemplate
@@ -116,11 +113,7 @@ export default class PinElement extends IElement {
         if (pinEntity.getType() === "exec") {
             return ExecPinTemplate
         }
-        let result
-        if (pinEntity.isInput()) {
-            result = PinElement.#inputPinTemplates[pinEntity.getType()]
-        }
-        return result ?? PinTemplate
+        return pinEntity.isInput() ? PinElement.#inputPinTemplates[pinEntity.getType()] : PinTemplate
     }
 
     static newObject(

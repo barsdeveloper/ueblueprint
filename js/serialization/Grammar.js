@@ -122,9 +122,10 @@ export default class Grammar {
     }
 
     /**
-      * @param {AttributeType} type
-      * @returns {Parsimmon.Parser<any>}
-      */
+     * @template T
+     * @param {AttributeType} type
+     * @returns {Parsimmon.Parser<any>}
+     */
     static grammarFor(
         attribute,
         type = attribute?.constructor === Object
@@ -170,7 +171,6 @@ export default class Grammar {
                     break
                 default:
                     if (type?.prototype instanceof Serializable) {
-                        // @ts-expect-error
                         return /** @type {typeof Serializable} */(type).grammar
                     }
             }
@@ -191,8 +191,8 @@ export default class Grammar {
     }
 
     /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entityType
+     * @template {SimpleValueType<SimpleValue>} T
+     * @param {T} entityType
      * @param {String[]} key
      * @returns {AttributeInformation}
      */
@@ -245,7 +245,7 @@ export default class Grammar {
 
     /**
      * @template {IEntity} T
-     * @param {new (...args: any) => T} entityType
+     * @param {AnyConstructor<T>} entityType
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      * @returns {Parsimmon.Parser<T>}
      */

@@ -1,7 +1,7 @@
 import Serializer from "./Serializer.js"
 
 /**
- * @template {AnyValue} T
+ * @template {SimpleValue} T
  * @extends {Serializer<T>}
  */
 export default class CustomSerializer extends Serializer {
@@ -10,7 +10,7 @@ export default class CustomSerializer extends Serializer {
 
     /**
      * @param {(v: T, insideString: Boolean) => String} objectWriter
-     * @param {AnyConstructor} entityType
+     * @param {SimpleValueType<T>} entityType
      */
     constructor(objectWriter, entityType) {
         super(entityType)

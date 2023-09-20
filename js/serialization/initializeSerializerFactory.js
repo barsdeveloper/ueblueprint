@@ -76,7 +76,6 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         Array,
         new CustomSerializer(
-            /** @param {AnySimpleValue[]} array */
             (array, insideString) =>
                 `(${array
                     .map(v =>

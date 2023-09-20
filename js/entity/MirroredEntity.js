@@ -13,7 +13,7 @@ export default class MirroredEntity {
     }
 
     /**
-     * @param {typeof IEntity} type
+     * @param {EntityConstructor} type
      * @param {String} key
      */
     constructor(type, key, getter = () => null) {

@@ -1,49 +1,22 @@
 export default class SerializerFactory {
 
-    /** @type {Map<AnyValueConstructor<AnyValue>, Serializer<AnyValue>>} */
     static #serializers = new Map()
 
     /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entity
-     * @param {Serializer<T>} object
+     * @template {SimpleValueType<SimpleValue>} T
+     * @param {T} type
+     * @param {Serializer<ConstructedType<T>>} object
      */
-    static registerSerializer(entity, object) {
-        SerializerFactory.#serializers.set(entity, object)
+    static registerSerializer(type, object) {
+        SerializerFactory.#serializers.set(type, object)
     }
 
     /**
-     * @template {AnyValue} T
-     * @typedef {{
-     *     (entity: new (...args: any) => T) : Serializer<T>
-     *     (entity: BigIntConstructor): Serializer<BigInt>;
-     * }} SerializerGetter
+     * @template {SimpleValueType<any>} T
+     * @param {T} type
+     * @returns {Serializer<ConstructedType<T>>}
      */
-    /**
-     * @template {AnyValue} T
-     * @type {SerializerGetter<T>}
-     */
-    static getSerializer = 
-    /**
-     * @param {T} entity
-     * @returns {Serializer<T>}
-     */    
-    (entity) => {
-        // @ts-expect-error
-        return SerializerFactory.#serializers.get(entity)
+    static getSerializer(type) {
+        return SerializerFactory.#serializers.get(type)
     }
 }
-
-let x
-/**
- * @template T
- * @param {T} v
- * @returns {InstanceType<T>}
- */
-function a(v) {
-    return x
-}
-
-class A {}
-
-let aaaaa = a(BigInt)
