@@ -1,5 +1,10 @@
 import IElement from "./IElement.js"
 
+/**
+ * @template {IEntity} EntityT
+ * @template {ITemplate} TemplateT
+ * @extends {IElement<EntityT, TemplateT>}
+ */
 export default class IFromToPositionedElement extends IElement {
 
     static properties = {

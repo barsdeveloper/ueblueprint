@@ -42,6 +42,9 @@
  * @typedef {{
  *     [key: String]: AttributeInformation
  * }} AttributeDeclarations
+ * @typedef {CustomEvent<{
+ *     value: [Number, Number]
+ * }>} UEBDragEvent
  */
 /**
  * @template T
@@ -154,4 +157,5 @@
  * @typedef {import("./template/window/WindowTemplate.js").default} WindowTemplate
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
+ * @typedef {import("lit").TemplateResult} TemplateResult
  */

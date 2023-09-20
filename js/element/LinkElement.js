@@ -52,9 +52,9 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     #nodeDeleteHandler = () => this.remove()
-    /** @param {DragEvent} e */
+    /** @param {UEBDragEvent} e */
     #nodeDragSourceHandler = e => this.addSourceLocation(...e.detail.value)
-    /** @param {DragEvent} e */
+    /** @param {UEBDragEvent} e */
     #nodeDragDestinatonHandler = e => this.addDestinationLocation(...e.detail.value)
     #nodeReflowSourceHandler = e => this.setSourceLocation()
     #nodeReflowDestinatonHandler = e => this.setDestinationLocation()

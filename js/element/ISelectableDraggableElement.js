@@ -14,7 +14,7 @@ export default class ISelectableDraggableElement extends IDraggableElement {
         },
     }
 
-    /** @param {DragEvent} e */
+    /** @param {UEBDragEvent} e */
     dragHandler = e => this.addLocation(...e.detail.value)
 
     constructor() {
