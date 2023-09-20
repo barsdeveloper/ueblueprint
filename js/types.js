@@ -58,6 +58,10 @@
  */
 
 /**
+ * @typedef {typeof import("./Blueprint.js").default} BlueprintConstructor
+ */
+
+/**
  * @typedef {import("./Blueprint.js").default} Blueprint
  * @typedef {import("./element/ColorHandlerElement.js").default} ColorHandlerElement
  * @typedef {import("./element/ColorSliderElement.js").default} ColorSliderElement
@@ -158,4 +162,8 @@
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
+ */
+/**
+ * @template T
+ * @typedef {import("parsimmon").Success} Success
  */

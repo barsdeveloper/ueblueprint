@@ -76,7 +76,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     /** @type {NodeElement[]} */
     boundComments = []
     #commentDragged = false
-    /** @param {DragEvent} e */
+    /** @param {UEBDragEvent} e */
     #commentDragHandler = e => {
         // If selected, it will already drag, also must check if under nested comments, it must drag just once
         if (!this.selected && !this.#commentDragged) {

@@ -2,6 +2,11 @@ import Configuration from "../Configuration.js"
 import IDraggableElement from "./IDraggableElement.js"
 import Utility from "../Utility.js"
 
+/**
+ * @template {IEntity} EntityT
+ * @template {ISelectableDraggableTemplate} TemplateT
+ * @extends {IDraggableElement<EntityT, TemplateT>}
+ */
 export default class ISelectableDraggableElement extends IDraggableElement {
 
     static properties = {

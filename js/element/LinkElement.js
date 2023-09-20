@@ -5,6 +5,7 @@ import LinkTemplate from "../template/LinkTemplate.js"
 import SVGIcon from "../SVGIcon.js"
 import Utility from "../Utility.js"
 
+/** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 export default class LinkElement extends IFromToPositionedElement {
 
     static properties = {
@@ -90,6 +91,7 @@ export default class LinkElement extends IFromToPositionedElement {
      * @param {PinElement} source
      * @param {PinElement?} destination
      */
+    // @ts-expect-error
     initialize(source, destination) {
         super.initialize({}, new LinkTemplate())
         if (source) {
