@@ -2,11 +2,6 @@ import Configuration from "../../Configuration.js"
 import IPointing from "./IPointing.js"
 
 /**
- * @typedef {import("../../Blueprint.js").default} Blueprint 
- * @typedef {import("../keyboard/KeyboardShortcut.js").default} KeyboardShortcut
- */
-
-/**
  * @template {Element} T
  * @extends {IPointing<T>}
  */

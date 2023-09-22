@@ -1,11 +1,6 @@
 import ITemplate from "../ITemplate.js"
 import MouseIgnore from "../../input/mouse/MouseIgnore.js"
 
-/**
- * @typedef {import ("../../element/InputElement").default} InputElement
- * @typedef {import ("lit").PropertyValues} PropertyValues
- */
-
 /** @extends {ITemplate<InputElement>} */
 export default class InputTemplate extends ITemplate {
 

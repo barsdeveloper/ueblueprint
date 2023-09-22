@@ -2,16 +2,8 @@ import { LitElement } from "lit"
 import Configuration from "../Configuration.js"
 
 /**
- * @typedef {import("../Blueprint.js").default} Blueprint
- * @typedef {import("../entity/IEntity.js").default} IEntity
- * @typedef {import("../input/IInput.js").default} IInput
- * @typedef {import("../template/ITemplate.js").default} ITemplate
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-/**
- * @template {IEntity} T
- * @template {ITemplate} U
+ * @template {IEntity} EntityT
+ * @template {ITemplate} TemplateT
  */
 export default class IElement extends LitElement {
 
@@ -24,7 +16,7 @@ export default class IElement extends LitElement {
         this.#blueprint = v
     }
 
-    /** @type {T} */
+    /** @type {EntityT} */
     #entity
     get entity() {
         return this.#entity
@@ -33,7 +25,7 @@ export default class IElement extends LitElement {
         this.#entity = entity
     }
 
-    /** @type {U} */
+    /** @type {TemplateT} */
     #template
     get template() {
         return this.#template
@@ -46,8 +38,8 @@ export default class IElement extends LitElement {
     inputObjects = []
 
     /**
-     * @param {T} entity
-     * @param {U} template
+     * @param {EntityT} entity
+     * @param {TemplateT} template
      */
     initialize(entity, template) {
         this.requestUpdate()

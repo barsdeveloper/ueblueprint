@@ -1,9 +1,3 @@
-
-/**
- * @typedef {import("./IEntity.js").default} IEntity
- * @typedef {import("./IEntity.js").EntityConstructor} EntityConstructor
- */
-
 export default class MirroredEntity {
 
     static attributes = {

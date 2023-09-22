@@ -4,18 +4,8 @@ import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate.js"
 import SVGIcon from "../../SVGIcon.js"
 import Utility from "../../Utility.js"
 
-/**
- * @typedef {import("../../element/NodeElement.js").default} NodeElement
- * @typedef {import("../../element/PinElement.js").default} PinElement
- * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
- * @typedef {import("../../entity/PinEntity.js").default} PinEntity
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class NodeTemplate extends ISelectableDraggableTemplate {
-
-    /** @typedef {typeof NodeTemplate} NodeTemplateConstructor */
 
     static nodeStyleClasses = ["ueb-node-style-default"]
 

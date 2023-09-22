@@ -2,8 +2,6 @@ import { html } from "lit"
 import MouseIgnore from "../../input/mouse/MouseIgnore.js"
 import PinTemplate from "./PinTemplate.js"
 
-/** @typedef {import("lit").PropertyValues} PropertyValues */
-
 /** @extends PinTemplate<Boolean> */
 export default class BoolPinTemplate extends PinTemplate {
 

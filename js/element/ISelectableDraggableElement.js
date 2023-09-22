@@ -3,15 +3,9 @@ import IDraggableElement from "./IDraggableElement.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent
- * @typedef {import("../entity/IEntity.js").default} IEntity
- * @typedef {import("../template/ISelectableDraggableTemplate.js").default} ISelectableDraggableTemplate
- */
-
-/**
- * @template {IEntity} T
- * @template {ISelectableDraggableTemplate} U
- * @extends {IDraggableElement<T, U>}
+ * @template {IEntity} EntityT
+ * @template {ISelectableDraggableTemplate} TemplateT
+ * @extends {IDraggableElement<EntityT, TemplateT>}
  */
 export default class ISelectableDraggableElement extends IDraggableElement {
 
@@ -25,7 +19,7 @@ export default class ISelectableDraggableElement extends IDraggableElement {
         },
     }
 
-    /** @param {DragEvent} e */
+    /** @param {UEBDragEvent} e */
     dragHandler = e => this.addLocation(...e.detail.value)
 
     constructor() {

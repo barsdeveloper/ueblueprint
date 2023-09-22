@@ -3,11 +3,6 @@ import ElementFactory from "../../element/ElementFactory.js"
 import NodeTemplate from "./NodeTemplate.js"
 import SVGIcon from "../../SVGIcon.js"
 
-/**
- * @typedef {import("../../element/NodeElement.js").default} NodeElement
- * @typedef {import("../../element/PinElement.js").PinElementConstructor} PinElementConstructor
- */
-
 export default class VariableManagementNodeTemplate extends NodeTemplate {
 
     #hasInput = false

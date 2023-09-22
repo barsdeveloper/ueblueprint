@@ -1,10 +1,5 @@
 import { css } from "lit"
 
-/**
- * @typedef {import("./entity/ObjectEntity.js").default} ObjectEntity
- * @typedef {import("./entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
- */
-
 export default class Configuration {
     static nodeColors = {
         black: css`20, 20, 20`,
@@ -86,7 +81,7 @@ export default class Configuration {
     static mouseWheelZoomThreshold = 80
     static nodeDragEventName = "ueb-node-drag"
     static nodeDragGeneralEventName = "ueb-node-drag-general"
-    static nodeName = (name, counter) => `${name}_${counter}`
+    static nodeTitle = (name, counter) => `${name}_${counter}`
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static paths = {

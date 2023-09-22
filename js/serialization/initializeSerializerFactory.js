@@ -39,8 +39,6 @@ import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
 
-/** @typedef {import("../entity/IEntity.js").AnySimpleValue} AnySimpleValue */
-
 Grammar.unknownValue =
     Parsimmon.alt(
         // Remember to keep the order, otherwise parsing might fail
@@ -78,7 +76,6 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         Array,
         new CustomSerializer(
-            /** @param {AnySimpleValue[]} array */
             (array, insideString) =>
                 `(${array
                     .map(v =>
@@ -253,9 +250,7 @@ export default function initializeSerializerFactory() {
         String,
         new CustomSerializer(
             (value, insideString) => insideString
-                // @ts-expect-error
                 ? Utility.escapeString(value)
-                // @ts-expect-error
                 : `"${Utility.escapeString(value)}"`,
             String
         )

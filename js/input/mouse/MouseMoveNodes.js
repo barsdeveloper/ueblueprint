@@ -1,10 +1,5 @@
 import MouseMoveDraggable from "./MouseMoveDraggable.js"
 
-/**
- * @typedef {import("../../element/NodeElement.js").default} NodeElement
- * @typedef {import("../../template/node/CommentNodeTemplate.js").default} CommentNodeTemplate
- */
-
 /** @extends {MouseMoveDraggable<NodeElement>} */
 export default class MouseMoveNodes extends MouseMoveDraggable {
 

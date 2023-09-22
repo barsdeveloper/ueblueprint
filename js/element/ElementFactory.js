@@ -1,16 +1,11 @@
-/**
- * @typedef {import("./IElement.js").default} IElement
- * @typedef {new (...args) => IElement} ElementConstructor
- */
-
 export default class ElementFactory {
 
-    /** @type {Map<String, ElementConstructor>} */
+    /** @type {Map<String, AnyConstructor<IElement>>} */
     static #elementConstructors = new Map()
 
     /**
      * @param {String} tagName
-     * @param {ElementConstructor} entityConstructor
+     * @param {AnyConstructor<IElement>} entityConstructor
      */
     static registerElement(tagName, entityConstructor) {
         ElementFactory.#elementConstructors.set(tagName, entityConstructor)

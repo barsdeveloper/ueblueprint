@@ -22,18 +22,6 @@ import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate.js"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
 
 /**
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("./LinkElement.js").LinkElementConstructor} LinkElementConstructor
- * @typedef {import("./NodeElement.js").default} NodeElement
- * @typedef {import("lit").CSSResult} CSSResult
- * @typedef {typeof PinElement} PinElementConstructor
- */
-/**
- * @template T
- * @typedef {import("parsimmon").Success<T>} Success
- */
-
-/**
  * @template {AnyValue} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
@@ -114,10 +102,7 @@ export default class PinElement extends IElement {
     /** @type {NodeElement} */
     nodeElement
 
-    /**
-     * @param {PinEntity<any>} pinEntity
-     * @return {new () => PinTemplate}
-     */
+    /** @param {PinEntity<any>} pinEntity */
     static getTypeTemplate(pinEntity) {
         if (pinEntity.PinType.ContainerType?.toString() === "Array") {
             return PinTemplate
@@ -128,16 +113,12 @@ export default class PinElement extends IElement {
         if (pinEntity.getType() === "exec") {
             return ExecPinTemplate
         }
-        let result
-        if (pinEntity.isInput()) {
-            result = PinElement.#inputPinTemplates[pinEntity.getType()]
-        }
-        return result ?? PinTemplate
+        return (pinEntity.isInput() ? PinElement.#inputPinTemplates[pinEntity.getType()] : PinTemplate) ?? PinTemplate
     }
 
     static newObject(
         entity = new PinEntity(),
-        template = new (PinElement.getTypeTemplate(entity))(),
+        template = /** @type {PinTemplate} */(new (PinElement.getTypeTemplate(entity))()),
         nodeElement = undefined
     ) {
         const result = new PinElement()
@@ -147,7 +128,7 @@ export default class PinElement extends IElement {
 
     initialize(
         entity = /** @type {PinEntity<T>} */(new PinEntity()),
-        template = new (PinElement.getTypeTemplate(entity))(),
+        template = /** @type {PinTemplate} */(new (PinElement.getTypeTemplate(entity))()),
         nodeElement = undefined
     ) {
         this.nodeElement = nodeElement

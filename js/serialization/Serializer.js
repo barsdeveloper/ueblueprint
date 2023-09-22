@@ -3,32 +3,22 @@ import IEntity from "../entity/IEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
-/**
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity.js").EntityConstructor} EntityConstructor
- */
-
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
- */
-
-/** @template {AnyValue} T */
+/** @template {SimpleValueType<SimpleValue>} T */
 export default class Serializer {
 
     /** @type {(v: String) => String} */
     static same = v => v
 
-    /** @type {(entity: AnyValue, serialized: String) => String} */
+    /** @type {(entity: SimpleValue, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
 
-    /** @type {(entity: AnyValue, serialized: String) => String} */
+    /** @type {(entity: SimpleValue, serialized: String) => String} */
     static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
-    /** @param {AnyValueConstructor<T>} entityType */
+    /** @param {T} entityType */
     constructor(
         entityType,
-        /** @type {(entity: T, serialized: String) => String} */
+        /** @type {(entity: ConstructedType<T>, serialized: String) => String} */
         wrap = (entity, serialized) => serialized,
         attributeSeparator = ",",
         trailingSeparator = false,
@@ -45,13 +35,13 @@ export default class Serializer {
 
     /**
      * @param {String} value
-     * @returns {T}
+     * @returns {ConstructedType<T>}
      */
     read(value) {
         return this.doRead(value.trim())
     }
 
-    /** @param {T} value */
+    /** @param {ConstructedType<T>} value */
     write(value, insideString = false) {
         // @ts-expect-error
         return this.doWrite(value, insideString)
@@ -59,7 +49,7 @@ export default class Serializer {
 
     /**
      * @param {String} value
-     * @returns {T}
+     * @returns {ConstructedType<T>}
      */
     doRead(value) {
         let grammar = Grammar.grammarFor(undefined, this.entityType)
@@ -71,7 +61,7 @@ export default class Serializer {
     }
 
     /**
-     * @param {T & IEntity} entity
+     * @param {ConstructedType<T> & IEntity} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
@@ -152,7 +142,6 @@ export default class Serializer {
     }
 
     showProperty(entity, key) {
-        // @ts-expect-error
         const attribute = /** @type {EntityConstructor} */(this.entityType).attributes[key]
         if (attribute?.constructor === Object && attribute.ignored) {
             return false

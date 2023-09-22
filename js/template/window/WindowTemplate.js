@@ -4,8 +4,6 @@ import IDraggablePositionedTemplate from "../IDraggablePositionedTemplate.js"
 import MouseMoveDraggable from "../../input/mouse/MouseMoveDraggable.js"
 import SVGIcon from "../../SVGIcon.js"
 
-/** @typedef {import("../../element/WindowElement.js").default} WindowElement */
-
 /** @extends {IDraggablePositionedTemplate<WindowElement>} */
 export default class WindowTemplate extends IDraggablePositionedTemplate {
 

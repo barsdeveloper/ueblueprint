@@ -2,8 +2,6 @@ import ElementFactory from "../../element/ElementFactory.js"
 import IInput from "../IInput.js"
 import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 
-/** @typedef {import("../../element/NodeElement.js").NodeElementConstructor} NodeElementConstructor */
-
 export default class Paste extends IInput {
 
     static #serializer = new ObjectSerializer()

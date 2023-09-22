@@ -1,8 +1,6 @@
 import Configuration from "../../Configuration.js"
 import VariableManagementNodeTemplate from "./VariableMangementNodeTemplate.js"
 
-/** @typedef {import("../../element/NodeElement.js").default} NodeElement */
-
 export default class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 
     /** @param {NodeElement} element */

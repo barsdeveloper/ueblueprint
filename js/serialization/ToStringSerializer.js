@@ -2,23 +2,18 @@ import Serializer from "./Serializer.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
- */
-
-/**
- * @template {AnyValue} T
+ * @template {SimpleValueType<SimpleValue>} T
  * @extends {Serializer<T>}
  */
 export default class ToStringSerializer extends Serializer {
 
-    /** @param {AnyValueConstructor} entityType */
+    /** @param {T} entityType */
     constructor(entityType) {
         super(entityType)
     }
 
     /**
-     * @param {T} entity
+     * @param {ConstructedType<T>} entity
      * @param {Boolean} insideString
      */
     doWrite(entity, insideString, indentation = "") {

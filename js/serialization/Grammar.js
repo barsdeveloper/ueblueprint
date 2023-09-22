@@ -6,17 +6,6 @@ import Serializable from "./Serializable.js"
 import Union from "../entity/Union.js"
 import Utility from "../Utility.js"
 
-/**
- * @typedef {import ("../entity/IEntity").AnyValue} AnyValue
- * @typedef {import ("../entity/IEntity").AttributeType} AttributeType
- * @typedef {import ("../entity/IEntity").AttributeInformation} AttributeInformation
- * @typedef {import ("../entity/IEntity").EntityConstructor} EntityConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {import ("../entity/IEntity").AnyValueConstructor<T>} AnyValueConstructor
- */
-
 let P = Parsimmon
 
 export default class Grammar {
@@ -133,9 +122,10 @@ export default class Grammar {
     }
 
     /**
-      * @param {AttributeType} type
-      * @returns {Parsimmon.Parser<any>}
-      */
+     * @template {SimpleValueType<SimpleValue>} T
+     * @param {T} type
+     * @returns {Parsimmon.Parser<ConstructedType<T>>}
+     */
     static grammarFor(
         attribute,
         type = attribute?.constructor === Object
@@ -181,7 +171,6 @@ export default class Grammar {
                     break
                 default:
                     if (type?.prototype instanceof Serializable) {
-                        // @ts-expect-error
                         return /** @type {typeof Serializable} */(type).grammar
                     }
             }
@@ -202,8 +191,8 @@ export default class Grammar {
     }
 
     /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entityType
+     * @template {SimpleValueType<SimpleValue>} T
+     * @param {T} entityType
      * @param {String[]} key
      * @returns {AttributeInformation}
      */
@@ -256,7 +245,7 @@ export default class Grammar {
 
     /**
      * @template {IEntity} T
-     * @param {new (...args: any) => T} entityType
+     * @param {AnyConstructor<T> & EntityConstructor} entityType
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      * @returns {Parsimmon.Parser<T>}
      */

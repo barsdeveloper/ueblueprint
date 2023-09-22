@@ -5,44 +5,6 @@ import SerializerFactory from "../serialization/SerializerFactory.js"
 import Union from "./Union.js"
 import Utility from "../Utility.js"
 
-/**
- * @template {AnyValue} T
- * @typedef {(new (...any) => T) | StringConstructor | NumberConstructor | BigIntConstructor | BooleanConstructor
- *     | ArrayConstructor} AnyValueConstructor
-*/
-
-/**
- * @typedef {IEntity | MirroredEntity | String | Number | BigInt | Boolean} AnySimpleValue
- * @typedef {AnySimpleValue | AnySimpleValue[]} AnyValue
- * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- * @typedef {AnyValueConstructor<AnyValue> | AnyValueConstructor<AnyValue>[] | Union | Union[] | ComputedType | MirroredEntity} AttributeType
- * @typedef {{
- *     type?: AttributeType,
- *     default?: AnyValue | ValueSupplier,
- *     nullable?: Boolean,
- *     ignored?: Boolean,
- *     serialized?: Boolean,
- *     expected?: Boolean,
- *     inlined?: Boolean,
- *     quoted?: Boolean,
- *     predicate?: (value: AnyValue) => Boolean,
- * }} AttributeInformation
- * @typedef {{
- *     [key: String]: AttributeInformation
- * }} AttributeDeclarations
- * @typedef {typeof IEntity} EntityConstructor
- */
-/**
- * @template T
- * @typedef {{
- *     (value: Boolean): BooleanConstructor,
- *     (value: Number): NumberConstructor,
- *     (value: String): StringConstructor,
- *     (value: BigInt): BigIntConstructor,
- *     (value: T): typeof value.constructor,
- * }} TypeGetter
- */
-
 export default class IEntity extends Serializable {
 
     /** @type {String | Union<String[]>} */
@@ -65,7 +27,7 @@ export default class IEntity extends Serializable {
     constructor(values = {}, suppressWarns = false) {
         super()
         /** @type {String} */ this.lookbehind
-        const Self = /** @type {EntityConstructor} */(this.constructor)
+        const Self = /** @type {typeof IEntity} */(this.constructor)
         let attributes = Self.attributes
         if (values.attributes) {
             attributes = { ...Self.attributes }
@@ -166,7 +128,7 @@ export default class IEntity extends Serializable {
                         .getSerializer(defaultType)
                         .read(/** @type {String} */(value))
                 }
-                assignAttribute(Utility.sanitize(value, /** @type {AnyValueConstructor<*>} */(defaultType)))
+                assignAttribute(Utility.sanitize(value, /** @type {AnyConstructor<*>} */(defaultType)))
                 continue // We have a value, need nothing more
             }
             if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined

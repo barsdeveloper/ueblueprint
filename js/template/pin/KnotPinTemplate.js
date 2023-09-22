@@ -2,11 +2,6 @@ import { html } from "lit"
 import MinimalPinTemplate from "./MinimalPinTemplate.js"
 import Utility from "../../Utility.js"
 
-/**
- * @typedef {import("../../entity/PinEntity.js").default} KnotEntity
- * @typedef {import("../node/KnotNodeTemplate.js").default} KnotNodeTemplate
- */
-
 /** @extends MinimalPinTemplate<KnotEntity> */
 export default class KnotPinTemplate extends MinimalPinTemplate {
 

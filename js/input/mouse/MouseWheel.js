@@ -1,7 +1,5 @@
 import IPointing from "./IPointing.js"
 
-/** @typedef {import("../../Blueprint.js").default} Blueprint */
-
 export default class MouseWheel extends IPointing {
 
     static #ignoreEvent =

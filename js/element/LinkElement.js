@@ -5,13 +5,6 @@ import LinkTemplate from "../template/LinkTemplate.js"
 import SVGIcon from "../SVGIcon.js"
 import Utility from "../Utility.js"
 
-/**
- * @typedef {import("../element/IDraggableElement.js").DragEvent} DragEvent
- * @typedef {import("./PinElement.js").default} PinElement
- * @typedef {import("lit").TemplateResult<1>} TemplateResult
- * @typedef {typeof LinkElement} LinkElementConstructor
- */
-
 /** @extends {IFromToPositionedElement<Object, LinkTemplate>} */
 export default class LinkElement extends IFromToPositionedElement {
 
@@ -60,9 +53,9 @@ export default class LinkElement extends IFromToPositionedElement {
     }
 
     #nodeDeleteHandler = () => this.remove()
-    /** @param {DragEvent} e */
+    /** @param {UEBDragEvent} e */
     #nodeDragSourceHandler = e => this.addSourceLocation(...e.detail.value)
-    /** @param {DragEvent} e */
+    /** @param {UEBDragEvent} e */
     #nodeDragDestinatonHandler = e => this.addDestinationLocation(...e.detail.value)
     #nodeReflowSourceHandler = e => this.setSourceLocation()
     #nodeReflowDestinatonHandler = e => this.setDestinationLocation()
@@ -98,6 +91,7 @@ export default class LinkElement extends IFromToPositionedElement {
      * @param {PinElement} source
      * @param {PinElement?} destination
      */
+    // @ts-expect-error
     initialize(source, destination) {
         super.initialize({}, new LinkTemplate())
         if (source) {

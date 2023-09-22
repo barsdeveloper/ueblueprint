@@ -8,16 +8,12 @@ import VariableConversionNodeTemplate from "../node/VariableConversionNodeTempla
 import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate.js"
 
 /**
- * @typedef {import("../../input/IInput.js").default} IInput
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-/**
- * @template T
+ * @template {AnyValue} T
  * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template T
+ * @template {AnyValue} T
  * @extends ITemplate<PinElement<T>>
  */
 export default class PinTemplate extends ITemplate {

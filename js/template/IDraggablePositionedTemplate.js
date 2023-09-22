@@ -1,11 +1,6 @@
 import IDraggableTemplate from "./IDraggableTemplate.js"
 
 /**
- * @typedef {import("../element/IDraggableElement.js").default} IDraggableElement
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-/**
  * @template {IDraggableElement} T
  * @extends {IDraggableTemplate<T>}
  */

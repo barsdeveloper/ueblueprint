@@ -2,11 +2,6 @@ import { html } from "lit"
 import ITemplate from "../ITemplate.js"
 import MouseIgnore from "../../input/mouse/MouseIgnore.js"
 
-/**
- * @typedef {import ("../../element/DropdownElement.js").default} DropdownElement
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
 /** @extends {ITemplate<DropdownElement>} */
 export default class DropdownTemplate extends ITemplate {
 

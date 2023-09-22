@@ -1,15 +1,9 @@
 import { html } from "lit"
 
-/**
- * @typedef {import("../element/IElement.js").default} IElement
- * @typedef {import("../input/IInput.js").default} IInput
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-/** @template {IElement} T */
+/** @template {IElement} ElementT */
 export default class ITemplate {
 
-    /** @type {T} */
+    /** @type {ElementT} */
     element
 
     get blueprint() {
@@ -22,7 +16,7 @@ export default class ITemplate {
         return this.#inputObjects
     }
 
-    /** @param {T} element */
+    /** @param {ElementT} element */
     initialize(element) {
         this.element = element
     }

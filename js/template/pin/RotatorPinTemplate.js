@@ -3,9 +3,7 @@ import INumericPinTemplate from "./INumericPinTemplate.js"
 import RotatorEntity from "../../entity/RotatorEntity.js"
 import Utility from "../../Utility.js"
 
-/** @typedef {import("../../entity/RotatorEntity.js").default} Rotator */
-
-/** @extends INumericPinTemplate<Rotator> */
+/** @extends INumericPinTemplate<RotatorEntity> */
 export default class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {

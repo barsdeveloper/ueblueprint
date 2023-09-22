@@ -3,8 +3,6 @@ import ITemplate from "./ITemplate.js"
 import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable.js"
 
-/** @typedef {import("../element/IDraggableElement.js").default} IDraggableElement */
-
 /**
  * @template {IDraggableElement} T
  * @extends {ITemplate<T>}

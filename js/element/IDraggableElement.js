@@ -3,15 +3,6 @@ import IElement from "./IElement.js"
 import Utility from "../Utility.js"
 
 /**
- * @typedef {import("../entity/IEntity.js").default} IEntity
- * @typedef {import("../template/IDraggableTemplate.js").default} IDraggableTemplate
- * @typedef {CustomEvent<{
- *     value: [Number, Number]
- * }>} DragEvent
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
-/**
  * @template {IEntity} T
  * @template {IDraggableTemplate} U
  * @extends {IElement<T, U>}

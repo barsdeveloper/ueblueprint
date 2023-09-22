@@ -1,38 +1,22 @@
-/**
- * @typedef {import("../entity/IEntity.js").default} IEntity
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- */
-
-/**
- * @template {AnyValue} T
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<T>} AnyValueConstructor
- */
-/**
- * @template {AnyValue} T
- * @typedef {import("./Serializer.js").default<T>} Serializer
- */
-
 export default class SerializerFactory {
 
-    /** @type {Map<AnyValueConstructor<AnyValue>, Serializer<AnyValue>>} */
     static #serializers = new Map()
 
     /**
-     * @template {AnyValue} T
-     * @param {AnyValueConstructor<T>} entity
+     * @template {SimpleValueType<SimpleValue>} T
+     * @param {T} type
      * @param {Serializer<T>} object
      */
-    static registerSerializer(entity, object) {
-        SerializerFactory.#serializers.set(entity, object)
+    static registerSerializer(type, object) {
+        SerializerFactory.#serializers.set(type, object)
     }
 
     /**
-     * @template {AnyValue} T
-     * @param {new (...any) => T} entity
-     * @returns {Serializer<T>}
+     * @template {SimpleValueType<any>} T
+     * @param {T} type
+     * @returns {Serializer<ConstructedType<T>>}
      */
-    static getSerializer(entity) {
-        // @ts-expect-error
-        return SerializerFactory.#serializers.get(entity)
+    static getSerializer(type) {
+        return SerializerFactory.#serializers.get(type)
     }
 }

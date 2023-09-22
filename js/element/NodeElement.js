@@ -14,14 +14,6 @@ import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTempl
 import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate.js"
 
-/**
- * @typedef {import("./IDraggableElement.js").DragEvent} DragEvent
- * @typedef {import("./IElement.js").default} IElement
- * @typedef {import("../entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
- * @typedef {import("./PinElement.js").default} PinElement
- * @typedef {typeof NodeElement} NodeElementConstructor
- */
-
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 export default class NodeElement extends ISelectableDraggableElement {
 
@@ -32,9 +24,9 @@ export default class NodeElement extends ISelectableDraggableElement {
             attribute: "data-type",
             reflect: true,
         },
-        nodeName: {
+        nodeTitle: {
             type: String,
-            attribute: "data-name",
+            attribute: "data-title",
             reflect: true,
         },
         advancedPinDisplay: {
@@ -84,7 +76,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     /** @type {NodeElement[]} */
     boundComments = []
     #commentDragged = false
-    /** @param {DragEvent} e */
+    /** @param {UEBDragEvent} e */
     #commentDragHandler = e => {
         // If selected, it will already drag, also must check if under nested comments, it must drag just once
         if (!this.selected && !this.#commentDragged) {
@@ -211,7 +203,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.initialize(entity, template)
         this.#pins = this.template.createPinElements()
         this.typePath = this.entity.getType()
-        this.nodeName = this.entity.getObjectName()
+        this.nodeTitle = this.entity.getObjectName()
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString()
         this.enabledState = this.entity.EnabledState
         this.nodeDisplayName = this.getNodeDisplayName()
@@ -305,7 +297,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             }
         }
         this.entity.Name = name
-        this.nodeName = this.entity.Name
+        this.nodeTitle = this.entity.Name
     }
 
     getPinElements() {

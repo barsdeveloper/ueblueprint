@@ -1,14 +1,9 @@
 import IElement from "./IElement.js"
 
 /**
- * @typedef {import("../entity/IEntity.js").default} IEntity
- * @typedef {import("../template/ITemplate.js").default} ITemplate
- */
-
-/**
- * @template {IEntity} T
- * @template {ITemplate} U
- * @extends {IElement<T, U>}
+ * @template {IEntity} EntityT
+ * @template {ITemplate} TemplateT
+ * @extends {IElement<EntityT, TemplateT>}
  */
 export default class IFromToPositionedElement extends IElement {
 

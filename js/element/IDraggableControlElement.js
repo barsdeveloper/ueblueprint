@@ -1,12 +1,6 @@
 import IDraggableElement from "./IDraggableElement.js"
 
 /**
- * @typedef {import("../element/WindowElement.js").default} WindowElement
- * @typedef {import("../entity/IEntity.js").default} IEntity
- * @typedef {import("../template/IDraggableControlTemplate.js").default} IDraggableControlTemplate
- */
-
-/**
  * @template {IEntity} T
  * @template {IDraggableControlTemplate} U
  * @extends {IDraggableElement<T, U>}

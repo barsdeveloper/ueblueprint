@@ -1,11 +1,6 @@
 import MouseClickDrag from "../input/mouse/MouseClickDrag.js"
 import NodeTemplate from "./node/NodeTemplate.js"
 
-/**
- * @typedef {import("../element/NodeElement.js").default} NodeElement
- * @typedef {import("lit").PropertyValues} PropertyValues
- */
-
 export default class IResizeableTemplate extends NodeTemplate {
 
     #THandler = document.createElement("div")

@@ -23,12 +23,6 @@ import Utility from "../Utility.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import VectorEntity from "./VectorEntity.js"
 
-/**
- * @typedef {import("./IEntity.js").AnyValue} AnyValue
- * @typedef {import("./ObjectEntity.js").default} ObjectEntity
- * @typedef {import("lit").CSSResult} CSSResult
- */
-
 /** @template {AnyValue} T */
 export default class PinEntity extends IEntity {
 

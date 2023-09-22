@@ -1,12 +1,7 @@
 import Serializer from "./Serializer.js"
 
 /**
- * @typedef {import("../entity/IEntity.js").AnyValue} AnyValue
- * @typedef {import("../entity/IEntity.js").AnyValueConstructor<*>} AnyValueConstructor
- */
-
-/**
- * @template {AnyValue} T
+ * @template {SimpleValueType<SimpleValue>} T
  * @extends {Serializer<T>}
  */
 export default class CustomSerializer extends Serializer {
@@ -14,8 +9,8 @@ export default class CustomSerializer extends Serializer {
     #objectWriter
 
     /**
-     * @param {(v: T, insideString: Boolean) => String} objectWriter
-     * @param {AnyValueConstructor} entityType
+     * @param {(v: ConstructedType<T>, insideString: Boolean) => String} objectWriter
+     * @param {T} entityType
      */
     constructor(objectWriter, entityType) {
         super(entityType)
@@ -23,7 +18,7 @@ export default class CustomSerializer extends Serializer {
     }
 
     /**
-     * @param {T} entity
+     * @param {ConstructedType<T>} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
