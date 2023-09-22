@@ -405,8 +405,8 @@ export default class Blueprint extends IElement {
         for (const element of graphElements) {
             element.blueprint = this
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
-                const nodeName = element.entity.getObjectName()
-                const homonymNode = this.nodes.find(node => node.entity.getObjectName() == nodeName)
+                const name = element.entity.getObjectName()
+                const homonymNode = this.nodes.find(node => node.entity.getObjectName() == name)
                 if (homonymNode) {
                     // Inserted node keeps tha name and the homonym nodes is renamed
                     let name = homonymNode.entity.getObjectName(true)
@@ -414,9 +414,9 @@ export default class Blueprint extends IElement {
                     do {
                         ++this.#nodeNameCounter[name]
                     } while (this.nodes.find(node =>
-                        node.entity.getObjectName() == Configuration.nodeName(name, this.#nodeNameCounter[name])
+                        node.entity.getObjectName() == Configuration.nodeTitle(name, this.#nodeNameCounter[name])
                     ))
-                    homonymNode.rename(Configuration.nodeName(name, this.#nodeNameCounter[name]))
+                    homonymNode.rename(Configuration.nodeTitle(name, this.#nodeNameCounter[name]))
                 }
                 this.nodes.push(element)
                 element.addEventListener(Configuration.removeEventName, removeEventHandler)

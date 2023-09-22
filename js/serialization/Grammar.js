@@ -122,9 +122,9 @@ export default class Grammar {
     }
 
     /**
-     * @template T
-     * @param {AttributeType} type
-     * @returns {Parsimmon.Parser<any>}
+     * @template {SimpleValueType<SimpleValue>} T
+     * @param {T} type
+     * @returns {Parsimmon.Parser<ConstructedType<T>>}
      */
     static grammarFor(
         attribute,
@@ -245,7 +245,7 @@ export default class Grammar {
 
     /**
      * @template {IEntity} T
-     * @param {AnyConstructor<T>} entityType
+     * @param {AnyConstructor<T> & EntityConstructor} entityType
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      * @returns {Parsimmon.Parser<T>}
      */

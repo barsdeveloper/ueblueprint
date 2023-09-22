@@ -5,7 +5,7 @@ export default class SerializerFactory {
     /**
      * @template {SimpleValueType<SimpleValue>} T
      * @param {T} type
-     * @param {Serializer<ConstructedType<T>>} object
+     * @param {Serializer<T>} object
      */
     static registerSerializer(type, object) {
         SerializerFactory.#serializers.set(type, object)

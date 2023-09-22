@@ -218,7 +218,7 @@ export default class BlueprintTemplate extends ITemplate {
     /** @param {PinReferenceEntity} pinReference */
     getPin(pinReference) {
         return /** @type {PinElement} */(this.blueprint.querySelector(
-            `ueb-node[data-name="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
+            `ueb-node[data-title="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
         ))
     }
 

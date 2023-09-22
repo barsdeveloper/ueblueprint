@@ -250,9 +250,7 @@ export default function initializeSerializerFactory() {
         String,
         new CustomSerializer(
             (value, insideString) => insideString
-                // @ts-expect-error
                 ? Utility.escapeString(value)
-                // @ts-expect-error
                 : `"${Utility.escapeString(value)}"`,
             String
         )

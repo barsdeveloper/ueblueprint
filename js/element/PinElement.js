@@ -118,7 +118,7 @@ export default class PinElement extends IElement {
 
     static newObject(
         entity = new PinEntity(),
-        template = new (PinElement.getTypeTemplate(entity))(),
+        template = /** @type {PinTemplate} */(new (PinElement.getTypeTemplate(entity))()),
         nodeElement = undefined
     ) {
         const result = new PinElement()
@@ -128,7 +128,7 @@ export default class PinElement extends IElement {
 
     initialize(
         entity = /** @type {PinEntity<T>} */(new PinEntity()),
-        template = new (PinElement.getTypeTemplate(entity))(),
+        template = /** @type {PinTemplate} */(new (PinElement.getTypeTemplate(entity))()),
         nodeElement = undefined
     ) {
         this.nodeElement = nodeElement

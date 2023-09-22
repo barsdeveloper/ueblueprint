@@ -7,6 +7,15 @@ import Utility from "../../Utility.js"
 import VariableConversionNodeTemplate from "../node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate.js"
 
+/**
+ * @template T
+ * @typedef {import("../../element/PinElement.js").default} PinElement
+ */
+
+/**
+ * @template {AnyValue} T
+ * @extends ITemplate<PinElement<T>>
+ */
 export default class PinTemplate extends ITemplate {
 
     static canWrapInput = true
@@ -25,7 +34,7 @@ export default class PinTemplate extends ITemplate {
 
     isNameRendered = true
 
-    /** @param {PinElement<EntityT>} element */
+    /** @param {PinElement<T>} element */
     initialize(element) {
         super.initialize(element)
         if (this.element.nodeElement) {

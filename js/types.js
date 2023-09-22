@@ -5,13 +5,32 @@
 /**
  * @typedef {IEntity | String | Number | BigInt | Boolean | Array | MirroredEntity} SimpleValue
  * @typedef {SimpleValue | Union | Union[]} AnyValue
- * @typedef {SimpleValueType<IEntity> | SimpleValueType<IEntity>[] | MirroredEntity | Union | Union[] | ComputedType} AttributeType
+ * @typedef {SimpleValueType<SimpleValue> | SimpleValueType<SimpleValue>[] | MirroredEntity | Union | Union[] | ComputedType} AttributeType
  * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
  */
 /**
  * @template {SimpleValue} T
- * @typedef {AnyConstructor<T> | StringConstructor | NumberConstructor | BigIntConstructor
- *     | BooleanConstructor | ArrayConstructor} SimpleValueType
+ * @typedef {AnyConstructor<T> & EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
+ *     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor} SimpleValueType
+ */
+/**
+ * @template {SimpleValue} T
+ * @typedef {T extends String
+ *     ? StringConstructor
+ *     : T extends Number
+ *     ? NumberConstructor
+ *     : T extends BigInt
+ *     ? BigIntConstructor
+ *     : T extends Boolean
+ *     ? BooleanConstructor
+ *     : T extends Array
+ *     ? ArrayConstructor
+ *     : T extends MirroredEntity
+ *     ? MirroredEntityConstructor
+ *     : T extends IEntity
+ *     ? AnyConstructor<T> & EntityConstructor
+ *     : any
+ * } ConstructorType
  */
 /**
  * @template T
@@ -64,10 +83,13 @@
 
 /**
  * @typedef {typeof import("./Blueprint.js").default} BlueprintConstructor
+ * @typedef {typeof import("./element/LinkElement.js").default} LinkElementConstructor
  * @typedef {typeof import("./element/NodeElement.js").default} NodeElementConstructor
+ * @typedef {typeof import("./element/PinElement.js").default} PinElementConstructor
  * @typedef {typeof import("./entity/IEntity.js").default} EntityConstructor
+ * @typedef {typeof import("./entity/MirroredEntity.js").default} MirroredEntityConstructor
+ * @typedef {typeof import("./entity/ObjectEntity.js").default} ObjectEntityConstructor
  */
-
 /**
  * @typedef {import("./Blueprint.js").default} Blueprint
  * @typedef {import("./element/ColorHandlerElement.js").default} ColorHandlerElement
@@ -107,6 +129,7 @@
  * @typedef {import("./entity/NaturalNumberEntity.js").default} NaturalNumberEntity
  * @typedef {import("./entity/ObjectEntity.js").default} ObjectEntity
  * @typedef {import("./entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
+ * @typedef {import("./entity/objects/KnotEntity.js").default} KnotEntity
  * @typedef {import("./entity/PathSymbolEntity.js").default} PathSymbolEntity
  * @typedef {import("./entity/PinEntity.js").default} PinEntity
  * @typedef {import("./entity/PinReferenceEntity.js").default} PinReferenceEntity
@@ -156,7 +179,6 @@
  * @typedef {import("./template/pin/LinearColorPinTemplate.js").default} LinearColorPinTemplate
  * @typedef {import("./template/pin/MinimalPinTemplate.js").default} MinimalPinTemplate
  * @typedef {import("./template/pin/NamePinTemplate.js").default} NamePinTemplate
- * @typedef {import("./template/pin/PinTemplate.js").default} PinTemplate
  * @typedef {import("./template/pin/RealPinTemplate.js").default} RealPinTemplate
  * @typedef {import("./template/pin/ReferencePinTemplate.js").default} ReferencePinTemplate
  * @typedef {import("./template/pin/RotatorPinTemplate.js").default} RotatorPinTemplate
@@ -166,12 +188,13 @@
  * @typedef {import("./template/SelectorTemplate.js").default} SelectorTemplate
  * @typedef {import("./template/window/ColorPickerWindowTemplate.js").default} ColorPickerWindowTemplate
  * @typedef {import("./template/window/WindowTemplate.js").default} WindowTemplate
+ * @typedef {import("./input/keyboard/KeyboardShortcut.js").default} KeyboardShortcut
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
  */
 /**
- * @template {SimpleValue} T
+ * @template {SimpleValueType<SimpleValue>} T
  * @typedef {import("./serialization/Serializer.js").default<T>} Serializer
  */
 /**

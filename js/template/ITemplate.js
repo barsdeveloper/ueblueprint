@@ -1,9 +1,9 @@
 import { html } from "lit"
 
-/** @template {IElement} T */
+/** @template {IElement} ElementT */
 export default class ITemplate {
 
-    /** @type {T} */
+    /** @type {ElementT} */
     element
 
     get blueprint() {
@@ -16,7 +16,7 @@ export default class ITemplate {
         return this.#inputObjects
     }
 
-    /** @param {T} element */
+    /** @param {ElementT} element */
     initialize(element) {
         this.element = element
     }

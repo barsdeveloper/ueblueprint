@@ -5,6 +5,7 @@ import PinEntity from "../entity/PinEntity.js"
 import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
 
+/** @extends Serializer<ObjectEntityConstructor> */
 export default class ObjectSerializer extends Serializer {
 
     constructor(entityType = ObjectEntity) {

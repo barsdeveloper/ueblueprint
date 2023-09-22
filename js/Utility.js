@@ -218,21 +218,22 @@ export default class Utility {
     /**
      * @template {AnyValue} T
      * @param {T} value
-     * @returns {new (...args: any) => T}
+     * @returns {SimpleValueType<T>}
      */
     static getType(value) {
         if (value === null) {
             return null
         }
         if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
+            // @ts-expect-error
             return /** @type {AttributeInformation} */(value).type
         }
-        return /** @type {AnyValueConstructor<any>} */(value?.constructor)
+        return /** @type {SimpleValueType<any>} */(value?.constructor)
     }
 
     /**
-     * @template {AnyValue} V
-     * @template {AnyValueConstructor<V>} C
+     * @template {SimpleValue} V
+     * @template {SimpleValueType<V>} C
      * @param {C} type
      * @returns {value is InstanceType<C>}
      */
@@ -244,7 +245,7 @@ export default class Utility {
     }
 
     /** @param {AnyValue | Object} value */
-    static sanitize(value, targetType = /** @type {AnyValueConstructor<typeof value>} */(value?.constructor)) {
+    static sanitize(value, targetType = /** @type {SimpleValueType<typeof value>} */(value?.constructor)) {
         if (targetType instanceof Array) {
             targetType = targetType[0]
         }

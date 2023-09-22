@@ -24,9 +24,9 @@ export default class NodeElement extends ISelectableDraggableElement {
             attribute: "data-type",
             reflect: true,
         },
-        nodeName: {
+        nodeTitle: {
             type: String,
-            attribute: "data-name",
+            attribute: "data-title",
             reflect: true,
         },
         advancedPinDisplay: {
@@ -203,7 +203,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         super.initialize(entity, template)
         this.#pins = this.template.createPinElements()
         this.typePath = this.entity.getType()
-        this.nodeName = this.entity.getObjectName()
+        this.nodeTitle = this.entity.getObjectName()
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString()
         this.enabledState = this.entity.EnabledState
         this.nodeDisplayName = this.getNodeDisplayName()
@@ -297,7 +297,7 @@ export default class NodeElement extends ISelectableDraggableElement {
             }
         }
         this.entity.Name = name
-        this.nodeName = this.entity.Name
+        this.nodeTitle = this.entity.Name
     }
 
     getPinElements() {

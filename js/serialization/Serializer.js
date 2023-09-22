@@ -3,7 +3,7 @@ import IEntity from "../entity/IEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
-/** @template {SimpleValue} T */
+/** @template {SimpleValueType<SimpleValue>} T */
 export default class Serializer {
 
     /** @type {(v: String) => String} */
@@ -15,10 +15,10 @@ export default class Serializer {
     /** @type {(entity: SimpleValue, serialized: String) => String} */
     static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
-    /** @param {SimpleValueType<T>} entityType */
+    /** @param {T} entityType */
     constructor(
         entityType,
-        /** @type {(entity: T, serialized: String) => String} */
+        /** @type {(entity: ConstructedType<T>, serialized: String) => String} */
         wrap = (entity, serialized) => serialized,
         attributeSeparator = ",",
         trailingSeparator = false,
@@ -35,13 +35,13 @@ export default class Serializer {
 
     /**
      * @param {String} value
-     * @returns {T}
+     * @returns {ConstructedType<T>}
      */
     read(value) {
         return this.doRead(value.trim())
     }
 
-    /** @param {T} value */
+    /** @param {ConstructedType<T>} value */
     write(value, insideString = false) {
         // @ts-expect-error
         return this.doWrite(value, insideString)
@@ -49,7 +49,7 @@ export default class Serializer {
 
     /**
      * @param {String} value
-     * @returns {T}
+     * @returns {ConstructedType<T>}
      */
     doRead(value) {
         let grammar = Grammar.grammarFor(undefined, this.entityType)
@@ -61,7 +61,7 @@ export default class Serializer {
     }
 
     /**
-     * @param {T & IEntity} entity
+     * @param {ConstructedType<T> & IEntity} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
