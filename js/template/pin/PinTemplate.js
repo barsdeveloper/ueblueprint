@@ -8,8 +8,8 @@ import VariableConversionNodeTemplate from "../node/VariableConversionNodeTempla
 import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate.js"
 
 /**
- * @template T
- * @typedef {import("../../element/PinElement.js").default} PinElement
+ * @template {AnyValue} T
+ * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**

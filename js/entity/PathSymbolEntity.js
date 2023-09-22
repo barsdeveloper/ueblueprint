@@ -12,10 +12,10 @@ export default class PathSymbolEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static #grammar = Grammar.symbol.map(v => new PathSymbolEntity(v))
+    static grammar = this.createGrammar()
 
     static createGrammar() {
-        return PathSymbolEntity.#grammar
+        return Grammar.symbol.map(v => new this(v))
     }
 
     constructor(values) {

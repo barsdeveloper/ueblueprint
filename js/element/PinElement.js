@@ -113,7 +113,7 @@ export default class PinElement extends IElement {
         if (pinEntity.getType() === "exec") {
             return ExecPinTemplate
         }
-        return pinEntity.isInput() ? PinElement.#inputPinTemplates[pinEntity.getType()] : PinTemplate
+        return (pinEntity.isInput() ? PinElement.#inputPinTemplates[pinEntity.getType()] : PinTemplate) ?? PinTemplate
     }
 
     static newObject(

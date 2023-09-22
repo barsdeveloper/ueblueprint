@@ -20,7 +20,6 @@ export default class IDraggableControlElement extends IDraggableElement {
      * @param {Number} y
      */
     setLocation(x, y) {
-        this.template
         super.setLocation(...this.template.adjustLocation(x, y))
     }
 }

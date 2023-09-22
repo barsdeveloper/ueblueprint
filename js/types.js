@@ -86,6 +86,7 @@
  * @typedef {typeof import("./element/LinkElement.js").default} LinkElementConstructor
  * @typedef {typeof import("./element/NodeElement.js").default} NodeElementConstructor
  * @typedef {typeof import("./element/PinElement.js").default} PinElementConstructor
+ * @typedef {typeof import("./element/WindowElement.js").default} WindowElementConstructor
  * @typedef {typeof import("./entity/IEntity.js").default} EntityConstructor
  * @typedef {typeof import("./entity/MirroredEntity.js").default} MirroredEntityConstructor
  * @typedef {typeof import("./entity/ObjectEntity.js").default} ObjectEntityConstructor
