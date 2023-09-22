@@ -271,7 +271,7 @@ export default class Utility {
                 : new /** @type {EntityConstructor} */(targetType)(value)
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = value.valueOf() // Get the relative primitive value
+            value = /** @type {AnyValue} */(value.valueOf()) // Get the relative primitive value
         }
         return value
     }

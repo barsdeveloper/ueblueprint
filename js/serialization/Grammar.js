@@ -245,7 +245,7 @@ export default class Grammar {
 
     /**
      * @template {IEntity} T
-     * @param {AnyConstructor<T> & EntityConstructor} entityType
+     * @param {(new (...args: any) => T) & EntityConstructor} entityType
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      * @returns {Parsimmon.Parser<T>}
      */
