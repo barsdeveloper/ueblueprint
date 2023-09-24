@@ -160,6 +160,7 @@ export default class Configuration {
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
         pcgEditorGraphNodeInput:"/Script/PCGEditor.PCGEditorGraphNodeInput",
         pcgEditorGraphNodeOutput:"/Script/PCGEditor.PCGEditorGraphNodeOutput",
+        pcgHiGenGridSizeSettings: "/Script/PCG.PCGHiGenGridSizeSettings",
         pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",

@@ -61,7 +61,7 @@ export default class IEntity extends Serializable {
             let attribute = attributes[attributeName]
 
             if (!suppressWarns && value !== undefined) {
-                if (!(attributeName in attributes)) {
+                if (!(attributeName in attributes) && !attributeName.startsWith("#SubObject")) {
                     const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `

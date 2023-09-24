@@ -239,6 +239,9 @@ export default class ObjectEntity extends IEntity {
         PCGNode: {
             type: ObjectReferenceEntity,
         },
+        HiGenGridSize: {
+            type: SymbolEntity,
+        },
         Operation: {
             type: SymbolEntity,
         },
@@ -502,6 +505,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {MirroredEntity} */ this.PositionX
         /** @type {MirroredEntity} */ this.PositionY
         /** @type {ObjectReferenceEntity} */ this.PCGNode
+        /** @type {SymbolEntity} */ this.HiGenGridSize
         /** @type {String} */ this.Operation
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
@@ -905,6 +909,12 @@ export default class ObjectEntity extends IEntity {
         }
         const settingsObject = this.getSettingsObject()
         if (settingsObject) {
+            if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
+                return `Grid Size: ${(
+                    settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
+                    ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
+                ) ?? "256"}`
+            }
             if (settingsObject.BlueprintElementInstance) {
                 return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
             }

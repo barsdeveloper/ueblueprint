@@ -184,6 +184,7 @@ class Configuration {
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
         pcgEditorGraphNodeInput:"/Script/PCGEditor.PCGEditorGraphNodeInput",
         pcgEditorGraphNodeOutput:"/Script/PCGEditor.PCGEditorGraphNodeOutput",
+        pcgHiGenGridSizeSettings: "/Script/PCG.PCGHiGenGridSizeSettings",
         pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
@@ -1154,7 +1155,7 @@ class IEntity extends Serializable {
             let attribute = attributes[attributeName];
 
             if (!suppressWarns && value !== undefined) {
-                if (!(attributeName in attributes)) {
+                if (!(attributeName in attributes) && !attributeName.startsWith("#SubObject")) {
                     const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name;
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
@@ -3874,6 +3875,9 @@ class ObjectEntity extends IEntity {
         PCGNode: {
             type: ObjectReferenceEntity,
         },
+        HiGenGridSize: {
+            type: SymbolEntity,
+        },
         Operation: {
             type: SymbolEntity,
         },
@@ -4137,6 +4141,7 @@ class ObjectEntity extends IEntity {
         /** @type {MirroredEntity} */ this.PositionX;
         /** @type {MirroredEntity} */ this.PositionY;
         /** @type {ObjectReferenceEntity} */ this.PCGNode;
+        /** @type {SymbolEntity} */ this.HiGenGridSize;
         /** @type {String} */ this.Operation;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
@@ -4540,6 +4545,12 @@ class ObjectEntity extends IEntity {
         }
         const settingsObject = this.getSettingsObject();
         if (settingsObject) {
+            if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
+                return `Grid Size: ${(
+                    settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
+                    ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
+                ) ?? "256"}`
+            }
             if (settingsObject.BlueprintElementInstance) {
                 return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
             }
