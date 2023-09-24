@@ -941,8 +941,9 @@ export default class ObjectEntity extends IEntity {
                     )
             }
             switch (memberParent) {
-                case Configuration.paths.slateBlueprintLibrary:
+                case Configuration.paths.blueprintGameplayTagLibrary:
                 case Configuration.paths.kismetMathLibrary:
+                case Configuration.paths.slateBlueprintLibrary:
                 case Configuration.paths.timeManagementBlueprintLibrary:
                     const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/)
                     if (leadingLetter) {

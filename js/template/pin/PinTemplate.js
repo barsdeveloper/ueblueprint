@@ -91,7 +91,7 @@ export default class PinTemplate extends ITemplate {
                     return SVGIcon.pcgPin
                 case "Param":
                 case "Param[]":
-                    return SVGIcon.pcgPinParam
+                    return SVGIcon.pcgParamPin
                 case "Spatial":
                 case "Spatial[]":
                     return SVGIcon.pcgSpatialPin
@@ -105,16 +105,19 @@ export default class PinTemplate extends ITemplate {
                 case "Point":
                 case "Surface":
                 case "Volume":
-                    return SVGIcon.pcgPinStack
+                    return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType.ContainerType?.toString()) {
-            case "Array": return SVGIcon.array
-            case "Set": return SVGIcon.set
-            case "Map": return SVGIcon.map
+        switch (this.element.entity.PinType?.ContainerType?.toString()) {
+            case "Array": return SVGIcon.arrayPin
+            case "Set": return SVGIcon.setPin
+            case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType.PinCategory.toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType?.PinCategory?.toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
+        }
+        if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
+            return SVGIcon.operationPin
         }
         return SVGIcon.genericPin
     }

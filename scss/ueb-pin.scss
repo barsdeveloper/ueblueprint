@@ -39,7 +39,7 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"][data
 .ueb-pin-wrapper {
     display: inline-flex;
     box-sizing: border-box;
-    padding: 3px 5px;
+    padding: 3px 6px;
     min-height: 24px;
     align-items: center;
 }
@@ -74,8 +74,6 @@ ueb-blueprint[data-scrolling="false"][data-selecting="false"] .ueb-pin-wrapper:h
 
 .ueb-pin-icon {
     color: var(--ueb-pin-color);
-    width: 12px;
-    height: 12px;
     text-align: left;
 }
 
@@ -89,7 +87,7 @@ ueb-pin[data-connectable="false"] .ueb-pin-icon {
 }
 
 .ueb-node-inputs .ueb-pin-icon {
-    margin-right: 10px;
+    margin-right: 6px;
 }
 
 .ueb-node-outputs .ueb-pin-icon {
@@ -97,7 +95,7 @@ ueb-pin[data-connectable="false"] .ueb-pin-icon {
 }
 
 .ueb-pin-icon>svg {
-    vertical-align: top;
+    display: block;
 }
 
 ueb-pin[data-direction="output"] .ueb-pin-reflect-output {
@@ -136,10 +134,6 @@ ueb-pin.ueb-node-variadic-default {
                 #404240 calc(100% - 6px),
                 transparent 100%);
     }
-}
-
-.ueb-pin-name {
-    letter-spacing: -0.25px;
 }
 
 .ueb-zoom--6 .ueb-pin-content {
@@ -219,8 +213,8 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     min-width: 10px;
     max-width: 400px;
     max-height: 16em;
-    /* 0.96923 is to get an effective font size of 12.6px from --ueb-font-size which is 13 px */
-    font-size: calc(0.96923 * var(--ueb-font-size));
+    /* 108% is to get an effective font size of 13.5px from --ueb-font-size which is 12.5 px by default */
+    font-size: 108%;
     white-space: nowrap;
     background: none;
     color: inherit;

@@ -34,7 +34,7 @@ export default class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = css`13px`
+    static fontSize = css`12.5px`
     static gridAxisLineColor = css`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = css`#353535`
@@ -89,6 +89,7 @@ export default class Configuration {
         ambientSound: "/Script/Engine.AmbientSound",
         asyncAction: "/Script/BlueprintGraph.K2Node_AsyncAction",
         blueprint: "/Script/Engine.Blueprint",
+        blueprintGameplayTagLibrary: "/Script/GameplayTags.BlueprintGameplayTagLibrary",
         blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
         blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",

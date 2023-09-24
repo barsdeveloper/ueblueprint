@@ -1,6 +1,9 @@
 /// <reference types="cypress" />
 
 import generateNodeTests from "../fixtures/testUtilities.js"
+import NodeElement from "../../js/element/NodeElement.js"
+import PinElement from "../../js/element/PinElement.js"
+import SVGIcon from "../../js/SVGIcon.js"
 
 const tests = [
     {
@@ -21,9 +24,17 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
-        name: "LessEqual",
+        name: "Less Equal",
         title: "<=",
         value: String.raw`
             Begin Object Class=/Script/BlueprintGraph.K2Node_PromotableOperator Name="K2Node_PromotableOperator_6" ExportPath=/Script/BlueprintGraph.K2Node_PromotableOperator'"/Temp/Untitled_1.Untitled_1:PersistentLevel.Untitled.EventGraph.K2Node_PromotableOperator_6"'
@@ -42,6 +53,14 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Equal",
@@ -62,29 +81,44 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Greater",
         title: ">",
         value: String.raw`
-            Begin Object Class=/Script/BlueprintGraph.K2Node_PromotableOperator Name="K2Node_PromotableOperator_7" ExportPath=/Script/BlueprintGraph.K2Node_PromotableOperator'"/Temp/Untitled_1.Untitled_1:PersistentLevel.Untitled.EventGraph.K2Node_PromotableOperator_7"'
-                bIsPureFunc=True
-                FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/Engine.KismetMathLibrary"',MemberName="Greater_ByteByte")
-                NodePosX=128
-                NodeGuid=11FE7BC92D8C489A8E4034697377122C
-                CustomProperties Pin (PinId=7C43E9ED4C264D328341E620FF154BD2,PinName="A",PinToolTip="A\nBoolean",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_PromotableOperator_6 3E135915A0FE467CBC499FDCAAB3906A,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
-                CustomProperties Pin (PinId=23A96E0897564EA6B86CCC88BB518AC2,PinName="B",PinToolTip="B\nByte",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
-                CustomProperties Pin (PinId=E6887819C15B4C78ADFBEA15EE57EBA9,PinName="ReturnValue",PinToolTip="Return Value\nBoolean\n\nReturns true if A is greater than B (A > B)",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
-                CustomProperties Pin (PinId=0ADD760F647340E98762FC4EF7374255,PinName="ErrorTolerance",PinToolTip="Error Tolerance\n",PinType.PinCategory="",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            Begin Object Class=/Script/BlueprintGraph.K2Node_PromotableOperator Name="K2Node_PromotableOperator_3" ExportPath=/Script/BlueprintGraph.K2Node_PromotableOperator'"/Temp/Untitled_1.Untitled_1:PersistentLevel.Untitled.EventGraph.K2Node_PromotableOperator_3"'
+                "bIsPureFunc"=True
+                "FunctionReference"=(MemberParent=/Script/CoreUObject.Class'"/Script/Engine.KismetMathLibrary"',MemberName="Greater_TimespanTimespan")
+                "NodePosX"=-288
+                "NodeGuid"=F7FABC9C44966BAAC491D4AE6E588CCC
+                CustomProperties Pin (PinId=E5B7684F4812610A60F5E8A1217BD592,PinName="A",PinType.PinCategory="wildcard",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=62516570444A943984F804A683C737A1,PinName="B",PinType.PinCategory="wildcard",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=58F3E9EC42933068D0F9B493EB7C1F16,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
             End Object
         `,
         size: [7.5, 4],
         pins: 3,
         delegate: false,
         development: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
-        name: "GreaterEqual",
+        name: "Greater Equal",
         title: ">=",
         value: String.raw`
             Begin Object Class=/Script/BlueprintGraph.K2Node_PromotableOperator Name="K2Node_PromotableOperator_8" ExportPath=/Script/BlueprintGraph.K2Node_PromotableOperator'"/Temp/Untitled_1.Untitled_1:PersistentLevel.Untitled.EventGraph.K2Node_PromotableOperator_8"'
@@ -103,6 +137,14 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "AND",
@@ -124,6 +166,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "NAND",
@@ -145,6 +195,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Bitwise AND 1",
@@ -167,6 +225,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Bitwise AND 2",
@@ -189,6 +255,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Bitwise OR 1",
@@ -214,6 +288,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Bitwise OR 2",
@@ -237,6 +319,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Bitwise NOT 1",
@@ -258,6 +348,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Bitwise NOT 2",
@@ -279,6 +377,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Bitwise XOR 1",
@@ -301,6 +407,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "Bitwise XOR 2",
@@ -322,6 +436,14 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
     {
         name: "SIN",
@@ -342,6 +464,72 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
+    },
+    {
+        name: "Not Equal",
+        title: "!=",
+        value: String.raw`
+            Begin Object Class=/Script/BlueprintGraph.K2Node_PromotableOperator Name="K2Node_PromotableOperator_0" ExportPath=/Script/BlueprintGraph.K2Node_PromotableOperator'"/Temp/Untitled_1.Untitled_1:PersistentLevel.Untitled.EventGraph.K2Node_PromotableOperator_0"'
+                "bIsPureFunc"=True
+                "FunctionReference"=(MemberParent=/Script/CoreUObject.Class'"/Script/GameplayTags.BlueprintGameplayTagLibrary"',MemberName="NotEqual_GameplayTagContainer")
+                "NodePosX"=-256
+                "NodeGuid"=29F5E14B4509543D59F652854F3B6AB6
+                CustomProperties Pin (PinId=815D7F344EC326D3E021F68BB4D9B3AD,PinName="A",PinToolTip="A\nWildcard",PinType.PinCategory="wildcard",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=3B762DCB4AA262D90BA202939BDB049D,PinName="B",PinToolTip="B\nWildcard",PinType.PinCategory="wildcard",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=6DACCB8046585A22DA055FA2ECE67712,PinName="ReturnValue",PinToolTip="Return Value\nBoolean\n\nReturns true if the values are not equal (A != B)",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            End Object
+        `,
+        size: [9, 4],
+        pins: 3,
+        delegate: false,
+        development: false,
+        variadic: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
+    },
+    {
+        name: "Equal",
+        title: "==",
+        value: String.raw`
+            Begin Object Class=/Script/BlueprintGraph.K2Node_PromotableOperator Name="K2Node_PromotableOperator_1" ExportPath=/Script/BlueprintGraph.K2Node_PromotableOperator'"/Temp/Untitled_1.Untitled_1:PersistentLevel.Untitled.EventGraph.K2Node_PromotableOperator_1"'
+                "bIsPureFunc"=True
+                "FunctionReference"=(MemberParent=/Script/CoreUObject.Class'"/Script/Engine.KismetMathLibrary"',MemberName="EqualEqual_ByteByte")
+                "NodePosX"=-256
+                "NodePosY"=128
+                "NodeGuid"=219043694FA6E83CD69DD791FB1C08AE
+                CustomProperties Pin (PinId=8E6EE9EB47FF4B99F5092CAA5DC364D2,PinName="A",PinToolTip="A\nByte",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_ForEachElementInEnum_0 E892F26242AA3EDCB057699DC234F057,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=6A74B02D468CF910E233A48E38EDDDD8,PinName="B",PinToolTip="B\nByte",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=1D70EDE14002E5290A451090FC8D747B,PinName="ReturnValue",PinToolTip="Return Value\nBoolean\n\nReturns true if A is equal to B (A == B)",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=503CA95B4180C28504ECE5AE43FA118B,PinName="ErrorTolerance",PinToolTip="Error Tolerance\n",PinType.PinCategory="",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            End Object
+        `,
+        size: [10, 4],
+        pins: 3,
+        delegate: false,
+        development: false,
+        variadic: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
+                for (const pin of pins) {
+                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
+                }
+            }
     },
 ]
 

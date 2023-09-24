@@ -128,7 +128,7 @@ export default class IEntity extends Serializable {
                         .getSerializer(defaultType)
                         .read(/** @type {String} */(value))
                 }
-                assignAttribute(Utility.sanitize(value, /** @type {AnyConstructor<*>} */(defaultType)))
+                assignAttribute(Utility.sanitize(value, /** @type {SimpleValueType<SimpleValue>} */(defaultType)))
                 continue // We have a value, need nothing more
             }
             if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined

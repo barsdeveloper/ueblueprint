@@ -58,7 +58,7 @@ class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = i$3`13px`
+    static fontSize = i$3`12.5px`
     static gridAxisLineColor = i$3`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = i$3`#353535`
@@ -113,6 +113,7 @@ class Configuration {
         ambientSound: "/Script/Engine.AmbientSound",
         asyncAction: "/Script/BlueprintGraph.K2Node_AsyncAction",
         blueprint: "/Script/Engine.Blueprint",
+        blueprintGameplayTagLibrary: "/Script/GameplayTags.BlueprintGameplayTagLibrary",
         blueprintMapLibrary: "/Script/Engine.BlueprintMapLibrary",
         blueprintSetLibrary: "/Script/Engine.BlueprintSetLibrary",
         callArrayFunction: "/Script/BlueprintGraph.K2Node_CallArrayFunction",
@@ -885,7 +886,7 @@ class Utility {
                 : new /** @type {EntityConstructor} */(targetType)(value);
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = value.valueOf(); // Get the relative primitive value
+            value = /** @type {AnyValue} */(value.valueOf()); // Get the relative primitive value
         }
         return value
     }
@@ -1220,7 +1221,7 @@ class IEntity extends Serializable {
                         .getSerializer(defaultType)
                         .read(/** @type {String} */(value));
                 }
-                assignAttribute(Utility.sanitize(value, /** @type {AnyConstructor<*>} */(defaultType)));
+                assignAttribute(Utility.sanitize(value, /** @type {SimpleValueType<SimpleValue>} */(defaultType)));
                 continue // We have a value, need nothing more
             }
             if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined
@@ -1576,7 +1577,7 @@ class Grammar {
 
     /**
      * @template {IEntity} T
-     * @param {AnyConstructor<T> & EntityConstructor} entityType
+     * @param {(new (...args: any) => T) & EntityConstructor} entityType
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      * @returns {Parsimmon.Parser<T>}
      */
@@ -3182,8 +3183,8 @@ class PinEntity extends IEntity {
 
 class SVGIcon {
 
-    static array = x`
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    static arrayPin = x`
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 0H0V4H4V0Z" fill="currentColor" />
             <path d="M10 0H6V4H10V0Z" fill="currentColor" />
             <path d="M16 0H12V4H16V0Z" fill="currentColor" />
@@ -3284,7 +3285,7 @@ class SVGIcon {
     `
 
     static execPin = x`
-        <svg viewBox="-2 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <svg width="15" height="15" viewBox="-2 0 16 16" xmlns="http://www.w3.org/2000/svg">
             <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
                 d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
         </svg>
@@ -3331,7 +3332,7 @@ class SVGIcon {
     `
 
     static genericPin = x`
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <svg width="16" height="12" viewBox="0 0 42 32" xmlns="http://www.w3.org/2000/svg">
             <circle class="ueb-pin-tofill" cx="16" cy="16" r="13" fill="black" stroke="currentColor" stroke-width="5" />
             <path fill="currentColor" d="M 34 6 L 34 26 L 42 16 Z" />
         </svg>
@@ -3371,7 +3372,7 @@ class SVGIcon {
         </svg>
     `
 
-    static map = x`
+    static mapPin = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 0H0V4H4V0Z" fill="currentColor" />
             <path d="M4 6H0V10H4V6Z" fill="currentColor" />
@@ -3445,8 +3446,15 @@ class SVGIcon {
         </svg>
     `
 
-    static pcgPinStack = x`
-        <svg version="1.1" viewBox="6 8 20 20" xmlns="http://www.w3.org/2000/svg">
+    static operationPin = x`
+        <svg width="14" height="14" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <circle class="ueb-pin-tostroke" cx="16" cy="16" r="14" stroke="currentColor" stroke-width="4" />
+            <circle cx="16" cy="16" r="9.5" fill="#817a7a" />
+        </svg>
+    `
+
+    static pcgStackPin = x`
+        <svg width="18" height="22" viewBox="4 0 28 36" xmlns="http://www.w3.org/2000/svg">
             <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.5)"  d="M25.8,32.2V17.5c0-1.7,1.3-3.1,3-3.1s3,1.3,3,3.1v14.7c0,1.8-1.3,3.2-3,3.2C27,35.5,25.8,34,25.8,32.2z" />
             <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.75)" d="M18.8,30.1V11.8c0-2.4,1.8-4.3,4-4.3s4,1.9,4,4.3v18.4c0,2.4-1.8,4.3-4,4.3C20.5,34.5,18.8,32.5,18.8,30.1z" />
             <path stroke="black" stroke-width="1" fill="currentColor" d="M21.3,6.4v21.3c0,3.2-2.4,5.8-5.5,5.8s-5.5-2.5-5.5-5.8V6.3c0-3.2,2.4-5.8,5.5-5.8C18.8,0.5,21.2,3,21.3,6.4z" />
@@ -3457,7 +3465,7 @@ class SVGIcon {
     `
 
     static pcgPin = x`
-        <svg class="ueb-pin-reflect-output" version="1.1" viewBox="8 8 20 20" xmlns="http://www.w3.org/2000/svg">
+        <svg class="ueb-pin-reflect-output" width="12" height="20" viewBox="8 0 20 36" xmlns="http://www.w3.org/2000/svg">
             <path stroke="black" stroke-width="1" fill="currentColor" d="M21.2,34.5c-3.1,0-5.5-2.6-5.5-5.8V7.3c0-3.3,2.4-5.8,5.5-5.8s5.5,2.6,5.5,5.8v21.3C26.8,31.9,24.3,34.5,21.2,34.5z" />
             <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="10" r="6" />
             <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="18" r="6" />
@@ -3465,15 +3473,15 @@ class SVGIcon {
         </svg>
     `
 
-    static pcgPinParam = x`
-        <svg class="ueb-pin-reflect-output" version="1.1" viewBox="8 8 20 20" xmlns="http://www.w3.org/2000/svg">
+    static pcgParamPin = x`
+        <svg class="ueb-pin-reflect-output" width="18" height="12" viewBox="8 8 19 21" xmlns="http://www.w3.org/2000/svg">
             <path class="ueb-pin-tofill" stroke="currentcolor" stroke-width="1" d="M8,18c-2.5,0-4.5-2-4.5-4.5S5.5,9,8,9h20c2.5,0,4.5,2,4.5,4.5S30.5,18,28,18H8z" />
             <path fill="currentColor" d="M31,27.5H13c-0.5,0-1-0.4-1-1v-4c0-0.5,0.4-1,1-1h18c0.5,0,1,0.4,1,1v4C32,27.1,31.6,27.5,31,27.5z" />
         </svg>
     `
 
     static pcgSpatialPin = x`
-        <svg version="1.1" viewBox="8 8 20 20" xmlns="http://www.w3.org/2000/svg">
+        <svg width="14" height="16" viewBox="5 4 28 28" xmlns="http://www.w3.org/2000/svg">
             <path stroke="#ffffff" stroke-width="1" fill="#808080" d="M20.5,33h-10c-2.8,0-5-2.2-5-5V8c0-2.8,2.2-5,5-5h10c2.8,0,5,2.2,5,5v20C25.5,30.8,23.3,33,20.5,33z" />
             <circle class="ueb-pin-tofill" stroke="#ffffff" stroke-width="1" fill="#202020" cx="23.7" cy="18" r="10" />
         </svg>
@@ -3493,7 +3501,7 @@ class SVGIcon {
     `
 
     static referencePin = x`
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <svg width="12" height="12" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
             <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
         </svg>
     `
@@ -3505,8 +3513,8 @@ class SVGIcon {
         </svg>
     `
 
-    static set = x`
-        <svg viewBox="2 2 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    static setPin = x`
+        <svg width="16" height="16" viewBox="2 2 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 7.99956V6.99956C1.62451 6.89501 2.23976 6.7412 2.84 6.53956C3.02865 6.44859 3.18802 6.30655 3.3 6.12956C3.44478 5.91383 3.53723 5.6673 3.57 5.40956C3.6183 5.04164 3.63836 4.67055 3.63 4.29956C3.60615 3.68664 3.64974 3.07296 3.76 2.46956C3.82982 2.152 3.99359 1.86279 4.23 1.63956C4.51974 1.39713 4.86221 1.22589 5.23 1.13956C5.68612 1.03782 6.15275 0.990826 6.62 0.999563H7V1.99956C6.69952 2.01634 6.4103 2.11967 6.16722 2.2971C5.92414 2.47453 5.73757 2.71849 5.63 2.99956C5.5431 3.18346 5.5052 3.3867 5.52 3.58956C5.52 3.86956 5.52 4.40956 5.46 5.19956C5.44584 5.56977 5.38194 5.9364 5.27 6.28956C5.18779 6.5495 5.05527 6.79074 4.88 6.99956C4.62654 7.36597 4.33121 7.70157 4 7.99956" fill="currentColor" />
             <path d="M4 7.99951C4.33723 8.31397 4.63295 8.67019 4.88 9.05951C5.05095 9.2601 5.18319 9.49067 5.27 9.73951C5.38194 10.0927 5.44584 10.4593 5.46 10.8295C5.5 11.6228 5.52 12.1628 5.52 12.4495C5.5061 12.6523 5.54395 12.8553 5.63 13.0395C5.74563 13.3117 5.93533 13.546 6.17752 13.7157C6.41972 13.8854 6.70468 13.9837 7 13.9995V14.9995H6.62C6.15021 15.0156 5.68019 14.9753 5.22 14.8795C4.85378 14.7889 4.51224 14.6181 4.22 14.3795C3.98551 14.1548 3.8221 13.8662 3.75 13.5495C3.64077 12.946 3.59718 12.3324 3.62 11.7195C3.63014 11.3418 3.61007 10.964 3.56 10.5895C3.52723 10.3318 3.43478 10.0852 3.29 9.86951C3.17802 9.69252 3.01865 9.55048 2.83 9.45951C2.23302 9.25838 1.62113 9.10457 1 8.99951V7.99951" fill="currentColor" />
             <path d="M12 7.99955C11.6688 7.70156 11.3735 7.36596 11.12 6.99955C10.947 6.79667 10.8146 6.56242 10.73 6.30955C10.6181 5.95638 10.5542 5.58976 10.54 5.21954C10.54 4.42954 10.48 3.88955 10.48 3.60955C10.4983 3.40004 10.4604 3.18944 10.37 2.99955C10.2624 2.71847 10.0759 2.47452 9.83278 2.29708C9.5897 2.11965 9.30048 2.01632 9 1.99955V0.999545H9.38C9.84979 0.983442 10.3198 1.02373 10.78 1.11955C11.1478 1.20587 11.4903 1.37711 11.78 1.61955C12.0164 1.84278 12.1802 2.13198 12.25 2.44955C12.3603 3.05294 12.4039 3.66662 12.38 4.27955C12.3706 4.6572 12.3907 5.03501 12.44 5.40954C12.4728 5.66728 12.5652 5.91382 12.71 6.12955C12.822 6.30653 12.9813 6.44858 13.17 6.53955C13.767 6.74067 14.3789 6.89448 15 6.99955V7.99955" fill="currentColor" />
@@ -4568,8 +4576,9 @@ class ObjectEntity extends IEntity {
                     )
             }
             switch (memberParent) {
-                case Configuration.paths.slateBlueprintLibrary:
+                case Configuration.paths.blueprintGameplayTagLibrary:
                 case Configuration.paths.kismetMathLibrary:
+                case Configuration.paths.slateBlueprintLibrary:
                 case Configuration.paths.timeManagementBlueprintLibrary:
                     const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
                     if (leadingLetter) {
@@ -8336,7 +8345,7 @@ class PinTemplate extends ITemplate {
                     return SVGIcon.pcgPin
                 case "Param":
                 case "Param[]":
-                    return SVGIcon.pcgPinParam
+                    return SVGIcon.pcgParamPin
                 case "Spatial":
                 case "Spatial[]":
                     return SVGIcon.pcgSpatialPin
@@ -8350,16 +8359,19 @@ class PinTemplate extends ITemplate {
                 case "Point":
                 case "Surface":
                 case "Volume":
-                    return SVGIcon.pcgPinStack
+                    return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType.ContainerType?.toString()) {
-            case "Array": return SVGIcon.array
-            case "Set": return SVGIcon.set
-            case "Map": return SVGIcon.map
+        switch (this.element.entity.PinType?.ContainerType?.toString()) {
+            case "Array": return SVGIcon.arrayPin
+            case "Set": return SVGIcon.setPin
+            case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType.PinCategory.toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType?.PinCategory?.toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
+        }
+        if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
+            return SVGIcon.operationPin
         }
         return SVGIcon.genericPin
     }
