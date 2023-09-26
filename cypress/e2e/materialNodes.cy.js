@@ -2,7 +2,11 @@
 
 import Configuration from "../../js/Configuration.js"
 import generateNodeTests from "../fixtures/testUtilities.js"
+import IntegerEntity from "../../js/entity/IntegerEntity.js"
 import LinearColorEntity from "../../js/entity/LinearColorEntity.js"
+import NodeElement from "../../js/element/NodeElement.js"
+import PinElement from "../../js/element/PinElement.js"
+import RBSerializationVector2DEntity from "../../js/entity/RBSerializationVector2DEntity.js"
 import Utility from "../../js/Utility.js"
 import VectorEntity from "../../js/entity/VectorEntity.js"
 
@@ -413,6 +417,48 @@ const tests = [
                 expect(Utility.approximatelyEqual(constantPin.getDefaultValue().G, g)).to.be.true
                 expect(Utility.approximatelyEqual(constantPin.getDefaultValue().B, b)).to.be.true
                 expect(Utility.approximatelyEqual(constantPin.getDefaultValue().A, a)).to.be.true
+            }
+    },
+    {
+        name: "Temporal Sobol",
+        value: String.raw`
+            Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_9" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.NewMaterial:MaterialGraph_0.MaterialGraphNode_9"'
+                Begin Object Class=/Script/Engine.MaterialExpressionTemporalSobol Name="MaterialExpressionTemporalSobol_0" ExportPath=/Script/Engine.MaterialExpressionTemporalSobol'"/Engine/Transient.NewMaterial:MaterialGraph_0.MaterialGraphNode_9.MaterialExpressionTemporalSobol_0"'
+                End Object
+                Begin Object Name="MaterialExpressionTemporalSobol_0" ExportPath=/Script/Engine.MaterialExpressionTemporalSobol'"/Engine/Transient.NewMaterial:MaterialGraph_0.MaterialGraphNode_9.MaterialExpressionTemporalSobol_0"'
+                    "ConstIndex"=4
+                    "ConstSeed"=(X=77.000000,Y=55.000000)
+                    "MaterialExpressionEditorX"=-345
+                    "MaterialExpressionEditorY"=225
+                    "MaterialExpressionGuid"=D1A3B12340EE27538A3109B7B3D0E119
+                    "Material"=/Script/UnrealEd.PreviewMaterial'"/Engine/Transient.NewMaterial"'
+                End Object
+                "MaterialExpression"=/Script/Engine.MaterialExpressionTemporalSobol'"MaterialExpressionTemporalSobol_0"'
+                "NodePosX"=-345
+                "NodePosY"=225
+                "NodeGuid"=5BE5108B48EB26B6366D4DA6AF99285D
+                CustomProperties Pin (PinId=E9B08066434FD243EF8856B11A08588D,PinName="Index",PinType.PinCategory="optional",PinType.PinSubCategory="int",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="4",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=4EB376FB4105AA0CFA52D990C82FE284,PinName="Seed",PinType.PinCategory="optional",PinType.PinSubCategory="rg",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="X=77.000 Y=55.000",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                CustomProperties Pin (PinId=4A57DE0448EEA04661E83AA561BE2D94,PinName="Output",PinFriendlyName=NSLOCTEXT("MaterialGraphNode", "Space", " "),Direction="EGPD_Output",PinType.PinCategory="",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+            End Object
+        `,
+        color: Configuration.nodeColors.green,
+        icon: false,
+        pins: 3,
+        pinNames: [
+            "Index",
+            "Seed"
+        ],
+        delegate: false,
+        development: false,
+        additionalTest:
+            /** @param {NodeElement} node */
+            node => {
+                const indexPin = /** @type {PinElement<IntegerEntity>} */(node.querySelectorAll("ueb-pin")[0])
+                const seedPin = /** @type {PinElement<RBSerializationVector2DEntity>} */(node.querySelectorAll("ueb-pin")[1])
+                expect(indexPin.getDefaultValue().value).to.be.equal(4)
+                expect(seedPin.getDefaultValue().X).to.be.equal(77)
+                expect(seedPin.getDefaultValue().Y).to.be.equal(55)
             }
     },
 ]

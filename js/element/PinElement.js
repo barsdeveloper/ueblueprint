@@ -35,6 +35,7 @@ export default class PinElement extends IElement {
         "int64": Int64PinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
+        "rg": Vector2DPinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
         [Configuration.paths.linearColor]: LinearColorPinTemplate,

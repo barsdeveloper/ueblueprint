@@ -59,12 +59,12 @@ export default class Configuration {
         // End of upper case work (upper case followed by either word or number)
         + "|(?<=[A-Z])"
         + /* Except "UVs" */ "(?<!U(?=Vs(?![a-z])))"
-        + /* Except V3 */ "(?<!V(?=3(?![0-9])))"
+        + /* Except V2, V3 */ "(?<!V(?=[23](?![0-9])))"
         + /* Except T2d */ "(?<!T(?=2d(?![a-z])))"
         + "(?=[A-Z][a-z]|[0-9])"
         // Number followed by a letter
         + "|(?<=[0-9])"
-        + /* Except 2D 3D */ "(?<![23](?=[dD](?![a-z])))"
+        + /* Except 2D, 3D */ "(?<![23](?=[dD](?![a-z])))"
         + "(?=[a-zA-Z])"
         // "Alpha__Bravo" => "Alpha Bravo"
         + "|\\s*_+\\s*"

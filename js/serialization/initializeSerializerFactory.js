@@ -23,6 +23,7 @@ import Parsimmon from "parsimmon"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
+import RBSerializationVector2DEntity from "../entity/RBSerializationVector2DEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
 import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
@@ -239,6 +240,14 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         TerminalTypeEntity,
         new Serializer(TerminalTypeEntity, Serializer.bracketsWrapped)
+    )
+
+    SerializerFactory.registerSerializer(
+        RBSerializationVector2DEntity,
+        new CustomSerializer(
+            (value, insideString) => `X=${value.X} Y=${value.Y}`,
+            RBSerializationVector2DEntity
+        )
     )
 
     SerializerFactory.registerSerializer(

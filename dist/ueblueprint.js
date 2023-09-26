@@ -83,12 +83,12 @@ class Configuration {
         // End of upper case work (upper case followed by either word or number)
         + "|(?<=[A-Z])"
         + /* Except "UVs" */ "(?<!U(?=Vs(?![a-z])))"
-        + /* Except V3 */ "(?<!V(?=3(?![0-9])))"
+        + /* Except V2, V3 */ "(?<!V(?=[23](?![0-9])))"
         + /* Except T2d */ "(?<!T(?=2d(?![a-z])))"
         + "(?=[A-Z][a-z]|[0-9])"
         // Number followed by a letter
         + "|(?<=[0-9])"
-        + /* Except 2D 3D */ "(?<![23](?=[dD](?![a-z])))"
+        + /* Except 2D, 3D */ "(?<![23](?=[dD](?![a-z])))"
         + "(?=[a-zA-Z])"
         // "Alpha__Bravo" => "Alpha Bravo"
         + "|\\s*_+\\s*"
@@ -1439,6 +1439,7 @@ class Grammar {
     )
     static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
     static commaSeparation = P.regex(/\s*,\s*(?!\))/)
+    static commaOrSpaceSeparation = P.regex(/\s*,\s*(?!\))|\s+/)
     static equalSeparation = P.regex(/\s*=\s*/)
     static typeReference = P.alt(P.regex(Grammar.Regex.Path), this.symbol)
     static hexColorChannel = P.regex(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
@@ -1590,7 +1591,7 @@ class Grammar {
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      * @returns {Parsimmon.Parser<T>}
      */
-    static createEntityGrammar = (entityType, acceptUnknownKeys = true) =>
+    static createEntityGrammar = (entityType, acceptUnknownKeys = true, entriesSeparator = this.commaSeparation) =>
         P.seq(
             this.regexMap(
                 entityType.lookbehind instanceof Union
@@ -1600,7 +1601,7 @@ class Grammar {
                         : /()\(\s*/,
                 result => result[1]
             ),
-            this.createAttributeGrammar(entityType).sepBy1(this.commaSeparation),
+            this.createAttributeGrammar(entityType).sepBy1(entriesSeparator),
             P.regex(/\s*(?:,\s*)?\)/), // trailing comma
         )
             .map(([lookbehind, attributes, _2]) => {
@@ -2700,6 +2701,54 @@ class PinTypeEntity extends IEntity {
     }
 }
 
+class Vector2DEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        X: {
+            default: 0,
+            expected: true,
+        },
+        Y: {
+            default: 0,
+            expected: true,
+        },
+    }
+    static {
+        this.cleanupAttributes(this.attributes);
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, false)
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {Number} */ this.X;
+        /** @type {Number} */ this.Y;
+    }
+}
+
+class RBSerializationVector2DEntity extends Vector2DEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Parsimmon.alt(
+            Parsimmon.seq(
+                Parsimmon.string("X").then(Grammar.equalSeparation).then(Grammar.number),
+                Parsimmon.regex(Grammar.Regex.InlineWhitespace),
+                Parsimmon.string("Y").then(Grammar.equalSeparation).then(Grammar.number),
+            ).map(([x, _1, y]) => new this({
+                X: x,
+                Y: y,
+            })),
+            Vector2DEntity.createGrammar()
+        )
+    }
+}
+
 class RotatorEntity extends IEntity {
 
     static attributes = {
@@ -2767,35 +2816,6 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
             ),
             RotatorEntity.createGrammar()
         )
-    }
-}
-
-class Vector2DEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        X: {
-            default: 0,
-            expected: true,
-        },
-        Y: {
-            default: 0,
-            expected: true,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes);
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {Number} */ this.X;
-        /** @type {Number} */ this.Y;
     }
 }
 
@@ -2894,6 +2914,7 @@ class PinEntity extends IEntity {
     }
     static #alternativeTypeEntityMap = {
         "enum": EnumDisplayValueEntity,
+        "rg": RBSerializationVector2DEntity,
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
@@ -3016,12 +3037,17 @@ class PinEntity extends IEntity {
             return this.PinType.PinSubCategoryObject.path
         }
         if (category === "optional") {
-            if (this.PinType.PinSubCategory === "red") {
-                return "real"
-            } else if (this.PinType.PinSubCategory === "rgb") {
-                return Configuration.paths.vector
-            } else if (this.PinType.PinSubCategory === "rgba") {
-                return Configuration.paths.linearColor
+            switch (this.PinType.PinSubCategory) {
+                case "int":
+                    return "int"
+                case "red":
+                    return "real"
+                case "rg":
+                    return "rg"
+                case "rgb":
+                    return Configuration.paths.vector
+                case "rgba":
+                    return Configuration.paths.linearColor
             }
         }
         if (this.isEnum()) {
@@ -10837,6 +10863,7 @@ class PinElement extends IElement {
         "int64": Int64PinTemplate,
         "MUTABLE_REFERENCE": ReferencePinTemplate,
         "name": NamePinTemplate,
+        "rg": VectorInputPinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
         [Configuration.paths.linearColor]: LinearColorPinTemplate,
@@ -11813,6 +11840,14 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         TerminalTypeEntity,
         new Serializer(TerminalTypeEntity, Serializer.bracketsWrapped)
+    );
+
+    SerializerFactory.registerSerializer(
+        RBSerializationVector2DEntity,
+        new CustomSerializer(
+            (value, insideString) => `X=${value.X} Y=${value.Y}`,
+            RBSerializationVector2DEntity
+        )
     );
 
     SerializerFactory.registerSerializer(

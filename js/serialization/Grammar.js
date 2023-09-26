@@ -98,6 +98,7 @@ export default class Grammar {
     )
     static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
     static commaSeparation = P.regex(/\s*,\s*(?!\))/)
+    static commaOrSpaceSeparation = P.regex(/\s*,\s*(?!\))|\s+/)
     static equalSeparation = P.regex(/\s*=\s*/)
     static typeReference = P.alt(P.regex(Grammar.Regex.Path), this.symbol)
     static hexColorChannel = P.regex(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
@@ -249,7 +250,7 @@ export default class Grammar {
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
      * @returns {Parsimmon.Parser<T>}
      */
-    static createEntityGrammar = (entityType, acceptUnknownKeys = true) =>
+    static createEntityGrammar = (entityType, acceptUnknownKeys = true, entriesSeparator = this.commaSeparation) =>
         P.seq(
             this.regexMap(
                 entityType.lookbehind instanceof Union
@@ -259,7 +260,7 @@ export default class Grammar {
                         : /()\(\s*/,
                 result => result[1]
             ),
-            this.createAttributeGrammar(entityType).sepBy1(this.commaSeparation),
+            this.createAttributeGrammar(entityType).sepBy1(entriesSeparator),
             P.regex(/\s*(?:,\s*)?\)/), // trailing comma
         )
             .map(([lookbehind, attributes, _2]) => {

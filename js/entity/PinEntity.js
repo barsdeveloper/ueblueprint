@@ -14,6 +14,7 @@ import LocalizedTextEntity from "./LocalizedTextEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PinReferenceEntity from "./PinReferenceEntity.js"
 import PinTypeEntity from "./PinTypeEntity.js"
+import RBSerializationVector2DEntity from "./RBSerializationVector2DEntity.js"
 import RotatorEntity from "./RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEntity.js"
@@ -43,6 +44,7 @@ export default class PinEntity extends IEntity {
     }
     static #alternativeTypeEntityMap = {
         "enum": EnumDisplayValueEntity,
+        "rg": RBSerializationVector2DEntity,
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
@@ -165,12 +167,17 @@ export default class PinEntity extends IEntity {
             return this.PinType.PinSubCategoryObject.path
         }
         if (category === "optional") {
-            if (this.PinType.PinSubCategory === "red") {
-                return "real"
-            } else if (this.PinType.PinSubCategory === "rgb") {
-                return Configuration.paths.vector
-            } else if (this.PinType.PinSubCategory === "rgba") {
-                return Configuration.paths.linearColor
+            switch (this.PinType.PinSubCategory) {
+                case "int":
+                    return "int"
+                case "red":
+                    return "real"
+                case "rg":
+                    return "rg"
+                case "rgb":
+                    return Configuration.paths.vector
+                case "rgba":
+                    return Configuration.paths.linearColor
             }
         }
         if (this.isEnum()) {
