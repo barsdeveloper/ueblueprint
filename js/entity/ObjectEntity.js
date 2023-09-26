@@ -693,6 +693,7 @@ export default class ObjectEntity extends IEntity {
 
     isEvent() {
         switch (this.getClass()) {
+            case Configuration.paths.actorBoundEvent:
             case Configuration.paths.componentBoundEvent:
             case Configuration.paths.customEvent:
             case Configuration.paths.event:
@@ -775,8 +776,9 @@ export default class ObjectEntity extends IEntity {
                 if (this.ProxyFactoryFunctionName) {
                     return Utility.formatStringName(this.ProxyFactoryFunctionName)
                 }
+            case Configuration.paths.actorBoundEvent:
             case Configuration.paths.componentBoundEvent:
-                return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName})`
+                return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName ?? "Unknown"})`
             case Configuration.paths.createDelegate:
                 return "Create Event"
             case Configuration.paths.customEvent:

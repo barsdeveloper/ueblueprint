@@ -52,13 +52,20 @@ export default class Configuration {
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
     static nameRegexSpaceReplacement = new RegExp(
+        // Leading K2_ or K2Node_
         "^K2(?:[Nn]ode)?_"
-        // ("Alpha2", "AlphaBravo") => ("Alpha 2", "Alpha Bravo")
+        // End of a word (lower case followed by either upper case or number)
         + "|(?<=[a-z])(?=[A-Z0-9])"
-        // ("ALPHABravo", "ALPHA2", "BTTask_", "UVs", UVser) => ("ALPHA Bravo", "ALPHA 2", "BTTask", "UVs", "U Vser")
-        + "|(?<=[A-Z](?<!(?<![a-zA-Z])U(?=Vs(?![a-z]))))(?=[A-Z][a-z](?![a-z]+_)|[0-9])"
-        // ("3Times", "3D", "3Delta") => ("3 Times", "3D", "3 Delta")
-        + "|(?<=[014-9]|[23](?!D(?:[^a-z]|$)))(?=[a-zA-Z])"
+        // End of upper case work (upper case followed by either word or number)
+        + "|(?<=[A-Z])"
+        + /* Except "UVs" */ "(?<!U(?=Vs(?![a-z])))"
+        + /* Except V3 */ "(?<!V(?=3(?![0-9])))"
+        + /* Except T2d */ "(?<!T(?=2d(?![a-z])))"
+        + "(?=[A-Z][a-z]|[0-9])"
+        // Number followed by a letter
+        + "|(?<=[0-9])"
+        + /* Except 2D 3D */ "(?<![23](?=[dD](?![a-z])))"
+        + "(?=[a-zA-Z])"
         // "Alpha__Bravo" => "Alpha Bravo"
         + "|\\s*_+\\s*"
         + "|\\s{2,}",
@@ -85,6 +92,7 @@ export default class Configuration {
     static nodeRadius = 8 // px
     static nodeReflowEventName = "ueb-node-reflow"
     static paths = {
+        actorBoundEvent: "/Script/BlueprintGraph.K2Node_ActorBoundEvent",
         addDelegate: "/Script/BlueprintGraph.K2Node_AddDelegate",
         ambientSound: "/Script/Engine.AmbientSound",
         asyncAction: "/Script/BlueprintGraph.K2Node_AsyncAction",
@@ -158,8 +166,8 @@ export default class Configuration {
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
-        pcgEditorGraphNodeInput:"/Script/PCGEditor.PCGEditorGraphNodeInput",
-        pcgEditorGraphNodeOutput:"/Script/PCGEditor.PCGEditorGraphNodeOutput",
+        pcgEditorGraphNodeInput: "/Script/PCGEditor.PCGEditorGraphNodeInput",
+        pcgEditorGraphNodeOutput: "/Script/PCGEditor.PCGEditorGraphNodeOutput",
         pcgHiGenGridSizeSettings: "/Script/PCG.PCGHiGenGridSizeSettings",
         pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
