@@ -49,8 +49,8 @@ ueb-blueprint svg {
   margin-left: auto;
   padding: 5px;
   color: #2b2b2b;
-  /* 160% is to get an effective font size of 20px from --ueb-font-size which is 12.5 px by default */
-  font-size: 160%;
+  /* 154% is to get an effective font size of 20px from --ueb-font-size which is 13 px by default */
+  font-size: 154%;
   font-weight: bold;
   letter-spacing: -1px;
 }
@@ -342,8 +342,8 @@ ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node.ueb-node-styl
 .ueb-node-top {
   grid-area: top;
   color: #d0d0d0;
-  /* 112% is to get an effective font size of 14px from --ueb-font-size which is 12.5 px by default */
-  font-size: 112%;
+  /* 103% is to get an effective font size of 13.4px from --ueb-font-size which is 13 px by default */
+  font-size: 103%;
   font-weight: bold;
   line-height: 120%;
   white-space: nowrap;
@@ -422,8 +422,8 @@ ueb-node[data-pure-function=true] .ueb-node-name-symbol {
 .ueb-node-subtitle-text {
   padding-top: 1px;
   padding-right: 5px;
-  /* Reset font size set by the parent */
-  font-size: var(--ueb-font-size);
+  /* 0.946154 is to get an effective font size of 12.3px from --ueb-font-size which is 13 px */
+  font-size: calc(0.946154 * var(--ueb-font-size));
   font-weight: 100;
   font-style: italic;
   color: #a9b78f;
@@ -550,8 +550,8 @@ ueb-node.ueb-node-style-operation .ueb-node-top {
   align-self: center;
   justify-self: center;
   padding: 0;
-  /* 224% is to get an effective font size of 28px from --ueb-font-size which is 12.5 px by default */
-  font-size: 224%;
+  /* 215% is to get an effective font size of 28px from --ueb-font-size which is 13 px by default */
+  font-size: 215%;
   font-stretch: condensed;
   font-weight: bold;
   line-height: 100%;
@@ -603,8 +603,8 @@ ueb-node.ueb-node-style-comment .ueb-node-top {
   border-radius: 0;
   background: rgb(var(--ueb-node-color));
   color: white;
-  /* 192% is to get an effective font size of 24px from --ueb-font-size which is 12.5 px */
-  font-size: 192%;
+  /* 185% is to get an effective font size of 24px from --ueb-font-size which is 13 px by default */
+  font-size: 185%;
   text-shadow: 2px 1px 1px #444, 0 0 2px #bbb;
   line-height: 1.22;
   z-index: 1;
@@ -829,8 +829,8 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
   min-width: 10px;
   max-width: 400px;
   max-height: 16em;
-  /* 108% is to get an effective font size of 13.5px from --ueb-font-size which is 12.5 px by default */
-  font-size: 108%;
+  /* 97% is to get an effective font size of 12.6px from --ueb-font-size which is 13 px by default */
+  font-size: 97%;
   white-space: nowrap;
   background: none;
   color: inherit;

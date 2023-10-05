@@ -213,8 +213,8 @@ ueb-pin[data-type="/Script/CoreUObject.LinearColor"] .ueb-pin-input {
     min-width: 10px;
     max-width: 400px;
     max-height: 16em;
-    /* 108% is to get an effective font size of 13.5px from --ueb-font-size which is 12.5 px by default */
-    font-size: 108%;
+    /* 97% is to get an effective font size of 12.6px from --ueb-font-size which is 13 px by default */
+    font-size: 97%;
     white-space: nowrap;
     background: none;
     color: inherit;
