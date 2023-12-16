@@ -197,10 +197,6 @@
  * @typedef {import("./serialization/Serializer.js").default<T>} Serializer
  */
 /**
- * @template T
- * @typedef {import("parsimmon").Success} Success
- */
-/**
  * @template {Attribute} T
  * @typedef {import("./entity/MirroredEntity.js").default<T>} MirroredEntity
  */

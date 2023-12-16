@@ -1,5 +1,3 @@
-/// <reference types="cypress" />
-
 import generateNodeTests from "../fixtures/testUtilities.js"
 import NodeElement from "../../js/element/NodeElement.js"
 import PinElement from "../../js/element/PinElement.js"

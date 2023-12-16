@@ -1,14 +1,13 @@
-/// <reference types="cypress" />
-
-import Configuration from "../../js/Configuration.js"
-import LinearColorEntity from "../../js/entity/LinearColorEntity.js"
-import PinElement from "../../js/element/PinElement.js"
-import Utility from "../../js/Utility.js"
+import Configuration from "../js/Configuration.js"
+import LinearColorEntity from "../js/entity/LinearColorEntity.js"
+import PinElement from "../js/element/PinElement.js"
+import Utility from "../js/Utility.js"
+import { test } from "@playwright/test"
 
 /** @type {Blueprint} */
 let blueprint
 
-before(() => {
+test.beforeAll(() => {
     cy.visit(`http://127.0.0.1:${Cypress.env("UEBLUEPRINT_TEST_SERVER_PORT")}/empty.html`)
     cy.get("ueb-blueprint")
         .click(100, 300)
@@ -31,7 +30,7 @@ before(() => {
         `))
 })
 
-context("Color picker", () => {
+test.describe("Color picker", () => {
 
     let color
 

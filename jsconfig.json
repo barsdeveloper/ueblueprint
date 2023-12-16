@@ -6,5 +6,6 @@
     },
     "include": [
         "js/**/*.js",
+        "tests/**/*.js",
     ],
 }

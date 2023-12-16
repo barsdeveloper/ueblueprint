@@ -24,14 +24,15 @@
   },
   "homepage": "https://github.com/barsdeveloper/ueblueprint#readme",
   "devDependencies": {
+    "@playwright/test": "^1.40.1",
     "@rollup/plugin-commonjs": "^24",
     "@rollup/plugin-node-resolve": "^15",
     "@rollup/plugin-terser": "^0",
-    "@types/parsimmon": "^1",
+    "@types/node": "^20.10.4",
     "concurrently": "^8",
-    "cypress": "^12",
-    "http-server": "^14.1.1",
+    "http-server": "^14",
     "minify-html-literals": "^1",
+    "playwright": "^1",
     "rollup": "^3||^2",
     "rollup-plugin-copy": "^3",
     "rollup-plugin-minify-html-literals": "^1",
@@ -40,6 +41,6 @@
   },
   "dependencies": {
     "lit": "^2",
-    "parsimmon": "^1"
+    "parsernostrum": "^1"
   }
 }

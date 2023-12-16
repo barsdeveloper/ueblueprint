@@ -1,5 +1,3 @@
-/// <reference types="cypress" />
-
 import FormatTextEntity from "../../js/entity/FormatTextEntity.js"
 import Grammar from "../../js/serialization/Grammar.js"
 import GuidEntity from "../../js/entity/GuidEntity.js"

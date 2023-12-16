@@ -1,60 +1,54 @@
-/// <reference types="cypress" />
+// @ts-nocheck
 
-import Entity1 from "../fixtures/Entity1.js"
-import Entity2 from "../fixtures/Entity2.js"
-import entity2Value from "../fixtures/serializedEntity2.js"
-import Entity3 from "../fixtures/Entity3.js"
-import entity3Value from "../fixtures/serializedEntity3.js"
-import Entity4 from "../fixtures/Entity4.js"
-import entity4Value from "../fixtures/serializedEntity4.js"
-import Entity5 from "../fixtures/Entity5.js"
-import entity5Value1 from "../fixtures/serializedEntity5-1.js"
-import EntityF from "../fixtures/EntityF.js"
-import Grammar from "../../js/serialization/Grammar.js"
-import initializeSerializerFactory from "../../js/serialization/initializeSerializerFactory.js"
-import ObjectSerializer from "../../js/serialization/ObjectSerializer.js"
-import Serializer from "../../js/serialization/Serializer.js"
-import SerializerFactory from "../../js/serialization/SerializerFactory.js"
-import UnknownKeysEntity from "../../js/entity/UnknownKeysEntity.js"
+import { expect } from "@playwright/test"
+import Entity1 from "./resources/Entity1.js"
+import Entity2 from "./resources/Entity2.js"
+import entity2Value from "./resources/serializedEntity2.js"
+import Entity3 from "./resources/Entity3.js"
+import entity3Value from "./resources/serializedEntity3.js"
+import Entity4 from "./resources/Entity4.js"
+import entity4Value from "./resources/serializedEntity4.js"
+import Entity5 from "./resources/Entity5.js"
+import entity5Value1 from "./resources/serializedEntity5-1.js"
+import EntityF from "./resources/EntityF.js"
+import Grammar from "../js/serialization/Grammar.js"
+import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
+import ObjectSerializer from "../js/serialization/ObjectSerializer.js"
+import Serializer from "../js/serialization/Serializer.js"
+import SerializerFactory from "../js/serialization/SerializerFactory.js"
+import test from "./test.js"
+import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 
-describe("Entity initialization", () => {
-    before(() => {
-        expect(Entity2).to.be.a("function")
-        expect(Entity3).to.be.a("function")
-    })
+test.describe("Entity initialization", () => {
 
-    context("Entity2", () => {
+    test("Entity2", () => {
         const entity = new Entity2()
-        before(() => {
-            initializeSerializerFactory()
-            SerializerFactory.registerSerializer(
+        initializeSerializerFactory()
+        SerializerFactory.registerSerializer(
+            Entity2,
+            new Serializer(
                 Entity2,
-                new Serializer(
-                    Entity2,
-                    (entity, v) => `{\n${v}\n}`,
-                    "\n",
-                    false,
-                    ": ",
-                    k => `    ${k}`
-                )
+                (entity, v) => `{\n${v}\n}`,
+                "\n",
+                false,
+                ": ",
+                k => `    ${k}`
             )
-            SerializerFactory.registerSerializer(
-                Entity1,
-                new Serializer(
-                    Entity1,
-                    (entity, v) => `Entity1(${v})`,
-                    ", ",
-                    false,
-                    "=",
-                )
-            )
-        })
-        it("has 8 keys", () => expect(Object.keys(entity).length).to.equal(8))
-        it("has someNumber equal to 567", () => expect(entity)
-            .to.have.property("someNumber")
-            .which.is.a("number")
-            .and.is.equal(567)
         )
+        SerializerFactory.registerSerializer(
+            Entity1,
+            new Serializer(
+                Entity1,
+                (entity, v) => `Entity1(${v})`,
+                ", ",
+                false,
+                "=",
+            )
+        )
+        expect(Object.keys(entity)).toHaveLength(8)
+        expect(entity).toHaveProperty('someNumber')
+        expect(typeof entity.someNumber).toBe('number')
+        expect(entity.someNumber).toEqual(567)
         it("has someString equal to alpha", () => expect(entity)
             .to.have.property("someString")
             .which.is.a("string")

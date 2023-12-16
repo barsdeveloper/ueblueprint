@@ -1,14 +1,10 @@
-/// <reference types="cypress" />
-
 import Configuration from "../../js/Configuration.js"
 import generateNodeTests from "../fixtures/testUtilities.js"
 import IntegerEntity from "../../js/entity/IntegerEntity.js"
-import LinearColorEntity from "../../js/entity/LinearColorEntity.js"
 import NodeElement from "../../js/element/NodeElement.js"
 import PinElement from "../../js/element/PinElement.js"
 import RBSerializationVector2DEntity from "../../js/entity/RBSerializationVector2DEntity.js"
 import Utility from "../../js/Utility.js"
-import VectorEntity from "../../js/entity/VectorEntity.js"
 
 const tests = [
     {

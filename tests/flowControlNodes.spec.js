@@ -1,5 +1,3 @@
-/// <reference types="cypress" />
-
 import generateNodeTests from "../fixtures/testUtilities.js"
 import Configuration from "../../js/Configuration.js"
 import SVGIcon from "../../js/SVGIcon.js"
