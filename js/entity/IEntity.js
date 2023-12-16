@@ -1,10 +1,12 @@
 import ComputedType from "./ComputedType.js"
+import Configuration from "../Configuration.js"
 import MirroredEntity from "./MirroredEntity.js"
 import Serializable from "../serialization/Serializable.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
 import Union from "./Union.js"
 import Utility from "../Utility.js"
 
+/** @abstract */
 export default class IEntity extends Serializable {
 
     /** @type {String | Union<String[]>} */
@@ -61,7 +63,10 @@ export default class IEntity extends Serializable {
             let attribute = attributes[attributeName]
 
             if (!suppressWarns && value !== undefined) {
-                if (!(attributeName in attributes) && !attributeName.startsWith("#SubObject")) {
+                if (
+                    !(attributeName in attributes)
+                    && !attributeName.startsWith(Configuration.subObjectAttributeNamePrefix)
+                ) {
                     const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
@@ -128,7 +133,7 @@ export default class IEntity extends Serializable {
                         .getSerializer(defaultType)
                         .read(/** @type {String} */(value))
                 }
-                assignAttribute(Utility.sanitize(value, /** @type {SimpleValueType<SimpleValue>} */(defaultType)))
+                assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)))
                 continue // We have a value, need nothing more
             }
             if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined
@@ -137,7 +142,7 @@ export default class IEntity extends Serializable {
         }
     }
 
-    /** @param {AttributeType} attributeType */
+    /** @param {AttributeTypeDescription} attributeType */
     static defaultValueProviderFromType(attributeType) {
         if (attributeType === Boolean) {
             return false
@@ -152,12 +157,11 @@ export default class IEntity extends Serializable {
         } else if (attributeType instanceof Union) {
             return this.defaultValueProviderFromType(attributeType.values[0])
         } else if (attributeType instanceof MirroredEntity) {
-            return () => new MirroredEntity(attributeType.type, attributeType.key, attributeType.getter)
+            return () => new MirroredEntity(attributeType.type, attributeType.getter)
         } else if (attributeType instanceof ComputedType) {
             return undefined
         } else {
-            // @ts-expect-error
-            return () => new attributeType()
+            return () => new /** @type {AnyConstructor<Attribute>} */(attributeType)()
         }
     }
 
@@ -205,6 +209,7 @@ export default class IEntity extends Serializable {
         return this.getAttributes(object)[attribute]
     }
 
+    /** @returns {AttributeDeclarations} */
     static getAttributes(object) {
         return object.attributes ?? object.constructor?.attributes ?? {}
     }

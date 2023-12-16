@@ -1,20 +1,20 @@
 /**
- * @template T
- * @typedef {new (...args: any) => T} AnyConstructor
- */
+ * @typedef {IEntity | String | Number | BigInt | Boolean | Array} TerminalAttribute
+ * @typedef {TerminalAttribute | MirroredEntity<TerminalAttribute>} Attribute
+ * @typedef {AttributeConstructor<TerminalAttribute> | AttributeConstructor<TerminalAttribute>[] 
+ *     | MirroredEntity<Attribute> | Union | Union[] | ComputedType} AttributeTypeDescription
+ * @typedef {(entity: IEntity) => Attribute} ValueSupplier
+ *//**
+* @template T
+* @typedef {new (...args: any) => T} AnyConstructor
+*/
 /**
- * @typedef {IEntity | String | Number | BigInt | Boolean | Array | MirroredEntity} SimpleValue
- * @typedef {SimpleValue | Union | Union[]} AnyValue
- * @typedef {SimpleValueType<SimpleValue> | SimpleValueType<SimpleValue>[] | MirroredEntity | Union | Union[] | ComputedType} AttributeType
- * @typedef {(entity: IEntity) => AnyValue} ValueSupplier
- */
-/**
- * @template {SimpleValue} T
+ * @template {Attribute} T
  * @typedef {AnyConstructor<T> & EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
- *     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor} SimpleValueType
+ *     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor<T>} AttributeConstructor
  */
 /**
- * @template {SimpleValue} T
+ * @template {Attribute} T
  * @typedef {T extends String
  *     ? StringConstructor
  *     : T extends Number
@@ -25,8 +25,8 @@
  *     ? BooleanConstructor
  *     : T extends Array
  *     ? ArrayConstructor
- *     : T extends MirroredEntity
- *     ? MirroredEntityConstructor
+ *     : T extends MirroredEntity<infer R>
+ *     ? MirroredEntityConstructor<R>
  *     : T extends IEntity
  *     ? AnyConstructor<T> & EntityConstructor
  *     : any
@@ -44,8 +44,8 @@
  *     ? Boolean
  *     : T extends ArrayConstructor
  *     ? Array
- *     : T extends MirroredEntity
- *     ? MirroredEntity
+ *     : T extends MirroredEntity<infer R>
+ *     ? MirroredEntity<R>
  *     : T extends AnyConstructor<infer R>
  *     ? R
  *     : any
@@ -54,15 +54,15 @@
 
 /**
  * @typedef {{
- *     type?: AttributeType,
- *     default?: AnyValue | ValueSupplier,
+ *     type?: AttributeTypeDescription,
+ *     default?: Attribute | ValueSupplier,
  *     nullable?: Boolean,
  *     ignored?: Boolean,
  *     serialized?: Boolean,
  *     expected?: Boolean,
  *     inlined?: Boolean,
  *     quoted?: Boolean,
- *     predicate?: (value: AnyValue) => Boolean,
+ *     predicate?: (value: Attribute) => Boolean,
  * }} AttributeInformation
  * @typedef {{ [key: String]: AttributeInformation }} AttributeDeclarations
  */
@@ -88,7 +88,6 @@
  * @typedef {typeof import("./element/PinElement.js").default} PinElementConstructor
  * @typedef {typeof import("./element/WindowElement.js").default} WindowElementConstructor
  * @typedef {typeof import("./entity/IEntity.js").default} EntityConstructor
- * @typedef {typeof import("./entity/MirroredEntity.js").default} MirroredEntityConstructor
  * @typedef {typeof import("./entity/ObjectEntity.js").default} ObjectEntityConstructor
  */
 /**
@@ -126,7 +125,6 @@
  * @typedef {import("./entity/LinearColorEntity.js").default} LinearColorEntity
  * @typedef {import("./entity/LocalizedTextEntity.js").default} LocalizedTextEntity
  * @typedef {import("./entity/MacroGraphReferenceEntity.js").default} MacroGraphReferenceEntity
- * @typedef {import("./entity/MirroredEntity.js").default} MirroredEntity
  * @typedef {import("./entity/NaturalNumberEntity.js").default} NaturalNumberEntity
  * @typedef {import("./entity/ObjectEntity.js").default} ObjectEntity
  * @typedef {import("./entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
@@ -195,10 +193,18 @@
  * @typedef {import("lit").TemplateResult} TemplateResult
  */
 /**
- * @template {SimpleValueType<SimpleValue>} T
+ * @template {AttributeConstructor<Attribute>} T
  * @typedef {import("./serialization/Serializer.js").default<T>} Serializer
  */
 /**
  * @template T
  * @typedef {import("parsimmon").Success} Success
+ */
+/**
+ * @template {Attribute} T
+ * @typedef {import("./entity/MirroredEntity.js").default<T>} MirroredEntity
+ */
+/**
+ * @template {Attribute} T
+ * @typedef {typeof import("./entity/MirroredEntity.js").default<T>} MirroredEntityConstructor
  */

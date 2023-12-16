@@ -210,19 +210,19 @@ export default class ObjectEntity extends IEntity {
             type: GuidEntity,
         },
         SizeX: {
-            type: new MirroredEntity(ObjectEntity, "NodeWidth"),
+            type: new MirroredEntity(IntegerEntity),
         },
         SizeY: {
-            type: new MirroredEntity(ObjectEntity, "NodeHeight"),
+            type: new MirroredEntity(IntegerEntity),
         },
         Text: {
-            type: new MirroredEntity(ObjectEntity, "NodeComment"),
+            type: new MirroredEntity(String),
         },
         MaterialExpressionEditorX: {
-            type: new MirroredEntity(ObjectEntity, "NodePosX"),
+            type: new MirroredEntity(IntegerEntity),
         },
         MaterialExpressionEditorY: {
-            type: new MirroredEntity(ObjectEntity, "NodePosY"),
+            type: new MirroredEntity(IntegerEntity),
         },
         NodeTitle: {
             type: String,
@@ -231,10 +231,13 @@ export default class ObjectEntity extends IEntity {
             type: LinearColorEntity,
         },
         PositionX: {
-            type: new MirroredEntity(ObjectEntity, "NodePosX"),
+            type: new MirroredEntity(IntegerEntity),
         },
         PositionY: {
-            type: new MirroredEntity(ObjectEntity, "NodePosY"),
+            type: new MirroredEntity(IntegerEntity),
+        },
+        Node: {
+            type: new MirroredEntity(ObjectReferenceEntity),
         },
         PCGNode: {
             type: ObjectReferenceEntity,
@@ -502,8 +505,9 @@ export default class ObjectEntity extends IEntity {
         /** @type {MirroredEntity} */ this.MaterialExpressionEditorY
         /** @type {String} */ this.NodeTitle
         /** @type {LinearColorEntity} */ this.NodeTitleColor
-        /** @type {MirroredEntity} */ this.PositionX
-        /** @type {MirroredEntity} */ this.PositionY
+        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionX
+        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionY
+        /** @type {MirroredEntity<ObjectReferenceEntity>} */ this.Node
         /** @type {ObjectReferenceEntity} */ this.PCGNode
         /** @type {SymbolEntity} */ this.HiGenGridSize
         /** @type {String} */ this.Operation
@@ -564,6 +568,25 @@ export default class ObjectEntity extends IEntity {
         if (pcgObject) {
             pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX)
             pcgObject.PositionY && (pcgObject.PositionY.getter = () => this.NodePosY)
+            pcgObject.getSubobjects()
+                .forEach(
+                    /** @param {ObjectEntity} obj */
+                    obj => {
+                        if (obj.Node !== undefined) {
+                            const nodeRef = obj.Node.get()
+                            if (
+                                nodeRef.type === this.PCGNode.type
+                                && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
+                            ) {
+                                obj.Node.getter = () => new ObjectReferenceEntity({
+                                    type: this.PCGNode.type,
+                                    path: `${this.Name}.${this.PCGNode.path}`,
+                                })
+                            }
+                        }
+                    }
+                )
+
         }
         let inputIndex = 0
         let outputIndex = 0
@@ -682,6 +705,13 @@ export default class ObjectEntity extends IEntity {
     /** @returns {PinEntity[]} */
     getPinEntities() {
         return this.getCustomproperties().filter(v => v.constructor === PinEntity)
+    }
+
+    /** @returns {ObjectEntity[]} */
+    getSubobjects() {
+        return Object.keys(this)
+            .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
+            .flatMap(k => [this[k], .../** @type {ObjectEntity} */(this[k]).getSubobjects()])
     }
 
     switchTarget() {

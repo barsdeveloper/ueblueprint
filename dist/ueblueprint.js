@@ -58,7 +58,7 @@ class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = i$3`12.5px`
+    static fontSize = i$3`13px`
     static gridAxisLineColor = i$3`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = i$3`#353535`
@@ -519,13 +519,11 @@ class ComputedType {
     }
 }
 
+/** @template {Attribute} T */
 class MirroredEntity {
 
     static attributes = {
         type: {
-            ignored: true,
-        },
-        key: {
             ignored: true,
         },
         getter: {
@@ -534,12 +532,11 @@ class MirroredEntity {
     }
 
     /**
-     * @param {EntityConstructor} type
-     * @param {String} key
+     * @param {ConstructorType<T>} type
+     * @param {() => T} getter
      */
-    constructor(type, key, getter = () => null) {
+    constructor(type, getter) {
         this.type = type;
-        this.key = key;
         this.getter = getter;
     }
 
@@ -547,8 +544,9 @@ class MirroredEntity {
         return this.getter()
     }
 
+    /** @return {AttributeConstructor<Attribute>} */
     getTargetType() {
-        const result = this.type.attributes[this.key].type;
+        const result = this.type;
         if (result instanceof MirroredEntity) {
             return result.getTargetType()
         }
@@ -592,7 +590,7 @@ class SerializerFactory {
     static #serializers = new Map()
 
     /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} type
      * @param {Serializer<T>} object
      */
@@ -601,9 +599,9 @@ class SerializerFactory {
     }
 
     /**
-     * @template {SimpleValueType<any>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} type
-     * @returns {Serializer<ConstructedType<T>>}
+     * @returns {Serializer<T>}
      */
     static getSerializer(type) {
         return SerializerFactory.#serializers.get(type)
@@ -759,19 +757,14 @@ class Utility {
     }
 
     /**
-     * @param {IEntity} entity
+     * @param {Attribute} entity
      * @param {String} key
      * @returns {Boolean}
      */
-    static isSerialized(
-        entity,
-        key,
-        attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
-    ) {
-        if (attribute?.constructor === Object) {
-            return /** @type {AttributeInformation} */(attribute).serialized
-        }
-        return false
+    static isSerialized(entity, key) {
+        // @ts-expect-error
+        const attribute = (entity.attributes ?? entity.constructor?.attributes)?.[key];
+        return attribute ? attribute.serialized : false
     }
 
     /** @param {String[]} keys */
@@ -815,8 +808,8 @@ class Utility {
     }
 
     /**
-     * @param {AnyValue} a
-     * @param {AnyValue} b
+     * @param {Attribute} a
+     * @param {Attribute} b
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
@@ -840,24 +833,23 @@ class Utility {
     }
 
     /**
-     * @template {AnyValue} T
+     * @template {Attribute | AttributeTypeDescription} T
      * @param {T} value
-     * @returns {SimpleValueType<T>}
+     * @returns {AttributeConstructor<T>}
      */
     static getType(value) {
         if (value === null) {
             return null
         }
         if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
-            // @ts-expect-error
             return /** @type {AttributeInformation} */(value).type
         }
-        return /** @type {SimpleValueType<any>} */(value?.constructor)
+        return /** @type {AttributeConstructor<any>} */(value?.constructor)
     }
 
     /**
-     * @template {SimpleValue} V
-     * @template {SimpleValueType<V>} C
+     * @template {Attribute} V
+     * @template {AttributeConstructor<V>} C
      * @param {C} type
      * @returns {value is InstanceType<C>}
      */
@@ -868,8 +860,8 @@ class Utility {
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 
-    /** @param {AnyValue | Object} value */
-    static sanitize(value, targetType = /** @type {SimpleValueType<typeof value>} */(value?.constructor)) {
+    /** @param {Attribute} value */
+    static sanitize(value, targetType = /** @type {AttributeTypeDescription } */(value?.constructor)) {
         if (targetType instanceof Array) {
             targetType = targetType[0];
         }
@@ -895,7 +887,7 @@ class Utility {
                 : new /** @type {EntityConstructor} */(targetType)(value);
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = /** @type {AnyValue} */(value.valueOf()); // Get the relative primitive value
+            value = /** @type {TerminalAttribute} */(value.valueOf()); // Get the relative primitive value
         }
         return value
     }
@@ -1107,6 +1099,7 @@ class Utility {
     }
 }
 
+/** @abstract */
 class IEntity extends Serializable {
 
     /** @type {String | Union<String[]>} */
@@ -1163,7 +1156,10 @@ class IEntity extends Serializable {
             let attribute = attributes[attributeName];
 
             if (!suppressWarns && value !== undefined) {
-                if (!(attributeName in attributes) && !attributeName.startsWith("#SubObject")) {
+                if (
+                    !(attributeName in attributes)
+                    && !attributeName.startsWith(Configuration.subObjectAttributeNamePrefix)
+                ) {
                     const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name;
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
@@ -1230,7 +1226,7 @@ class IEntity extends Serializable {
                         .getSerializer(defaultType)
                         .read(/** @type {String} */(value));
                 }
-                assignAttribute(Utility.sanitize(value, /** @type {SimpleValueType<SimpleValue>} */(defaultType)));
+                assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)));
                 continue // We have a value, need nothing more
             }
             if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined
@@ -1239,7 +1235,7 @@ class IEntity extends Serializable {
         }
     }
 
-    /** @param {AttributeType} attributeType */
+    /** @param {AttributeTypeDescription} attributeType */
     static defaultValueProviderFromType(attributeType) {
         if (attributeType === Boolean) {
             return false
@@ -1254,12 +1250,11 @@ class IEntity extends Serializable {
         } else if (attributeType instanceof Union) {
             return this.defaultValueProviderFromType(attributeType.values[0])
         } else if (attributeType instanceof MirroredEntity) {
-            return () => new MirroredEntity(attributeType.type, attributeType.key, attributeType.getter)
+            return () => new MirroredEntity(attributeType.type, attributeType.getter)
         } else if (attributeType instanceof ComputedType) {
             return undefined
         } else {
-            // @ts-expect-error
-            return () => new attributeType()
+            return () => new /** @type {AnyConstructor<Attribute>} */(attributeType)()
         }
     }
 
@@ -1307,6 +1302,7 @@ class IEntity extends Serializable {
         return this.getAttributes(object)[attribute]
     }
 
+    /** @returns {AttributeDeclarations} */
     static getAttributes(object) {
         return object.attributes ?? object.constructor?.attributes ?? {}
     }
@@ -1464,7 +1460,7 @@ class Grammar {
     }
 
     /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeTypeDescription} T
      * @param {T} type
      * @returns {Parsimmon.Parser<ConstructedType<T>>}
      */
@@ -1493,8 +1489,8 @@ class Grammar {
                     : P.alt(acc, cur)
                 );
         } else if (type instanceof MirroredEntity) {
-            return this.grammarFor(type.type.attributes[type.key])
-                .map(() => new MirroredEntity(type.type, type.key, type.getter))
+            return this.grammarFor(undefined, type.getTargetType())
+                .map(v => new MirroredEntity(type.type, () => v))
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type);
         } else {
@@ -1533,7 +1529,7 @@ class Grammar {
     }
 
     /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} entityType
      * @param {String[]} key
      * @returns {AttributeInformation}
@@ -2894,7 +2890,7 @@ class SimpleSerializationVectorEntity extends VectorEntity {
     }
 }
 
-/** @template {AnyValue} T */
+/** @template {TerminalAttribute} T */
 class PinEntity extends IEntity {
 
     static #typeEntityMap = {
@@ -3880,19 +3876,19 @@ class ObjectEntity extends IEntity {
             type: GuidEntity,
         },
         SizeX: {
-            type: new MirroredEntity(ObjectEntity, "NodeWidth"),
+            type: new MirroredEntity(IntegerEntity),
         },
         SizeY: {
-            type: new MirroredEntity(ObjectEntity, "NodeHeight"),
+            type: new MirroredEntity(IntegerEntity),
         },
         Text: {
-            type: new MirroredEntity(ObjectEntity, "NodeComment"),
+            type: new MirroredEntity(String),
         },
         MaterialExpressionEditorX: {
-            type: new MirroredEntity(ObjectEntity, "NodePosX"),
+            type: new MirroredEntity(IntegerEntity),
         },
         MaterialExpressionEditorY: {
-            type: new MirroredEntity(ObjectEntity, "NodePosY"),
+            type: new MirroredEntity(IntegerEntity),
         },
         NodeTitle: {
             type: String,
@@ -3901,10 +3897,13 @@ class ObjectEntity extends IEntity {
             type: LinearColorEntity,
         },
         PositionX: {
-            type: new MirroredEntity(ObjectEntity, "NodePosX"),
+            type: new MirroredEntity(IntegerEntity),
         },
         PositionY: {
-            type: new MirroredEntity(ObjectEntity, "NodePosY"),
+            type: new MirroredEntity(IntegerEntity),
+        },
+        Node: {
+            type: new MirroredEntity(ObjectReferenceEntity),
         },
         PCGNode: {
             type: ObjectReferenceEntity,
@@ -4172,8 +4171,9 @@ class ObjectEntity extends IEntity {
         /** @type {MirroredEntity} */ this.MaterialExpressionEditorY;
         /** @type {String} */ this.NodeTitle;
         /** @type {LinearColorEntity} */ this.NodeTitleColor;
-        /** @type {MirroredEntity} */ this.PositionX;
-        /** @type {MirroredEntity} */ this.PositionY;
+        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionX;
+        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionY;
+        /** @type {MirroredEntity<ObjectReferenceEntity>} */ this.Node;
         /** @type {ObjectReferenceEntity} */ this.PCGNode;
         /** @type {SymbolEntity} */ this.HiGenGridSize;
         /** @type {String} */ this.Operation;
@@ -4234,6 +4234,25 @@ class ObjectEntity extends IEntity {
         if (pcgObject) {
             pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX);
             pcgObject.PositionY && (pcgObject.PositionY.getter = () => this.NodePosY);
+            pcgObject.getSubobjects()
+                .forEach(
+                    /** @param {ObjectEntity} obj */
+                    obj => {
+                        if (obj.Node !== undefined) {
+                            const nodeRef = obj.Node.get();
+                            if (
+                                nodeRef.type === this.PCGNode.type
+                                && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
+                            ) {
+                                obj.Node.getter = () => new ObjectReferenceEntity({
+                                    type: this.PCGNode.type,
+                                    path: `${this.Name}.${this.PCGNode.path}`,
+                                });
+                            }
+                        }
+                    }
+                );
+
         }
         let inputIndex = 0;
         let outputIndex = 0;
@@ -4352,6 +4371,13 @@ class ObjectEntity extends IEntity {
     /** @returns {PinEntity[]} */
     getPinEntities() {
         return this.getCustomproperties().filter(v => v.constructor === PinEntity)
+    }
+
+    /** @returns {ObjectEntity[]} */
+    getSubobjects() {
+        return Object.keys(this)
+            .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
+            .flatMap(k => [this[k], .../** @type {ObjectEntity} */(this[k]).getSubobjects()])
     }
 
     switchTarget() {
@@ -5013,16 +5039,16 @@ class ObjectEntity extends IEntity {
     }
 }
 
-/** @template {SimpleValueType<SimpleValue>} T */
+/** @template {AttributeConstructor<Attribute>} T */
 class Serializer {
 
     /** @type {(v: String) => String} */
     static same = v => v
 
-    /** @type {(entity: SimpleValue, serialized: String) => String} */
+    /** @type {(entity: Attribute, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
 
-    /** @type {(entity: SimpleValue, serialized: String) => String} */
+    /** @type {(entity: Attribute, serialized: String) => String} */
     static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
     /** @param {T} entityType */
@@ -5053,7 +5079,6 @@ class Serializer {
 
     /** @param {ConstructedType<T>} value */
     write(value, insideString = false) {
-        // @ts-expect-error
         return this.doWrite(value, insideString)
     }
 
@@ -5071,7 +5096,7 @@ class Serializer {
     }
 
     /**
-     * @param {ConstructedType<T> & IEntity} entity
+     * @param {ConstructedType<T>} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
@@ -7733,7 +7758,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
-        this.element.classList.add(.../** @type {NodeTemplateConstructor} */(this.constructor).nodeStyleClasses);
+        this.element.classList.add(.../** @type {typeof NodeTemplate} */(this.constructor).nodeStyleClasses);
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
         this.pinInserter = this.element.entity.additionalPinInserter();
         if (this.pinInserter) {
@@ -8309,12 +8334,12 @@ class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends ITemplate<PinElement<T>>
  */
 class PinTemplate extends ITemplate {
@@ -8480,7 +8505,7 @@ class PinTemplate extends ITemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends PinTemplate<T>
  */
 class MinimalPinTemplate extends PinTemplate {
@@ -9114,6 +9139,8 @@ class Blueprint extends IElement {
     nodes = []
     /** @type {LinkElement[]}" */
     links = []
+    /** @type {Map<String, NodeElement>} */
+    nodesNames = new Map()
     /** @type {Number[]} */
     mousePosition = [0, 0]
     waitingExpandUpdate = false
@@ -9912,7 +9939,7 @@ class BoolPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends PinTemplate<T>
  */
 class IInputPinTemplate extends PinTemplate {
@@ -10119,7 +10146,7 @@ class ExecPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends IInputPinTemplate<T>
  */
 class INumericPinTemplate extends IInputPinTemplate {
@@ -10850,7 +10877,7 @@ class VectorPinTemplate extends INumericPinTemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 class PinElement extends IElement {
@@ -11508,7 +11535,7 @@ function defineElements() {
 }
 
 /**
- * @template {SimpleValueType<SimpleValue>} T
+ * @template {AttributeConstructor<Attribute>} T
  * @extends {Serializer<T>}
  */
 class CustomSerializer extends Serializer {
@@ -11571,7 +11598,7 @@ class TerminalTypeEntity extends IEntity {
 }
 
 /**
- * @template {SimpleValueType<SimpleValue>} T
+ * @template {AttributeConstructor<Attribute>} T
  * @extends {Serializer<T>}
  */
 class ToStringSerializer extends Serializer {

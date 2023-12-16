@@ -135,19 +135,14 @@ export default class Utility {
     }
 
     /**
-     * @param {IEntity} entity
+     * @param {Attribute} entity
      * @param {String} key
      * @returns {Boolean}
      */
-    static isSerialized(
-        entity,
-        key,
-        attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
-    ) {
-        if (attribute?.constructor === Object) {
-            return /** @type {AttributeInformation} */(attribute).serialized
-        }
-        return false
+    static isSerialized(entity, key) {
+        // @ts-expect-error
+        const attribute = (entity.attributes ?? entity.constructor?.attributes)?.[key]
+        return attribute ? attribute.serialized : false
     }
 
     /** @param {String[]} keys */
@@ -191,8 +186,8 @@ export default class Utility {
     }
 
     /**
-     * @param {AnyValue} a
-     * @param {AnyValue} b
+     * @param {Attribute} a
+     * @param {Attribute} b
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
@@ -216,24 +211,23 @@ export default class Utility {
     }
 
     /**
-     * @template {AnyValue} T
+     * @template {Attribute | AttributeTypeDescription} T
      * @param {T} value
-     * @returns {SimpleValueType<T>}
+     * @returns {AttributeConstructor<T>}
      */
     static getType(value) {
         if (value === null) {
             return null
         }
         if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
-            // @ts-expect-error
             return /** @type {AttributeInformation} */(value).type
         }
-        return /** @type {SimpleValueType<any>} */(value?.constructor)
+        return /** @type {AttributeConstructor<any>} */(value?.constructor)
     }
 
     /**
-     * @template {SimpleValue} V
-     * @template {SimpleValueType<V>} C
+     * @template {Attribute} V
+     * @template {AttributeConstructor<V>} C
      * @param {C} type
      * @returns {value is InstanceType<C>}
      */
@@ -244,8 +238,8 @@ export default class Utility {
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 
-    /** @param {AnyValue | Object} value */
-    static sanitize(value, targetType = /** @type {SimpleValueType<typeof value>} */(value?.constructor)) {
+    /** @param {Attribute} value */
+    static sanitize(value, targetType = /** @type {AttributeTypeDescription } */(value?.constructor)) {
         if (targetType instanceof Array) {
             targetType = targetType[0]
         }
@@ -271,7 +265,7 @@ export default class Utility {
                 : new /** @type {EntityConstructor} */(targetType)(value)
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = /** @type {AnyValue} */(value.valueOf()) // Get the relative primitive value
+            value = /** @type {TerminalAttribute} */(value.valueOf()) // Get the relative primitive value
         }
         return value
     }

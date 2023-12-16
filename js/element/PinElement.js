@@ -22,7 +22,7 @@ import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate.js"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 export default class PinElement extends IElement {

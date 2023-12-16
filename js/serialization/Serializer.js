@@ -3,16 +3,16 @@ import IEntity from "../entity/IEntity.js"
 import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
 
-/** @template {SimpleValueType<SimpleValue>} T */
+/** @template {AttributeConstructor<Attribute>} T */
 export default class Serializer {
 
     /** @type {(v: String) => String} */
     static same = v => v
 
-    /** @type {(entity: SimpleValue, serialized: String) => String} */
+    /** @type {(entity: Attribute, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
 
-    /** @type {(entity: SimpleValue, serialized: String) => String} */
+    /** @type {(entity: Attribute, serialized: String) => String} */
     static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
     /** @param {T} entityType */
@@ -43,7 +43,6 @@ export default class Serializer {
 
     /** @param {ConstructedType<T>} value */
     write(value, insideString = false) {
-        // @ts-expect-error
         return this.doWrite(value, insideString)
     }
 
@@ -61,7 +60,7 @@ export default class Serializer {
     }
 
     /**
-     * @param {ConstructedType<T> & IEntity} entity
+     * @param {ConstructedType<T>} entity
      * @param {Boolean} insideString
      * @returns {String}
      */

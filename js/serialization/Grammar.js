@@ -123,7 +123,7 @@ export default class Grammar {
     }
 
     /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeTypeDescription} T
      * @param {T} type
      * @returns {Parsimmon.Parser<ConstructedType<T>>}
      */
@@ -152,8 +152,8 @@ export default class Grammar {
                     : P.alt(acc, cur)
                 )
         } else if (type instanceof MirroredEntity) {
-            return this.grammarFor(type.type.attributes[type.key])
-                .map(() => new MirroredEntity(type.type, type.key, type.getter))
+            return this.grammarFor(undefined, type.getTargetType())
+                .map(v => new MirroredEntity(type.type, () => v))
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type)
         } else {
@@ -192,7 +192,7 @@ export default class Grammar {
     }
 
     /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} entityType
      * @param {String[]} key
      * @returns {AttributeInformation}
