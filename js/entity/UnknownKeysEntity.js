@@ -1,6 +1,6 @@
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
-import Parsimmon from "parsimmon"
+import P from "parsernostrum"
 
 export default class UnknownKeysEntity extends IEntity {
 
@@ -17,14 +17,13 @@ export default class UnknownKeysEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.seq(
+        return P.seq(
             // Lookbehind
             Grammar.regexMap(
                 new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
                 result => result[1] ?? ""
             ),
-            Grammar.attributeName
-                .skip(Grammar.equalSeparation)
+            P.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
                 .chain(attributeName =>
                     Grammar.unknownValue
                         .map(attributeValue =>
@@ -32,7 +31,7 @@ export default class UnknownKeysEntity extends IEntity {
                         )
                 )
                 .sepBy1(Grammar.commaSeparation),
-            Parsimmon.regex(/\s*(?:,\s*)?\)/),
+            P.regexp(/\s*(?:,\s*)?\)/),
         )
             .map(([lookbehind, attributes, _2]) => {
                 let values = {}

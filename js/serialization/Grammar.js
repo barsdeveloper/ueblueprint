@@ -1,12 +1,10 @@
 import Configuration from "../Configuration.js"
 import IEntity from "../entity/IEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
-import Parsimmon from "parsimmon"
+import P from "parsernostrum"
 import Serializable from "./Serializable.js"
 import Union from "../entity/Union.js"
 import Utility from "../Utility.js"
-
-let P = Parsimmon
 
 export default class Grammar {
 
@@ -37,10 +35,10 @@ export default class Grammar {
 
     /*   ---   Primitive   ---   */
 
-    static null = P.lazy(() => P.regex(/\(\s*\)/).map(() => null))
-    static true = P.lazy(() => P.regex(/true/i).map(() => true))
-    static false = P.lazy(() => P.regex(/false/i).map(() => false))
-    static boolean = P.lazy(() => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false))
+    static null = P.lazy(() => P.regexp(/\(\s*\)/).map(() => null))
+    static true = P.lazy(() => P.regexp(/true/i).map(() => true))
+    static false = P.lazy(() => P.regexp(/false/i).map(() => false))
+    static boolean = P.lazy(() => P.regexpGroups(/(true)|false/i).map(v => v[1] ? true : false))
     static number = P.lazy(() =>
         this.regexMap(new RegExp(`(${Grammar.Regex.Number.source})|(\\+?inf)|(-inf)`), result => {
             if (result[2] !== undefined) {
@@ -51,11 +49,11 @@ export default class Grammar {
             return Number(result[1])
         })
     )
-    static integer = P.lazy(() => P.regex(Grammar.Regex.Integer).map(Number))
-    static bigInt = P.lazy(() => P.regex(Grammar.Regex.Integer).map(BigInt))
-    static realUnit = P.lazy(() => P.regex(Grammar.Regex.RealUnit).map(Number))
-    static naturalNumber = P.lazy(() => P.regex(/\d+/).map(Number))
-    static byteNumber = P.lazy(() => P.regex(Grammar.Regex.ByteInteger).map(Number))
+    static integer = P.lazy(() => P.regexp(Grammar.Regex.Integer).map(Number))
+    static bigInt = P.lazy(() => P.regexp(Grammar.Regex.Integer).map(BigInt))
+    static realUnit = P.lazy(() => P.regexp(Grammar.Regex.RealUnit).map(Number))
+    static naturalNumber = P.lazy(() => P.regexp(/\d+/).map(Number))
+    static byteNumber = P.lazy(() => P.regexp(Grammar.Regex.ByteInteger).map(Number))
     static string = P.lazy(() =>
         Grammar.regexMap(
             new RegExp(`"(${Grammar.Regex.InsideString.source})"`),
@@ -67,7 +65,7 @@ export default class Grammar {
     /*   ---   Fragment   ---   */
 
     static colorValue = this.byteNumber
-    static word = P.regex(Grammar.Regex.Word)
+    static word = P.regexp(Grammar.Regex.Word)
     static pathQuotes = Grammar.regexMap(
         new RegExp(
             `'"(` + Grammar.Regex.InsideString.source + `)"'`
@@ -85,23 +83,23 @@ export default class Grammar {
         ),
         ([_0, a, b, c, d]) => a ?? b ?? c ?? d
     )
-    static symbol = P.regex(Grammar.Regex.Symbol)
+    static symbol = P.regexp(Grammar.Regex.Symbol)
     static symbolQuoted = Grammar.regexMap(
         new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
         /** @type {(_0: String, v: String) => String} */
         ([_0, v]) => v
     )
-    static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
+    static attributeName = P.regexp(Grammar.Regex.DotSeparatedSymbols)
     static attributeNameQuoted = Grammar.regexMap(
         new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'),
         ([_0, v]) => v
     )
-    static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
-    static commaSeparation = P.regex(/\s*,\s*(?!\))/)
-    static commaOrSpaceSeparation = P.regex(/\s*,\s*(?!\))|\s+/)
-    static equalSeparation = P.regex(/\s*=\s*/)
-    static typeReference = P.alt(P.regex(Grammar.Regex.Path), this.symbol)
-    static hexColorChannel = P.regex(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
+    static guid = P.regexp(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
+    static commaSeparation = P.regexp(/\s*,\s*(?!\))/)
+    static commaOrSpaceSeparation = P.regexp(/\s*,\s*(?!\))|\s+/)
+    static equalSeparation = P.regexp(/\s*=\s*/)
+    static typeReference = P.alt(P.regexp(Grammar.Regex.Path), this.symbol)
+    static hexColorChannel = P.regexp(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
 
     /*   ---   Factory   ---   */
 
@@ -140,9 +138,9 @@ export default class Grammar {
                 return this.grammarFor(undefined, type[0])
             }
             result = P.seq(
-                P.regex(/\(\s*/),
+                P.regexp(/\(\s*/),
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
-                P.regex(/\s*(?:,\s*)?\)/),
+                P.regexp(/\s*(?:,\s*)?\)/),
             ).map(([_0, values, _3]) => values)
         } else if (type instanceof Union) {
             result = type.values
@@ -261,7 +259,7 @@ export default class Grammar {
                 result => result[1]
             ),
             this.createAttributeGrammar(entityType).sepBy1(entriesSeparator),
-            P.regex(/\s*(?:,\s*)?\)/), // trailing comma
+            P.regexp(/\s*(?:,\s*)?\)/), // trailing comma
         )
             .map(([lookbehind, attributes, _2]) => {
                 let values = {}

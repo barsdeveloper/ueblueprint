@@ -2,6 +2,7 @@
   "name": "ueblueprint",
   "version": "1.0.0",
   "description": "UE's Blueprint visualisation library",
+  "type": "module",
   "main": "ueblueprint.js",
   "scripts": {
     "build": "rollup --config && sass scss/export.scss:dist/css/ueb-style.css && sass scss/export.scss:dist/css/ueb-style.min.css --style=compressed",
