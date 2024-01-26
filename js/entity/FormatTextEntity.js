@@ -2,7 +2,7 @@ import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 import InvariantTextEntity from "./InvariantTextEntity.js"
 import LocalizedTextEntity from "./LocalizedTextEntity.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 import Union from "./Union.js"
 
 export default class FormatTextEntity extends IEntity {
@@ -21,23 +21,21 @@ export default class FormatTextEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.lazy(() =>
-            Parsimmon.seq(
-                Grammar.regexMap(
-                    // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                    new RegExp(`(${this.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
-                    result => result[1]
-                ),
-                Grammar.grammarFor(this.attributes.value)
-            )
-                .map(([lookbehind, values]) => {
-                    const result = new this({
-                        value: values,
-                    })
-                    result.lookbehind = lookbehind
-                    return result
-                })
+        return Parsernostrum.seq(
+            Parsernostrum.reg(
+                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+                new RegExp(`(${this.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                1
+            ),
+            Grammar.grammarFor(this.attributes.value)
         )
+            .map(([lookbehind, values]) => {
+                const result = new this({
+                    value: values,
+                })
+                result.lookbehind = lookbehind
+                return result
+            })
     }
 
     constructor(values) {

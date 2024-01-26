@@ -1,7 +1,7 @@
 import Configuration from "../Configuration.js"
 import IEntity from "../entity/IEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
-import P from "parsernostrum"
+import Parsernostrum from "parsernostrum"
 import Serializable from "./Serializable.js"
 import Union from "../entity/Union.js"
 import Utility from "../Utility.js"
@@ -15,14 +15,10 @@ export default class Grammar {
         )
 
     static Regex = class {
-        static ByteInteger = /0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/ // A integer between 0 and 255
         static HexDigit = /[0-9a-fA-F]/
-        static InlineOptWhitespace = /[^\S\n]*/
-        static InlineWhitespace = /[^\S\n]+/
         static InsideString = /(?:[^"\\]|\\.)*/
         static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
         static Integer = /[\-\+]?\d+(?!\d|\.)/
-        static MultilineWhitespace = /\s*\n\s*/
         static Number = /[-\+]?(?:\d*\.)?\d+(?!\d|\.)/
         static RealUnit = /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
         static Word = Grammar.separatedBy("[a-zA-Z]", "_")
@@ -35,95 +31,52 @@ export default class Grammar {
 
     /*   ---   Primitive   ---   */
 
-    static null = P.lazy(() => P.regexp(/\(\s*\)/).map(() => null))
-    static true = P.lazy(() => P.regexp(/true/i).map(() => true))
-    static false = P.lazy(() => P.regexp(/false/i).map(() => false))
-    static boolean = P.lazy(() => P.regexpGroups(/(true)|false/i).map(v => v[1] ? true : false))
-    static number = P.lazy(() =>
-        this.regexMap(new RegExp(`(${Grammar.Regex.Number.source})|(\\+?inf)|(-inf)`), result => {
-            if (result[2] !== undefined) {
-                return Number.POSITIVE_INFINITY
-            } else if (result[3] !== undefined) {
-                return Number.NEGATIVE_INFINITY
-            }
-            return Number(result[1])
-        })
-    )
-    static integer = P.lazy(() => P.regexp(Grammar.Regex.Integer).map(Number))
-    static bigInt = P.lazy(() => P.regexp(Grammar.Regex.Integer).map(BigInt))
-    static realUnit = P.lazy(() => P.regexp(Grammar.Regex.RealUnit).map(Number))
-    static naturalNumber = P.lazy(() => P.regexp(/\d+/).map(Number))
-    static byteNumber = P.lazy(() => P.regexp(Grammar.Regex.ByteInteger).map(Number))
-    static string = P.lazy(() =>
-        Grammar.regexMap(
-            new RegExp(`"(${Grammar.Regex.InsideString.source})"`),
-            ([_0, value]) => value
+    static null = Parsernostrum.reg(/\(\s*\)/).map(() => null)
+    static true = Parsernostrum.reg(/true/i).map(() => true)
+    static false = Parsernostrum.reg(/false/i).map(() => false)
+    static boolean = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? true : false)
+    static number = Parsernostrum.regArray(new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`))
+        .map(result =>
+            result[2] !== undefined
+                ? Number.POSITIVE_INFINITY
+                : result[3] !== undefined
+                    ? Number.NEGATIVE_INFINITY
+                    : Number(result[1])
         )
-            .map((insideString) => Utility.unescapeString(insideString))
-    )
+    static naturalNumber = Parsernostrum.lazy(() => Parsernostrum.reg(/\d+/).map(Number))
+    static string = Parsernostrum.doubleQuotedString.map(insideString => Utility.unescapeString(insideString))
 
     /*   ---   Fragment   ---   */
 
-    static colorValue = this.byteNumber
-    static word = P.regexp(Grammar.Regex.Word)
-    static pathQuotes = Grammar.regexMap(
-        new RegExp(
-            `'"(` + Grammar.Regex.InsideString.source + `)"'`
-            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-            + `|"(` + Grammar.Regex.InsideString.source + `)"`
-        ),
-        ([_0, a, b, c]) => a ?? b ?? c
-    )
-    static path = Grammar.regexMap(
-        new RegExp(
-            `'"(` + Grammar.Regex.InsideString.source + `)"'`
-            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-            + `|"(` + Grammar.Regex.InsideString.source + `)"`
-            + `|(` + Grammar.Regex.Path.source + `)`
-        ),
-        ([_0, a, b, c, d]) => a ?? b ?? c ?? d
-    )
-    static symbol = P.regexp(Grammar.Regex.Symbol)
-    static symbolQuoted = Grammar.regexMap(
-        new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
-        /** @type {(_0: String, v: String) => String} */
-        ([_0, v]) => v
-    )
-    static attributeName = P.regexp(Grammar.Regex.DotSeparatedSymbols)
-    static attributeNameQuoted = Grammar.regexMap(
-        new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'),
-        ([_0, v]) => v
-    )
-    static guid = P.regexp(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
-    static commaSeparation = P.regexp(/\s*,\s*(?!\))/)
-    static commaOrSpaceSeparation = P.regexp(/\s*,\s*(?!\))|\s+/)
-    static equalSeparation = P.regexp(/\s*=\s*/)
-    static typeReference = P.alt(P.regexp(Grammar.Regex.Path), this.symbol)
-    static hexColorChannel = P.regexp(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
+    static colorValue = Parsernostrum.numberByte
+    static word = Parsernostrum.reg(Grammar.Regex.Word)
+    static pathQuotes = Parsernostrum.reg(new RegExp(
+        `'"(` + Grammar.Regex.InsideString.source + `)"'`
+        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+        + `|"(` + Grammar.Regex.InsideString.source + `)"`
+    )).map(([_0, a, b, c]) => a ?? b ?? c)
+    static path = Parsernostrum.reg(new RegExp(
+        `'"(` + Grammar.Regex.InsideString.source + `)"'`
+        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+        + `|"(` + Grammar.Regex.InsideString.source + `)"`
+        + `|(` + Grammar.Regex.Path.source + `)`
+    )).map(([_0, a, b, c, d]) => a ?? b ?? c ?? d)
+    static symbol = Parsernostrum.reg(Grammar.Regex.Symbol)
+    static symbolQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'), 1)
+    static attributeName = Parsernostrum.reg(Grammar.Regex.DotSeparatedSymbols)
+    static attributeNameQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'), 1)
+    static guid = Parsernostrum.reg(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
+    static commaSeparation = Parsernostrum.reg(/\s*,\s*(?!\))/)
+    static commaOrSpaceSeparation = Parsernostrum.reg(/\s*,\s*(?!\))|\s+/)
+    static equalSeparation = Parsernostrum.reg(/\s*=\s*/)
+    static typeReference = Parsernostrum.alt(Parsernostrum.reg(Grammar.Regex.Path), this.symbol)
+    static hexColorChannel = Parsernostrum.reg(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
 
     /*   ---   Factory   ---   */
 
     /**
-     * @template T
-     * @param {RegExp} re
-     * @param {(execResult) => T} mapper
-     */
-    static regexMap(re, mapper) {
-        const anchored = RegExp("^(?:" + re.source + ")", re.flags)
-        const expected = "" + re
-        return P((input, i) => {
-            const match = anchored.exec(input.slice(i))
-            if (match) {
-                return P.makeSuccess(i + match[0].length, mapper(match))
-            }
-            return P.makeFailure(i, expected)
-        })
-    }
-
-    /**
      * @template {AttributeTypeDescription} T
      * @param {T} type
-     * @returns {Parsimmon.Parser<ConstructedType<T>>}
      */
     static grammarFor(
         attribute,
@@ -137,17 +90,17 @@ export default class Grammar {
             if (attribute?.inlined) {
                 return this.grammarFor(undefined, type[0])
             }
-            result = P.seq(
-                P.regexp(/\(\s*/),
+            result = Parsernostrum.seq(
+                Parsernostrum.reg(/\(\s*/),
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
-                P.regexp(/\s*(?:,\s*)?\)/),
+                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
             ).map(([_0, values, _3]) => values)
         } else if (type instanceof Union) {
             result = type.values
                 .map(v => this.grammarFor(undefined, v))
                 .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
                     ? this.unknownValue
-                    : P.alt(acc, cur)
+                    : Parsernostrum.alt(acc, cur)
                 )
         } else if (type instanceof MirroredEntity) {
             return this.grammarFor(undefined, type.getTargetType())
@@ -179,11 +132,11 @@ export default class Grammar {
                 if (result == this.unknownValue) {
                     result = this.string
                 } else {
-                    result = P.seq(P.string('"'), result, P.string('"'))
+                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"'))
                 }
             }
             if (attribute.nullable) {
-                result = P.alt(result, this.null)
+                result = Parsernostrum.alt(result, this.null)
             }
         }
         return result
@@ -225,7 +178,7 @@ export default class Grammar {
         valueSeparator = this.equalSeparation,
         handleObjectSet = (obj, k, v) => { }
     ) {
-        return P.seq(
+        return Parsernostrum.seq(
             attributeName,
             valueSeparator,
         ).chain(([attributeName, _1]) => {
@@ -246,20 +199,19 @@ export default class Grammar {
      * @template {IEntity} T
      * @param {(new (...args: any) => T) & EntityConstructor} entityType
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
-     * @returns {Parsimmon.Parser<T>}
      */
     static createEntityGrammar = (entityType, acceptUnknownKeys = true, entriesSeparator = this.commaSeparation) =>
-        P.seq(
-            this.regexMap(
+        Parsernostrum.seq(
+            Parsernostrum.reg(
                 entityType.lookbehind instanceof Union
                     ? new RegExp(`(${entityType.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
                     : entityType.lookbehind.constructor == String && entityType.lookbehind.length
                         ? new RegExp(`(${entityType.lookbehind})\\s*\\(\\s*`)
                         : /()\(\s*/,
-                result => result[1]
+                1
             ),
-            this.createAttributeGrammar(entityType).sepBy1(entriesSeparator),
-            P.regexp(/\s*(?:,\s*)?\)/), // trailing comma
+            this.createAttributeGrammar(entityType).sepBy(entriesSeparator),
+            Parsernostrum.reg(/\s*(?:,\s*)?\)/), // trailing comma
         )
             .map(([lookbehind, attributes, _2]) => {
                 let values = {}
@@ -279,13 +231,13 @@ export default class Grammar {
                         .filter(key => entityType.attributes[key].expected)
                         .find(key => !totalKeys.includes(key) && (missingKey = key))
                 ) {
-                    return P.fail("Missing key " + missingKey)
+                    return Parsernostrum.failure()
                 }
                 const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length
                 if (!acceptUnknownKeys && unknownKeys > 0) {
-                    return P.fail("Too many unknown keys")
+                    return Parsernostrum.failure()
                 }
-                return P.succeed(new entityType(values))
+                return Parsernostrum.success().map(() => new entityType(values))
             })
 
     /*   ---   Entity   ---   */

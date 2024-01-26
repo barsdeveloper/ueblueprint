@@ -1,5 +1,4 @@
-import Grammar from "../serialization/Grammar.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 import Vector2DEntity from "./Vector2DEntity.js"
 
 export default class RBSerializationVector2DEntity extends Vector2DEntity {
@@ -7,14 +6,14 @@ export default class RBSerializationVector2DEntity extends Vector2DEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Parsimmon.string("X").then(Grammar.equalSeparation).then(Grammar.number),
-                Parsimmon.regex(Grammar.Regex.InlineWhitespace),
-                Parsimmon.string("Y").then(Grammar.equalSeparation).then(Grammar.number),
-            ).map(([x, _1, y]) => new this({
-                X: x,
-                Y: y,
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                /X\s*=\s*/.source + "(?<x>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+                + "\\s+"
+                + /Y\s*=\s*/.source + "(?<y>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+            )).map(({ groups: { x, y } }) => new this({
+                X: Number(x),
+                Y: Number(y),
             })),
             Vector2DEntity.createGrammar()
         )

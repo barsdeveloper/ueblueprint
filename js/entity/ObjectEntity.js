@@ -9,7 +9,7 @@ import LinearColorEntity from "./LinearColorEntity.js"
 import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity.js"
 import MirroredEntity from "./MirroredEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 import PinEntity from "./PinEntity.js"
 import SVGIcon from "../SVGIcon.js"
 import SymbolEntity from "./SymbolEntity.js"
@@ -316,8 +316,8 @@ export default class ObjectEntity extends IEntity {
     }
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
-    static customPropertyGrammar = Parsimmon.seq(
-        Parsimmon.regex(/CustomProperties\s+/),
+    static customPropertyGrammar = Parsernostrum.seq(
+        Parsernostrum.reg(/CustomProperties\s+/),
         Grammar.grammarFor(
             undefined,
             this.attributes.CustomProperties.type[0]
@@ -328,15 +328,15 @@ export default class ObjectEntity extends IEntity {
         }
         values.CustomProperties.push(pin)
     })
-    static inlinedArrayEntryGrammar = Parsimmon.seq(
-        Parsimmon.alt(
+    static inlinedArrayEntryGrammar = Parsernostrum.seq(
+        Parsernostrum.alt(
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        Grammar.regexMap(
+        Parsernostrum.reg(
             new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-            v => Number(v[1])
-        )
+            1
+        ).map(Number)
     )
         .chain(
             /** @param {[[String, Boolean], Number]} param */
@@ -358,20 +358,19 @@ export default class ObjectEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createSubObjectGrammar() {
-        return Parsimmon.lazy(() =>
-            this.createGrammar()
-                .map(object =>
-                    values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
-                )
-        )
+        return this.createGrammar()
+            .map(object =>
+                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+            )
+
     }
 
     static createGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.regex(/Begin\s+Object/),
-            Parsimmon.seq(
-                Parsimmon.whitespace,
-                Parsimmon.alt(
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/Begin\s+Object/),
+            Parsernostrum.seq(
+                Parsernostrum.whitespace,
+                Parsernostrum.alt(
                     this.customPropertyGrammar,
                     Grammar.createAttributeGrammar(this),
                     Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
@@ -383,7 +382,7 @@ export default class ObjectEntity extends IEntity {
             )
                 .map(([_0, entry]) => entry)
                 .many(),
-            Parsimmon.regex(/\s+End\s+Object/),
+            Parsernostrum.reg(/\s+End\s+Object/),
         )
             .map(([_0, attributes, _2]) => {
                 const values = {}
@@ -413,16 +412,16 @@ export default class ObjectEntity extends IEntity {
     }
 
     static getMultipleObjectsGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.optWhitespace,
+        return Parsernostrum.seq(
+            Parsernostrum.whitespaceOpt,
             this.createGrammar(),
-            Parsimmon.seq(
-                Parsimmon.whitespace,
+            Parsernostrum.seq(
+                Parsernostrum.whitespace,
                 this.createGrammar(),
             )
                 .map(([_0, object]) => object)
                 .many(),
-            Parsimmon.optWhitespace
+            Parsernostrum.whitespaceOpt
         )
             .map(([_0, first, remaining, _4]) => [first, ...remaining])
     }

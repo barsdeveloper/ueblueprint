@@ -1,5 +1,5 @@
-import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
+import Parsernostrum from "parsernostrum"
 
 export default class ColorChannelEntity extends IEntity {
 
@@ -15,7 +15,7 @@ export default class ColorChannelEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.number.map(value => new this(value))
+        return Parsernostrum.number.map(value => new this(value))
     }
 
     constructor(values = 0) {

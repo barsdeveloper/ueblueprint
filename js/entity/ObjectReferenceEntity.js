@@ -1,7 +1,7 @@
 import Configuration from "../Configuration.js"
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 import Utility from "../Utility.js"
 
 export default class ObjectReferenceEntity extends IEntity {
@@ -18,10 +18,10 @@ export default class ObjectReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static noneReferenceGrammar = Parsimmon.string("None").map(() => this.createNoneInstance())
-    static fullReferenceGrammar = Parsimmon.seq(
+    static noneReferenceGrammar = Parsernostrum.str("None").map(() => this.createNoneInstance())
+    static fullReferenceGrammar = Parsernostrum.seq(
         Grammar.typeReference,
-        Parsimmon.regex(Grammar.Regex.InlineOptWhitespace),
+        Parsernostrum.whitespaceInlineOpt,
         Grammar.pathQuotes
     )
         .map(([type, _2, path]) =>
@@ -36,7 +36,7 @@ export default class ObjectReferenceEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
+        return Parsernostrum.alt(
             this.noneReferenceGrammar,
             this.fullReferenceGrammar,
             this.typeReferenceGrammar,

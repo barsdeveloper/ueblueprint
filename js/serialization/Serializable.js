@@ -1,6 +1,4 @@
-import Parsimmon from "parsimmon"
-
-const P = Parsimmon
+import Parsernostrum from "parsernostrum"
 
 export default class Serializable {
 
@@ -8,8 +6,6 @@ export default class Serializable {
 
     /** @protected */
     static createGrammar() {
-        return /** @type {Parsimmon.Parser<Serializable>} */(P.fail(
-            "Unimplemented createGrammar() method in " + this.name)
-        )
+        return Parsernostrum.failure()
     }
 }

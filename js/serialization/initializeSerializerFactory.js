@@ -19,7 +19,7 @@ import MirroredEntity from "../entity/MirroredEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity.js"
 import ObjectSerializer from "./ObjectSerializer.js"
-import P from "parsernostrum"
+import Parsernostrum from "parsernostrum"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
@@ -41,7 +41,7 @@ import Vector2DEntity from "../entity/Vector2DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
 
 Grammar.unknownValue =
-    P.alt(
+    Parsernostrum.alt(
         // Remember to keep the order, otherwise parsing might fail
         Grammar.boolean,
         GuidEntity.createGrammar(),

@@ -1,26 +1,25 @@
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum/src/Parsernostrum.js"
 import RotatorEntity from "./RotatorEntity.js"
-import Grammar from "../serialization/Grammar.js"
 
 export default class SimpleSerializationRotatorEntity extends RotatorEntity {
 
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Grammar.number,
-                Grammar.commaSeparation,
-                Grammar.number,
-                Grammar.commaSeparation,
-                Grammar.number,
-            ).map(([p, _1, y, _3, r]) =>
-                new this({
-                    R: r,
-                    P: p,
-                    Y: y,
-                })
-            ),
+        const number = Parsernostrum.number.getParser().parser.regexp.source
+        return Parsernostrum.alt(
+            Parsernostrum.reg(new RegExp(
+                "(?<p>" + number + ")"
+                + "\\s*,\\s"
+                + "(?<y>" + number + ")"
+                + "\\s*,\\s"
+                + "(?<r>" + number + ")"
+            ))
+                .map(({ groups: { p, y, r } }) => new this({
+                    R: Number(r),
+                    P: Number(p),
+                    Y: Number(y),
+                })),
             RotatorEntity.createGrammar()
         )
     }

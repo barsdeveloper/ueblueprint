@@ -1,6 +1,6 @@
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 import PathSymbolEntity from "./PathSymbolEntity.js"
 
 export default class PinReferenceEntity extends IEntity {
@@ -20,9 +20,9 @@ export default class PinReferenceEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.seq(
+        return Parsernostrum.seq(
             PathSymbolEntity.createGrammar(),
-            Parsimmon.whitespace,
+            Parsernostrum.whitespace,
             GuidEntity.createGrammar()
         ).map(
             ([objectName, _1, pinGuid]) => new this({
