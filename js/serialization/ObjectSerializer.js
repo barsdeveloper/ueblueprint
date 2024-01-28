@@ -32,11 +32,7 @@ export default class ObjectSerializer extends Serializer {
 
     /** @param {String} value */
     doRead(value) {
-        const parseResult = Grammar.grammarFor(undefined, this.entityType).parse(value)
-        if (!parseResult.status) {
-            throw new Error("Error when trying to parse the object.")
-        }
-        return parseResult.value
+        return Grammar.grammarFor(undefined, this.entityType).parse(value)
     }
 
     /**
@@ -44,11 +40,7 @@ export default class ObjectSerializer extends Serializer {
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
-        const parseResult = ObjectEntity.getMultipleObjectsGrammar().parse(value)
-        if (!parseResult.status) {
-            throw new Error("Error when trying to parse the object.")
-        }
-        return parseResult.value
+        return ObjectEntity.getMultipleObjectsGrammar().parse(value)
     }
 
     /**

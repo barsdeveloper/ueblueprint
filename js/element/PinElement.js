@@ -49,9 +49,9 @@ export default class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<GuidEntity>} */(GuidEntity.grammar.parse(value)).value
+                    ? GuidEntity.grammar.parse(value)
                     : null,
-                toAttribute: (value, type) => value?.toString(),
+                toAttribute: (value, type) => /** @type {String} */(value?.toString()),
             },
             attribute: "data-id",
             reflect: true,
@@ -70,7 +70,7 @@ export default class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<LinearColorEntity>} */(LinearColorEntity.getLinearColorFromAnyFormat().parse(value)).value
+                    ? LinearColorEntity.getLinearColorFromAnyFormat().parse(value)
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
             },

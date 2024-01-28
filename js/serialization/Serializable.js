@@ -6,6 +6,6 @@ export default class Serializable {
 
     /** @protected */
     static createGrammar() {
-        return Parsernostrum.failure()
+        return /** @type {Parsernostrum<any>} */(Parsernostrum.failure())
     }
 }

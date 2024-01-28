@@ -1,4 +1,4 @@
-import Parsernostrum from "parsernostrum/src/Parsernostrum.js"
+import Parsernostrum from "parsernostrum"
 import VectorEntity from "./VectorEntity.js"
 
 export default class SimpleSerializationVectorEntity extends VectorEntity {
@@ -9,13 +9,13 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
         const number = Parsernostrum.number.getParser().parser.regexp.source
         return Parsernostrum.alt(
             Parsernostrum.reg(new RegExp(
-                "(?<x>" + number + ")"
+                "(" + number + ")"
                 + "\\s*,\\s"
-                + "(?<y>" + number + ")"
+                + "(" + number + ")"
                 + "\\s*,\\s"
-                + "(?<z>" + number + ")"
+                + "(" + number + ")"
             ))
-                .map(({ groups: { x, y, z } }) => new this({
+                .map(([x, y, z]) => new this({
                     X: Number(x),
                     Y: Number(y),
                     Z: Number(z),

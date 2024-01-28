@@ -52,7 +52,7 @@ export default class Serializer {
      */
     doRead(value) {
         let grammar = Grammar.grammarFor(undefined, this.entityType)
-        const parseResult = grammar.parse(value)
+        const parseResult = grammar.run(value)
         if (!parseResult.status) {
             throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
         }
