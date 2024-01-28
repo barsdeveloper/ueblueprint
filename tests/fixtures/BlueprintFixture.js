@@ -7,21 +7,10 @@ export default class BlueprintFixture {
         return this.#blueprintLocator
     }
 
-    /** @type {Blueprint} */
-    #blueprint
-    get blueprint() {
-        return this.#blueprint
-    }
-
     /** @param {import("playwright/test").Page} page */
     constructor(page) {
         this.page = page
         this.#blueprintLocator = page.locator("ueb-blueprint")
-        // this.#blueprintLocator.evaluate(elem => /** @type {Blueprint} */(elem)).then(elem => this.#blueprint = elem)
-    }
-
-    getBlueprint() {
-        return this.blueprint
     }
 
     async setup() {
@@ -33,8 +22,30 @@ export default class BlueprintFixture {
         this.server.listen(port, "127.0.0.1")
         await this.page.goto(`http://127.0.0.1:${port}/empty.html`)
         this.#blueprintLocator = this.page.locator("ueb-blueprint")
+        // To cause the blueprint to get the focus and start listining for input, see MouseClick::#mouseDownHandler
         this.#blueprintLocator.click({ position: { x: 100, y: 300 } })
-        this.#blueprint = await this.#blueprintLocator.evaluate(elem => /** @type {Blueprint} */(elem))
+    }
+
+    removeNodes() {
+        return this.#blueprintLocator.evaluate(/** @param {Blueprint} blueprint */ blueprint =>
+            blueprint.removeGraphElement(...blueprint.getNodes())
+        )
+    }
+
+    /** @param {String} text */
+    paste(text) {
+        return this.#blueprintLocator.evaluate(
+            /** @param {Blueprint} blueprint */(blueprint, text) => {
+                const event = new ClipboardEvent("paste", {
+                    bubbles: true,
+                    cancelable: true,
+                    clipboardData: new DataTransfer(),
+                })
+                event.clipboardData.setData("text", text)
+                blueprint.dispatchEvent(event)
+            },
+            text
+        )
     }
 
     cleanup() {

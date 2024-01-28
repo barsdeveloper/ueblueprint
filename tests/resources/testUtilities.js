@@ -1,7 +1,6 @@
-import { expect } from "@playwright/test"
 import Configuration from "../../js/Configuration.js"
 import NodeElement from "../../js/element/NodeElement.js"
-import test from "../test.js"
+import { test, expect } from "../fixtures/test.js"
 import Utility from "../../js/Utility.js"
 
 /** @param {String[]} words */
@@ -12,7 +11,7 @@ function getFirstWordOrder(words) {
 function generateNodeTest(nodeTest) {
     test.describe(nodeTest.name, () => {
         test.beforeAll(async ({ blueprintPage }) => {
-            const blueprint = blueprintPage.getBlueprint()
+            const blueprint = blueprintPage.blueprintLocator
             blueprint.removeGraphElement(...blueprint.getNodes())
             Utility.paste(blueprint, nodeTest.value)
             node = blueprint.querySelector("ueb-node")

@@ -1,11 +1,9 @@
 import { test, expect } from "./fixtures/test.js"
-import Utility from "../js/Utility.js"
 
 test.beforeEach(async ({ blueprintPage, page }) => {
-    const blueprint = blueprintPage.blueprint
     await blueprintPage.blueprintLocator.click({ position: { x: 100, y: 300 } })
-    blueprint.removeGraphElement(...blueprint.getNodes())
-    Utility.paste(blueprint, String.raw`
+    await blueprintPage.removeNodes()
+    await blueprintPage.paste(String.raw`
         Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_0"
             FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/UMG.WidgetBlueprintLibrary"',MemberName="DrawBox")
             NodePosX=-528
@@ -28,7 +26,7 @@ test.describe("Color picker", () => {
     let color
 
     test("Can cancel the operation", async ({ page }) => {
-        expect(page.locator("ueb-window")).not.toBeVisible()
+        expect(page.locator("ueb-window")).toBeHidden()
         // expect(page.getByLabel("Tint")).toBe
         // cy.contains("ueb-pin", "Tint")
         //     .then(pin => (color = pin[0].dataset.color, pin))
