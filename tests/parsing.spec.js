@@ -232,25 +232,25 @@ test.describe("Serializer", () => {
     test("UnknownKeysValue", () => {
         const parser = Grammar.unknownValue
 
-        expect(parser.parse('"Hello"').value.constructor).toStrictEqual(String)
-        expect(parser.parse("()").value).toBeNull()
-        expect(parser.parse("8345").value.constructor).toStrictEqual(Number)
-        expect(parser.parse("True").value.constructor).toStrictEqual(Boolean)
-        expect(parser.parse("False").value.constructor).toStrictEqual(Boolean)
-        expect(parser.parse("F0223D3742E67C0D9FEFB2A64946B7F0").value.constructor).toStrictEqual(GuidEntity)
-        expect(parser.parse("SYMBOL1").value.constructor).toStrictEqual(SymbolEntity)
-        expect(parser.parse("Symbol_2_3_4").value.constructor).toStrictEqual(SymbolEntity)
-        expect(parser.parse("(X=-0.495,  Y=0, )").value.constructor).toStrictEqual(Vector2DEntity)
-        expect(parser.parse("(X=-0.495,Y=+765.0,Z=7)").value.constructor).toStrictEqual(VectorEntity)
-        expect(parser.parse("(R=1.000000,P=7.6,Y=+88.99)").value.constructor).toStrictEqual(RotatorEntity)
-        expect(parser.parse("(R=0.000000,G=0.660000,B=1.000000,A=1.000000)").value.constructor)
+        expect(parser.parse('"Hello"').constructor).toStrictEqual(String)
+        expect(parser.parse("()")).toBeNull()
+        expect(parser.parse("8345").constructor).toStrictEqual(Number)
+        expect(parser.parse("True").constructor).toStrictEqual(Boolean)
+        expect(parser.parse("False").constructor).toStrictEqual(Boolean)
+        expect(parser.parse("F0223D3742E67C0D9FEFB2A64946B7F0").constructor).toStrictEqual(GuidEntity)
+        expect(parser.parse("SYMBOL1").constructor).toStrictEqual(SymbolEntity)
+        expect(parser.parse("Symbol_2_3_4").constructor).toStrictEqual(SymbolEntity)
+        expect(parser.parse("(X=-0.495,  Y=0, )").constructor).toStrictEqual(Vector2DEntity)
+        expect(parser.parse("(X=-0.495,Y=+765.0,Z=7)").constructor).toStrictEqual(VectorEntity)
+        expect(parser.parse("(R=1.000000,P=7.6,Y=+88.99)").constructor).toStrictEqual(RotatorEntity)
+        expect(parser.parse("(R=0.000000,G=0.660000,B=1.000000,A=1.000000)").constructor)
             .toStrictEqual(LinearColorEntity)
-        expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`).value.constructor)
+        expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`).constructor)
             .toStrictEqual(ObjectReferenceEntity)
-        expect(parser.parse("(1,2,3,4,5,6,7,8,9)").value).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
-        expect(parser.parse(`( "Hello",  "World",  )`).value).toStrictEqual(["Hello", "World"])
-        expect(parser.parse(`( "Alpha", 123, Beta, "Gamma", "Delta", 99  )`).value)
-            .toStrictEqual(["Alpha", 123, { value: "Beta" }, "Gamma", "Delta", 99])
+        expect(parser.parse("(1,2,3,4,5,6,7,8,9)")).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        expect(parser.parse(`( "Hello",  "World",  )`)).toStrictEqual(["Hello", "World"])
+        expect(parser.parse(`( "Alpha", 123, Beta, "Gamma", "Delta", 99  )`))
+            .toStrictEqual(["Alpha", 123, new SymbolEntity({ value: "Beta" }), "Gamma", "Delta", 99])
     })
 
     test("UnknownKeysEntity", () => {
@@ -283,19 +283,19 @@ test.describe("Serializer", () => {
 
         let vector = serializer.read("(X=1,Y=2,Z=3.5)")
         expect(vector).toBeInstanceOf(VectorEntity)
-        expect(vector).toStrictEqual({
+        expect(vector).toStrictEqual(new VectorEntity({
             X: 1,
             Y: 2,
             Z: 3.5,
-        })
+        }))
 
         vector = serializer.read("(X=10,Y=+20.88,Z=-30.54,)")
         expect(vector).toBeInstanceOf(VectorEntity)
-        expect(vector).toStrictEqual({
+        expect(vector).toStrictEqual(new VectorEntity({
             X: 10,
             Y: 20.88,
             Z: -30.54,
-        })
+        }))
 
         vector = serializer.read(`(
             Z  =   -3.66    ,   
@@ -308,11 +308,11 @@ test.describe("Serializer", () => {
   ,
         )`)
         expect(vector).toBeInstanceOf(VectorEntity)
-        expect(vector).toStrictEqual({
+        expect(vector).toStrictEqual(new VectorEntity({
             X: -1,
             Y: -2,
             Z: -3.66,
-        })
+        }))
 
         expect(() => serializer.read("(X=1,Y=\"2\",Z=3)")).toThrow()
         expect(() => serializer.read("(X=1,Z=3)")).toThrow()
@@ -324,17 +324,17 @@ test.describe("Serializer", () => {
 
         let vector = serializer.read("(X=78,Y=56.3)")
         expect(vector).toBeInstanceOf(Vector2DEntity)
-        expect(vector).toStrictEqual({
+        expect(vector).toStrictEqual(new Vector2DEntity({
             X: 78,
             Y: 56.3,
-        })
+        }))
 
         vector = serializer.read("(X=+4.5,Y=-8.88,)")
         expect(vector).toBeInstanceOf(Vector2DEntity)
-        expect(vector).toStrictEqual({
+        expect(vector).toStrictEqual(new Vector2DEntity({
             X: 4.5,
             Y: -8.88,
-        })
+        }))
 
         vector = serializer.read(`(
             Y  =   +93.004    ,   
@@ -343,10 +343,10 @@ test.describe("Serializer", () => {
                             =        0 ,     
         )`)
         expect(vector).toBeInstanceOf(Vector2DEntity)
-        expect(vector).toStrictEqual({
+        expect(vector).toStrictEqual(new Vector2DEntity({
             X: 0,
             Y: 93.004,
-        })
+        }))
 
         expect(() => serializer.read("(X=1,Y=\"2\")")).toThrow()
         expect(() => serializer.read("(X=1)")).toThrow()
