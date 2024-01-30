@@ -21,6 +21,9 @@ export default class IntegerEntity extends IEntity {
 
     /** @param {Number | AttributeInformation} value */
     constructor(value = 0) {
+        if (value === -0) {
+            value = 0
+        }
         super(value.constructor === Object
             ? value
             : {

@@ -1,3 +1,4 @@
+import Configuration from "../js/Configuration.js"
 import { test, expect } from "./fixtures/test.js"
 
 test.beforeEach(async ({ blueprintPage, page }) => {
@@ -25,22 +26,19 @@ test.describe("Color picker", () => {
 
     let color
 
-    test("Can cancel the operation", async ({ page }) => {
-        expect(page.locator("ueb-window")).toBeHidden()
-        // expect(page.getByLabel("Tint")).toBe
-        // cy.contains("ueb-pin", "Tint")
-        //     .then(pin => (color = pin[0].dataset.color, pin))
-        //     .find(".ueb-pin-input")
-        //     .click()
-        // cy.get("ueb-window")
-        //     .should("exist")
-        //     .contains(Configuration.windowCancelButtonText)
-        //     .click()
-        //     .should("not.exist")
-        // cy.contains("ueb-pin", "Tint")
-        //     .then(
-        //         /** @param {JQuery<PinElement<LinearColorEntity>>} pin */
-        //         pin => expect(color).to.not.be.undefined.and.to.be.equal(pin[0].getDefaultValue().toString()))
+    test("Can cancel the operation", async ({ blueprintPage }) => {
+        const blueprint = blueprintPage.blueprintLocator
+        const tintPin = blueprint.locator('ueb-pin:has-text("Tint")')
+        const window = blueprint.locator("ueb-window")
+        expect(window).toBeHidden()
+        const color = await tintPin.evaluate(pin => pin.dataset.color)
+        await tintPin.locator(".ueb-pin-input").click({ position: { x: 20, y: 20 } })
+        expect(window).toBeVisible()
+        await window.getByText(Configuration.windowCancelButtonText).click()
+        expect(window).toBeHidden()
+        const newColor = await tintPin.evaluate(pin => pin.dataset.color)
+        expect(newColor).not.toBeUndefined()
+        expect(newColor == color).not.toBeTruthy()
     })
 
     // it("Can close the window", () => {

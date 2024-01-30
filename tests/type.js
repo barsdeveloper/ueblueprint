@@ -13,7 +13,7 @@
  *     title?: String,
  *     subtitle?: String,
  *     value: String,
- *     size: [Number, Number],
+ *     size?: [Number, Number],
  *     color: CSSResult,
  *     icon: TemplateResult | Boolean,
  *     pins: Number,
@@ -21,6 +21,6 @@
  *     delegate: Boolean,
  *     development: Boolean,
  *     variadic?: Boolean,
- *     additionalTest: AdditionalTest,
+ *     additionalTest?: AdditionalTest,
  * }} TestSpecifier
  */

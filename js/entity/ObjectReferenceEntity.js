@@ -25,7 +25,7 @@ export default class ObjectReferenceEntity extends IEntity {
         Grammar.pathQuotes
     )
         .map(([type, _2, path]) =>
-            new this({ type: type, path: path })
+            new this({ type, path })
         )
     static typeReferenceGrammar = Grammar.typeReference.map(v =>
         new this({ type: v, path: "" })

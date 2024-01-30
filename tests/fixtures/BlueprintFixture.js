@@ -1,6 +1,6 @@
 import httpServer from "http-server"
 
-export default class BlueprintFixture {
+export default class BlueprintFixture  {
 
     #blueprintLocator
     get blueprintLocator() {

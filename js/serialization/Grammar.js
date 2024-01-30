@@ -50,7 +50,7 @@ export default class Grammar {
 
     static colorValue = Parsernostrum.numberByte
     static word = Parsernostrum.reg(Grammar.Regex.Word)
-    static pathQuotes = Parsernostrum.reg(new RegExp(
+    static pathQuotes = Parsernostrum.regArray(new RegExp(
         `'"(` + Grammar.Regex.InsideString.source + `)"'`
         + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         + `|"(` + Grammar.Regex.InsideString.source + `)"`
