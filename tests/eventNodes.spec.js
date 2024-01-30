@@ -1,6 +1,6 @@
-import generateNodeTests from "../fixtures/testUtilities.js"
-import Configuration from "../../js/Configuration.js"
-import SVGIcon from "../../js/SVGIcon.js"
+import generateNodeTests from "./resources/testUtilities.js"
+import Configuration from "../js/Configuration.js"
+import SVGIcon from "../js/SVGIcon.js"
 
 const tests = [
     {

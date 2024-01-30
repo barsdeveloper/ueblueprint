@@ -11,3 +11,4 @@ export const test = /** @type {typeof base.extend<{blueprintPage: BlueprintFixtu
 })
 
 export const expect = base.expect
+export * from "@playwright/test"

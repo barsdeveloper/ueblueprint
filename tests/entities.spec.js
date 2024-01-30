@@ -1,6 +1,5 @@
 // @ts-nocheck
 
-import { expect } from "@playwright/test"
 import Entity1 from "./resources/Entity1.js"
 import Entity2 from "./resources/Entity2.js"
 import entity2Value from "./resources/serializedEntity2.js"
@@ -16,7 +15,7 @@ import initializeSerializerFactory from "../js/serialization/initializeSerialize
 import ObjectSerializer from "../js/serialization/ObjectSerializer.js"
 import Serializer from "../js/serialization/Serializer.js"
 import SerializerFactory from "../js/serialization/SerializerFactory.js"
-import test from "./test.js"
+import { test, expect } from "./fixtures/test.js"
 import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 
 test.describe("Entity initialization", () => {
@@ -26,32 +25,19 @@ test.describe("Entity initialization", () => {
         initializeSerializerFactory()
         SerializerFactory.registerSerializer(
             Entity2,
-            new Serializer(
-                Entity2,
-                (entity, v) => `{\n${v}\n}`,
-                "\n",
-                false,
-                ": ",
-                k => `    ${k}`
-            )
+            new Serializer(Entity2, (entity, v) => `{\n${v}\n}`, "\n", false, ": ", k => `    ${k}`)
         )
         SerializerFactory.registerSerializer(
             Entity1,
-            new Serializer(
-                Entity1,
-                (entity, v) => `Entity1(${v})`,
-                ", ",
-                false,
-                "=",
-            )
+            new Serializer(Entity1, (entity, v) => `Entity1(${v})`, ", ", false, "=",)
         )
         expect(Object.keys(entity)).toHaveLength(8)
-        expect(entity.someNumber).toBe(567)
-        expect(entity.someString).toBe("alpha")
-        expect(entity.someString2).toBe("beta")
-        expect(entity.someBoolean).toBe(true)
-        expect(entity.someBoolean2).toBe(false)
-        expect(entity.someObjectString).toBe("gamma")
+        expect(entity.someNumber).toEqual(567)
+        expect(entity.someString).toEqual("alpha")
+        expect(entity.someString2).toEqual("beta")
+        expect(entity.someBoolean).toEqual(true)
+        expect(entity.someBoolean2).toEqual(false)
+        expect(entity.someObjectString).toEqual("gamma")
         expect(entity.someArray).toStrictEqual([400, 500, 600, 700, 800])
 
         expect(entity.equals(new Entity2())).toBeTruthy()
@@ -59,7 +45,7 @@ test.describe("Entity initialization", () => {
         const other = new Entity2({
             someString2: "gamma"
         })
-        expect(entity.equals(other)).toBe(false)
+        expect(entity.equals(other)).toEqual(false)
         const other1 = new Entity2({
             someNumber: 123,
             someString: "a",
@@ -109,40 +95,27 @@ test.describe("Entity initialization", () => {
         initializeSerializerFactory()
         SerializerFactory.registerSerializer(
             Entity3,
-            new Serializer(
-                Entity3,
-                (entity, v) => `[[\n${v}\n]]`,
-                "\n",
-                false,
-                ": ",
-                k => `    ${k}`
-            )
+            new Serializer(Entity3, (entity, v) => `[[\n${v}\n]]`, "\n", false, ": ", k => `    ${k}`)
         )
         SerializerFactory.registerSerializer(
             Entity1,
-            new Serializer(
-                Entity1,
-                (entity, v) => `Entity1(${v})`,
-                ", ",
-                false,
-                "=",
-            )
+            new Serializer(Entity1, (entity, v) => `Entity1(${v})`, ", ", false, "=",)
         )
         expect(Object.keys(entity)).toHaveLength(keys.length)
         expect(Object.keys(entity)).toStrictEqual(keys)
-        expect(entity.alpha).toBe(32)
-        expect(entity.bravo).toBe(78)
-        expect(entity.charlie).toBe("Charlie")
+        expect(entity.alpha).toEqual(32)
+        expect(entity.bravo).toEqual(78)
+        expect(entity.charlie).toEqual("Charlie")
         expect(entity.delta).toBeNull()
-        expect(entity.echo).toBe("echo")
-        expect(entity.foxtrot).toBe(false)
+        expect(entity.echo).toEqual("echo")
+        expect(entity.foxtrot).toEqual(false)
         expect(entity.golf).toStrictEqual([])
         expect(entity.hotel).toBeNull()
         expect(entity.india).toStrictEqual([])
         expect(entity.juliett).toStrictEqual(["a", "b", "c", "d", "e"])
         expect(entity.kilo).toStrictEqual([true, false, false, true, true])
-        expect(entity.mike).toBe("Bar")
-        expect(entity.november).toBe(0)
+        expect(entity.mike).toEqual("Bar")
+        expect(entity.november).toEqual(0)
         expect(entity.oscar).toStrictEqual(new Entity1({ a: 8, b: 9 }))
         expect(entity.papa).toStrictEqual(new Entity1({ a: 12, b: 13 }))
         expect(entity.quebec).toBeUndefined()
@@ -164,7 +137,7 @@ test.describe("Entity initialization", () => {
         expect(entity.quebec).toBe(10)
         entity.quebec = 6
         expect(entity.quebec).toBe(6)
-        expect(SerializerFactory.getSerializer(Entity3).write(entity)).to.equal(entity3Value)
+        expect(SerializerFactory.getSerializer(Entity3).write(entity)).toEqual(entity3Value)
 
         expect(Grammar.getAttribute(Entity3, ["romeo", "b"]).type).toBe(Number)
         expect(Grammar.getAttribute(Entity3, ["sierra", "someString2"]).type).toBe(String)
@@ -177,21 +150,18 @@ test.describe("Entity initialization", () => {
         const entity = new Entity4()
         initializeSerializerFactory()
         SerializerFactory.registerSerializer(
+            Entity1,
+            new Serializer(Entity1, (entity, v) => `E1[${v}]`, " - ", false, ":", k => k.toUpperCase())
+        )
+        SerializerFactory.registerSerializer(
             Entity4,
-            new Serializer(
-                Entity4,
-                (entity, v) => `Begin\n${v}\nEnd`,
-                "\n",
-                false,
-                " => ",
-                k => `  \${${k}}`
-            )
+            new Serializer(Entity4, (entity, v) => `Begin\n${v}\nEnd`, "\n", false, " => ", k => `  \${${k}}`)
         )
         expect(Entity4.attributes.second.type).toEqual([Entity1])
         expect(SerializerFactory.getSerializer(Entity4).write(entity)).toEqual(entity4Value)
     })
 
-    context("Entity5", () => {
+    test("Entity5", () => {
         let entity = new Entity5()
         initializeSerializerFactory()
         SerializerFactory.registerSerializer(

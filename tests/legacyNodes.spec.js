@@ -1,8 +1,10 @@
-import generateNodeTests from "../fixtures/testUtilities.js"
-import Configuration from "../../js/Configuration.js"
-import SVGIcon from "../../js/SVGIcon.js"
+import { expect } from "./fixtures/test.js"
+import Configuration from "../js/Configuration.js"
+import generateNodeTests from "./resources/testUtilities.js"
+import SVGIcon from "../js/SVGIcon.js"
 
-const tests = [
+/** @type {TestSpecifier} */
+generateNodeTests([
     {
         name: "Flip Flop",
         value: String.raw`
@@ -54,24 +56,28 @@ const tests = [
         pinNames: ["A", "B", "Is A"],
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {import("../../js/element/NodeElement.js").default} node */
-            node => {
-                const entity = node.entity
-                expect(entity.Class.type).to.be.equal("/Script/BlueprintGraph.K2Node_MacroInstance")
-                expect(entity.MacroGraphReference.MacroGraph.type).to.be.equal("/Script/Engine.EdGraph")
-                expect(entity.MacroGraphReference.MacroGraph.path).to.be.equal("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop")
-                expect(entity.MacroGraphReference.GraphBlueprint.type).to.be.equal("/Script/Engine.Blueprint")
-                expect(entity.MacroGraphReference.GraphBlueprint.path).to.be.equal("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros")
-                const pinObjects = Object.keys(entity)
-                    .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
-                    .map(k => /** @type {import("../../js/entity/ObjectEntity.js").default} */(entity[k]))
+        additionalTest: async extractor => {
+            expect(extractor(node => node.entity.Class.type))
+                .toEqual("/Script/BlueprintGraph.K2Node_MacroInstance")
+            expect(extractor(node => node.entity.MacroGraphReference.MacroGraph.type))
+                .toEqual("/Script/Engine.EdGraph")
+            expect(extractor(node => node.entity.MacroGraphReference.MacroGraph.path))
+                .toEqual("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop")
+            expect(extractor(node => node.entity.MacroGraphReference.GraphBlueprint.type))
+                .toEqual("/Script/Engine.Blueprint")
+            expect(extractor(node => node.entity.MacroGraphReference.GraphBlueprint.path))
+                .toEqual("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros")
+            expect(extractor(
+                (node, subObjectAttributeNamePrefix) => Object.keys(node.entity)
+                    .filter(k => k.startsWith(subObjectAttributeNamePrefix))
+                    .map(k => /** @type {ObjectEntity} */(node.entity[k]))
                     .filter(v => v.Class)
-                expect(pinObjects).to.be.of.length(4)
-                pinObjects.forEach(v => expect(v.getType()).to.be.equal(Configuration.paths.edGraphPinDeprecated))
-                expect(entity.getPinEntities()).to.be.of.length(4)
-            }
+                    .map(objectEntity => objectEntity.getType())
+                ,
+                Configuration.subObjectAttributeNamePrefix
+            ))
+                .toStrictEqual(Array(4).fill(Configuration.paths.edGraphPinDeprecated))
+            expect(extractor(node => node.getPinEntities().length)).toEqual(4)
+        }
     },
-]
-
-generateNodeTests(tests)
+])
