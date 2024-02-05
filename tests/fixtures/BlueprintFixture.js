@@ -1,40 +1,72 @@
 import httpServer from "http-server"
 
-export default class BlueprintFixture  {
 
+export default class BlueprintFixture {
+
+    #port = 8181
     #blueprintLocator
     get blueprintLocator() {
         return this.#blueprintLocator
     }
 
+    #node
+    get node() {
+        return this.#node
+    }
+
+    /** @type {ReturnType<httpServer.createServer>} */
+    static server
+
     /** @param {import("playwright/test").Page} page */
     constructor(page) {
         this.page = page
         this.#blueprintLocator = page.locator("ueb-blueprint")
+        this.#node = this.#blueprintLocator.locator("ueb-node").nth(0)
+        if (process.env.UEBLUEPRINT_TEST_SERVER_PORT) {
+            this.#port = Number(process.env.UEBLUEPRINT_TEST_SERVER_PORT)
+        }
+    }
+
+    createServer() {
+        return new Promise((resolve, reject) => {
+            const server = httpServer.createServer({
+                root: "./",
+                cors: true,
+                logFn: (req, res, error) => error && console.error("Http server: " + error)
+            })
+            process.on("SIGTERM", () => {
+                console.log("SIGTERM signal received: closing HTTP server")
+                server.close()
+            })
+            server.listen(this.#port, "127.0.0.1", () => resolve(server))
+            BlueprintFixture.server = server
+        })
     }
 
     async setup() {
-        this.server = httpServer.createServer({
-            "root": "./",
-            "cors": true,
-        })
-        const port = Number(process.env.UEBLUEPRINT_TEST_SERVER_PORT ?? 8181)
-        this.server.listen(port, "127.0.0.1")
-        await this.page.goto(`http://127.0.0.1:${port}/empty.html`)
+        const url = `http://127.0.0.1:${this.#port}/empty.html`
+        try {
+            await this.page.goto(url)
+        } catch (e) {
+            if (e.message.includes("ERR_CONNECTION_REFUSED")) {
+                await this.createServer()
+                await this.page.goto(url)
+            }
+        }
         this.#blueprintLocator = this.page.locator("ueb-blueprint")
         // To cause the blueprint to get the focus and start listining for input, see MouseClick::#mouseDownHandler
-        this.#blueprintLocator.click({ position: { x: 100, y: 300 } })
+        await this.#blueprintLocator.click({ position: { x: 100, y: 300 } })
     }
 
-    removeNodes() {
-        return this.#blueprintLocator.evaluate(/** @param {Blueprint} blueprint */ blueprint =>
+    async removeNodes() {
+        return await this.#blueprintLocator.evaluate(/** @param {Blueprint} blueprint */ blueprint =>
             blueprint.removeGraphElement(...blueprint.getNodes())
         )
     }
 
     /** @param {String} text */
-    paste(text) {
-        return this.#blueprintLocator.evaluate(
+    async paste(text) {
+        return await this.#blueprintLocator.evaluate(
             /** @param {Blueprint} blueprint */(blueprint, text) => {
                 const event = new ClipboardEvent("paste", {
                     bubbles: true,
@@ -48,7 +80,6 @@ export default class BlueprintFixture  {
         )
     }
 
-    cleanup() {
-        this.server.close()
+    async cleanup() {
     }
 }

@@ -1171,7 +1171,7 @@ export default class ObjectEntity extends IEntity {
 
     nodeIcon() {
         if (this.isMaterial() || this.isPcg()) {
-            return undefined
+            return null
         }
         switch (this.getType()) {
             case Configuration.paths.addDelegate:

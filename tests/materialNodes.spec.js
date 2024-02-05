@@ -1,12 +1,13 @@
-import Configuration from "../../js/Configuration.js"
-import generateNodeTests from "../fixtures/testUtilities.js"
-import IntegerEntity from "../../js/entity/IntegerEntity.js"
-import NodeElement from "../../js/element/NodeElement.js"
-import PinElement from "../../js/element/PinElement.js"
-import RBSerializationVector2DEntity from "../../js/entity/RBSerializationVector2DEntity.js"
-import Utility from "../../js/Utility.js"
+import { expect } from "./fixtures/test.js"
+import Configuration from "../js/Configuration.js"
+import generateNodeTests from "./resources/testUtilities.js"
+import IntegerEntity from "../js/entity/IntegerEntity.js"
+import PinElement from "../js/element/PinElement.js"
+import RBSerializationVector2DEntity from "../js/entity/RBSerializationVector2DEntity.js"
+import Utility from "../js/Utility.js"
+import VectorEntity from "../js/entity/VectorEntity.js"
 
-const tests = [
+generateNodeTests([
     {
         name: "Comment",
         value: String.raw`
@@ -60,26 +61,17 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.green,
-        icon: false,
+        icon: null,
         pins: 2,
         pinNames: ["Value"],
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {import("../../js/element/NodeElement.js").default} node */
-            node => {
-                /** 
-                 * @typedef {import("../../js/element/PinElement.js").default<Number>} NumberPinEntity
-                 * @typedef {import("../../js/element/InputElement.js").default} InputElement
-                 */
-                const value = 10000.0
-                const constantPin = /** @type {NumberPinEntity} */(node.querySelectorAll("ueb-pin")[0])
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue(), value)).to.be.true
-                /** @type {NodeListOf<InputElement>} */
-                const inputFields = node.querySelectorAll("ueb-input")
-                expect(inputFields).to.be.lengthOf(1)
-                expect(inputFields[0].innerText).to.equal(Utility.printNumber(value))
-            }
+        additionalTest: (extract, locator) => {
+            const value = 10000.0
+            expect(extract(node => node.getPinElements()[0].getDefaultValue())).toBeCloseTo(value)
+            expect(extract(node => node.querySelectorAll("ueb-input").length)).toBe(1)
+            expect(locator.locator("ueb-input").innerText()).toBe(Utility.printNumber(value))
+        }
     },
     {
         name: "Constance2Vector",
@@ -108,30 +100,24 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.yellow,
-        icon: false,
+        icon: null,
         pins: 5,
         pinNames: ["X", "Y"],
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {import("../../js/element/NodeElement.js").default} node */
-            node => {
-                /** 
-                 * @typedef {import("../../js/element/PinElement.js").default<VectorEntity>} VectorPinElement
-                 * @typedef {import("../../js/element/InputElement.js").default} InputElement
-                 */
-                const x = 0.1
-                const y = 23.88888
-                const xPin = /** @type {VectorPinElement} */(node.querySelectorAll("ueb-pin")[0])
-                const yPin = /** @type {VectorPinElement} */(node.querySelectorAll("ueb-pin")[1])
-                expect(Utility.approximatelyEqual(xPin.getDefaultValue(), x)).to.be.true
-                expect(Utility.approximatelyEqual(yPin.getDefaultValue(), y)).to.be.true
-                /** @type {NodeListOf<InputElement>} */
-                const inputFields = node.querySelectorAll("ueb-input")
-                expect(inputFields).to.be.lengthOf(2)
-                expect(inputFields[0].innerText).to.equal(Utility.printNumber(x))
-                expect(inputFields[1].innerText).to.equal(Utility.printNumber(y))
-            }
+        additionalTest: (extract, locator) => {
+            const x = 0.1
+            const y = 23.88888
+            expect(extract(node =>
+                /** @type {PinElement} */(node.querySelectorAll("ueb-pin")[0]).getDefaultValue()
+            )).toBeCloseTo(x)
+            expect(extract(node =>
+                /** @type {PinElement} */(node.querySelectorAll("ueb-pin")[1]).getDefaultValue()
+            )).toBeCloseTo(y)
+            const inputs = locator.locator("ueb-input")
+            expect(inputs.count()).toBe(2)
+            expect(inputs.allInnerTexts()).toStrictEqual([Utility.printNumber(x), Utility.printNumber(y)])
+        }
     },
     {
         name: "Constant3Vector",
@@ -159,32 +145,23 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.yellow,
-        icon: false,
+        icon: null,
         pins: 5,
         pinNames: ["Constant"],
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {import("../../js/element/NodeElement.js").default} node */
-            node => {
-                /** 
-                 * @typedef {import("../../js/element/PinElement.js").default<VectorEntity>} VectorPinElement
-                 * @typedef {import("../../js/element/InputElement.js").default} InputElement
-                 */
-                const x = 0.00432
-                const y = 123.199997
-                const z = 7657650176.0
-                const constantPin = /** @type {VectorPinElement} */(node.querySelectorAll("ueb-pin")[0])
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().X, x)).to.be.true
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().Y, y)).to.be.true
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().Z, z)).to.be.true
-                /** @type {NodeListOf<InputElement>} */
-                const inputFields = node.querySelectorAll("ueb-input")
-                expect(inputFields).to.be.lengthOf(3)
-                expect(inputFields[0].innerText).to.equal(Utility.printNumber(x))
-                expect(inputFields[1].innerText).to.equal(Utility.printNumber(y))
-                expect(inputFields[2].innerText).to.equal(Utility.printNumber(z))
-            }
+        additionalTest: async (extract, locator) => {
+            const pins = locator.locator("ueb-pin")
+            expect(pins.count()).toBe(3)
+            const values = await extract(node =>
+                Object.values(
+                    /** @type {PinElement<VectorEntity>} */(node.querySelectorAll("ueb-pin")[0]).getDefaultValue()
+                )
+            )
+            const expected = [0.00432, 123.199997, 7657650176.0]
+            values.forEach((v, i) => expect(v).toBeCloseTo(expect[i]))
+            expect(pins.allInnerTexts()).toStrictEqual(expected.map(v => Utility.printNumber(v)))
+        }
     },
     {
         name: "Constant4Vector",
@@ -213,28 +190,27 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.yellow,
-        icon: false,
+        icon: null,
         pins: 6,
         pinNames: ["Constant"],
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {import("../../js/element/NodeElement.js").default} node */
-            node => {
-                /** 
-                 * @typedef {import("../../js/element/PinElement.js").default<LinearColorEntity>} LinearColorPinElement
-                 * @typedef {import("../../js/element/InputElement.js").default} InputElement
-                 */
-                const r = 4.0
-                const g = 10.5
-                const b = 2500.669922
-                const a = 0.33
-                const constantPin = /** @type {LinearColorPinElement} */(node.querySelectorAll("ueb-pin")[0])
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().R, r)).to.be.true
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().G, g)).to.be.true
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().B, b)).to.be.true
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().A, a)).to.be.true
-            }
+        additionalTest: (extract, locator) => {
+            const r = 4.0
+            const g = 10.5
+            const b = 2500.669922
+            const a = 0.33
+            const rgba = extract(node => {
+                const value = /** @type {PinElement<LinearColorEntity>} */(
+                    node.querySelector("ueb-pin")
+                ).getDefaultValue()
+                return [value.R.value, value.G.value, value.B.value, value.A.value]
+            })
+            expect(rgba[0]).toBeCloseTo(r)
+            expect(rgba[1]).toBeCloseTo(g)
+            expect(rgba[2]).toBeCloseTo(b)
+            expect(rgba[3]).toBeCloseTo(a)
+        }
     },
     {
         name: "Sqrt",
@@ -258,7 +234,7 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.green,
-        icon: false,
+        icon: null,
         pins: 2,
         pinNames: [],
         delegate: false,
@@ -285,7 +261,7 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.green,
-        icon: false,
+        icon: null,
         pins: 2,
         pinNames: ["X"],
         delegate: false,
@@ -312,7 +288,7 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.green,
-        icon: false,
+        icon: null,
         pins: 2,
         pinNames: ["X"],
         delegate: false,
@@ -339,7 +315,7 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.green,
-        icon: false,
+        icon: null,
         pins: 2,
         pinNames: [],
         delegate: false,
@@ -379,7 +355,7 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.darkBlue,
-        icon: false,
+        icon: null,
         pins: 12,
         pinNames: [
             "UVs",
@@ -397,23 +373,22 @@ const tests = [
         ],
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {import("../../js/element/NodeElement.js").default} node */
-            node => {
-                /** 
-                 * @typedef {import("../../js/element/PinElement.js").default<LinearColorEntity>} LinearColorPinElement
-                 * @typedef {import("../../js/element/InputElement.js").default} InputElement
-                 */
-                const r = 4.0
-                const g = 10.5
-                const b = 2500.669922
-                const a = 0.33
-                const constantPin = /** @type {LinearColorPinElement} */(node.querySelectorAll("ueb-pin")[0])
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().R, r)).to.be.true
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().G, g)).to.be.true
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().B, b)).to.be.true
-                expect(Utility.approximatelyEqual(constantPin.getDefaultValue().A, a)).to.be.true
-            }
+        additionalTest: extract => {
+            const r = 4.0
+            const g = 10.5
+            const b = 2500.669922
+            const a = 0.33
+            const rgba = extract(node => {
+                const value = /** @type {PinElement<LinearColorEntity>} */(
+                    node.querySelector("ueb-pin")
+                ).getDefaultValue()
+                return [value.R.value, value.G.value, value.B.value, value.A.value]
+            })
+            expect(rgba[0]).toBeCloseTo(r)
+            expect(rgba[1]).toBeCloseTo(g)
+            expect(rgba[2]).toBeCloseTo(b)
+            expect(rgba[3]).toBeCloseTo(a)
+        }
     },
     {
         name: "Temporal Sobol",
@@ -439,7 +414,7 @@ const tests = [
             End Object
         `,
         color: Configuration.nodeColors.green,
-        icon: false,
+        icon: null,
         pins: 3,
         pinNames: [
             "Index",
@@ -447,16 +422,17 @@ const tests = [
         ],
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                const indexPin = /** @type {PinElement<IntegerEntity>} */(node.querySelectorAll("ueb-pin")[0])
-                const seedPin = /** @type {PinElement<RBSerializationVector2DEntity>} */(node.querySelectorAll("ueb-pin")[1])
-                expect(indexPin.getDefaultValue().value).to.be.equal(4)
-                expect(seedPin.getDefaultValue().X).to.be.equal(77)
-                expect(seedPin.getDefaultValue().Y).to.be.equal(55)
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IntegerEntity>} */(node.querySelectorAll("ueb-pin")[0]).getDefaultValue().value
+            )).toBe(4)
+            const values = extract(node => {
+                const value = /** @type {PinElement<RBSerializationVector2DEntity>} */(node.querySelectorAll("ueb-pin")[0])
+                    .getDefaultValue()
+                return [value.X, value.Y]
+            })
+            expect(values[0]).toBe(77)
+            expect(values[1]).toBe(55)
+        }
     },
-]
-
-generateNodeTests(tests)
+])

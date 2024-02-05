@@ -7,4 +7,5 @@
     ],
     "typescript.tsserver.experimental.enableProjectDiagnostics": true,
     "js/ts.implicitProjectConfig.target": "ES2022",
+    "typescript.format.semicolons": "remove",
 }

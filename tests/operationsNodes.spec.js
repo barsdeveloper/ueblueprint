@@ -1,9 +1,9 @@
-import generateNodeTests from "../fixtures/testUtilities.js"
-import NodeElement from "../../js/element/NodeElement.js"
-import PinElement from "../../js/element/PinElement.js"
-import SVGIcon from "../../js/SVGIcon.js"
+import { expect } from "./fixtures/test.js"
+import generateNodeTests from "./resources/testUtilities.js"
+import PinElement from "../js/element/PinElement.js"
+import SVGIcon from "../js/SVGIcon.js"
 
-const tests = [
+generateNodeTests([
     {
         name: "Less",
         title: "<",
@@ -22,14 +22,13 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Less Equal",
@@ -51,14 +50,13 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Equal",
@@ -79,14 +77,13 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Greater",
@@ -106,14 +103,13 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Greater Equal",
@@ -135,14 +131,13 @@ const tests = [
         pins: 3,
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "AND",
@@ -164,14 +159,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "NAND",
@@ -193,14 +187,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Bitwise AND 1",
@@ -223,14 +216,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Bitwise AND 2",
@@ -253,14 +245,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Bitwise OR 1",
@@ -286,14 +277,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Bitwise OR 2",
@@ -317,14 +307,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: true,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Bitwise NOT 1",
@@ -346,14 +335,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Bitwise NOT 2",
@@ -375,14 +363,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Bitwise XOR 1",
@@ -405,14 +392,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Bitwise XOR 2",
@@ -434,14 +420,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "SIN",
@@ -462,14 +447,13 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
         name: "Not Equal",
@@ -490,17 +474,16 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
     {
-        name: "Equal",
+        name: "Equal 2",
         title: "==",
         value: String.raw`
             Begin Object Class=/Script/BlueprintGraph.K2Node_PromotableOperator Name="K2Node_PromotableOperator_1" ExportPath=/Script/BlueprintGraph.K2Node_PromotableOperator'"/Temp/Untitled_1.Untitled_1:PersistentLevel.Untitled.EventGraph.K2Node_PromotableOperator_1"'
@@ -520,15 +503,12 @@ const tests = [
         delegate: false,
         development: false,
         variadic: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                for (const pin of pins) {
-                    expect(pin.template.renderIcon().strings.join("").trim()).to.be.equal(SVGIcon.operationPin.strings.join("").trim())
-                }
-            }
+        additionalTest: extract => {
+            expect(extract(node =>
+                /** @type {PinElement<IEntity>[]} */([...node.querySelectorAll("ueb-pin")])
+                    .map(pin => pin.template.renderIcon().strings.join("").trim())
+            ))
+                .toStrictEqual(Array(3).fill(SVGIcon.operationPin.strings.join("").trim()))
+        }
     },
-]
-
-generateNodeTests(tests)
+])

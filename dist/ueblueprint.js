@@ -2559,7 +2559,7 @@ class Grammar {
 
     static colorValue = Parsernostrum.numberByte
     static word = Parsernostrum.reg(Grammar.Regex.Word)
-    static pathQuotes = Parsernostrum.reg(new RegExp(
+    static pathQuotes = Parsernostrum.regArray(new RegExp(
         `'"(` + Grammar.Regex.InsideString.source + `)"'`
         + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         + `|"(` + Grammar.Regex.InsideString.source + `)"`
@@ -2825,7 +2825,7 @@ class ObjectReferenceEntity extends IEntity {
         Grammar.pathQuotes
     )
         .map(([type, _2, path]) =>
-            new this({ type: type, path: path })
+            new this({ type, path })
         )
     static typeReferenceGrammar = Grammar.typeReference.map(v =>
         new this({ type: v, path: "" })
@@ -2973,6 +2973,9 @@ class IntegerEntity extends IEntity {
 
     /** @param {Number | AttributeInformation} value */
     constructor(value = 0) {
+        if (value === -0) {
+            value = 0;
+        }
         super(value.constructor === Object
             ? value
             : {
@@ -5949,7 +5952,7 @@ class ObjectEntity extends IEntity {
 
     nodeIcon() {
         if (this.isMaterial() || this.isPcg()) {
-            return undefined
+            return null
         }
         switch (this.getType()) {
             case Configuration.paths.addDelegate:
@@ -12354,7 +12357,6 @@ class OrderedIndexArray {
 }
 
 /**
- * @typedef {import("../element/NodeElement.js").default} NodeElement
  * @typedef {typeof import("../Blueprint.js").default.nodeBoundariesSupplier} BoundariesFunction
  * @typedef {typeof import("../Blueprint.js").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{

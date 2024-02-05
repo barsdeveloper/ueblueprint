@@ -1,201 +1,193 @@
-/// <reference types="cypress" />
+import Utility from "../js/Utility.js"
+import { expect, test } from "./fixtures/test.js"
 
-import Utility from "../../js/Utility.js"
+test("clamp method test", () => {
+    expect(Utility.clamp(-4, -3)).toBe(-3)
+    expect(Utility.clamp(-1, -3, -2)).toBe(-2)
+    expect(Utility.clamp(5, 1, 11)).toBe(5)
+})
+test("minDecimals method test", () => {
+    expect(Utility.minDecimals(3.1, 3)).toBe("3.100")
+    expect(Utility.minDecimals(-100, 2)).toBe("-100.00")
+    expect(Utility.minDecimals(0.43, 0)).toBe("0.43")
+    expect(Utility.minDecimals(0.43, 1)).toBe("0.43")
+    expect(Utility.minDecimals(0.43, 2)).toBe("0.43")
+    expect(Utility.minDecimals(0.43, 3)).toBe("0.430")
+    expect(Utility.minDecimals(-2, 0)).toBe("-2")
+})
+test("roundDecimals method test", () => {
+    expect(Utility.roundDecimals(8.543943, 0)).toBe(9)
+    expect(Utility.roundDecimals(8.543943, 1)).toBe(8.5)
+    expect(Utility.roundDecimals(8.543943, 2)).toBe(8.54)
+    expect(Utility.roundDecimals(8.543943, 3)).toBe(8.544)
+    expect(Utility.roundDecimals(-2.192837, 0)).toBe(-2)
+    expect(Utility.roundDecimals(-2.192837, 1)).toBe(-2.2)
+    expect(Utility.roundDecimals(-2.192837, 2)).toBe(-2.19)
+    expect(Utility.roundDecimals(-2.192837, 3)).toBe(-2.193)
+    expect(Utility.roundDecimals(-2.192837, 4)).toBe(-2.1928)
+})
+test("approximatelyEqual method test", () => {
+    expect(Utility.approximatelyEqual(0.2 + 0.1, 0.3)).toBeTruthy()
+    expect(Utility.approximatelyEqual(-0.2 - 0.1, -0.3)).toBeTruthy()
+    expect(Utility.approximatelyEqual(0.1000001, 0.1)).toBeFalsy()
+    expect(Utility.approximatelyEqual(40.1 + 0.2, 40.3)).toBeTruthy()
+    expect(Utility.approximatelyEqual(2, 3)).toBeFalsy()
+})
+test("equals method test", () => {
+    expect(Utility.equals(0.2, 0.2)).toBeTruthy()
+    expect(Utility.equals(new Number(0.7), 0.7)).toBeTruthy()
+    expect(Utility.equals(-40.3, new Number(-40.3))).toBeTruthy()
+    expect(Utility.equals(new Number(-40.3), new Number(-40.3))).toBeTruthy()
+    expect(Utility.equals(0.2 + 0.1, 0.3)).toBeFalsy() // Strict equality
+    expect(Utility.equals(null, undefined)).toBeFalsy()
+    expect(Utility.equals(undefined, null)).toBeFalsy()
+    expect(Utility.equals(0, false)).toBeFalsy()
+    expect(Utility.equals(false, false)).toBeTruthy()
+    expect(Utility.equals(2n, 2)).toBeTruthy()
+    expect(Utility.equals(-6845, -6845n)).toBeTruthy()
+    expect(Utility.equals(7735n, 7736)).toBeFalsy()
+    expect(Utility.equals("abc", "abc")).toBeTruthy()
+    expect(Utility.equals(new String("abc"), new String("abc"))).toBeTruthy()
+    expect(Utility.equals("abc", "aBc")).toBeFalsy()
+    expect(Utility.equals(
+        [-2, "alpha", new String("beta"), new Number(40), [1, 2, 3]],
+        [new Number(-2), new String("alpha"), new String("beta"), new Number(40), new Array(1, 2, 3)]
+    )).toBeTruthy()
+    expect(Utility.equals(
+        [-2.1, "alpha", new String("beta"), new Number(40), [1, 2, 3]],
+        [new Number(-2), new String("alpha"), new String("beta"), new Number(40), new Array(1, 2, 3)]
+    )).toBeFalsy() // First element is different
+    expect(Utility.equals(
+        [-2, "Alpha", new String("beta"), new Number(40), [1, 2, 3]],
+        [new Number(-2), new String("alpha"), new String("beta"), new Number(40), new Array(1, 2, 3)]
+    )).toBeFalsy() // Second element is different
+})
+test("isValueOfType method test", () => {
+    expect(Utility.isValueOfType(34, Number)).toBeTruthy()
+    expect(Utility.isValueOfType(new Number(34), Number)).toBeTruthy()
+    expect(Utility.isValueOfType("34", String)).toBeTruthy()
+    expect(Utility.isValueOfType("34", Number)).toBeFalsy()
+})
+test("mergeArrays method test", () => {
+    expect(Utility.mergeArrays(
+        [],
+        []
+    )).toStrictEqual(
+        []
+    )
+    expect(Utility.mergeArrays(
+        ["alpba", "beta"],
+        []
+    )).toStrictEqual(
+        ["alpba", "beta"]
+    )
+    expect(Utility.mergeArrays(
+        [],
+        ["alpba", "beta"]
+    )).toStrictEqual(
+        ["alpba", "beta"]
+    )
+    expect(Utility.mergeArrays(
+        [1, 3, 5, 7, 9],
+        [1, 2, 3, 4, 5]
+    )).toStrictEqual(
+        [1, 2, 3, 4, 5, 7, 9]
+    )
+    expect(Utility.mergeArrays(
+        [6, 7, 8],
+        [1, 2, 3]
+    )).toStrictEqual(
+        [6, 7, 8, 1, 2, 3]
+    )
+    expect(Utility.mergeArrays(
+        ["e", "f", "g", "h"],
+        ["a", "b", "c", "d"]
+    )).toStrictEqual(
+        ["e", "f", "g", "h", "a", "b", "c", "d"]
+    )
+    expect(Utility.mergeArrays(
+        ["e", "f", "g", "h"],
+        ["a", "b", "c", "d", "e"]
+    )).toStrictEqual(
+        ["a", "b", "c", "d", "e", "f", "g", "h"]
+    )
+    expect(Utility.mergeArrays(
+        [2, 4, 6, 8],
+        [6, 4, 2]
+    )).toStrictEqual(
+        [2, 4, 6, 8]
+    )
+    expect(Utility.mergeArrays(
+        [2, 4, 6, 8],
+        [4, 5, 6, 8, 1, 2]
+    )).toStrictEqual(
+        [2, 4, 5, 6, 8, 1]
+    )
+})
+test("capitalFirstLetter method test", () => {
+    expect(Utility.capitalFirstLetter("")).toBe("")
+    expect(Utility.capitalFirstLetter("hello world")).toBe("Hello world")
+})
+test("range method test", () => {
+    expect(Utility.range()).toStrictEqual([])
+    expect(Utility.range(5, 5)).toStrictEqual([])
+    expect(Utility.range(5, 6)).toStrictEqual([5])
+    expect(Utility.range(1, 10, 3)).toStrictEqual([1, 4, 7])
+    expect(Utility.range(0, -3)).toStrictEqual([0, -1, -2])
+    expect(Utility.range(7, -7, -4)).toStrictEqual([7, 3, -1, -5])
+})
+test("String escaping methods test", () => {
+    expect(Utility.escapeString("")).toBe("")
+    expect(Utility.unescapeString("")).toBe("")
 
-describe("Utility class", () => {
-    before(() => {
-        expect(Utility,).to.be.a("function")
-    })
+    expect(Utility.escapeString('"')).toBe('\\"')
+    expect(Utility.unescapeString('\\"')).toBe('"')
 
-    context("Utility", () => {
-        it("clamp method test", () => {
-            expect(Utility.clamp(-4, -3)).to.be.equal(-3)
-            expect(Utility.clamp(-1, -3, -2)).to.be.equal(-2)
-            expect(Utility.clamp(5, 1, 11)).to.be.equal(5)
-        })
-        it("minDecimals method test", () => {
-            expect(Utility.minDecimals(3.1, 3)).to.be.equal("3.100")
-            expect(Utility.minDecimals(-100, 2)).to.be.equal("-100.00")
-            expect(Utility.minDecimals(0.43, 0)).to.be.equal("0.43")
-            expect(Utility.minDecimals(0.43, 1)).to.be.equal("0.43")
-            expect(Utility.minDecimals(0.43, 2)).to.be.equal("0.43")
-            expect(Utility.minDecimals(0.43, 3)).to.be.equal("0.430")
-            expect(Utility.minDecimals(-2, 0)).to.be.equal("-2")
-        })
-        it("roundDecimals method test", () => {
-            expect(Utility.roundDecimals(8.543943, 0)).to.be.equal(9)
-            expect(Utility.roundDecimals(8.543943, 1)).to.be.equal(8.5)
-            expect(Utility.roundDecimals(8.543943, 2)).to.be.equal(8.54)
-            expect(Utility.roundDecimals(8.543943, 3)).to.be.equal(8.544)
-            expect(Utility.roundDecimals(-2.192837, 0)).to.be.equal(-2)
-            expect(Utility.roundDecimals(-2.192837, 1)).to.be.equal(-2.2)
-            expect(Utility.roundDecimals(-2.192837, 2)).to.be.equal(-2.19)
-            expect(Utility.roundDecimals(-2.192837, 3)).to.be.equal(-2.193)
-            expect(Utility.roundDecimals(-2.192837, 4)).to.be.equal(-2.1928)
-        })
-        it("approximatelyEqual method test", () => {
-            expect(Utility.approximatelyEqual(0.2 + 0.1, 0.3)).to.be.true
-            expect(Utility.approximatelyEqual(-0.2 - 0.1, -0.3)).to.be.true
-            expect(Utility.approximatelyEqual(0.1000001, 0.1)).to.be.false
-            expect(Utility.approximatelyEqual(40.1 + 0.2, 40.3)).to.be.true
-            expect(Utility.approximatelyEqual(2, 3)).to.be.false
-        })
-        it("equals method test", () => {
-            expect(Utility.equals(0.2, 0.2)).to.be.true
-            expect(Utility.equals(new Number(0.7), 0.7)).to.be.true
-            expect(Utility.equals(-40.3, new Number(-40.3))).to.be.true
-            expect(Utility.equals(new Number(-40.3), new Number(-40.3))).to.be.true
-            expect(Utility.equals(0.2 + 0.1, 0.3)).to.be.false // Strict equality
-            expect(Utility.equals(null, undefined)).to.be.false
-            expect(Utility.equals(undefined, null)).to.be.false
-            expect(Utility.equals(0, false)).to.be.false
-            expect(Utility.equals(false, false)).to.be.true
-            expect(Utility.equals(2n, 2)).to.be.true
-            expect(Utility.equals(-6845, -6845n)).to.be.true
-            expect(Utility.equals(7735n, 7736)).to.be.false
-            expect(Utility.equals("abc", "abc")).to.be.true
-            expect(Utility.equals(new String("abc"), new String("abc"))).to.be.true
-            expect(Utility.equals("abc", "aBc")).to.be.false
-            expect(Utility.equals(
-                [-2, "alpha", new String("beta"), new Number(40), [1, 2, 3]],
-                [new Number(-2), new String("alpha"), new String("beta"), new Number(40), new Array(1, 2, 3)]
-            )).to.be.true
-            expect(Utility.equals(
-                [-2.1, "alpha", new String("beta"), new Number(40), [1, 2, 3]],
-                [new Number(-2), new String("alpha"), new String("beta"), new Number(40), new Array(1, 2, 3)]
-            )).to.be.false // First element is different
-            expect(Utility.equals(
-                [-2, "Alpha", new String("beta"), new Number(40), [1, 2, 3]],
-                [new Number(-2), new String("alpha"), new String("beta"), new Number(40), new Array(1, 2, 3)]
-            )).to.be.false // Second element is different
-        })
-        it("isValueOfType method test", () => {
-            expect(Utility.isValueOfType(34, Number)).to.be.true
-            expect(Utility.isValueOfType(new Number(34), Number)).to.be.true
-            expect(Utility.isValueOfType("34", String)).to.be.true
-            expect(Utility.isValueOfType("34", Number)).to.be.false
-        })
-        it("mergeArrays method test", () => {
-            expect(Utility.mergeArrays(
-                [],
-                []
-            )).to.be.deep.equal(
-                []
-            )
-            expect(Utility.mergeArrays(
-                ["alpba", "beta"],
-                []
-            )).to.be.deep.equal(
-                ["alpba", "beta"]
-            )
-            expect(Utility.mergeArrays(
-                [],
-                ["alpba", "beta"]
-            )).to.be.deep.equal(
-                ["alpba", "beta"]
-            )
-            expect(Utility.mergeArrays(
-                [1, 3, 5, 7, 9],
-                [1, 2, 3, 4, 5]
-            )).to.be.deep.equal(
-                [1, 2, 3, 4, 5, 7, 9]
-            )
-            expect(Utility.mergeArrays(
-                [6, 7, 8],
-                [1, 2, 3]
-            )).to.be.deep.equal(
-                [6, 7, 8, 1, 2, 3]
-            )
-            expect(Utility.mergeArrays(
-                ["e", "f", "g", "h"],
-                ["a", "b", "c", "d"]
-            )).to.be.deep.equal(
-                ["e", "f", "g", "h", "a", "b", "c", "d"]
-            )
-            expect(Utility.mergeArrays(
-                ["e", "f", "g", "h"],
-                ["a", "b", "c", "d", "e"]
-            )).to.be.deep.equal(
-                ["a", "b", "c", "d", "e", "f", "g", "h"]
-            )
-            expect(Utility.mergeArrays(
-                [2, 4, 6, 8],
-                [6, 4, 2]
-            )).to.be.deep.equal(
-                [2, 4, 6, 8]
-            )
-            expect(Utility.mergeArrays(
-                [2, 4, 6, 8],
-                [4, 5, 6, 8, 1, 2]
-            )).to.be.deep.equal(
-                [2, 4, 5, 6, 8, 1]
-            )
-        })
-        it("capitalFirstLetter method test", () => {
-            expect(Utility.capitalFirstLetter("")).to.be.equal("")
-            expect(Utility.capitalFirstLetter("hello world")).to.be.equal("Hello world")
-        })
-        it("range method test", () => {
-            expect(Utility.range()).to.be.deep.equal([])
-            expect(Utility.range(5, 5)).to.be.deep.equal([])
-            expect(Utility.range(5, 6)).to.be.deep.equal([5])
-            expect(Utility.range(1, 10, 3)).to.be.deep.equal([1, 4, 7])
-            expect(Utility.range(0, -3)).to.be.deep.equal([0, -1, -2])
-            expect(Utility.range(7, -7, -4)).to.be.deep.equal([7, 3, -1, -5])
-        })
-        it("String escaping methods test", () => {
-            expect(Utility.escapeString("")).to.be.equal("")
-            expect(Utility.unescapeString("")).to.be.equal("")
+    expect(Utility.escapeString("'")).toBe("\\'")
+    expect(Utility.unescapeString("\\'")).toBe("'")
 
-            expect(Utility.escapeString('"')).to.be.equal('\\"')
-            expect(Utility.unescapeString('\\"')).to.be.equal('"')
+    expect(Utility.escapeString(String.raw`\"`)).toBe(String.raw`\\\"`)
+    expect(Utility.unescapeString(String.raw`\"`)).toBe('"')
 
-            expect(Utility.escapeString("'")).to.be.equal("\\'")
-            expect(Utility.unescapeString("\\'")).to.be.equal("'")
+    expect(Utility.escapeString(String.raw`\'`)).toBe(String.raw`\\\'`)
+    expect(Utility.unescapeString(String.raw`\'`)).toBe("'")
 
-            expect(Utility.escapeString(String.raw`\"`)).to.be.equal(String.raw`\\\"`)
-            expect(Utility.unescapeString(String.raw`\"`)).to.be.equal('"')
+    expect(Utility.escapeString(String.raw`Hello \"World\"`)).toBe(String.raw`Hello \\\"World\\\"`)
+    expect(Utility.unescapeString(String.raw`Hello \"World\"`)).toBe('Hello "World"')
 
-            expect(Utility.escapeString(String.raw`\'`)).to.be.equal(String.raw`\\\'`)
-            expect(Utility.unescapeString(String.raw`\'`)).to.be.equal("'")
+    expect(Utility.escapeString(String.raw`Those "\\" are two backslash`))
+        .toBe(String.raw`Those \"\\\\\" are two backslash`)
+    expect(Utility.unescapeString(String.raw`Those "\\" are two backslash`))
+        .toBe(String.raw`Those "\" are two backslash`)
 
-            expect(Utility.escapeString(String.raw`Hello \"World\"`)).to.be.equal(String.raw`Hello \\\"World\\\"`)
-            expect(Utility.unescapeString(String.raw`Hello \"World\"`)).to.be.equal('Hello "World"')
+    expect(Utility.escapeString(String.raw`Alpha\Beta`)).toBe(String.raw`Alpha\\Beta`)
+    expect(Utility.unescapeString(String.raw`Alpha\Beta`)).toBe(String.raw`Alpha\Beta`)
 
-            expect(Utility.escapeString(String.raw`Those "\\" are two backslash`))
-                .to.be.equal(String.raw`Those \"\\\\\" are two backslash`)
-            expect(Utility.unescapeString(String.raw`Those "\\" are two backslash`))
-                .to.be.equal(String.raw`Those "\" are two backslash`)
+    expect(Utility.escapeString(String.raw`Alpha\\Beta`)).toBe(String.raw`Alpha\\\\Beta`)
+    expect(Utility.unescapeString(String.raw`Alpha\\Beta`)).toBe(String.raw`Alpha\Beta`)
 
-            expect(Utility.escapeString(String.raw`Alpha\Beta`)).to.be.equal(String.raw`Alpha\\Beta`)
-            expect(Utility.unescapeString(String.raw`Alpha\Beta`)).to.be.equal(String.raw`Alpha\Beta`)
+    expect(Utility.escapeString(String.raw`Alpha\\\Beta`)).toBe(String.raw`Alpha\\\\\\Beta`)
+    expect(Utility.unescapeString(String.raw`Alpha\\\Beta`)).toBe(String.raw`Alpha\\Beta`)
 
-            expect(Utility.escapeString(String.raw`Alpha\\Beta`)).to.be.equal(String.raw`Alpha\\\\Beta`)
-            expect(Utility.unescapeString(String.raw`Alpha\\Beta`)).to.be.equal(String.raw`Alpha\Beta`)
+    expect(Utility.escapeString(String.raw`Alpha\\\\Beta`)).toBe(String.raw`Alpha\\\\\\\\Beta`)
+    expect(Utility.unescapeString(String.raw`Alpha\\\\Beta`)).toBe(String.raw`Alpha\\Beta`)
 
-            expect(Utility.escapeString(String.raw`Alpha\\\Beta`)).to.be.equal(String.raw`Alpha\\\\\\Beta`)
-            expect(Utility.unescapeString(String.raw`Alpha\\\Beta`)).to.be.equal(String.raw`Alpha\\Beta`)
+    expect(Utility.escapeString(String.raw`Alpha\\\\\Beta`)).toBe(String.raw`Alpha\\\\\\\\\\Beta`)
+    expect(Utility.unescapeString(String.raw`Alpha\\\\\Beta`)).toBe(String.raw`Alpha\\\Beta`)
 
-            expect(Utility.escapeString(String.raw`Alpha\\\\Beta`)).to.be.equal(String.raw`Alpha\\\\\\\\Beta`)
-            expect(Utility.unescapeString(String.raw`Alpha\\\\Beta`)).to.be.equal(String.raw`Alpha\\Beta`)
+    expect(Utility.escapeString(String.raw`Alpha\\\\\\Beta`)).toBe(String.raw`Alpha\\\\\\\\\\\\Beta`)
+    expect(Utility.unescapeString(String.raw`Alpha\\\\\\Beta`)).toBe(String.raw`Alpha\\\Beta`)
 
-            expect(Utility.escapeString(String.raw`Alpha\\\\\Beta`)).to.be.equal(String.raw`Alpha\\\\\\\\\\Beta`)
-            expect(Utility.unescapeString(String.raw`Alpha\\\\\Beta`)).to.be.equal(String.raw`Alpha\\\Beta`)
+    expect(Utility.escapeString(String.raw`Alpha \"Beta\"`)).toBe(String.raw`Alpha \\\"Beta\\\"`)
+    expect(Utility.unescapeString(String.raw`Alpha \"Beta\"`)).toBe(String.raw`Alpha "Beta"`)
 
-            expect(Utility.escapeString(String.raw`Alpha\\\\\\Beta`)).to.be.equal(String.raw`Alpha\\\\\\\\\\\\Beta`)
-            expect(Utility.unescapeString(String.raw`Alpha\\\\\\Beta`)).to.be.equal(String.raw`Alpha\\\Beta`)
+    expect(Utility.escapeString(String.raw`Alpha \\"Beta\\"`)).toBe(String.raw`Alpha \\\\\"Beta\\\\\"`)
+    expect(Utility.unescapeString(String.raw`Alpha \\"Beta\\"`)).toBe(String.raw`Alpha \"Beta\"`)
 
-            expect(Utility.escapeString(String.raw`Alpha \"Beta\"`)).to.be.equal(String.raw`Alpha \\\"Beta\\\"`)
-            expect(Utility.unescapeString(String.raw`Alpha \"Beta\"`)).to.be.equal(String.raw`Alpha "Beta"`)
-
-            expect(Utility.escapeString(String.raw`Alpha \\"Beta\\"`)).to.be.equal(String.raw`Alpha \\\\\"Beta\\\\\"`)
-            expect(Utility.unescapeString(String.raw`Alpha \\"Beta\\"`)).to.be.equal(String.raw`Alpha \"Beta\"`)
-
-            expect(Utility.escapeString('Alpha\nBravo\\Charlie\n"Delta"'))
-                .to.equal(String.raw`Alpha\nBravo\\Charlie\n\"Delta\"`)
-            expect(Utility.unescapeString(String.raw`Alpha\nBravo\\Charlie\n\"Delta\"`)).to.equal(
-                `Alpha\nBravo\\Charlie\n"Delta"`
-            )
-        })
-    })
+    expect(Utility.escapeString('Alpha\nBravo\\Charlie\n"Delta"')).toBe(
+        String.raw`Alpha\nBravo\\Charlie\n\"Delta\"`
+    )
+    expect(Utility.unescapeString(String.raw`Alpha\nBravo\\Charlie\n\"Delta\"`)).toBe(
+        `Alpha\nBravo\\Charlie\n"Delta"`
+    )
 })

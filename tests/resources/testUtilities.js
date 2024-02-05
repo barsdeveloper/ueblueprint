@@ -1,6 +1,39 @@
 import Configuration from "../../js/Configuration.js"
 import { test, expect } from "../fixtures/test.js"
 
+/**
+ * @typedef {import("@playwright/test").Locator} Locator
+ */
+
+/**
+ * @typedef {(
+ *     extract: <T, Args extends any[]>(
+ *         v: (node: NodeElement, ...args: Args) => T,
+ *         ...args: Args
+ *     ) => Promise<T>,
+ *     locator: import("@playwright/test").Locator
+ * ) => void} AdditionalTest
+ */
+
+/**
+ * @typedef {{
+ *     name: String,
+ *     title?: String,
+ *     subtitle?: String,
+ *     value: String,
+ *     size?: [Number, Number],
+ *     color?: CSSResult,
+ *     icon?: TemplateResult,
+ *     pins?: Number,
+ *     pinNames?: String[],
+ *     delegate: Boolean,
+ *     development: Boolean,
+ *     variadic?: Boolean,
+ *     additionalTest?: AdditionalTest,
+ * }} TestSpecifier
+ */
+
+
 /** @param {String[]} words */
 function getFirstWordOrder(words) {
     return new RegExp(/\s*/.source + words.join(/[^\n]+\n\s*/.source) + /\s*/.source)
@@ -10,96 +43,102 @@ function getFirstWordOrder(words) {
 function generateNodeTest(nodeTest) {
     test.describe(nodeTest.name, () => {
 
-        /** @type {import("../fixtures/test.js").Locator} */
-        let node
-        if (nodeTest.title === undefined) {
-            nodeTest.title = nodeTest.name
-        }
-
         test.beforeAll(async ({ blueprintPage }) => {
             await blueprintPage.removeNodes()
             await blueprintPage.paste(nodeTest.value)
-            node = blueprintPage.blueprintLocator.locator("ueb-node")
         })
 
         if (nodeTest.color) {
             test(
                 "Has correct color",
-                async () => expect(node.evaluate(node => /** @type {NodeElement} */(node).entity
-                .nodeColor()))
-                    .toEqual(nodeTest.color)
-            )
+                async ({ blueprintPage }) => {
+                    expect(
+                        await blueprintPage.node.evaluate(node => /** @type {NodeElement} */(node).entity.nodeColor().toString())
+                    ).toBe(nodeTest.color.toString())
+                })
         }
-        test("Has correct delegate", async ({ page }) => {
-            const delegate = node.locator('.ueb-node-top ueb-pin[data-type="delegate"]')
-            if (nodeTest.delegate) {
-                expect(delegate).toBeVisible()
-            } else {
-                expect(delegate).toBeHidden()
-            }
-        })
+        test(
+            "Has correct delegate",
+            async ({ blueprintPage }) => {
+                const delegate = blueprintPage.blueprintLocator.locator(
+                    'ueb-node .ueb-node-top ueb-pin[data-type="delegate"]'
+                )
+                if (nodeTest.delegate) {
+                    await expect(delegate).toBeVisible()
+                } else {
+                    await expect(delegate).toBeHidden()
+                }
+            })
         if (nodeTest.title) {
             test(
                 `Has title ${nodeTest.title}`,
-                async () => expect(node.evaluate(node => /** @type {NodeElement} */(node).getNodeDisplayName()))
-                    .toEqual(nodeTest.title)
+                async ({ blueprintPage }) => expect(
+                    await blueprintPage.node.evaluate(node => /** @type {NodeElement} */(node).getNodeDisplayName())
+                ).toBe(nodeTest.title)
             )
         }
-        test(
-            `Has expected subtitle ${nodeTest.subtitle}`,
-            async () => expect(
-                node
-                    .locator(".ueb-node-subtitle-text")
-                    .evaluate(element => /** @type {HTMLElement} */(element).innerText)
-            ).toEqual(nodeTest.subtitle)
-        )
-        if (nodeTest.size) {
-            test("Has approximately the expected size", async ({ page }) => {
-                const expectedSize = await node.evaluate(element => {
-                    const node =    /** @type {NodeElement} */(element)
-                    const bounding = node.getBoundingClientRect()
-                    const expectedSize = [
-                        bounding.width / Configuration.gridSize,
-                        bounding.height / Configuration.gridSize,
-                    ]
-                    return expectedSize
-                })
-                expect(Math.abs(nodeTest.size[0] - expectedSize[0])).toBeLessThan(1.5)
-                expect(Math.abs(nodeTest.size[1] - expectedSize[1])).toBeLessThan(1.5)
-                if (
-                    Math.abs(nodeTest.size[0] - expectedSize[0]) > 0.6
-                    || Math.abs(nodeTest.size[1] - expectedSize[1]) > 0.6
-                ) {
-                    console.error(`Node "${nodeTest.name}" size does not match`)
-                }
-            })
+        if (nodeTest.subtitle) {
+            test(
+                `Has expected subtitle ${nodeTest.subtitle}`,
+                async ({ blueprintPage }) => await expect(blueprintPage.node.locator(".ueb-node-subtitle-text"))
+                    .toHaveText(nodeTest.subtitle, { useInnerText: true })
+            )
         }
-        if (nodeTest.icon) {
+        if (nodeTest.size) {
+            test(
+                "Has approximately the expected size",
+                async ({ blueprintPage }) => {
+                    const expectedSize = await blueprintPage.node.evaluate(
+                        (element, gridSize) => {
+                            const node =    /** @type {NodeElement} */(element)
+                            const bounding = node.getBoundingClientRect()
+                            const expectedSize = [bounding.width / gridSize, bounding.height / gridSize]
+                            return expectedSize
+                        },
+                        Configuration.gridSize
+                    )
+                    expect(Math.abs(nodeTest.size[0] - expectedSize[0])).toBeLessThan(1.5)
+                    expect(Math.abs(nodeTest.size[1] - expectedSize[1])).toBeLessThan(1.5)
+                    if (
+                        Math.abs(nodeTest.size[0] - expectedSize[0]) > 0.6
+                        || Math.abs(nodeTest.size[1] - expectedSize[1]) > 0.6
+                    ) {
+                        console.error(`Node "${nodeTest.name}" size does not match`)
+                    }
+                })
+        }
+        if (nodeTest.icon !== undefined) {
             test(
                 "Has the correct icon",
-                async () => expect(node.evaluate(node => /** @type {NodeElement} */(node).entity.nodeIcon()))
-                    .toEqual(nodeTest.icon)
+                async ({ blueprintPage }) => expect(
+                    await blueprintPage.node.evaluate(
+                        node => /** @type {NodeElement} */(node).entity.nodeIcon().strings.join("")
+                    )
+                ).toBe(nodeTest.icon.strings.join(""))
             )
-        } else if (nodeTest.icon === false) {
+        } else {
             test(
                 "It does not have an icon",
-                async () => expect(node.evaluate(node => /** @type {NodeElement} */(node).entity.nodeIcon()))
-                    .toBeUndefined()
+                async ({ blueprintPage }) => expect(
+                    await blueprintPage.node.evaluate(node => /** @type {NodeElement} */(node).entity.nodeIcon())
+                ).toBeUndefined()
             )
         }
-        if (nodeTest.pins) {
+        if (nodeTest.pins !== undefined) {
             test(
                 `Has ${nodeTest.pins} pins`,
-                async () => expect(
-                    node.evaluate(node => /** @type {NodeElement} */(node).querySelectorAll("ueb-pin").length)
-                )
-                    .toEqual(nodeTest.pins))
+                async ({ blueprintPage }) => expect(
+                    await blueprintPage.node.evaluate(
+                        node => /** @type {NodeElement} */(node).querySelectorAll("ueb-pin").length
+                    )
+                ).toBe(nodeTest.pins)
+            )
         }
         if (nodeTest.pinNames) {
             test(
                 "Has correct pin names",
-                async () => {
-                    const innerTexts = await node.locator(".ueb-pin-content .ueb-pin-name").allInnerTexts()
+                async ({ blueprintPage }) => {
+                    const innerTexts = await blueprintPage.node.locator(".ueb-pin-content .ueb-pin-name").allInnerTexts()
                     const pinNames = innerTexts.map(v => v.trim()).filter(v => v.length > 0)
                     expect(pinNames).toStrictEqual(nodeTest.pinNames)
                 }
@@ -107,12 +146,13 @@ function generateNodeTest(nodeTest) {
         }
         test(
             "Expected development",
-            async () => expect(node.evaluate(node => /** @type {NodeElement} */(node).entity.isDevelopmentOnly()))
-                .toStrictEqual(nodeTest.development)
+            async ({ blueprintPage }) => expect(
+                await blueprintPage.node.evaluate(node => /** @type {NodeElement} */(node).entity.isDevelopmentOnly())
+            ).toBe(nodeTest.development)
         )
         test(
             "Maintains the order of attributes",
-            async ({ blueprintPage, page }) => {
+            async ({ blueprintPage }) => {
                 const blueprint = blueprintPage.blueprintLocator
                 await blueprint.evaluate(/** @param {Blueprint} blueprint */ blueprint => blueprint.selectAll())
                 const value = await blueprint.evaluate(/** @param {Blueprint} blueprint */ blueprint =>
@@ -128,38 +168,34 @@ function generateNodeTest(nodeTest) {
         if (nodeTest.variadic) {
             test(
                 "Can add new pins",
-                async () => {
-                    const variadic = node.locator(".ueb-node-variadic")
+                async ({ blueprintPage }) => {
+                    const variadic = blueprintPage.node.locator(".ueb-node-variadic")
                     expect(variadic).toBeVisible()
                     await variadic.click()
-                    expect(node.locator("ueb-pin").all()).toHaveLength(nodeTest.pins + 1)
+                    expect(blueprintPage.node.locator("ueb-pin").all()).toHaveLength(nodeTest.pins + 1)
                 }
             )
         }
         if (nodeTest.additionalTest) {
-            test("Additional tests", async () => nodeTest.additionalTest(
-                async (extractor, ...args) =>
-                    await node.evaluate(
-                        (element) => extractor(
+            test(
+                "Additional tests",
+                async ({ blueprintPage }) => nodeTest.additionalTest(
+                    async (extractor, ...args) =>
+                        await blueprintPage.node.evaluate(
+                            element => extractor(
                             /** @type {NodeElement} */(element),
+                                ...args
+                            ),
                             ...args
                         ),
-                    )
-            ))
+                    blueprintPage.node
+                )
+            )
         }
     })
 }
 
 /** @param {TestSpecifier[]} tests */
 export default function generateNodesTests(tests) {
-
-    test.beforeAll(async ({ blueprintPage }) => {
-        blueprintPage.setup()
-    })
-
-    test.afterAll(async ({ blueprintPage }) => {
-        blueprintPage.cleanup()
-    })
-
     tests.forEach(testObject => generateNodeTest(testObject))
 }

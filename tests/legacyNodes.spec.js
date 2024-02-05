@@ -3,7 +3,6 @@ import Configuration from "../js/Configuration.js"
 import generateNodeTests from "./resources/testUtilities.js"
 import SVGIcon from "../js/SVGIcon.js"
 
-/** @type {TestSpecifier} */
 generateNodeTests([
     {
         name: "Flip Flop",
@@ -58,15 +57,15 @@ generateNodeTests([
         development: false,
         additionalTest: async extractor => {
             expect(extractor(node => node.entity.Class.type))
-                .toEqual("/Script/BlueprintGraph.K2Node_MacroInstance")
+                .toBe("/Script/BlueprintGraph.K2Node_MacroInstance")
             expect(extractor(node => node.entity.MacroGraphReference.MacroGraph.type))
-                .toEqual("/Script/Engine.EdGraph")
+                .toBe("/Script/Engine.EdGraph")
             expect(extractor(node => node.entity.MacroGraphReference.MacroGraph.path))
-                .toEqual("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop")
+                .toBe("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop")
             expect(extractor(node => node.entity.MacroGraphReference.GraphBlueprint.type))
-                .toEqual("/Script/Engine.Blueprint")
+                .toBe("/Script/Engine.Blueprint")
             expect(extractor(node => node.entity.MacroGraphReference.GraphBlueprint.path))
-                .toEqual("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros")
+                .toBe("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros")
             expect(extractor(
                 (node, subObjectAttributeNamePrefix) => Object.keys(node.entity)
                     .filter(k => k.startsWith(subObjectAttributeNamePrefix))
@@ -77,7 +76,7 @@ generateNodeTests([
                 Configuration.subObjectAttributeNamePrefix
             ))
                 .toStrictEqual(Array(4).fill(Configuration.paths.edGraphPinDeprecated))
-            expect(extractor(node => node.getPinEntities().length)).toEqual(4)
+            expect(extractor(node => node.getPinEntities().length)).toBe(4)
         }
     },
 ])

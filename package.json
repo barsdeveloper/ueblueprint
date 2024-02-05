@@ -4,11 +4,12 @@
   "description": "UE's Blueprint visualisation library",
   "type": "module",
   "main": "dist/ueblueprint.js",
-  "types": "js/types.js",
+  "types": "types.js",
   "scripts": {
     "build": "rollup --config && sass scss/export.scss:dist/css/ueb-style.css && sass scss/export.scss:dist/css/ueb-style.min.css --style=compressed",
     "test": "npm run build && export UEBLUEPRINT_TEST_SERVER_PORT=8181 && npx concurrently -k \"http-server -s -p $UEBLUEPRINT_TEST_SERVER_PORT\" \"npx cypress run --env UEBLUEPRINT_TEST_SERVER_PORT=8181\"",
-    "cypress": "npm run build && export UEBLUEPRINT_TEST_SERVER_PORT=8181 && npx playwright test --ui"
+    "cypress": "npm run build && export UEBLUEPRINT_TEST_SERVER_PORT=8181 && npx playwright test --ui",
+    "start": "npx http-server"
   },
   "repository": {
     "type": "git",

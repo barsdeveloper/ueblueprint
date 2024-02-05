@@ -7,5 +7,7 @@
     "include": [
         "js/**/*.js",
         "tests/**/*.js",
+        "tests/**/*.spec.js",
+        "types.js",
     ],
 }

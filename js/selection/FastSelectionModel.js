@@ -1,7 +1,6 @@
 import OrderedIndexArray from "./OrderedIndexArray.js"
 
 /**
- * @typedef {import("../element/NodeElement.js").default} NodeElement
  * @typedef {typeof import("../Blueprint.js").default.nodeBoundariesSupplier} BoundariesFunction
  * @typedef {typeof import("../Blueprint.js").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{

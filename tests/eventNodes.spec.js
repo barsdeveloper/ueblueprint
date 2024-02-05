@@ -2,7 +2,7 @@ import generateNodeTests from "./resources/testUtilities.js"
 import Configuration from "../js/Configuration.js"
 import SVGIcon from "../js/SVGIcon.js"
 
-const tests = [
+generateNodeTests([
     {
         name: "MoveCharacterRandomLocation",
         subtitle: "Custom Event",
@@ -86,6 +86,4 @@ const tests = [
         delegate: false,
         development: false,
     },
-]
-
-generateNodeTests(tests)
+])

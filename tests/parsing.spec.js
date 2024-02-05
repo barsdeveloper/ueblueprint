@@ -1,3 +1,4 @@
+import { test, expect } from "@playwright/test"
 import FormatTextEntity from "../js/entity/FormatTextEntity.js"
 import Grammar from "../js/serialization/Grammar.js"
 import GuidEntity from "../js/entity/GuidEntity.js"
@@ -13,7 +14,6 @@ import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 import Utility from "../js/Utility.js"
 import Vector2DEntity from "../js/entity/Vector2DEntity.js"
 import VectorEntity from "../js/entity/VectorEntity.js"
-import { test, expect } from "@playwright/test"
 
 initializeSerializerFactory()
 
@@ -32,11 +32,11 @@ test.describe("Serializer", () => {
         expect(
             serializer.read(`LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")`)
                 .toString()
-        ).toEqual("Out Hit Blocking Hit")
+        ).toBe("Out Hit Blocking Hit")
         expect(
             serializer.read(`LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Hit Bone Name")`)
                 .toString()
-        ).toEqual("Out Hit Hit Bone Name")
+        ).toBe("Out Hit Hit Bone Name")
         expect(
             serializer.read(String.raw`LOCGEN_FORMAT_ORDERED(
                 NSLOCTEXT(
@@ -50,7 +50,7 @@ test.describe("Serializer", () => {
             )`)
                 .toString()
 
-        ).toEqual(`If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\nAttribute type is "float" and its exact name is "InRangeMin"`)
+        ).toBe(`If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\nAttribute type is "float" and its exact name is "InRangeMin"`)
     })
 
     test("GuidEntity", () => {
@@ -58,15 +58,15 @@ test.describe("Serializer", () => {
 
         let guid = serializer.read("0556a3ecabf648d0a5c07b2478e9dd32")
         expect(guid).toBeInstanceOf(GuidEntity)
-        expect(guid.value).toEqual("0556a3ecabf648d0a5c07b2478e9dd32")
+        expect(guid.value).toBe("0556a3ecabf648d0a5c07b2478e9dd32")
 
         guid = serializer.read("64023BC344E0453DBB583FAC411489BC")
         expect(guid).toBeInstanceOf(GuidEntity)
-        expect(guid.value).toEqual("64023BC344E0453DBB583FAC411489BC")
+        expect(guid.value).toBe("64023BC344E0453DBB583FAC411489BC")
 
         guid = serializer.read("6edC4a425ca948da8bC78bA52DED6C6C")
         expect(guid).toBeInstanceOf(GuidEntity)
-        expect(guid.value).toEqual("6edC4a425ca948da8bC78bA52DED6C6C")
+        expect(guid.value).toBe("6edC4a425ca948da8bC78bA52DED6C6C")
 
         expect(() => serializer.read("172087193 9B04362973544B3564FDB2C")).toThrow()
         expect(() => serializer.read("E25F14F8F3E9441AB07153E7DA2BA2B")).toThrow()

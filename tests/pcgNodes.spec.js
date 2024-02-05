@@ -1,10 +1,9 @@
-import Configuration from "../../js/Configuration.js"
-import generateNodeTests from "../fixtures/testUtilities.js"
-import NodeElement from "../../js/element/NodeElement.js"
-import PinElement from "../../js/element/PinElement.js"
-import SVGIcon from "../../js/SVGIcon.js"
+import { expect } from "./fixtures/test.js"
+import Configuration from "../js/Configuration.js"
+import generateNodeTests from "./resources/testUtilities.js"
+import SVGIcon from "../js/SVGIcon.js"
 
-const tests = [
+generateNodeTests([
     {
         name: "Execute Blueprint",
         value: String.raw`
@@ -69,24 +68,24 @@ const tests = [
         pinNames: ["In", "Overrides", "Seed", "Out"],
         delegate: false,
         development: false,
-        additionalTest:
-            /** @param {NodeElement} node */
-            node => {
-                let pins = /** @type {PinElement[]} */(node.querySelectorAll("ueb-pin"))
-                const inPin = pins.find(pin => pin.innerText === "In")
-                const overridesPin = pins.find(pin => pin.innerText === "Overrides")
-                const seedPin = pins.find(pin => pin.innerText === "Seed")
-                const out = pins.find(pin => pin.innerText === "Out")
-                expect(inPin).to.not.be.null
-                expect(inPin.template.renderIcon()).to.be.equal(SVGIcon.pcgStackPin)
-                expect(overridesPin).to.not.be.null
-                expect(overridesPin.template.renderIcon()).to.be.equal(SVGIcon.pcgParamPin)
-                expect(seedPin).to.not.be.null
-                expect(seedPin.template.renderIcon()).to.be.equal(SVGIcon.pcgParamPin)
-                expect(out).to.not.be.null
-                expect(out.template.renderIcon()).to.be.equal(SVGIcon.pcgSpatialPin)
-            }
+        additionalTest: (extract, locator) => {
+            let pins = locator.locator("ueb-pin")
+            const inPin = pins.getByText("In")
+            const overridesPin = pins.getByText("Overrides")
+            const seedPin = pins.getByText("Seed")
+            const out = pins.getByText("Out")
+            expect(inPin).toBeVisible()
+            expect(inPin.evaluate(pin => /** @type {PinElement} */(pin).template.renderIcon().strings.join("")))
+                .toEqual(SVGIcon.pcgStackPin.strings.join(""))
+            expect(overridesPin).toBeVisible()
+            expect(overridesPin.evaluate(pin => /** @type {PinElement} */(pin).template.renderIcon().strings.join("")))
+                .toEqual(SVGIcon.pcgParamPin.strings.join(""))
+            expect(seedPin).toBeVisible()
+            expect(seedPin.evaluate(pin => /** @type {PinElement} */(pin).template.renderIcon().strings.join("")))
+                .toEqual(SVGIcon.pcgParamPin.strings.join(""))
+            expect(out).toBeVisible()
+            expect(out.evaluate(pin => /** @type {PinElement} */(pin).template.renderIcon().strings.join("")))
+                .toEqual(SVGIcon.pcgSpatialPin.strings.join(""))
+        }
     },
-]
-
-generateNodeTests(tests)
+])
