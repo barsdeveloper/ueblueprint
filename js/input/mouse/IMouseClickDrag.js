@@ -4,6 +4,21 @@ import IPointing from "./IPointing.js"
 import Utility from "../../Utility.js"
 
 /**
+ * @typedef {import("./IPointing.js").Options & {
+ *     clickButton?: Number,
+ *     consumeEvent?: Boolean,
+ *     draggableElement?: IElement,
+ *     exitAnyButton?: Boolean,
+ *     moveEverywhere?: Boolean,
+ *     movementSpace?: HTMLElement,
+ *     repositionOnClick?: Boolean,
+ *     scrollGraphEdge?: Boolean,
+ *     strictTarget?: Boolean,
+ *     stepSize?: Number,
+ * }} Options
+ */
+
+/**
  * @template {IElement} T
  * @extends {IPointing<T>}
  */
@@ -134,7 +149,7 @@ export default class IMouseClickDrag extends IPointing {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= Configuration.mouseClickButton
@@ -147,7 +162,7 @@ export default class IMouseClickDrag extends IPointing {
         options.scrollGraphEdge ??= false
         options.strictTarget ??= false
         super(target, blueprint, options)
-        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize)
+        this.stepSize = Number(options.stepSize ?? Configuration.gridSize)
         this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace
         this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement)
 

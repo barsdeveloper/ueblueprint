@@ -2,6 +2,11 @@ import Configuration from "../../Configuration.js"
 import IPointing from "./IPointing.js"
 
 /**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+* }} Options
+*/
+
+/**
  * @template {Element} T
  * @extends {IPointing<T>}
  */
@@ -59,7 +64,7 @@ export default class MouseClick extends IPointing {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,

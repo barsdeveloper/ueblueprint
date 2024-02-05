@@ -1,6 +1,13 @@
 import IInput from "../IInput.js"
 import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 export default class Cut extends IInput {
 
     static #serializer = new ObjectSerializer()
@@ -8,6 +15,11 @@ export default class Cut extends IInput {
     /** @type {(e: ClipboardEvent) => void} */
     #cutHandler
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus ??= true
         options.unlistenOnTextEdit ??= true // No nodes copy if inside a text field, just text (default behavior)

@@ -1,17 +1,22 @@
 import Configuration from "../../Configuration.js"
 import IPointing from "./IPointing.js"
 
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     listenOnFocus?: Boolean,
+ * }} Options
+ */
+
 export default class MouseTracking extends IPointing {
 
     /** @type {IPointing} */
     #mouseTracker = null
 
     /** @param {MouseEvent} e */
-    #mousemoveHandler= e => {
+    #mousemoveHandler = e => {
         e.preventDefault()
         this.setLocationFromEvent(e)
-        this.blueprint.mousePosition[0] = this.location[0]
-        this.blueprint.mousePosition[1] = this.location[1]
+        this.blueprint.mousePosition = [...this.location]
     }
 
     /** @param {CustomEvent} e */
@@ -32,6 +37,11 @@ export default class MouseTracking extends IPointing {
         }
     }
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true
         super(target, blueprint, options)

@@ -121,16 +121,16 @@ export default class Utility {
     }
 
     /**
-     * @param {Number[]} viewportLocation
+     * @param {Coordinates} viewportLocation
      * @param {HTMLElement} movementElement
      */
     static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
         const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement)
         const bounding = movementElement.getBoundingClientRect()
-        let location = [
+        const location = /** @type {Coordinates} */([
             Math.round((viewportLocation[0] - bounding.x) * scaleCorrection),
             Math.round((viewportLocation[1] - bounding.y) * scaleCorrection)
-        ]
+        ])
         return location
     }
 
@@ -274,7 +274,7 @@ export default class Utility {
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static snapToGrid(x, y, gridSize) {
         if (gridSize === 1) {
@@ -391,7 +391,7 @@ export default class Utility {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static getPolarCoordinates(x, y, positiveTheta = false) {
         let theta = Math.atan2(y, x)
@@ -407,7 +407,7 @@ export default class Utility {
     /**
      * @param {Number} r
      * @param {Number} theta
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static getCartesianCoordinates(r, theta) {
         return [

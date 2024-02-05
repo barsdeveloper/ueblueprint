@@ -21,7 +21,7 @@ import { test, expect } from "../fixtures/test.js"
  *     title?: String,
  *     subtitle?: String,
  *     value: String,
- *     size?: [Number, Number],
+ *     size?: Coordinates,
  *     color?: CSSResult,
  *     icon?: TemplateResult,
  *     pins?: Number,

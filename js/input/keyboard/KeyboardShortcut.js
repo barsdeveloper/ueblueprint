@@ -3,6 +3,15 @@ import IInput from "../IInput.js"
 import KeyBindingEntity from "../../entity/KeyBindingEntity.js"
 
 /**
+ * @typedef {import("../IInput.js").Options & {
+ *     activationKeys?: String | KeyBindingEntity | (String | KeyBindingEntity)[],
+ *     consumeEvent?: Boolean,
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
+/**
  * @template {Element} T
  * @extends IInput<T>
  */
@@ -20,7 +29,7 @@ export default class KeyboardShortcut extends IInput {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,
@@ -40,7 +49,7 @@ export default class KeyboardShortcut extends IInput {
             if (v instanceof KeyBindingEntity) {
                 return v
             }
-            if (typeof v === "string") {
+            if (v.constructor === String) {
                 const parsed = KeyBindingEntity.createGrammar().run(v)
                 if (parsed.status) {
                     return parsed.value

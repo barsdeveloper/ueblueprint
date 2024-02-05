@@ -1,10 +1,12 @@
+/** @typedef {[Number, Number]} Coordinates */
 /**
  * @typedef {IEntity | String | Number | BigInt | Boolean | Array} TerminalAttribute
  * @typedef {TerminalAttribute | MirroredEntity<TerminalAttribute>} Attribute
  * @typedef {AttributeConstructor<TerminalAttribute> | AttributeConstructor<TerminalAttribute>[] 
  *     | MirroredEntity<Attribute> | Union | Union[] | ComputedType} AttributeTypeDescription
  * @typedef {(entity: IEntity) => Attribute} ValueSupplier
- *//**
+ */
+/**
 * @template T
 * @typedef {new (...args: any) => T} AnyConstructor
 */
@@ -51,7 +53,6 @@
  *     : any
  * } ConstructedType
  */
-
 /**
  * @typedef {{
  *     type?: AttributeTypeDescription,
@@ -66,9 +67,8 @@
  * }} AttributeInformation
  * @typedef {{ [key: String]: AttributeInformation }} AttributeDeclarations
  */
-
 /**
- * @typedef {CustomEvent<{ value: [Number, Number] }>} UEBDragEvent
+ * @typedef {CustomEvent<{ value: Coordinates }>} UEBDragEvent
  */
 /**
  * @template T
@@ -80,7 +80,6 @@
  *     (value: T): typeof value.constructor,
  * }} TypeGetter
  */
-
 /**
  * @typedef {typeof import("./js/Blueprint.js").default} BlueprintConstructor
  * @typedef {typeof import("./js/element/LinkElement.js").default} LinkElementConstructor
@@ -148,6 +147,7 @@
  * @typedef {import("./js/entity/VectorEntity.js").default} VectorEntity
  * @typedef {import("./js/input/IInput.js").default} IInput
  * @typedef {import("./js/input/keyboard/KeyboardShortcut.js").default} KeyboardShortcut
+ * @typedef {import("./js/input/mouse/MouseMoveDraggable.js").default} MouseMoveDraggable
  * @typedef {import("./js/template/BlueprintTemplate.js").default} BlueprintTemplate
  * @typedef {import("./js/template/ColorHandlerTemplate.js").default} ColorHandlerTemplate
  * @typedef {import("./js/template/ColorSliderTemplate.js").default} ColorSliderTemplate

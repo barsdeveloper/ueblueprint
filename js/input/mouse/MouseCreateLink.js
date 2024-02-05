@@ -2,6 +2,12 @@ import Configuration from "../../Configuration.js"
 import ElementFactory from "../../element/ElementFactory.js"
 import IMouseClickDrag from "./IMouseClickDrag.js"
 
+/**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+ *     scrollGraphEdge?: Boolean,
+* }} Options
+*/
+
 /** @extends IMouseClickDrag<PinElement> */
 export default class MouseCreateLink extends IMouseClickDrag {
 
@@ -69,7 +75,7 @@ export default class MouseCreateLink extends IMouseClickDrag {
     /**
      * @param {PinElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.scrollGraphEdge ??= true
