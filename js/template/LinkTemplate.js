@@ -18,7 +18,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
      * y'(p[0]) = m => -a / p[0]^2 = m => a = -m * p[0]^2. Now, in order to determine q we can use the starting
      * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
      * @param {Number} m slope
-     * @param {Number[]} p reference point
+     * @param {Coordinates} p reference point
      */
     static decreasingValue(m, p) {
         const a = -m * p[0] ** 2

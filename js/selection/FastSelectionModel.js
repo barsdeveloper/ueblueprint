@@ -14,7 +14,7 @@ import OrderedIndexArray from "./OrderedIndexArray.js"
 export default class FastSelectionModel {
 
     /**
-     * @param {Number[]} initialPosition
+     * @param {Coordinates} initialPosition
      * @param {NodeElement[]} rectangles
      * @param {BoundariesFunction} boundariesFunc
      * @param {SelectionFunction} selectFunc

@@ -10,7 +10,7 @@ import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable.js"
 export default class IDraggableTemplate extends ITemplate {
 
     getDraggableElement() {
-        return /** @type {Element} */(this.element)
+        return /** @type {IElement} */(this.element)
     }
 
     createDraggableObject() {

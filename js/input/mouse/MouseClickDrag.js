@@ -2,10 +2,10 @@ import MouseMoveDraggable from "./MouseMoveDraggable.js"
 
 /**
  * @typedef {import("./MouseMoveDraggable.js").Options & {
- *     onClicked?: () => {},
- *     onStartDrag?: () => {},
- *     onDrag?: (location: Coordinates, movement: Coordinates) => {},
- *     onEndDrag?: () => {},
+ *     onClicked?: () => void,
+ *     onStartDrag?: () => void,
+ *     onDrag?: (location: Coordinates, movement: Coordinates) => void,
+ *     onEndDrag?: () => void,
 * }} Options
 */
 
