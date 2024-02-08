@@ -435,6 +435,14 @@ class Configuration {
     }
 }
 
+/**
+ * @typedef {{
+ *     consumeEvent?: Boolean,
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 /** @template {Element} T */
 class IInput {
 
@@ -450,7 +458,7 @@ class IInput {
         return this.#blueprint
     }
 
-    consumeEvent = true
+    consumeEvent
 
     /** @type {Object} */
     options
@@ -462,7 +470,7 @@ class IInput {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.consumeEvent ??= false;
@@ -1915,16 +1923,16 @@ class Utility {
     }
 
     /**
-     * @param {Number[]} viewportLocation
+     * @param {Coordinates} viewportLocation
      * @param {HTMLElement} movementElement
      */
     static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
         const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement);
         const bounding = movementElement.getBoundingClientRect();
-        let location = [
+        const location = /** @type {Coordinates} */([
             Math.round((viewportLocation[0] - bounding.x) * scaleCorrection),
             Math.round((viewportLocation[1] - bounding.y) * scaleCorrection)
-        ];
+        ]);
         return location
     }
 
@@ -2068,7 +2076,7 @@ class Utility {
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static snapToGrid(x, y, gridSize) {
         if (gridSize === 1) {
@@ -2185,7 +2193,7 @@ class Utility {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static getPolarCoordinates(x, y, positiveTheta = false) {
         let theta = Math.atan2(y, x);
@@ -2201,7 +2209,7 @@ class Utility {
     /**
      * @param {Number} r
      * @param {Number} theta
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static getCartesianCoordinates(r, theta) {
         return [
@@ -2564,7 +2572,7 @@ class Grammar {
         + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         + `|"(` + Grammar.Regex.InsideString.source + `)"`
     )).map(([_0, a, b, c]) => a ?? b ?? c)
-    static path = Parsernostrum.reg(new RegExp(
+    static path = Parsernostrum.regArray(new RegExp(
         `'"(` + Grammar.Regex.InsideString.source + `)"'`
         + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         + `|"(` + Grammar.Regex.InsideString.source + `)"`
@@ -2823,16 +2831,9 @@ class ObjectReferenceEntity extends IEntity {
         Grammar.typeReference,
         Parsernostrum.whitespaceInlineOpt,
         Grammar.pathQuotes
-    )
-        .map(([type, _2, path]) =>
-            new this({ type, path })
-        )
-    static typeReferenceGrammar = Grammar.typeReference.map(v =>
-        new this({ type: v, path: "" })
-    )
-    static pathReferenceGrammar = Grammar.path.map(path =>
-        new this({ type: "", path: path })
-    )
+    ).map(([type, _2, path]) => new this({ type, path }))
+    static typeReferenceGrammar = Grammar.typeReference.map(v => new this({ type: v, path: "" }))
+    static pathReferenceGrammar = Grammar.path.map(path => new this({ type: "", path: path }))
     static grammar = this.createGrammar()
 
     static createGrammar() {
@@ -6394,6 +6395,13 @@ class ObjectSerializer extends Serializer {
     }
 }
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 class Copy extends IInput {
 
     static #serializer = new ObjectSerializer()
@@ -6431,6 +6439,13 @@ class Copy extends IInput {
     }
 }
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 class Cut extends IInput {
 
     static #serializer = new ObjectSerializer()
@@ -6438,6 +6453,11 @@ class Cut extends IInput {
     /** @type {(e: ClipboardEvent) => void} */
     #cutHandler
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus ??= true;
         options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
@@ -6574,6 +6594,15 @@ class KeyBindingEntity extends IEntity {
 }
 
 /**
+ * @typedef {import("../IInput.js").Options & {
+ *     activationKeys?: String | KeyBindingEntity | (String | KeyBindingEntity)[],
+ *     consumeEvent?: Boolean,
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
+/**
  * @template {Element} T
  * @extends IInput<T>
  */
@@ -6591,7 +6620,7 @@ class KeyboardShortcut extends IInput {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,
@@ -6611,7 +6640,7 @@ class KeyboardShortcut extends IInput {
             if (v instanceof KeyBindingEntity) {
                 return v
             }
-            if (typeof v === "string") {
+            if (v.constructor === String) {
                 const parsed = KeyBindingEntity.createGrammar().run(v);
                 if (parsed.status) {
                     return parsed.value
@@ -6702,12 +6731,21 @@ class Shortcuts {
 }
 
 /**
+ * @typedef {import("../IInput.js").Options & {
+ *     ignoreTranslateCompensate?: Boolean,
+ *     ignoreScale?: Boolean,
+ *     movementSpace?: HTMLElement,
+ *     enablerKey?: KeyboardShortcut,
+ * }} Options
+ */
+
+/**
  * @template {Element} T
  * @extends {IInput<T>}
  */
 class IPointing extends IInput {
 
-    #location = [0, 0]
+    #location = /** @type {Coordinates} */([0, 0])
     get location() {
         return this.#location
     }
@@ -6722,6 +6760,11 @@ class IPointing extends IInput {
         return this.#enablerActivated
     }
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint 
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false;
         options.ignoreScale ??= false;
@@ -6749,17 +6792,22 @@ class IPointing extends IInput {
         location = this.options.ignoreTranslateCompensate
             ? location
             : this.blueprint.compensateTranslation(location[0], location[1]);
-        this.#location[0] = location[0];
-        this.#location[1] = location[1];
+        this.#location = [...location];
         return this.#location
     }
 }
 
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     strictTarget?: Boolean,
+ * }} Options
+ */
+
 class MouseWheel extends IPointing {
 
-    static #ignoreEvent =
-        /** @param {MouseWheel} self */
-        self => { }
+    /** @param {MouseWheel} self */
+    static #ignoreEvent = self => { }
 
     #variation = 0
     get variation() {
@@ -6783,7 +6831,7 @@ class MouseWheel extends IPointing {
     /**
      * @param {HTMLElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,
@@ -6844,6 +6892,12 @@ class Zoom extends MouseWheel {
     }
 }
 
+/**
+ * @typedef {import("./KeyboardShortcut.js").Options & {
+ *     activationKeys?: String | KeyBindingEntity | (String | KeyBindingEntity)[],
+ * }} Options
+ */
+
 class KeyboardEnableZoom extends KeyboardShortcut {
 
     /** @type {Zoom} */
@@ -6852,7 +6906,7 @@ class KeyboardEnableZoom extends KeyboardShortcut {
     /**
      * @param {HTMLElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.activationKeys = Shortcuts.enableZoomIn;
@@ -7072,7 +7126,7 @@ class IDraggableElement extends IElement {
         this.setLocation(this.locationX + x, this.locationY + y, acknowledge);
     }
 
-    /** @param {Number[]} value */
+    /** @param {Coordinates} value */
     acknowledgeDrag(value) {
         const dragEvent = new CustomEvent(
             /** @type {typeof IDraggableElement} */(this.constructor).dragGeneralEventName,
@@ -7110,6 +7164,21 @@ class IDraggableElement extends IElement {
         return this.template.leftBoundary(justSelectableArea)
     }
 }
+
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     clickButton?: Number,
+ *     consumeEvent?: Boolean,
+ *     draggableElement?: IElement,
+ *     exitAnyButton?: Boolean,
+ *     moveEverywhere?: Boolean,
+ *     movementSpace?: HTMLElement,
+ *     repositionOnClick?: Boolean,
+ *     scrollGraphEdge?: Boolean,
+ *     strictTarget?: Boolean,
+ *     stepSize?: Number,
+ * }} Options
+ */
 
 /**
  * @template {IElement} T
@@ -7242,7 +7311,7 @@ class IMouseClickDrag extends IPointing {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= Configuration.mouseClickButton;
@@ -7255,7 +7324,7 @@ class IMouseClickDrag extends IPointing {
         options.scrollGraphEdge ??= false;
         options.strictTarget ??= false;
         super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
+        this.stepSize = Number(options.stepSize ?? Configuration.gridSize);
         this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
         this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement);
 
@@ -7308,8 +7377,12 @@ class MouseScrollGraph extends IMouseClickDrag {
         this.blueprint.scrolling = true;
     }
 
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
     dragTo(location, movement) {
-        this.blueprint.scrollDelta(-movement[0], -movement[1]);
+        this.blueprint.scrollDelta(...movement);
     }
 
     endDrag() {
@@ -7317,17 +7390,22 @@ class MouseScrollGraph extends IMouseClickDrag {
     }
 }
 
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     listenOnFocus?: Boolean,
+ * }} Options
+ */
+
 class MouseTracking extends IPointing {
 
     /** @type {IPointing} */
     #mouseTracker = null
 
     /** @param {MouseEvent} e */
-    #mousemoveHandler= e => {
+    #mousemoveHandler = e => {
         e.preventDefault();
         this.setLocationFromEvent(e);
-        this.blueprint.mousePosition[0] = this.location[0];
-        this.blueprint.mousePosition[1] = this.location[1];
+        this.blueprint.mousePosition = [...this.location];
     }
 
     /** @param {CustomEvent} e */
@@ -7348,6 +7426,11 @@ class MouseTracking extends IPointing {
         }
     }
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
         super(target, blueprint, options);
@@ -7402,6 +7485,13 @@ class ElementFactory {
     }
 }
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 class Paste extends IInput {
 
     static #serializer = new ObjectSerializer()
@@ -7409,6 +7499,11 @@ class Paste extends IInput {
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus ??= true;
         options.unlistenOnTextEdit ??= true; // No nodes paste if inside a text field, just text (default behavior)
@@ -7454,6 +7549,12 @@ class Paste extends IInput {
     }
 }
 
+/**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+ *     scrollGraphEdge?: Boolean,
+ * }} Options
+ */
+
 class Select extends IMouseClickDrag {
 
     constructor(target, blueprint, options = {}) {
@@ -7466,6 +7567,10 @@ class Select extends IMouseClickDrag {
         this.selectorElement.beginSelect(this.clickedPosition);
     }
 
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
     dragTo(location, movement) {
         this.selectorElement.selectTo(location);
     }
@@ -7483,15 +7588,25 @@ class Select extends IMouseClickDrag {
     }
 }
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ * }} Options
+ */
+
 class Unfocus extends IInput {
 
     /** @param {MouseEvent} e */
     #clickHandler = e => this.clickedSomewhere(/** @type {HTMLElement} */(e.target))
 
+    /**
+     * @param {HTMLElement} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
         super(target, blueprint, options);
-
         if (this.blueprint.focus) {
             document.addEventListener("click", this.#clickHandler);
         }
@@ -7831,7 +7946,7 @@ class IFromToPositionedElement extends IElement {
         this.toY = 0;
     }
 
-    /** @param {Number[]} param0 */
+    /** @param {Coordinates} param0 */
     setBothLocations([x, y]) {
         this.fromX = x;
         this.fromY = y;
@@ -7922,6 +8037,11 @@ class KnotEntity extends ObjectEntity {
 }
 
 /**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+* }} Options
+*/
+
+/**
  * @template {Element} T
  * @extends {IPointing<T>}
  */
@@ -7979,7 +8099,7 @@ class MouseClick extends IPointing {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,
@@ -8020,12 +8140,19 @@ class MouseClick extends IPointing {
 }
 
 /**
+ * @typedef {import("./IPointing.js").Options & {
+ *     consumeEvent?: Boolean,
+ *     strictTarget?: Boolean,
+* }} Options
+*/
+
+/**
  * @template {HTMLElement} T
  * @extends {IPointing<T>}
  */
 class MouseDbClick extends IPointing {
 
-    /** @param {Number[]} location */
+    /** @param {Coordinates} location */
     static ignoreDbClick = location => { }
 
     /** @param {MouseEvent} e */
@@ -8035,8 +8162,7 @@ class MouseDbClick extends IPointing {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             this.clickedPosition = this.setLocationFromEvent(e);
-            this.blueprint.mousePosition[0] = this.clickedPosition[0];
-            this.blueprint.mousePosition[1] = this.clickedPosition[1];
+            this.blueprint.mousePosition = [...this.clickedPosition];
             this.dbclicked(this.clickedPosition);
         }
     }
@@ -8049,8 +8175,13 @@ class MouseDbClick extends IPointing {
         this.#onDbClick = value;
     }
 
-    clickedPosition = [0, 0]
+    clickedPosition = /** @type {Coordinates} */([0, 0])
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}, onDbClick = MouseDbClick.ignoreDbClick) {
         options.consumeEvent ??= true;
         options.strictTarget ??= false;
@@ -8068,6 +8199,7 @@ class MouseDbClick extends IPointing {
     }
 
     /* Subclasses will override the following method */
+    /** @param {Coordinates} location */
     dbclicked(location) {
         this.onDbClick(location);
     }
@@ -8082,7 +8214,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
      * y'(p[0]) = m => -a / p[0]^2 = m => a = -m * p[0]^2. Now, in order to determine q we can use the starting
      * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
      * @param {Number} m slope
-     * @param {Number[]} p reference point
+     * @param {Coordinates} p reference point
      */
     static decreasingValue(m, p) {
         const a = -m * p[0] ** 2;
@@ -8123,7 +8255,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
     #uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     #createKnot = location => {
         const knotEntity = new KnotEntity({}, this.element.source.entity);
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
@@ -8143,6 +8275,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     createInputObjects() {
+        /** @type {HTMLElement} */
         const linkArea = this.element.querySelector(".ueb-link-area");
         return [
             ...super.createInputObjects(),
@@ -8150,7 +8283,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
                 linkArea,
                 this.blueprint,
                 undefined,
-                /** @param {[Number, Number]} location */
+                /** @param {Coordinates} location */
                 location => {
                     location[0] += Configuration.knotOffset[0];
                     location[1] += Configuration.knotOffset[1];
@@ -8430,7 +8563,7 @@ class LinkElement extends IFromToPositionedElement {
         this.destination = null;
     }
 
-    /** @param {Number[]?} location */
+    /** @param {Coordinates} location */
     setSourceLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
@@ -8446,7 +8579,7 @@ class LinkElement extends IFromToPositionedElement {
         this.fromY = y;
     }
 
-    /** @param {Number[]?} location */
+    /** @param {Coordinates} location */
     setDestinationLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
@@ -8555,13 +8688,15 @@ class LinkElement extends IFromToPositionedElement {
     }
 }
 
+/** @typedef {import("./IMouseClickDrag.js").Options} Options */
+
 /**
  * @template {IDraggableElement} T
  * @extends {IMouseClickDrag<T>}
  */
 class MouseMoveDraggable extends IMouseClickDrag {
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     clicked(location) {
         if (this.options.repositionOnClick) {
             this.target.setLocation(...(this.stepSize > 1
@@ -8573,8 +8708,8 @@ class MouseMoveDraggable extends IMouseClickDrag {
     }
 
     /**
-     * @param {Number[]} location
-     * @param {Number[]} offset
+     * @param {Coordinates} location
+     * @param {Coordinates} offset
      */
     dragTo(location, offset) {
         const targetLocation = [
@@ -8603,13 +8738,22 @@ class MouseMoveDraggable extends IMouseClickDrag {
     }
 
     /**
-     * @param {Number[]} location
-     * @param {Number[]} offset
+     * @param {Coordinates} location
+     * @param {Coordinates} offset
      */
     dragAction(location, offset) {
         this.target.setLocation(location[0] - this.clickedOffset[0], location[1] - this.clickedOffset[1]);
     }
 }
+
+/**
+ * @typedef {import("./MouseMoveDraggable.js").Options & {
+ *     onClicked?: () => void,
+ *     onStartDrag?: () => void,
+ *     onDrag?: (location: Coordinates, movement: Coordinates) => void,
+ *     onEndDrag?: () => void,
+* }} Options
+*/
 
 class MouseClickDrag extends MouseMoveDraggable {
 
@@ -8621,7 +8765,7 @@ class MouseClickDrag extends MouseMoveDraggable {
     /**
      * @param {HTMLElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         super(target, blueprint, options);
@@ -8639,7 +8783,7 @@ class MouseClickDrag extends MouseMoveDraggable {
         }
     }
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     clicked(location) {
         super.clicked(location);
         this.#onClicked?.();
@@ -8650,6 +8794,10 @@ class MouseClickDrag extends MouseMoveDraggable {
         this.#onStartDrag?.();
     }
 
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
     dragAction(location, movement) {
         this.#onDrag?.(location, movement);
     }
@@ -8667,7 +8815,7 @@ class MouseClickDrag extends MouseMoveDraggable {
 class IDraggableTemplate extends ITemplate {
 
     getDraggableElement() {
-        return /** @type {Element} */(this.element)
+        return /** @type {IElement} */(this.element)
     }
 
     createDraggableObject() {
@@ -8794,7 +8942,7 @@ class MouseMoveNodes extends MouseMoveDraggable {
 class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
     getDraggableElement() {
-        return /** @type {Element} */(this.element)
+        return /** @type {HTMLElement} */(this.element)
     }
 
     createDraggableObject() {
@@ -9238,6 +9386,12 @@ class CommentNodeTemplate extends IResizeableTemplate {
     }
 }
 
+/**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+ *     scrollGraphEdge?: Boolean,
+* }} Options
+*/
+
 /** @extends IMouseClickDrag<PinElement> */
 class MouseCreateLink extends IMouseClickDrag {
 
@@ -9305,7 +9459,7 @@ class MouseCreateLink extends IMouseClickDrag {
     /**
      * @param {PinElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.scrollGraphEdge ??= true;
@@ -10247,7 +10401,7 @@ class Blueprint extends IElement {
     links = []
     /** @type {Map<String, NodeElement>} */
     nodesNames = new Map()
-    /** @type {Number[]} */
+    /** @type {Coordinates} */
     mousePosition = [0, 0]
     waitingExpandUpdate = false
 
@@ -10685,7 +10839,7 @@ class IDraggableControlTemplate extends IDraggableTemplate {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     adjustLocation(x, y) {
         this.locationChangeCallback?.(x, y);
@@ -10699,7 +10853,7 @@ class ColorHandlerTemplate extends IDraggableControlTemplate {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     adjustLocation(x, y) {
         const radius = Math.round(this.movementSpaceSize[0] / 2);
@@ -10761,7 +10915,7 @@ class ColorSliderTemplate extends IDraggableControlTemplate {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @return {[Number, Number]}
+     * @return {Coordinates}
      */
     adjustLocation(x, y) {
         x = Utility.clamp(x, 0, this.movementSpaceSize[0]);
@@ -12370,7 +12524,7 @@ class OrderedIndexArray {
 class FastSelectionModel {
 
     /**
-     * @param {Number[]} initialPosition
+     * @param {Coordinates} initialPosition
      * @param {NodeElement[]} rectangles
      * @param {BoundariesFunction} boundariesFunc
      * @param {SelectionFunction} selectFunc
@@ -12538,7 +12692,7 @@ class SelectorElement extends IFromToPositionedElement {
         // Initialized in the constructor, this method does nothing
     }
 
-    /** @param {Number[]} initialPosition */
+    /** @param {Coordinates} initialPosition */
     beginSelect(initialPosition) {
         const blueprintConstructor = /** @type {BlueprintConstructor} */(this.blueprint.constructor);
         this.blueprint.selecting = true;
@@ -12551,7 +12705,7 @@ class SelectorElement extends IFromToPositionedElement {
         );
     }
 
-    /** @param {Number[]} finalPosition */
+    /** @param {Coordinates} finalPosition */
     selectTo(finalPosition) {
         this.selectionModel.selectTo(finalPosition);
         this.toX = finalPosition[0];

@@ -158,7 +158,7 @@ generateNodeTests([
                 CustomProperties Pin (PinId=49E3CCDD6EBB46AE9B6FDFBC951E092C,PinName="Is Not Valid",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
             End Object
         `,
-        // size: [18, 9],
+        size: [18, 9],
         color: Configuration.nodeColors.gray,
         icon: SVGIcon.questionMark,
         pins: 4,

@@ -23,16 +23,9 @@ export default class ObjectReferenceEntity extends IEntity {
         Grammar.typeReference,
         Parsernostrum.whitespaceInlineOpt,
         Grammar.pathQuotes
-    )
-        .map(([type, _2, path]) =>
-            new this({ type, path })
-        )
-    static typeReferenceGrammar = Grammar.typeReference.map(v =>
-        new this({ type: v, path: "" })
-    )
-    static pathReferenceGrammar = Grammar.path.map(path =>
-        new this({ type: "", path: path })
-    )
+    ).map(([type, _2, path]) => new this({ type, path }))
+    static typeReferenceGrammar = Grammar.typeReference.map(v => new this({ type: v, path: "" }))
+    static pathReferenceGrammar = Grammar.path.map(path => new this({ type: "", path: path }))
     static grammar = this.createGrammar()
 
     static createGrammar() {

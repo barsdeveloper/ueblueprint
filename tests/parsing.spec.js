@@ -217,6 +217,9 @@ test.describe("Serializer", () => {
         expect(reference).toBeInstanceOf(ObjectReferenceEntity)
         expect(reference).toMatchObject({ type: "/Script/Engine.EdGraph", path: "+-Weird/2,Macro" })
 
+        reference = serializer.read(`/Script/BlueprintGraph.K2Node_VariableGet`)
+        expect(reference).toBeInstanceOf(ObjectReferenceEntity)
+        expect(reference).toMatchObject({ type: "/Script/BlueprintGraph.K2Node_VariableGet", path: "" })
     })
 
     test("String", () => {

@@ -169,10 +169,10 @@ function generateNodeTest(nodeTest) {
             test(
                 "Can add new pins",
                 async ({ blueprintPage }) => {
-                    const variadic = blueprintPage.node.locator(".ueb-node-variadic")
-                    expect(variadic).toBeVisible()
+                    const variadic = blueprintPage.node.getByText("Add pin")
+                    await expect(variadic).toBeVisible()
                     await variadic.click()
-                    expect(blueprintPage.node.locator("ueb-pin").all()).toHaveLength(nodeTest.pins + 1)
+                    expect(await blueprintPage.node.locator("ueb-pin").all()).toHaveLength(nodeTest.pins + 1)
                 }
             )
         }
