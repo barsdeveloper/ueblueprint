@@ -7,8 +7,9 @@ import MouseMoveNodes from "../input/mouse/MouseMoveNodes.js"
  */
 export default class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
+    /** @returns {HTMLElement} */
     getDraggableElement() {
-        return /** @type {HTMLElement} */(this.element)
+        return this.element
     }
 
     createDraggableObject() {

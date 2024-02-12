@@ -8,14 +8,14 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
     static createGrammar() {
         const number = Parsernostrum.number.getParser().parser.regexp.source
         return Parsernostrum.alt(
-            Parsernostrum.reg(new RegExp(
+            Parsernostrum.regArray(new RegExp(
                 "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
             ))
-                .map(([x, y, z]) => new this({
+                .map(([_0, x, y, z]) => new this({
                     X: Number(x),
                     Y: Number(y),
                     Z: Number(z),

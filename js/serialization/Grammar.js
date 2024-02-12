@@ -35,7 +35,10 @@ export default class Grammar {
     static true = Parsernostrum.reg(/true/i).map(() => true)
     static false = Parsernostrum.reg(/false/i).map(() => false)
     static boolean = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? true : false)
-    static number = Parsernostrum.regArray(new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`))
+    static number = Parsernostrum.regArray(
+        new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
+    ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
+    static bigInt = Parsernostrum.reg(new RegExp(Parsernostrum.number.getParser().parser.regexp.source)).map(BigInt)
         .map(result =>
             result[2] !== undefined
                 ? Number.POSITIVE_INFINITY
@@ -109,20 +112,20 @@ export default class Grammar {
             result = this.grammarFor(undefined, type)
         } else {
             switch (type) {
-                case BigInt:
-                    result = this.bigInt
-                    break
                 case Boolean:
                     result = this.boolean
                     break
                 case Number:
                     result = this.number
                     break
+                case BigInt:
+                    result = this.bigInt
+                    break
                 case String:
                     result = this.string
                     break
                 default:
-                    if (type?.prototype instanceof Serializable) {
+                    if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
                         return /** @type {typeof Serializable} */(type).grammar
                     }
             }

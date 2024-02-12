@@ -2,8 +2,10 @@
 /**
  * @typedef {IEntity | String | Number | BigInt | Boolean | Array} TerminalAttribute
  * @typedef {TerminalAttribute | MirroredEntity<TerminalAttribute>} Attribute
- * @typedef {AttributeConstructor<TerminalAttribute> | AttributeConstructor<TerminalAttribute>[] 
- *     | MirroredEntity<Attribute> | Union | Union[] | ComputedType} AttributeTypeDescription
+ * @typedef {(
+ *      AttributeConstructor<Attribute> | AttributeConstructor<Attribute>[] 
+ *     | MirroredEntity<Attribute> | Union | Union[] | ComputedType
+ * )} AttributeTypeDescription
  * @typedef {(entity: IEntity) => Attribute} ValueSupplier
  */
 /**
@@ -205,3 +207,10 @@
  * @template {Attribute} T
  * @typedef {typeof import("./js/entity/MirroredEntity.js").default<T>} MirroredEntityConstructor
  */
+/**
+ * @template T
+ * @typedef {{
+*     evaluate<R, Arg>(pageFunction: (node: T, arg: Arg) => R, arg: Arg, options?: { timeout?: number }): Promise<R>
+*     evaluate<R>(pageFunction: (node: T) => R, options?: { timeout?: number }): Promise<R>
+* } & import("@playwright/test").Locator} Locator
+*/

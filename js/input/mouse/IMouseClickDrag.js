@@ -7,7 +7,7 @@ import Utility from "../../Utility.js"
  * @typedef {import("./IPointing.js").Options & {
  *     clickButton?: Number,
  *     consumeEvent?: Boolean,
- *     draggableElement?: IElement,
+ *     draggableElement?: HTMLElement,
  *     exitAnyButton?: Boolean,
  *     moveEverywhere?: Boolean,
  *     movementSpace?: HTMLElement,
@@ -140,9 +140,9 @@ export default class IMouseClickDrag extends IPointing {
     #movementListenedElement
     #draggableElement
 
-    clickedOffset = [0, 0]
-    clickedPosition = [0, 0]
-    lastLocation = [0, 0]
+    clickedOffset = /** @type {Coordinates} */([0, 0])
+    clickedPosition = /** @type {Coordinates} */([0, 0])
+    lastLocation = /** @type {Coordinates} */([0, 0])
     started = false
     stepSize = 1
 

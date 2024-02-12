@@ -552,7 +552,7 @@ class MirroredEntity {
         return this.getter()
     }
 
-    /** @return {AttributeConstructor<Attribute>} */
+    /** @returns {AttributeConstructor<Attribute>} */
     getTargetType() {
         const result = this.type;
         if (result instanceof MirroredEntity) {
@@ -2552,7 +2552,10 @@ class Grammar {
     static true = Parsernostrum.reg(/true/i).map(() => true)
     static false = Parsernostrum.reg(/false/i).map(() => false)
     static boolean = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? true : false)
-    static number = Parsernostrum.regArray(new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`))
+    static number = Parsernostrum.regArray(
+        new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
+    ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
+    static bigInt = Parsernostrum.reg(new RegExp(Parsernostrum.number.getParser().parser.regexp.source)).map(BigInt)
         .map(result =>
             result[2] !== undefined
                 ? Number.POSITIVE_INFINITY
@@ -2626,20 +2629,20 @@ class Grammar {
             result = this.grammarFor(undefined, type);
         } else {
             switch (type) {
-                case BigInt:
-                    result = this.bigInt;
-                    break
                 case Boolean:
                     result = this.boolean;
                     break
                 case Number:
                     result = this.number;
                     break
+                case BigInt:
+                    result = this.bigInt;
+                    break
                 case String:
                     result = this.string;
                     break
                 default:
-                    if (type?.prototype instanceof Serializable) {
+                    if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
                         return /** @type {typeof Serializable} */(type).grammar
                     }
             }
@@ -3349,6 +3352,11 @@ class LinearColorEntity extends IEntity {
         this.#updateHSV();
     }
 
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.R.value, this.G.value, this.B.value, this.A.value]
+    }
+
     toString() {
         return Utility.printLinearColor(this)
     }
@@ -3839,6 +3847,11 @@ class Vector2DEntity extends IEntity {
         /** @type {Number} */ this.X;
         /** @type {Number} */ this.Y;
     }
+
+    /** @returns {[Number, Number]} */
+    toArray() {
+        return [this.X, this.Y]
+    }
 }
 
 class RBSerializationVector2DEntity extends Vector2DEntity {
@@ -3981,6 +3994,11 @@ class VectorEntity extends IEntity {
         /** @type {Number} */ this.Y;
         /** @type {Number} */ this.Z;
     }
+
+    /** @returns {[Number, Number, Number]} */
+    toArray() {
+        return [this.X, this.Y, this.Z]
+    }
 }
 
 class SimpleSerializationVectorEntity extends VectorEntity {
@@ -3990,14 +4008,14 @@ class SimpleSerializationVectorEntity extends VectorEntity {
     static createGrammar() {
         const number = Parsernostrum.number.getParser().parser.regexp.source;
         return Parsernostrum.alt(
-            Parsernostrum.reg(new RegExp(
+            Parsernostrum.regArray(new RegExp(
                 "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
             ))
-                .map(([x, y, z]) => new this({
+                .map(([_0, x, y, z]) => new this({
                     X: Number(x),
                     Y: Number(y),
                     Z: Number(z),
@@ -7169,7 +7187,7 @@ class IDraggableElement extends IElement {
  * @typedef {import("./IPointing.js").Options & {
  *     clickButton?: Number,
  *     consumeEvent?: Boolean,
- *     draggableElement?: IElement,
+ *     draggableElement?: HTMLElement,
  *     exitAnyButton?: Boolean,
  *     moveEverywhere?: Boolean,
  *     movementSpace?: HTMLElement,
@@ -7302,9 +7320,9 @@ class IMouseClickDrag extends IPointing {
     #movementListenedElement
     #draggableElement
 
-    clickedOffset = [0, 0]
-    clickedPosition = [0, 0]
-    lastLocation = [0, 0]
+    clickedOffset = /** @type {Coordinates} */([0, 0])
+    clickedPosition = /** @type {Coordinates} */([0, 0])
+    lastLocation = /** @type {Coordinates} */([0, 0])
     started = false
     stepSize = 1
 
@@ -8814,8 +8832,9 @@ class MouseClickDrag extends MouseMoveDraggable {
  */
 class IDraggableTemplate extends ITemplate {
 
+    /** @returns {HTMLElement} */
     getDraggableElement() {
-        return /** @type {IElement} */(this.element)
+        return this.element
     }
 
     createDraggableObject() {
@@ -8941,8 +8960,9 @@ class MouseMoveNodes extends MouseMoveDraggable {
  */
 class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
+    /** @returns {HTMLElement} */
     getDraggableElement() {
-        return /** @type {HTMLElement} */(this.element)
+        return this.element
     }
 
     createDraggableObject() {
@@ -9304,6 +9324,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
         super.initialize(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
     }
 
+    /** @returns {HTMLElement} */
     getDraggableElement() {
         return this.element.querySelector(".ueb-node-top")
     }

@@ -4,11 +4,15 @@ import httpServer from "http-server"
 export default class BlueprintFixture {
 
     #port = 8181
+
+
+    /** @type {Locator<Blueprint>} */
     #blueprintLocator
     get blueprintLocator() {
         return this.#blueprintLocator
     }
 
+    /** @type {Locator<NodeElement>} */
     #node
     get node() {
         return this.#node
@@ -21,7 +25,7 @@ export default class BlueprintFixture {
     constructor(page) {
         this.page = page
         this.#blueprintLocator = page.locator("ueb-blueprint")
-        this.#node = this.#blueprintLocator.locator("ueb-node").nth(0)
+        this.#node = this.#blueprintLocator.locator("ueb-node").first()
         if (process.env.UEBLUEPRINT_TEST_SERVER_PORT) {
             this.#port = Number(process.env.UEBLUEPRINT_TEST_SERVER_PORT)
         }
@@ -49,7 +53,11 @@ export default class BlueprintFixture {
             await this.page.goto(url)
         } catch (e) {
             if (e.message.includes("ERR_CONNECTION_REFUSED")) {
-                await this.createServer()
+                try {
+                    await this.createServer()
+                } catch (e) {
+                    let a = 123
+                }
                 await this.page.goto(url)
             }
         }
@@ -59,7 +67,7 @@ export default class BlueprintFixture {
     }
 
     async removeNodes() {
-        return await this.#blueprintLocator.evaluate(/** @param {Blueprint} blueprint */ blueprint =>
+        return await this.#blueprintLocator.evaluate(blueprint =>
             blueprint.removeGraphElement(...blueprint.getNodes())
         )
     }
@@ -67,7 +75,7 @@ export default class BlueprintFixture {
     /** @param {String} text */
     async paste(text) {
         return await this.#blueprintLocator.evaluate(
-            /** @param {Blueprint} blueprint */(blueprint, text) => {
+            (blueprint, text) => {
                 const event = new ClipboardEvent("paste", {
                     bubbles: true,
                     cancelable: true,

@@ -179,6 +179,9 @@ test.describe("Serializer", () => {
         expect(serializer.read("-999.666")).toBeCloseTo(-999.666, 0.001)
         expect(serializer.read("+45.4545")).toBeCloseTo(45.4545, 0.001)
         expect(serializer.read("+1000000000")).toBeCloseTo(1E9, 0.1)
+        expect(serializer.read("inf")).toBe(Number.POSITIVE_INFINITY)
+        expect(serializer.read("+inf")).toBe(Number.POSITIVE_INFINITY)
+        expect(serializer.read("-inf")).toBe(Number.NEGATIVE_INFINITY)
         expect(() => serializer.read("alpha")).toThrow()
     })
 

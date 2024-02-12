@@ -322,6 +322,11 @@ export default class LinearColorEntity extends IEntity {
         this.#updateHSV()
     }
 
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.R.value, this.G.value, this.B.value, this.A.value]
+    }
+
     toString() {
         return Utility.printLinearColor(this)
     }

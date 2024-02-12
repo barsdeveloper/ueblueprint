@@ -28,4 +28,9 @@ export default class Vector2DEntity extends IEntity {
         /** @type {Number} */ this.X
         /** @type {Number} */ this.Y
     }
+
+    /** @returns {[Number, Number]} */
+    toArray() {
+        return [this.X, this.Y]
+    }
 }

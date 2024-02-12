@@ -1,46 +1,31 @@
-import Configuration from "../../js/Configuration.js"
-import { test, expect } from "../fixtures/test.js"
+import { test, expect } from "./fixtures/test.js"
+import Configuration from "./../js/Configuration.js"
+import EventNodes from "./resources/EventNodes.js"
+import FlowControlNodes from "./resources/FlowControlNodes.js"
+import InputNodes from "./resources/InputNodes.js"
+import LegacyNodes from "./resources/LegacyNodes.js"
+import MaterialNodes from "./resources/MaterialNodes.js"
+import OperationsNodes from "./resources/OperationsNodes.js"
+import OtherNodes from "./resources/OtherNodes.js"
+import PCGNodes from "./resources/PCGNodes.js"
 
-/**
- * @typedef {import("@playwright/test").Locator} Locator
- */
-
-/**
- * @typedef {(
- *     extract: <T, Args extends any[]>(
- *         v: (node: NodeElement, ...args: Args) => T,
- *         ...args: Args
- *     ) => Promise<T>,
- *     locator: import("@playwright/test").Locator
- * ) => void} AdditionalTest
- */
-
-/**
- * @typedef {{
- *     name: String,
- *     title?: String,
- *     subtitle?: String,
- *     value: String,
- *     size?: Coordinates,
- *     color?: CSSResult,
- *     icon?: TemplateResult,
- *     pins?: Number,
- *     pinNames?: String[],
- *     delegate: Boolean,
- *     development: Boolean,
- *     variadic?: Boolean,
- *     additionalTest?: AdditionalTest,
- * }} TestSpecifier
- */
-
+const nodeTests = [
+    ...EventNodes.get(),
+    ...FlowControlNodes.get(),
+    ...InputNodes.get(),
+    ...LegacyNodes.get(),
+    ...MaterialNodes.get(),
+    ...OperationsNodes.get(),
+    ...OtherNodes.get(),
+    ...PCGNodes.get()
+]
 
 /** @param {String[]} words */
 function getFirstWordOrder(words) {
     return new RegExp(/\s*/.source + words.join(/[^\n]+\n\s*/.source) + /\s*/.source)
 }
 
-/** @param {TestSpecifier} nodeTest */
-function generateNodeTest(nodeTest) {
+for (const nodeTest of nodeTests) {
     test.describe(nodeTest.name, () => {
 
         test.beforeAll(async ({ blueprintPage }) => {
@@ -50,15 +35,16 @@ function generateNodeTest(nodeTest) {
 
         if (nodeTest.color) {
             test(
-                "Has correct color",
+                `${nodeTest.name}: Has correct color`,
                 async ({ blueprintPage }) => {
                     expect(
-                        await blueprintPage.node.evaluate(node => /** @type {NodeElement} */(node).entity.nodeColor().toString())
+                        await blueprintPage.node.evaluate(node => node.entity.nodeColor().toString())
                     ).toBe(nodeTest.color.toString())
-                })
+                }
+            )
         }
         test(
-            "Has correct delegate",
+            `${nodeTest.name}: Has correct delegate`,
             async ({ blueprintPage }) => {
                 const delegate = blueprintPage.blueprintLocator.locator(
                     'ueb-node .ueb-node-top ueb-pin[data-type="delegate"]'
@@ -68,29 +54,29 @@ function generateNodeTest(nodeTest) {
                 } else {
                     await expect(delegate).toBeHidden()
                 }
-            })
+            }
+        )
         if (nodeTest.title) {
             test(
-                `Has title ${nodeTest.title}`,
+                `${nodeTest.name}: Has title ${nodeTest.title}`,
                 async ({ blueprintPage }) => expect(
-                    await blueprintPage.node.evaluate(node => /** @type {NodeElement} */(node).getNodeDisplayName())
+                    await blueprintPage.node.evaluate(node => node.getNodeDisplayName())
                 ).toBe(nodeTest.title)
             )
         }
         if (nodeTest.subtitle) {
             test(
-                `Has expected subtitle ${nodeTest.subtitle}`,
+                `${nodeTest.name}: Has expected subtitle ${nodeTest.subtitle}`,
                 async ({ blueprintPage }) => await expect(blueprintPage.node.locator(".ueb-node-subtitle-text"))
                     .toHaveText(nodeTest.subtitle, { useInnerText: true })
             )
         }
         if (nodeTest.size) {
             test(
-                "Has approximately the expected size",
+                `${nodeTest.name}: Has approximately the expected size`,
                 async ({ blueprintPage }) => {
                     const expectedSize = await blueprintPage.node.evaluate(
-                        (element, gridSize) => {
-                            const node =    /** @type {NodeElement} */(element)
+                        (node, gridSize) => {
                             const bounding = node.getBoundingClientRect()
                             const expectedSize = [bounding.width / gridSize, bounding.height / gridSize]
                             return expectedSize
@@ -105,38 +91,32 @@ function generateNodeTest(nodeTest) {
                     ) {
                         console.error(`Node "${nodeTest.name}" size does not match`)
                     }
-                })
+                }
+            )
         }
         if (nodeTest.icon !== undefined) {
             test(
-                "Has the correct icon",
+                `${nodeTest.name}: Has the correct icon`,
                 async ({ blueprintPage }) => expect(
                     await blueprintPage.node.evaluate(
-                        node => /** @type {NodeElement} */(node).entity.nodeIcon().strings.join("")
+                        node => node.entity.nodeIcon()?.strings.join("")
                     )
-                ).toBe(nodeTest.icon.strings.join(""))
-            )
-        } else {
-            test(
-                "It does not have an icon",
-                async ({ blueprintPage }) => expect(
-                    await blueprintPage.node.evaluate(node => /** @type {NodeElement} */(node).entity.nodeIcon())
-                ).toBeUndefined()
+                ).toBe(nodeTest.icon?.strings.join(""))
             )
         }
         if (nodeTest.pins !== undefined) {
             test(
-                `Has ${nodeTest.pins} pins`,
+                `${nodeTest.name}: Has ${nodeTest.pins} pins`,
                 async ({ blueprintPage }) => expect(
                     await blueprintPage.node.evaluate(
-                        node => /** @type {NodeElement} */(node).querySelectorAll("ueb-pin").length
+                        node => node.querySelectorAll("ueb-pin").length
                     )
                 ).toBe(nodeTest.pins)
             )
         }
         if (nodeTest.pinNames) {
             test(
-                "Has correct pin names",
+                `${nodeTest.name}: Has correct pin names`,
                 async ({ blueprintPage }) => {
                     const innerTexts = await blueprintPage.node.locator(".ueb-pin-content .ueb-pin-name").allInnerTexts()
                     const pinNames = innerTexts.map(v => v.trim()).filter(v => v.length > 0)
@@ -145,19 +125,18 @@ function generateNodeTest(nodeTest) {
             )
         }
         test(
-            "Expected development",
+            `${nodeTest.name}: Expected development`,
             async ({ blueprintPage }) => expect(
-                await blueprintPage.node.evaluate(node => /** @type {NodeElement} */(node).entity.isDevelopmentOnly())
+                await blueprintPage.node.evaluate(node => node.entity.isDevelopmentOnly())
             ).toBe(nodeTest.development)
         )
         test(
-            "Maintains the order of attributes",
+            `${nodeTest.name}: Maintains the order of attributes`,
             async ({ blueprintPage }) => {
-                const blueprint = blueprintPage.blueprintLocator
-                await blueprint.evaluate(/** @param {Blueprint} blueprint */ blueprint => blueprint.selectAll())
-                const value = await blueprint.evaluate(/** @param {Blueprint} blueprint */ blueprint =>
-                    blueprint.template.getCopyInputObject().getSerializedText()
-                )
+                const value = await blueprintPage.blueprintLocator.evaluate(blueprint => {
+                    blueprint.selectAll()
+                    return blueprint.template.getCopyInputObject().getSerializedText()
+                })
                 const words = value
                     .split("\n")
                     .map(row => row.match(/\s*("?\w+(\s+\w+)*).+/)?.[1])
@@ -167,7 +146,7 @@ function generateNodeTest(nodeTest) {
         )
         if (nodeTest.variadic) {
             test(
-                "Can add new pins",
+                `${nodeTest.name}: Can add new pins`,
                 async ({ blueprintPage }) => {
                     const variadic = blueprintPage.node.getByText("Add pin")
                     await expect(variadic).toBeVisible()
@@ -178,24 +157,10 @@ function generateNodeTest(nodeTest) {
         }
         if (nodeTest.additionalTest) {
             test(
-                "Additional tests",
-                async ({ blueprintPage }) => nodeTest.additionalTest(
-                    async (extractor, ...args) =>
-                        await blueprintPage.node.evaluate(
-                            element => extractor(
-                            /** @type {NodeElement} */(element),
-                                ...args
-                            ),
-                            ...args
-                        ),
-                    blueprintPage.node
-                )
+                `${nodeTest.name}: Additional tests`,
+                async ({ blueprintPage }) =>
+                    nodeTest.additionalTest(blueprintPage.node, await blueprintPage.node.locator("ueb-pin").all())
             )
         }
     })
-}
-
-/** @param {TestSpecifier[]} tests */
-export default function generateNodesTests(tests) {
-    tests.forEach(testObject => generateNodeTest(testObject))
 }

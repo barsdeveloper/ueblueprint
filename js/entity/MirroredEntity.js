@@ -23,7 +23,7 @@ export default class MirroredEntity {
         return this.getter()
     }
 
-    /** @return {AttributeConstructor<Attribute>} */
+    /** @returns {AttributeConstructor<Attribute>} */
     getTargetType() {
         const result = this.type
         if (result instanceof MirroredEntity) {
