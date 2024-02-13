@@ -58,7 +58,7 @@ class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = i$3`12.5px`
+    static fontSize = i$3`13px`
     static gridAxisLineColor = i$3`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = i$3`#353535`
