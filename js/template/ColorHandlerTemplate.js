@@ -7,7 +7,7 @@ export default class ColorHandlerTemplate extends IDraggableControlTemplate {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     adjustLocation(x, y) {
         const radius = Math.round(this.movementSpaceSize[0] / 2)

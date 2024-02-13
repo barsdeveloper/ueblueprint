@@ -2,6 +2,13 @@ import ElementFactory from "../../element/ElementFactory.js"
 import IInput from "../IInput.js"
 import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 export default class Paste extends IInput {
 
     static #serializer = new ObjectSerializer()
@@ -9,6 +16,11 @@ export default class Paste extends IInput {
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus ??= true
         options.unlistenOnTextEdit ??= true // No nodes paste if inside a text field, just text (default behavior)

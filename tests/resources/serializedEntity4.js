@@ -12,8 +12,8 @@ export default `Begin
   \${first.kilo} => (True,False,False,True,True,)
   \${first.mike} => "Bar"
   \${first.november} => 0
-  \${first.oscar} => Entity1(a=8, b=9)
-  \${first.papa} => Entity1(a=12, b=13)
+  \${first.oscar} => E1[A:8 - B:9]
+  \${first.papa} => E1[A:12 - B:13]
   \${first.romeo.a} => 8
   \${first.romeo.b} => 9
   \${first.sierra.someNumber} => 567
@@ -23,8 +23,8 @@ export default `Begin
   \${first.sierra.someBoolean2} => False
   \${first.sierra.someObjectString} => "gamma"
   \${first.sierra.someArray} => (400,500,600,700,800,)
-  \${first.sierra.someEntity} => Entity1(a=8, b=9)
+  \${first.sierra.someEntity} => E1[A:8 - B:9]
   \${second(0).a} => 1
   \${second(0).b} => 2
-  \${second(1)} => Entity1(a=11, b=22)
+  \${second(1)} => E1[A:11 - B:22]
 End`

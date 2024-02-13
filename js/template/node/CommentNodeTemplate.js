@@ -16,6 +16,7 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
         super.initialize(element) // Keep it at the end because it calls this.getColor() where this.#color must be initialized
     }
 
+    /** @returns {HTMLElement} */
     getDraggableElement() {
         return this.element.querySelector(".ueb-node-top")
     }

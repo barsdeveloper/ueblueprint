@@ -18,6 +18,7 @@ export default class Entity4 extends IEntity {
 
     constructor() {
         super()
+        /** @type {Entity1} */ this.second
         IEntity.defineAttributes(this.second, {
             0: {
                 inlined: true,

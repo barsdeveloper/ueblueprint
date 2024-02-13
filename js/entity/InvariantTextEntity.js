@@ -1,6 +1,6 @@
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 
 export default class InvariantTextEntity extends IEntity {
 
@@ -17,14 +17,14 @@ export default class InvariantTextEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Parsimmon.regex(new RegExp(`${this.lookbehind}\\s*\\(`)),
+        return Parsernostrum.alt(
+            Parsernostrum.seq(
+                Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
                 Grammar.grammarFor(this.attributes.value),
-                Parsimmon.regex(/\s*\)/)
+                Parsernostrum.reg(/\s*\)/)
             )
                 .map(([_0, value, _2]) => value),
-            Parsimmon.regex(new RegExp(this.lookbehind)) // InvariantTextEntity can not have arguments
+            Parsernostrum.reg(new RegExp(this.lookbehind)) // InvariantTextEntity can not have arguments
                 .map(() => "")
         ).map(value => new this(value))
     }

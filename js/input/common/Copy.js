@@ -1,6 +1,13 @@
 import IInput from "../IInput.js"
 import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 export default class Copy extends IInput {
 
     static #serializer = new ObjectSerializer()

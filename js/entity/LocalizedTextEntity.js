@@ -1,5 +1,6 @@
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
+import Parsernostrum from "parsernostrum"
 import Utility from "../Utility.js"
 
 export default class LocalizedTextEntity extends IEntity {
@@ -23,22 +24,19 @@ export default class LocalizedTextEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.regexMap(
-            new RegExp(
-                String.raw`${this.lookbehind}\s*\(`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-                + String.raw`(?:,\s+)?`
-                + String.raw`\)`,
-                "m"
-            ),
-            matchResult => new this({
-                namespace: Utility.unescapeString(matchResult[1]),
-                key: Utility.unescapeString(matchResult[2]),
-                value: Utility.unescapeString(matchResult[3]),
-            })
-        )
+        return Parsernostrum.regArray(new RegExp(
+            String.raw`${this.lookbehind}\s*\(`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
+            + String.raw`(?:,\s+)?`
+            + String.raw`\)`,
+            "m"
+        )).map(matchResult => new this({
+            namespace: Utility.unescapeString(matchResult[1]),
+            key: Utility.unescapeString(matchResult[2]),
+            value: Utility.unescapeString(matchResult[3]),
+        }))
     }
 
     constructor(values) {

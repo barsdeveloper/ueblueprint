@@ -1,6 +1,6 @@
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 
 export default class UnknownKeysEntity extends IEntity {
 
@@ -17,31 +17,29 @@ export default class UnknownKeysEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.seq(
+        return Parsernostrum.seq(
             // Lookbehind
-            Grammar.regexMap(
+            Parsernostrum.reg(
                 new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
-                result => result[1] ?? ""
+                1
             ),
-            Grammar.attributeName
-                .skip(Grammar.equalSeparation)
+            Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
                 .chain(attributeName =>
-                    Grammar.unknownValue
-                        .map(attributeValue =>
-                            values => values[attributeName] = attributeValue
-                        )
+                    Grammar.unknownValue.map(attributeValue =>
+                        values => values[attributeName] = attributeValue
+                    )
                 )
-                .sepBy1(Grammar.commaSeparation),
-            Parsimmon.regex(/\s*(?:,\s*)?\)/),
-        )
-            .map(([lookbehind, attributes, _2]) => {
-                let values = {}
-                if (lookbehind.length) {
-                    values.lookbehind = lookbehind
-                }
-                attributes.forEach(attributeSetter => attributeSetter(values))
-                return new this(values)
-            })
+                .sepBy(Grammar.commaSeparation),
+            Parsernostrum.reg(/\s*(?:,\s*)?\)/),
+        ).map(([lookbehind, attributes, _2]) => {
+            lookbehind ??= ""
+            let values = {}
+            if (lookbehind.length) {
+                values.lookbehind = lookbehind
+            }
+            attributes.forEach(attributeSetter => attributeSetter(values))
+            return new this(values)
+        })
     }
 
     constructor(values) {

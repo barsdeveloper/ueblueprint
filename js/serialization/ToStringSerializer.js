@@ -2,7 +2,7 @@ import Serializer from "./Serializer.js"
 import Utility from "../Utility.js"
 
 /**
- * @template {SimpleValueType<SimpleValue>} T
+ * @template {AttributeConstructor<Attribute>} T
  * @extends {Serializer<T>}
  */
 export default class ToStringSerializer extends Serializer {

@@ -2,7 +2,7 @@ import { html } from "lit"
 import PinTemplate from "./PinTemplate.js"
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends PinTemplate<T>
  */
 export default class MinimalPinTemplate extends PinTemplate {

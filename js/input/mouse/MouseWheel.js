@@ -1,10 +1,16 @@
 import IPointing from "./IPointing.js"
 
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     strictTarget?: Boolean,
+ * }} Options
+ */
+
 export default class MouseWheel extends IPointing {
 
-    static #ignoreEvent =
-        /** @param {MouseWheel} self */
-        self => { }
+    /** @param {MouseWheel} self */
+    static #ignoreEvent = self => { }
 
     #variation = 0
     get variation() {
@@ -28,7 +34,7 @@ export default class MouseWheel extends IPointing {
     /**
      * @param {HTMLElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,

@@ -1,5 +1,5 @@
 import IntegerEntity from "./IntegerEntity.js"
-import Grammar from "../serialization/Grammar.js"
+import Parsernostrum from "parsernostrum"
 
 export default class ByteEntity extends IntegerEntity {
 
@@ -16,7 +16,7 @@ export default class ByteEntity extends IntegerEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.byteNumber.map(v => new this(v))
+        return Parsernostrum.numberByte.map(v => new this(v))
     }
 
     constructor(values = 0) {

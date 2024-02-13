@@ -3,7 +3,7 @@ export default class SerializerFactory {
     static #serializers = new Map()
 
     /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} type
      * @param {Serializer<T>} object
      */
@@ -12,9 +12,9 @@ export default class SerializerFactory {
     }
 
     /**
-     * @template {SimpleValueType<any>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} type
-     * @returns {Serializer<ConstructedType<T>>}
+     * @returns {Serializer<T>}
      */
     static getSerializer(type) {
         return SerializerFactory.#serializers.get(type)

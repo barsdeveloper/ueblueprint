@@ -16,7 +16,7 @@ const t$2=window,e$3=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.native
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$2="$lit$",n$2=`lit$${(Math.random()+"").slice(9)}$`,l$1="?"+n$2,h=`<${l$1}>`,r=document,u=()=>r.createComment(""),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,c=Array.isArray,v=t=>c(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),a="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${a}(?:([^\\s"'>=/]+)(${a}*=${a}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,w=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=w(1),T=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),E=new WeakMap,C=r.createTreeWalker(r,129,null,!1);function P$2(t,i){if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e$1?e$1.createHTML(i):i}const V=(t,i)=>{const s=t.length-1,e=[];let l,r=2===i?"<svg>":"",u=f;for(let i=0;i<s;i++){const s=t[i];let d,c,v=-1,a=0;for(;a<s.length&&(u.lastIndex=a,c=u.exec(s),null!==c);)a=u.lastIndex,u===f?"!--"===c[1]?u=_:void 0!==c[1]?u=m:void 0!==c[2]?(y.test(c[2])&&(l=RegExp("</"+c[2],"g")),u=p):void 0!==c[3]&&(u=p):u===p?">"===c[0]?(u=null!=l?l:f,v=-1):void 0===c[1]?v=-2:(v=u.lastIndex-c[2].length,d=c[1],u=void 0===c[3]?p:'"'===c[3]?$:g):u===$||u===g?u=p:u===_||u===m?u=f:(u=p,l=void 0);const w=u===p&&t[i+1].startsWith("/>")?" ":"";r+=u===f?s+h:v>=0?(e.push(d),s.slice(0,v)+o$2+s.slice(v)+n$2+w):s+n$2+(-2===v?(e.push(void 0),i):w);}return [P$2(t,r+(t[s]||"<?>")+(2===i?"</svg>":"")),e]};class N{constructor({strings:t,_$litType$:i},e){let h;this.parts=[];let r=0,d=0;const c=t.length-1,v=this.parts,[a,f]=V(t,i);if(this.el=N.createElement(a,e),C.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(h=C.nextNode())&&v.length<c;){if(1===h.nodeType){if(h.hasAttributes()){const t=[];for(const i of h.getAttributeNames())if(i.endsWith(o$2)||i.startsWith(n$2)){const s=f[d++];if(t.push(i),void 0!==s){const t=h.getAttribute(s.toLowerCase()+o$2).split(n$2),i=/([.?@])?(.*)/.exec(s);v.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?H:"?"===i[1]?L:"@"===i[1]?z:k});}else v.push({type:6,index:r});}for(const i of t)h.removeAttribute(i);}if(y.test(h.tagName)){const t=h.textContent.split(n$2),i=t.length-1;if(i>0){h.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)h.append(t[s],u()),C.nextNode(),v.push({type:2,index:++r});h.append(t[i],u());}}}else if(8===h.nodeType)if(h.data===l$1)v.push({type:2,index:r});else {let t=-1;for(;-1!==(t=h.data.indexOf(n$2,t+1));)v.push({type:7,index:r}),t+=n$2.length-1;}r++;}}static createElement(t,i){const s=r.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){var o,n,l,h;if(i===T)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=S(t,r._$AS(t,i.values),r,e)),i}class M{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:r).importNode(s,!0);C.currentNode=o;let n=C.nextNode(),l=0,h=0,u=e[0];for(;void 0!==u;){if(l===u.index){let i;2===u.type?i=new R(n,n.nextSibling,this,t):1===u.type?i=new u.ctor(n,u.name,u.strings,this,t):6===u.type&&(i=new Z(n,this,t)),this._$AV.push(i),u=e[++h];}l!==(null==u?void 0:u.index)&&(n=C.nextNode(),l++);}return C.currentNode=r,o}v(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class R{constructor(t,i,s,e){var o;this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cp=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cp}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===(null==t?void 0:t.nodeType)&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=S(this,t,i),d(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.g(t):void 0!==t.nodeType?this.$(t):v(t)?this.T(t):this._(t);}k(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}$(t){this._$AH!==t&&(this._$AR(),this._$AH=this.k(t));}_(t){this._$AH!==A&&d(this._$AH)?this._$AA.nextSibling.data=t:this.$(r.createTextNode(t)),this._$AH=t;}g(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=N.createElement(P$2(e.h,e.h[0]),this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.v(s);else {const t=new M(o,this),i=t.u(this.options);t.v(s),this.$(i),this._$AH=t;}}_$AC(t){let i=E.get(t.strings);return void 0===i&&E.set(t.strings,i=new N(t)),i}T(t){c(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new R(this.k(u()),this.k(u()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cp=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class k{constructor(t,i,s,e,o){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=S(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==T,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=S(this,e[s+l],i,l),h===T&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===A?t=A:t!==A&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class H extends k{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===A?void 0:t;}}const I=s$1?s$1.emptyScript:"";class L extends k{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==A?this.element.setAttribute(this.name,I):this.element.removeAttribute(this.name);}}class z extends k{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=S(this,t,i,0))&&void 0!==s?s:A)===T)return;const e=this._$AH,o=t===A&&e!==A||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==A&&(e===A||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){S(this,t);}}const B=i$2.litHtmlPolyfillSupport;null==B||B(N,R),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.8.0");const D=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new R(i.insertBefore(u(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
+var t$1;const i$2=window,s$1=i$2.trustedTypes,e$1=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$2="$lit$",n$2=`lit$${(Math.random()+"").slice(9)}$`,l$1="?"+n$2,h=`<${l$1}>`,r=document,u=()=>r.createComment(""),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,c=Array.isArray,v=t=>c(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),a="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${a}(?:([^\\s"'>=/]+)(${a}*=${a}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,w=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=w(1),T=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),E=new WeakMap,C=r.createTreeWalker(r,129,null,!1);function P(t,i){if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e$1?e$1.createHTML(i):i}const V=(t,i)=>{const s=t.length-1,e=[];let l,r=2===i?"<svg>":"",u=f;for(let i=0;i<s;i++){const s=t[i];let d,c,v=-1,a=0;for(;a<s.length&&(u.lastIndex=a,c=u.exec(s),null!==c);)a=u.lastIndex,u===f?"!--"===c[1]?u=_:void 0!==c[1]?u=m:void 0!==c[2]?(y.test(c[2])&&(l=RegExp("</"+c[2],"g")),u=p):void 0!==c[3]&&(u=p):u===p?">"===c[0]?(u=null!=l?l:f,v=-1):void 0===c[1]?v=-2:(v=u.lastIndex-c[2].length,d=c[1],u=void 0===c[3]?p:'"'===c[3]?$:g):u===$||u===g?u=p:u===_||u===m?u=f:(u=p,l=void 0);const w=u===p&&t[i+1].startsWith("/>")?" ":"";r+=u===f?s+h:v>=0?(e.push(d),s.slice(0,v)+o$2+s.slice(v)+n$2+w):s+n$2+(-2===v?(e.push(void 0),i):w);}return [P(t,r+(t[s]||"<?>")+(2===i?"</svg>":"")),e]};class N{constructor({strings:t,_$litType$:i},e){let h;this.parts=[];let r=0,d=0;const c=t.length-1,v=this.parts,[a,f]=V(t,i);if(this.el=N.createElement(a,e),C.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(h=C.nextNode())&&v.length<c;){if(1===h.nodeType){if(h.hasAttributes()){const t=[];for(const i of h.getAttributeNames())if(i.endsWith(o$2)||i.startsWith(n$2)){const s=f[d++];if(t.push(i),void 0!==s){const t=h.getAttribute(s.toLowerCase()+o$2).split(n$2),i=/([.?@])?(.*)/.exec(s);v.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?H:"?"===i[1]?L:"@"===i[1]?z:k});}else v.push({type:6,index:r});}for(const i of t)h.removeAttribute(i);}if(y.test(h.tagName)){const t=h.textContent.split(n$2),i=t.length-1;if(i>0){h.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)h.append(t[s],u()),C.nextNode(),v.push({type:2,index:++r});h.append(t[i],u());}}}else if(8===h.nodeType)if(h.data===l$1)v.push({type:2,index:r});else {let t=-1;for(;-1!==(t=h.data.indexOf(n$2,t+1));)v.push({type:7,index:r}),t+=n$2.length-1;}r++;}}static createElement(t,i){const s=r.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){var o,n,l,h;if(i===T)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=S(t,r._$AS(t,i.values),r,e)),i}class M{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:r).importNode(s,!0);C.currentNode=o;let n=C.nextNode(),l=0,h=0,u=e[0];for(;void 0!==u;){if(l===u.index){let i;2===u.type?i=new R(n,n.nextSibling,this,t):1===u.type?i=new u.ctor(n,u.name,u.strings,this,t):6===u.type&&(i=new Z(n,this,t)),this._$AV.push(i),u=e[++h];}l!==(null==u?void 0:u.index)&&(n=C.nextNode(),l++);}return C.currentNode=r,o}v(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class R{constructor(t,i,s,e){var o;this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cp=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cp}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===(null==t?void 0:t.nodeType)&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=S(this,t,i),d(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.g(t):void 0!==t.nodeType?this.$(t):v(t)?this.T(t):this._(t);}k(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}$(t){this._$AH!==t&&(this._$AR(),this._$AH=this.k(t));}_(t){this._$AH!==A&&d(this._$AH)?this._$AA.nextSibling.data=t:this.$(r.createTextNode(t)),this._$AH=t;}g(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=N.createElement(P(e.h,e.h[0]),this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.v(s);else {const t=new M(o,this),i=t.u(this.options);t.v(s),this.$(i),this._$AH=t;}}_$AC(t){let i=E.get(t.strings);return void 0===i&&E.set(t.strings,i=new N(t)),i}T(t){c(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new R(this.k(u()),this.k(u()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cp=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class k{constructor(t,i,s,e,o){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=S(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==T,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=S(this,e[s+l],i,l),h===T&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===A?t=A:t!==A&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class H extends k{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===A?void 0:t;}}const I=s$1?s$1.emptyScript:"";class L extends k{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==A?this.element.setAttribute(this.name,I):this.element.removeAttribute(this.name);}}class z extends k{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=S(this,t,i,0))&&void 0!==s?s:A)===T)return;const e=this._$AH,o=t===A&&e!==A||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==A&&(e===A||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){S(this,t);}}const B=i$2.litHtmlPolyfillSupport;null==B||B(N,R),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.8.0");const D=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new R(i.insertBefore(u(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
 
 /**
  * @license
@@ -58,7 +58,7 @@ class Configuration {
         begin: "blueprint-focus",
         end: "blueprint-unfocus",
     }
-    static fontSize = i$3`12.5px`
+    static fontSize = i$3`13px`
     static gridAxisLineColor = i$3`black`
     static gridExpandThreshold = 0.25 // remaining size factor threshold to cause an expansion event
     static gridLineColor = i$3`#353535`
@@ -76,15 +76,16 @@ class Configuration {
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
     static nameRegexSpaceReplacement = new RegExp(
-        // Leading K2_ or K2Node_
+        // Leading K2_ or K2Node_ is removed
         "^K2(?:[Nn]ode)?_"
-        // End of a word (lower case followed by either upper case or number)
+        // End of a word (lower case followed by either upper case or number): "AlphaBravo" => "Alpha Bravo"
         + "|(?<=[a-z])(?=[A-Z0-9])"
-        // End of upper case work (upper case followed by either word or number)
+        // End of upper case word (upper case followed by either word or number)
         + "|(?<=[A-Z])"
         + /* Except "UVs" */ "(?<!U(?=Vs(?![a-z])))"
         + /* Except V2, V3 */ "(?<!V(?=[23](?![0-9])))"
         + /* Except T2d */ "(?<!T(?=2d(?![a-z])))"
+        + /* Except BT */ "(?<!BT)"
         + "(?=[A-Z][a-z]|[0-9])"
         // Number followed by a letter
         + "|(?<=[0-9])"
@@ -157,6 +158,7 @@ class Configuration {
         forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
         functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
         functionResult: "/Script/BlueprintGraph.K2Node_FunctionResult",
+        gameplayTag: "/Script/GameplayTags.GameplayTag",
         getInputAxisKeyValue: "/Script/BlueprintGraph.K2Node_GetInputAxisKeyValue",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",
@@ -435,6 +437,14 @@ class Configuration {
     }
 }
 
+/**
+ * @typedef {{
+ *     consumeEvent?: Boolean,
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 /** @template {Element} T */
 class IInput {
 
@@ -450,7 +460,7 @@ class IInput {
         return this.#blueprint
     }
 
-    consumeEvent = true
+    consumeEvent
 
     /** @type {Object} */
     options
@@ -462,7 +472,7 @@ class IInput {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.consumeEvent ??= false;
@@ -519,13 +529,11 @@ class ComputedType {
     }
 }
 
+/** @template {Attribute} T */
 class MirroredEntity {
 
     static attributes = {
         type: {
-            ignored: true,
-        },
-        key: {
             ignored: true,
         },
         getter: {
@@ -534,12 +542,11 @@ class MirroredEntity {
     }
 
     /**
-     * @param {EntityConstructor} type
-     * @param {String} key
+     * @param {ConstructorType<T>} type
+     * @param {() => T} getter
      */
-    constructor(type, key, getter = () => null) {
+    constructor(type, getter = null) {
         this.type = type;
-        this.key = key;
         this.getter = getter;
     }
 
@@ -547,8 +554,9 @@ class MirroredEntity {
         return this.getter()
     }
 
+    /** @returns {AttributeConstructor<Attribute>} */
     getTargetType() {
-        const result = this.type.attributes[this.key].type;
+        const result = this.type;
         if (result instanceof MirroredEntity) {
             return result.getTargetType()
         }
@@ -556,24 +564,1198 @@ class MirroredEntity {
     }
 }
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+class Reply {
 
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+    /**
+     * @template T
+     * @param {Number} position
+     * @param {T} value
+     * @param {PathNode} bestPath
+     * @returns {Result<T>}
+     */
+    static makeSuccess(position, value, bestPath = null, bestPosition = 0) {
+        return {
+            status: true,
+            value: value,
+            position: position,
+            bestParser: bestPath,
+            bestPosition: bestPosition,
+        }
+    }
+
+    /**
+     * @param {PathNode} bestPath
+     * @returns {Result<null>}
+     */
+    static makeFailure(position = 0, bestPath = null, bestPosition = 0) {
+        return {
+            status: false,
+            value: null,
+            position,
+            bestParser: bestPath,
+            bestPosition: bestPosition,
+        }
+    }
+
+    /** @param {Parsernostrum<Parser>} parsernostrum */
+    static makeContext(parsernostrum = null, input = "") {
+        return /** @type {Context} */({
+            parsernostrum,
+            input,
+            highlighted: null,
+        })
+    }
+
+    static makePathNode(parser, index = 0, previous = null) {
+        return /** @type {PathNode} */({
+            parent: previous,
+            parser,
+            index,
+        })
+    }
 }
 
-var parsimmon_umd_min = {exports: {}};
+class Parser {
 
-parsimmon_umd_min.exports;
+    static indentation = "    "
+    static highlight = "Last valid parser"
 
-(function (module, exports) {
-	!function(n,t){module.exports=t();}("undefined"!=typeof self?self:commonjsGlobal,function(){return function(n){var t={};function r(e){if(t[e])return t[e].exports;var u=t[e]={i:e,l:!1,exports:{}};return n[e].call(u.exports,u,u.exports,r),u.l=!0,u.exports}return r.m=n,r.c=t,r.d=function(n,t,e){r.o(n,t)||Object.defineProperty(n,t,{configurable:!1,enumerable:!0,get:e});},r.r=function(n){Object.defineProperty(n,"__esModule",{value:!0});},r.n=function(n){var t=n&&n.__esModule?function(){return n.default}:function(){return n};return r.d(t,"a",t),t},r.o=function(n,t){return Object.prototype.hasOwnProperty.call(n,t)},r.p="",r(r.s=0)}([function(n,t,r){function e(n){if(!(this instanceof e))return new e(n);this._=n;}var u=e.prototype;function o(n,t){for(var r=0;r<n;r++)t(r);}function i(n,t,r){return function(n,t){o(t.length,function(r){n(t[r],r,t);});}(function(r,e,u){t=n(t,r,e,u);},r),t}function a(n,t){return i(function(t,r,e,u){return t.concat([n(r,e,u)])},[],t)}function f(n,t){var r={v:0,buf:t};return o(n,function(){var n;r={v:r.v<<1|(n=r.buf,n[0]>>7),buf:function(n){var t=i(function(n,t,r,e){return n.concat(r===e.length-1?Buffer.from([t,0]).readUInt16BE(0):e.readUInt16BE(r))},[],n);return Buffer.from(a(function(n){return (n<<1&65535)>>8},t))}(r.buf)};}),r}function c(){return "undefined"!=typeof Buffer}function s(){if(!c())throw new Error("Buffer global does not exist; please use webpack if you need to parse Buffers in the browser.")}function l(n){s();var t=i(function(n,t){return n+t},0,n);if(t%8!=0)throw new Error("The bits ["+n.join(", ")+"] add up to "+t+" which is not an even number of bytes; the total should be divisible by 8");var r,u=t/8,o=(r=function(n){return n>48},i(function(n,t){return n||(r(t)?t:n)},null,n));if(o)throw new Error(o+" bit range requested exceeds 48 bit (6 byte) Number max.");return new e(function(t,r){var e=u+r;return e>t.length?x(r,u.toString()+" bytes"):b(e,i(function(n,t){var r=f(t,n.buf);return {coll:n.coll.concat(r.v),buf:r.buf}},{coll:[],buf:t.slice(r,e)},n).coll)})}function h(n,t){return new e(function(r,e){return s(),e+t>r.length?x(e,t+" bytes for "+n):b(e+t,r.slice(e,e+t))})}function p(n,t){if("number"!=typeof(r=t)||Math.floor(r)!==r||t<0||t>6)throw new Error(n+" requires integer length in range [0, 6].");var r;}function d(n){return p("uintBE",n),h("uintBE("+n+")",n).map(function(t){return t.readUIntBE(0,n)})}function v(n){return p("uintLE",n),h("uintLE("+n+")",n).map(function(t){return t.readUIntLE(0,n)})}function g(n){return p("intBE",n),h("intBE("+n+")",n).map(function(t){return t.readIntBE(0,n)})}function m(n){return p("intLE",n),h("intLE("+n+")",n).map(function(t){return t.readIntLE(0,n)})}function y(n){return n instanceof e}function E(n){return "[object Array]"==={}.toString.call(n)}function w(n){return c()&&Buffer.isBuffer(n)}function b(n,t){return {status:!0,index:n,value:t,furthest:-1,expected:[]}}function x(n,t){return E(t)||(t=[t]),{status:!1,index:-1,value:null,furthest:n,expected:t}}function B(n,t){if(!t)return n;if(n.furthest>t.furthest)return n;var r=n.furthest===t.furthest?function(n,t){if(function(){if(void 0!==e._supportsSet)return e._supportsSet;var n="undefined"!=typeof Set;return e._supportsSet=n,n}()&&Array.from){for(var r=new Set(n),u=0;u<t.length;u++)r.add(t[u]);var o=Array.from(r);return o.sort(),o}for(var i={},a=0;a<n.length;a++)i[n[a]]=!0;for(var f=0;f<t.length;f++)i[t[f]]=!0;var c=[];for(var s in i)({}).hasOwnProperty.call(i,s)&&c.push(s);return c.sort(),c}(n.expected,t.expected):t.expected;return {status:n.status,index:n.index,value:n.value,furthest:t.furthest,expected:r}}var j={};function S(n,t){if(w(n))return {offset:t,line:-1,column:-1};n in j||(j[n]={});for(var r=j[n],e=0,u=0,o=0,i=t;i>=0;){if(i in r){e=r[i].line,0===o&&(o=r[i].lineStart);break}("\n"===n.charAt(i)||"\r"===n.charAt(i)&&"\n"!==n.charAt(i+1))&&(u++,0===o&&(o=i+1)),i--;}var a=e+u,f=t-o;return r[t]={line:a,lineStart:o},{offset:t,line:a+1,column:f+1}}function _(n){if(!y(n))throw new Error("not a parser: "+n)}function L(n,t){return "string"==typeof n?n.charAt(t):n[t]}function O(n){if("number"!=typeof n)throw new Error("not a number: "+n)}function k(n){if("function"!=typeof n)throw new Error("not a function: "+n)}function P(n){if("string"!=typeof n)throw new Error("not a string: "+n)}var q=2,A=3,I=8,F=5*I,M=4*I,z="  ";function R(n,t){return new Array(t+1).join(n)}function U(n,t,r){var e=t-n.length;return e<=0?n:R(r,e)+n}function W(n,t,r,e){return {from:n-t>0?n-t:0,to:n+r>e?e:n+r}}function D(n,t){var r,e,u,o,f,c=t.index,s=c.offset,l=1;if(s===n.length)return "Got the end of the input";if(w(n)){var h=s-s%I,p=s-h,d=W(h,F,M+I,n.length),v=a(function(n){return a(function(n){return U(n.toString(16),2,"0")},n)},function(n,t){var r=n.length,e=[],u=0;if(r<=t)return [n.slice()];for(var o=0;o<r;o++)e[u]||e.push([]),e[u].push(n[o]),(o+1)%t==0&&u++;return e}(n.slice(d.from,d.to).toJSON().data,I));o=function(n){return 0===n.from&&1===n.to?{from:n.from,to:n.to}:{from:n.from/I,to:Math.floor(n.to/I)}}(d),e=h/I,r=3*p,p>=4&&(r+=1),l=2,u=a(function(n){return n.length<=4?n.join(" "):n.slice(0,4).join(" ")+"  "+n.slice(4).join(" ")},v),(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2);}else {var g=n.split(/\r\n|[\n\r\u2028\u2029]/);r=c.column-1,e=c.line-1,o=W(e,q,A,g.length),u=g.slice(o.from,o.to),f=o.to.toString().length;}var m=e-o.from;return w(n)&&(f=(8*(o.to>0?o.to-1:o.to)).toString(16).length)<2&&(f=2),i(function(t,e,u){var i,a=u===m,c=a?"> ":z;return i=w(n)?U((8*(o.from+u)).toString(16),f,"0"):U((o.from+u+1).toString(),f," "),[].concat(t,[c+i+" | "+e],a?[z+R(" ",f)+" | "+U("",r," ")+R("^",l)]:[])},[],u).join("\n")}function N(n,t){return ["\n","-- PARSING FAILED "+R("-",50),"\n\n",D(n,t),"\n\n",(r=t.expected,1===r.length?"Expected:\n\n"+r[0]:"Expected one of the following: \n\n"+r.join(", ")),"\n"].join("");var r;}function G(n){return void 0!==n.flags?n.flags:[n.global?"g":"",n.ignoreCase?"i":"",n.multiline?"m":"",n.unicode?"u":"",n.sticky?"y":""].join("")}function C(){for(var n=[].slice.call(arguments),t=n.length,r=0;r<t;r+=1)_(n[r]);return e(function(r,e){for(var u,o=new Array(t),i=0;i<t;i+=1){if(!(u=B(n[i]._(r,e),u)).status)return u;o[i]=u.value,e=u.index;}return B(b(e,o),u)})}function J(){var n=[].slice.call(arguments);if(0===n.length)throw new Error("seqMap needs at least one argument");var t=n.pop();return k(t),C.apply(null,n).map(function(n){return t.apply(null,n)})}function T(){var n=[].slice.call(arguments),t=n.length;if(0===t)return Y("zero alternates");for(var r=0;r<t;r+=1)_(n[r]);return e(function(t,r){for(var e,u=0;u<n.length;u+=1)if((e=B(n[u]._(t,r),e)).status)return e;return e})}function V(n,t){return H(n,t).or(X([]))}function H(n,t){return _(n),_(t),J(n,t.then(n).many(),function(n,t){return [n].concat(t)})}function K(n){P(n);var t="'"+n+"'";return e(function(r,e){var u=e+n.length,o=r.slice(e,u);return o===n?b(u,o):x(e,t)})}function Q(n,t){!function(n){if(!(n instanceof RegExp))throw new Error("not a regexp: "+n);for(var t=G(n),r=0;r<t.length;r++){var e=t.charAt(r);if("i"!==e&&"m"!==e&&"u"!==e&&"s"!==e)throw new Error('unsupported regexp flag "'+e+'": '+n)}}(n),arguments.length>=2?O(t):t=0;var r=function(n){return RegExp("^(?:"+n.source+")",G(n))}(n),u=""+n;return e(function(n,e){var o=r.exec(n.slice(e));if(o){if(0<=t&&t<=o.length){var i=o[0],a=o[t];return b(e+i.length,a)}return x(e,"valid match group (0 to "+o.length+") in "+u)}return x(e,u)})}function X(n){return e(function(t,r){return b(r,n)})}function Y(n){return e(function(t,r){return x(r,n)})}function Z(n){if(y(n))return e(function(t,r){var e=n._(t,r);return e.index=r,e.value="",e});if("string"==typeof n)return Z(K(n));if(n instanceof RegExp)return Z(Q(n));throw new Error("not a string, regexp, or parser: "+n)}function $(n){return _(n),e(function(t,r){var e=n._(t,r),u=t.slice(r,e.index);return e.status?x(r,'not "'+u+'"'):b(r,null)})}function nn(n){return k(n),e(function(t,r){var e=L(t,r);return r<t.length&&n(e)?b(r+1,e):x(r,"a character/byte matching "+n)})}function tn(n,t){arguments.length<2&&(t=n,n=void 0);var r=e(function(n,e){return r._=t()._,r._(n,e)});return n?r.desc(n):r}function rn(){return Y("fantasy-land/empty")}u.parse=function(n){if("string"!=typeof n&&!w(n))throw new Error(".parse must be called with a string or Buffer as its argument");var t,r=this.skip(an)._(n,0);return t=r.status?{status:!0,value:r.value}:{status:!1,index:S(n,r.furthest),expected:r.expected},delete j[n],t},u.tryParse=function(n){var t=this.parse(n);if(t.status)return t.value;var r=N(n,t),e=new Error(r);throw e.type="ParsimmonError",e.result=t,e},u.assert=function(n,t){return this.chain(function(r){return n(r)?X(r):Y(t)})},u.or=function(n){return T(this,n)},u.trim=function(n){return this.wrap(n,n)},u.wrap=function(n,t){return J(n,this,t,function(n,t){return t})},u.thru=function(n){return n(this)},u.then=function(n){return _(n),C(this,n).map(function(n){return n[1]})},u.many=function(){var n=this;return e(function(t,r){for(var e=[],u=void 0;;){if(!(u=B(n._(t,r),u)).status)return B(b(r,e),u);if(r===u.index)throw new Error("infinite loop detected in .many() parser --- calling .many() on a parser which can accept zero characters is usually the cause");r=u.index,e.push(u.value);}})},u.tieWith=function(n){return P(n),this.map(function(t){if(function(n){if(!E(n))throw new Error("not an array: "+n)}(t),t.length){P(t[0]);for(var r=t[0],e=1;e<t.length;e++)P(t[e]),r+=n+t[e];return r}return ""})},u.tie=function(){return this.tieWith("")},u.times=function(n,t){var r=this;return arguments.length<2&&(t=n),O(n),O(t),e(function(e,u){for(var o=[],i=void 0,a=void 0,f=0;f<n;f+=1){if(a=B(i=r._(e,u),a),!i.status)return a;u=i.index,o.push(i.value);}for(;f<t&&(a=B(i=r._(e,u),a),i.status);f+=1)u=i.index,o.push(i.value);return B(b(u,o),a)})},u.result=function(n){return this.map(function(){return n})},u.atMost=function(n){return this.times(0,n)},u.atLeast=function(n){return J(this.times(n),this.many(),function(n,t){return n.concat(t)})},u.map=function(n){k(n);var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(b(u.index,n(u.value)),u):u})},u.contramap=function(n){k(n);var t=this;return e(function(r,e){var u=t.parse(n(r.slice(e)));return u.status?b(e+r.length,u.value):u})},u.promap=function(n,t){return k(n),k(t),this.contramap(n).map(t)},u.skip=function(n){return C(this,n).map(function(n){return n[0]})},u.mark=function(){return J(en,this,en,function(n,t,r){return {start:n,value:t,end:r}})},u.node=function(n){return J(en,this,en,function(t,r,e){return {name:n,value:r,start:t,end:e}})},u.sepBy=function(n){return V(this,n)},u.sepBy1=function(n){return H(this,n)},u.lookahead=function(n){return this.skip(Z(n))},u.notFollowedBy=function(n){return this.skip($(n))},u.desc=function(n){E(n)||(n=[n]);var t=this;return e(function(r,e){var u=t._(r,e);return u.status||(u.expected=n),u})},u.fallback=function(n){return this.or(X(n))},u.ap=function(n){return J(n,this,function(n,t){return n(t)})},u.chain=function(n){var t=this;return e(function(r,e){var u=t._(r,e);return u.status?B(n(u.value)._(r,u.index),u):u})},u.concat=u.or,u.empty=rn,u.of=X,u["fantasy-land/ap"]=u.ap,u["fantasy-land/chain"]=u.chain,u["fantasy-land/concat"]=u.concat,u["fantasy-land/empty"]=u.empty,u["fantasy-land/of"]=u.of,u["fantasy-land/map"]=u.map;var en=e(function(n,t){return b(t,S(n,t))}),un=e(function(n,t){return t>=n.length?x(t,"any character/byte"):b(t+1,L(n,t))}),on=e(function(n,t){return b(n.length,n.slice(t))}),an=e(function(n,t){return t<n.length?x(t,"EOF"):b(t,null)}),fn=Q(/[0-9]/).desc("a digit"),cn=Q(/[0-9]*/).desc("optional digits"),sn=Q(/[a-z]/i).desc("a letter"),ln=Q(/[a-z]*/i).desc("optional letters"),hn=Q(/\s*/).desc("optional whitespace"),pn=Q(/\s+/).desc("whitespace"),dn=K("\r"),vn=K("\n"),gn=K("\r\n"),mn=T(gn,vn,dn).desc("newline"),yn=T(mn,an);e.all=on,e.alt=T,e.any=un,e.cr=dn,e.createLanguage=function(n){var t={};for(var r in n)({}).hasOwnProperty.call(n,r)&&function(r){t[r]=tn(function(){return n[r](t)});}(r);return t},e.crlf=gn,e.custom=function(n){return e(n(b,x))},e.digit=fn,e.digits=cn,e.empty=rn,e.end=yn,e.eof=an,e.fail=Y,e.formatError=N,e.index=en,e.isParser=y,e.lazy=tn,e.letter=sn,e.letters=ln,e.lf=vn,e.lookahead=Z,e.makeFailure=x,e.makeSuccess=b,e.newline=mn,e.noneOf=function(n){return nn(function(t){return n.indexOf(t)<0}).desc("none of '"+n+"'")},e.notFollowedBy=$,e.of=X,e.oneOf=function(n){for(var t=n.split(""),r=0;r<t.length;r++)t[r]="'"+t[r]+"'";return nn(function(t){return n.indexOf(t)>=0}).desc(t)},e.optWhitespace=hn,e.Parser=e,e.range=function(n,t){return nn(function(r){return n<=r&&r<=t}).desc(n+"-"+t)},e.regex=Q,e.regexp=Q,e.sepBy=V,e.sepBy1=H,e.seq=C,e.seqMap=J,e.seqObj=function(){for(var n,t={},r=0,u=(n=arguments,Array.prototype.slice.call(n)),o=u.length,i=0;i<o;i+=1){var a=u[i];if(!y(a)){if(E(a)&&2===a.length&&"string"==typeof a[0]&&y(a[1])){var f=a[0];if(Object.prototype.hasOwnProperty.call(t,f))throw new Error("seqObj: duplicate key "+f);t[f]=!0,r++;continue}throw new Error("seqObj arguments must be parsers or [string, parser] array pairs.")}}if(0===r)throw new Error("seqObj expects at least one named parser, found zero");return e(function(n,t){for(var r,e={},i=0;i<o;i+=1){var a,f;if(E(u[i])?(a=u[i][0],f=u[i][1]):(a=null,f=u[i]),!(r=B(f._(n,t),r)).status)return r;a&&(e[a]=r.value),t=r.index;}return B(b(t,e),r)})},e.string=K,e.succeed=X,e.takeWhile=function(n){return k(n),e(function(t,r){for(var e=r;e<t.length&&n(L(t,e));)e++;return b(e,t.slice(r,e))})},e.test=nn,e.whitespace=pn,e["fantasy-land/empty"]=rn,e["fantasy-land/of"]=X,e.Binary={bitSeq:l,bitSeqObj:function(n){s();var t={},r=0,e=a(function(n){if(E(n)){var e=n;if(2!==e.length)throw new Error("["+e.join(", ")+"] should be length 2, got length "+e.length);if(P(e[0]),O(e[1]),Object.prototype.hasOwnProperty.call(t,e[0]))throw new Error("duplicate key in bitSeqObj: "+e[0]);return t[e[0]]=!0,r++,e}return O(n),[null,n]},n);if(r<1)throw new Error("bitSeqObj expects at least one named pair, got ["+n.join(", ")+"]");var u=a(function(n){return n[0]},e);return l(a(function(n){return n[1]},e)).map(function(n){return i(function(n,t){return null!==t[0]&&(n[t[0]]=t[1]),n},{},a(function(t,r){return [t,n[r]]},u))})},byte:function(n){if(s(),O(n),n>255)throw new Error("Value specified to byte constructor ("+n+"=0x"+n.toString(16)+") is larger in value than a single byte.");var t=(n>15?"0x":"0x0")+n.toString(16);return e(function(r,e){var u=L(r,e);return u===n?b(e+1,u):x(e,t)})},buffer:function(n){return h("buffer",n).map(function(n){return Buffer.from(n)})},encodedString:function(n,t){return h("string",t).map(function(t){return t.toString(n)})},uintBE:d,uint8BE:d(1),uint16BE:d(2),uint32BE:d(4),uintLE:v,uint8LE:v(1),uint16LE:v(2),uint32LE:v(4),intBE:g,int8BE:g(1),int16BE:g(2),int32BE:g(4),intLE:m,int8LE:m(1),int16LE:m(2),int32LE:m(4),floatBE:h("floatBE",4).map(function(n){return n.readFloatBE(0)}),floatLE:h("floatLE",4).map(function(n){return n.readFloatLE(0)}),doubleBE:h("doubleBE",8).map(function(n){return n.readDoubleBE(0)}),doubleLE:h("doubleLE",8).map(function(n){return n.readDoubleLE(0)})},n.exports=e;}])}); 
-} (parsimmon_umd_min, parsimmon_umd_min.exports));
+    /** @type {(new (...args: any) => Parser) & typeof Parser} */
+    Self
 
-var parsimmon_umd_minExports = parsimmon_umd_min.exports;
-var Parsimmon = /*@__PURE__*/getDefaultExportFromCjs(parsimmon_umd_minExports);
+    /**
+     * @param {String} target
+     * @param {String} value
+     */
+    static appendBeforeHighlight(target, value) {
+        if (target.endsWith(Parser.highlight)) {
+            target = target.replace(/(?=(?:\n|^).+$)/, value);
+        } else {
+            target += value;
+        }
+        return target
+    }
 
-const P$1 = Parsimmon;
+    /** @param {String} value */
+    static lastRowLength(value, firstRowPadding = 0) {
+        // This regex always matches and group 2 (content of the last row) is always there
+        const match = value.match(/(?:\n|(^))([^\n]*)$/);
+        // Group 1 tells wheter or not it matched the first row (last row is also first row)
+        const additional = match[1] !== undefined ? firstRowPadding : 0;
+        return match[2].length + additional
+    }
+
+    /**
+     * @param {Context} context
+     * @param {PathNode} path
+     */
+    isHighlighted(context, path) {
+        if (context.highlighted instanceof Parser) {
+            return context.highlighted === this
+        }
+        if (!context.highlighted || !path) {
+            return false
+        }
+        let a, prevA, b, prevB;
+        loop:
+        for (
+            a = path,
+            b = /** @type {PathNode} */(context.highlighted);
+            a && b;
+            prevA = a, a = a.parent,
+            prevB = b, b = b.parent
+        ) {
+            if (a.parser !== b.parser || a.index !== b.index) {
+                if (!prevA || !prevB) {
+                    return false // Starting nodes did not match
+                }
+                // Try to speculatevely walk the path in reverse to find matching nodes
+                let nextA;
+                let nextB;
+                for (
+                    nextA = a, nextB = b;
+                    nextA || nextB;
+                    nextA = nextA?.parent, nextB = nextB?.parent
+                ) {
+                    const aMatches = nextA?.parser === prevA.parser;
+                    const bMatches = nextB?.parser === prevB.parser;
+                    if (aMatches || bMatches) {
+                        if (aMatches) {
+                            prevA = nextA;
+                        }
+                        if (bMatches) {
+                            prevB = nextB;
+                        }
+                        a = prevA;
+                        b = prevB;
+                        continue loop
+                    }
+                }
+                return false
+            }
+        }
+        return true
+    }
+
+    /** @param {PathNode?} path */
+    isVisited(path) {
+        if (!path) {
+            return false
+        }
+        for (path = path.parent; path != null; path = path.parent) {
+            if (path.parser === this) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @returns {Result<ParserValue<any>>}
+     */
+    parse(context, position, path) {
+        return null
+    }
+
+    /** @param {PathNode} path */
+    toString(context = Reply.makeContext(null, ""), indent = 0, path = null) {
+        if (this.isVisited(path)) {
+            return "<...>" // Recursive parser
+        }
+        const result = this.doToString(context, indent, path);
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        return `${this.constructor.name} does not implement toString()`
+    }
+}
+
+/** @template {String} T */
+class StringParser extends Parser {
+
+    #value
+    get value() {
+        return this.#value
+    }
+
+    /** @param {T} value */
+    constructor(value) {
+        super();
+        this.#value = value;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        const end = position + this.#value.length;
+        const value = context.input.substring(position, end);
+        const result = this.#value === value
+            ? Reply.makeSuccess(end, this.#value, path, end)
+            : Reply.makeFailure();
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        const inlined = this.value.replaceAll("\n", "\\n");
+        let result = !this.value.match(/^[a-zA-Z]$/)
+            ? `"${inlined.replaceAll('"', '\\"')}"`
+            : inlined;
+        if (this.isHighlighted(context, path)) {
+            result += "\n" + Parser.indentation.repeat(indent) + "^".repeat(result.length) + " " + Parser.highlight;
+        }
+        return result
+    }
+}
+
+class SuccessParser extends Parser {
+
+    static instance = new SuccessParser()
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        return Reply.makeSuccess(position, "", path, 0)
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        return "<SUCCESS>"
+            + (this.isHighlighted(context, path)
+                ? `\n${Parser.indentation.repeat(indent)}^^^^^^^^^ ${Parser.highlight}`
+                : ""
+            )
+    }
+}
+
+/** @template {Parser[]} T */
+class AlternativeParser extends Parser {
+
+    static highlightRegexp = new RegExp(
+        // Matches the beginning of a row containing Parser.highlight only when after the first row of an alternative
+        String.raw`(?<=[^\S\n]*\| .*\n)^(?=[^\S\n]*\^+ ${Parser.highlight}(?:\n|$))`,
+        "m"
+    )
+
+    #parsers
+    get parsers() {
+        return this.#parsers
+    }
+
+    /** @param {T} parsers */
+    constructor(...parsers) {
+        super();
+        this.#parsers = parsers;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        const result = Reply.makeSuccess(0, /** @type {ParserValue<T>} */(""));
+        for (let i = 0; i < this.#parsers.length; ++i) {
+            const outcome = this.#parsers[i].parse(
+                context,
+                position,
+                { parent: path, parser: this.#parsers[i], index: i }
+            );
+            if (outcome.bestPosition > result.bestPosition) {
+                result.bestParser = outcome.bestParser;
+                result.bestPosition = outcome.bestPosition;
+            }
+            if (outcome.status) {
+                result.value = outcome.value;
+                result.position = outcome.position;
+                return result
+            }
+        }
+        result.status = false;
+        result.value = null;
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        const indentation = Parser.indentation.repeat(indent);
+        const deeperIndentation = Parser.indentation.repeat(indent + 1);
+        if (this.#parsers.length === 2 && this.#parsers[1] instanceof SuccessParser) {
+            let result = this.#parsers[0].toString(
+                context,
+                indent,
+                { parent: path, parser: this.#parsers[0], index: 0 }
+            );
+            if (!(this.#parsers[0] instanceof StringParser)) {
+                result = "<" + result + ">";
+            }
+            result += "?";
+            return result
+        }
+        let serialized = this.#parsers
+            .map((parser, index) => parser.toString(context, indent + 1, { parent: path, parser, index }))
+            .join("\n" + deeperIndentation + "| ");
+        if (context.highlighted) {
+            serialized = serialized.replace(AlternativeParser.highlightRegexp, "  ");
+        }
+        let result = "ALT<\n"
+            + (this.isHighlighted(context, path) ? `${indentation}^^^ ${Parser.highlight}\n` : "")
+            + deeperIndentation + serialized
+            + "\n" + indentation + ">";
+        return result
+    }
+}
+
+/**
+ * @template {Parser} T
+ * @template {(v: ParserValue<T>, input: String, position: Number) => Parsernostrum<Parser>} C
+ */
+class ChainedParser extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #fn
+
+    /**
+     * @param {T} parser
+     * @param {C} chained
+     */
+    constructor(parser, chained) {
+        super();
+        this.#parser = parser;
+        this.#fn = chained;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @returns {Result<ParserValue<UnwrapParser<ReturnType<C>>>>}
+     */
+    parse(context, position, path) {
+        const outcome = this.#parser.parse(context, position, { parent: path, parser: this.#parser, index: 0 });
+        if (!outcome.status) {
+            // @ts-expect-error
+            return outcome
+        }
+        // @ts-expect-error
+        const result = this.#fn(outcome.value, context.input, outcome.position)
+            .getParser()
+            .parse(context, outcome.position);
+        if (outcome.bestPosition > result.bestPosition) {
+            result.bestParser = outcome.bestParser;
+            result.bestPosition = outcome.bestPosition;
+        }
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        const serialized = "chained<f()>";
+        let result = this.#parser.toString(context, indent, { parent: path, parser: this.#parser, index: 0 });
+        if (this.isHighlighted(context, path)) {
+            result +=
+                " => "
+                + serialized
+                + "\n"
+                // Group 1 is the portion between the last newline and end or the whole text
+                + Parser.indentation.repeat(indent)
+                + " ".repeat(result.match(/(?:\n|^)([^\n]+)$/)?.[1].length + 4)
+                + "^".repeat(serialized.length)
+                + " "
+                + Parser.highlight;
+        } else {
+            result = Parser.appendBeforeHighlight(result, " => " + serialized);
+        }
+        return result
+    }
+}
+
+class FailureParser extends Parser {
+
+    static instance = new FailureParser()
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        return Reply.makeFailure()
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        const result = "<FAILURE>" + (
+            this.isHighlighted(context, path)
+                ? `\n${Parser.indentation.repeat(indent)}^^^^^^^^^ ${Parser.highlight}`
+                : ""
+        );
+        return result
+    }
+}
+
+/** @template {Parser} T */
+class LazyParser extends Parser {
+
+    #parser
+
+    /** @type {T} */
+    #resolvedPraser
+
+    /** @param {() => Parsernostrum<T>} parser */
+    constructor(parser) {
+        super();
+        this.#parser = parser;
+    }
+
+    resolve() {
+        if (!this.#resolvedPraser) {
+            this.#resolvedPraser = this.#parser().getParser();
+        }
+        return this.#resolvedPraser
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        this.resolve();
+        return this.#resolvedPraser.parse(context, position, { parent: path, parser: this.#resolvedPraser, index: 0 })
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        const childrenPath = { parent: path, parser: this.#resolvedPraser, index: 0 };
+        if (this.isHighlighted(context, path)) {
+            context.highlighted = context.highlighted instanceof Parser ? this.#resolvedPraser : childrenPath;
+        }
+        return this.resolve().toString(context, indent, childrenPath)
+    }
+}
+
+/** @template {Parser} T */
+class Lookahead extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #type
+    get type() {
+        return this.#type
+    }
+
+    /**
+     * @readonly
+     * @enum {String}
+     */
+    static Type = {
+        NEGATIVE_AHEAD: "?!",
+        NEGATIVE_BEHIND: "?<!",
+        POSITIVE_AHEAD: "?=",
+        POSITIVE_BEHIND: "?<=",
+    }
+
+    /**
+     * @param {T} parser
+     * @param {Type} type
+     */
+    constructor(parser, type) {
+        super();
+        this.#parser = parser;
+        this.#type = type;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        let result = this.#parser.parse(context, position, { parent: path, parser: this.#parser, index: 0 });
+        result = result.status == (this.#type === Lookahead.Type.POSITIVE_AHEAD)
+            ? Reply.makeSuccess(position, "", path, position)
+            : Reply.makeFailure();
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        let result = "("
+            + this.#type
+            + this.#parser.toString(context, indent, { parent: path, parser: this.#parser, index: 0 })
+            + ")";
+        if (this.isHighlighted(context, path)) {
+            result = result.replace(
+                /(\n)|$/,
+                "\n"
+                + Parser.indentation.repeat(indent)
+                + "^".repeat(this.#type.length + 1)
+                + " "
+                + Parser.highlight
+                + "$1"
+            );
+        }
+        return result
+    }
+}
+
+/** @template T */
+class RegExpParser extends Parser {
+
+    /** @type {RegExp} */
+    #regexp
+    get regexp() {
+        return this.#regexp
+    }
+    /** @type {RegExp} */
+    #anchoredRegexp
+    #matchMapper
+
+    static #createEscapeable = character => String.raw`[^${character}\\]*(?:\\.[^${character}\\]*)*`
+    static #numberRegex = /[-\+]?(?:\d*\.)?\d+/
+    static common = {
+        number: new RegExp(this.#numberRegex.source + String.raw`(?!\.)`),
+        numberInteger: /[\-\+]?\d+(?!\.\d)/,
+        numberNatural: /\d+/,
+        numberExponential: new RegExp(this.#numberRegex.source + String.raw`(?:[eE][\+\-]?\d+)?(?!\.)`),
+        numberUnit: /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/,
+        numberByte: /0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/,
+        whitespace: /\s+/,
+        whitespaceOpt: /\s*/,
+        whitespaceInline: /[^\S\n]+/,
+        whitespaceInlineOpt: /[^\S\n]*/,
+        whitespaceMultiline: /\s*?\n\s*/,
+        doubleQuotedString: new RegExp(`"(${this.#createEscapeable('"')})"`),
+        singleQuotedString: new RegExp(`'(${this.#createEscapeable("'")})'`),
+        backtickQuotedString: new RegExp("`(" + this.#createEscapeable("`") + ")`"),
+    }
+
+
+    /**
+     * @param {RegExp} regexp
+     * @param {(match: RegExpExecArray) => T} matchMapper
+     */
+    constructor(regexp, matchMapper) {
+        super();
+        this.#regexp = regexp;
+        this.#anchoredRegexp = new RegExp(`^(?:${regexp.source})`, regexp.flags);
+        this.#matchMapper = matchMapper;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        const match = this.#anchoredRegexp.exec(context.input.substring(position));
+        if (match) {
+            position += match[0].length;
+        }
+        const result = match
+            ? Reply.makeSuccess(position, this.#matchMapper(match), path, position)
+            : Reply.makeFailure();
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        let result = "/" + this.#regexp.source + "/";
+        const shortname = Object
+            .entries(RegExpParser.common)
+            .find(([k, v]) => v.source === this.#regexp.source)?.[0];
+        if (shortname) {
+            result = "P." + shortname;
+        }
+        if (this.isHighlighted(context, path)) {
+            result += "\n" + Parser.indentation.repeat(indent) + "^".repeat(result.length) + " " + Parser.highlight;
+        }
+        return result
+    }
+}
+
+/**
+ * @template {Parser} T
+ * @template P
+ */
+class MapParser extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #mapper
+    get mapper() {
+        return this.#mapper
+    }
+
+    /**
+     * @param {T} parser
+     * @param {(v: ParserValue<P>) => P} mapper
+     */
+    constructor(parser, mapper) {
+        super();
+        this.#parser = parser;
+        this.#mapper = mapper;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     * @returns {Result<P>}
+     */
+    parse(context, position, path) {
+        const result = this.#parser.parse(context, position, { parent: path, parser: this.#parser, index: 0 });
+        if (result.status) {
+            result.value = this.#mapper(result.value);
+        }
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        const childrenPath = { parent: path, parser: this.#parser, index: 0 };
+        if (this.isHighlighted(context, path)) {
+            context.highlighted = context.highlighted instanceof Parser ? this.#parser : childrenPath;
+        }
+        let result = this.#parser.toString(context, indent, childrenPath);
+        if (this.#parser instanceof RegExpParser) {
+            if (Object.values(RegExpParser.common).includes(this.#parser.regexp)) {
+                if (
+                    this.#parser.regexp === RegExpParser.common.numberInteger
+                    && this.#mapper === /** @type {(v: any) => BigInt} */(BigInt)
+                ) {
+                    return "P.numberBigInteger"
+                }
+                return result
+            }
+        }
+        let serializedMapper = this.#mapper.toString();
+        if (serializedMapper.length > 60 || serializedMapper.includes("\n")) {
+            serializedMapper = "(...) => { ... }";
+        }
+        serializedMapper = ` -> map<${serializedMapper}>`;
+        result = Parser.appendBeforeHighlight(result, serializedMapper);
+        return result
+    }
+}
+
+/** @extends {RegExpParser<RegExpExecArray>} */
+class RegExpArrayParser extends RegExpParser {
+
+    /** @param {RegExpExecArray} match */
+    static #mapper = match => match
+
+    /** @param {RegExp} regexp */
+    constructor(regexp) {
+        super(regexp, RegExpArrayParser.#mapper);
+    }
+}
+
+/** @extends {RegExpParser<String>} */
+class RegExpValueParser extends RegExpParser {
+
+    /** @param {RegExp} regexp */
+    constructor(regexp, group = 0) {
+        super(
+            regexp,
+            /** @param {RegExpExecArray} match */
+            match => match[group]
+        );
+    }
+}
+
+/** @template {Parser[]} T */
+class SequenceParser extends Parser {
+
+    #parsers
+    get parsers() {
+        return this.#parsers
+    }
+
+    /** @param  {T} parsers */
+    constructor(...parsers) {
+        super();
+        this.#parsers = parsers;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        const value = /** @type {ParserValue<T>} */(new Array(this.#parsers.length));
+        const result = Reply.makeSuccess(position, value);
+        for (let i = 0; i < this.#parsers.length; ++i) {
+            const outcome = this.#parsers[i].parse(
+                context,
+                result.position,
+                { parent: path, parser: this.#parsers[i], index: i }
+            );
+            if (outcome.bestPosition > result.bestPosition) {
+                result.bestParser = outcome.bestParser;
+                result.bestPosition = outcome.bestPosition;
+            }
+            if (!outcome.status) {
+                result.status = false;
+                result.value = null;
+                break
+            }
+            result.value[i] = outcome.value;
+            result.position = outcome.position;
+        }
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        const indentation = Parser.indentation.repeat(indent);
+        const deeperIndentation = Parser.indentation.repeat(indent + 1);
+        const result = "SEQ<\n"
+            + (this.isHighlighted(context, path) ? `${indentation}^^^ ${Parser.highlight}\n` : "")
+            + this.#parsers
+                .map((parser, index) => deeperIndentation + parser.toString(context, indent + 1, { parent: path, parser, index }))
+                .join("\n")
+            + "\n" + indentation + ">";
+        return result
+    }
+}
+
+/** @template {Parser} T */
+class TimesParser extends Parser {
+
+    #parser
+    get parser() {
+        return this.#parser
+    }
+
+    #min
+    get min() {
+        return this.#min
+    }
+
+    #max
+    get max() {
+        return this.#max
+    }
+
+    /** @param {T} parser */
+    constructor(parser, min = 0, max = Number.POSITIVE_INFINITY) {
+        super();
+        if (min > max) {
+            throw new Error("Min is greater than max")
+        }
+        this.#parser = parser;
+        this.#min = min;
+        this.#max = max;
+    }
+
+    /**
+     * @param {Context} context
+     * @param {Number} position
+     * @param {PathNode} path
+     */
+    parse(context, position, path) {
+        const value = /** @type {ParserValue<T>[]} */([]);
+        const result = Reply.makeSuccess(position, value, path);
+        for (let i = 0; i < this.#max; ++i) {
+            const outcome = this.#parser.parse(
+                context,
+                result.position,
+                { parent: path, parser: this.#parser, index: 0 }
+            );
+            if (outcome.bestPosition > result.bestPosition) {
+                result.bestParser = outcome.bestParser;
+                result.bestPosition = outcome.bestPosition;
+            }
+            if (!outcome.status) {
+                if (i < this.#min) {
+                    result.status = false;
+                    result.value = null;
+                }
+                break
+            }
+            result.value.push(outcome.value);
+            result.position = outcome.position;
+        }
+        return result
+    }
+
+    /**
+     * @protected
+     * @param {Context} context
+     * @param {Number} indent
+     * @param {PathNode} path
+     */
+    doToString(context, indent, path) {
+        let result = this.parser.toString(context, indent, { parent: path, parser: this.parser, index: 0 });
+        const serialized =
+            this.#min === 0 && this.#max === 1 ? "?"
+                : this.#min === 0 && this.#max === Number.POSITIVE_INFINITY ? "*"
+                    : this.#min === 1 && this.#max === Number.POSITIVE_INFINITY ? "+"
+                        : "{"
+                        + this.#min
+                        + (this.#min !== this.#max ? "," + this.#max : "")
+                        + "}";
+        if (this.isHighlighted(context, path)) {
+            result +=
+                serialized
+                + "\n"
+                + " ".repeat(Parser.lastRowLength(result, Parser.indentation.length * indent))
+                + "^".repeat(serialized.length)
+                + " "
+                + Parser.highlight;
+        } else {
+            result = Parser.appendBeforeHighlight(result, serialized);
+        }
+        return result
+    }
+}
+
+/** @template {Parser} T */
+class Parsernostrum {
+
+    #parser
+
+    /** @type {(new (parser: Parser) => Parsernostrum<typeof parser>) & typeof Parsernostrum} */
+    Self
+
+    static lineColumnFromOffset(string, offset) {
+        const lines = string.substring(0, offset).split('\n');
+        const line = lines.length;
+        const column = lines[lines.length - 1].length + 1;
+        return { line, column }
+    }
+    /** @param {[any, ...any]|RegExpExecArray} param0 */
+    static #firstElementGetter = ([v, _]) => v
+    /** @param {[any, any, ...any]|RegExpExecArray} param0 */
+    static #secondElementGetter = ([_, v]) => v
+    static #arrayFlatter = ([first, rest]) => [first, ...rest]
+    /**
+     * @template T
+     * @param {T} v
+     * @returns {T extends Array ? String : T}
+     */
+    // @ts-expect-error
+    static #joiner = v => v instanceof Array ? v.join("") : v
+    static #createEscapeable = character => String.raw`[^${character}\\]*(?:\\.[^${character}\\]*)*`
+
+    // Prefedined parsers
+
+    /** Parser accepting any valid decimal, possibly signed number */
+    static number = this.reg(RegExpParser.common.number).map(Number)
+
+    /** Parser accepting any digits only number */
+    static numberInteger = this.reg(RegExpParser.common.numberInteger).map(Number)
+
+    /** Parser accepting any digits only number and returns a BigInt */
+    static numberBigInteger = this.reg(this.numberInteger.getParser().parser.regexp).map(BigInt)
+
+    /** Parser accepting any digits only number */
+    static numberNatural = this.reg(RegExpParser.common.numberNatural).map(Number)
+
+    /** Parser accepting any valid decimal, possibly signed, possibly in the exponential form number */
+    static numberExponential = this.reg(RegExpParser.common.numberExponential).map(Number)
+
+    /** Parser accepting any valid decimal number between 0 and 1 */
+    static numberUnit = this.reg(RegExpParser.common.numberUnit).map(Number)
+
+    /** Parser accepting any integer between 0 and 255 */
+    static numberByte = this.reg(RegExpParser.common.numberByte).map(Number)
+
+    /** Parser accepting whitespace */
+    static whitespace = this.reg(RegExpParser.common.whitespace)
+
+    /** Parser accepting whitespace */
+    static whitespaceOpt = this.reg(RegExpParser.common.whitespaceOpt)
+
+    /** Parser accepting whitespace that spans on a single line */
+    static whitespaceInline = this.reg(RegExpParser.common.whitespaceInline)
+
+    /** Parser accepting whitespace that spans on a single line */
+    static whitespaceInlineOpt = this.reg(RegExpParser.common.whitespaceInlineOpt)
+
+    /** Parser accepting whitespace that contains a list a newline */
+    static whitespaceMultiline = this.reg(RegExpParser.common.whitespaceMultiline)
+
+    /** Parser accepting a double quoted string and returns the content */
+    static doubleQuotedString = this.reg(RegExpParser.common.doubleQuotedString, 1)
+
+    /** Parser accepting a single quoted string and returns the content */
+    static singleQuotedString = this.reg(RegExpParser.common.singleQuotedString, 1)
+
+    /** Parser accepting a backtick quoted string and returns the content */
+    static backtickQuotedString = this.reg(RegExpParser.common.backtickQuotedString, 1)
+
+    /** @param {T} parser */
+    constructor(parser, optimized = false) {
+        this.#parser = parser;
+    }
+
+    getParser() {
+        return this.#parser
+    }
+
+    /**
+     * @param {String} input
+     * @returns {Result<ParserValue<T>>}
+     */
+    run(input) {
+        const result = this.#parser.parse(Reply.makeContext(this, input), 0, Reply.makePathNode(this.#parser));
+        if (result.position !== input.length) {
+            result.status = false;
+        }
+        return result
+    }
+
+    /**
+     * @param {String} input
+     * @throws {Error} when the parser fails to match
+     */
+    parse(input) {
+        const result = this.run(input);
+        if (!result.status) {
+            const chunkLength = 60;
+            const chunkRange = /** @type {[Number, Number]} */(
+                [Math.ceil(chunkLength / 2), Math.floor(chunkLength / 2)]
+            );
+            const position = Parsernostrum.lineColumnFromOffset(input, result.bestPosition);
+            let bestPosition = result.bestPosition;
+            const inlineInput = input.replaceAll(
+                /^(\s)+|\s{6,}|\s*?\n\s*/g,
+                (m, startingSpace, offset) => {
+                    let replaced = startingSpace ? "..." : " ... ";
+                    if (offset <= result.bestPosition) {
+                        if (result.bestPosition < offset + m.length) {
+                            bestPosition -= result.bestPosition - offset;
+                        } else {
+                            bestPosition -= m.length - replaced.length;
+                        }
+                    }
+                    return replaced
+                }
+            );
+            const string = inlineInput.substring(0, chunkLength).trimEnd();
+            const leadingWhitespaceLength = Math.min(
+                input.substring(result.bestPosition - chunkRange[0]).match(/^\s*/)[0].length,
+                chunkRange[0] - 1,
+            );
+            let offset = Math.min(bestPosition, chunkRange[0] - leadingWhitespaceLength);
+            chunkRange[0] = Math.max(0, bestPosition - chunkRange[0]) + leadingWhitespaceLength;
+            chunkRange[1] = Math.min(input.length, chunkRange[0] + chunkLength);
+            let segment = inlineInput.substring(...chunkRange);
+            if (chunkRange[0] > 0) {
+                segment = "..." + segment;
+                offset += 3;
+            }
+            if (chunkRange[1] < inlineInput.length - 1) {
+                segment = segment + "...";
+            }
+            throw new Error(
+                `Could not parse: ${string}\n\n`
+                + `Input: ${segment}\n`
+                + "       " + " ".repeat(offset)
+                + `^ From here (line: ${position.line}, column: ${position.column}, offset: ${result.bestPosition})${result.bestPosition === input.length ? ", end of string" : ""}\n\n`
+                + (result.bestParser ? "Last valid parser matched:" : "No parser matched:")
+                + this.toString(1, true, result.bestParser)
+                + "\n"
+            )
+        }
+        return result.value
+    }
+
+    // Parsers
+
+    /**
+     * @template {String} S
+     * @param {S} value
+     */
+    static str(value) {
+        return new this(new StringParser(value))
+    }
+
+    /** @param {RegExp} value */
+    static reg(value, group = 0) {
+        return new this(new RegExpValueParser(value, group))
+    }
+
+    /** @param {RegExp} value */
+    static regArray(value) {
+        return new this(new RegExpArrayParser(value))
+    }
+
+    static success() {
+        return new this(SuccessParser.instance)
+    }
+
+    static failure() {
+        return new this(FailureParser.instance)
+    }
+
+    // Combinators
+
+    /**
+     * @template {[Parsernostrum<any>, Parsernostrum<any>, ...Parsernostrum<any>[]]} P
+     * @param {P} parsers
+     * @returns {Parsernostrum<SequenceParser<UnwrapParser<P>>>}
+     */
+    static seq(...parsers) {
+        const results = new this(new SequenceParser(...parsers.map(p => p.getParser())));
+        // @ts-expect-error
+        return results
+    }
+
+    /**
+     * @template {[Parsernostrum<any>, Parsernostrum<any>, ...Parsernostrum<any>[]]} P
+     * @param {P} parsers
+     * @returns {Parsernostrum<AlternativeParser<UnwrapParser<P>>>}
+     */
+    static alt(...parsers) {
+        // @ts-expect-error
+        return new this(new AlternativeParser(...parsers.map(p => p.getParser())))
+    }
+
+    /**
+     * @template {Parsernostrum<any>} P
+     * @param {P} parser
+     */
+    static lookahead(parser) {
+        return new this(new Lookahead(parser.getParser(), Lookahead.Type.POSITIVE_AHEAD))
+    }
+
+    /**
+     * @template {Parsernostrum<any>} P
+     * @param {() => P} parser
+     * @returns {Parsernostrum<LazyParser<UnwrapParser<P>>>}
+     */
+    static lazy(parser) {
+        return new this(new LazyParser(parser))
+    }
+
+    /** @param {Number} min */
+    times(min, max = min) {
+        return new Parsernostrum(new TimesParser(this.#parser, min, max))
+    }
+
+    many() {
+        return this.times(0, Number.POSITIVE_INFINITY)
+    }
+
+    /** @param {Number} n */
+    atLeast(n) {
+        return this.times(n, Number.POSITIVE_INFINITY)
+    }
+
+    /** @param {Number} n */
+    atMost(n) {
+        return this.times(0, n)
+    }
+
+    /** @returns {Parsernostrum<T?>} */
+    opt() {
+        // @ts-expect-error
+        return Parsernostrum.alt(this, Parsernostrum.success())
+    }
+
+    /**
+     * @template {Parsernostrum<Parser>} P
+     * @param {P} separator
+     */
+    sepBy(separator, allowTrailing = false) {
+        const results = Parsernostrum.seq(
+            this,
+            Parsernostrum.seq(separator, this).map(Parsernostrum.#secondElementGetter).many()
+        )
+            .map(Parsernostrum.#arrayFlatter);
+        return results
+    }
+
+    skipSpace() {
+        return Parsernostrum.seq(this, Parsernostrum.whitespaceOpt).map(Parsernostrum.#firstElementGetter)
+    }
+
+    /**
+     * @template P
+     * @param {(v: ParserValue<T>) => P} fn
+     * @returns {Parsernostrum<MapParser<T, P>>}
+     */
+    map(fn) {
+        // @ts-expect-error
+        return new Parsernostrum(new MapParser(this.#parser, fn))
+    }
+
+    /**
+     * @template {Parsernostrum<Parser>} P
+     * @param {(v: ParserValue<T>, input: String, position: Number) => P} fn
+     */
+    chain(fn) {
+        return new Parsernostrum(new ChainedParser(this.#parser, fn))
+    }
+
+    /**
+     * @param {(v: ParserValue<T>, input: String, position: Number) => boolean} fn
+     * @return {Parsernostrum<T>}
+     */
+    assert(fn) {
+        // @ts-expect-error
+        return this.chain((v, input, position) => fn(v, input, position)
+            ? Parsernostrum.success().map(() => v)
+            : Parsernostrum.failure()
+        )
+    }
+
+    join(value = "") {
+        return this.map(Parsernostrum.#joiner)
+    }
+
+    /** @param {Parsernostrum<Parser> | Parser | PathNode} highlight */
+    toString(indent = 0, newline = false, highlight = null) {
+        if (highlight instanceof Parsernostrum) {
+            highlight = highlight.getParser();
+        }
+        const context = Reply.makeContext(this, "");
+        context.highlighted = highlight;
+        return (newline ? "\n" + Parser.indentation.repeat(indent) : "")
+            + this.#parser.toString(context, indent, Reply.makePathNode(this.#parser))
+    }
+}
 
 class Serializable {
 
@@ -581,9 +1763,7 @@ class Serializable {
 
     /** @protected */
     static createGrammar() {
-        return /** @type {Parsimmon.Parser<Serializable>} */(P$1.fail(
-            "Unimplemented createGrammar() method in " + this.name)
-        )
+        return /** @type {Parsernostrum<any>} */(Parsernostrum.failure())
     }
 }
 
@@ -592,7 +1772,7 @@ class SerializerFactory {
     static #serializers = new Map()
 
     /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} type
      * @param {Serializer<T>} object
      */
@@ -601,9 +1781,9 @@ class SerializerFactory {
     }
 
     /**
-     * @template {SimpleValueType<any>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} type
-     * @returns {Serializer<ConstructedType<T>>}
+     * @returns {Serializer<T>}
      */
     static getSerializer(type) {
         return SerializerFactory.#serializers.get(type)
@@ -745,33 +1925,28 @@ class Utility {
     }
 
     /**
-     * @param {Number[]} viewportLocation
+     * @param {Coordinates} viewportLocation
      * @param {HTMLElement} movementElement
      */
     static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
         const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement);
         const bounding = movementElement.getBoundingClientRect();
-        let location = [
+        const location = /** @type {Coordinates} */([
             Math.round((viewportLocation[0] - bounding.x) * scaleCorrection),
             Math.round((viewportLocation[1] - bounding.y) * scaleCorrection)
-        ];
+        ]);
         return location
     }
 
     /**
-     * @param {IEntity} entity
+     * @param {Attribute} entity
      * @param {String} key
      * @returns {Boolean}
      */
-    static isSerialized(
-        entity,
-        key,
-        attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
-    ) {
-        if (attribute?.constructor === Object) {
-            return /** @type {AttributeInformation} */(attribute).serialized
-        }
-        return false
+    static isSerialized(entity, key) {
+        // @ts-expect-error
+        const attribute = (entity.attributes ?? entity.constructor?.attributes)?.[key];
+        return attribute ? attribute.serialized : false
     }
 
     /** @param {String[]} keys */
@@ -815,8 +1990,8 @@ class Utility {
     }
 
     /**
-     * @param {AnyValue} a
-     * @param {AnyValue} b
+     * @param {Attribute} a
+     * @param {Attribute} b
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
@@ -840,24 +2015,23 @@ class Utility {
     }
 
     /**
-     * @template {AnyValue} T
+     * @template {Attribute | AttributeTypeDescription} T
      * @param {T} value
-     * @returns {SimpleValueType<T>}
+     * @returns {AttributeConstructor<T>}
      */
     static getType(value) {
         if (value === null) {
             return null
         }
         if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
-            // @ts-expect-error
             return /** @type {AttributeInformation} */(value).type
         }
-        return /** @type {SimpleValueType<any>} */(value?.constructor)
+        return /** @type {AttributeConstructor<any>} */(value?.constructor)
     }
 
     /**
-     * @template {SimpleValue} V
-     * @template {SimpleValueType<V>} C
+     * @template {Attribute} V
+     * @template {AttributeConstructor<V>} C
      * @param {C} type
      * @returns {value is InstanceType<C>}
      */
@@ -868,8 +2042,8 @@ class Utility {
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 
-    /** @param {AnyValue | Object} value */
-    static sanitize(value, targetType = /** @type {SimpleValueType<typeof value>} */(value?.constructor)) {
+    /** @param {Attribute} value */
+    static sanitize(value, targetType = /** @type {AttributeTypeDescription } */(value?.constructor)) {
         if (targetType instanceof Array) {
             targetType = targetType[0];
         }
@@ -895,7 +2069,7 @@ class Utility {
                 : new /** @type {EntityConstructor} */(targetType)(value);
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = /** @type {AnyValue} */(value.valueOf()); // Get the relative primitive value
+            value = /** @type {TerminalAttribute} */(value.valueOf()); // Get the relative primitive value
         }
         return value
     }
@@ -904,7 +2078,7 @@ class Utility {
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static snapToGrid(x, y, gridSize) {
         if (gridSize === 1) {
@@ -1021,7 +2195,7 @@ class Utility {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static getPolarCoordinates(x, y, positiveTheta = false) {
         let theta = Math.atan2(y, x);
@@ -1037,7 +2211,7 @@ class Utility {
     /**
      * @param {Number} r
      * @param {Number} theta
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static getCartesianCoordinates(r, theta) {
         return [
@@ -1107,6 +2281,7 @@ class Utility {
     }
 }
 
+/** @abstract */
 class IEntity extends Serializable {
 
     /** @type {String | Union<String[]>} */
@@ -1133,7 +2308,7 @@ class IEntity extends Serializable {
         let attributes = Self.attributes;
         if (values.attributes) {
             attributes = { ...Self.attributes };
-            Utility.mergeArrays(Object.keys(attributes), Object.keys(values.attributes))
+            Utility.mergeArrays(Object.keys(values.attributes), Object.keys(attributes))
                 .forEach(k => {
                     attributes[k] = {
                         ...IEntity.defaultAttribute,
@@ -1157,13 +2332,17 @@ class IEntity extends Serializable {
         }
         for (const attributeName of allAttributesNames) {
             if (attributeName == "attributes") {
+                // Ignore this special attribute describing all the attributes
                 continue
             }
             let value = values[attributeName];
             let attribute = attributes[attributeName];
 
             if (!suppressWarns && value !== undefined) {
-                if (!(attributeName in attributes) && !attributeName.startsWith("#SubObject")) {
+                if (
+                    !(attributeName in attributes)
+                    && !attributeName.startsWith(Configuration.subObjectAttributeNamePrefix)
+                ) {
                     const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name;
                     console.warn(
                         `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
@@ -1230,7 +2409,7 @@ class IEntity extends Serializable {
                         .getSerializer(defaultType)
                         .read(/** @type {String} */(value));
                 }
-                assignAttribute(Utility.sanitize(value, /** @type {SimpleValueType<SimpleValue>} */(defaultType)));
+                assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)));
                 continue // We have a value, need nothing more
             }
             if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined
@@ -1239,7 +2418,7 @@ class IEntity extends Serializable {
         }
     }
 
-    /** @param {AttributeType} attributeType */
+    /** @param {AttributeTypeDescription} attributeType */
     static defaultValueProviderFromType(attributeType) {
         if (attributeType === Boolean) {
             return false
@@ -1254,12 +2433,11 @@ class IEntity extends Serializable {
         } else if (attributeType instanceof Union) {
             return this.defaultValueProviderFromType(attributeType.values[0])
         } else if (attributeType instanceof MirroredEntity) {
-            return () => new MirroredEntity(attributeType.type, attributeType.key, attributeType.getter)
+            return () => new MirroredEntity(attributeType.type, attributeType.getter)
         } else if (attributeType instanceof ComputedType) {
             return undefined
         } else {
-            // @ts-expect-error
-            return () => new attributeType()
+            return () => new /** @type {AnyConstructor<Attribute>} */(attributeType)()
         }
     }
 
@@ -1307,6 +2485,7 @@ class IEntity extends Serializable {
         return this.getAttributes(object)[attribute]
     }
 
+    /** @returns {AttributeDeclarations} */
     static getAttributes(object) {
         return object.attributes ?? object.constructor?.attributes ?? {}
     }
@@ -1347,8 +2526,6 @@ class IEntity extends Serializable {
     }
 }
 
-let P = Parsimmon;
-
 class Grammar {
 
     static separatedBy = (source, separator, min = 1) =>
@@ -1358,14 +2535,10 @@ class Grammar {
         )
 
     static Regex = class {
-        static ByteInteger = /0*(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d|\.)/ // A integer between 0 and 255
         static HexDigit = /[0-9a-fA-F]/
-        static InlineOptWhitespace = /[^\S\n]*/
-        static InlineWhitespace = /[^\S\n]+/
         static InsideString = /(?:[^"\\]|\\.)*/
         static InsideSingleQuotedString = /(?:[^'\\]|\\.)*/
         static Integer = /[\-\+]?\d+(?!\d|\.)/
-        static MultilineWhitespace = /\s*\n\s*/
         static Number = /[-\+]?(?:\d*\.)?\d+(?!\d|\.)/
         static RealUnit = /\+?(?:0(?:\.\d+)?|1(?:\.0+)?)(?![\.\d])/ // A number between 0 and 1 included
         static Word = Grammar.separatedBy("[a-zA-Z]", "_")
@@ -1378,95 +2551,55 @@ class Grammar {
 
     /*   ---   Primitive   ---   */
 
-    static null = P.lazy(() => P.regex(/\(\s*\)/).map(() => null))
-    static true = P.lazy(() => P.regex(/true/i).map(() => true))
-    static false = P.lazy(() => P.regex(/false/i).map(() => false))
-    static boolean = P.lazy(() => Grammar.regexMap(/(true)|false/i, v => v[1] ? true : false))
-    static number = P.lazy(() =>
-        this.regexMap(new RegExp(`(${Grammar.Regex.Number.source})|(\\+?inf)|(-inf)`), result => {
-            if (result[2] !== undefined) {
-                return Number.POSITIVE_INFINITY
-            } else if (result[3] !== undefined) {
-                return Number.NEGATIVE_INFINITY
-            }
-            return Number(result[1])
-        })
-    )
-    static integer = P.lazy(() => P.regex(Grammar.Regex.Integer).map(Number))
-    static bigInt = P.lazy(() => P.regex(Grammar.Regex.Integer).map(BigInt))
-    static realUnit = P.lazy(() => P.regex(Grammar.Regex.RealUnit).map(Number))
-    static naturalNumber = P.lazy(() => P.regex(/\d+/).map(Number))
-    static byteNumber = P.lazy(() => P.regex(Grammar.Regex.ByteInteger).map(Number))
-    static string = P.lazy(() =>
-        Grammar.regexMap(
-            new RegExp(`"(${Grammar.Regex.InsideString.source})"`),
-            ([_0, value]) => value
+    static null = Parsernostrum.reg(/\(\s*\)/).map(() => null)
+    static true = Parsernostrum.reg(/true/i).map(() => true)
+    static false = Parsernostrum.reg(/false/i).map(() => false)
+    static boolean = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? true : false)
+    static number = Parsernostrum.regArray(
+        new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
+    ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
+    static bigInt = Parsernostrum.reg(new RegExp(Parsernostrum.number.getParser().parser.regexp.source)).map(BigInt)
+        .map(result =>
+            result[2] !== undefined
+                ? Number.POSITIVE_INFINITY
+                : result[3] !== undefined
+                    ? Number.NEGATIVE_INFINITY
+                    : Number(result[1])
         )
-            .map((insideString) => Utility.unescapeString(insideString))
-    )
+    static naturalNumber = Parsernostrum.lazy(() => Parsernostrum.reg(/\d+/).map(Number))
+    static string = Parsernostrum.doubleQuotedString.map(insideString => Utility.unescapeString(insideString))
 
     /*   ---   Fragment   ---   */
 
-    static colorValue = this.byteNumber
-    static word = P.regex(Grammar.Regex.Word)
-    static pathQuotes = Grammar.regexMap(
-        new RegExp(
-            `'"(` + Grammar.Regex.InsideString.source + `)"'`
-            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-            + `|"(` + Grammar.Regex.InsideString.source + `)"`
-        ),
-        ([_0, a, b, c]) => a ?? b ?? c
-    )
-    static path = Grammar.regexMap(
-        new RegExp(
-            `'"(` + Grammar.Regex.InsideString.source + `)"'`
-            + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-            + `|"(` + Grammar.Regex.InsideString.source + `)"`
-            + `|(` + Grammar.Regex.Path.source + `)`
-        ),
-        ([_0, a, b, c, d]) => a ?? b ?? c ?? d
-    )
-    static symbol = P.regex(Grammar.Regex.Symbol)
-    static symbolQuoted = Grammar.regexMap(
-        new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'),
-        /** @type {(_0: String, v: String) => String} */
-        ([_0, v]) => v
-    )
-    static attributeName = P.regex(Grammar.Regex.DotSeparatedSymbols)
-    static attributeNameQuoted = Grammar.regexMap(
-        new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'),
-        ([_0, v]) => v
-    )
-    static guid = P.regex(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
-    static commaSeparation = P.regex(/\s*,\s*(?!\))/)
-    static commaOrSpaceSeparation = P.regex(/\s*,\s*(?!\))|\s+/)
-    static equalSeparation = P.regex(/\s*=\s*/)
-    static typeReference = P.alt(P.regex(Grammar.Regex.Path), this.symbol)
-    static hexColorChannel = P.regex(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
+    static colorValue = Parsernostrum.numberByte
+    static word = Parsernostrum.reg(Grammar.Regex.Word)
+    static pathQuotes = Parsernostrum.regArray(new RegExp(
+        `'"(` + Grammar.Regex.InsideString.source + `)"'`
+        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+        + `|"(` + Grammar.Regex.InsideString.source + `)"`
+    )).map(([_0, a, b, c]) => a ?? b ?? c)
+    static path = Parsernostrum.regArray(new RegExp(
+        `'"(` + Grammar.Regex.InsideString.source + `)"'`
+        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+        + `|"(` + Grammar.Regex.InsideString.source + `)"`
+        + `|(` + Grammar.Regex.Path.source + `)`
+    )).map(([_0, a, b, c, d]) => a ?? b ?? c ?? d)
+    static symbol = Parsernostrum.reg(Grammar.Regex.Symbol)
+    static symbolQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'), 1)
+    static attributeName = Parsernostrum.reg(Grammar.Regex.DotSeparatedSymbols)
+    static attributeNameQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'), 1)
+    static guid = Parsernostrum.reg(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
+    static commaSeparation = Parsernostrum.reg(/\s*,\s*(?!\))/)
+    static commaOrSpaceSeparation = Parsernostrum.reg(/\s*,\s*(?!\))|\s+/)
+    static equalSeparation = Parsernostrum.reg(/\s*=\s*/)
+    static typeReference = Parsernostrum.alt(Parsernostrum.reg(Grammar.Regex.Path), this.symbol)
+    static hexColorChannel = Parsernostrum.reg(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
 
     /*   ---   Factory   ---   */
 
     /**
-     * @template T
-     * @param {RegExp} re
-     * @param {(execResult) => T} mapper
-     */
-    static regexMap(re, mapper) {
-        const anchored = RegExp("^(?:" + re.source + ")", re.flags);
-        const expected = "" + re;
-        return P((input, i) => {
-            const match = anchored.exec(input.slice(i));
-            if (match) {
-                return P.makeSuccess(i + match[0].length, mapper(match))
-            }
-            return P.makeFailure(i, expected)
-        })
-    }
-
-    /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeTypeDescription} T
      * @param {T} type
-     * @returns {Parsimmon.Parser<ConstructedType<T>>}
      */
     static grammarFor(
         attribute,
@@ -1480,39 +2613,39 @@ class Grammar {
             if (attribute?.inlined) {
                 return this.grammarFor(undefined, type[0])
             }
-            result = P.seq(
-                P.regex(/\(\s*/),
+            result = Parsernostrum.seq(
+                Parsernostrum.reg(/\(\s*/),
                 this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
-                P.regex(/\s*(?:,\s*)?\)/),
+                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
             ).map(([_0, values, _3]) => values);
         } else if (type instanceof Union) {
             result = type.values
                 .map(v => this.grammarFor(undefined, v))
                 .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
                     ? this.unknownValue
-                    : P.alt(acc, cur)
+                    : Parsernostrum.alt(acc, cur)
                 );
         } else if (type instanceof MirroredEntity) {
-            return this.grammarFor(type.type.attributes[type.key])
-                .map(() => new MirroredEntity(type.type, type.key, type.getter))
+            return this.grammarFor(undefined, type.getTargetType())
+                .map(v => new MirroredEntity(type.type, () => v))
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type);
         } else {
             switch (type) {
-                case BigInt:
-                    result = this.bigInt;
-                    break
                 case Boolean:
                     result = this.boolean;
                     break
                 case Number:
                     result = this.number;
                     break
+                case BigInt:
+                    result = this.bigInt;
+                    break
                 case String:
                     result = this.string;
                     break
                 default:
-                    if (type?.prototype instanceof Serializable) {
+                    if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
                         return /** @type {typeof Serializable} */(type).grammar
                     }
             }
@@ -1522,18 +2655,18 @@ class Grammar {
                 if (result == this.unknownValue) {
                     result = this.string;
                 } else {
-                    result = P.seq(P.string('"'), result, P.string('"'));
+                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"'));
                 }
             }
             if (attribute.nullable) {
-                result = P.alt(result, this.null);
+                result = Parsernostrum.alt(result, this.null);
             }
         }
         return result
     }
 
     /**
-     * @template {SimpleValueType<SimpleValue>} T
+     * @template {AttributeConstructor<Attribute>} T
      * @param {T} entityType
      * @param {String[]} key
      * @returns {AttributeInformation}
@@ -1568,7 +2701,7 @@ class Grammar {
         valueSeparator = this.equalSeparation,
         handleObjectSet = (obj, k, v) => { }
     ) {
-        return P.seq(
+        return Parsernostrum.seq(
             attributeName,
             valueSeparator,
         ).chain(([attributeName, _1]) => {
@@ -1589,20 +2722,19 @@ class Grammar {
      * @template {IEntity} T
      * @param {(new (...args: any) => T) & EntityConstructor} entityType
      * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
-     * @returns {Parsimmon.Parser<T>}
      */
     static createEntityGrammar = (entityType, acceptUnknownKeys = true, entriesSeparator = this.commaSeparation) =>
-        P.seq(
-            this.regexMap(
+        Parsernostrum.seq(
+            Parsernostrum.reg(
                 entityType.lookbehind instanceof Union
                     ? new RegExp(`(${entityType.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
                     : entityType.lookbehind.constructor == String && entityType.lookbehind.length
                         ? new RegExp(`(${entityType.lookbehind})\\s*\\(\\s*`)
                         : /()\(\s*/,
-                result => result[1]
+                1
             ),
-            this.createAttributeGrammar(entityType).sepBy1(entriesSeparator),
-            P.regex(/\s*(?:,\s*)?\)/), // trailing comma
+            this.createAttributeGrammar(entityType).sepBy(entriesSeparator),
+            Parsernostrum.reg(/\s*(?:,\s*)?\)/), // trailing comma
         )
             .map(([lookbehind, attributes, _2]) => {
                 let values = {};
@@ -1615,20 +2747,19 @@ class Grammar {
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
             .chain(values => {
                 let totalKeys = Object.keys(values);
-                let missingKey;
                 // Check missing values
                 if (
                     Object.keys(/** @type {AttributeInformation} */(entityType.attributes))
                         .filter(key => entityType.attributes[key].expected)
-                        .find(key => !totalKeys.includes(key) && (missingKey = key))
+                        .find(key => !totalKeys.includes(key) && (key))
                 ) {
-                    return P.fail("Missing key " + missingKey)
+                    return Parsernostrum.failure()
                 }
                 const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length;
                 if (!acceptUnknownKeys && unknownKeys > 0) {
-                    return P.fail("Too many unknown keys")
+                    return Parsernostrum.failure()
                 }
-                return P.succeed(new entityType(values))
+                return Parsernostrum.success().map(() => new entityType(values))
             })
 
     /*   ---   Entity   ---   */
@@ -1701,25 +2832,18 @@ class ObjectReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static noneReferenceGrammar = Parsimmon.string("None").map(() => this.createNoneInstance())
-    static fullReferenceGrammar = Parsimmon.seq(
+    static noneReferenceGrammar = Parsernostrum.str("None").map(() => this.createNoneInstance())
+    static fullReferenceGrammar = Parsernostrum.seq(
         Grammar.typeReference,
-        Parsimmon.regex(Grammar.Regex.InlineOptWhitespace),
+        Parsernostrum.whitespaceInlineOpt,
         Grammar.pathQuotes
-    )
-        .map(([type, _2, path]) =>
-            new this({ type: type, path: path })
-        )
-    static typeReferenceGrammar = Grammar.typeReference.map(v =>
-        new this({ type: v, path: "" })
-    )
-    static pathReferenceGrammar = Grammar.path.map(path =>
-        new this({ type: "", path: path })
-    )
+    ).map(([type, _2, path]) => new this({ type, path }))
+    static typeReferenceGrammar = Grammar.typeReference.map(v => new this({ type: v, path: "" }))
+    static pathReferenceGrammar = Grammar.path.map(path => new this({ type: "", path: path }))
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
+        return Parsernostrum.alt(
             this.noneReferenceGrammar,
             this.fullReferenceGrammar,
             this.typeReferenceGrammar,
@@ -1851,11 +2975,14 @@ class IntegerEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.integer.map(v => new this(v))
+        return Parsernostrum.numberInteger.map(v => new this(v))
     }
 
     /** @param {Number | AttributeInformation} value */
     constructor(value = 0) {
+        if (value === -0) {
+            value = 0;
+        }
         super(value.constructor === Object
             ? value
             : {
@@ -1888,7 +3015,7 @@ class ColorChannelEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.number.map(value => new this(value))
+        return Parsernostrum.number.map(value => new this(value))
     }
 
     constructor(values = 0) {
@@ -1994,29 +3121,26 @@ class LinearColorEntity extends IEntity {
     }
 
     static getLinearColorFromHexGrammar() {
-        return Grammar.regexMap(new RegExp(
-            `#(${Grammar.Regex.HexDigit.source
-            }{2})(${Grammar.Regex.HexDigit.source
-            }{2})(${Grammar.Regex.HexDigit.source
-            }{2})(${Grammar.Regex.HexDigit.source
-            }{2})?`
-        ),
-            v => [v[1], v[2], v[3], v[4] ?? "FF"])
-            .map(([R, G, B, A]) => new this({
-                R: parseInt(R, 16) / 255,
-                G: parseInt(G, 16) / 255,
-                B: parseInt(B, 16) / 255,
-                A: parseInt(A, 16) / 255,
-            }))
+        return Parsernostrum.regArray(new RegExp(
+            "#(" + Grammar.Regex.HexDigit.source + "{2})"
+            + "(" + Grammar.Regex.HexDigit.source + "{2})"
+            + "(" + Grammar.Regex.HexDigit.source + "{2})"
+            + "(" + Grammar.Regex.HexDigit.source + "{2})?"
+        )).map(([m, R, G, B, A]) => new this({
+            R: parseInt(R, 16) / 255,
+            G: parseInt(G, 16) / 255,
+            B: parseInt(B, 16) / 255,
+            A: parseInt(A ?? "FF", 16) / 255,
+        }))
     }
 
     static getLinearColorRGBListGrammar() {
-        return Parsimmon.seq(
-            Grammar.byteNumber,
+        return Parsernostrum.seq(
+            Parsernostrum.numberByte,
             Grammar.commaSeparation,
-            Grammar.byteNumber,
+            Parsernostrum.numberByte,
             Grammar.commaSeparation,
-            Grammar.byteNumber,
+            Parsernostrum.numberByte,
         ).map(([R, _1, G, _3, B]) => new this({
             R: R / 255,
             G: G / 255,
@@ -2026,25 +3150,23 @@ class LinearColorEntity extends IEntity {
     }
 
     static getLinearColorRGBGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.regex(/rgb\s*\(\s*/),
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/rgb\s*\(\s*/),
             this.getLinearColorRGBListGrammar(),
-            Parsimmon.regex(/\s*\)/)
-        )
-            .map(([_0, linearColor, _2]) => linearColor)
+            Parsernostrum.reg(/\s*\)/)
+        ).map(([_0, linearColor, _2]) => linearColor)
     }
 
     static getLinearColorRGBAGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.regex(/rgba\s*\(\s*/),
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/rgba\s*\(\s*/),
             this.getLinearColorRGBListGrammar(),
-            Parsimmon.regex(/\s*\)/)
-        )
-            .map(([_0, linearColor, _2]) => linearColor)
+            Parsernostrum.reg(/\s*\)/)
+        ).map(([_0, linearColor, _2]) => linearColor)
     }
 
     static getLinearColorFromAnyFormat() {
-        return Parsimmon.alt(
+        return Parsernostrum.alt(
             this.getLinearColorFromHexGrammar(),
             this.getLinearColorRGBAGrammar(),
             this.getLinearColorRGBGrammar(),
@@ -2233,6 +3355,11 @@ class LinearColorEntity extends IEntity {
         this.#updateHSV();
     }
 
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.R.value, this.G.value, this.B.value, this.A.value]
+    }
+
     toString() {
         return Utility.printLinearColor(this)
     }
@@ -2292,7 +3419,7 @@ class ByteEntity extends IntegerEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.byteNumber.map(v => new this(v))
+        return Parsernostrum.numberByte.map(v => new this(v))
     }
 
     constructor(values = 0) {
@@ -2351,7 +3478,7 @@ class EnumDisplayValueEntity extends EnumEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.regex(Grammar.Regex.InsideString).map(v => new this(v))
+        return Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
     }
 }
 
@@ -2370,14 +3497,14 @@ class InvariantTextEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Parsimmon.regex(new RegExp(`${this.lookbehind}\\s*\\(`)),
+        return Parsernostrum.alt(
+            Parsernostrum.seq(
+                Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
                 Grammar.grammarFor(this.attributes.value),
-                Parsimmon.regex(/\s*\)/)
+                Parsernostrum.reg(/\s*\)/)
             )
                 .map(([_0, value, _2]) => value),
-            Parsimmon.regex(new RegExp(this.lookbehind)) // InvariantTextEntity can not have arguments
+            Parsernostrum.reg(new RegExp(this.lookbehind)) // InvariantTextEntity can not have arguments
                 .map(() => "")
         ).map(value => new this(value))
     }
@@ -2414,22 +3541,19 @@ class LocalizedTextEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.regexMap(
-            new RegExp(
-                String.raw`${this.lookbehind}\s*\(`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-                + String.raw`(?:,\s+)?`
-                + String.raw`\)`,
-                "m"
-            ),
-            matchResult => new this({
-                namespace: Utility.unescapeString(matchResult[1]),
-                key: Utility.unescapeString(matchResult[2]),
-                value: Utility.unescapeString(matchResult[3]),
-            })
-        )
+        return Parsernostrum.regArray(new RegExp(
+            String.raw`${this.lookbehind}\s*\(`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
+            + String.raw`(?:,\s+)?`
+            + String.raw`\)`,
+            "m"
+        )).map(matchResult => new this({
+            namespace: Utility.unescapeString(matchResult[1]),
+            key: Utility.unescapeString(matchResult[2]),
+            value: Utility.unescapeString(matchResult[3]),
+        }))
     }
 
     constructor(values) {
@@ -2460,23 +3584,21 @@ class FormatTextEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.lazy(() =>
-            Parsimmon.seq(
-                Grammar.regexMap(
-                    // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                    new RegExp(`(${this.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
-                    result => result[1]
-                ),
-                Grammar.grammarFor(this.attributes.value)
-            )
-                .map(([lookbehind, values]) => {
-                    const result = new this({
-                        value: values,
-                    });
-                    result.lookbehind = lookbehind;
-                    return result
-                })
+        return Parsernostrum.seq(
+            Parsernostrum.reg(
+                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+                new RegExp(`(${this.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                1
+            ),
+            Grammar.grammarFor(this.attributes.value)
         )
+            .map(([lookbehind, values]) => {
+                const result = new this({
+                    value: values,
+                });
+                result.lookbehind = lookbehind;
+                return result
+            })
     }
 
     constructor(values) {
@@ -2523,7 +3645,7 @@ class Integer64Entity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.bigInt.map(v => new this(v))
+        return Parsernostrum.numberBigInteger.map(v => new this(v))
     }
 
     /** @param {BigInt | Number} value */
@@ -2600,9 +3722,9 @@ class PinReferenceEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.seq(
+        return Parsernostrum.seq(
             PathSymbolEntity.createGrammar(),
-            Parsimmon.whitespace,
+            Parsernostrum.whitespace,
             GuidEntity.createGrammar()
         ).map(
             ([objectName, _1, pinGuid]) => new this({
@@ -2728,6 +3850,11 @@ class Vector2DEntity extends IEntity {
         /** @type {Number} */ this.X;
         /** @type {Number} */ this.Y;
     }
+
+    /** @returns {[Number, Number]} */
+    toArray() {
+        return [this.X, this.Y]
+    }
 }
 
 class RBSerializationVector2DEntity extends Vector2DEntity {
@@ -2735,14 +3862,14 @@ class RBSerializationVector2DEntity extends Vector2DEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Parsimmon.string("X").then(Grammar.equalSeparation).then(Grammar.number),
-                Parsimmon.regex(Grammar.Regex.InlineWhitespace),
-                Parsimmon.string("Y").then(Grammar.equalSeparation).then(Grammar.number),
-            ).map(([x, _1, y]) => new this({
-                X: x,
-                Y: y,
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                /X\s*=\s*/.source + "(?<x>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+                + "\\s+"
+                + /Y\s*=\s*/.source + "(?<y>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+            )).map(({ groups: { x, y } }) => new this({
+                X: Number(x),
+                Y: Number(y),
             })),
             Vector2DEntity.createGrammar()
         )
@@ -2800,20 +3927,19 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Grammar.number,
-                Grammar.commaSeparation,
-                Grammar.number,
-                Grammar.commaSeparation,
-                Grammar.number,
-            ).map(([p, _1, y, _3, r]) =>
-                new this({
-                    R: r,
-                    P: p,
-                    Y: y,
-                })
-            ),
+        const number = Parsernostrum.number.getParser().parser.regexp.source;
+        return Parsernostrum.alt(
+            Parsernostrum.reg(new RegExp(
+                "(" + number + ")"
+                + "\\s*,\\s"
+                + "(" + number + ")"
+                + "\\s*,\\s"
+                + "(" + number + ")"
+            )).map(([p, y, r]) => new this({
+                R: Number(r),
+                P: Number(p),
+                Y: Number(y),
+            })),
             RotatorEntity.createGrammar()
         )
     }
@@ -2824,14 +3950,15 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Grammar.number,
-                Grammar.commaSeparation,
-                Grammar.number,
-            ).map(([x, _1, y]) => new this({
-                X: x,
-                Y: y,
+        const number = Parsernostrum.number.getParser().parser.regexp.source;
+        return Parsernostrum.alt(
+            Parsernostrum.reg(new RegExp(
+                "(" + number + ")"
+                + "\\s*,\\s"
+                + "(" + number + ")"
+            )).map(([x, y]) => new this({
+                X: Number(x),
+                Y: Number(y),
             })),
             Vector2DEntity.createGrammar()
         )
@@ -2870,6 +3997,11 @@ class VectorEntity extends IEntity {
         /** @type {Number} */ this.Y;
         /** @type {Number} */ this.Z;
     }
+
+    /** @returns {[Number, Number, Number]} */
+    toArray() {
+        return [this.X, this.Y, this.Z]
+    }
 }
 
 class SimpleSerializationVectorEntity extends VectorEntity {
@@ -2877,24 +4009,26 @@ class SimpleSerializationVectorEntity extends VectorEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
-            Parsimmon.seq(
-                Grammar.number,
-                Grammar.commaSeparation,
-                Grammar.number,
-                Grammar.commaSeparation,
-                Grammar.number,
-            ).map(([x, _1, y, _3, z]) => new this({
-                X: x,
-                Y: y,
-                Z: z,
-            })),
+        const number = Parsernostrum.number.getParser().parser.regexp.source;
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                "(" + number + ")"
+                + "\\s*,\\s*"
+                + "(" + number + ")"
+                + "\\s*,\\s*"
+                + "(" + number + ")"
+            ))
+                .map(([_0, x, y, z]) => new this({
+                    X: Number(x),
+                    Y: Number(y),
+                    Z: Number(z),
+                })),
             VectorEntity.createGrammar()
         )
     }
 }
 
-/** @template {AnyValue} T */
+/** @template {TerminalAttribute} T */
 class PinEntity extends IEntity {
 
     static #typeEntityMap = {
@@ -3630,23 +4764,22 @@ class UnknownPinEntity extends PinEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.lazy(() => Parsimmon.seq(
-            Grammar.regexMap(
+        return Parsernostrum.seq(
+            Parsernostrum.reg(
                 new RegExp(`${Grammar.Regex.Symbol.source}\\s*\\(\\s*`),
-                result => result[1] ?? ""
+                1
             ),
-            Grammar.createAttributeGrammar(this).sepBy1(Grammar.commaSeparation),
-            Parsimmon.regex(/\s*(?:,\s*)?\)/)
-        )
-            .map(([lookbehind, attributes, _2]) => {
-                let values = {};
-                if (lookbehind.length) {
-                    values.lookbehind = lookbehind;
-                }
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return new this(values)
-            })
-        )
+            Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
+            Parsernostrum.reg(/\s*(?:,\s*)?\)/)
+        ).map(([lookbehind, attributes, _2]) => {
+            lookbehind ??= "";
+            let values = {};
+            if (lookbehind.length) {
+                values.lookbehind = lookbehind;
+            }
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            return new this(values)
+        })
     }
 
     constructor(values = {}) {
@@ -3720,271 +4853,115 @@ class ObjectEntity extends IEntity {
     }
     static attributes = {
         ...super.attributes,
-        Class: {
-            type: ObjectReferenceEntity,
+        AdvancedPinDisplay: { type: IdentifierEntity },
+        Archetype: { type: ObjectReferenceEntity },
+        AxisKey: { type: SymbolEntity },
+        bAlt: { type: Boolean },
+        bCanRenameNode: { type: Boolean },
+        bColorCommentBubble: { type: Boolean },
+        bCommand: { type: Boolean },
+        bCommentBubblePinned: { type: Boolean },
+        bCommentBubbleVisible_InDetailsPanel: { type: Boolean },
+        bCommentBubbleVisible: { type: Boolean },
+        bConsumeInput: { type: Boolean },
+        bControl: { type: Boolean },
+        bExecuteWhenPaused: { type: Boolean },
+        bExposeToLibrary: { type: Boolean },
+        bInternalEvent: { type: Boolean },
+        bIsCaseSensitive: { type: Boolean },
+        bIsConstFunc: { type: Boolean },
+        bIsPureFunc: { type: Boolean },
+        BlueprintElementInstance: { type: ObjectReferenceEntity },
+        BlueprintElementType: { type: ObjectReferenceEntity },
+        bOverrideFunction: { type: Boolean },
+        bOverrideParentBinding: { type: Boolean },
+        bShift: { type: Boolean },
+        Class: { type: ObjectReferenceEntity },
+        CommentColor: { type: LinearColorEntity },
+        ComponentPropertyName: { type: String },
+        CustomFunctionName: { type: String },
+        CustomProperties: { type: [new Union(PinEntity, UnknownPinEntity)] },
+        DelegateOwnerClass: { type: ObjectReferenceEntity },
+        DelegatePropertyName: { type: String },
+        DelegateReference: { type: VariableReferenceEntity },
+        EnabledState: { type: IdentifierEntity },
+        Enum: { type: ObjectReferenceEntity },
+        EnumEntries: {
+            type: [String],
+            inlined: true,
         },
-        Name: {
-            type: String,
+        ErrorMsg: { type: String },
+        ErrorType: { type: IntegerEntity },
+        EventReference: { type: FunctionReferenceEntity },
+        ExportPath: { type: ObjectReferenceEntity },
+        FunctionReference: { type: FunctionReferenceEntity },
+        G: { type: Number },
+        Graph: { type: ObjectReferenceEntity },
+        HiGenGridSize: { type: SymbolEntity },
+        InputAxisKey: { type: SymbolEntity },
+        InputKey: { type: SymbolEntity },
+        InputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
         },
-        Archetype: {
-            type: ObjectReferenceEntity,
+        MacroGraphReference: { type: MacroGraphReferenceEntity },
+        MaterialExpression: { type: ObjectReferenceEntity },
+        MaterialExpressionComment: { type: ObjectReferenceEntity },
+        MaterialExpressionEditorX: { type: new MirroredEntity(IntegerEntity) },
+        MaterialExpressionEditorY: { type: new MirroredEntity(IntegerEntity) },
+        MaterialFunction: { type: ObjectReferenceEntity },
+        MoveMode: { type: SymbolEntity },
+        Name: { type: String },
+        Node: { type: new MirroredEntity(ObjectReferenceEntity) },
+        NodeComment: { type: String },
+        NodeGuid: { type: GuidEntity },
+        NodeHeight: { type: IntegerEntity },
+        NodePosX: { type: IntegerEntity },
+        NodePosY: { type: IntegerEntity },
+        NodeTitle: { type: String },
+        NodeTitleColor: { type: LinearColorEntity },
+        NodeWidth: { type: IntegerEntity },
+        NumAdditionalInputs: { type: Number },
+        ObjectRef: { type: ObjectReferenceEntity },
+        Operation: { type: SymbolEntity },
+        OutputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
         },
-        ExportPath: {
-            type: ObjectReferenceEntity,
-        },
-        ObjectRef: {
-            type: ObjectReferenceEntity,
-        },
-        BlueprintElementType: {
-            type: ObjectReferenceEntity
-        },
-        BlueprintElementInstance: {
-            type: ObjectReferenceEntity
+        PCGNode: { type: ObjectReferenceEntity },
+        PinNames: {
+            type: [String],
+            inlined: true,
         },
         PinTags: {
             type: [null],
             inlined: true,
         },
-        PinNames: {
-            type: [String],
-            inlined: true,
-        },
-        AxisKey: {
-            type: SymbolEntity,
-        },
-        InputAxisKey: {
-            type: SymbolEntity,
-        },
-        NumAdditionalInputs: {
-            type: Number,
-        },
-        bIsPureFunc: {
-            type: Boolean,
-        },
-        bIsConstFunc: {
-            type: Boolean,
-        },
-        bIsCaseSensitive: {
-            type: Boolean,
-        },
-        VariableReference: {
-            type: VariableReferenceEntity,
-        },
-        SelfContextInfo: {
-            type: SymbolEntity,
-        },
-        DelegatePropertyName: {
-            type: String,
-        },
-        DelegateOwnerClass: {
-            type: ObjectReferenceEntity,
-        },
-        ComponentPropertyName: {
-            type: String,
-        },
-        EventReference: {
-            type: FunctionReferenceEntity,
-        },
-        FunctionReference: {
-            type: FunctionReferenceEntity,
-        },
-        CustomFunctionName: {
-            type: String,
-        },
-        TargetType: {
-            type: ObjectReferenceEntity,
-        },
-        MacroGraphReference: {
-            type: MacroGraphReferenceEntity,
-        },
-        Enum: {
-            type: ObjectReferenceEntity,
-        },
-        EnumEntries: {
-            type: [String],
-            inlined: true,
-        },
-        InputKey: {
-            type: SymbolEntity,
-        },
-        MaterialFunction: {
-            type: ObjectReferenceEntity,
-        },
-        bOverrideFunction: {
-            type: Boolean,
-        },
-        bInternalEvent: {
-            type: Boolean,
-        },
-        bConsumeInput: {
-            type: Boolean,
-        },
-        bExecuteWhenPaused: {
-            type: Boolean,
-        },
-        bOverrideParentBinding: {
-            type: Boolean,
-        },
-        bControl: {
-            type: Boolean,
-        },
-        bAlt: {
-            type: Boolean,
-        },
-        bShift: {
-            type: Boolean,
-        },
-        bCommand: {
-            type: Boolean,
-        },
-        CommentColor: {
-            type: LinearColorEntity,
-        },
-        bCommentBubbleVisible_InDetailsPanel: {
-            type: Boolean,
-        },
-        bColorCommentBubble: {
-            type: Boolean,
-        },
-        ProxyFactoryFunctionName: {
-            type: String,
-        },
-        ProxyFactoryClass: {
-            type: ObjectReferenceEntity,
-        },
-        ProxyClass: {
-            type: ObjectReferenceEntity,
-        },
-        R: {
-            type: Number,
-        },
-        G: {
-            type: Number,
-        },
-        StructType: {
-            type: ObjectReferenceEntity,
-        },
-        MaterialExpression: {
-            type: ObjectReferenceEntity,
-        },
-        MaterialExpressionComment: {
-            type: ObjectReferenceEntity,
-        },
-        MoveMode: {
-            type: SymbolEntity,
-        },
-        TimelineName: {
-            type: String,
-        },
-        TimelineGuid: {
-            type: GuidEntity,
-        },
-        SizeX: {
-            type: new MirroredEntity(ObjectEntity, "NodeWidth"),
-        },
-        SizeY: {
-            type: new MirroredEntity(ObjectEntity, "NodeHeight"),
-        },
-        Text: {
-            type: new MirroredEntity(ObjectEntity, "NodeComment"),
-        },
-        MaterialExpressionEditorX: {
-            type: new MirroredEntity(ObjectEntity, "NodePosX"),
-        },
-        MaterialExpressionEditorY: {
-            type: new MirroredEntity(ObjectEntity, "NodePosY"),
-        },
-        NodeTitle: {
-            type: String,
-        },
-        NodeTitleColor: {
-            type: LinearColorEntity,
-        },
-        PositionX: {
-            type: new MirroredEntity(ObjectEntity, "NodePosX"),
-        },
-        PositionY: {
-            type: new MirroredEntity(ObjectEntity, "NodePosY"),
-        },
-        PCGNode: {
-            type: ObjectReferenceEntity,
-        },
-        HiGenGridSize: {
-            type: SymbolEntity,
-        },
-        Operation: {
-            type: SymbolEntity,
-        },
-        NodePosX: {
-            type: IntegerEntity,
-        },
-        NodePosY: {
-            type: IntegerEntity,
-        },
-        NodeWidth: {
-            type: IntegerEntity,
-        },
-        NodeHeight: {
-            type: IntegerEntity,
-        },
-        Graph: {
-            type: ObjectReferenceEntity,
-        },
-        SubgraphInstance: {
-            type: String,
-        },
-        SettingsInterface: {
-            type: ObjectReferenceEntity,
-        },
-        InputPins: {
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        },
-        OutputPins: {
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        },
-        bExposeToLibrary: {
-            type: Boolean,
-        },
-        bCanRenameNode: {
-            type: Boolean,
-        },
-        bCommentBubblePinned: {
-            type: Boolean,
-        },
-        bCommentBubbleVisible: {
-            type: Boolean,
-        },
-        NodeComment: {
-            type: String,
-        },
-        AdvancedPinDisplay: {
-            type: IdentifierEntity,
-        },
-        EnabledState: {
-            type: IdentifierEntity,
-        },
-        NodeGuid: {
-            type: GuidEntity,
-        },
-        ErrorType: {
-            type: IntegerEntity,
-        },
-        ErrorMsg: {
-            type: String,
-        },
-        CustomProperties: {
-            type: [new Union(PinEntity, UnknownPinEntity)],
-        }
+        PositionX: { type: new MirroredEntity(IntegerEntity) },
+        PositionY: { type: new MirroredEntity(IntegerEntity) },
+        ProxyClass: { type: ObjectReferenceEntity },
+        ProxyFactoryClass: { type: ObjectReferenceEntity },
+        ProxyFactoryFunctionName: { type: String },
+        R: { type: Number },
+        SelfContextInfo: { type: SymbolEntity },
+        SettingsInterface: { type: ObjectReferenceEntity },
+        SizeX: { type: new MirroredEntity(IntegerEntity) },
+        SizeY: { type: new MirroredEntity(IntegerEntity) },
+        StructType: { type: ObjectReferenceEntity },
+        SubgraphInstance: { type: String },
+        TargetType: { type: ObjectReferenceEntity },
+        Text: { type: new MirroredEntity(String) },
+        TimelineGuid: { type: GuidEntity },
+        TimelineName: { type: String },
+        VariableReference: { type: VariableReferenceEntity },
     }
     static {
         this.cleanupAttributes(this.attributes);
     }
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
-    static customPropertyGrammar = Parsimmon.seq(
-        Parsimmon.regex(/CustomProperties\s+/),
+    static customPropertyGrammar = Parsernostrum.seq(
+        Parsernostrum.reg(/CustomProperties\s+/),
         Grammar.grammarFor(
             undefined,
             this.attributes.CustomProperties.type[0]
@@ -3995,15 +4972,15 @@ class ObjectEntity extends IEntity {
         }
         values.CustomProperties.push(pin);
     })
-    static inlinedArrayEntryGrammar = Parsimmon.seq(
-        Parsimmon.alt(
+    static inlinedArrayEntryGrammar = Parsernostrum.seq(
+        Parsernostrum.alt(
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        Grammar.regexMap(
+        Parsernostrum.reg(
             new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-            v => Number(v[1])
-        )
+            1
+        ).map(Number)
     )
         .chain(
             /** @param {[[String, Boolean], Number]} param */
@@ -4025,20 +5002,19 @@ class ObjectEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createSubObjectGrammar() {
-        return Parsimmon.lazy(() =>
-            this.createGrammar()
-                .map(object =>
-                    values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
-                )
-        )
+        return Parsernostrum.lazy(() => this.createGrammar())
+            .map(object =>
+                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+            )
+
     }
 
     static createGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.regex(/Begin\s+Object/),
-            Parsimmon.seq(
-                Parsimmon.whitespace,
-                Parsimmon.alt(
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/Begin\s+Object/),
+            Parsernostrum.seq(
+                Parsernostrum.whitespace,
+                Parsernostrum.alt(
                     this.customPropertyGrammar,
                     Grammar.createAttributeGrammar(this),
                     Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
@@ -4050,7 +5026,7 @@ class ObjectEntity extends IEntity {
             )
                 .map(([_0, entry]) => entry)
                 .many(),
-            Parsimmon.regex(/\s+End\s+Object/),
+            Parsernostrum.reg(/\s+End\s+Object/),
         )
             .map(([_0, attributes, _2]) => {
                 const values = {};
@@ -4080,16 +5056,16 @@ class ObjectEntity extends IEntity {
     }
 
     static getMultipleObjectsGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.optWhitespace,
+        return Parsernostrum.seq(
+            Parsernostrum.whitespaceOpt,
             this.createGrammar(),
-            Parsimmon.seq(
-                Parsimmon.whitespace,
+            Parsernostrum.seq(
+                Parsernostrum.whitespace,
                 this.createGrammar(),
             )
                 .map(([_0, object]) => object)
                 .many(),
-            Parsimmon.optWhitespace
+            Parsernostrum.whitespaceOpt
         )
             .map(([_0, first, remaining, _4]) => [first, ...remaining])
     }
@@ -4113,91 +5089,93 @@ class ObjectEntity extends IEntity {
             };
         }
         super(values, suppressWarns);
-        /** @type {ObjectReferenceEntity} */ this.Class;
-        /** @type {String} */ this.Name;
-        /** @type {ObjectReferenceEntity} */ this.Archetype;
-        /** @type {ObjectReferenceEntity} */ this.ExportPath;
-        /** @type {ObjectReferenceEntity} */ this.ObjectRef;
-        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType;
-        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance;
-        /** @type {null[]} */ this.PinTags;
-        /** @type {String[]} */ this.PinNames;
-        /** @type {SymbolEntity} */ this.AxisKey;
-        /** @type {SymbolEntity} */ this.InputAxisKey;
-        /** @type {Number} */ this.NumAdditionalInputs;
-        /** @type {Boolean} */ this.bIsPureFunc;
-        /** @type {Boolean} */ this.bIsConstFunc;
+        /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
+        /** @type {Boolean} */ this.bAlt;
+        /** @type {Boolean} */ this.bCanRenameNode;
+        /** @type {Boolean} */ this.bColorCommentBubble;
+        /** @type {Boolean} */ this.bCommand;
+        /** @type {Boolean} */ this.bCommentBubblePinned;
+        /** @type {Boolean} */ this.bCommentBubbleVisible;
+        /** @type {Boolean} */ this.bCommentBubbleVisible_InDetailsPanel;
+        /** @type {Boolean} */ this.bConsumeInput;
+        /** @type {Boolean} */ this.bControl;
+        /** @type {Boolean} */ this.bExecuteWhenPaused;
+        /** @type {Boolean} */ this.bExposeToLibrary;
+        /** @type {Boolean} */ this.bInternalEvent;
         /** @type {Boolean} */ this.bIsCaseSensitive;
-        /** @type {VariableReferenceEntity} */ this.VariableReference;
-        /** @type {SymbolEntity} */ this.SelfContextInfo;
-        /** @type {String} */ this.DelegatePropertyName;
-        /** @type {ObjectReferenceEntity} */ this.DelegateOwnerClass;
+        /** @type {Boolean} */ this.bIsConstFunc;
+        /** @type {Boolean} */ this.bIsPureFunc;
+        /** @type {Boolean} */ this.bOverrideFunction;
+        /** @type {Boolean} */ this.bOverrideParentBinding;
+        /** @type {Boolean} */ this.bShift;
         /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName;
         /** @type {FunctionReferenceEntity} */ this.EventReference;
         /** @type {FunctionReferenceEntity} */ this.FunctionReference;
-        /** @type {String} */ this.CustomFunctionName;
-        /** @type {ObjectReferenceEntity} */ this.TargetType;
-        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference;
-        /** @type {ObjectReferenceEntity} */ this.Enum;
-        /** @type {String[]} */ this.EnumEntries;
-        /** @type {SymbolEntity} */ this.InputKey;
-        /** @type {ObjectReferenceEntity} */ this.MaterialFunction;
-        /** @type {Boolean} */ this.bOverrideFunction;
-        /** @type {Boolean} */ this.bInternalEvent;
-        /** @type {Boolean} */ this.bConsumeInput;
-        /** @type {Boolean} */ this.bExecuteWhenPaused;
-        /** @type {Boolean} */ this.bOverrideParentBinding;
-        /** @type {Boolean} */ this.bControl;
-        /** @type {Boolean} */ this.bAlt;
-        /** @type {Boolean} */ this.bShift;
-        /** @type {Boolean} */ this.bCommand;
-        /** @type {LinearColorEntity} */ this.CommentColor;
-        /** @type {Boolean} */ this.bCommentBubbleVisible_InDetailsPanel;
-        /** @type {Boolean} */ this.bColorCommentBubble;
-        /** @type {String} */ this.ProxyFactoryFunctionName;
-        /** @type {ObjectReferenceEntity} */ this.ProxyFactoryClass;
-        /** @type {ObjectReferenceEntity} */ this.ProxyClass;
-        /** @type {Number} */ this.R;
-        /** @type {Number} */ this.G;
-        /** @type {ObjectReferenceEntity} */ this.StructType;
-        /** @type {ObjectReferenceEntity} */ this.MaterialExpression;
-        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment;
-        /** @type {SymbolEntity} */ this.MoveMode;
-        /** @type {String} */ this.TimelineName;
+        /** @type {GuidEntity} */ this.NodeGuid;
         /** @type {GuidEntity} */ this.TimelineGuid;
-        /** @type {MirroredEntity} */ this.SizeX;
-        /** @type {MirroredEntity} */ this.SizeY;
-        /** @type {MirroredEntity} */ this.Text;
-        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX;
-        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY;
-        /** @type {String} */ this.NodeTitle;
-        /** @type {LinearColorEntity} */ this.NodeTitleColor;
-        /** @type {MirroredEntity} */ this.PositionX;
-        /** @type {MirroredEntity} */ this.PositionY;
-        /** @type {ObjectReferenceEntity} */ this.PCGNode;
-        /** @type {SymbolEntity} */ this.HiGenGridSize;
-        /** @type {String} */ this.Operation;
+        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay;
+        /** @type {IdentifierEntity} */ this.EnabledState;
+        /** @type {IntegerEntity} */ this.ErrorType;
+        /** @type {IntegerEntity} */ this.NodeHeight;
         /** @type {IntegerEntity} */ this.NodePosX;
         /** @type {IntegerEntity} */ this.NodePosY;
         /** @type {IntegerEntity} */ this.NodeWidth;
-        /** @type {IntegerEntity} */ this.NodeHeight;
-        /** @type {ObjectReferenceEntity} */ this.Graph;
-        /** @type {String} */ this.SubgraphInstance;
-        /** @type {ObjectReferenceEntity} */ this.SettingsInterface;
+        /** @type {LinearColorEntity} */ this.CommentColor;
+        /** @type {LinearColorEntity} */ this.NodeTitleColor;
+        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference;
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX;
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY;
+        /** @type {MirroredEntity} */ this.SizeX;
+        /** @type {MirroredEntity} */ this.SizeY;
+        /** @type {MirroredEntity} */ this.Text;
+        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionX;
+        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionY;
+        /** @type {MirroredEntity<ObjectReferenceEntity>} */ this.Node;
+        /** @type {null[]} */ this.PinTags;
+        /** @type {Number} */ this.G;
+        /** @type {Number} */ this.NumAdditionalInputs;
+        /** @type {Number} */ this.R;
         /** @type {ObjectReferenceEntity[]} */ this.InputPins;
         /** @type {ObjectReferenceEntity[]} */ this.OutputPins;
-        /** @type {Boolean} */ this.bExposeToLibrary;
-        /** @type {Boolean} */ this.bCanRenameNode;
-        /** @type {Boolean} */ this.bCommentBubblePinned;
-        /** @type {Boolean} */ this.bCommentBubbleVisible;
-        /** @type {String} */ this.Text;
-        /** @type {String} */ this.NodeComment;
-        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay;
-        /** @type {IdentifierEntity} */ this.EnabledState;
-        /** @type {GuidEntity} */ this.NodeGuid;
-        /** @type {IntegerEntity} */ this.ErrorType;
+        /** @type {ObjectReferenceEntity} */ this.Archetype;
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance;
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType;
+        /** @type {ObjectReferenceEntity} */ this.Class;
+        /** @type {ObjectReferenceEntity} */ this.DelegateOwnerClass;
+        /** @type {ObjectReferenceEntity} */ this.Enum;
+        /** @type {ObjectReferenceEntity} */ this.ExportPath;
+        /** @type {ObjectReferenceEntity} */ this.Graph;
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpression;
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment;
+        /** @type {ObjectReferenceEntity} */ this.MaterialFunction;
+        /** @type {ObjectReferenceEntity} */ this.ObjectRef;
+        /** @type {ObjectReferenceEntity} */ this.PCGNode;
+        /** @type {ObjectReferenceEntity} */ this.ProxyClass;
+        /** @type {ObjectReferenceEntity} */ this.ProxyFactoryClass;
+        /** @type {ObjectReferenceEntity} */ this.SettingsInterface;
+        /** @type {ObjectReferenceEntity} */ this.StructType;
+        /** @type {ObjectReferenceEntity} */ this.TargetType;
+        /** @type {String[]} */ this.EnumEntries;
+        /** @type {String[]} */ this.PinNames;
+        /** @type {String} */ this.CustomFunctionName;
+        /** @type {String} */ this.DelegatePropertyName;
         /** @type {String} */ this.ErrorMsg;
-        /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
+        /** @type {String} */ this.Name;
+        /** @type {String} */ this.NodeComment;
+        /** @type {String} */ this.NodeTitle;
+        /** @type {String} */ this.Operation;
+        /** @type {String} */ this.ProxyFactoryFunctionName;
+        /** @type {String} */ this.SubgraphInstance;
+        /** @type {String} */ this.Text;
+        /** @type {String} */ this.TimelineName;
+        /** @type {SymbolEntity} */ this.AxisKey;
+        /** @type {SymbolEntity} */ this.HiGenGridSize;
+        /** @type {SymbolEntity} */ this.InputAxisKey;
+        /** @type {SymbolEntity} */ this.InputKey;
+        /** @type {SymbolEntity} */ this.MoveMode;
+        /** @type {SymbolEntity} */ this.SelfContextInfo;
+        /** @type {VariableReferenceEntity} */ this.DelegateReference;
+        /** @type {VariableReferenceEntity} */ this.VariableReference;
 
         // Legacy nodes cleanup
         if (this["Pins"] instanceof Array) {
@@ -4234,6 +5212,25 @@ class ObjectEntity extends IEntity {
         if (pcgObject) {
             pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX);
             pcgObject.PositionY && (pcgObject.PositionY.getter = () => this.NodePosY);
+            pcgObject.getSubobjects()
+                .forEach(
+                    /** @param {ObjectEntity} obj */
+                    obj => {
+                        if (obj.Node !== undefined) {
+                            const nodeRef = obj.Node.get();
+                            if (
+                                nodeRef.type === this.PCGNode.type
+                                && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
+                            ) {
+                                obj.Node.getter = () => new ObjectReferenceEntity({
+                                    type: this.PCGNode.type,
+                                    path: `${this.Name}.${this.PCGNode.path}`,
+                                });
+                            }
+                        }
+                    }
+                );
+
         }
         let inputIndex = 0;
         let outputIndex = 0;
@@ -4354,6 +5351,13 @@ class ObjectEntity extends IEntity {
         return this.getCustomproperties().filter(v => v.constructor === PinEntity)
     }
 
+    /** @returns {ObjectEntity[]} */
+    getSubobjects() {
+        return Object.keys(this)
+            .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
+            .flatMap(k => [this[k], .../** @type {ObjectEntity} */(this[k]).getSubobjects()])
+    }
+
     switchTarget() {
         const switchMatch = this.getClass().match(Configuration.switchTargetPattern);
         if (switchMatch) {
@@ -4449,6 +5453,8 @@ class ObjectEntity extends IEntity {
             case Configuration.paths.actorBoundEvent:
             case Configuration.paths.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName ?? "Unknown"})`
+            case Configuration.paths.callDelegate:
+                return `Call ${this.DelegateReference?.MemberName ?? "None"}`
             case Configuration.paths.createDelegate:
                 return "Create Event"
             case Configuration.paths.customEvent:
@@ -4812,7 +5818,7 @@ class ObjectEntity extends IEntity {
 
     nodeIcon() {
         if (this.isMaterial() || this.isPcg()) {
-            return undefined
+            return null
         }
         switch (this.getType()) {
             case Configuration.paths.addDelegate:
@@ -5013,16 +6019,16 @@ class ObjectEntity extends IEntity {
     }
 }
 
-/** @template {SimpleValueType<SimpleValue>} T */
+/** @template {AttributeConstructor<Attribute>} T */
 class Serializer {
 
     /** @type {(v: String) => String} */
     static same = v => v
 
-    /** @type {(entity: SimpleValue, serialized: String) => String} */
+    /** @type {(entity: Attribute, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
 
-    /** @type {(entity: SimpleValue, serialized: String) => String} */
+    /** @type {(entity: Attribute, serialized: String) => String} */
     static bracketsWrapped = (entity, serialized) => `(${serialized})`
 
     /** @param {T} entityType */
@@ -5053,7 +6059,6 @@ class Serializer {
 
     /** @param {ConstructedType<T>} value */
     write(value, insideString = false) {
-        // @ts-expect-error
         return this.doWrite(value, insideString)
     }
 
@@ -5063,7 +6068,7 @@ class Serializer {
      */
     doRead(value) {
         let grammar = Grammar.grammarFor(undefined, this.entityType);
-        const parseResult = grammar.parse(value);
+        const parseResult = grammar.run(value);
         if (!parseResult.status) {
             throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
         }
@@ -5071,7 +6076,7 @@ class Serializer {
     }
 
     /**
-     * @param {ConstructedType<T> & IEntity} entity
+     * @param {ConstructedType<T>} entity
      * @param {Boolean} insideString
      * @returns {String}
      */
@@ -5187,11 +6192,7 @@ class ObjectSerializer extends Serializer {
 
     /** @param {String} value */
     doRead(value) {
-        const parseResult = Grammar.grammarFor(undefined, this.entityType).parse(value);
-        if (!parseResult.status) {
-            throw new Error("Error when trying to parse the object.")
-        }
-        return parseResult.value
+        return Grammar.grammarFor(undefined, this.entityType).parse(value)
     }
 
     /**
@@ -5199,11 +6200,7 @@ class ObjectSerializer extends Serializer {
      * @returns {ObjectEntity[]}
      */
     readMultiple(value) {
-        const parseResult = ObjectEntity.getMultipleObjectsGrammar().parse(value);
-        if (!parseResult.status) {
-            throw new Error("Error when trying to parse the object.")
-        }
-        return parseResult.value
+        return ObjectEntity.getMultipleObjectsGrammar().parse(value)
     }
 
     /**
@@ -5263,6 +6260,13 @@ class ObjectSerializer extends Serializer {
     }
 }
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 class Copy extends IInput {
 
     static #serializer = new ObjectSerializer()
@@ -5300,6 +6304,13 @@ class Copy extends IInput {
     }
 }
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 class Cut extends IInput {
 
     static #serializer = new ObjectSerializer()
@@ -5307,6 +6318,11 @@ class Cut extends IInput {
     /** @type {(e: ClipboardEvent) => void} */
     #cutHandler
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus ??= true;
         options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
@@ -5423,7 +6439,7 @@ class KeyBindingEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
+        return Parsernostrum.alt(
             IdentifierEntity.grammar.map(identifier => new this({
                 Key: identifier
             })),
@@ -5443,6 +6459,15 @@ class KeyBindingEntity extends IEntity {
 }
 
 /**
+ * @typedef {import("../IInput.js").Options & {
+ *     activationKeys?: String | KeyBindingEntity | (String | KeyBindingEntity)[],
+ *     consumeEvent?: Boolean,
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
+/**
  * @template {Element} T
  * @extends IInput<T>
  */
@@ -5460,7 +6485,7 @@ class KeyboardShortcut extends IInput {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,
@@ -5480,8 +6505,8 @@ class KeyboardShortcut extends IInput {
             if (v instanceof KeyBindingEntity) {
                 return v
             }
-            if (typeof v === "string") {
-                const parsed = KeyBindingEntity.createGrammar().parse(v);
+            if (v.constructor === String) {
+                const parsed = KeyBindingEntity.createGrammar().run(v);
                 if (parsed.status) {
                     return parsed.value
                 }
@@ -5571,12 +6596,21 @@ class Shortcuts {
 }
 
 /**
+ * @typedef {import("../IInput.js").Options & {
+ *     ignoreTranslateCompensate?: Boolean,
+ *     ignoreScale?: Boolean,
+ *     movementSpace?: HTMLElement,
+ *     enablerKey?: KeyboardShortcut,
+ * }} Options
+ */
+
+/**
  * @template {Element} T
  * @extends {IInput<T>}
  */
 class IPointing extends IInput {
 
-    #location = [0, 0]
+    #location = /** @type {Coordinates} */([0, 0])
     get location() {
         return this.#location
     }
@@ -5591,6 +6625,11 @@ class IPointing extends IInput {
         return this.#enablerActivated
     }
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint 
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false;
         options.ignoreScale ??= false;
@@ -5618,17 +6657,22 @@ class IPointing extends IInput {
         location = this.options.ignoreTranslateCompensate
             ? location
             : this.blueprint.compensateTranslation(location[0], location[1]);
-        this.#location[0] = location[0];
-        this.#location[1] = location[1];
+        this.#location = [...location];
         return this.#location
     }
 }
 
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     strictTarget?: Boolean,
+ * }} Options
+ */
+
 class MouseWheel extends IPointing {
 
-    static #ignoreEvent =
-        /** @param {MouseWheel} self */
-        self => { }
+    /** @param {MouseWheel} self */
+    static #ignoreEvent = self => { }
 
     #variation = 0
     get variation() {
@@ -5652,7 +6696,7 @@ class MouseWheel extends IPointing {
     /**
      * @param {HTMLElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,
@@ -5713,6 +6757,12 @@ class Zoom extends MouseWheel {
     }
 }
 
+/**
+ * @typedef {import("./KeyboardShortcut.js").Options & {
+ *     activationKeys?: String | KeyBindingEntity | (String | KeyBindingEntity)[],
+ * }} Options
+ */
+
 class KeyboardEnableZoom extends KeyboardShortcut {
 
     /** @type {Zoom} */
@@ -5721,7 +6771,7 @@ class KeyboardEnableZoom extends KeyboardShortcut {
     /**
      * @param {HTMLElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.activationKeys = Shortcuts.enableZoomIn;
@@ -5941,7 +6991,7 @@ class IDraggableElement extends IElement {
         this.setLocation(this.locationX + x, this.locationY + y, acknowledge);
     }
 
-    /** @param {Number[]} value */
+    /** @param {Coordinates} value */
     acknowledgeDrag(value) {
         const dragEvent = new CustomEvent(
             /** @type {typeof IDraggableElement} */(this.constructor).dragGeneralEventName,
@@ -5979,6 +7029,21 @@ class IDraggableElement extends IElement {
         return this.template.leftBoundary(justSelectableArea)
     }
 }
+
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     clickButton?: Number,
+ *     consumeEvent?: Boolean,
+ *     draggableElement?: HTMLElement,
+ *     exitAnyButton?: Boolean,
+ *     moveEverywhere?: Boolean,
+ *     movementSpace?: HTMLElement,
+ *     repositionOnClick?: Boolean,
+ *     scrollGraphEdge?: Boolean,
+ *     strictTarget?: Boolean,
+ *     stepSize?: Number,
+ * }} Options
+ */
 
 /**
  * @template {IElement} T
@@ -6037,6 +7102,7 @@ class IMouseClickDrag extends IPointing {
         this.lastLocation = Utility.snapToGrid(this.clickedPosition[0], this.clickedPosition[1], this.stepSize);
         this.startDrag(this.location);
         this.started = true;
+        this.#mouseMoveHandler(e);
     }
 
     /** @param {MouseEvent} e  */
@@ -6102,16 +7168,16 @@ class IMouseClickDrag extends IPointing {
     #movementListenedElement
     #draggableElement
 
-    clickedOffset = [0, 0]
-    clickedPosition = [0, 0]
-    lastLocation = [0, 0]
+    clickedOffset = /** @type {Coordinates} */([0, 0])
+    clickedPosition = /** @type {Coordinates} */([0, 0])
+    lastLocation = /** @type {Coordinates} */([0, 0])
     started = false
     stepSize = 1
 
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.clickButton ??= Configuration.mouseClickButton;
@@ -6124,7 +7190,7 @@ class IMouseClickDrag extends IPointing {
         options.scrollGraphEdge ??= false;
         options.strictTarget ??= false;
         super(target, blueprint, options);
-        this.stepSize = parseInt(options?.stepSize ?? Configuration.gridSize);
+        this.stepSize = Number(options.stepSize ?? Configuration.gridSize);
         this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
         this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement);
 
@@ -6177,6 +7243,10 @@ class MouseScrollGraph extends IMouseClickDrag {
         this.blueprint.scrolling = true;
     }
 
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
     dragTo(location, movement) {
         this.blueprint.scrollDelta(-movement[0], -movement[1]);
     }
@@ -6186,17 +7256,22 @@ class MouseScrollGraph extends IMouseClickDrag {
     }
 }
 
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     listenOnFocus?: Boolean,
+ * }} Options
+ */
+
 class MouseTracking extends IPointing {
 
     /** @type {IPointing} */
     #mouseTracker = null
 
     /** @param {MouseEvent} e */
-    #mousemoveHandler= e => {
+    #mousemoveHandler = e => {
         e.preventDefault();
         this.setLocationFromEvent(e);
-        this.blueprint.mousePosition[0] = this.location[0];
-        this.blueprint.mousePosition[1] = this.location[1];
+        this.blueprint.mousePosition = [...this.location];
     }
 
     /** @param {CustomEvent} e */
@@ -6217,6 +7292,11 @@ class MouseTracking extends IPointing {
         }
     }
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
         super(target, blueprint, options);
@@ -6271,6 +7351,13 @@ class ElementFactory {
     }
 }
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 class Paste extends IInput {
 
     static #serializer = new ObjectSerializer()
@@ -6278,6 +7365,11 @@ class Paste extends IInput {
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
 
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus ??= true;
         options.unlistenOnTextEdit ??= true; // No nodes paste if inside a text field, just text (default behavior)
@@ -6323,6 +7415,12 @@ class Paste extends IInput {
     }
 }
 
+/**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+ *     scrollGraphEdge?: Boolean,
+ * }} Options
+ */
+
 class Select extends IMouseClickDrag {
 
     constructor(target, blueprint, options = {}) {
@@ -6335,6 +7433,10 @@ class Select extends IMouseClickDrag {
         this.selectorElement.beginSelect(this.clickedPosition);
     }
 
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
     dragTo(location, movement) {
         this.selectorElement.selectTo(location);
     }
@@ -6352,15 +7454,25 @@ class Select extends IMouseClickDrag {
     }
 }
 
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ * }} Options
+ */
+
 class Unfocus extends IInput {
 
     /** @param {MouseEvent} e */
     #clickHandler = e => this.clickedSomewhere(/** @type {HTMLElement} */(e.target))
 
+    /**
+     * @param {HTMLElement} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.listenOnFocus = true;
         super(target, blueprint, options);
-
         if (this.blueprint.focus) {
             document.addEventListener("click", this.#clickHandler);
         }
@@ -6700,7 +7812,7 @@ class IFromToPositionedElement extends IElement {
         this.toY = 0;
     }
 
-    /** @param {Number[]} param0 */
+    /** @param {Coordinates} param0 */
     setBothLocations([x, y]) {
         this.fromX = x;
         this.fromY = y;
@@ -6791,6 +7903,11 @@ class KnotEntity extends ObjectEntity {
 }
 
 /**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+* }} Options
+*/
+
+/**
  * @template {Element} T
  * @extends {IPointing<T>}
  */
@@ -6848,7 +7965,7 @@ class MouseClick extends IPointing {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(
         target,
@@ -6889,12 +8006,19 @@ class MouseClick extends IPointing {
 }
 
 /**
+ * @typedef {import("./IPointing.js").Options & {
+ *     consumeEvent?: Boolean,
+ *     strictTarget?: Boolean,
+* }} Options
+*/
+
+/**
  * @template {HTMLElement} T
  * @extends {IPointing<T>}
  */
 class MouseDbClick extends IPointing {
 
-    /** @param {Number[]} location */
+    /** @param {Coordinates} location */
     static ignoreDbClick = location => { }
 
     /** @param {MouseEvent} e */
@@ -6904,8 +8028,7 @@ class MouseDbClick extends IPointing {
                 e.stopImmediatePropagation(); // Captured, don't call anyone else
             }
             this.clickedPosition = this.setLocationFromEvent(e);
-            this.blueprint.mousePosition[0] = this.clickedPosition[0];
-            this.blueprint.mousePosition[1] = this.clickedPosition[1];
+            this.blueprint.mousePosition = [...this.clickedPosition];
             this.dbclicked(this.clickedPosition);
         }
     }
@@ -6918,8 +8041,13 @@ class MouseDbClick extends IPointing {
         this.#onDbClick = value;
     }
 
-    clickedPosition = [0, 0]
+    clickedPosition = /** @type {Coordinates} */([0, 0])
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}, onDbClick = MouseDbClick.ignoreDbClick) {
         options.consumeEvent ??= true;
         options.strictTarget ??= false;
@@ -6937,6 +8065,7 @@ class MouseDbClick extends IPointing {
     }
 
     /* Subclasses will override the following method */
+    /** @param {Coordinates} location */
     dbclicked(location) {
         this.onDbClick(location);
     }
@@ -6951,7 +8080,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
      * y'(p[0]) = m => -a / p[0]^2 = m => a = -m * p[0]^2. Now, in order to determine q we can use the starting
      * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
      * @param {Number} m slope
-     * @param {Number[]} p reference point
+     * @param {Coordinates} p reference point
      */
     static decreasingValue(m, p) {
         const a = -m * p[0] ** 2;
@@ -6992,7 +8121,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
 
     #uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     #createKnot = location => {
         const knotEntity = new KnotEntity({}, this.element.source.entity);
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
@@ -7012,6 +8141,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     createInputObjects() {
+        /** @type {HTMLElement} */
         const linkArea = this.element.querySelector(".ueb-link-area");
         return [
             ...super.createInputObjects(),
@@ -7019,7 +8149,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
                 linkArea,
                 this.blueprint,
                 undefined,
-                /** @param {[Number, Number]} location */
+                /** @param {Coordinates} location */
                 location => {
                     location[0] += Configuration.knotOffset[0];
                     location[1] += Configuration.knotOffset[1];
@@ -7299,7 +8429,7 @@ class LinkElement extends IFromToPositionedElement {
         this.destination = null;
     }
 
-    /** @param {Number[]?} location */
+    /** @param {Coordinates} location */
     setSourceLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
@@ -7315,7 +8445,7 @@ class LinkElement extends IFromToPositionedElement {
         this.fromY = y;
     }
 
-    /** @param {Number[]?} location */
+    /** @param {Coordinates} location */
     setDestinationLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this;
@@ -7424,13 +8554,15 @@ class LinkElement extends IFromToPositionedElement {
     }
 }
 
+/** @typedef {import("./IMouseClickDrag.js").Options} Options */
+
 /**
  * @template {IDraggableElement} T
  * @extends {IMouseClickDrag<T>}
  */
 class MouseMoveDraggable extends IMouseClickDrag {
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     clicked(location) {
         if (this.options.repositionOnClick) {
             this.target.setLocation(...(this.stepSize > 1
@@ -7442,8 +8574,8 @@ class MouseMoveDraggable extends IMouseClickDrag {
     }
 
     /**
-     * @param {Number[]} location
-     * @param {Number[]} offset
+     * @param {Coordinates} location
+     * @param {Coordinates} offset
      */
     dragTo(location, offset) {
         const targetLocation = [
@@ -7472,13 +8604,22 @@ class MouseMoveDraggable extends IMouseClickDrag {
     }
 
     /**
-     * @param {Number[]} location
-     * @param {Number[]} offset
+     * @param {Coordinates} location
+     * @param {Coordinates} offset
      */
     dragAction(location, offset) {
         this.target.setLocation(location[0] - this.clickedOffset[0], location[1] - this.clickedOffset[1]);
     }
 }
+
+/**
+ * @typedef {import("./MouseMoveDraggable.js").Options & {
+ *     onClicked?: () => void,
+ *     onStartDrag?: () => void,
+ *     onDrag?: (location: Coordinates, movement: Coordinates) => void,
+ *     onEndDrag?: () => void,
+* }} Options
+*/
 
 class MouseClickDrag extends MouseMoveDraggable {
 
@@ -7490,7 +8631,7 @@ class MouseClickDrag extends MouseMoveDraggable {
     /**
      * @param {HTMLElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         super(target, blueprint, options);
@@ -7508,7 +8649,7 @@ class MouseClickDrag extends MouseMoveDraggable {
         }
     }
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     clicked(location) {
         super.clicked(location);
         this.#onClicked?.();
@@ -7519,6 +8660,10 @@ class MouseClickDrag extends MouseMoveDraggable {
         this.#onStartDrag?.();
     }
 
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
     dragAction(location, movement) {
         this.#onDrag?.(location, movement);
     }
@@ -7535,8 +8680,9 @@ class MouseClickDrag extends MouseMoveDraggable {
  */
 class IDraggableTemplate extends ITemplate {
 
+    /** @returns {HTMLElement} */
     getDraggableElement() {
-        return /** @type {Element} */(this.element)
+        return this.element
     }
 
     createDraggableObject() {
@@ -7662,8 +8808,9 @@ class MouseMoveNodes extends MouseMoveDraggable {
  */
 class ISelectableDraggableTemplate extends IDraggablePositionedTemplate {
 
+    /** @returns {HTMLElement} */
     getDraggableElement() {
-        return /** @type {Element} */(this.element)
+        return this.element
     }
 
     createDraggableObject() {
@@ -7733,7 +8880,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
-        this.element.classList.add(.../** @type {NodeTemplateConstructor} */(this.constructor).nodeStyleClasses);
+        this.element.classList.add(.../** @type {typeof NodeTemplate} */(this.constructor).nodeStyleClasses);
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText);
         this.pinInserter = this.element.entity.additionalPinInserter();
         if (this.pinInserter) {
@@ -8025,6 +9172,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
         super.initialize(element); // Keep it at the end because it calls this.getColor() where this.#color must be initialized
     }
 
+    /** @returns {HTMLElement} */
     getDraggableElement() {
         return this.element.querySelector(".ueb-node-top")
     }
@@ -8107,6 +9255,12 @@ class CommentNodeTemplate extends IResizeableTemplate {
     }
 }
 
+/**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+ *     scrollGraphEdge?: Boolean,
+* }} Options
+*/
+
 /** @extends IMouseClickDrag<PinElement> */
 class MouseCreateLink extends IMouseClickDrag {
 
@@ -8174,7 +9328,7 @@ class MouseCreateLink extends IMouseClickDrag {
     /**
      * @param {PinElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.scrollGraphEdge ??= true;
@@ -8309,12 +9463,12 @@ class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends ITemplate<PinElement<T>>
  */
 class PinTemplate extends ITemplate {
@@ -8480,7 +9634,7 @@ class PinTemplate extends ITemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends PinTemplate<T>
  */
 class MinimalPinTemplate extends PinTemplate {
@@ -9114,7 +10268,9 @@ class Blueprint extends IElement {
     nodes = []
     /** @type {LinkElement[]}" */
     links = []
-    /** @type {Number[]} */
+    /** @type {Map<String, NodeElement>} */
+    nodesNames = new Map()
+    /** @type {Coordinates} */
     mousePosition = [0, 0]
     waitingExpandUpdate = false
 
@@ -9552,7 +10708,7 @@ class IDraggableControlTemplate extends IDraggableTemplate {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     adjustLocation(x, y) {
         this.locationChangeCallback?.(x, y);
@@ -9566,7 +10722,7 @@ class ColorHandlerTemplate extends IDraggableControlTemplate {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     adjustLocation(x, y) {
         const radius = Math.round(this.movementSpaceSize[0] / 2);
@@ -9628,7 +10784,7 @@ class ColorSliderTemplate extends IDraggableControlTemplate {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @return {[Number, Number]}
+     * @return {Coordinates}
      */
     adjustLocation(x, y) {
         x = Utility.clamp(x, 0, this.movementSpaceSize[0]);
@@ -9912,7 +11068,7 @@ class BoolPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends PinTemplate<T>
  */
 class IInputPinTemplate extends PinTemplate {
@@ -10119,7 +11275,7 @@ class ExecPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends IInputPinTemplate<T>
  */
 class INumericPinTemplate extends IInputPinTemplate {
@@ -10850,7 +12006,7 @@ class VectorPinTemplate extends INumericPinTemplate {
 }
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 class PinElement extends IElement {
@@ -10877,9 +12033,9 @@ class PinElement extends IElement {
             type: GuidEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<GuidEntity>} */(GuidEntity.grammar.parse(value)).value
+                    ? GuidEntity.grammar.parse(value)
                     : null,
-                toAttribute: (value, type) => value?.toString(),
+                toAttribute: (value, type) => /** @type {String} */(value?.toString()),
             },
             attribute: "data-id",
             reflect: true,
@@ -10898,7 +12054,7 @@ class PinElement extends IElement {
             type: LinearColorEntity,
             converter: {
                 fromAttribute: (value, type) => value
-                    ? /** @type {Success<LinearColorEntity>} */(LinearColorEntity.getLinearColorFromAnyFormat().parse(value)).value
+                    ? LinearColorEntity.getLinearColorFromAnyFormat().parse(value)
                     : null,
                 toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
             },
@@ -11224,7 +12380,6 @@ class OrderedIndexArray {
 }
 
 /**
- * @typedef {import("../element/NodeElement.js").default} NodeElement
  * @typedef {typeof import("../Blueprint.js").default.nodeBoundariesSupplier} BoundariesFunction
  * @typedef {typeof import("../Blueprint.js").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{
@@ -11238,7 +12393,7 @@ class OrderedIndexArray {
 class FastSelectionModel {
 
     /**
-     * @param {Number[]} initialPosition
+     * @param {Coordinates} initialPosition
      * @param {NodeElement[]} rectangles
      * @param {BoundariesFunction} boundariesFunc
      * @param {SelectionFunction} selectFunc
@@ -11406,7 +12561,7 @@ class SelectorElement extends IFromToPositionedElement {
         // Initialized in the constructor, this method does nothing
     }
 
-    /** @param {Number[]} initialPosition */
+    /** @param {Coordinates} initialPosition */
     beginSelect(initialPosition) {
         const blueprintConstructor = /** @type {BlueprintConstructor} */(this.blueprint.constructor);
         this.blueprint.selecting = true;
@@ -11419,7 +12574,7 @@ class SelectorElement extends IFromToPositionedElement {
         );
     }
 
-    /** @param {Number[]} finalPosition */
+    /** @param {Coordinates} finalPosition */
     selectTo(finalPosition) {
         this.selectionModel.selectTo(finalPosition);
         this.toX = finalPosition[0];
@@ -11508,7 +12663,7 @@ function defineElements() {
 }
 
 /**
- * @template {SimpleValueType<SimpleValue>} T
+ * @template {AttributeConstructor<Attribute>} T
  * @extends {Serializer<T>}
  */
 class CustomSerializer extends Serializer {
@@ -11571,7 +12726,7 @@ class TerminalTypeEntity extends IEntity {
 }
 
 /**
- * @template {SimpleValueType<SimpleValue>} T
+ * @template {AttributeConstructor<Attribute>} T
  * @extends {Serializer<T>}
  */
 class ToStringSerializer extends Serializer {
@@ -11607,31 +12762,29 @@ class UnknownKeysEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.seq(
+        return Parsernostrum.seq(
             // Lookbehind
-            Grammar.regexMap(
+            Parsernostrum.reg(
                 new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
-                result => result[1] ?? ""
+                1
             ),
-            Grammar.attributeName
-                .skip(Grammar.equalSeparation)
+            Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
                 .chain(attributeName =>
-                    Grammar.unknownValue
-                        .map(attributeValue =>
-                            values => values[attributeName] = attributeValue
-                        )
+                    Grammar.unknownValue.map(attributeValue =>
+                        values => values[attributeName] = attributeValue
+                    )
                 )
-                .sepBy1(Grammar.commaSeparation),
-            Parsimmon.regex(/\s*(?:,\s*)?\)/),
-        )
-            .map(([lookbehind, attributes, _2]) => {
-                let values = {};
-                if (lookbehind.length) {
-                    values.lookbehind = lookbehind;
-                }
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return new this(values)
-            })
+                .sepBy(Grammar.commaSeparation),
+            Parsernostrum.reg(/\s*(?:,\s*)?\)/),
+        ).map(([lookbehind, attributes, _2]) => {
+            lookbehind ??= "";
+            let values = {};
+            if (lookbehind.length) {
+                values.lookbehind = lookbehind;
+            }
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            return new this(values)
+        })
     }
 
     constructor(values) {
@@ -11641,7 +12794,7 @@ class UnknownKeysEntity extends IEntity {
 }
 
 Grammar.unknownValue =
-    Parsimmon.alt(
+    Parsernostrum.alt(
         // Remember to keep the order, otherwise parsing might fail
         Grammar.boolean,
         GuidEntity.createGrammar(),

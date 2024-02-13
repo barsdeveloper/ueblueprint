@@ -83,7 +83,7 @@ export default class IDraggableElement extends IElement {
         this.setLocation(this.locationX + x, this.locationY + y, acknowledge)
     }
 
-    /** @param {Number[]} value */
+    /** @param {Coordinates} value */
     acknowledgeDrag(value) {
         const dragEvent = new CustomEvent(
             /** @type {typeof IDraggableElement} */(this.constructor).dragGeneralEventName,

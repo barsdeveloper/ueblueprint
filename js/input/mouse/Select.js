@@ -1,5 +1,11 @@
 import IMouseClickDrag from "./IMouseClickDrag.js"
 
+/**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+ *     scrollGraphEdge?: Boolean,
+ * }} Options
+ */
+
 export default class Select extends IMouseClickDrag {
 
     constructor(target, blueprint, options = {}) {
@@ -12,6 +18,10 @@ export default class Select extends IMouseClickDrag {
         this.selectorElement.beginSelect(this.clickedPosition)
     }
 
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
     dragTo(location, movement) {
         this.selectorElement.selectTo(location)
     }

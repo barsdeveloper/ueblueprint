@@ -1,7 +1,7 @@
 import IInputPinTemplate from "./IInputPinTemplate.js"
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends IInputPinTemplate<T>
  */
 export default class INumericPinTemplate extends IInputPinTemplate {

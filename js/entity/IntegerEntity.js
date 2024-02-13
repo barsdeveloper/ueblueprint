@@ -1,5 +1,5 @@
-import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
+import Parsernostrum from "parsernostrum"
 
 export default class IntegerEntity extends IEntity {
 
@@ -16,11 +16,14 @@ export default class IntegerEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.integer.map(v => new this(v))
+        return Parsernostrum.numberInteger.map(v => new this(v))
     }
 
     /** @param {Number | AttributeInformation} value */
     constructor(value = 0) {
+        if (value === -0) {
+            value = 0
+        }
         super(value.constructor === Object
             ? value
             : {

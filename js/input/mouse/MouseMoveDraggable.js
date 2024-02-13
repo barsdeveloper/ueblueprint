@@ -1,13 +1,15 @@
 import IMouseClickDrag from "./IMouseClickDrag.js"
 import Utility from "../../Utility.js"
 
+/** @typedef {import("./IMouseClickDrag.js").Options} Options */
+
 /**
  * @template {IDraggableElement} T
  * @extends {IMouseClickDrag<T>}
  */
 export default class MouseMoveDraggable extends IMouseClickDrag {
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     clicked(location) {
         if (this.options.repositionOnClick) {
             this.target.setLocation(...(this.stepSize > 1
@@ -19,8 +21,8 @@ export default class MouseMoveDraggable extends IMouseClickDrag {
     }
 
     /**
-     * @param {Number[]} location
-     * @param {Number[]} offset
+     * @param {Coordinates} location
+     * @param {Coordinates} offset
      */
     dragTo(location, offset) {
         const targetLocation = [
@@ -49,8 +51,8 @@ export default class MouseMoveDraggable extends IMouseClickDrag {
     }
 
     /**
-     * @param {Number[]} location
-     * @param {Number[]} offset
+     * @param {Coordinates} location
+     * @param {Coordinates} offset
      */
     dragAction(location, offset) {
         this.target.setLocation(location[0] - this.clickedOffset[0], location[1] - this.clickedOffset[1])

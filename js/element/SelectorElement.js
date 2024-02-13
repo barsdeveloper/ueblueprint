@@ -21,7 +21,7 @@ export default class SelectorElement extends IFromToPositionedElement {
         // Initialized in the constructor, this method does nothing
     }
 
-    /** @param {Number[]} initialPosition */
+    /** @param {Coordinates} initialPosition */
     beginSelect(initialPosition) {
         const blueprintConstructor = /** @type {BlueprintConstructor} */(this.blueprint.constructor)
         this.blueprint.selecting = true
@@ -34,7 +34,7 @@ export default class SelectorElement extends IFromToPositionedElement {
         )
     }
 
-    /** @param {Number[]} finalPosition */
+    /** @param {Coordinates} finalPosition */
     selectTo(finalPosition) {
         this.selectionModel.selectTo(finalPosition)
         this.toX = finalPosition[0]

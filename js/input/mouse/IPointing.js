@@ -2,12 +2,21 @@ import IInput from "../IInput.js"
 import Utility from "../../Utility.js"
 
 /**
+ * @typedef {import("../IInput.js").Options & {
+ *     ignoreTranslateCompensate?: Boolean,
+ *     ignoreScale?: Boolean,
+ *     movementSpace?: HTMLElement,
+ *     enablerKey?: KeyboardShortcut,
+ * }} Options
+ */
+
+/**
  * @template {Element} T
  * @extends {IInput<T>}
  */
 export default class IPointing extends IInput {
 
-    #location = [0, 0]
+    #location = /** @type {Coordinates} */([0, 0])
     get location() {
         return this.#location
     }
@@ -22,6 +31,11 @@ export default class IPointing extends IInput {
         return this.#enablerActivated
     }
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint 
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}) {
         options.ignoreTranslateCompensate ??= false
         options.ignoreScale ??= false
@@ -49,8 +63,7 @@ export default class IPointing extends IInput {
         location = this.options.ignoreTranslateCompensate
             ? location
             : this.blueprint.compensateTranslation(location[0], location[1])
-        this.#location[0] = location[0]
-        this.#location[1] = location[1]
+        this.#location = [...location]
         return this.#location
     }
 }

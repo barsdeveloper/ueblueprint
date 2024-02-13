@@ -4,7 +4,7 @@ import PinTemplate from "./PinTemplate.js"
 import Utility from "../../Utility.js"
 
 /**
- * @template {AnyValue} T
+ * @template {TerminalAttribute} T
  * @extends PinTemplate<T>
  */
 export default class IInputPinTemplate extends PinTemplate {

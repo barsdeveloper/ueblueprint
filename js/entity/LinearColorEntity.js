@@ -2,7 +2,7 @@ import { css } from "lit"
 import ColorChannelEntity from "./ColorChannelEntity.js"
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 import Utility from "../Utility.js"
 
 export default class LinearColorEntity extends IEntity {
@@ -88,29 +88,26 @@ export default class LinearColorEntity extends IEntity {
     }
 
     static getLinearColorFromHexGrammar() {
-        return Grammar.regexMap(new RegExp(
-            `#(${Grammar.Regex.HexDigit.source
-            }{2})(${Grammar.Regex.HexDigit.source
-            }{2})(${Grammar.Regex.HexDigit.source
-            }{2})(${Grammar.Regex.HexDigit.source
-            }{2})?`
-        ),
-            v => [v[1], v[2], v[3], v[4] ?? "FF"])
-            .map(([R, G, B, A]) => new this({
-                R: parseInt(R, 16) / 255,
-                G: parseInt(G, 16) / 255,
-                B: parseInt(B, 16) / 255,
-                A: parseInt(A, 16) / 255,
-            }))
+        return Parsernostrum.regArray(new RegExp(
+            "#(" + Grammar.Regex.HexDigit.source + "{2})"
+            + "(" + Grammar.Regex.HexDigit.source + "{2})"
+            + "(" + Grammar.Regex.HexDigit.source + "{2})"
+            + "(" + Grammar.Regex.HexDigit.source + "{2})?"
+        )).map(([m, R, G, B, A]) => new this({
+            R: parseInt(R, 16) / 255,
+            G: parseInt(G, 16) / 255,
+            B: parseInt(B, 16) / 255,
+            A: parseInt(A ?? "FF", 16) / 255,
+        }))
     }
 
     static getLinearColorRGBListGrammar() {
-        return Parsimmon.seq(
-            Grammar.byteNumber,
+        return Parsernostrum.seq(
+            Parsernostrum.numberByte,
             Grammar.commaSeparation,
-            Grammar.byteNumber,
+            Parsernostrum.numberByte,
             Grammar.commaSeparation,
-            Grammar.byteNumber,
+            Parsernostrum.numberByte,
         ).map(([R, _1, G, _3, B]) => new this({
             R: R / 255,
             G: G / 255,
@@ -120,25 +117,23 @@ export default class LinearColorEntity extends IEntity {
     }
 
     static getLinearColorRGBGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.regex(/rgb\s*\(\s*/),
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/rgb\s*\(\s*/),
             this.getLinearColorRGBListGrammar(),
-            Parsimmon.regex(/\s*\)/)
-        )
-            .map(([_0, linearColor, _2]) => linearColor)
+            Parsernostrum.reg(/\s*\)/)
+        ).map(([_0, linearColor, _2]) => linearColor)
     }
 
     static getLinearColorRGBAGrammar() {
-        return Parsimmon.seq(
-            Parsimmon.regex(/rgba\s*\(\s*/),
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/rgba\s*\(\s*/),
             this.getLinearColorRGBListGrammar(),
-            Parsimmon.regex(/\s*\)/)
-        )
-            .map(([_0, linearColor, _2]) => linearColor)
+            Parsernostrum.reg(/\s*\)/)
+        ).map(([_0, linearColor, _2]) => linearColor)
     }
 
     static getLinearColorFromAnyFormat() {
-        return Parsimmon.alt(
+        return Parsernostrum.alt(
             this.getLinearColorFromHexGrammar(),
             this.getLinearColorRGBAGrammar(),
             this.getLinearColorRGBGrammar(),
@@ -325,6 +320,11 @@ export default class LinearColorEntity extends IEntity {
         this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff)
         this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff)
         this.#updateHSV()
+    }
+
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.R.value, this.G.value, this.B.value, this.A.value]
     }
 
     toString() {

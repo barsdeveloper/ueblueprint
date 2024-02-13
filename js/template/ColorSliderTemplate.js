@@ -7,7 +7,7 @@ export default class ColorSliderTemplate extends IDraggableControlTemplate {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @return {[Number, Number]}
+     * @return {Coordinates}
      */
     adjustLocation(x, y) {
         x = Utility.clamp(x, 0, this.movementSpaceSize[0])
