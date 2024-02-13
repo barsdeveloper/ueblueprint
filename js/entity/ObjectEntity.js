@@ -50,266 +50,107 @@ export default class ObjectEntity extends IEntity {
     }
     static attributes = {
         ...super.attributes,
-        Class: {
-            type: ObjectReferenceEntity,
+        AdvancedPinDisplay: { type: IdentifierEntity },
+        Archetype: { type: ObjectReferenceEntity },
+        AxisKey: { type: SymbolEntity },
+        bAlt: { type: Boolean },
+        bCanRenameNode: { type: Boolean },
+        bColorCommentBubble: { type: Boolean },
+        bCommand: { type: Boolean },
+        bCommentBubblePinned: { type: Boolean },
+        bCommentBubbleVisible_InDetailsPanel: { type: Boolean },
+        bCommentBubbleVisible: { type: Boolean },
+        bConsumeInput: { type: Boolean },
+        bControl: { type: Boolean },
+        bExecuteWhenPaused: { type: Boolean },
+        bExposeToLibrary: { type: Boolean },
+        bInternalEvent: { type: Boolean },
+        bIsCaseSensitive: { type: Boolean },
+        bIsConstFunc: { type: Boolean },
+        bIsPureFunc: { type: Boolean },
+        BlueprintElementInstance: { type: ObjectReferenceEntity },
+        BlueprintElementType: { type: ObjectReferenceEntity },
+        bOverrideFunction: { type: Boolean },
+        bOverrideParentBinding: { type: Boolean },
+        bShift: { type: Boolean },
+        Class: { type: ObjectReferenceEntity },
+        CommentColor: { type: LinearColorEntity },
+        ComponentPropertyName: { type: String },
+        CustomFunctionName: { type: String },
+        CustomProperties: { type: [new Union(PinEntity, UnknownPinEntity)] },
+        DelegateOwnerClass: { type: ObjectReferenceEntity },
+        DelegatePropertyName: { type: String },
+        DelegateReference: { type: VariableReferenceEntity },
+        EnabledState: { type: IdentifierEntity },
+        Enum: { type: ObjectReferenceEntity },
+        EnumEntries: {
+            type: [String],
+            inlined: true,
         },
-        Name: {
-            type: String,
+        ErrorMsg: { type: String },
+        ErrorType: { type: IntegerEntity },
+        EventReference: { type: FunctionReferenceEntity },
+        ExportPath: { type: ObjectReferenceEntity },
+        FunctionReference: { type: FunctionReferenceEntity },
+        G: { type: Number },
+        Graph: { type: ObjectReferenceEntity },
+        HiGenGridSize: { type: SymbolEntity },
+        InputAxisKey: { type: SymbolEntity },
+        InputKey: { type: SymbolEntity },
+        InputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
         },
-        Archetype: {
-            type: ObjectReferenceEntity,
+        MacroGraphReference: { type: MacroGraphReferenceEntity },
+        MaterialExpression: { type: ObjectReferenceEntity },
+        MaterialExpressionComment: { type: ObjectReferenceEntity },
+        MaterialExpressionEditorX: { type: new MirroredEntity(IntegerEntity) },
+        MaterialExpressionEditorY: { type: new MirroredEntity(IntegerEntity) },
+        MaterialFunction: { type: ObjectReferenceEntity },
+        MoveMode: { type: SymbolEntity },
+        Name: { type: String },
+        Node: { type: new MirroredEntity(ObjectReferenceEntity) },
+        NodeComment: { type: String },
+        NodeGuid: { type: GuidEntity },
+        NodeHeight: { type: IntegerEntity },
+        NodePosX: { type: IntegerEntity },
+        NodePosY: { type: IntegerEntity },
+        NodeTitle: { type: String },
+        NodeTitleColor: { type: LinearColorEntity },
+        NodeWidth: { type: IntegerEntity },
+        NumAdditionalInputs: { type: Number },
+        ObjectRef: { type: ObjectReferenceEntity },
+        Operation: { type: SymbolEntity },
+        OutputPins: {
+            type: [ObjectReferenceEntity],
+            inlined: true,
         },
-        ExportPath: {
-            type: ObjectReferenceEntity,
-        },
-        ObjectRef: {
-            type: ObjectReferenceEntity,
-        },
-        BlueprintElementType: {
-            type: ObjectReferenceEntity
-        },
-        BlueprintElementInstance: {
-            type: ObjectReferenceEntity
+        PCGNode: { type: ObjectReferenceEntity },
+        PinNames: {
+            type: [String],
+            inlined: true,
         },
         PinTags: {
             type: [null],
             inlined: true,
         },
-        PinNames: {
-            type: [String],
-            inlined: true,
-        },
-        AxisKey: {
-            type: SymbolEntity,
-        },
-        InputAxisKey: {
-            type: SymbolEntity,
-        },
-        NumAdditionalInputs: {
-            type: Number,
-        },
-        bIsPureFunc: {
-            type: Boolean,
-        },
-        bIsConstFunc: {
-            type: Boolean,
-        },
-        bIsCaseSensitive: {
-            type: Boolean,
-        },
-        VariableReference: {
-            type: VariableReferenceEntity,
-        },
-        SelfContextInfo: {
-            type: SymbolEntity,
-        },
-        DelegatePropertyName: {
-            type: String,
-        },
-        DelegateOwnerClass: {
-            type: ObjectReferenceEntity,
-        },
-        ComponentPropertyName: {
-            type: String,
-        },
-        EventReference: {
-            type: FunctionReferenceEntity,
-        },
-        FunctionReference: {
-            type: FunctionReferenceEntity,
-        },
-        CustomFunctionName: {
-            type: String,
-        },
-        TargetType: {
-            type: ObjectReferenceEntity,
-        },
-        MacroGraphReference: {
-            type: MacroGraphReferenceEntity,
-        },
-        Enum: {
-            type: ObjectReferenceEntity,
-        },
-        EnumEntries: {
-            type: [String],
-            inlined: true,
-        },
-        InputKey: {
-            type: SymbolEntity,
-        },
-        MaterialFunction: {
-            type: ObjectReferenceEntity,
-        },
-        bOverrideFunction: {
-            type: Boolean,
-        },
-        bInternalEvent: {
-            type: Boolean,
-        },
-        bConsumeInput: {
-            type: Boolean,
-        },
-        bExecuteWhenPaused: {
-            type: Boolean,
-        },
-        bOverrideParentBinding: {
-            type: Boolean,
-        },
-        bControl: {
-            type: Boolean,
-        },
-        bAlt: {
-            type: Boolean,
-        },
-        bShift: {
-            type: Boolean,
-        },
-        bCommand: {
-            type: Boolean,
-        },
-        CommentColor: {
-            type: LinearColorEntity,
-        },
-        bCommentBubbleVisible_InDetailsPanel: {
-            type: Boolean,
-        },
-        bColorCommentBubble: {
-            type: Boolean,
-        },
-        ProxyFactoryFunctionName: {
-            type: String,
-        },
-        ProxyFactoryClass: {
-            type: ObjectReferenceEntity,
-        },
-        ProxyClass: {
-            type: ObjectReferenceEntity,
-        },
-        R: {
-            type: Number,
-        },
-        G: {
-            type: Number,
-        },
-        StructType: {
-            type: ObjectReferenceEntity,
-        },
-        MaterialExpression: {
-            type: ObjectReferenceEntity,
-        },
-        MaterialExpressionComment: {
-            type: ObjectReferenceEntity,
-        },
-        MoveMode: {
-            type: SymbolEntity,
-        },
-        TimelineName: {
-            type: String,
-        },
-        TimelineGuid: {
-            type: GuidEntity,
-        },
-        SizeX: {
-            type: new MirroredEntity(IntegerEntity),
-        },
-        SizeY: {
-            type: new MirroredEntity(IntegerEntity),
-        },
-        Text: {
-            type: new MirroredEntity(String),
-        },
-        MaterialExpressionEditorX: {
-            type: new MirroredEntity(IntegerEntity),
-        },
-        MaterialExpressionEditorY: {
-            type: new MirroredEntity(IntegerEntity),
-        },
-        NodeTitle: {
-            type: String,
-        },
-        NodeTitleColor: {
-            type: LinearColorEntity,
-        },
-        PositionX: {
-            type: new MirroredEntity(IntegerEntity),
-        },
-        PositionY: {
-            type: new MirroredEntity(IntegerEntity),
-        },
-        Node: {
-            type: new MirroredEntity(ObjectReferenceEntity),
-        },
-        PCGNode: {
-            type: ObjectReferenceEntity,
-        },
-        HiGenGridSize: {
-            type: SymbolEntity,
-        },
-        Operation: {
-            type: SymbolEntity,
-        },
-        NodePosX: {
-            type: IntegerEntity,
-        },
-        NodePosY: {
-            type: IntegerEntity,
-        },
-        NodeWidth: {
-            type: IntegerEntity,
-        },
-        NodeHeight: {
-            type: IntegerEntity,
-        },
-        Graph: {
-            type: ObjectReferenceEntity,
-        },
-        SubgraphInstance: {
-            type: String,
-        },
-        SettingsInterface: {
-            type: ObjectReferenceEntity,
-        },
-        InputPins: {
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        },
-        OutputPins: {
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        },
-        bExposeToLibrary: {
-            type: Boolean,
-        },
-        bCanRenameNode: {
-            type: Boolean,
-        },
-        bCommentBubblePinned: {
-            type: Boolean,
-        },
-        bCommentBubbleVisible: {
-            type: Boolean,
-        },
-        NodeComment: {
-            type: String,
-        },
-        AdvancedPinDisplay: {
-            type: IdentifierEntity,
-        },
-        EnabledState: {
-            type: IdentifierEntity,
-        },
-        NodeGuid: {
-            type: GuidEntity,
-        },
-        ErrorType: {
-            type: IntegerEntity,
-        },
-        ErrorMsg: {
-            type: String,
-        },
-        CustomProperties: {
-            type: [new Union(PinEntity, UnknownPinEntity)],
-        }
+        PositionX: { type: new MirroredEntity(IntegerEntity) },
+        PositionY: { type: new MirroredEntity(IntegerEntity) },
+        ProxyClass: { type: ObjectReferenceEntity },
+        ProxyFactoryClass: { type: ObjectReferenceEntity },
+        ProxyFactoryFunctionName: { type: String },
+        R: { type: Number },
+        SelfContextInfo: { type: SymbolEntity },
+        SettingsInterface: { type: ObjectReferenceEntity },
+        SizeX: { type: new MirroredEntity(IntegerEntity) },
+        SizeY: { type: new MirroredEntity(IntegerEntity) },
+        StructType: { type: ObjectReferenceEntity },
+        SubgraphInstance: { type: String },
+        TargetType: { type: ObjectReferenceEntity },
+        Text: { type: new MirroredEntity(String) },
+        TimelineGuid: { type: GuidEntity },
+        TimelineName: { type: String },
+        VariableReference: { type: VariableReferenceEntity },
     }
     static {
         this.cleanupAttributes(this.attributes)
@@ -445,92 +286,93 @@ export default class ObjectEntity extends IEntity {
             }
         }
         super(values, suppressWarns)
-        /** @type {ObjectReferenceEntity} */ this.Class
-        /** @type {String} */ this.Name
-        /** @type {ObjectReferenceEntity} */ this.Archetype
-        /** @type {ObjectReferenceEntity} */ this.ExportPath
-        /** @type {ObjectReferenceEntity} */ this.ObjectRef
-        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType
-        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance
-        /** @type {null[]} */ this.PinTags
-        /** @type {String[]} */ this.PinNames
-        /** @type {SymbolEntity} */ this.AxisKey
-        /** @type {SymbolEntity} */ this.InputAxisKey
-        /** @type {Number} */ this.NumAdditionalInputs
-        /** @type {Boolean} */ this.bIsPureFunc
-        /** @type {Boolean} */ this.bIsConstFunc
+        /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
+        /** @type {Boolean} */ this.bAlt
+        /** @type {Boolean} */ this.bCanRenameNode
+        /** @type {Boolean} */ this.bColorCommentBubble
+        /** @type {Boolean} */ this.bCommand
+        /** @type {Boolean} */ this.bCommentBubblePinned
+        /** @type {Boolean} */ this.bCommentBubbleVisible
+        /** @type {Boolean} */ this.bCommentBubbleVisible_InDetailsPanel
+        /** @type {Boolean} */ this.bConsumeInput
+        /** @type {Boolean} */ this.bControl
+        /** @type {Boolean} */ this.bExecuteWhenPaused
+        /** @type {Boolean} */ this.bExposeToLibrary
+        /** @type {Boolean} */ this.bInternalEvent
         /** @type {Boolean} */ this.bIsCaseSensitive
-        /** @type {VariableReferenceEntity} */ this.VariableReference
-        /** @type {SymbolEntity} */ this.SelfContextInfo
-        /** @type {String} */ this.DelegatePropertyName
-        /** @type {ObjectReferenceEntity} */ this.DelegateOwnerClass
+        /** @type {Boolean} */ this.bIsConstFunc
+        /** @type {Boolean} */ this.bIsPureFunc
+        /** @type {Boolean} */ this.bOverrideFunction
+        /** @type {Boolean} */ this.bOverrideParentBinding
+        /** @type {Boolean} */ this.bShift
         /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName
         /** @type {FunctionReferenceEntity} */ this.EventReference
         /** @type {FunctionReferenceEntity} */ this.FunctionReference
-        /** @type {String} */ this.CustomFunctionName
-        /** @type {ObjectReferenceEntity} */ this.TargetType
-        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference
-        /** @type {ObjectReferenceEntity} */ this.Enum
-        /** @type {String[]} */ this.EnumEntries
-        /** @type {SymbolEntity} */ this.InputKey
-        /** @type {ObjectReferenceEntity} */ this.MaterialFunction
-        /** @type {Boolean} */ this.bOverrideFunction
-        /** @type {Boolean} */ this.bInternalEvent
-        /** @type {Boolean} */ this.bConsumeInput
-        /** @type {Boolean} */ this.bExecuteWhenPaused
-        /** @type {Boolean} */ this.bOverrideParentBinding
-        /** @type {Boolean} */ this.bControl
-        /** @type {Boolean} */ this.bAlt
-        /** @type {Boolean} */ this.bShift
-        /** @type {Boolean} */ this.bCommand
-        /** @type {LinearColorEntity} */ this.CommentColor
-        /** @type {Boolean} */ this.bCommentBubbleVisible_InDetailsPanel
-        /** @type {Boolean} */ this.bColorCommentBubble
-        /** @type {String} */ this.ProxyFactoryFunctionName
-        /** @type {ObjectReferenceEntity} */ this.ProxyFactoryClass
-        /** @type {ObjectReferenceEntity} */ this.ProxyClass
-        /** @type {Number} */ this.R
-        /** @type {Number} */ this.G
-        /** @type {ObjectReferenceEntity} */ this.StructType
-        /** @type {ObjectReferenceEntity} */ this.MaterialExpression
-        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment
-        /** @type {SymbolEntity} */ this.MoveMode
-        /** @type {String} */ this.TimelineName
+        /** @type {GuidEntity} */ this.NodeGuid
         /** @type {GuidEntity} */ this.TimelineGuid
-        /** @type {MirroredEntity} */ this.SizeX
-        /** @type {MirroredEntity} */ this.SizeY
-        /** @type {MirroredEntity} */ this.Text
-        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX
-        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY
-        /** @type {String} */ this.NodeTitle
-        /** @type {LinearColorEntity} */ this.NodeTitleColor
-        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionX
-        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionY
-        /** @type {MirroredEntity<ObjectReferenceEntity>} */ this.Node
-        /** @type {ObjectReferenceEntity} */ this.PCGNode
-        /** @type {SymbolEntity} */ this.HiGenGridSize
-        /** @type {String} */ this.Operation
+        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay
+        /** @type {IdentifierEntity} */ this.EnabledState
+        /** @type {IntegerEntity} */ this.ErrorType
+        /** @type {IntegerEntity} */ this.NodeHeight
         /** @type {IntegerEntity} */ this.NodePosX
         /** @type {IntegerEntity} */ this.NodePosY
         /** @type {IntegerEntity} */ this.NodeWidth
-        /** @type {IntegerEntity} */ this.NodeHeight
-        /** @type {ObjectReferenceEntity} */ this.Graph
-        /** @type {String} */ this.SubgraphInstance
-        /** @type {ObjectReferenceEntity} */ this.SettingsInterface
+        /** @type {LinearColorEntity} */ this.CommentColor
+        /** @type {LinearColorEntity} */ this.NodeTitleColor
+        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX
+        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY
+        /** @type {MirroredEntity} */ this.SizeX
+        /** @type {MirroredEntity} */ this.SizeY
+        /** @type {MirroredEntity} */ this.Text
+        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionX
+        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionY
+        /** @type {MirroredEntity<ObjectReferenceEntity>} */ this.Node
+        /** @type {null[]} */ this.PinTags
+        /** @type {Number} */ this.G
+        /** @type {Number} */ this.NumAdditionalInputs
+        /** @type {Number} */ this.R
         /** @type {ObjectReferenceEntity[]} */ this.InputPins
         /** @type {ObjectReferenceEntity[]} */ this.OutputPins
-        /** @type {Boolean} */ this.bExposeToLibrary
-        /** @type {Boolean} */ this.bCanRenameNode
-        /** @type {Boolean} */ this.bCommentBubblePinned
-        /** @type {Boolean} */ this.bCommentBubbleVisible
-        /** @type {String} */ this.Text
-        /** @type {String} */ this.NodeComment
-        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay
-        /** @type {IdentifierEntity} */ this.EnabledState
-        /** @type {GuidEntity} */ this.NodeGuid
-        /** @type {IntegerEntity} */ this.ErrorType
+        /** @type {ObjectReferenceEntity} */ this.Archetype
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance
+        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType
+        /** @type {ObjectReferenceEntity} */ this.Class
+        /** @type {ObjectReferenceEntity} */ this.DelegateOwnerClass
+        /** @type {ObjectReferenceEntity} */ this.Enum
+        /** @type {ObjectReferenceEntity} */ this.ExportPath
+        /** @type {ObjectReferenceEntity} */ this.Graph
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpression
+        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment
+        /** @type {ObjectReferenceEntity} */ this.MaterialFunction
+        /** @type {ObjectReferenceEntity} */ this.ObjectRef
+        /** @type {ObjectReferenceEntity} */ this.PCGNode
+        /** @type {ObjectReferenceEntity} */ this.ProxyClass
+        /** @type {ObjectReferenceEntity} */ this.ProxyFactoryClass
+        /** @type {ObjectReferenceEntity} */ this.SettingsInterface
+        /** @type {ObjectReferenceEntity} */ this.StructType
+        /** @type {ObjectReferenceEntity} */ this.TargetType
+        /** @type {String[]} */ this.EnumEntries
+        /** @type {String[]} */ this.PinNames
+        /** @type {String} */ this.CustomFunctionName
+        /** @type {String} */ this.DelegatePropertyName
         /** @type {String} */ this.ErrorMsg
-        /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
+        /** @type {String} */ this.Name
+        /** @type {String} */ this.NodeComment
+        /** @type {String} */ this.NodeTitle
+        /** @type {String} */ this.Operation
+        /** @type {String} */ this.ProxyFactoryFunctionName
+        /** @type {String} */ this.SubgraphInstance
+        /** @type {String} */ this.Text
+        /** @type {String} */ this.TimelineName
+        /** @type {SymbolEntity} */ this.AxisKey
+        /** @type {SymbolEntity} */ this.HiGenGridSize
+        /** @type {SymbolEntity} */ this.InputAxisKey
+        /** @type {SymbolEntity} */ this.InputKey
+        /** @type {SymbolEntity} */ this.MoveMode
+        /** @type {SymbolEntity} */ this.SelfContextInfo
+        /** @type {VariableReferenceEntity} */ this.DelegateReference
+        /** @type {VariableReferenceEntity} */ this.VariableReference
 
         // Legacy nodes cleanup
         if (this["Pins"] instanceof Array) {
@@ -808,6 +650,8 @@ export default class ObjectEntity extends IEntity {
             case Configuration.paths.actorBoundEvent:
             case Configuration.paths.componentBoundEvent:
                 return `${Utility.formatStringName(this.DelegatePropertyName)} (${this.ComponentPropertyName ?? "Unknown"})`
+            case Configuration.paths.callDelegate:
+                return `Call ${this.DelegateReference?.MemberName ?? "None"}`
             case Configuration.paths.createDelegate:
                 return "Create Event"
             case Configuration.paths.customEvent:

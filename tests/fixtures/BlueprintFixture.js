@@ -31,19 +31,50 @@ export default class BlueprintFixture {
         }
     }
 
+    /** 
+     * @param {Locator<HTMLElement>} draggable
+     * @param {Coordinates} offset
+     */
+    async move(draggable, offset) {
+        const { x: x1, y: y1 } = await draggable.boundingBox()
+        await draggable.dragTo(this.blueprintLocator, {
+            sourcePosition: {
+                x: 1,
+                y: 1,
+            },
+            targetPosition: {
+                x: x1 + offset[0] + 1,
+                y: y1 + offset[1] + 1,
+            }
+        })
+        const { x: x2, y: y2 } = await draggable.boundingBox()
+        return {
+            before: [x1, y1],
+            after: [x2, y2],
+        }
+    }
+
     createServer() {
         return new Promise((resolve, reject) => {
-            const server = httpServer.createServer({
+            const webserver = httpServer.createServer({
                 root: "./",
                 cors: true,
-                logFn: (req, res, error) => error && console.error("Http server: " + error)
+                logFn: (req, res, error) => error && console.error(`Http server: ${error}`)
             })
-            process.on("SIGTERM", () => {
+            webserver.server.addListener("error", error => {
+                if (error.code === "EADDRINUSE") {
+                    console.log(`Port ${this.#port} is already in use, assuming server is already running`)
+                    resolve(webserver)
+                } else {
+                    resolve(null)
+                }
+            })
+            webserver.listen(this.#port, "127.0.0.1", () => resolve(webserver))
+            process.addListener("SIGTERM", () => {
                 console.log("SIGTERM signal received: closing HTTP server")
-                server.close()
+                webserver.close()
             })
-            server.listen(this.#port, "127.0.0.1", () => resolve(server))
-            BlueprintFixture.server = server
+            BlueprintFixture.server = webserver
         })
     }
 
@@ -53,11 +84,7 @@ export default class BlueprintFixture {
             await this.page.goto(url)
         } catch (e) {
             if (e.message.includes("ERR_CONNECTION_REFUSED")) {
-                try {
-                    await this.createServer()
-                } catch (e) {
-                    let a = 123
-                }
+                await this.createServer()
                 await this.page.goto(url)
             }
         }

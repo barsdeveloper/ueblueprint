@@ -52,15 +52,16 @@ export default class Configuration {
     static linkCurveWidth = 80 // px
     static linkMinWidth = 100 // px
     static nameRegexSpaceReplacement = new RegExp(
-        // Leading K2_ or K2Node_
+        // Leading K2_ or K2Node_ is removed
         "^K2(?:[Nn]ode)?_"
-        // End of a word (lower case followed by either upper case or number)
+        // End of a word (lower case followed by either upper case or number): "AlphaBravo" => "Alpha Bravo"
         + "|(?<=[a-z])(?=[A-Z0-9])"
-        // End of upper case work (upper case followed by either word or number)
+        // End of upper case word (upper case followed by either word or number)
         + "|(?<=[A-Z])"
         + /* Except "UVs" */ "(?<!U(?=Vs(?![a-z])))"
         + /* Except V2, V3 */ "(?<!V(?=[23](?![0-9])))"
         + /* Except T2d */ "(?<!T(?=2d(?![a-z])))"
+        + /* Except BT */ "(?<!BT)"
         + "(?=[A-Z][a-z]|[0-9])"
         // Number followed by a letter
         + "|(?<=[0-9])"
@@ -133,6 +134,7 @@ export default class Configuration {
         forLoopWithBreak: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForLoopWithBreak",
         functionEntry: "/Script/BlueprintGraph.K2Node_FunctionEntry",
         functionResult: "/Script/BlueprintGraph.K2Node_FunctionResult",
+        gameplayTag: "/Script/GameplayTags.GameplayTag",
         getInputAxisKeyValue: "/Script/BlueprintGraph.K2Node_GetInputAxisKeyValue",
         ifThenElse: "/Script/BlueprintGraph.K2Node_IfThenElse",
         inputAxisKeyEvent: "/Script/BlueprintGraph.K2Node_InputAxisKeyEvent",

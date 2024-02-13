@@ -348,7 +348,7 @@ export default class MaterialNodes extends NodeTests {
                         CustomProperties Pin (PinId=168889DC9D5D4F22B2F581DB425812EA,PinName="RGBA",Direction="EGPD_Output",PinType.PinCategory="mask",PinType.PinSubCategory="rgba",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
                     End Object
                 `,
-                color: Configuration.nodeColors.darkBlue,
+                color: Configuration.nodeColors.darkTurquoise,
                 icon: null,
                 pins: 12,
                 pinNames: [

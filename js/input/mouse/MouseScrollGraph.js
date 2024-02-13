@@ -11,7 +11,7 @@ export default class MouseScrollGraph extends IMouseClickDrag {
      * @param {Coordinates} movement
      */
     dragTo(location, movement) {
-        this.blueprint.scrollDelta(...movement)
+        this.blueprint.scrollDelta(-movement[0], -movement[1])
     }
 
     endDrag() {

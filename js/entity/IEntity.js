@@ -33,7 +33,7 @@ export default class IEntity extends Serializable {
         let attributes = Self.attributes
         if (values.attributes) {
             attributes = { ...Self.attributes }
-            Utility.mergeArrays(Object.keys(attributes), Object.keys(values.attributes))
+            Utility.mergeArrays(Object.keys(values.attributes), Object.keys(attributes))
                 .forEach(k => {
                     attributes[k] = {
                         ...IEntity.defaultAttribute,
@@ -57,6 +57,7 @@ export default class IEntity extends Serializable {
         }
         for (const attributeName of allAttributesNames) {
             if (attributeName == "attributes") {
+                // Ignore this special attribute describing all the attributes
                 continue
             }
             let value = values[attributeName]

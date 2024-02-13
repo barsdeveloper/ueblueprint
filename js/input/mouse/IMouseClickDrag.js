@@ -75,6 +75,7 @@ export default class IMouseClickDrag extends IPointing {
         this.lastLocation = Utility.snapToGrid(this.clickedPosition[0], this.clickedPosition[1], this.stepSize)
         this.startDrag(this.location)
         this.started = true
+        this.#mouseMoveHandler(e)
     }
 
     /** @param {MouseEvent} e  */

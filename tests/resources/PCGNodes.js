@@ -65,7 +65,6 @@ export default class PCGNodes extends NodeTests {
                     End Object
                 `,
                 size: [10, 9],
-                color: Configuration.nodeColors.darkBlue,
                 pins: 4,
                 pinNames: ["In", "Overrides", "Seed", "Out"],
                 delegate: false,

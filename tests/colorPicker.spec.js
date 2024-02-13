@@ -26,7 +26,9 @@ test.describe("Color picker", () => {
 
     /** @param {BlueprintFixture} blueprintPage */
     const getElements = blueprintPage => {
+        /** @type {Locator<PinElement>} */
         const tintPin = blueprintPage.blueprintLocator.locator('ueb-pin:has-text("Tint")')
+        /** @type {Locator<WindowElement>} */
         const window = blueprintPage.blueprintLocator.locator("ueb-window")
         const input = tintPin.locator(".ueb-pin-input")
         return { tintPin, window, input }
@@ -34,41 +36,50 @@ test.describe("Color picker", () => {
 
     test("Can cancel the operation", async ({ blueprintPage }) => {
         const { tintPin, window, input } = getElements(blueprintPage)
-        expect(window).toBeHidden()
+        await expect(window).toBeHidden()
         const color = await input.evaluate(input => input.dataset.linearColor)
         expect(color).not.toBeUndefined()
         await input.click()
-        expect(window).toBeVisible()
+        await expect(window).toBeVisible()
         await window.locator(".ueb-color-picker-wheel").click({ position: { x: 150, y: 60 } })
         await window.getByText(Configuration.windowCancelButtonText).click()
-        expect(window).toBeHidden()
+        await expect(window).toBeHidden()
         const newColor = await input.evaluate(input => input.dataset.linearColor)
         expect(newColor).toBe(color)
     })
 
     test("Can close the window", async ({ blueprintPage }) => {
         const { tintPin, window, input } = getElements(blueprintPage)
-        expect(window).toBeHidden()
+        await expect(window).toBeHidden()
         const color = await input.evaluate(input => input.dataset.linearColor)
         await input.click()
-        expect(window).toBeVisible()
+        await expect(window).toBeVisible()
         await window.locator(".ueb-color-picker-wheel").click({ position: { x: 150, y: 60 } })
         await window.locator(".ueb-window-close").click()
-        expect(window).toBeHidden()
+        await expect(window).toBeHidden()
         const newColor = await input.evaluate(input => input.dataset.linearColor)
         expect(newColor).toBe(color)
     })
 
     test("Ok changes the color", async ({ blueprintPage }) => {
         const { tintPin, window, input } = getElements(blueprintPage)
-        expect(window).toBeHidden()
+        await expect(window).toBeHidden()
         const color = await input.evaluate(input => input.dataset.linearColor)
         await input.click()
-        expect(window).toBeVisible()
+        await expect(window).toBeVisible()
         await window.locator(".ueb-color-picker-wheel").click({ position: { x: 150, y: 60 } })
         await window.getByText(Configuration.windowApplyButtonText).click()
-        expect(window).toBeHidden()
+        await expect(window).toBeHidden()
         const newColor = await input.evaluate(input => input.dataset.linearColor)
         expect(newColor).not.toBe(color)
+    })
+
+    test("Move window", async ({ page, blueprintPage }) => {
+        const { tintPin, window, input } = getElements(blueprintPage)
+        await expect(window).toBeHidden()
+        await input.click()
+        const movement = await blueprintPage.move(window.locator(".ueb-window-top"), [-15, 22])
+        expect(movement.after[0]).toBe(movement.before[0] - 15)
+        expect(movement.after[1]).toBe(movement.before[1] + 22)
     })
 })
