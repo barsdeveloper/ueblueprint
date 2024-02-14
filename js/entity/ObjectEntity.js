@@ -97,10 +97,12 @@ export default class ObjectEntity extends IEntity {
         HiGenGridSize: { type: SymbolEntity },
         InputAxisKey: { type: SymbolEntity },
         InputKey: { type: SymbolEntity },
+        InputName: { type: String },
         InputPins: {
             type: [ObjectReferenceEntity],
             inlined: true,
         },
+        InputType: { type: SymbolEntity },
         MacroGraphReference: { type: MacroGraphReferenceEntity },
         MaterialExpression: { type: ObjectReferenceEntity },
         MaterialExpressionComment: { type: ObjectReferenceEntity },
@@ -203,7 +205,6 @@ export default class ObjectEntity extends IEntity {
             .map(object =>
                 values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
             )
-
     }
 
     static createGrammar() {
@@ -357,6 +358,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {String} */ this.CustomFunctionName
         /** @type {String} */ this.DelegatePropertyName
         /** @type {String} */ this.ErrorMsg
+        /** @type {String} */ this.InputName
         /** @type {String} */ this.Name
         /** @type {String} */ this.NodeComment
         /** @type {String} */ this.NodeTitle
@@ -369,6 +371,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {SymbolEntity} */ this.HiGenGridSize
         /** @type {SymbolEntity} */ this.InputAxisKey
         /** @type {SymbolEntity} */ this.InputKey
+        /** @type {SymbolEntity} */ this.InputType
         /** @type {SymbolEntity} */ this.MoveMode
         /** @type {SymbolEntity} */ this.SelfContextInfo
         /** @type {VariableReferenceEntity} */ this.DelegateReference
@@ -585,7 +588,24 @@ export default class ObjectEntity extends IEntity {
     }
 
     isMaterial() {
+
         return this.getClass() === Configuration.paths.materialGraphNode
+        // return [
+        //     Configuration.paths.materialExpressionConstant,
+        //     Configuration.paths.materialExpressionConstant2Vector,
+        //     Configuration.paths.materialExpressionConstant3Vector,
+        //     Configuration.paths.materialExpressionConstant4Vector,
+        //     Configuration.paths.materialExpressionLogarithm,
+        //     Configuration.paths.materialExpressionLogarithm10,
+        //     Configuration.paths.materialExpressionLogarithm2,
+        //     Configuration.paths.materialExpressionMaterialFunctionCall,
+        //     Configuration.paths.materialExpressionSquareRoot,
+        //     Configuration.paths.materialExpressionTextureCoordinate,
+        //     Configuration.paths.materialExpressionTextureSample,
+        //     Configuration.paths.materialGraphNode,
+        //     Configuration.paths.materialGraphNodeComment,
+        // ]
+        //     .includes(this.getClass())
     }
 
     /** @return {ObjectEntity} */
@@ -712,6 +732,11 @@ export default class ObjectEntity extends IEntity {
                     return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
                 }
                 break
+            case Configuration.paths.materialExpressionFunctionInput:
+                const materialObject = this.getMaterialSubobject()
+                const inputName = materialObject?.InputName ?? "In"
+                const inputType = materialObject?.InputType?.value.match(/^.+?_(\w+)$/)?.[1] ?? "Vector3"
+                return `Input ${inputName} (${inputType})`
             case Configuration.paths.materialExpressionLogarithm:
                 return "Ln"
             case Configuration.paths.materialExpressionLogarithm10:
@@ -956,6 +981,8 @@ export default class ObjectEntity extends IEntity {
                 return Configuration.nodeColors.darkBlue
             case Configuration.paths.materialExpressionMaterialFunctionCall:
                 return Configuration.nodeColors.blue
+            case Configuration.paths.materialExpressionFunctionInput:
+                return Configuration.nodeColors.red
             case Configuration.paths.materialExpressionTextureSample:
                 return Configuration.nodeColors.darkTurquoise
             case Configuration.paths.materialExpressionTextureCoordinate:

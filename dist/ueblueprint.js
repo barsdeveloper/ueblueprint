@@ -180,6 +180,7 @@ class Configuration {
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
         materialExpressionConstant4Vector: "/Script/Engine.MaterialExpressionConstant4Vector",
+        materialExpressionFunctionInput: "/Script/Engine.MaterialExpressionFunctionInput",
         materialExpressionLogarithm: "/Script/InterchangeImport.MaterialExpressionLogarithm",
         materialExpressionLogarithm10: "/Script/Engine.MaterialExpressionLogarithm10",
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
@@ -282,11 +283,12 @@ class Configuration {
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class ? `_${objectEntity.Class}` : "")
-        + `_${objectEntity.Name}`
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class ? `_${objectEntity.Class.type}` : "")
+        + "_" + objectEntity.Name
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
+        this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "")
+        + "_" + objectReferenceEntity.path
     static subObjectAttributeNameFromName = name => this.subObjectAttributeNamePrefix + "_" + name
     static switchTargetPattern = /\/Script\/[\w\.\/\:]+K2Node_Switch([A-Z]\w+)+/
     static trackingMouseEventName = {
@@ -2573,17 +2575,6 @@ class Grammar {
 
     static colorValue = Parsernostrum.numberByte
     static word = Parsernostrum.reg(Grammar.Regex.Word)
-    static pathQuotes = Parsernostrum.regArray(new RegExp(
-        `'"(` + Grammar.Regex.InsideString.source + `)"'`
-        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-        + `|"(` + Grammar.Regex.InsideString.source + `)"`
-    )).map(([_0, a, b, c]) => a ?? b ?? c)
-    static path = Parsernostrum.regArray(new RegExp(
-        `'"(` + Grammar.Regex.InsideString.source + `)"'`
-        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-        + `|"(` + Grammar.Regex.InsideString.source + `)"`
-        + `|(` + Grammar.Regex.Path.source + `)`
-    )).map(([_0, a, b, c, d]) => a ?? b ?? c ?? d)
     static symbol = Parsernostrum.reg(Grammar.Regex.Symbol)
     static symbolQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'), 1)
     static attributeName = Parsernostrum.reg(Grammar.Regex.DotSeparatedSymbols)
@@ -2592,7 +2583,6 @@ class Grammar {
     static commaSeparation = Parsernostrum.reg(/\s*,\s*(?!\))/)
     static commaOrSpaceSeparation = Parsernostrum.reg(/\s*,\s*(?!\))|\s+/)
     static equalSeparation = Parsernostrum.reg(/\s*=\s*/)
-    static typeReference = Parsernostrum.alt(Parsernostrum.reg(Grammar.Regex.Path), this.symbol)
     static hexColorChannel = Parsernostrum.reg(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
 
     /*   ---   Factory   ---   */
@@ -2832,22 +2822,44 @@ class ObjectReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes);
     }
-    static noneReferenceGrammar = Parsernostrum.str("None").map(() => this.createNoneInstance())
-    static fullReferenceGrammar = Parsernostrum.seq(
-        Grammar.typeReference,
-        Parsernostrum.whitespaceInlineOpt,
-        Grammar.pathQuotes
-    ).map(([type, _2, path]) => new this({ type, path }))
-    static typeReferenceGrammar = Grammar.typeReference.map(v => new this({ type: v, path: "" }))
-    static pathReferenceGrammar = Grammar.path.map(path => new this({ type: "", path: path }))
+    static quoted = Parsernostrum.regArray(new RegExp(
+        `'"(` + Grammar.Regex.InsideString.source + `)"'`
+        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+        + `|"(` + Grammar.Regex.InsideString.source + `)"`
+    )).map(([_0, a, b, c]) => a ?? b ?? c)
+    static path = this.quoted.getParser().parser.regexp.source + "|" + Grammar.Regex.Path.source
+    static typeReference = Parsernostrum.reg(
+        new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
+    )
+    static fullReferenceGrammar = Parsernostrum.regArray(
+        new RegExp(
+            "(" + this.typeReference.getParser().regexp.source + ")"
+            + /\s*/.source
+            + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
+        )
+    ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
+    static fullReferenceSerializedGrammar = Parsernostrum.regArray(
+        new RegExp(
+            "(" + this.typeReference.getParser().regexp.source + ")"
+            + /\s*/.source
+            + `'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+        )
+    ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
+    static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "" }))
     static grammar = this.createGrammar()
 
     static createGrammar() {
         return Parsernostrum.alt(
-            this.noneReferenceGrammar,
+            Parsernostrum.seq(
+                Parsernostrum.str('"'),
+                Parsernostrum.alt(
+                    this.fullReferenceSerializedGrammar,
+                    this.typeReferenceGrammar,
+                ),
+                Parsernostrum.str('"'),
+            ).map(([_0, objectReference, _1]) => objectReference),
             this.fullReferenceGrammar,
             this.typeReferenceGrammar,
-            this.pathReferenceGrammar,
         )
     }
 
@@ -2885,7 +2897,7 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     toString() {
-        return `${this.type}'"${this.path}"'`
+        return this.type + (this.path ? `'${this.path}'` : "")
     }
 }
 
@@ -4900,10 +4912,12 @@ class ObjectEntity extends IEntity {
         HiGenGridSize: { type: SymbolEntity },
         InputAxisKey: { type: SymbolEntity },
         InputKey: { type: SymbolEntity },
+        InputName: { type: String },
         InputPins: {
             type: [ObjectReferenceEntity],
             inlined: true,
         },
+        InputType: { type: SymbolEntity },
         MacroGraphReference: { type: MacroGraphReferenceEntity },
         MaterialExpression: { type: ObjectReferenceEntity },
         MaterialExpressionComment: { type: ObjectReferenceEntity },
@@ -5006,7 +5020,6 @@ class ObjectEntity extends IEntity {
             .map(object =>
                 values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
             )
-
     }
 
     static createGrammar() {
@@ -5160,6 +5173,7 @@ class ObjectEntity extends IEntity {
         /** @type {String} */ this.CustomFunctionName;
         /** @type {String} */ this.DelegatePropertyName;
         /** @type {String} */ this.ErrorMsg;
+        /** @type {String} */ this.InputName;
         /** @type {String} */ this.Name;
         /** @type {String} */ this.NodeComment;
         /** @type {String} */ this.NodeTitle;
@@ -5172,6 +5186,7 @@ class ObjectEntity extends IEntity {
         /** @type {SymbolEntity} */ this.HiGenGridSize;
         /** @type {SymbolEntity} */ this.InputAxisKey;
         /** @type {SymbolEntity} */ this.InputKey;
+        /** @type {SymbolEntity} */ this.InputType;
         /** @type {SymbolEntity} */ this.MoveMode;
         /** @type {SymbolEntity} */ this.SelfContextInfo;
         /** @type {VariableReferenceEntity} */ this.DelegateReference;
@@ -5388,7 +5403,24 @@ class ObjectEntity extends IEntity {
     }
 
     isMaterial() {
+
         return this.getClass() === Configuration.paths.materialGraphNode
+        // return [
+        //     Configuration.paths.materialExpressionConstant,
+        //     Configuration.paths.materialExpressionConstant2Vector,
+        //     Configuration.paths.materialExpressionConstant3Vector,
+        //     Configuration.paths.materialExpressionConstant4Vector,
+        //     Configuration.paths.materialExpressionLogarithm,
+        //     Configuration.paths.materialExpressionLogarithm10,
+        //     Configuration.paths.materialExpressionLogarithm2,
+        //     Configuration.paths.materialExpressionMaterialFunctionCall,
+        //     Configuration.paths.materialExpressionSquareRoot,
+        //     Configuration.paths.materialExpressionTextureCoordinate,
+        //     Configuration.paths.materialExpressionTextureSample,
+        //     Configuration.paths.materialGraphNode,
+        //     Configuration.paths.materialGraphNodeComment,
+        // ]
+        //     .includes(this.getClass())
     }
 
     /** @return {ObjectEntity} */
@@ -5515,6 +5547,11 @@ class ObjectEntity extends IEntity {
                     return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
                 }
                 break
+            case Configuration.paths.materialExpressionFunctionInput:
+                const materialObject = this.getMaterialSubobject();
+                const inputName = materialObject?.InputName ?? "In";
+                const inputType = materialObject?.InputType?.value.match(/^.+?_(\w+)$/)?.[1] ?? "Vector3";
+                return `Input ${inputName} (${inputType})`
             case Configuration.paths.materialExpressionLogarithm:
                 return "Ln"
             case Configuration.paths.materialExpressionLogarithm10:
@@ -5759,6 +5796,8 @@ class ObjectEntity extends IEntity {
                 return Configuration.nodeColors.darkBlue
             case Configuration.paths.materialExpressionMaterialFunctionCall:
                 return Configuration.nodeColors.blue
+            case Configuration.paths.materialExpressionFunctionInput:
+                return Configuration.nodeColors.red
             case Configuration.paths.materialExpressionTextureSample:
                 return Configuration.nodeColors.darkTurquoise
             case Configuration.paths.materialExpressionTextureCoordinate:
@@ -12798,7 +12837,7 @@ Grammar.unknownValue =
         // Remember to keep the order, otherwise parsing might fail
         Grammar.boolean,
         GuidEntity.createGrammar(),
-        ObjectReferenceEntity.noneReferenceGrammar,
+        Parsernostrum.str("None").map(() => new ObjectReferenceEntity({ type: "None" })),
         Grammar.null,
         Grammar.number,
         Grammar.string,

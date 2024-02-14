@@ -156,6 +156,7 @@ export default class Configuration {
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
         materialExpressionConstant4Vector: "/Script/Engine.MaterialExpressionConstant4Vector",
+        materialExpressionFunctionInput: "/Script/Engine.MaterialExpressionFunctionInput",
         materialExpressionLogarithm: "/Script/InterchangeImport.MaterialExpressionLogarithm",
         materialExpressionLogarithm10: "/Script/Engine.MaterialExpressionLogarithm10",
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
@@ -258,11 +259,12 @@ export default class Configuration {
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class ? `_${objectEntity.Class}` : "")
-        + `_${objectEntity.Name}`
+        this.subObjectAttributeNamePrefix + (!nameOnly && objectEntity.Class ? `_${objectEntity.Class.type}` : "")
+        + "_" + objectEntity.Name
     /** @param {ObjectReferenceEntity} objectReferenceEntity */
     static subObjectAttributeNameFromReference = (objectReferenceEntity, nameOnly = false) =>
-        this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "") + "_" + objectReferenceEntity.path
+        this.subObjectAttributeNamePrefix + (!nameOnly ? "_" + objectReferenceEntity.type : "")
+        + "_" + objectReferenceEntity.path
     static subObjectAttributeNameFromName = name => this.subObjectAttributeNamePrefix + "_" + name
     static switchTargetPattern = /\/Script\/[\w\.\/\:]+K2Node_Switch([A-Z]\w+)+/
     static trackingMouseEventName = {

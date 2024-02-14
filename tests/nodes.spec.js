@@ -25,6 +25,9 @@ function getFirstWordOrder(words) {
     return new RegExp(/\s*/.source + words.join(/[^\n]+\n\s*/.source) + /\s*/.source)
 }
 
+
+test.describe.configure({ mode: "parallel" })
+
 for (const nodeTest of nodeTests) {
     test.describe(nodeTest.name, () => {
 

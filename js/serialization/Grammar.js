@@ -53,17 +53,6 @@ export default class Grammar {
 
     static colorValue = Parsernostrum.numberByte
     static word = Parsernostrum.reg(Grammar.Regex.Word)
-    static pathQuotes = Parsernostrum.regArray(new RegExp(
-        `'"(` + Grammar.Regex.InsideString.source + `)"'`
-        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-        + `|"(` + Grammar.Regex.InsideString.source + `)"`
-    )).map(([_0, a, b, c]) => a ?? b ?? c)
-    static path = Parsernostrum.regArray(new RegExp(
-        `'"(` + Grammar.Regex.InsideString.source + `)"'`
-        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-        + `|"(` + Grammar.Regex.InsideString.source + `)"`
-        + `|(` + Grammar.Regex.Path.source + `)`
-    )).map(([_0, a, b, c, d]) => a ?? b ?? c ?? d)
     static symbol = Parsernostrum.reg(Grammar.Regex.Symbol)
     static symbolQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'), 1)
     static attributeName = Parsernostrum.reg(Grammar.Regex.DotSeparatedSymbols)
@@ -72,7 +61,6 @@ export default class Grammar {
     static commaSeparation = Parsernostrum.reg(/\s*,\s*(?!\))/)
     static commaOrSpaceSeparation = Parsernostrum.reg(/\s*,\s*(?!\))|\s+/)
     static equalSeparation = Parsernostrum.reg(/\s*=\s*/)
-    static typeReference = Parsernostrum.alt(Parsernostrum.reg(Grammar.Regex.Path), this.symbol)
     static hexColorChannel = Parsernostrum.reg(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
 
     /*   ---   Factory   ---   */

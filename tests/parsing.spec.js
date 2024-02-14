@@ -204,17 +204,48 @@ test.describe("Serializer", () => {
         expect(reference).toBeInstanceOf(ObjectReferenceEntity)
         expect(reference).toMatchObject({ type: "EdGraphPin", path: "K2Node_DynamicCast_2126.EdGraphPin_3990988" })
 
-        reference = serializer.read(`/Script/Engine.EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N"'`)
+        reference = serializer.read(
+            `"/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'"`
+        )
         expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-        expect(reference).toMatchObject({ type: "/Script/Engine.EdGraph", path: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N" })
+        expect(reference).toMatchObject({
+            type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
+            path: "MaterialExpressionMaterialFunctionCall_0",
+        })
 
-        reference = serializer.read(`Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`)
+        reference = serializer.read(
+            `/Script/Engine.EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N"'`
+        )
         expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-        expect(reference).toMatchObject({ type: "Function", path: "/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element" })
+        expect(reference).toMatchObject({
+            type: "/Script/Engine.EdGraph",
+            path: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
+        })
+
+        reference = serializer.read(
+            `EdGraphPin'"K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045"'`
+        )
+        expect(reference).toBeInstanceOf(ObjectReferenceEntity)
+        expect(reference).toMatchObject({
+            type: "EdGraphPin",
+            path: "K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045",
+        })
+
+        reference = serializer.read(
+            `Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`
+        )
+        expect(reference).toBeInstanceOf(ObjectReferenceEntity)
+        expect(reference).toMatchObject({
+            type: "Function",
+            path: "/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element",
+        })
 
         reference = serializer.read(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`)
         expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-        expect(reference).toMatchObject({ type: "EdGraph", path: "/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch" })
+        expect(reference).toMatchObject({
+            type: "EdGraph",
+            path: "/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch",
+        })
 
         reference = serializer.read(`/Script/Engine.EdGraph'"+-Weird/2,Macro"'`)
         expect(reference).toBeInstanceOf(ObjectReferenceEntity)
@@ -223,6 +254,24 @@ test.describe("Serializer", () => {
         reference = serializer.read(`/Script/BlueprintGraph.K2Node_VariableGet`)
         expect(reference).toBeInstanceOf(ObjectReferenceEntity)
         expect(reference).toMatchObject({ type: "/Script/BlueprintGraph.K2Node_VariableGet", path: "" })
+
+        reference = serializer.read(
+            `/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'`
+        )
+        expect(reference).toBeInstanceOf(ObjectReferenceEntity)
+        expect(reference).toMatchObject({
+            type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
+            path: "MaterialExpressionMaterialFunctionCall_0",
+        })
+
+        reference = serializer.read(
+            `/Script/Engine.MaterialExpressionMaterialFunctionCall'/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0'`
+        )
+        expect(reference).toBeInstanceOf(ObjectReferenceEntity)
+        expect(reference).toMatchObject({
+            type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
+            path: "/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0",
+        })
     })
 
     test("String", () => {

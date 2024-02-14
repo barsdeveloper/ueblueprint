@@ -45,7 +45,7 @@ Grammar.unknownValue =
         // Remember to keep the order, otherwise parsing might fail
         Grammar.boolean,
         GuidEntity.createGrammar(),
-        ObjectReferenceEntity.noneReferenceGrammar,
+        Parsernostrum.str("None").map(() => new ObjectReferenceEntity({ type: "None" })),
         Grammar.null,
         Grammar.number,
         Grammar.string,

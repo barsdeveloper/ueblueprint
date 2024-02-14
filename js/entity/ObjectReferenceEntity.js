@@ -18,22 +18,44 @@ export default class ObjectReferenceEntity extends IEntity {
     static {
         this.cleanupAttributes(this.attributes)
     }
-    static noneReferenceGrammar = Parsernostrum.str("None").map(() => this.createNoneInstance())
-    static fullReferenceGrammar = Parsernostrum.seq(
-        Grammar.typeReference,
-        Parsernostrum.whitespaceInlineOpt,
-        Grammar.pathQuotes
-    ).map(([type, _2, path]) => new this({ type, path }))
-    static typeReferenceGrammar = Grammar.typeReference.map(v => new this({ type: v, path: "" }))
-    static pathReferenceGrammar = Grammar.path.map(path => new this({ type: "", path: path }))
+    static quoted = Parsernostrum.regArray(new RegExp(
+        `'"(` + Grammar.Regex.InsideString.source + `)"'`
+        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+        + `|"(` + Grammar.Regex.InsideString.source + `)"`
+    )).map(([_0, a, b, c]) => a ?? b ?? c)
+    static path = this.quoted.getParser().parser.regexp.source + "|" + Grammar.Regex.Path.source
+    static typeReference = Parsernostrum.reg(
+        new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
+    )
+    static fullReferenceGrammar = Parsernostrum.regArray(
+        new RegExp(
+            "(" + this.typeReference.getParser().regexp.source + ")"
+            + /\s*/.source
+            + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
+        )
+    ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
+    static fullReferenceSerializedGrammar = Parsernostrum.regArray(
+        new RegExp(
+            "(" + this.typeReference.getParser().regexp.source + ")"
+            + /\s*/.source
+            + `'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+        )
+    ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
+    static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "" }))
     static grammar = this.createGrammar()
 
     static createGrammar() {
         return Parsernostrum.alt(
-            this.noneReferenceGrammar,
+            Parsernostrum.seq(
+                Parsernostrum.str('"'),
+                Parsernostrum.alt(
+                    this.fullReferenceSerializedGrammar,
+                    this.typeReferenceGrammar,
+                ),
+                Parsernostrum.str('"'),
+            ).map(([_0, objectReference, _1]) => objectReference),
             this.fullReferenceGrammar,
             this.typeReferenceGrammar,
-            this.pathReferenceGrammar,
         )
     }
 
@@ -71,6 +93,6 @@ export default class ObjectReferenceEntity extends IEntity {
     }
 
     toString() {
-        return `${this.type}'"${this.path}"'`
+        return this.type + (this.path ? `'${this.path}'` : "")
     }
 }
