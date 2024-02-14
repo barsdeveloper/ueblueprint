@@ -33,4 +33,9 @@ export default class VectorEntity extends IEntity {
         /** @type {Number} */ this.Y
         /** @type {Number} */ this.Z
     }
+
+    /** @returns {[Number, Number, Number]} */
+    toArray() {
+        return [this.X, this.Y, this.Z]
+    }
 }

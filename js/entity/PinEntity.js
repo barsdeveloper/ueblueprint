@@ -24,7 +24,7 @@ import Utility from "../Utility.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import VectorEntity from "./VectorEntity.js"
 
-/** @template {AnyValue} T */
+/** @template {TerminalAttribute} T */
 export default class PinEntity extends IEntity {
 
     static #typeEntityMap = {

@@ -80,7 +80,9 @@ export default class Blueprint extends IElement {
     nodes = []
     /** @type {LinkElement[]}" */
     links = []
-    /** @type {Number[]} */
+    /** @type {Map<String, NodeElement>} */
+    nodesNames = new Map()
+    /** @type {Coordinates} */
     mousePosition = [0, 0]
     waitingExpandUpdate = false
 

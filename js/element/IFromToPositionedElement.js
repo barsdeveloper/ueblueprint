@@ -35,7 +35,7 @@ export default class IFromToPositionedElement extends IElement {
         this.toY = 0
     }
 
-    /** @param {Number[]} param0 */
+    /** @param {Coordinates} param0 */
     setBothLocations([x, y]) {
         this.fromX = x
         this.fromY = y

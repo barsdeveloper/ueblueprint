@@ -174,7 +174,7 @@ export default class LinkElement extends IFromToPositionedElement {
         this.destination = null
     }
 
-    /** @param {Number[]?} location */
+    /** @param {Coordinates} location */
     setSourceLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this
@@ -190,7 +190,7 @@ export default class LinkElement extends IFromToPositionedElement {
         this.fromY = y
     }
 
-    /** @param {Number[]?} location */
+    /** @param {Coordinates} location */
     setDestinationLocation(location = null, canPostpone = true) {
         if (location == null) {
             const self = this

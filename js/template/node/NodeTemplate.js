@@ -55,7 +55,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
-        this.element.classList.add(.../** @type {NodeTemplateConstructor} */(this.constructor).nodeStyleClasses)
+        this.element.classList.add(.../** @type {typeof NodeTemplate} */(this.constructor).nodeStyleClasses)
         this.element.style.setProperty("--ueb-node-color", this.getColor().cssText)
         this.pinInserter = this.element.entity.additionalPinInserter()
         if (this.pinInserter) {

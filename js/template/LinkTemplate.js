@@ -18,7 +18,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
      * y'(p[0]) = m => -a / p[0]^2 = m => a = -m * p[0]^2. Now, in order to determine q we can use the starting
      * function: p[1] = a / p[0] + q => q = p[1] - a / p[0]
      * @param {Number} m slope
-     * @param {Number[]} p reference point
+     * @param {Coordinates} p reference point
      */
     static decreasingValue(m, p) {
         const a = -m * p[0] ** 2
@@ -59,7 +59,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
 
     #uniqueId = `ueb-id-${Math.floor(Math.random() * 1E12)}`
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     #createKnot = location => {
         const knotEntity = new KnotEntity({}, this.element.source.entity)
         const knot = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
@@ -79,6 +79,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
     }
 
     createInputObjects() {
+        /** @type {HTMLElement} */
         const linkArea = this.element.querySelector(".ueb-link-area")
         return [
             ...super.createInputObjects(),
@@ -86,7 +87,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
                 linkArea,
                 this.blueprint,
                 undefined,
-                /** @param {[Number, Number]} location */
+                /** @param {Coordinates} location */
                 location => {
                     location[0] += Configuration.knotOffset[0]
                     location[1] += Configuration.knotOffset[1]

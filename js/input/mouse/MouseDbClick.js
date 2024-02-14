@@ -1,12 +1,19 @@
 import IPointing from "./IPointing.js"
 
 /**
+ * @typedef {import("./IPointing.js").Options & {
+ *     consumeEvent?: Boolean,
+ *     strictTarget?: Boolean,
+* }} Options
+*/
+
+/**
  * @template {HTMLElement} T
  * @extends {IPointing<T>}
  */
 export default class MouseDbClick extends IPointing {
 
-    /** @param {Number[]} location */
+    /** @param {Coordinates} location */
     static ignoreDbClick = location => { }
 
     /** @param {MouseEvent} e */
@@ -16,8 +23,7 @@ export default class MouseDbClick extends IPointing {
                 e.stopImmediatePropagation() // Captured, don't call anyone else
             }
             this.clickedPosition = this.setLocationFromEvent(e)
-            this.blueprint.mousePosition[0] = this.clickedPosition[0]
-            this.blueprint.mousePosition[1] = this.clickedPosition[1]
+            this.blueprint.mousePosition = [...this.clickedPosition]
             this.dbclicked(this.clickedPosition)
         }
     }
@@ -30,8 +36,13 @@ export default class MouseDbClick extends IPointing {
         this.#onDbClick = value
     }
 
-    clickedPosition = [0, 0]
+    clickedPosition = /** @type {Coordinates} */([0, 0])
 
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
     constructor(target, blueprint, options = {}, onDbClick = MouseDbClick.ignoreDbClick) {
         options.consumeEvent ??= true
         options.strictTarget ??= false
@@ -49,6 +60,7 @@ export default class MouseDbClick extends IPointing {
     }
 
     /* Subclasses will override the following method */
+    /** @param {Coordinates} location */
     dbclicked(location) {
         this.onDbClick(location)
     }

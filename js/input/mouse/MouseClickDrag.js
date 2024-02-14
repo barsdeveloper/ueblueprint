@@ -1,5 +1,14 @@
 import MouseMoveDraggable from "./MouseMoveDraggable.js"
 
+/**
+ * @typedef {import("./MouseMoveDraggable.js").Options & {
+ *     onClicked?: () => void,
+ *     onStartDrag?: () => void,
+ *     onDrag?: (location: Coordinates, movement: Coordinates) => void,
+ *     onEndDrag?: () => void,
+* }} Options
+*/
+
 export default class MouseClickDrag extends MouseMoveDraggable {
 
     #onClicked
@@ -10,7 +19,7 @@ export default class MouseClickDrag extends MouseMoveDraggable {
     /**
      * @param {HTMLElement} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         super(target, blueprint, options)
@@ -28,7 +37,7 @@ export default class MouseClickDrag extends MouseMoveDraggable {
         }
     }
 
-    /** @param {[Number, Number]} location */
+    /** @param {Coordinates} location */
     clicked(location) {
         super.clicked(location)
         this.#onClicked?.()
@@ -39,6 +48,10 @@ export default class MouseClickDrag extends MouseMoveDraggable {
         this.#onStartDrag?.()
     }
 
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
     dragAction(location, movement) {
         this.#onDrag?.(location, movement)
     }

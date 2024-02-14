@@ -1,7 +1,6 @@
 import OrderedIndexArray from "./OrderedIndexArray.js"
 
 /**
- * @typedef {import("../element/NodeElement.js").default} NodeElement
  * @typedef {typeof import("../Blueprint.js").default.nodeBoundariesSupplier} BoundariesFunction
  * @typedef {typeof import("../Blueprint.js").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{
@@ -15,7 +14,7 @@ import OrderedIndexArray from "./OrderedIndexArray.js"
 export default class FastSelectionModel {
 
     /**
-     * @param {Number[]} initialPosition
+     * @param {Coordinates} initialPosition
      * @param {NodeElement[]} rectangles
      * @param {BoundariesFunction} boundariesFunc
      * @param {SelectionFunction} selectFunc

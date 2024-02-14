@@ -1,5 +1,4 @@
 /**
- * @typedef {import("../element/NodeElement.js").default} NodeElement
  * @typedef {typeof import("../Blueprint.js").default.nodeBoundariesSupplier} BoundariesFunction
  * @typedef {typeof import("../Blueprint.js").default.nodeSelectToggleFunction} SelectionFunction
  * @typedef {{
@@ -14,7 +13,7 @@
 export default class SimpleSelectionModel {
 
     /**
-     * @param {Number[]} initialPosition
+     * @param {Coordinates} initialPosition
      * @param {NodeElement[]} rectangles
      * @param {BoundariesFunction} boundariesFunc
      * @param {SelectionFunction} selectToggleFunction

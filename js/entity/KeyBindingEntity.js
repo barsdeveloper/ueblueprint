@@ -1,7 +1,7 @@
 import Grammar from "../serialization/Grammar.js"
 import IdentifierEntity from "./IdentifierEntity.js"
 import IEntity from "./IEntity.js"
-import Parsimmon from "parsimmon"
+import Parsernostrum from "parsernostrum"
 
 export default class KeyBindingEntity extends IEntity {
 
@@ -32,7 +32,7 @@ export default class KeyBindingEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Parsimmon.alt(
+        return Parsernostrum.alt(
             IdentifierEntity.grammar.map(identifier => new this({
                 Key: identifier
             })),

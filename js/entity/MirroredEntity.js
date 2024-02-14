@@ -1,10 +1,8 @@
+/** @template {Attribute} T */
 export default class MirroredEntity {
 
     static attributes = {
         type: {
-            ignored: true,
-        },
-        key: {
             ignored: true,
         },
         getter: {
@@ -13,12 +11,11 @@ export default class MirroredEntity {
     }
 
     /**
-     * @param {EntityConstructor} type
-     * @param {String} key
+     * @param {ConstructorType<T>} type
+     * @param {() => T} getter
      */
-    constructor(type, key, getter = () => null) {
+    constructor(type, getter = null) {
         this.type = type
-        this.key = key
         this.getter = getter
     }
 
@@ -26,8 +23,9 @@ export default class MirroredEntity {
         return this.getter()
     }
 
+    /** @returns {AttributeConstructor<Attribute>} */
     getTargetType() {
-        const result = this.type.attributes[this.key].type
+        const result = this.type
         if (result instanceof MirroredEntity) {
             return result.getTargetType()
         }

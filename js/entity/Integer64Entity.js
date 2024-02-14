@@ -1,5 +1,5 @@
-import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
+import Parsernostrum from "parsernostrum"
 
 export default class Integer64Entity extends IEntity {
 
@@ -16,7 +16,7 @@ export default class Integer64Entity extends IEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        return Grammar.bigInt.map(v => new this(v))
+        return Parsernostrum.numberBigInteger.map(v => new this(v))
     }
 
     /** @param {BigInt | Number} value */

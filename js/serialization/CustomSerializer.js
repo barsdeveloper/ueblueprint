@@ -1,7 +1,7 @@
 import Serializer from "./Serializer.js"
 
 /**
- * @template {SimpleValueType<SimpleValue>} T
+ * @template {AttributeConstructor<Attribute>} T
  * @extends {Serializer<T>}
  */
 export default class CustomSerializer extends Serializer {

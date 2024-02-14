@@ -1,5 +1,13 @@
 import Configuration from "../Configuration.js"
 
+/**
+ * @typedef {{
+ *     consumeEvent?: Boolean,
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
 /** @template {Element} T */
 export default class IInput {
 
@@ -15,7 +23,7 @@ export default class IInput {
         return this.#blueprint
     }
 
-    consumeEvent = true
+    consumeEvent
 
     /** @type {Object} */
     options
@@ -27,7 +35,7 @@ export default class IInput {
     /**
      * @param {T} target
      * @param {Blueprint} blueprint
-     * @param {Object} options
+     * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
         options.consumeEvent ??= false

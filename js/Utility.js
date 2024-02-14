@@ -121,33 +121,28 @@ export default class Utility {
     }
 
     /**
-     * @param {Number[]} viewportLocation
+     * @param {Coordinates} viewportLocation
      * @param {HTMLElement} movementElement
      */
     static convertLocation(viewportLocation, movementElement, ignoreScale = false) {
         const scaleCorrection = ignoreScale ? 1 : 1 / Utility.getScale(movementElement)
         const bounding = movementElement.getBoundingClientRect()
-        let location = [
+        const location = /** @type {Coordinates} */([
             Math.round((viewportLocation[0] - bounding.x) * scaleCorrection),
             Math.round((viewportLocation[1] - bounding.y) * scaleCorrection)
-        ]
+        ])
         return location
     }
 
     /**
-     * @param {IEntity} entity
+     * @param {Attribute} entity
      * @param {String} key
      * @returns {Boolean}
      */
-    static isSerialized(
-        entity,
-        key,
-        attribute = /** @type {EntityConstructor} */(entity.constructor).attributes?.[key]
-    ) {
-        if (attribute?.constructor === Object) {
-            return /** @type {AttributeInformation} */(attribute).serialized
-        }
-        return false
+    static isSerialized(entity, key) {
+        // @ts-expect-error
+        const attribute = (entity.attributes ?? entity.constructor?.attributes)?.[key]
+        return attribute ? attribute.serialized : false
     }
 
     /** @param {String[]} keys */
@@ -191,8 +186,8 @@ export default class Utility {
     }
 
     /**
-     * @param {AnyValue} a
-     * @param {AnyValue} b
+     * @param {Attribute} a
+     * @param {Attribute} b
      */
     static equals(a, b) {
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
@@ -216,24 +211,23 @@ export default class Utility {
     }
 
     /**
-     * @template {AnyValue} T
+     * @template {Attribute | AttributeTypeDescription} T
      * @param {T} value
-     * @returns {SimpleValueType<T>}
+     * @returns {AttributeConstructor<T>}
      */
     static getType(value) {
         if (value === null) {
             return null
         }
         if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
-            // @ts-expect-error
             return /** @type {AttributeInformation} */(value).type
         }
-        return /** @type {SimpleValueType<any>} */(value?.constructor)
+        return /** @type {AttributeConstructor<any>} */(value?.constructor)
     }
 
     /**
-     * @template {SimpleValue} V
-     * @template {SimpleValueType<V>} C
+     * @template {Attribute} V
+     * @template {AttributeConstructor<V>} C
      * @param {C} type
      * @returns {value is InstanceType<C>}
      */
@@ -244,8 +238,8 @@ export default class Utility {
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
     }
 
-    /** @param {AnyValue | Object} value */
-    static sanitize(value, targetType = /** @type {SimpleValueType<typeof value>} */(value?.constructor)) {
+    /** @param {Attribute} value */
+    static sanitize(value, targetType = /** @type {AttributeTypeDescription } */(value?.constructor)) {
         if (targetType instanceof Array) {
             targetType = targetType[0]
         }
@@ -271,7 +265,7 @@ export default class Utility {
                 : new /** @type {EntityConstructor} */(targetType)(value)
         }
         if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = /** @type {AnyValue} */(value.valueOf()) // Get the relative primitive value
+            value = /** @type {TerminalAttribute} */(value.valueOf()) // Get the relative primitive value
         }
         return value
     }
@@ -280,7 +274,7 @@ export default class Utility {
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static snapToGrid(x, y, gridSize) {
         if (gridSize === 1) {
@@ -397,7 +391,7 @@ export default class Utility {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static getPolarCoordinates(x, y, positiveTheta = false) {
         let theta = Math.atan2(y, x)
@@ -413,7 +407,7 @@ export default class Utility {
     /**
      * @param {Number} r
      * @param {Number} theta
-     * @returns {[Number, Number]}
+     * @returns {Coordinates}
      */
     static getCartesianCoordinates(r, theta) {
         return [
