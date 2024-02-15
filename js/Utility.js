@@ -140,9 +140,9 @@ export default class Utility {
      * @returns {Boolean}
      */
     static isSerialized(entity, key) {
-        // @ts-expect-error
-        const attribute = (entity.attributes ?? entity.constructor?.attributes)?.[key]
-        return attribute ? attribute.serialized : false
+        return entity["attributes"]?.[key]?.serialized
+            ?? entity.constructor["attributes"]?.[key]?.serialized
+            ?? false
     }
 
     /** @param {String[]} keys */
@@ -164,23 +164,22 @@ export default class Utility {
 
     /**
      * @param {String[]} keys
-     * @param {Boolean} create
      * @returns {Boolean}
      */
-    static objectSet(target, keys, value, create = false, defaultDictType = Object) {
+    static objectSet(target, keys, value, defaultDictType = Object) {
         if (!(keys instanceof Array)) {
             throw new TypeError("Expected keys to be an array.")
         }
         if (keys.length == 1) {
-            if (create || keys[0] in target || target[keys[0]] === undefined) {
+            if (keys[0] in target || target[keys[0]] === undefined) {
                 target[keys[0]] = value
                 return true
             }
         } else if (keys.length > 0) {
-            if (create && !(target[keys[0]] instanceof Object)) {
+            if (!(target[keys[0]] instanceof Object)) {
                 target[keys[0]] = new defaultDictType()
             }
-            return Utility.objectSet(target[keys[0]], keys.slice(1), value, create, defaultDictType)
+            return Utility.objectSet(target[keys[0]], keys.slice(1), value, defaultDictType)
         }
         return false
     }

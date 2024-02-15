@@ -1,5 +1,7 @@
-import Utility from "../js/Utility.js"
 import { expect, test } from "./fixtures/test.js"
+import Utility from "../js/Utility.js"
+
+test.describe.configure({ mode: "parallel" })
 
 test("clamp method test", () => {
     expect(Utility.clamp(5, 1, 11)).toBe(5)

@@ -112,6 +112,7 @@ export default class Configuration {
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        eAttachmentRule: "/Script/Engine.EAttachmentRule",
         edGraph: "/Script/Engine.EdGraph",
         edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
@@ -278,6 +279,11 @@ export default class Configuration {
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static CommonEnums = {
+        [this.paths.eAttachmentRule]: [
+            "KeepRelative",
+            "KeepWorld",
+            "SnapToTarget",
+        ],
         [this.paths.eMaterialSamplerType]: [
             "Color",
             "Grayscale",

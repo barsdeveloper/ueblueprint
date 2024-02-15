@@ -136,6 +136,7 @@ class Configuration {
         doN: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
         doOnce: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
+        eAttachmentRule: "/Script/Engine.EAttachmentRule",
         edGraph: "/Script/Engine.EdGraph",
         edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
@@ -302,6 +303,11 @@ class Configuration {
     static windowCancelButtonText = "Cancel"
     static windowCloseEventName = "ueb-window-close"
     static CommonEnums = {
+        [this.paths.eAttachmentRule]: [
+            "KeepRelative",
+            "KeepWorld",
+            "SnapToTarget",
+        ],
         [this.paths.eMaterialSamplerType]: [
             "Color",
             "Grayscale",
@@ -1946,9 +1952,9 @@ class Utility {
      * @returns {Boolean}
      */
     static isSerialized(entity, key) {
-        // @ts-expect-error
-        const attribute = (entity.attributes ?? entity.constructor?.attributes)?.[key];
-        return attribute ? attribute.serialized : false
+        return entity["attributes"]?.[key]?.serialized
+            ?? entity.constructor["attributes"]?.[key]?.serialized
+            ?? false
     }
 
     /** @param {String[]} keys */
@@ -1970,23 +1976,22 @@ class Utility {
 
     /**
      * @param {String[]} keys
-     * @param {Boolean} create
      * @returns {Boolean}
      */
-    static objectSet(target, keys, value, create = false, defaultDictType = Object) {
+    static objectSet(target, keys, value, defaultDictType = Object) {
         if (!(keys instanceof Array)) {
             throw new TypeError("Expected keys to be an array.")
         }
         if (keys.length == 1) {
-            if (create || keys[0] in target || target[keys[0]] === undefined) {
+            if (keys[0] in target || target[keys[0]] === undefined) {
                 target[keys[0]] = value;
                 return true
             }
         } else if (keys.length > 0) {
-            if (create && !(target[keys[0]] instanceof Object)) {
+            if (!(target[keys[0]] instanceof Object)) {
                 target[keys[0]] = new defaultDictType();
             }
-            return Utility.objectSet(target[keys[0]], keys.slice(1), value, create, defaultDictType)
+            return Utility.objectSet(target[keys[0]], keys.slice(1), value, defaultDictType)
         }
         return false
     }
@@ -2702,7 +2707,7 @@ class Grammar {
                 .map(attributeValue =>
                     values => {
                         handleObjectSet(values, attributeKey, attributeValue);
-                        Utility.objectSet(values, attributeKey, attributeValue, true);
+                        Utility.objectSet(values, attributeKey, attributeValue);
                     }
                 )
         })
@@ -2814,9 +2819,11 @@ class ObjectReferenceEntity extends IEntity {
         ...super.attributes,
         type: {
             default: "",
+            serialized: true,
         },
         path: {
             default: "",
+            serialized: true,
         },
     }
     static {
@@ -2858,8 +2865,8 @@ class ObjectReferenceEntity extends IEntity {
                 ),
                 Parsernostrum.str('"'),
             ).map(([_0, objectReference, _1]) => objectReference),
-            this.fullReferenceGrammar,
-            this.typeReferenceGrammar,
+            this.fullReferenceGrammar.map(v => (Utility.objectSet(v, ["attributes", "type", "serialized"], false), v)),
+            this.typeReferenceGrammar.map(v => (Utility.objectSet(v, ["attributes", "type", "serialized"], false), v)),
         )
     }
 
@@ -5003,12 +5010,12 @@ class ObjectEntity extends IEntity {
                     .map(currentValue =>
                         values => {
                             (values[symbol] ??= [])[index] = currentValue;
-                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true);
+                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted);
                             if (!this.attributes[symbol]?.inlined) {
                                 if (!values.attributes) {
                                     IEntity.defineAttributes(values, {});
                                 }
-                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true);
+                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true);
                             }
                         }
                     )
@@ -5031,7 +5038,7 @@ class ObjectEntity extends IEntity {
                     this.customPropertyGrammar,
                     Grammar.createAttributeGrammar(this),
                     Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
                     ),
                     this.inlinedArrayEntryGrammar,
                     this.createSubObjectGrammar()
@@ -13005,11 +13012,18 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ObjectReferenceEntity,
         new CustomSerializer(
-            objectReference => (objectReference.type ?? "") + (
-                objectReference.path
-                    ? objectReference.type ? `'"${objectReference.path}"'` : `"${objectReference.path}"`
-                    : ""
-            ),
+            objectReference => {
+                let type = objectReference.type ?? "";
+                let name = objectReference.path ?? "";
+                if (type && name && Utility.isSerialized(objectReference, "path")) {
+                    name = `'${name}'`;
+                }
+                let result = type + name;
+                if (Utility.isSerialized(objectReference, "type")) {
+                    result = `"${result}"`;
+                }
+                return result
+            },
             ObjectReferenceEntity
         )
     );

@@ -188,12 +188,12 @@ export default class ObjectEntity extends IEntity {
                     .map(currentValue =>
                         values => {
                             (values[symbol] ??= [])[index] = currentValue
-                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted, true)
+                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted)
                             if (!this.attributes[symbol]?.inlined) {
                                 if (!values.attributes) {
                                     IEntity.defineAttributes(values, {})
                                 }
-                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true, true)
+                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true)
                             }
                         }
                     )
@@ -216,7 +216,7 @@ export default class ObjectEntity extends IEntity {
                     this.customPropertyGrammar,
                     Grammar.createAttributeGrammar(this),
                     Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true, true)
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
                     ),
                     this.inlinedArrayEntryGrammar,
                     this.createSubObjectGrammar()

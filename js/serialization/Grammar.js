@@ -180,7 +180,7 @@ export default class Grammar {
                 .map(attributeValue =>
                     values => {
                         handleObjectSet(values, attributeKey, attributeValue)
-                        Utility.objectSet(values, attributeKey, attributeValue, true)
+                        Utility.objectSet(values, attributeKey, attributeValue)
                     }
                 )
         })

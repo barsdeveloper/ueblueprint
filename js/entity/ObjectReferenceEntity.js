@@ -10,9 +10,11 @@ export default class ObjectReferenceEntity extends IEntity {
         ...super.attributes,
         type: {
             default: "",
+            serialized: true,
         },
         path: {
             default: "",
+            serialized: true,
         },
     }
     static {
@@ -54,8 +56,8 @@ export default class ObjectReferenceEntity extends IEntity {
                 ),
                 Parsernostrum.str('"'),
             ).map(([_0, objectReference, _1]) => objectReference),
-            this.fullReferenceGrammar,
-            this.typeReferenceGrammar,
+            this.fullReferenceGrammar.map(v => (Utility.objectSet(v, ["attributes", "type", "serialized"], false), v)),
+            this.typeReferenceGrammar.map(v => (Utility.objectSet(v, ["attributes", "type", "serialized"], false), v)),
         )
     }
 

@@ -1,5 +1,6 @@
 // @ts-nocheck
 
+import { test, expect } from "./fixtures/test.js"
 import Entity1 from "./resources/Entity1.js"
 import Entity2 from "./resources/Entity2.js"
 import entity2Value from "./resources/serializedEntity2.js"
@@ -15,8 +16,9 @@ import initializeSerializerFactory from "../js/serialization/initializeSerialize
 import ObjectSerializer from "../js/serialization/ObjectSerializer.js"
 import Serializer from "../js/serialization/Serializer.js"
 import SerializerFactory from "../js/serialization/SerializerFactory.js"
-import { test, expect } from "./fixtures/test.js"
 import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
+
+test.describe.configure({ mode: "parallel" })
 
 test("Entity2", () => {
     const entity = new Entity2()

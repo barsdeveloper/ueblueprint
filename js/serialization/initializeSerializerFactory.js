@@ -213,11 +213,18 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         ObjectReferenceEntity,
         new CustomSerializer(
-            objectReference => (objectReference.type ?? "") + (
-                objectReference.path
-                    ? objectReference.type ? `'"${objectReference.path}"'` : `"${objectReference.path}"`
-                    : ""
-            ),
+            objectReference => {
+                let type = objectReference.type ?? ""
+                let name = objectReference.path ?? ""
+                if (type && name && Utility.isSerialized(objectReference, "path")) {
+                    name = `'${name}'`
+                }
+                let result = type + name
+                if (Utility.isSerialized(objectReference, "type")) {
+                    result = `"${result}"`
+                }
+                return result
+            },
             ObjectReferenceEntity
         )
     )
