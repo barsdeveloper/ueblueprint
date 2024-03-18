@@ -1,19 +1,20 @@
+import AttributeInfo from "../../js/entity/AttributeInfo.js"
+import IEntity from "../../js/entity/IEntity.js"
 import Entity1 from "./Entity1.js"
 import Entity3 from "./Entity3.js"
-import IEntity from "../../js/entity/IEntity.js"
 
 export default class Entity4 extends IEntity {
 
     static attributes = {
-        first: {
+        first: new AttributeInfo({
             type: Entity3,
             default: new Entity3(),
             inlined: true,
-        },
-        second: {
+        }),
+        second: new AttributeInfo({
             default: [new Entity1({ a: 1, b: 2 }), new Entity1({ a: 11, b: 22 })],
             inlined: true,
-        },
+        }),
     }
 
     constructor() {
@@ -24,9 +25,5 @@ export default class Entity4 extends IEntity {
                 inlined: true,
             },
         })
-    }
-
-    static {
-        this.cleanupAttributes(this.attributes)
     }
 }

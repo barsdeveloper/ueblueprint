@@ -1,51 +1,49 @@
 import { css } from "lit"
-import ColorChannelEntity from "./ColorChannelEntity.js"
-import Grammar from "../serialization/Grammar.js"
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
 import Utility from "../Utility.js"
+import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
+import ColorChannelEntity from "./ColorChannelEntity.js"
+import IEntity from "./IEntity.js"
 
 export default class LinearColorEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        R: {
+        R: new AttributeInfo({
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),
             expected: true,
-        },
-        G: {
+        }),
+        G: new AttributeInfo({
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),
             expected: true,
-        },
-        B: {
+        }),
+        B: new AttributeInfo({
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),
             expected: true,
-        },
-        A: {
+        }),
+        A: new AttributeInfo({
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(1),
-        },
-        H: {
+        }),
+        H: new AttributeInfo({
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),
             ignored: true,
-        },
-        S: {
+        }),
+        S: new AttributeInfo({
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),
             ignored: true,
-        },
-        V: {
+        }),
+        V: new AttributeInfo({
             type: ColorChannelEntity,
             default: () => new ColorChannelEntity(),
             ignored: true,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
     }
     static grammar = this.createGrammar()
 

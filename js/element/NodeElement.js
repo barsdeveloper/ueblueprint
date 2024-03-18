@@ -1,18 +1,18 @@
-import CommentNodeTemplate from "../template/node/CommentNodeTemplate.js"
 import Configuration from "../Configuration.js"
-import EventNodeTemplate from "../template/node/EventNodeTemplate.js"
+import Utility from "../Utility.js"
 import IdentifierEntity from "../entity/IdentifierEntity.js"
-import ISelectableDraggableElement from "./ISelectableDraggableElement.js"
-import KnotNodeTemplate from "../template/node/KnotNodeTemplate.js"
-import NodeTemplate from "../template/node/NodeTemplate.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
-import Utility from "../Utility.js"
+import CommentNodeTemplate from "../template/node/CommentNodeTemplate.js"
+import EventNodeTemplate from "../template/node/EventNodeTemplate.js"
+import KnotNodeTemplate from "../template/node/KnotNodeTemplate.js"
+import NodeTemplate from "../template/node/NodeTemplate.js"
 import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTemplate.js"
 import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate.js"
+import ISelectableDraggableElement from "./ISelectableDraggableElement.js"
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
 export default class NodeElement extends ISelectableDraggableElement {
@@ -206,7 +206,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.nodeTitle = this.entity.getObjectName()
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString()
         this.enabledState = this.entity.EnabledState
-        this.nodeDisplayName = this.getNodeDisplayName()
+        this.nodeDisplayName = this.entity.nodeDisplayName()
         this.pureFunction = this.entity.bIsPureFunc
         this.dragLinkObjects = []
         super.setLocation(this.entity.getNodePosX(), this.entity.getNodePosY())
@@ -260,8 +260,8 @@ export default class NodeElement extends ISelectableDraggableElement {
         return this.entity.getObjectName()
     }
 
-    getNodeDisplayName() {
-        return this.entity.nodeDisplayName()
+    computeNodeDisplayName() {
+        this.nodeDisplayName = this.entity.nodeDisplayName()
     }
 
     /** @param {Number} value */

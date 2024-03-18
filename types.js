@@ -52,22 +52,14 @@
  *     ? MirroredEntity<R>
  *     : T extends AnyConstructor<infer R>
  *     ? R
+ *     : T extends abstract new (...args: any) => any
+ *     ? InstanceType<T>
  *     : any
  * } ConstructedType
  */
 /**
- * @typedef {{
- *     type?: AttributeTypeDescription,
- *     default?: Attribute | ValueSupplier,
- *     nullable?: Boolean,
- *     ignored?: Boolean,
- *     serialized?: Boolean,
- *     expected?: Boolean,
- *     inlined?: Boolean,
- *     quoted?: Boolean,
- *     predicate?: (value: Attribute) => Boolean,
- * }} AttributeInformation
- * @typedef {{ [key: String]: AttributeInformation }} AttributeDeclarations
+ * @typedef {import("./js/entity/AttributeInfo.js").default} AttributeInfo
+ * @typedef {{ [key: String]: AttributeInfo }} AttributeDeclarations
  */
 /**
  * @typedef {CustomEvent<{ value: Coordinates }>} UEBDragEvent

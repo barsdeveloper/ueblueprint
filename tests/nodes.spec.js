@@ -1,8 +1,9 @@
-import { test, expect } from "./fixtures/test.js"
 import Configuration from "./../js/Configuration.js"
+import { expect, test } from "./fixtures/test.js"
 import EventNodes from "./resources/EventNodes.js"
 import FlowControlNodes from "./resources/FlowControlNodes.js"
 import InputNodes from "./resources/InputNodes.js"
+import IssuesNodes1 from "./resources/IssuesNodes1.js"
 import LegacyNodes from "./resources/LegacyNodes.js"
 import MaterialNodes from "./resources/MaterialNodes.js"
 import OperationsNodes from "./resources/OperationsNodes.js"
@@ -17,7 +18,8 @@ const nodeTests = [
     ...MaterialNodes.get(),
     ...OperationsNodes.get(),
     ...OtherNodes.get(),
-    ...PCGNodes.get()
+    ...PCGNodes.get(),
+    ...IssuesNodes1.get(),
 ]
 
 /** @param {String[]} words */
@@ -63,7 +65,7 @@ for (const nodeTest of nodeTests) {
             test(
                 `${nodeTest.name}: Has title ${nodeTest.title}`,
                 async ({ blueprintPage }) => expect(
-                    await blueprintPage.node.evaluate(node => node.getNodeDisplayName())
+                    await blueprintPage.node.evaluate(node => node.nodeDisplayName)
                 ).toBe(nodeTest.title)
             )
         }

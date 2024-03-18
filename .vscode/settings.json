@@ -6,6 +6,9 @@
         120
     ],
     "typescript.tsserver.experimental.enableProjectDiagnostics": true,
-    "js/ts.implicitProjectConfig.target": "ES2022",
+    "js/ts.implicitProjectConfig.target": "ESNext",
     "typescript.format.semicolons": "remove",
+    "javascript.preferences.importModuleSpecifier": "relative",
+    "javascript.preferences.importModuleSpecifierEnding": "js",
+    "javascript.updateImportsOnFileMove.enabled": "always",
 }

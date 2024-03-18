@@ -1,17 +1,15 @@
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
+import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
 
 export default class IntegerEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        value: {
+        value: new AttributeInfo({
             default: 0,
             predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
     }
     static grammar = this.createGrammar()
 
@@ -19,7 +17,7 @@ export default class IntegerEntity extends IEntity {
         return Parsernostrum.numberInteger.map(v => new this(v))
     }
 
-    /** @param {Number | AttributeInformation} value */
+    /** @param {Number | AttributeInfo<IntegerEntity>} value */
     constructor(value = 0) {
         if (value === -0) {
             value = 0

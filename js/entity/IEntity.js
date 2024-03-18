@@ -1,10 +1,11 @@
-import ComputedType from "./ComputedType.js"
 import Configuration from "../Configuration.js"
-import MirroredEntity from "./MirroredEntity.js"
+import Utility from "../Utility.js"
 import Serializable from "../serialization/Serializable.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
+import AttributeInfo from "./AttributeInfo.js"
+import ComputedType from "./ComputedType.js"
+import MirroredEntity from "./MirroredEntity.js"
 import Union from "./Union.js"
-import Utility from "../Utility.js"
 
 /** @abstract */
 export default class IEntity extends Serializable {
@@ -13,17 +14,9 @@ export default class IEntity extends Serializable {
     static lookbehind = ""
     /** @type {AttributeDeclarations} */
     static attributes = {
-        lookbehind: {
+        lookbehind: new AttributeInfo({
             ignored: true,
-        }
-    }
-    static defaultAttribute = {
-        nullable: false,
-        ignored: false,
-        serialized: false, // Value is written and read as string
-        expected: false, // Must be there
-        inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
-        quoted: false, // Key is serialized with quotes
+        }),
     }
 
     constructor(values = {}, suppressWarns = false) {
@@ -31,23 +24,23 @@ export default class IEntity extends Serializable {
         /** @type {String} */ this.lookbehind
         const Self = /** @type {typeof IEntity} */(this.constructor)
         let attributes = Self.attributes
-        if (values.attributes) {
-            attributes = { ...Self.attributes }
-            Utility.mergeArrays(Object.keys(values.attributes), Object.keys(attributes))
-                .forEach(k => {
-                    attributes[k] = {
-                        ...IEntity.defaultAttribute,
-                        ...attributes[k],
-                        ...values.attributes[k],
-                    }
-                    if (!attributes[k].type) {
-                        attributes[k].type = values[k] instanceof Array
-                            ? [Utility.getType(values[k][0])]
-                            : Utility.getType(values[k])
-                    }
-                })
-            IEntity.defineAttributes(this, attributes)
-        }
+        // if (values.attributes) {
+        //     attributes = { ...Self.attributes }
+        //     Utility.mergeArrays(Object.keys(values.attributes), Object.keys(attributes))
+        //         .forEach(k => {
+        //             attributes[k] = {
+        //                 ...IEntity.defaultAttribute,
+        //                 ...attributes[k],
+        //                 ...values.attributes[k],
+        //             }
+        //             if (!attributes[k].type) {
+        //                 attributes[k].type = values[k] instanceof Array
+        //                     ? [Utility.getType(values[k][0])]
+        //                     : Utility.getType(values[k])
+        //             }
+        //         })
+        //     IEntity.defineAttributes(this, attributes)
+        // }
         /** @type {AttributeDeclarations?} */ this.attributes
         const valuesNames = Object.keys(values)
         const attributesNames = Object.keys(attributes)
@@ -129,10 +122,15 @@ export default class IEntity extends Serializable {
             if (value !== undefined) {
                 // Remember value can still be null
                 if (value?.constructor === String && attribute.serialized && defaultType !== String) {
-                    value = SerializerFactory
-                        // @ts-expect-error
-                        .getSerializer(defaultType)
-                        .read(/** @type {String} */(value))
+                    try {
+                        value = SerializerFactory
+                            // @ts-expect-error
+                            .getSerializer(defaultType)
+                            .read(/** @type {String} */(value))
+                    } catch (e) {
+                        assignAttribute(value)
+                        continue
+                    }
                 }
                 assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)))
                 continue // We have a value, need nothing more
@@ -166,31 +164,6 @@ export default class IEntity extends Serializable {
         }
     }
 
-    /** @param {AttributeDeclarations} attributes */
-    static cleanupAttributes(attributes, prefix = "") {
-        for (const attributeName in attributes) {
-            attributes[attributeName] = {
-                ...IEntity.defaultAttribute,
-                ...attributes[attributeName],
-            }
-            const attribute = /** @type {AttributeInformation} */(attributes[attributeName])
-            if (attribute.type === undefined && !(attribute.default instanceof Function)) {
-                attribute.type = attribute.default instanceof Array
-                    ? [Utility.getType(attribute.default[0])]
-                    : Utility.getType(attribute.default)
-            }
-            if (!attribute.ignored && attribute.default === undefined && attribute.type === undefined) {
-                throw new Error(
-                    `UEBlueprint: Expected either "type" or "value" property in ${this.name} attribute ${prefix}`
-                    + attributeName
-                )
-            }
-            if (attribute.default === null) {
-                attribute.nullable = true
-            }
-        }
-    }
-
     /**
      * @template {new (...args: any) => any} C
      * @param {C} type
@@ -204,6 +177,18 @@ export default class IEntity extends Serializable {
         return !Object.values(this.attributes)
             .filter(/** @param {AttributeInformation} attribute */attribute => !attribute.ignored)
             .some(/** @param {AttributeInformation} attribute */attribute => !attribute.expected)
+    }
+
+    /**
+     * @param {IEntity | EntityConstructor} source
+     * @param {String} attributeName
+     * @param {String} info
+     * @returns 
+     */
+    static getAttributeInfo(source, attributeName, info) {
+        return source.attributes?.[attributeName]?.[info] // instanceof specific
+            ?? /** @type {EntityConstructor} */(this.constructor).attributes[info] // class specific
+            ?? IEntity.defaultAttribute[info] // default value
     }
 
     static getAttribute(object, attribute) {

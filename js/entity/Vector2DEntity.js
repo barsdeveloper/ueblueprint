@@ -1,21 +1,19 @@
 import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
 
 export default class Vector2DEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        X: {
+        X: new AttributeInfo({
             default: 0,
             expected: true,
-        },
-        Y: {
+        }),
+        Y: new AttributeInfo({
             default: 0,
             expected: true,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
     }
     static grammar = this.createGrammar()
 

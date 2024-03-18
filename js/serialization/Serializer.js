@@ -1,7 +1,7 @@
-import Grammar from "./Grammar.js"
-import IEntity from "../entity/IEntity.js"
-import SerializerFactory from "./SerializerFactory.js"
 import Utility from "../Utility.js"
+import IEntity from "../entity/IEntity.js"
+import Grammar from "./Grammar.js"
+import SerializerFactory from "./SerializerFactory.js"
 
 /** @template {AttributeConstructor<Attribute>} T */
 export default class Serializer {
@@ -140,10 +140,21 @@ export default class Serializer {
         return serializer.doWrite(value, insideString, indentation)
     }
 
+    /**
+     * @param {IEntity} entity
+     * @param {String} key
+     */
     showProperty(entity, key) {
-        const attribute = /** @type {EntityConstructor} */(this.entityType).attributes[key]
-        if (attribute?.constructor === Object && attribute.ignored) {
-            return false
+        if (entity instanceof IEntity) {
+            if (
+                IEntity.getAttributeInfo(entity, key, "ignored")
+                || IEntity.getAttributeInfo(entity, key, "silent") && Utility.equals(
+                    IEntity.getAttributeInfo(entity, key, "default"),
+                    entity[key]
+                )
+            ) {
+                return false
+            }
         }
         return true
     }

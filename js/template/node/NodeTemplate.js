@@ -1,8 +1,8 @@
 import { html, nothing } from "lit"
-import ElementFactory from "../../element/ElementFactory.js"
-import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate.js"
 import SVGIcon from "../../SVGIcon.js"
 import Utility from "../../Utility.js"
+import ElementFactory from "../../element/ElementFactory.js"
+import ISelectableDraggableTemplate from "../ISelectableDraggableTemplate.js"
 
 /** @extends {ISelectableDraggableTemplate<NodeElement>} */
 export default class NodeTemplate extends ISelectableDraggableTemplate {
@@ -99,7 +99,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
     }
 
     renderNodeName() {
-        return this.element.getNodeDisplayName()
+        return this.element.nodeDisplayName
     }
 
     renderTop() {

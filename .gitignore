@@ -2,8 +2,6 @@ node_modules/
 package-lock.json
 localhost*
 *.git
-cypress/screenshots
-cypress/videos
 /test-results/
 /playwright-report/
 /blob-report/

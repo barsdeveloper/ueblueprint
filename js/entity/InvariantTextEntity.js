@@ -1,18 +1,14 @@
-import Grammar from "../serialization/Grammar.js"
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
 
 export default class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
     static attributes = {
         ...super.attributes,
-        value: {
-            default: "",
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        value:AttributeInfo.createValue(""),
     }
     static grammar = this.createGrammar()
 

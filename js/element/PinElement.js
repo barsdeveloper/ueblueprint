@@ -1,25 +1,25 @@
-import BoolPinTemplate from "../template/pin/BoolPinTemplate.js"
 import Configuration from "../Configuration.js"
-import ElementFactory from "./ElementFactory.js"
-import EnumPinTemplate from "../template/pin/EnumPinTemplate.js"
-import ExecPinTemplate from "../template/pin/ExecPinTemplate.js"
+import Utility from "../Utility.js"
 import GuidEntity from "../entity/GuidEntity.js"
-import IElement from "./IElement.js"
-import Int64PinTemplate from "../template/pin/Int64PinTemplate.js"
-import IntPinTemplate from "../template/pin/IntPinTemplate.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
-import LinearColorPinTemplate from "../template/pin/LinearColorPinTemplate.js"
-import NamePinTemplate from "../template/pin/NamePinTemplate.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
+import BoolPinTemplate from "../template/pin/BoolPinTemplate.js"
+import EnumPinTemplate from "../template/pin/EnumPinTemplate.js"
+import ExecPinTemplate from "../template/pin/ExecPinTemplate.js"
+import Int64PinTemplate from "../template/pin/Int64PinTemplate.js"
+import IntPinTemplate from "../template/pin/IntPinTemplate.js"
+import LinearColorPinTemplate from "../template/pin/LinearColorPinTemplate.js"
+import NamePinTemplate from "../template/pin/NamePinTemplate.js"
 import PinTemplate from "../template/pin/PinTemplate.js"
 import RealPinTemplate from "../template/pin/RealPinTemplate.js"
 import ReferencePinTemplate from "../template/pin/ReferencePinTemplate.js"
 import RotatorPinTemplate from "../template/pin/RotatorPinTemplate.js"
 import StringPinTemplate from "../template/pin/StringPinTemplate.js"
-import Utility from "../Utility.js"
 import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate.js"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
+import ElementFactory from "./ElementFactory.js"
+import IElement from "./IElement.js"
 
 /**
  * @template {TerminalAttribute} T
@@ -202,6 +202,9 @@ export default class PinElement extends IElement {
     setDefaultValue(value) {
         this.entity.DefaultValue = value
         this.defaultValue = value
+        if (this.entity.recomputesNodeTitleOnChange) {
+            this.nodeElement?.computeNodeDisplayName()
+        }
     }
 
     /** @param  {IElement[]} nodesWhitelist */
@@ -237,6 +240,9 @@ export default class PinElement extends IElement {
         if (this.entity.linkTo(targetPinElement.getNodeElement().getNodeName(), targetPinElement.entity)) {
             this.isLinked = this.entity.isLinked()
             this.nodeElement?.template.linksChanged()
+            if (this.entity.recomputesNodeTitleOnChange) {
+                this.nodeElement?.computeNodeDisplayName()
+            }
         }
     }
 
@@ -247,6 +253,9 @@ export default class PinElement extends IElement {
             this.nodeElement?.template.linksChanged()
             if (removeLink) {
                 this.blueprint.getLink(this, targetPinElement)?.remove() // Might be called after the link is removed
+            }
+            if (this.entity.recomputesNodeTitleOnChange) {
+                this.nodeElement?.computeNodeDisplayName()
             }
         }
     }

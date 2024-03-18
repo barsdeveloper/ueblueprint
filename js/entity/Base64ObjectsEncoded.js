@@ -1,15 +1,14 @@
+import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
 
 export default class Base64ObjectsEncoded extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        value: {
-            type: String,
-        },
-        objects: {
+        value: AttributeInfo.createType(String),
+        objects: new AttributeInfo({
             ignored: true,
-        },
+        }),
     }
 
     constructor(values) {

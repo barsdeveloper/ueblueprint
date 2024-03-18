@@ -1,16 +1,12 @@
 import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
 
 export default class IdentifierEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        value: {
-            default: "",
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        value: AttributeInfo.createValue(""),
     }
     static attributeConverter = {
         fromAttribute: (value, type) => new IdentifierEntity(value),

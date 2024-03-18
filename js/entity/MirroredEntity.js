@@ -1,13 +1,15 @@
+import AttributeInfo from "./AttributeInfo.js"
+
 /** @template {Attribute} T */
 export default class MirroredEntity {
 
     static attributes = {
-        type: {
+        type: new AttributeInfo({
             ignored: true,
-        },
-        getter: {
+        }),
+        getter: new AttributeInfo({
             ignored: true,
-        },
+        }),
     }
 
     /**

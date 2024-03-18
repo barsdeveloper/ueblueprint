@@ -1,21 +1,15 @@
+import Parsernostrum from "parsernostrum"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
-import Parsernostrum from "parsernostrum"
 import PathSymbolEntity from "./PathSymbolEntity.js"
+import AttributeInfo from "./AttributeInfo.js"
 
 export default class PinReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        objectName: {
-            type: PathSymbolEntity,
-        },
-        pinGuid: {
-            type: GuidEntity,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        objectName: AttributeInfo.createType(PathSymbolEntity),
+        pinGuid: AttributeInfo.createType(GuidEntity),
     }
     static grammar = this.createGrammar()
 

@@ -1,4 +1,5 @@
 import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 
@@ -6,21 +7,10 @@ export default class VariableReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        MemberScope: {
-            type: String,
-        },
-        MemberName: {
-            default: "",
-        },
-        MemberGuid: {
-            type: GuidEntity,
-        },
-        bSelfContext: {
-            type: Boolean,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        MemberScope: AttributeInfo.createType(String),
+        MemberName: AttributeInfo.createValue(""),
+        MemberGuid: AttributeInfo.createType(GuidEntity),
+        bSelfContext: AttributeInfo.createType(Boolean),
     }
     static grammar = this.createGrammar()
 
