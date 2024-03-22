@@ -11,4 +11,5 @@
     "javascript.preferences.importModuleSpecifier": "relative",
     "javascript.preferences.importModuleSpecifierEnding": "js",
     "javascript.updateImportsOnFileMove.enabled": "always",
+    "editor.formatOnSave": true,
 }

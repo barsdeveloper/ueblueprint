@@ -1,7 +1,7 @@
 import { html, nothing } from "lit"
-import ColorPickerWindowTemplate from "../window/ColorPickerWindowTemplate.js"
 import Configuration from "../../Configuration.js"
 import ElementFactory from "../../element/ElementFactory.js"
+import ColorPickerWindowTemplate from "../window/ColorPickerWindowTemplate.js"
 import PinTemplate from "./PinTemplate.js"
 
 /** @extends PinTemplate<LinearColorEntity> */

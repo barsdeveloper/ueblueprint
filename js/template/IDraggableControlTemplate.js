@@ -1,5 +1,5 @@
-import IDraggableTemplate from "./IDraggableTemplate.js"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable.js"
+import IDraggableTemplate from "./IDraggableTemplate.js"
 
 /**
  * @template {IDraggableElement} T

@@ -43,6 +43,7 @@ export default class IssuesNodes1 extends NodeTests {
                     const relevantPins = (await Promise.all(
                         pins.map(async p => {
                             const innerText = await p.innerText()
+                            // @ts-expect-error
                             return [Configuration.rgba.includes(innerText), p]
                         })
                     ))

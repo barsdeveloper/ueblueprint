@@ -1,5 +1,5 @@
-import Serializer from "./Serializer.js"
 import Utility from "../Utility.js"
+import Serializer from "./Serializer.js"
 
 /**
  * @template {AttributeConstructor<Attribute>} T

@@ -1,4 +1,5 @@
 import Utility from "../Utility.js"
+import AttributeInfo from "../entity/AttributeInfo.js"
 import IEntity from "../entity/IEntity.js"
 import Grammar from "./Grammar.js"
 import SerializerFactory from "./SerializerFactory.js"
@@ -147,9 +148,9 @@ export default class Serializer {
     showProperty(entity, key) {
         if (entity instanceof IEntity) {
             if (
-                IEntity.getAttributeInfo(entity, key, "ignored")
-                || IEntity.getAttributeInfo(entity, key, "silent") && Utility.equals(
-                    IEntity.getAttributeInfo(entity, key, "default"),
+                AttributeInfo.getAttribute(entity, key, "ignored")
+                || AttributeInfo.getAttribute(entity, key, "silent") && Utility.equals(
+                    AttributeInfo.getAttribute(entity, key, "default"),
                     entity[key]
                 )
             ) {

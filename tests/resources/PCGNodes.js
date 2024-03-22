@@ -1,7 +1,6 @@
-import { expect } from "../fixtures/test.js"
-import Configuration from "../../js/Configuration.js"
-import NodeTests from "./NodeTests.js"
 import SVGIcon from "../../js/SVGIcon.js"
+import { expect } from "../fixtures/test.js"
+import NodeTests from "./NodeTests.js"
 
 export default class PCGNodes extends NodeTests {
     static {

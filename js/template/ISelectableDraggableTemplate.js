@@ -1,5 +1,5 @@
-import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate.js"
 import MouseMoveNodes from "../input/mouse/MouseMoveNodes.js"
+import IDraggablePositionedTemplate from "./IDraggablePositionedTemplate.js"
 
 /**
  * @template {NodeElement} T

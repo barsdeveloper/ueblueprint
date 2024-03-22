@@ -12,6 +12,7 @@ export default class Entity2 extends IEntity {
         someBoolean2: AttributeInfo.createValue(false),
         someObjectString: AttributeInfo.createValue("gamma"),
         someArray: AttributeInfo.createValue([400, 500, 600, 700, 800]),
+        someArray2: AttributeInfo.createValue(() => [400, 500, 600, 700, 800]),
         someEntity: new AttributeInfo({
             type: Entity1,
             default: new Entity1()

@@ -17,7 +17,7 @@
 /** @template T */
 export default class AttributeInfo {
 
-    /** @typedef {"type" | "default" | "nullable" | "ignored" | "serialized" | "expected" | "inlined" | "quoted" | "silent" | "predicate"} AttributeKey */
+    /** @typedef {keyof AttributeInfo<any>} AttributeKey */
 
     static #default = {
         nullable: false,
@@ -31,7 +31,7 @@ export default class AttributeInfo {
 
     /** @param {AttributeInfoSource<T>} source */
     constructor(source) {
-        this.type = source.type
+        this.type = source.type ?? source.default?.constructor
         this.default = source.default
         this.nullable = source.nullable
         this.ignored = source.ignored
@@ -41,6 +41,11 @@ export default class AttributeInfo {
         this.quoted = source.quoted
         this.silent = source.silent
         this.predicate = source.predicate
+        if (this.type === Array && this.default instanceof Array && this.default.length > 0) {
+            this.type = this.default
+                .map(v => v.constructor)
+                .reduce((acc, cur) => acc.includes(cur) ? acc : (acc.push(cur), acc), [])
+        }
     }
 
     /**
@@ -61,14 +66,39 @@ export default class AttributeInfo {
     }
 
     /**
-     * @param {IEntity} source
+     * @param {IEntity | Object} source
      * @param {String} attribute
      * @param {AttributeKey} key
      */
-    static getAttribute(source, attribute, key) {
-        return source.attributes?.[attribute][key]
-            ?? /** @type {EntityConstructor} */(source.constructor)?.attributes?.[attribute]?.[key]
-            ?? this[key]
+    static hasAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
+        const entity = /** @type {IEntity} */(source)
+        const result = entity.attributes[attribute][key]
+        return /** @type {result} */(
+            result
+            ?? type?.attributes?.[attribute]?.[key]
+            ?? AttributeInfo.#default[key]
+        )
+    }
+
+    /**
+     * @param {IEntity | Object} source
+     * @param {String} attribute
+     * @param {AttributeKey} key
+     */
+    static getAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
+        const entity = /** @type {IEntity} */(source)
+        let result = entity.attributes?.[attribute][key]
+        if (result !== undefined) {
+            return result
+        }
+        result = type?.attributes?.[attribute]?.[key]
+        if (result !== undefined) {
+            return result
+        }
+        result = AttributeInfo.#default[key]
+        if (result !== undefined) {
+            return result
+        }
     }
 
     /** @param {AttributeKey} key */

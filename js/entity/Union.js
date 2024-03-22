@@ -1,13 +1,10 @@
-/**
- * @template {[...U]} T
- * @template {any[]} U
- */
+/** @template {any[]} T */
 export default class Union {
 
     /** @type {T} */
     #values
     get values() {
-        return this.#values
+        return /** @type {T extends any ? any[] : T} */(this.#values)
     }
 
     /** @param  {T} values */

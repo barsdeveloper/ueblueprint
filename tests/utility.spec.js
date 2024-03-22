@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures/test.js"
 import Utility from "../js/Utility.js"
+import { expect, test } from "./fixtures/test.js"
 
 test.describe.configure({ mode: "parallel" })
 

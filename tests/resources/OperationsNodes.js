@@ -1,7 +1,7 @@
+import SVGIcon from "../../js/SVGIcon.js"
+import PinElement from "../../js/element/PinElement.js"
 import { expect } from "../fixtures/test.js"
 import NodeTests from "./NodeTests.js"
-import PinElement from "../../js/element/PinElement.js"
-import SVGIcon from "../../js/SVGIcon.js"
 
 export default class OperationsNodes extends NodeTests {
     static {

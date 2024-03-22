@@ -8,9 +8,9 @@ import Union from "./Union.js"
 
 export default class FormatTextEntity extends IEntity {
 
-    static lookbehind = new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")
     static attributes = {
         ...super.attributes,
+        lookbehind: AttributeInfo.createValue(new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")),
         value: new AttributeInfo({
             type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
             default: [],
@@ -22,7 +22,7 @@ export default class FormatTextEntity extends IEntity {
         return Parsernostrum.seq(
             Parsernostrum.reg(
                 // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                new RegExp(`(${this.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                new RegExp(`(${this.attributes.lookbehind.default.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
                 1
             ),
             Grammar.grammarFor(this.attributes.value)

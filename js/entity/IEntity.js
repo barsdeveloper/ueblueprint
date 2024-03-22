@@ -10,11 +10,13 @@ import Union from "./Union.js"
 /** @abstract */
 export default class IEntity extends Serializable {
 
-    /** @type {String | Union<String[]>} */
-    static lookbehind = ""
     /** @type {AttributeDeclarations} */
     static attributes = {
+        attributes: new AttributeInfo({
+            ignored: true,
+        }),
         lookbehind: new AttributeInfo({
+            default: "",
             ignored: true,
         }),
     }
@@ -23,92 +25,62 @@ export default class IEntity extends Serializable {
         super()
         /** @type {String} */ this.lookbehind
         const Self = /** @type {typeof IEntity} */(this.constructor)
-        let attributes = Self.attributes
-        // if (values.attributes) {
-        //     attributes = { ...Self.attributes }
-        //     Utility.mergeArrays(Object.keys(values.attributes), Object.keys(attributes))
-        //         .forEach(k => {
-        //             attributes[k] = {
-        //                 ...IEntity.defaultAttribute,
-        //                 ...attributes[k],
-        //                 ...values.attributes[k],
-        //             }
-        //             if (!attributes[k].type) {
-        //                 attributes[k].type = values[k] instanceof Array
-        //                     ? [Utility.getType(values[k][0])]
-        //                     : Utility.getType(values[k])
-        //             }
-        //         })
-        //     IEntity.defineAttributes(this, attributes)
-        // }
         /** @type {AttributeDeclarations?} */ this.attributes
-        const valuesNames = Object.keys(values)
-        const attributesNames = Object.keys(attributes)
-        const allAttributesNames = Utility.mergeArrays(valuesNames, attributesNames)
-        if (valuesNames.includes("lookbehind")) {
-            this.lookbehind = undefined // To keep it first
-        }
-        for (const attributeName of allAttributesNames) {
-            if (attributeName == "attributes") {
-                // Ignore this special attribute describing all the attributes
-                continue
-            }
-            let value = values[attributeName]
-            let attribute = attributes[attributeName]
-
-            if (!suppressWarns && value !== undefined) {
-                if (
-                    !(attributeName in attributes)
-                    && !attributeName.startsWith(Configuration.subObjectAttributeNamePrefix)
-                ) {
+        const valuesKeys = Object.keys(values)
+        const attributesKeys = values.attributes
+            ? Utility.mergeArrays(Object.keys(values.attributes), Object.keys(Self.attributes))
+            : Object.keys(Self.attributes)
+        const allAttributesKeys = Utility.mergeArrays(valuesKeys, attributesKeys)
+        for (const key of allAttributesKeys) {
+            let value = values[key]
+            if (!suppressWarns && !(key in values)) {
+                if (!(key in Self.attributes) && !key.startsWith(Configuration.subObjectAttributeNamePrefix)) {
                     const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name
                     console.warn(
-                        `UEBlueprint: Attribute ${attributeName} (of type ${typeName}) in the serialized data is not `
-                        + `defined in ${Self.name}.attributes`
+                        `UEBlueprint: Attribute ${key} (of type ${typeName}) in the serialized data is not defined in ${Self.name}.attributes`
                     )
                 }
             }
-
-            if (!attribute) {
+            if (!(key in Self.attributes)) {
                 // Remember attributeName can come from the values and be not defined in the attributes.
                 // In that case just assign it and skip the rest.
-                this[attributeName] = value
+                this[key] = value
                 continue
             }
 
-            const assignAttribute = !attribute.predicate
-                ? v => this[attributeName] = v
+            const predicate = AttributeInfo.getAttribute(values, key, "predicate", Self)
+            const assignAttribute = !predicate
+                ? v => this[key] = v
                 : v => {
                     Object.defineProperties(this, {
-                        ["#" + attributeName]: {
+                        ["#" + key]: {
                             writable: true,
                             enumerable: false,
                         },
-                        [attributeName]: {
+                        [key]: {
                             enumerable: true,
                             get() {
-                                return this["#" + attributeName]
+                                return this["#" + key]
                             },
                             set(v) {
-                                if (!attribute.predicate?.(v)) {
+                                if (!predicate(v)) {
                                     console.warn(
-                                        `UEBlueprint: Tried to assign attribute ${attributeName} to ${Self.name} not `
-                                        + "satisfying the predicate"
+                                        `UEBlueprint: Tried to assign attribute ${key} to ${Self.name} not satisfying the predicate`
                                     )
                                     return
                                 }
-                                this["#" + attributeName] = v
+                                this["#" + key] = v
                             }
                         },
                     })
-                    this[attributeName] = v
+                    this[key] = v
                 }
 
-            let defaultValue = attribute.default
+            let defaultValue = AttributeInfo.getAttribute(values, key, "default", Self)
             if (defaultValue instanceof Function) {
                 defaultValue = defaultValue(this)
             }
-            let defaultType = attribute.type
+            let defaultType = AttributeInfo.getAttribute(values, key, "type", Self)
             if (defaultType instanceof ComputedType) {
                 defaultType = defaultType.compute(this)
             }
@@ -121,10 +93,13 @@ export default class IEntity extends Serializable {
 
             if (value !== undefined) {
                 // Remember value can still be null
-                if (value?.constructor === String && attribute.serialized && defaultType !== String) {
+                if (
+                    value?.constructor === String
+                    && AttributeInfo.getAttribute(values, key, "serialized", Self)
+                    && defaultType !== String
+                ) {
                     try {
                         value = SerializerFactory
-                            // @ts-expect-error
                             .getSerializer(defaultType)
                             .read(/** @type {String} */(value))
                     } catch (e) {
@@ -135,7 +110,7 @@ export default class IEntity extends Serializable {
                 assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)))
                 continue // We have a value, need nothing more
             }
-            if (Object.hasOwn(attribute, "default")) { // Accept also explicit undefined
+            if (defaultValue !== undefined) {
                 assignAttribute(defaultValue)
             }
         }
@@ -177,18 +152,6 @@ export default class IEntity extends Serializable {
         return !Object.values(this.attributes)
             .filter(/** @param {AttributeInformation} attribute */attribute => !attribute.ignored)
             .some(/** @param {AttributeInformation} attribute */attribute => !attribute.expected)
-    }
-
-    /**
-     * @param {IEntity | EntityConstructor} source
-     * @param {String} attributeName
-     * @param {String} info
-     * @returns 
-     */
-    static getAttributeInfo(source, attributeName, info) {
-        return source.attributes?.[attributeName]?.[info] // instanceof specific
-            ?? /** @type {EntityConstructor} */(this.constructor).attributes[info] // class specific
-            ?? IEntity.defaultAttribute[info] // default value
     }
 
     static getAttribute(object, attribute) {
