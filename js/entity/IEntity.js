@@ -10,22 +10,21 @@ import Union from "./Union.js"
 /** @abstract */
 export default class IEntity extends Serializable {
 
-    /** @type {AttributeDeclarations} */
     static attributes = {
         attributes: new AttributeInfo({
             ignored: true,
         }),
         lookbehind: new AttributeInfo({
-            default: "",
+            default: /** @type {String | Union<String[]>} */(""),
             ignored: true,
         }),
     }
 
     constructor(values = {}, suppressWarns = false) {
         super()
-        /** @type {String} */ this.lookbehind
         const Self = /** @type {typeof IEntity} */(this.constructor)
         /** @type {AttributeDeclarations?} */ this.attributes
+        /** @type {String} */ this.lookbehind
         const valuesKeys = Object.keys(values)
         const attributesKeys = values.attributes
             ? Utility.mergeArrays(Object.keys(values.attributes), Object.keys(Self.attributes))
@@ -47,7 +46,7 @@ export default class IEntity extends Serializable {
                 this[key] = value
                 continue
             }
-
+            Self.attributes.lookbehind
             const predicate = AttributeInfo.getAttribute(values, key, "predicate", Self)
             const assignAttribute = !predicate
                 ? v => this[key] = v
@@ -172,7 +171,7 @@ export default class IEntity extends Serializable {
     }
 
     getLookbehind() {
-        let lookbehind = this.lookbehind ?? /** @type {EntityConstructor} */(this.constructor).lookbehind
+        let lookbehind = this.lookbehind ?? AttributeInfo.getAttribute(this, "lookbehind", "default")
         lookbehind = lookbehind instanceof Union ? lookbehind.values[0] : lookbehind
         return lookbehind
     }

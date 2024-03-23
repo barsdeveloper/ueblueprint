@@ -490,7 +490,7 @@ class ComputedType {
 /** @template T */
 class AttributeInfo {
 
-    /** @typedef {keyof AttributeInfo<any>} AttributeKey */
+    /** @typedef {keyof AttributeInfo<number>} AttributeKey */
 
     static #default = {
         nullable: false,
@@ -506,7 +506,7 @@ class AttributeInfo {
     constructor(source) {
         this.type = source.type ?? source.default?.constructor;
         this.default = source.default;
-        this.nullable = source.nullable;
+        this.nullable = source.nullable ?? source.default === null;
         this.ignored = source.ignored;
         this.serialized = source.serialized;
         this.expected = source.expected;
@@ -545,7 +545,7 @@ class AttributeInfo {
      */
     static hasAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
         const entity = /** @type {IEntity} */(source);
-        const result = entity.attributes[attribute][key];
+        const result = entity.attributes[attribute]?.[key];
         return /** @type {result} */(
             result
             ?? type?.attributes?.[attribute]?.[key]
@@ -554,21 +554,27 @@ class AttributeInfo {
     }
 
     /**
-     * @param {IEntity | Object} source
-     * @param {String} attribute
-     * @param {AttributeKey} key
+     * @template {IEntity | Object} S
+     * @template {EntityConstructor} C
+     * @template {keyof C["attributes"]} A
+     * @template {keyof C["attributes"][attribute]} K
+     * @param {S} source
+     * @param {A} attribute
+     * @param {K} key
+     * @param {C} type
+     * @returns {C["attributes"][attribute][key]}
      */
-    static getAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
-        const entity = /** @type {IEntity} */(source);
-        let result = entity.attributes?.[attribute][key];
+    static getAttribute(source, attribute, key, type = /** @type {C} */(source.constructor)) {
+        let result = source["attributes"]?.[attribute]?.[key];
+        // Remember null is a valid asignment value for some attributes
         if (result !== undefined) {
             return result
         }
-        result = type?.attributes?.[attribute]?.[key];
+        result = /** @type {C["attributes"]} */(type?.attributes)?.[attribute]?.[key];
         if (result !== undefined) {
             return result
         }
-        result = AttributeInfo.#default[key];
+        result = /** @type {C["attributes"][attribute]} */(AttributeInfo.#default)[key];
         if (result !== undefined) {
             return result
         }
@@ -621,7 +627,7 @@ class Union {
     /** @type {T} */
     #values
     get values() {
-        return /** @type {T extends any ? any[] : T} */(this.#values)
+        return this.#values
     }
 
     /** @param  {T} values */
@@ -2816,22 +2822,21 @@ class SerializerFactory {
 /** @abstract */
 class IEntity extends Serializable {
 
-    /** @type {AttributeDeclarations} */
     static attributes = {
         attributes: new AttributeInfo({
             ignored: true,
         }),
         lookbehind: new AttributeInfo({
-            default: "",
+            default: /** @type {String | Union<String[]>} */(""),
             ignored: true,
         }),
     }
 
     constructor(values = {}, suppressWarns = false) {
         super();
-        /** @type {String} */ this.lookbehind;
         const Self = /** @type {typeof IEntity} */(this.constructor);
         /** @type {AttributeDeclarations?} */ this.attributes;
+        /** @type {String} */ this.lookbehind;
         const valuesKeys = Object.keys(values);
         const attributesKeys = values.attributes
             ? Utility.mergeArrays(Object.keys(values.attributes), Object.keys(Self.attributes))
@@ -2853,7 +2858,7 @@ class IEntity extends Serializable {
                 this[key] = value;
                 continue
             }
-
+            Self.attributes.lookbehind;
             const predicate = AttributeInfo.getAttribute(values, key, "predicate", Self);
             const assignAttribute = !predicate
                 ? v => this[key] = v
@@ -2978,7 +2983,7 @@ class IEntity extends Serializable {
     }
 
     getLookbehind() {
-        let lookbehind = this.lookbehind ?? /** @type {EntityConstructor} */(this.constructor).lookbehind;
+        let lookbehind = this.lookbehind ?? AttributeInfo.getAttribute(this, "lookbehind", "default");
         lookbehind = lookbehind instanceof Union ? lookbehind.values[0] : lookbehind;
         return lookbehind
     }
@@ -3096,6 +3101,9 @@ class Grammar {
                 case Boolean:
                     result = this.boolean;
                     break
+                case null:
+                    result = this.null;
+                    break
                 case Number:
                     result = this.number;
                     break
@@ -3107,7 +3115,7 @@ class Grammar {
                     break
                 default:
                     if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
-                        return /** @type {typeof Serializable} */(type).grammar
+                        result = /** @type {typeof Serializable} */(type).grammar;
                     }
             }
         }
@@ -3228,6 +3236,13 @@ class Grammar {
     /*   ---   Entity   ---   */
 
     static unknownValue // Defined in initializeSerializerFactor to avoid circular include
+}
+
+var crypto;
+if (typeof window === "undefined") {
+    import('crypto').then(mod => crypto = mod.default).catch();
+} else {
+    crypto = window.crypto;
 }
 
 class GuidEntity extends IEntity {
@@ -3927,22 +3942,25 @@ class EnumDisplayValueEntity extends EnumEntity {
 
 class InvariantTextEntity extends IEntity {
 
-    static lookbehind = "INVTEXT"
     static attributes = {
         ...super.attributes,
-        value:AttributeInfo.createValue(""),
+        value: AttributeInfo.createValue(""),
+        lookbehind: new AttributeInfo({
+            ...super.attributes.lookbehind,
+            default: "INVTEXT",
+        }),
     }
     static grammar = this.createGrammar()
 
     static createGrammar() {
         return Parsernostrum.alt(
             Parsernostrum.seq(
-                Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                Parsernostrum.reg(new RegExp(`${this.attributes.lookbehind.default}\\s*\\(`)),
                 Grammar.grammarFor(this.attributes.value),
                 Parsernostrum.reg(/\s*\)/)
             )
                 .map(([_0, value, _2]) => value),
-            Parsernostrum.reg(new RegExp(this.lookbehind)) // InvariantTextEntity can not have arguments
+            Parsernostrum.reg(new RegExp(this.attributes.lookbehind.default)) // InvariantTextEntity can not have arguments
                 .map(() => "")
         ).map(value => new this(value))
     }
@@ -3960,18 +3978,21 @@ class InvariantTextEntity extends IEntity {
 
 class LocalizedTextEntity extends IEntity {
 
-    static lookbehind = "NSLOCTEXT"
     static attributes = {
         ...super.attributes,
         namespace: AttributeInfo.createValue(""),
         key: AttributeInfo.createValue(""),
         value: AttributeInfo.createValue(""),
+        lookbehind: new AttributeInfo({
+            ...super.attributes.lookbehind,
+            default: "NSLOCTEXT",
+        }),
     }
     static grammar = this.createGrammar()
 
     static createGrammar() {
         return Parsernostrum.regArray(new RegExp(
-            String.raw`${this.lookbehind}\s*\(`
+            String.raw`${this.attributes.lookbehind.default}\s*\(`
             + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
             + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
             + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
@@ -4001,11 +4022,14 @@ class FormatTextEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        lookbehind: AttributeInfo.createValue(new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")),
         value: new AttributeInfo({
             type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
             default: [],
         }),
+        lookbehind: /** @type {AttributeInfo<Union<String[]>>} */(new AttributeInfo({
+            ...super.attributes.lookbehind,
+            default: new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"),
+        })),
     }
     static grammar = this.createGrammar()
 
@@ -4021,8 +4045,8 @@ class FormatTextEntity extends IEntity {
             .map(([lookbehind, values]) => {
                 const result = new this({
                     value: values,
+                    lookbehind,
                 });
-                result.lookbehind = lookbehind;
                 return result
             })
     }
@@ -4438,9 +4462,12 @@ class PinEntity extends IEntity {
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
     }
-    static lookbehind = "Pin"
     static attributes = {
         ...super.attributes,
+        lookbehind: new AttributeInfo({
+            default: "Pin",
+            ignored: true,
+        }),
         objectEntity: new AttributeInfo({
             ignored: true,
         }),
@@ -4712,7 +4739,6 @@ class PinEntity extends IEntity {
 
 class UnknownPinEntity extends PinEntity {
 
-    static lookbehind = ""
     static grammar = this.createGrammar()
 
     static createGrammar() {
@@ -6034,7 +6060,11 @@ class Serializer {
         let grammar = Grammar.grammarFor(undefined, this.entityType);
         const parseResult = grammar.run(value);
         if (!parseResult.status) {
-            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
+            throw new Error(
+                this.entityType
+                    ? `Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`
+                    : "Error when trying to parse null"
+            )
         }
         return parseResult.value
     }
@@ -6419,7 +6449,7 @@ class KeyBindingEntity extends IEntity {
         bCtrl: AttributeInfo.createValue(false),
         bAlt: AttributeInfo.createValue(false),
         bCmd: AttributeInfo.createValue(false),
-        Key: AttributeInfo.createValue(IdentifierEntity),
+        Key: AttributeInfo.createType(IdentifierEntity),
     }
     static grammar = this.createGrammar()
 
@@ -12650,13 +12680,7 @@ class TerminalTypeEntity extends IEntity {
 
 class UnknownKeysEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        lookbehind: new AttributeInfo({
-            default: "",
-            ignored: true,
-        }),
-    }
+
     static grammar = this.createGrammar()
 
     static createGrammar() {
@@ -12687,7 +12711,6 @@ class UnknownKeysEntity extends IEntity {
 
     constructor(values) {
         super(values, true);
-        /** @type {String} */ this.lookbehind;
     }
 }
 
@@ -12943,6 +12966,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new Serializer(PinReferenceEntity, undefined, " ", false, "", () => "")
+    );
+
+    SerializerFactory.registerSerializer(
+        PinTypeEntity,
+        new Serializer(PinTypeEntity)
     );
 
     SerializerFactory.registerSerializer(

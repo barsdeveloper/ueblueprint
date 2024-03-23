@@ -28,4 +28,5 @@ export default `Begin
   \${second(0).a} => 1
   \${second(0).b} => 2
   \${second(1)} => E1[A:11 - B:22]
+  \${third} => ()
 End`

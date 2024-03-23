@@ -5,11 +5,14 @@ import Grammar from "../../js/serialization/Grammar.js"
 
 export default class EntityF extends IEntity {
 
-    static lookbehind = new Union("Foo", "Bar")
     static attributes = {
         ...super.attributes,
         arg1: AttributeInfo.createType(Number),
         arg2: AttributeInfo.createType(String),
+        lookbehind: new AttributeInfo({
+            ...super.attributes.lookbehind,
+            default: new Union("Foo", "Bar"),
+        })
     }
 
     static grammar = this.createGrammar()

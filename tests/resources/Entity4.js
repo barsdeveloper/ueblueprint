@@ -15,6 +15,10 @@ export default class Entity4 extends IEntity {
             default: [new Entity1({ a: 1, b: 2 }), new Entity1({ a: 11, b: 22 })],
             inlined: true,
         }),
+        third: new AttributeInfo({
+            type: Array,
+            default: null,
+        })
     }
 
     constructor() {

@@ -10,11 +10,14 @@ export default class FormatTextEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        lookbehind: AttributeInfo.createValue(new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")),
         value: new AttributeInfo({
             type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
             default: [],
         }),
+        lookbehind: /** @type {AttributeInfo<Union<String[]>>} */(new AttributeInfo({
+            ...super.attributes.lookbehind,
+            default: new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"),
+        })),
     }
     static grammar = this.createGrammar()
 
@@ -30,8 +33,8 @@ export default class FormatTextEntity extends IEntity {
             .map(([lookbehind, values]) => {
                 const result = new this({
                     value: values,
+                    lookbehind,
                 })
-                result.lookbehind = lookbehind
                 return result
             })
     }

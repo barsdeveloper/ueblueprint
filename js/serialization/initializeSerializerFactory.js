@@ -39,6 +39,7 @@ import ObjectSerializer from "./ObjectSerializer.js"
 import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
 import ToStringSerializer from "./ToStringSerializer.js"
+import PinTypeEntity from "../entity/PinTypeEntity.js"
 
 Grammar.unknownValue =
     Parsernostrum.alt(
@@ -242,6 +243,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new Serializer(PinReferenceEntity, undefined, " ", false, "", () => "")
+    )
+
+    SerializerFactory.registerSerializer(
+        PinTypeEntity,
+        new Serializer(PinTypeEntity)
     )
 
     SerializerFactory.registerSerializer(

@@ -98,6 +98,9 @@ export default class Grammar {
                 case Boolean:
                     result = this.boolean
                     break
+                case null:
+                    result = this.null
+                    break
                 case Number:
                     result = this.number
                     break
@@ -109,7 +112,7 @@ export default class Grammar {
                     break
                 default:
                     if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
-                        return /** @type {typeof Serializable} */(type).grammar
+                        result = /** @type {typeof Serializable} */(type).grammar
                     }
             }
         }

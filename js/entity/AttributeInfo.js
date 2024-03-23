@@ -17,7 +17,7 @@
 /** @template T */
 export default class AttributeInfo {
 
-    /** @typedef {keyof AttributeInfo<any>} AttributeKey */
+    /** @typedef {keyof AttributeInfo<number>} AttributeKey */
 
     static #default = {
         nullable: false,
@@ -33,7 +33,7 @@ export default class AttributeInfo {
     constructor(source) {
         this.type = source.type ?? source.default?.constructor
         this.default = source.default
-        this.nullable = source.nullable
+        this.nullable = source.nullable ?? source.default === null
         this.ignored = source.ignored
         this.serialized = source.serialized
         this.expected = source.expected
@@ -72,7 +72,7 @@ export default class AttributeInfo {
      */
     static hasAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
         const entity = /** @type {IEntity} */(source)
-        const result = entity.attributes[attribute][key]
+        const result = entity.attributes[attribute]?.[key]
         return /** @type {result} */(
             result
             ?? type?.attributes?.[attribute]?.[key]
@@ -81,21 +81,27 @@ export default class AttributeInfo {
     }
 
     /**
-     * @param {IEntity | Object} source
-     * @param {String} attribute
-     * @param {AttributeKey} key
+     * @template {IEntity | Object} S
+     * @template {EntityConstructor} C
+     * @template {keyof C["attributes"]} A
+     * @template {keyof C["attributes"][attribute]} K
+     * @param {S} source
+     * @param {A} attribute
+     * @param {K} key
+     * @param {C} type
+     * @returns {C["attributes"][attribute][key]}
      */
-    static getAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
-        const entity = /** @type {IEntity} */(source)
-        let result = entity.attributes?.[attribute][key]
+    static getAttribute(source, attribute, key, type = /** @type {C} */(source.constructor)) {
+        let result = source["attributes"]?.[attribute]?.[key]
+        // Remember null is a valid asignment value for some attributes
         if (result !== undefined) {
             return result
         }
-        result = type?.attributes?.[attribute]?.[key]
+        result = /** @type {C["attributes"]} */(type?.attributes)?.[attribute]?.[key]
         if (result !== undefined) {
             return result
         }
-        result = AttributeInfo.#default[key]
+        result = /** @type {C["attributes"][attribute]} */(AttributeInfo.#default)[key]
         if (result !== undefined) {
             return result
         }

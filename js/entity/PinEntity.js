@@ -50,9 +50,12 @@ export default class PinEntity extends IEntity {
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
     }
-    static lookbehind = "Pin"
     static attributes = {
         ...super.attributes,
+        lookbehind: new AttributeInfo({
+            default: "Pin",
+            ignored: true,
+        }),
         objectEntity: new AttributeInfo({
             ignored: true,
         }),

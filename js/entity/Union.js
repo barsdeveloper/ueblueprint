@@ -4,7 +4,7 @@ export default class Union {
     /** @type {T} */
     #values
     get values() {
-        return /** @type {T extends any ? any[] : T} */(this.#values)
+        return this.#values
     }
 
     /** @param  {T} values */

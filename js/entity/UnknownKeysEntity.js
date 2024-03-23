@@ -5,13 +5,7 @@ import IEntity from "./IEntity.js"
 
 export default class UnknownKeysEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        lookbehind: new AttributeInfo({
-            default: "",
-            ignored: true,
-        }),
-    }
+
     static grammar = this.createGrammar()
 
     static createGrammar() {
@@ -42,6 +36,5 @@ export default class UnknownKeysEntity extends IEntity {
 
     constructor(values) {
         super(values, true)
-        /** @type {String} */ this.lookbehind
     }
 }

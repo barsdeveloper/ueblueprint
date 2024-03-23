@@ -13,7 +13,7 @@ export default class KeyBindingEntity extends IEntity {
         bCtrl: AttributeInfo.createValue(false),
         bAlt: AttributeInfo.createValue(false),
         bCmd: AttributeInfo.createValue(false),
-        Key: AttributeInfo.createValue(IdentifierEntity),
+        Key: AttributeInfo.createType(IdentifierEntity),
     }
     static grammar = this.createGrammar()
 

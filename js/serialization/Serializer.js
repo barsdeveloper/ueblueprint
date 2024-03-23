@@ -55,7 +55,11 @@ export default class Serializer {
         let grammar = Grammar.grammarFor(undefined, this.entityType)
         const parseResult = grammar.run(value)
         if (!parseResult.status) {
-            throw new Error(`Error when trying to parse the entity ${this.entityType.prototype.constructor.name}.`)
+            throw new Error(
+                this.entityType
+                    ? `Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`
+                    : "Error when trying to parse null"
+            )
         }
         return parseResult.value
     }
