@@ -201,7 +201,7 @@ export default class ObjectEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createSubObjectGrammar() {
-        return Parsernostrum.lazy(() => this.createGrammar())
+        return Parsernostrum.lazy(() => this.grammar)
             .map(object =>
                 values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
             )

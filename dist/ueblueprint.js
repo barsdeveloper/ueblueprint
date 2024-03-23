@@ -4944,7 +4944,7 @@ class ObjectEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createSubObjectGrammar() {
-        return Parsernostrum.lazy(() => this.createGrammar())
+        return Parsernostrum.lazy(() => this.grammar)
             .map(object =>
                 values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
             )
@@ -6491,7 +6491,7 @@ class KeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
-                const parsed = KeyBindingEntity.createGrammar().run(v);
+                const parsed = KeyBindingEntity.grammar.run(v);
                 if (parsed.status) {
                     return parsed.value
                 }

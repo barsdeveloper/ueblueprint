@@ -50,7 +50,7 @@ export default class KeyboardShortcut extends IInput {
                 return v
             }
             if (v.constructor === String) {
-                const parsed = KeyBindingEntity.createGrammar().run(v)
+                const parsed = KeyBindingEntity.grammar.run(v)
                 if (parsed.status) {
                     return parsed.value
                 }
