@@ -1,17 +1,15 @@
-import IntegerEntity from "./IntegerEntity.js"
 import Parsernostrum from "parsernostrum"
+import AttributeInfo from "./AttributeInfo.js"
+import IntegerEntity from "./IntegerEntity.js"
 
 export default class ByteEntity extends IntegerEntity {
 
     static attributes = {
         ...super.attributes,
-        value: {
+        value: new AttributeInfo({
             ...super.attributes.value,
             predicate: v => v % 1 == 0 && v >= 0 && v < 1 << 8,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
     }
     static grammar = this.createGrammar()
 

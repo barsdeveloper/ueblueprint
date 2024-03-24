@@ -1,31 +1,26 @@
-import Grammar from "../serialization/Grammar.js"
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
 import Utility from "../Utility.js"
+import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
 
 export default class LocalizedTextEntity extends IEntity {
 
-    static lookbehind = "NSLOCTEXT"
     static attributes = {
         ...super.attributes,
-        namespace: {
-            default: "",
-        },
-        key: {
-            default: "",
-        },
-        value: {
-            default: "",
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        namespace: AttributeInfo.createValue(""),
+        key: AttributeInfo.createValue(""),
+        value: AttributeInfo.createValue(""),
+        lookbehind: new AttributeInfo({
+            ...super.attributes.lookbehind,
+            default: "NSLOCTEXT",
+        }),
     }
     static grammar = this.createGrammar()
 
     static createGrammar() {
         return Parsernostrum.regArray(new RegExp(
-            String.raw`${this.lookbehind}\s*\(`
+            String.raw`${this.attributes.lookbehind.default}\s*\(`
             + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
             + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
             + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`

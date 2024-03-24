@@ -1,16 +1,19 @@
 import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
+
+var crypto
+if (typeof window === "undefined") {
+    import("crypto").then(mod => crypto = mod.default).catch()
+} else {
+    crypto = window.crypto
+}
 
 export default class GuidEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        value: {
-            default: "",
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        value: AttributeInfo.createValue(""),
     }
     static grammar = this.createGrammar()
 

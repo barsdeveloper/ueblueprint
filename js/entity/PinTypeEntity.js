@@ -1,5 +1,6 @@
-import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
+import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import IEntity from "./IEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PathSymbolEntity from "./PathSymbolEntity.js"
@@ -8,45 +9,26 @@ export default class PinTypeEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        PinCategory: {
-            default: "",
-        },
-        PinSubCategory: {
-            default: "",
-        },
-        PinSubCategoryObject: {
+        PinCategory: AttributeInfo.createValue(""),
+        PinSubCategory: AttributeInfo.createValue(""),
+        PinSubCategoryObject: new AttributeInfo({
             type: ObjectReferenceEntity,
             default: () => ObjectReferenceEntity.createNoneInstance(),
-        },
-        PinSubCategoryMemberReference: {
+        }),
+        PinSubCategoryMemberReference: new AttributeInfo({
             type: FunctionReferenceEntity,
             default: null,
-        },
-        PinValueType: {
+        }),
+        PinValueType: new AttributeInfo({
             type: PinTypeEntity,
             default: null,
-        },
-        ContainerType: {
-            type: PathSymbolEntity,
-        },
-        bIsReference: {
-            default: false,
-        },
-        bIsConst: {
-            default: false,
-        },
-        bIsWeakPointer: {
-            default: false,
-        },
-        bIsUObjectWrapper: {
-            default: false,
-        },
-        bSerializeAsSinglePrecisionFloat: {
-            default: false,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
+        ContainerType: AttributeInfo.createType(PathSymbolEntity),
+        bIsReference: AttributeInfo.createValue(false),
+        bIsConst: AttributeInfo.createValue(false),
+        bIsWeakPointer: AttributeInfo.createValue(false),
+        bIsUObjectWrapper: AttributeInfo.createValue(false),
+        bSerializeAsSinglePrecisionFloat: AttributeInfo.createValue(false),
     }
     static grammar = this.createGrammar()
 

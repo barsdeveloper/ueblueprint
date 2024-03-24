@@ -1,7 +1,7 @@
 import Configuration from "../Configuration.js"
-import Grammar from "./Grammar.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
+import Grammar from "./Grammar.js"
 import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
 

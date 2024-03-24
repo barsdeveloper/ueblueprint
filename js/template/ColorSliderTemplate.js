@@ -1,5 +1,5 @@
-import IDraggableControlTemplate from "./IDraggableControlTemplate.js"
 import Utility from "../Utility.js"
+import IDraggableControlTemplate from "./IDraggableControlTemplate.js"
 
 /** @extends {IDraggableControlTemplate<ColorHandlerElement>} */
 export default class ColorSliderTemplate extends IDraggableControlTemplate {

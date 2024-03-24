@@ -1,22 +1,23 @@
+import Parsernostrum from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
 import InvariantTextEntity from "./InvariantTextEntity.js"
 import LocalizedTextEntity from "./LocalizedTextEntity.js"
-import Parsernostrum from "parsernostrum"
 import Union from "./Union.js"
 
 export default class FormatTextEntity extends IEntity {
 
-    static lookbehind = new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED")
     static attributes = {
         ...super.attributes,
-        value: {
+        value: new AttributeInfo({
             type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
             default: [],
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
+        lookbehind: /** @type {AttributeInfo<Union<String[]>>} */(new AttributeInfo({
+            ...super.attributes.lookbehind,
+            default: new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"),
+        })),
     }
     static grammar = this.createGrammar()
 
@@ -24,7 +25,7 @@ export default class FormatTextEntity extends IEntity {
         return Parsernostrum.seq(
             Parsernostrum.reg(
                 // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                new RegExp(`(${this.lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
+                new RegExp(`(${this.attributes.lookbehind.default.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
                 1
             ),
             Grammar.grammarFor(this.attributes.value)
@@ -32,8 +33,8 @@ export default class FormatTextEntity extends IEntity {
             .map(([lookbehind, values]) => {
                 const result = new this({
                     value: values,
+                    lookbehind,
                 })
-                result.lookbehind = lookbehind
                 return result
             })
     }

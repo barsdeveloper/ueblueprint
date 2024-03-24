@@ -1,6 +1,6 @@
 import { html } from "lit"
-import ITemplate from "../ITemplate.js"
 import MouseIgnore from "../../input/mouse/MouseIgnore.js"
+import ITemplate from "../ITemplate.js"
 
 /** @extends {ITemplate<DropdownElement>} */
 export default class DropdownTemplate extends ITemplate {

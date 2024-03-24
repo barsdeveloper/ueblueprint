@@ -1,16 +1,12 @@
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
+import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
 
 export default class ColorChannelEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        value: {
-            default: 0,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        value: AttributeInfo.createValue(0),
     }
     static grammar = this.createGrammar()
 

@@ -1,21 +1,23 @@
-import { test, expect } from "@playwright/test"
+import { expect, test } from "@playwright/test"
+import Utility from "../js/Utility.js"
 import FormatTextEntity from "../js/entity/FormatTextEntity.js"
-import Grammar from "../js/serialization/Grammar.js"
 import GuidEntity from "../js/entity/GuidEntity.js"
-import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
 import IntegerEntity from "../js/entity/IntegerEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
 import ObjectReferenceEntity from "../js/entity/ObjectReferenceEntity.js"
+import PinTypeEntity from "../js/entity/PinTypeEntity.js"
 import RotatorEntity from "../js/entity/RotatorEntity.js"
-import SerializerFactory from "../js/serialization/SerializerFactory.js"
 import SymbolEntity from "../js/entity/SymbolEntity.js"
 import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
-import Utility from "../js/Utility.js"
 import Vector2DEntity from "../js/entity/Vector2DEntity.js"
 import VectorEntity from "../js/entity/VectorEntity.js"
+import Grammar from "../js/serialization/Grammar.js"
+import SerializerFactory from "../js/serialization/SerializerFactory.js"
+import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
+import PinEntity from "../js/entity/PinEntity.js"
 
-initializeSerializerFactory()
+test.beforeAll(() => initializeSerializerFactory())
 
 test.describe.configure({ mode: "parallel" })
 
@@ -168,6 +170,15 @@ test("LinearColorEntity", () => {
     expect(() => serializer.read("(R=0.000000,G=\"hello\",A=1.000000)")).toThrow()
 })
 
+test("Null", () => {
+    const serializer = SerializerFactory.getSerializer(null)
+
+    expect(serializer.read("()")).toBeNull()
+    expect(() => serializer.read("123")).toThrow()
+    expect(() => serializer.read("(a)")).toThrow()
+    expect(() => serializer.read("(")).toThrow()
+})
+
 test("Number", () => {
     const serializer = SerializerFactory.getSerializer(Number)
 
@@ -277,6 +288,14 @@ test("ObjectReferenceEntity", () => {
     expect(reference).toMatchObject({
         type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         path: "/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0",
+    })
+})
+
+test("PinEntity", () => {
+    const serializer = SerializerFactory.getSerializer(PinEntity)
+
+    expect(serializer.read("Pin (PinType.PinSubCategoryMemberReference=())")).toMatchObject({
+        "PinType": { "PinSubCategoryMemberReference": null }
     })
 })
 

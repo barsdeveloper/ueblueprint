@@ -1,13 +1,13 @@
 import { html, nothing } from "lit"
 import Configuration from "../Configuration.js"
-import ElementFactory from "../element/ElementFactory.js"
-import IFromToPositionedTemplate from "./IFromToPositionedTemplate.js"
-import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
-import KnotEntity from "../entity/objects/KnotEntity.js"
-import MouseClick from "../input/mouse/MouseClick.js"
-import MouseDbClick from "../input/mouse/MouseDbClick.js"
 import Shortcuts from "../Shortcuts.js"
 import Utility from "../Utility.js"
+import ElementFactory from "../element/ElementFactory.js"
+import KnotEntity from "../entity/objects/KnotEntity.js"
+import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
+import MouseClick from "../input/mouse/MouseClick.js"
+import MouseDbClick from "../input/mouse/MouseDbClick.js"
+import IFromToPositionedTemplate from "./IFromToPositionedTemplate.js"
 
 /** @extends {IFromToPositionedTemplate<LinkElement>} */
 export default class LinkTemplate extends IFromToPositionedTemplate {

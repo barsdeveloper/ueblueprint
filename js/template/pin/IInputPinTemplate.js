@@ -1,7 +1,7 @@
 import { html } from "lit"
 import Configuration from "../../Configuration.js"
-import PinTemplate from "./PinTemplate.js"
 import Utility from "../../Utility.js"
+import PinTemplate from "./PinTemplate.js"
 
 /**
  * @template {TerminalAttribute} T

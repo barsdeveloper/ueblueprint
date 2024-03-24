@@ -1,18 +1,18 @@
 import { html } from "lit"
 import Configuration from "../Configuration.js"
+import Shortcuts from "../Shortcuts.js"
+import Utility from "../Utility.js"
 import Copy from "../input/common/Copy.js"
 import Cut from "../input/common/Cut.js"
-import ITemplate from "./ITemplate.js"
+import Paste from "../input/common/Paste.js"
 import KeyboardEnableZoom from "../input/keyboard/KeyboardEnableZoom.js"
 import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import MouseScrollGraph from "../input/mouse/MouseScrollGraph.js"
 import MouseTracking from "../input/mouse/MouseTracking.js"
-import Paste from "../input/common/Paste.js"
 import Select from "../input/mouse/Select.js"
-import Shortcuts from "../Shortcuts.js"
 import Unfocus from "../input/mouse/Unfocus.js"
-import Utility from "../Utility.js"
 import Zoom from "../input/mouse/Zoom.js"
+import ITemplate from "./ITemplate.js"
 
 /** @extends ITemplate<Blueprint> */
 export default class BlueprintTemplate extends ITemplate {
@@ -37,10 +37,13 @@ export default class BlueprintTemplate extends ITemplate {
             this.viewportSize[1] = size.blockSize
         }
     })
+
     /** @type {Copy} */
     #copyInputObject
+
     /** @type {Paste} */
     #pasteInputObject
+
     /** @type {Zoom} */
     #zoomInputObject
 

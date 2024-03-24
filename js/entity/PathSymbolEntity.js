@@ -1,16 +1,14 @@
 import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
 
 export default class PathSymbolEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        value: {
+        value: new AttributeInfo({
             default: "",
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
     }
     static grammar = this.createGrammar()
 

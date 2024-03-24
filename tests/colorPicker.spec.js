@@ -1,6 +1,6 @@
-import { test, expect } from "./fixtures/test.js"
-import BlueprintFixture from "./fixtures/BlueprintFixture.js"
 import Configuration from "../js/Configuration.js"
+import BlueprintFixture from "./fixtures/BlueprintFixture.js"
+import { expect, test } from "./fixtures/test.js"
 
 test.describe("Color picker", () => {
 

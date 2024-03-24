@@ -1,19 +1,11 @@
-import Grammar from "../serialization/Grammar.js"
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
 
 export default class UnknownKeysEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        lookbehind: {
-            default: "",
-            ignored: true,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
-    }
+
     static grammar = this.createGrammar()
 
     static createGrammar() {
@@ -44,6 +36,5 @@ export default class UnknownKeysEntity extends IEntity {
 
     constructor(values) {
         super(values, true)
-        /** @type {String} */ this.lookbehind
     }
 }

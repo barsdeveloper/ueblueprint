@@ -1,17 +1,15 @@
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
+import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
 
 export default class Integer64Entity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        value: {
+        value: new AttributeInfo({
             default: 0n,
             predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
     }
     static grammar = this.createGrammar()
 

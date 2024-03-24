@@ -1,7 +1,7 @@
 import { html } from "lit"
-import INumericPinTemplate from "./INumericPinTemplate.js"
-import RotatorEntity from "../../entity/RotatorEntity.js"
 import Utility from "../../Utility.js"
+import RotatorEntity from "../../entity/RotatorEntity.js"
+import INumericPinTemplate from "./INumericPinTemplate.js"
 
 /** @extends INumericPinTemplate<RotatorEntity> */
 export default class RotatorPinTemplate extends INumericPinTemplate {

@@ -1,7 +1,7 @@
 import Configuration from "../Configuration.js"
-import ITemplate from "./ITemplate.js"
 import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import MouseMoveDraggable from "../input/mouse/MouseMoveDraggable.js"
+import ITemplate from "./ITemplate.js"
 
 /**
  * @template {IDraggableElement} T

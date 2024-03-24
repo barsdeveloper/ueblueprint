@@ -1,5 +1,5 @@
-import ITemplate from "../ITemplate.js"
 import MouseIgnore from "../../input/mouse/MouseIgnore.js"
+import ITemplate from "../ITemplate.js"
 
 /** @extends {ITemplate<InputElement>} */
 export default class InputTemplate extends ITemplate {

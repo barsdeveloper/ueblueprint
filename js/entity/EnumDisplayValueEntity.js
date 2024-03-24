@@ -1,6 +1,6 @@
-import EnumEntity from "./EnumEntity.js"
-import Grammar from "../serialization/Grammar.js"
 import Parsernostrum from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
+import EnumEntity from "./EnumEntity.js"
 
 export default class EnumDisplayValueEntity extends EnumEntity {
 

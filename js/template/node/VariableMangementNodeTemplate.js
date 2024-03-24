@@ -1,7 +1,7 @@
 import { html, nothing } from "lit"
+import SVGIcon from "../../SVGIcon.js"
 import ElementFactory from "../../element/ElementFactory.js"
 import NodeTemplate from "./NodeTemplate.js"
-import SVGIcon from "../../SVGIcon.js"
 
 export default class VariableManagementNodeTemplate extends NodeTemplate {
 
@@ -14,7 +14,7 @@ export default class VariableManagementNodeTemplate extends NodeTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
-        this.#displayName = this.element.getNodeDisplayName()
+        this.#displayName = this.element.nodeDisplayName
     }
 
     render() {

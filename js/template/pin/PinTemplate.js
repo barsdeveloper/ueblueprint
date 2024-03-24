@@ -1,9 +1,9 @@
 import { html, nothing } from "lit"
 import Configuration from "../../Configuration.js"
-import ITemplate from "../ITemplate.js"
-import MouseCreateLink from "../../input/mouse/MouseCreateLink.js"
 import SVGIcon from "../../SVGIcon.js"
 import Utility from "../../Utility.js"
+import MouseCreateLink from "../../input/mouse/MouseCreateLink.js"
+import ITemplate from "../ITemplate.js"
 import VariableConversionNodeTemplate from "../node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate.js"
 

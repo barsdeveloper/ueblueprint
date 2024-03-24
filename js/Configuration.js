@@ -153,6 +153,7 @@ export default class Configuration {
         makeMap: "/Script/BlueprintGraph.K2Node_MakeMap",
         makeSet: "/Script/BlueprintGraph.K2Node_MakeSet",
         makeStruct: "/Script/BlueprintGraph.K2Node_MakeStruct",
+        materialExpressionComponentMask: "/Script/Engine.MaterialExpressionComponentMask",
         materialExpressionConstant: "/Script/Engine.MaterialExpressionConstant",
         materialExpressionConstant2Vector: "/Script/Engine.MaterialExpressionConstant2Vector",
         materialExpressionConstant3Vector: "/Script/Engine.MaterialExpressionConstant3Vector",
@@ -328,6 +329,8 @@ export default class Configuration {
         "Alt",
         "Meta",
     ]
+    /** @type {["R", "G", "B", "A"]} */
+    static rgba = ["R", "G", "B", "A"]
     static Keys = {
         /* UE name: JS name */
         "Backspace": "Backspace",

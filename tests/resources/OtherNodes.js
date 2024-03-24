@@ -1,6 +1,6 @@
 import Configuration from "../../js/Configuration.js"
-import NodeTests from "./NodeTests.js"
 import SVGIcon from "../../js/SVGIcon.js"
+import NodeTests from "./NodeTests.js"
 
 export default class OtherNodes extends NodeTests {
     static {

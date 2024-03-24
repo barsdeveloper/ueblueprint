@@ -1,33 +1,19 @@
-import Grammar from "../serialization/Grammar.js"
-import IdentifierEntity from "./IdentifierEntity.js"
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
+import IdentifierEntity from "./IdentifierEntity.js"
 
 export default class KeyBindingEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        ActionName: {
-            default: "",
-        },
-        bShift: {
-            default: false,
-        },
-        bCtrl: {
-            default: false,
-        },
-        bAlt: {
-            default: false,
-        },
-        bCmd: {
-            default: false,
-        },
-        Key: {
-            type: IdentifierEntity,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        ActionName: AttributeInfo.createValue(""),
+        bShift: AttributeInfo.createValue(false),
+        bCtrl: AttributeInfo.createValue(false),
+        bAlt: AttributeInfo.createValue(false),
+        bCmd: AttributeInfo.createValue(false),
+        Key: AttributeInfo.createType(IdentifierEntity),
     }
     static grammar = this.createGrammar()
 

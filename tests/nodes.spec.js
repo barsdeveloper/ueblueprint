@@ -1,8 +1,10 @@
-import { test, expect } from "./fixtures/test.js"
+import Utility from "../js/Utility.js"
 import Configuration from "./../js/Configuration.js"
+import { expect, test } from "./fixtures/test.js"
 import EventNodes from "./resources/EventNodes.js"
 import FlowControlNodes from "./resources/FlowControlNodes.js"
 import InputNodes from "./resources/InputNodes.js"
+import IssuesNodes1 from "./resources/IssuesNodes1.js"
 import LegacyNodes from "./resources/LegacyNodes.js"
 import MaterialNodes from "./resources/MaterialNodes.js"
 import OperationsNodes from "./resources/OperationsNodes.js"
@@ -17,14 +19,9 @@ const nodeTests = [
     ...MaterialNodes.get(),
     ...OperationsNodes.get(),
     ...OtherNodes.get(),
-    ...PCGNodes.get()
+    ...PCGNodes.get(),
+    ...IssuesNodes1.get(),
 ]
-
-/** @param {String[]} words */
-function getFirstWordOrder(words) {
-    return new RegExp(/\s*/.source + words.join(/[^\n]+\n\s*/.source) + /\s*/.source)
-}
-
 
 test.describe.configure({ mode: "parallel" })
 
@@ -63,7 +60,7 @@ for (const nodeTest of nodeTests) {
             test(
                 `${nodeTest.name}: Has title ${nodeTest.title}`,
                 async ({ blueprintPage }) => expect(
-                    await blueprintPage.node.evaluate(node => node.getNodeDisplayName())
+                    await blueprintPage.node.evaluate(node => node.nodeDisplayName)
                 ).toBe(nodeTest.title)
             )
         }
@@ -136,15 +133,15 @@ for (const nodeTest of nodeTests) {
         test(
             `${nodeTest.name}: Maintains the order of attributes`,
             async ({ blueprintPage }) => {
-                const value = await blueprintPage.blueprintLocator.evaluate(blueprint => {
+                const serialized = await blueprintPage.blueprintLocator.evaluate(blueprint => {
                     blueprint.selectAll()
                     return blueprint.template.getCopyInputObject().getSerializedText()
                 })
-                const words = value
+                const words = nodeTest.value
                     .split("\n")
                     .map(row => row.match(/\s*("?\w+(\s+\w+)*).+/)?.[1])
                     .filter(v => v?.length > 0)
-                expect(value).toMatch(getFirstWordOrder(words))
+                expect(serialized).toMatch(Utility.getFirstWordOrder(words))
             }
         )
         if (nodeTest.variadic) {
@@ -162,7 +159,11 @@ for (const nodeTest of nodeTests) {
             test(
                 `${nodeTest.name}: Additional tests`,
                 async ({ blueprintPage }) =>
-                    nodeTest.additionalTest(blueprintPage.node, await blueprintPage.node.locator("ueb-pin").all())
+                    nodeTest.additionalTest(
+                        blueprintPage.node,
+                        await blueprintPage.node.locator("ueb-pin").all(),
+                        blueprintPage,
+                    )
             )
         }
     })

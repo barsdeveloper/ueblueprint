@@ -1,7 +1,7 @@
 import { html } from "lit"
 import Configuration from "../../Configuration.js"
-import IInputPinTemplate from "./IInputPinTemplate.js"
 import Utility from "../../Utility.js"
+import IInputPinTemplate from "./IInputPinTemplate.js"
 
 /** @extends IInputPinTemplate<EnumEntity> */
 export default class EnumPinTemplate extends IInputPinTemplate {

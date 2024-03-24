@@ -1,4 +1,5 @@
 import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
@@ -7,21 +8,18 @@ export default class MacroGraphReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        MacroGraph: {
+        MacroGraph: new AttributeInfo({
             type: ObjectReferenceEntity,
             default: () => new ObjectReferenceEntity(),
-        },
-        GraphBlueprint: {
+        }),
+        GraphBlueprint: new AttributeInfo({
             type: ObjectReferenceEntity,
             default: () => new ObjectReferenceEntity(),
-        },
-        GraphGuid: {
+        }),
+        GraphGuid: new AttributeInfo({
             type: GuidEntity,
             default: () => new GuidEntity(),
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
     }
     static grammar = this.createGrammar()
 

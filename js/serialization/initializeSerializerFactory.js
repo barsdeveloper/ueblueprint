@@ -1,11 +1,11 @@
+import Parsernostrum from "parsernostrum"
+import Utility from "../Utility.js"
 import ByteEntity from "../entity/ByteEntity.js"
 import ColorChannelEntity from "../entity/ColorChannelEntity.js"
-import CustomSerializer from "./CustomSerializer.js"
 import EnumDisplayValueEntity from "../entity/EnumDisplayValueEntity.js"
 import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity.js"
-import Grammar from "./Grammar.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import IdentifierEntity from "../entity/IdentifierEntity.js"
 import Integer64Entity from "../entity/Integer64Entity.js"
@@ -18,27 +18,28 @@ import MacroGraphReferenceEntity from "../entity/MacroGraphReferenceEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity.js"
-import ObjectSerializer from "./ObjectSerializer.js"
-import Parsernostrum from "parsernostrum"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import RBSerializationVector2DEntity from "../entity/RBSerializationVector2DEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
-import Serializer from "./Serializer.js"
-import SerializerFactory from "./SerializerFactory.js"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity.js"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
 import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
-import ToStringSerializer from "./ToStringSerializer.js"
 import Union from "../entity/Union.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
-import Utility from "../Utility.js"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
+import CustomSerializer from "./CustomSerializer.js"
+import Grammar from "./Grammar.js"
+import ObjectSerializer from "./ObjectSerializer.js"
+import Serializer from "./Serializer.js"
+import SerializerFactory from "./SerializerFactory.js"
+import ToStringSerializer from "./ToStringSerializer.js"
+import PinTypeEntity from "../entity/PinTypeEntity.js"
 
 Grammar.unknownValue =
     Parsernostrum.alt(
@@ -48,8 +49,8 @@ Grammar.unknownValue =
         Parsernostrum.str("None").map(() => new ObjectReferenceEntity({ type: "None" })),
         Grammar.null,
         Grammar.number,
-        Grammar.string,
         ObjectReferenceEntity.fullReferenceGrammar,
+        Grammar.string,
         LocalizedTextEntity.createGrammar(),
         InvariantTextEntity.createGrammar(),
         FormatTextEntity.createGrammar(),
@@ -242,6 +243,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         PinReferenceEntity,
         new Serializer(PinReferenceEntity, undefined, " ", false, "", () => "")
+    )
+
+    SerializerFactory.registerSerializer(
+        PinTypeEntity,
+        new Serializer(PinTypeEntity)
     )
 
     SerializerFactory.registerSerializer(

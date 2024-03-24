@@ -1,7 +1,6 @@
 import { html } from "lit"
-import PinTemplate from "./PinTemplate.js"
 import SVGIcon from "../../SVGIcon.js"
-import Utility from "../../Utility.js"
+import PinTemplate from "./PinTemplate.js"
 
 export default class ExecPinTemplate extends PinTemplate {
 

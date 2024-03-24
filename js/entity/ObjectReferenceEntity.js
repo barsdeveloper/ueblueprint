@@ -1,24 +1,22 @@
-import Configuration from "../Configuration.js"
-import Grammar from "../serialization/Grammar.js"
-import IEntity from "./IEntity.js"
 import Parsernostrum from "parsernostrum"
+import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
+import Grammar from "../serialization/Grammar.js"
+import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
 
 export default class ObjectReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        type: {
+        type: new AttributeInfo({
             default: "",
             serialized: true,
-        },
-        path: {
+        }),
+        path: new AttributeInfo({
             default: "",
             serialized: true,
-        },
-    }
-    static {
-        this.cleanupAttributes(this.attributes)
+        }),
     }
     static quoted = Parsernostrum.regArray(new RegExp(
         `'"(` + Grammar.Regex.InsideString.source + `)"'`

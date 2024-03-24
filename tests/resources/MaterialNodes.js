@@ -1,11 +1,11 @@
-import { expect } from "../fixtures/test.js"
 import Configuration from "../../js/Configuration.js"
-import IntegerEntity from "../../js/entity/IntegerEntity.js"
-import NodeTests from "./NodeTests.js"
-import PinElement from "../../js/element/PinElement.js"
-import RBSerializationVector2DEntity from "../../js/entity/RBSerializationVector2DEntity.js"
 import Utility from "../../js/Utility.js"
+import PinElement from "../../js/element/PinElement.js"
+import IntegerEntity from "../../js/entity/IntegerEntity.js"
+import RBSerializationVector2DEntity from "../../js/entity/RBSerializationVector2DEntity.js"
 import VectorEntity from "../../js/entity/VectorEntity.js"
+import { expect } from "../fixtures/test.js"
+import NodeTests from "./NodeTests.js"
 
 export default class MaterialNodes extends NodeTests {
     static {

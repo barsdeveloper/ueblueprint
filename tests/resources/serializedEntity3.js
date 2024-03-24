@@ -24,5 +24,6 @@ export default `[[
     sierra.someBoolean2: False
     sierra.someObjectString: "gamma"
     sierra.someArray: (400,500,600,700,800,)
+    sierra.someArray2: (400,500,600,700,800,)
     sierra.someEntity: Entity1(a=8, b=9)
 ]]`

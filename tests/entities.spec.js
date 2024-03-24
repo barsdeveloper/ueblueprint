@@ -1,22 +1,22 @@
 // @ts-nocheck
 
-import { test, expect } from "./fixtures/test.js"
-import Entity1 from "./resources/Entity1.js"
-import Entity2 from "./resources/Entity2.js"
-import entity2Value from "./resources/serializedEntity2.js"
-import Entity3 from "./resources/Entity3.js"
-import entity3Value from "./resources/serializedEntity3.js"
-import Entity4 from "./resources/Entity4.js"
-import entity4Value from "./resources/serializedEntity4.js"
-import Entity5 from "./resources/Entity5.js"
-import entity5Value1 from "./resources/serializedEntity5-1.js"
-import EntityF from "./resources/EntityF.js"
+import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 import Grammar from "../js/serialization/Grammar.js"
-import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
 import ObjectSerializer from "../js/serialization/ObjectSerializer.js"
 import Serializer from "../js/serialization/Serializer.js"
 import SerializerFactory from "../js/serialization/SerializerFactory.js"
-import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
+import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
+import { expect, test } from "./fixtures/test.js"
+import Entity1 from "./resources/Entity1.js"
+import Entity2 from "./resources/Entity2.js"
+import Entity3 from "./resources/Entity3.js"
+import Entity4 from "./resources/Entity4.js"
+import Entity5 from "./resources/Entity5.js"
+import EntityF from "./resources/EntityF.js"
+import entity2Value from "./resources/serializedEntity2.js"
+import entity3Value from "./resources/serializedEntity3.js"
+import entity4Value from "./resources/serializedEntity4.js"
+import entity5Value1 from "./resources/serializedEntity5-1.js"
 
 test.describe.configure({ mode: "parallel" })
 
@@ -31,7 +31,7 @@ test("Entity2", () => {
         Entity1,
         new Serializer(Entity1, (entity, v) => `Entity1(${v})`, ", ", false, "=",)
     )
-    expect(Object.keys(entity)).toHaveLength(8)
+    expect(Object.keys(entity)).toHaveLength(9)
     expect(entity.someNumber).toBe(567)
     expect(entity.someString).toBe("alpha")
     expect(entity.someString2).toBe("beta")
@@ -39,6 +39,7 @@ test("Entity2", () => {
     expect(entity.someBoolean2).toBe(false)
     expect(entity.someObjectString).toBe("gamma")
     expect(entity.someArray).toStrictEqual([400, 500, 600, 700, 800])
+    expect(entity.someArray2).toStrictEqual([400, 500, 600, 700, 800])
 
     expect(entity.equals(new Entity2())).toBeTruthy()
 

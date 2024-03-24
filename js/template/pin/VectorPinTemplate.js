@@ -1,7 +1,7 @@
 import { html } from "lit"
-import INumericPinTemplate from "./INumericPinTemplate.js"
 import Utility from "../../Utility.js"
 import VectorEntity from "../../entity/VectorEntity.js"
+import INumericPinTemplate from "./INumericPinTemplate.js"
 
 /** @extends INumericPinTemplate<VectorEntity> */
 export default class VectorPinTemplate extends INumericPinTemplate {
