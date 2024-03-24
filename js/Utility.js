@@ -189,6 +189,12 @@ export default class Utility {
      * @param {Attribute} b
      */
     static equals(a, b) {
+        while (a instanceof MirroredEntity) {
+            a = a.get()
+        }
+        while (b instanceof MirroredEntity) {
+            b = b.get()
+        }
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
         if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
             return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
@@ -421,6 +427,11 @@ export default class Utility {
      */
     static range(begin = 0, end = 0, step = end >= begin ? 1 : -1) {
         return Array.from({ length: Math.ceil((end - begin) / step) }, (_, i) => begin + (i * step))
+    }
+
+    /** @param {String[]} words */
+    static getFirstWordOrder(words) {
+        return new RegExp(/\s*/.source + words.join(/[^\n]+\n\s*/.source) + /\s*/.source)
     }
 
     /**

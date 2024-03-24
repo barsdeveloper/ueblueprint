@@ -21,7 +21,7 @@ export default class AttributeInfo {
 
     static #default = {
         nullable: false,
-        ignored: false,
+        ignored: false, // Never serialize or deserialize
         serialized: false, // Value is written and read as string
         expected: false, // Must be there
         inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
@@ -49,9 +49,9 @@ export default class AttributeInfo {
     }
 
     /**
-     * @template V
-     * @param {V} type
-     * @returns {AttributeInfo<InstanceType<V>>}
+     * @template {AttributeTypeDescription} D
+     * @param {D} type
+     * @returns {AttributeInfo<DescribedType<type>>}
      */
     static createType(type) {
         return new AttributeInfo({ type })

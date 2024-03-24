@@ -90,7 +90,7 @@ export default class Serializer {
                 if (attributes[key]?.quoted) {
                     keyValue = `"${keyValue}"`
                 }
-                const isSerialized = Utility.isSerialized(entity, key)
+                const isSerialized = AttributeInfo.getAttribute(entity, key, "serialized")
                 if (first) {
                     first = false
                 } else {

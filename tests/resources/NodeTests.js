@@ -12,7 +12,7 @@
  *     delegate: Boolean,
  *     development: Boolean,
  *     variadic?: Boolean,
- *     additionalTest?: (node: Locator<NodeElement>, pins: Locator<PinElement>[]) => void,
+ *     additionalTest?: (node: Locator<NodeElement>, pins: Locator<PinElement>[], blueprintPage: BlueprintFixture) => void,
  * }} TestData
  */
 

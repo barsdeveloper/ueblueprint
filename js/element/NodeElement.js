@@ -200,15 +200,15 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     initialize(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+        this.typePath = entity.getType()
+        this.nodeTitle = entity.getObjectName()
+        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
+        this.enabledState = entity.EnabledState
+        this.nodeDisplayName = entity.nodeDisplayName()
+        this.pureFunction = entity.bIsPureFunc
+        this.dragLinkObjects = []
         super.initialize(entity, template)
         this.#pins = this.template.createPinElements()
-        this.typePath = this.entity.getType()
-        this.nodeTitle = this.entity.getObjectName()
-        this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString()
-        this.enabledState = this.entity.EnabledState
-        this.nodeDisplayName = this.entity.nodeDisplayName()
-        this.pureFunction = this.entity.bIsPureFunc
-        this.dragLinkObjects = []
         super.setLocation(this.entity.getNodePosX(), this.entity.getNodePosY())
         if (this.entity.NodeWidth && this.entity.NodeHeight) {
             this.sizeX = this.entity.NodeWidth.value

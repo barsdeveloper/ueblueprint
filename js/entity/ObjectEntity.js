@@ -51,10 +51,22 @@ export default class ObjectEntity extends IEntity {
     }
     static attributes = {
         ...super.attributes,
-        R: AttributeInfo.createValue(undefined),
-        G: AttributeInfo.createValue(undefined),
-        B: AttributeInfo.createValue(undefined),
-        A: AttributeInfo.createValue(undefined),
+        R: new AttributeInfo({
+            default: false,
+            silent: true,
+        }),
+        G: new AttributeInfo({
+            default: false,
+            silent: true,
+        }),
+        B: new AttributeInfo({
+            default: false,
+            silent: true,
+        }),
+        A: new AttributeInfo({
+            default: false,
+            silent: true,
+        }),
         AdvancedPinDisplay: AttributeInfo.createType(IdentifierEntity),
         Archetype: AttributeInfo.createType(ObjectReferenceEntity),
         AxisKey: AttributeInfo.createType(SymbolEntity),

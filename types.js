@@ -1,13 +1,3 @@
-/** @typedef {[Number, Number]} Coordinates */
-/**
- * @typedef {IEntity | String | Number | BigInt | Boolean | Array} TerminalAttribute
- * @typedef {TerminalAttribute | MirroredEntity<TerminalAttribute>} Attribute
- * @typedef {(
- *      AttributeConstructor<Attribute> | AttributeConstructor<Attribute>[] 
- *     | MirroredEntity<Attribute> | Union | Union[] | ComputedType
- * )} AttributeTypeDescription
- * @typedef {(entity: IEntity) => Attribute} ValueSupplier
- */
 /**
 * @template T
 * @typedef {new (...args: any) => T} AnyConstructor
@@ -15,7 +5,17 @@
 /**
  * @template {Attribute} T
  * @typedef {AnyConstructor<T> & EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
- *     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor<T>} AttributeConstructor
+*     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor<T>} AttributeConstructor
+*/
+/**
+ * @typedef {[Number, Number]} Coordinates
+ * @typedef {IEntity | String | Number | BigInt | Boolean | Array} TerminalAttribute
+ * @typedef {TerminalAttribute | MirroredEntity<TerminalAttribute>} Attribute
+ * @typedef {(
+ *      AttributeConstructor<Attribute> | AttributeConstructor<Attribute>[] 
+ *     | MirroredEntity<Attribute> | Union<any> | Union<any>[] | ComputedType
+ * )} AttributeTypeDescription
+ * @typedef {(entity: IEntity) => Attribute} ValueSupplier
  */
 /**
  * @template {Attribute} T
@@ -38,7 +38,9 @@
  */
 /**
  * @template T
- * @typedef {T extends StringConstructor
+ * @typedef {T extends AnyConstructor<infer R>
+ *     ? R
+ *     : T extends StringConstructor
  *     ? String
  *     : T extends NumberConstructor
  *     ? Number
@@ -48,14 +50,36 @@
  *     ? Boolean
  *     : T extends ArrayConstructor
  *     ? Array
- *     : T extends MirroredEntity<infer R>
- *     ? MirroredEntity<R>
- *     : T extends AnyConstructor<infer R>
- *     ? R
- *     : T extends abstract new (...args: any) => any
- *     ? InstanceType<T>
  *     : any
  * } ConstructedType
+ */
+/**
+ * @template T
+ * @typedef {T extends [infer A] ? DescribedType<A>
+*     : T extends [infer A, ...infer B] ? (DescribedType<A> | DescribedTypesFromArray<B>)
+*     : any
+* } DescribedTypesFromArray
+**/
+/**
+ * @template T
+ * @typedef {T extends AnyConstructor<infer R>
+ *     ? R
+ *     : T extends StringConstructor
+ *     ? String
+ *     : T extends NumberConstructor
+ *     ? Number
+ *     : T extends BigIntConstructor
+ *     ? BigInt
+ *     : T extends BooleanConstructor
+ *     ? Boolean
+ *     : T extends Array<infer R>
+ *     ? DescribedType<R>[]
+ *     : T extends MirroredEntity<infer R>
+ *     ? DescribedType<R>
+ *     : T extends Union<infer R>
+ *     ? DescribedTypesFromArray<R>
+ *     : T
+ * } DescribedType
  */
 /**
  * @typedef {import("./js/entity/AttributeInfo.js").default} AttributeInfo
@@ -73,6 +97,10 @@
  *     (value: BigInt): BigIntConstructor,
  *     (value: T): typeof value.constructor,
  * }} TypeGetter
+ */
+/**
+ * @template {any[]} T
+ * @typedef {import("./js/entity/Union.js").default<T>} Union
  */
 /**
  * @typedef {typeof import("./js/Blueprint.js").default} BlueprintConstructor
@@ -133,7 +161,6 @@
  * @typedef {import("./js/entity/SimpleSerializationVectorEntity.js").default} SimpleSerializationVectorEntity
  * @typedef {import("./js/entity/SymbolEntity.js").default} SymbolEntity
  * @typedef {import("./js/entity/TerminalTypeEntity.js").default} TerminalTypeEntity
- * @typedef {import("./js/entity/Union.js").default} Union
  * @typedef {import("./js/entity/UnknownKeysEntity.js").default} UnknownKeysEntity
  * @typedef {import("./js/entity/UnknownPinEntity.js").default} UnknownPinEntity
  * @typedef {import("./js/entity/VariableReferenceEntity.js").default} VariableReferenceEntity
@@ -183,6 +210,7 @@
  * @typedef {import("./js/template/SelectorTemplate.js").default} SelectorTemplate
  * @typedef {import("./js/template/window/ColorPickerWindowTemplate.js").default} ColorPickerWindowTemplate
  * @typedef {import("./js/template/window/WindowTemplate.js").default} WindowTemplate
+ * @typedef {import ("./tests/fixtures/BlueprintFixture.js").default} BlueprintFixture
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
@@ -202,7 +230,7 @@
 /**
  * @template T
  * @typedef {{
-*     evaluate<R, Arg>(pageFunction: (node: T, arg: Arg) => R, arg: Arg, options?: { timeout?: number }): Promise<R>
-*     evaluate<R>(pageFunction: (node: T) => R, options?: { timeout?: number }): Promise<R>
-* } & import("@playwright/test").Locator} Locator
-*/
+ *     evaluate<R, Arg>(pageFunction: (node: T, arg: Arg) => R, arg: Arg, options?: { timeout?: number }): Promise<R>
+ *     evaluate<R>(pageFunction: (node: T) => R, options?: { timeout?: number }): Promise<R>
+ * } & import("@playwright/test").Locator} Locator
+ */

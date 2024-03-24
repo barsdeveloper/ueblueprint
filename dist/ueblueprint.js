@@ -494,7 +494,7 @@ class AttributeInfo {
 
     static #default = {
         nullable: false,
-        ignored: false,
+        ignored: false, // Never serialize or deserialize
         serialized: false, // Value is written and read as string
         expected: false, // Must be there
         inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
@@ -522,9 +522,9 @@ class AttributeInfo {
     }
 
     /**
-     * @template V
-     * @param {V} type
-     * @returns {AttributeInfo<InstanceType<V>>}
+     * @template {AttributeTypeDescription} D
+     * @param {D} type
+     * @returns {AttributeInfo<DescribedType<type>>}
      */
     static createType(type) {
         return new AttributeInfo({ type })
@@ -821,6 +821,12 @@ class Utility {
      * @param {Attribute} b
      */
     static equals(a, b) {
+        while (a instanceof MirroredEntity) {
+            a = a.get();
+        }
+        while (b instanceof MirroredEntity) {
+            b = b.get();
+        }
         // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
         if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
             return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
@@ -1053,6 +1059,11 @@ class Utility {
      */
     static range(begin = 0, end = 0, step = end >= begin ? 1 : -1) {
         return Array.from({ length: Math.ceil((end - begin) / step) }, (_, i) => begin + (i * step))
+    }
+
+    /** @param {String[]} words */
+    static getFirstWordOrder(words) {
+        return new RegExp(/\s*/.source + words.join(/[^\n]+\n\s*/.source) + /\s*/.source)
     }
 
     /**
@@ -4820,10 +4831,22 @@ class ObjectEntity extends IEntity {
     }
     static attributes = {
         ...super.attributes,
-        R: AttributeInfo.createValue(undefined),
-        G: AttributeInfo.createValue(undefined),
-        B: AttributeInfo.createValue(undefined),
-        A: AttributeInfo.createValue(undefined),
+        R: new AttributeInfo({
+            default: false,
+            silent: true,
+        }),
+        G: new AttributeInfo({
+            default: false,
+            silent: true,
+        }),
+        B: new AttributeInfo({
+            default: false,
+            silent: true,
+        }),
+        A: new AttributeInfo({
+            default: false,
+            silent: true,
+        }),
         AdvancedPinDisplay: AttributeInfo.createType(IdentifierEntity),
         Archetype: AttributeInfo.createType(ObjectReferenceEntity),
         AxisKey: AttributeInfo.createType(SymbolEntity),
@@ -6095,7 +6118,7 @@ class Serializer {
                 if (attributes[key]?.quoted) {
                     keyValue = `"${keyValue}"`;
                 }
-                const isSerialized = Utility.isSerialized(entity, key);
+                const isSerialized = AttributeInfo.getAttribute(entity, key, "serialized");
                 if (first) {
                     first = false;
                 } else {
@@ -10047,15 +10070,15 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     initialize(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+        this.typePath = entity.getType();
+        this.nodeTitle = entity.getObjectName();
+        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
+        this.enabledState = entity.EnabledState;
+        this.nodeDisplayName = entity.nodeDisplayName();
+        this.pureFunction = entity.bIsPureFunc;
+        this.dragLinkObjects = [];
         super.initialize(entity, template);
         this.#pins = this.template.createPinElements();
-        this.typePath = this.entity.getType();
-        this.nodeTitle = this.entity.getObjectName();
-        this.advancedPinDisplay = this.entity.AdvancedPinDisplay?.toString();
-        this.enabledState = this.entity.EnabledState;
-        this.nodeDisplayName = this.entity.nodeDisplayName();
-        this.pureFunction = this.entity.bIsPureFunc;
-        this.dragLinkObjects = [];
         super.setLocation(this.entity.getNodePosX(), this.entity.getNodePosY());
         if (this.entity.NodeWidth && this.entity.NodeHeight) {
             this.sizeX = this.entity.NodeWidth.value;
