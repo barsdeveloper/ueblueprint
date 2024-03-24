@@ -195,7 +195,7 @@ export default class Grammar {
             Parsernostrum.reg(
                 lookbehind instanceof Union
                     ? new RegExp(`(${lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
-                    : lookbehind.constructor == String && lookbehind.length
+                    : lookbehind.constructor == String && lookbehind.length > 0
                         ? new RegExp(`(${lookbehind})\\s*\\(\\s*`)
                         : /()\(\s*/,
                 1

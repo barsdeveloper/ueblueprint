@@ -3209,7 +3209,7 @@ class Grammar {
             Parsernostrum.reg(
                 lookbehind instanceof Union
                     ? new RegExp(`(${lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
-                    : lookbehind.constructor == String && lookbehind.length
+                    : lookbehind.constructor == String && lookbehind.length > 0
                         ? new RegExp(`(${lookbehind})\\s*\\(\\s*`)
                         : /()\(\s*/,
                 1
@@ -4755,7 +4755,7 @@ class UnknownPinEntity extends PinEntity {
     static createGrammar() {
         return Parsernostrum.seq(
             Parsernostrum.reg(
-                new RegExp(`${Grammar.Regex.Symbol.source}\\s*\\(\\s*`),
+                new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`),
                 1
             ),
             Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),

@@ -9,7 +9,7 @@ export default class UnknownPinEntity extends PinEntity {
     static createGrammar() {
         return Parsernostrum.seq(
             Parsernostrum.reg(
-                new RegExp(`${Grammar.Regex.Symbol.source}\\s*\\(\\s*`),
+                new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`),
                 1
             ),
             Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
