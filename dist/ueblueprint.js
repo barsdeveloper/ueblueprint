@@ -3083,7 +3083,7 @@ class Grammar {
     /**
      * @template T
      * @param {AttributeInfo<T>} attribute
-     * @returns {Parsernostrum<DescribedType<T>>}
+     * @returns {Parsernostrum<T>}
      */
     static grammarFor(attribute, type = attribute?.type, defaultGrammar = this.unknownValue) {
         let result = defaultGrammar;
@@ -3104,6 +3104,7 @@ class Grammar {
                     : Parsernostrum.alt(acc, cur)
                 );
         } else if (type instanceof MirroredEntity) {
+            // @ts-expect-error
             return this.grammarFor(undefined, type.getTargetType())
                 .map(v => new MirroredEntity(type.type, () => v))
         } else if (attribute?.constructor === Object) {
@@ -6125,7 +6126,7 @@ class Serializer {
                 } else {
                     result += attributeSeparator;
                 }
-                if (attributes[key]?.inlined) {
+                if (AttributeInfo.getAttribute(entity, key, "inlined")) {
                     result += this.doWrite(
                         value,
                         insideString,
@@ -6134,7 +6135,7 @@ class Serializer {
                         attributeSeparator,
                         false,
                         attributeValueConjunctionSign,
-                        attributes[key].type instanceof Array
+                        AttributeInfo.getAttribute(entity, key, "type") instanceof Array
                             ? k => attributeKeyPrinter(`${keyValue}${k}`)
                             : k => attributeKeyPrinter(`${keyValue}.${k}`)
                     );

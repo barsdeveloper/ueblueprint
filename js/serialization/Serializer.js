@@ -96,7 +96,7 @@ export default class Serializer {
                 } else {
                     result += attributeSeparator
                 }
-                if (attributes[key]?.inlined) {
+                if (AttributeInfo.getAttribute(entity, key, "inlined")) {
                     result += this.doWrite(
                         value,
                         insideString,
@@ -105,7 +105,7 @@ export default class Serializer {
                         attributeSeparator,
                         false,
                         attributeValueConjunctionSign,
-                        attributes[key].type instanceof Array
+                        AttributeInfo.getAttribute(entity, key, "type") instanceof Array
                             ? k => attributeKeyPrinter(`${keyValue}${k}`)
                             : k => attributeKeyPrinter(`${keyValue}.${k}`)
                     )
