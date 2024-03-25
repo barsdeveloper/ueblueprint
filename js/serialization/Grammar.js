@@ -69,6 +69,7 @@ export default class Grammar {
     /**
      * @template T
      * @param {AttributeInfo<T>} attribute
+     * @returns {Parsernostrum<T>}
      */
     static grammarFor(attribute, type = attribute?.type, defaultGrammar = this.unknownValue) {
         let result = defaultGrammar
@@ -78,9 +79,9 @@ export default class Grammar {
             }
             result = Parsernostrum.seq(
                 Parsernostrum.reg(/\(\s*/),
-                this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation),
+                this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation).opt(),
                 Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-            ).map(([_0, values, _3]) => values)
+            ).map(([_0, values, _3]) => values instanceof Array ? values : [])
         } else if (type instanceof Union) {
             result = type.values
                 .map(v => this.grammarFor(undefined, v))
@@ -89,6 +90,7 @@ export default class Grammar {
                     : Parsernostrum.alt(acc, cur)
                 )
         } else if (type instanceof MirroredEntity) {
+            // @ts-expect-error
             return this.grammarFor(undefined, type.getTargetType())
                 .map(v => new MirroredEntity(type.type, () => v))
         } else if (attribute?.constructor === Object) {

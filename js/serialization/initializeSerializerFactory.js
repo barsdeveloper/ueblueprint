@@ -21,6 +21,7 @@ import ObjectReferenceEntity from "../entity/ObjectReferenceEntity.js"
 import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
+import PinTypeEntity from "../entity/PinTypeEntity.js"
 import RBSerializationVector2DEntity from "../entity/RBSerializationVector2DEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity.js"
@@ -39,7 +40,6 @@ import ObjectSerializer from "./ObjectSerializer.js"
 import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
 import ToStringSerializer from "./ToStringSerializer.js"
-import PinTypeEntity from "../entity/PinTypeEntity.js"
 
 Grammar.unknownValue =
     Parsernostrum.alt(
