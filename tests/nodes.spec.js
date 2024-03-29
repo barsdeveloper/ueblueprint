@@ -43,6 +43,7 @@ for (const nodeTest of nodeTests) {
                 }
             )
         }
+
         test(
             `${nodeTest.name}: Has correct delegate`,
             async ({ blueprintPage }) => {
@@ -56,6 +57,7 @@ for (const nodeTest of nodeTests) {
                 }
             }
         )
+
         if (nodeTest.title) {
             test(
                 `${nodeTest.name}: Has title ${nodeTest.title}`,
@@ -64,6 +66,7 @@ for (const nodeTest of nodeTests) {
                 ).toBe(nodeTest.title)
             )
         }
+
         if (nodeTest.subtitle) {
             test(
                 `${nodeTest.name}: Has expected subtitle ${nodeTest.subtitle}`,
@@ -71,6 +74,7 @@ for (const nodeTest of nodeTests) {
                     .toHaveText(nodeTest.subtitle, { useInnerText: true })
             )
         }
+
         if (nodeTest.size) {
             test(
                 `${nodeTest.name}: Has approximately the expected size`,
@@ -94,6 +98,7 @@ for (const nodeTest of nodeTests) {
                 }
             )
         }
+
         if (nodeTest.icon !== undefined) {
             test(
                 `${nodeTest.name}: Has the correct icon`,
@@ -104,6 +109,7 @@ for (const nodeTest of nodeTests) {
                 ).toBe(nodeTest.icon?.strings.join(""))
             )
         }
+
         if (nodeTest.pins !== undefined) {
             test(
                 `${nodeTest.name}: Has ${nodeTest.pins} pins`,
@@ -114,6 +120,7 @@ for (const nodeTest of nodeTests) {
                 ).toBe(nodeTest.pins)
             )
         }
+
         if (nodeTest.pinNames) {
             test(
                 `${nodeTest.name}: Has correct pin names`,
@@ -124,12 +131,14 @@ for (const nodeTest of nodeTests) {
                 }
             )
         }
+
         test(
             `${nodeTest.name}: Expected development`,
             async ({ blueprintPage }) => expect(
                 await blueprintPage.node.evaluate(node => node.entity.isDevelopmentOnly())
             ).toBe(nodeTest.development)
         )
+
         test(
             `${nodeTest.name}: Maintains the order of attributes`,
             async ({ blueprintPage }) => {
@@ -144,6 +153,7 @@ for (const nodeTest of nodeTests) {
                 expect(serialized).toMatch(Utility.getFirstWordOrder(words))
             }
         )
+
         if (nodeTest.variadic) {
             test(
                 `${nodeTest.name}: Can add new pins`,
@@ -155,6 +165,7 @@ for (const nodeTest of nodeTests) {
                 }
             )
         }
+
         if (nodeTest.additionalTest) {
             test(
                 `${nodeTest.name}: Additional tests`,

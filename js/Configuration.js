@@ -114,7 +114,6 @@ export default class Configuration {
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         eAttachmentRule: "/Script/Engine.EAttachmentRule",
         edGraph: "/Script/Engine.EdGraph",
-        edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
         eMaterialSamplerType: "/Script/Engine.EMaterialSamplerType",
         enum: "/Script/CoreUObject.Enum",

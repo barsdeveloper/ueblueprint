@@ -1,4 +1,5 @@
 import Configuration from "../Configuration.js"
+import AttributeInfo from "../entity/AttributeInfo.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import Grammar from "./Grammar.js"
@@ -88,13 +89,15 @@ export default class ObjectSerializer extends Serializer {
                 attributeValueConjunctionSign,
                 key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
             )
-            + entity.getCustomproperties().map(pin =>
-                moreIndentation
-                + attributeKeyPrinter("CustomProperties ")
-                + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
-                + this.attributeSeparator
+            + (!AttributeInfo.getAttribute(entity, "CustomProperties", "ignored")
+                ? entity.getCustomproperties().map(pin =>
+                    moreIndentation
+                    + attributeKeyPrinter("CustomProperties ")
+                    + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
+                    + this.attributeSeparator
+                ).join("")
+                : ""
             )
-                .join("")
             + indentation + "End Object"
         return result
     }

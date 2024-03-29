@@ -74,20 +74,6 @@ export default class ObjectReferenceEntity extends IEntity {
         return new ObjectReferenceEntity({ type: "None", path: "" })
     }
 
-    sanitize() {
-        if (this.type && !this.type.startsWith("/")) {
-            let deprecatedType = this.type + "_Deprecated"
-            let path = Object.keys(Configuration.paths)
-                .find(type => {
-                    const name = Utility.getNameFromPath(Configuration.paths[type])
-                    return name === this.type || name === deprecatedType
-                })
-            if (path) {
-                this.type = Configuration.paths[path]
-            }
-        }
-    }
-
     getName() {
         return Utility.getNameFromPath(this.path.replace(/_C$/, ""))
     }

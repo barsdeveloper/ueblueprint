@@ -138,7 +138,6 @@ class Configuration {
         dynamicCast: "/Script/BlueprintGraph.K2Node_DynamicCast",
         eAttachmentRule: "/Script/Engine.EAttachmentRule",
         edGraph: "/Script/Engine.EdGraph",
-        edGraphPinDeprecated: "/Script/Engine.EdGraphPin_Deprecated",
         eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
         eMaterialSamplerType: "/Script/Engine.EMaterialSamplerType",
         enum: "/Script/CoreUObject.Enum",
@@ -3373,20 +3372,6 @@ class ObjectReferenceEntity extends IEntity {
         return new ObjectReferenceEntity({ type: "None", path: "" })
     }
 
-    sanitize() {
-        if (this.type && !this.type.startsWith("/")) {
-            let deprecatedType = this.type + "_Deprecated";
-            let path = Object.keys(Configuration.paths)
-                .find(type => {
-                    const name = Utility.getNameFromPath(Configuration.paths[type]);
-                    return name === this.type || name === deprecatedType
-                });
-            if (path) {
-                this.type = Configuration.paths[path];
-            }
-        }
-    }
-
     getName() {
         return Utility.getNameFromPath(this.path.replace(/_C$/, ""))
     }
@@ -4833,123 +4818,127 @@ class ObjectEntity extends IEntity {
     }
     static attributes = {
         ...super.attributes,
+        Class: AttributeInfo.createType(ObjectReferenceEntity),
+        Name: AttributeInfo.createType(String),
+        Archetype: AttributeInfo.createType(ObjectReferenceEntity),
+        ExportPath: AttributeInfo.createType(ObjectReferenceEntity),
         R: new AttributeInfo({
+            type: new Union(Boolean, Number),
             default: false,
             silent: true,
         }),
         G: new AttributeInfo({
+            type: new Union(Boolean, Number),
             default: false,
             silent: true,
         }),
         B: new AttributeInfo({
+            type: new Union(Boolean, Number),
             default: false,
             silent: true,
         }),
         A: new AttributeInfo({
+            type: new Union(Boolean, Number),
             default: false,
             silent: true,
         }),
-        AdvancedPinDisplay: AttributeInfo.createType(IdentifierEntity),
-        Archetype: AttributeInfo.createType(ObjectReferenceEntity),
-        AxisKey: AttributeInfo.createType(SymbolEntity),
-        bAlt: AttributeInfo.createType(Boolean),
-        bCanRenameNode: AttributeInfo.createType(Boolean),
-        bColorCommentBubble: AttributeInfo.createType(Boolean),
-        bCommand: AttributeInfo.createType(Boolean),
-        bCommentBubblePinned: AttributeInfo.createType(Boolean),
-        bCommentBubbleVisible_InDetailsPanel: AttributeInfo.createType(Boolean),
-        bCommentBubbleVisible: AttributeInfo.createType(Boolean),
-        bConsumeInput: AttributeInfo.createType(Boolean),
-        bControl: AttributeInfo.createType(Boolean),
-        bExecuteWhenPaused: AttributeInfo.createType(Boolean),
-        bExposeToLibrary: AttributeInfo.createType(Boolean),
-        bInternalEvent: AttributeInfo.createType(Boolean),
-        bIsCaseSensitive: AttributeInfo.createType(Boolean),
-        bIsConstFunc: AttributeInfo.createType(Boolean),
-        bIsPureFunc: AttributeInfo.createType(Boolean),
-        BlueprintElementInstance: AttributeInfo.createType(ObjectReferenceEntity),
+        ObjectRef: AttributeInfo.createType(ObjectReferenceEntity),
         BlueprintElementType: AttributeInfo.createType(ObjectReferenceEntity),
-        bOverrideFunction: AttributeInfo.createType(Boolean),
-        bOverrideParentBinding: AttributeInfo.createType(Boolean),
-        bShift: AttributeInfo.createType(Boolean),
-        Class: AttributeInfo.createType(ObjectReferenceEntity),
-        CommentColor: AttributeInfo.createType(LinearColorEntity),
-        ComponentPropertyName: AttributeInfo.createType(String),
-        CustomFunctionName: AttributeInfo.createType(String),
-        CustomProperties: AttributeInfo.createType([new Union(PinEntity, UnknownPinEntity)]),
-        DelegateOwnerClass: AttributeInfo.createType(ObjectReferenceEntity),
+        BlueprintElementInstance: AttributeInfo.createType(ObjectReferenceEntity),
+        PinTags: new AttributeInfo({
+            type: [null],
+            inlined: true,
+        }),
+        PinNames: new AttributeInfo({
+            type: [String],
+            inlined: true,
+        }),
+        AxisKey: AttributeInfo.createType(SymbolEntity),
+        InputAxisKey: AttributeInfo.createType(SymbolEntity),
+        InputName: AttributeInfo.createType(String),
+        InputType: AttributeInfo.createType(SymbolEntity),
+        NumAdditionalInputs: AttributeInfo.createType(Number),
+        bIsPureFunc: AttributeInfo.createType(Boolean),
+        bIsConstFunc: AttributeInfo.createType(Boolean),
+        bIsCaseSensitive: AttributeInfo.createType(Boolean),
+        VariableReference: AttributeInfo.createType(VariableReferenceEntity),
+        SelfContextInfo: AttributeInfo.createType(SymbolEntity),
         DelegatePropertyName: AttributeInfo.createType(String),
-        DelegateReference: AttributeInfo.createType(VariableReferenceEntity),
-        EnabledState: AttributeInfo.createType(IdentifierEntity),
+        DelegateOwnerClass: AttributeInfo.createType(ObjectReferenceEntity),
+        ComponentPropertyName: AttributeInfo.createType(String),
+        EventReference: AttributeInfo.createType(FunctionReferenceEntity),
+        FunctionReference: AttributeInfo.createType(FunctionReferenceEntity),
+        CustomFunctionName: AttributeInfo.createType(String),
+        TargetType: AttributeInfo.createType(ObjectReferenceEntity),
+        MacroGraphReference: AttributeInfo.createType(MacroGraphReferenceEntity),
         Enum: AttributeInfo.createType(ObjectReferenceEntity),
         EnumEntries: new AttributeInfo({
             type: [String],
             inlined: true,
         }),
-        ErrorMsg: AttributeInfo.createType(String),
-        ErrorType: AttributeInfo.createType(IntegerEntity),
-        EventReference: AttributeInfo.createType(FunctionReferenceEntity),
-        ExportPath: AttributeInfo.createType(ObjectReferenceEntity),
-        FunctionReference: AttributeInfo.createType(FunctionReferenceEntity),
-        Graph: AttributeInfo.createType(ObjectReferenceEntity),
-        HiGenGridSize: AttributeInfo.createType(SymbolEntity),
-        InputAxisKey: AttributeInfo.createType(SymbolEntity),
         InputKey: AttributeInfo.createType(SymbolEntity),
-        InputName: AttributeInfo.createType(String),
+        MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
+        bOverrideFunction: AttributeInfo.createType(Boolean),
+        bInternalEvent: AttributeInfo.createType(Boolean),
+        bConsumeInput: AttributeInfo.createType(Boolean),
+        bExecuteWhenPaused: AttributeInfo.createType(Boolean),
+        bOverrideParentBinding: AttributeInfo.createType(Boolean),
+        bControl: AttributeInfo.createType(Boolean),
+        bAlt: AttributeInfo.createType(Boolean),
+        bShift: AttributeInfo.createType(Boolean),
+        bCommand: AttributeInfo.createType(Boolean),
+        CommentColor: AttributeInfo.createType(LinearColorEntity),
+        bCommentBubbleVisible_InDetailsPanel: AttributeInfo.createType(Boolean),
+        bColorCommentBubble: AttributeInfo.createType(Boolean),
+        ProxyFactoryFunctionName: AttributeInfo.createType(String),
+        ProxyFactoryClass: AttributeInfo.createType(ObjectReferenceEntity),
+        ProxyClass: AttributeInfo.createType(ObjectReferenceEntity),
+        StructType: AttributeInfo.createType(ObjectReferenceEntity),
+        MaterialExpression: AttributeInfo.createType(ObjectReferenceEntity),
+        MaterialExpressionComment: AttributeInfo.createType(ObjectReferenceEntity),
+        MoveMode: AttributeInfo.createType(SymbolEntity),
+        TimelineName: AttributeInfo.createType(String),
+        TimelineGuid: AttributeInfo.createType(GuidEntity),
+        SizeX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
+        SizeY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
+        Text: AttributeInfo.createType(new MirroredEntity(String)),
+        MaterialExpressionEditorX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
+        MaterialExpressionEditorY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
+        NodeTitle: AttributeInfo.createType(String),
+        NodeTitleColor: AttributeInfo.createType(LinearColorEntity),
+        PositionX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
+        PositionY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
+        SettingsInterface: AttributeInfo.createType(ObjectReferenceEntity),
+        PCGNode: AttributeInfo.createType(ObjectReferenceEntity),
+        HiGenGridSize: AttributeInfo.createType(SymbolEntity),
+        Operation: AttributeInfo.createType(SymbolEntity),
+        NodePosX: AttributeInfo.createType(IntegerEntity),
+        NodePosY: AttributeInfo.createType(IntegerEntity),
+        NodeHeight: AttributeInfo.createType(IntegerEntity),
+        NodeWidth: AttributeInfo.createType(IntegerEntity),
+        Graph: AttributeInfo.createType(ObjectReferenceEntity),
+        SubgraphInstance: AttributeInfo.createType(String),
         InputPins: new AttributeInfo({
             type: [ObjectReferenceEntity],
             inlined: true,
         }),
-        InputType: AttributeInfo.createType(SymbolEntity),
-        MacroGraphReference: AttributeInfo.createType(MacroGraphReferenceEntity),
-        MaterialExpression: AttributeInfo.createType(ObjectReferenceEntity),
-        MaterialExpressionComment: AttributeInfo.createType(ObjectReferenceEntity),
-        MaterialExpressionEditorX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        MaterialExpressionEditorY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
-        MoveMode: AttributeInfo.createType(SymbolEntity),
-        Name: AttributeInfo.createType(String),
-        Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),
-        NodeComment: AttributeInfo.createType(String),
-        NodeGuid: AttributeInfo.createType(GuidEntity),
-        NodeHeight: AttributeInfo.createType(IntegerEntity),
-        NodePosX: AttributeInfo.createType(IntegerEntity),
-        NodePosY: AttributeInfo.createType(IntegerEntity),
-        NodeTitle: AttributeInfo.createType(String),
-        NodeTitleColor: AttributeInfo.createType(LinearColorEntity),
-        NodeWidth: AttributeInfo.createType(IntegerEntity),
-        NumAdditionalInputs: AttributeInfo.createType(Number),
-        ObjectRef: AttributeInfo.createType(ObjectReferenceEntity),
-        Operation: AttributeInfo.createType(SymbolEntity),
         OutputPins: new AttributeInfo({
             type: [ObjectReferenceEntity],
             inlined: true,
         }),
-        PCGNode: AttributeInfo.createType(ObjectReferenceEntity),
-        PinNames: new AttributeInfo({
-            type: [String],
-            inlined: true,
-        }),
-        PinTags: new AttributeInfo({
-            type: [null],
-            inlined: true,
-        }),
-        PositionX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        PositionY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        ProxyClass: AttributeInfo.createType(ObjectReferenceEntity),
-        ProxyFactoryClass: AttributeInfo.createType(ObjectReferenceEntity),
-        ProxyFactoryFunctionName: AttributeInfo.createType(String),
-        SelfContextInfo: AttributeInfo.createType(SymbolEntity),
-        SettingsInterface: AttributeInfo.createType(ObjectReferenceEntity),
-        SizeX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        SizeY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        StructType: AttributeInfo.createType(ObjectReferenceEntity),
-        SubgraphInstance: AttributeInfo.createType(String),
-        TargetType: AttributeInfo.createType(ObjectReferenceEntity),
-        Text: AttributeInfo.createType(new MirroredEntity(String)),
-        TimelineGuid: AttributeInfo.createType(GuidEntity),
-        TimelineName: AttributeInfo.createType(String),
-        VariableReference: AttributeInfo.createType(VariableReferenceEntity),
+        bExposeToLibrary: AttributeInfo.createType(Boolean),
+        bCanRenameNode: AttributeInfo.createType(Boolean),
+        bCommentBubblePinned: AttributeInfo.createType(Boolean),
+        bCommentBubbleVisible: AttributeInfo.createType(Boolean),
+        NodeComment: AttributeInfo.createType(String),
+        AdvancedPinDisplay: AttributeInfo.createType(IdentifierEntity),
+        DelegateReference: AttributeInfo.createType(VariableReferenceEntity),
+        EnabledState: AttributeInfo.createType(IdentifierEntity),
+        NodeGuid: AttributeInfo.createType(GuidEntity),
+        ErrorType: AttributeInfo.createType(IntegerEntity),
+        ErrorMsg: AttributeInfo.createType(String),
+        Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),
+        CustomProperties: AttributeInfo.createType([new Union(PinEntity, UnknownPinEntity)]),
     }
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
     static sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/
@@ -4987,6 +4976,7 @@ class ObjectEntity extends IEntity {
                                 if (!values.attributes) {
                                     IEntity.defineAttributes(values, {});
                                 }
+                                Utility.objectSet(values, ["attributes", symbol, "type"], [currentValue.constructor]);
                                 Utility.objectSet(values, ["attributes", symbol, "inlined"], true);
                             }
                         }
@@ -5062,23 +5052,18 @@ class ObjectEntity extends IEntity {
             .map(([_0, first, remaining, _4]) => [first, ...remaining])
     }
 
+    /** @type {String} */
+    #class
+
     constructor(values = {}, suppressWarns = false) {
-        let keys = Object.keys(values);
-        if (keys.some(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))) {
-            let subObjectsValues = keys
-                .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
-                .reduce(
-                    (acc, k) => {
-                        acc[k] = values[k];
-                        return acc
-                    },
-                    {}
-                );
-            // Reorder sub objects to be the first entries
-            values = {
-                ...subObjectsValues,
-                ...values,
-            };
+        if ("NodePosX" in values !== "NodePosY" in values) {
+            const entries = Object.entries(values);
+            const [key, position] = "NodePosX" in values
+                ? ["NodePosY", Object.keys(values).indexOf("NodePosX") + 1]
+                : ["NodePosX", Object.keys(values).indexOf("NodePosY")];
+            const entry = [key, new (AttributeInfo.getAttribute(values, key, "type", ObjectEntity))()];
+            entries.splice(position, 0, entry);
+            values = Object.fromEntries(entries);
         }
         super(values, suppressWarns);
 
@@ -5150,25 +5135,20 @@ class ObjectEntity extends IEntity {
         /** @type {VariableReferenceEntity} */ this.DelegateReference;
         /** @type {VariableReferenceEntity} */ this.VariableReference;
 
-        // Legacy nodes cleanup
+        // Legacy nodes pins
         if (this["Pins"] instanceof Array) {
-            this["Pins"]
-                .forEach(
-                    /** @param {ObjectReferenceEntity} objectReference */
-                    objectReference => {
-                        const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)];
-                        if (pinObject) {
-                            const pinEntity = PinEntity.fromLegacyObject(pinObject);
-                            pinEntity.LinkedTo = [];
-                            this.getCustomproperties(true).push(pinEntity);
-                        }
-                    });
-            delete this["Pins"];
-        }
-        this.Class?.sanitize();
-        if (this.MacroGraphReference) {
-            this.MacroGraphReference.MacroGraph?.sanitize();
-            this.MacroGraphReference.GraphBlueprint?.sanitize();
+            this["Pins"].forEach(
+                /** @param {ObjectReferenceEntity} objectReference */
+                objectReference => {
+                    const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)];
+                    if (pinObject) {
+                        const pinEntity = PinEntity.fromLegacyObject(pinObject);
+                        pinEntity.LinkedTo = [];
+                        this.getCustomproperties(true).push(pinEntity);
+                        Utility.objectSet(this, ["attributes", "CustomProperties", "ignored"], true);
+                    }
+                }
+            );
         }
         /** @type {ObjectEntity} */
         const materialSubobject = this.getMaterialSubobject();
@@ -5228,9 +5208,19 @@ class ObjectEntity extends IEntity {
     }
 
     getClass() {
-        return (this.Class?.path ? this.Class.path : this.Class?.type)
-            ?? (this.ExportPath?.path ? this.ExportPath.path : this.ExportPath?.type)
-            ?? ""
+        if (!this.#class) {
+            this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
+                ?? (this.ExportPath?.path ? this.ExportPath.path : this.ExportPath?.type)
+                ?? "";
+            if (this.#class && !this.#class.startsWith("/")) {
+                // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
+                let path = Object.values(Configuration.paths).find(path => path.endsWith("." + this.#class));
+                if (path) {
+                    this.#class = path;
+                }
+            }
+        }
+        return this.#class
     }
 
     getType() {
@@ -6027,7 +6017,7 @@ class ObjectEntity extends IEntity {
                 newPin.PinId = GuidEntity.generateGuid();
                 newPin.PinName = pinNameFromIndex(index, min, max);
                 newPin.PinToolTip = undefined;
-                this.CustomProperties.push(newPin);
+                this.getCustomproperties(true).push(newPin);
                 return newPin
             }
         }
@@ -6278,13 +6268,15 @@ class ObjectSerializer extends Serializer {
                 attributeValueConjunctionSign,
                 key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
             )
-            + entity.getCustomproperties().map(pin =>
-                moreIndentation
-                + attributeKeyPrinter("CustomProperties ")
-                + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
-                + this.attributeSeparator
+            + (!AttributeInfo.getAttribute(entity, "CustomProperties", "ignored")
+                ? entity.getCustomproperties().map(pin =>
+                    moreIndentation
+                    + attributeKeyPrinter("CustomProperties ")
+                    + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
+                    + this.attributeSeparator
+                ).join("")
+                : ""
             )
-                .join("")
             + indentation + "End Object";
         return result
     }
@@ -7859,9 +7851,7 @@ class KnotEntity extends ObjectEntity {
         values.Class = new ObjectReferenceEntity(Configuration.paths.knot);
         values.Name = "K2Node_Knot";
         const inputPinEntity = new PinEntity(
-            {
-                PinName: "InputPin",
-            },
+            { PinName: "InputPin" },
             true
         );
         const outputPinEntity = new PinEntity(
@@ -7875,7 +7865,7 @@ class KnotEntity extends ObjectEntity {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
-        values.CustomProperties = [inputPinEntity, outputPinEntity];
+        values["CustomProperties"] = [inputPinEntity, outputPinEntity];
         super(values, true);
     }
 }

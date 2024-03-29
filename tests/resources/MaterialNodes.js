@@ -77,7 +77,7 @@ export default class MaterialNodes extends NodeTests {
                 }
             },
             {
-                name: "Constance2Vector",
+                name: "Constant2Vector",
                 title: "0.1,23.9",
                 value: String.raw`
                     Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_42" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_Brick_Cut_Stone:MaterialGraph_0.MaterialGraphNode_42"'

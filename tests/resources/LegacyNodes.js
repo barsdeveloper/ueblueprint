@@ -1,6 +1,5 @@
 import Configuration from "../../js/Configuration.js"
 import SVGIcon from "../../js/SVGIcon.js"
-import { expect } from "../fixtures/test.js"
 import NodeTests from "./NodeTests.js"
 
 export default class LegacyNodes extends NodeTests {
@@ -58,29 +57,6 @@ export default class LegacyNodes extends NodeTests {
                 pinNames: ["A", "B", "Is A"],
                 delegate: false,
                 development: false,
-                additionalTest: async node => {
-                    expect(await node.evaluate(node => node.entity.Class.type))
-                        .toBe("/Script/BlueprintGraph.K2Node_MacroInstance")
-                    expect(await node.evaluate(node => node.entity.MacroGraphReference.MacroGraph.type))
-                        .toBe("/Script/Engine.EdGraph")
-                    expect(await node.evaluate(node => node.entity.MacroGraphReference.MacroGraph.path))
-                        .toBe("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop")
-                    expect(await node.evaluate(node => node.entity.MacroGraphReference.GraphBlueprint.type))
-                        .toBe("/Script/Engine.Blueprint")
-                    expect(await node.evaluate(node => node.entity.MacroGraphReference.GraphBlueprint.path))
-                        .toBe("/Engine/EditorBlueprintResources/StandardMacros.StandardMacros")
-                    expect(await node.evaluate(
-                        (node, subObjectAttributeNamePrefix) => Object.keys(node.entity)
-                            .filter(k => k.startsWith(subObjectAttributeNamePrefix))
-                            .map(k => /** @type {ObjectEntity} */(node.entity[k]))
-                            .filter(v => v.Class)
-                            .map(objectEntity => objectEntity.getType())
-                        ,
-                        Configuration.subObjectAttributeNamePrefix
-                    ))
-                        .toStrictEqual(Array(4).fill(Configuration.paths.edGraphPinDeprecated))
-                    expect(await node.evaluate(node => node.getPinEntities().length)).toBe(4)
-                }
             },
         ])
     }

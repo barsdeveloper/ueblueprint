@@ -173,14 +173,14 @@ test("Entity5", () => {
         EntityF,
         new Serializer(UnknownKeysEntity, (entity, string) => `${entity.lookbehind ?? ""}(${string})`)
     )
-    expect(entity = SerializerFactory.getSerializer(Entity5).read(entity5Value1)).toEqual({
+    expect(entity = SerializerFactory.getSerializer(Entity5).read(entity5Value1)).toEqual(new Entity5({
         key1: "Value 1",
-        key2: {
+        key2: new EntityF({
             lookbehind: "Foo",
             arg1: 55,
             arg2: "Argument 2",
-        },
-    })
+        }),
+    }))
     expect(entity.key2).toBeInstanceOf(EntityF)
     expect(SerializerFactory.getSerializer(Entity5).write(entity)).toBe(entity5Value1)
 })
