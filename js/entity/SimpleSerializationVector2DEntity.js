@@ -8,11 +8,11 @@ export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
     static createGrammar() {
         const number = Parsernostrum.number.getParser().parser.regexp.source
         return Parsernostrum.alt(
-            Parsernostrum.reg(new RegExp(
+            Parsernostrum.regArray(new RegExp(
                 "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
-            )).map(([x, y]) => new this({
+            )).map(([_, x, y]) => new this({
                 X: Number(x),
                 Y: Number(y),
             })),

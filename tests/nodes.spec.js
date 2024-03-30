@@ -28,6 +28,7 @@ test.describe.configure({ mode: "parallel" })
 for (const nodeTest of nodeTests) {
     test.describe(nodeTest.name, () => {
 
+        test.describe.configure({ mode: "serial" })
         test.beforeAll(async ({ blueprintPage }) => {
             await blueprintPage.removeNodes()
             await blueprintPage.paste(nodeTest.value)
@@ -142,15 +143,12 @@ for (const nodeTest of nodeTests) {
         test(
             `${nodeTest.name}: Maintains the order of attributes`,
             async ({ blueprintPage }) => {
-                const serialized = await blueprintPage.blueprintLocator.evaluate(blueprint => {
-                    blueprint.selectAll()
-                    return blueprint.template.getCopyInputObject().getSerializedText()
-                })
-                const words = nodeTest.value
+                const actualSerialization = await blueprintPage.getSerializedNodes()
+                const expectedWords = nodeTest.value
                     .split("\n")
                     .map(row => row.match(/\s*("?\w+(\s+\w+)*).+/)?.[1])
                     .filter(v => v?.length > 0)
-                expect(serialized).toMatch(Utility.getFirstWordOrder(words))
+                expect(actualSerialization).toMatch(Utility.getFirstWordOrder(expectedWords))
             }
         )
 

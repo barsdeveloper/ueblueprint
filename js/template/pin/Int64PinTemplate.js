@@ -1,19 +1,25 @@
-import IntPinTemplate from "./IntPinTemplate.js"
+import { html } from "lit"
+import Integer64Entity from "../../entity/Integer64Entity.js"
+import INumericPinTemplate from "./INumericPinTemplate.js"
 
-export default class Int64PinTemplate extends IntPinTemplate {
+/** @extends INumericPinTemplate<Integer64Entity> */
+export default class Int64PinTemplate extends INumericPinTemplate {
 
-    /** @param {String[]} values */
-    setInputs(values = [], updateDefaultValue = false) {
-        if (!values || values.length == 0) {
-            values = [this.getInput()]
-        }
-        super.setInputs(values, false)
-        if (updateDefaultValue) {
-            if (!values[0].match(/[\-\+]?[0-9]+/)) {
-                return
-            }
-            const parsedValues = [BigInt(values[0])]
-            this.setDefaultValue(parsedValues, values)
-        }
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        this.element.setDefaultValue(new Integer64Entity(values[0]))
+        this.element.requestUpdate()
+    }
+
+    renderInput() {
+        return html`
+            <div class="ueb-pin-input-wrapper ueb-pin-input">
+                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
+                </ueb-input>
+            </div>
+        `
     }
 }

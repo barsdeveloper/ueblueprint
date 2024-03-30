@@ -10,6 +10,7 @@ import Union from "./Union.js"
 /** @abstract */
 export default class IEntity extends Serializable {
 
+    /** @type {{ [attribute: String]: AttributeInfo }} */
     static attributes = {
         attributes: new AttributeInfo({
             ignored: true,
@@ -145,21 +146,6 @@ export default class IEntity extends Serializable {
      */
     static isValueOfType(value, type) {
         return value != null && (value instanceof type || value.constructor === type)
-    }
-
-    static expectsAllKeys() {
-        return !Object.values(this.attributes)
-            .filter(/** @param {AttributeInformation} attribute */attribute => !attribute.ignored)
-            .some(/** @param {AttributeInformation} attribute */attribute => !attribute.expected)
-    }
-
-    static getAttribute(object, attribute) {
-        return this.getAttributes(object)[attribute]
-    }
-
-    /** @returns {AttributeDeclarations} */
-    static getAttributes(object) {
-        return object.attributes ?? object.constructor?.attributes ?? {}
     }
 
     static defineAttributes(object, attributes) {

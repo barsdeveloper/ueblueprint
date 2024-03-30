@@ -328,8 +328,7 @@ ueb-node.ueb-node-style-operation.ueb-node-has-inputs .ueb-node-inputs {
   align-self: center;
 }
 
-ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-node-wrapper,
-ueb-blueprint[data-scrolling=false][data-selecting=false] ueb-node.ueb-node-style-minimal .ueb-node-border {
+ueb-blueprint[data-scrolling=false][data-selecting=false] .ueb-draggable {
   cursor: move;
 }
 

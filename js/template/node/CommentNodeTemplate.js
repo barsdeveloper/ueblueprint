@@ -1,7 +1,7 @@
 import { html } from "lit"
 import Configuration from "../../Configuration.js"
-import IResizeableTemplate from "../IResizeableTemplate.js"
 import Utility from "../../Utility.js"
+import IResizeableTemplate from "../IResizeableTemplate.js"
 
 export default class CommentNodeTemplate extends IResizeableTemplate {
 

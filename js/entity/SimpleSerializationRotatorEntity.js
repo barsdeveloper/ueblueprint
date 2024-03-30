@@ -8,13 +8,13 @@ export default class SimpleSerializationRotatorEntity extends RotatorEntity {
     static createGrammar() {
         const number = Parsernostrum.number.getParser().parser.regexp.source
         return Parsernostrum.alt(
-            Parsernostrum.reg(new RegExp(
+            Parsernostrum.regArray(new RegExp(
                 "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
-            )).map(([p, y, r]) => new this({
+            )).map(([_, p, y, r]) => new this({
                 R: Number(r),
                 P: Number(p),
                 Y: Number(y),

@@ -2832,6 +2832,7 @@ class SerializerFactory {
 /** @abstract */
 class IEntity extends Serializable {
 
+    /** @type {{ [attribute: String]: AttributeInfo }} */
     static attributes = {
         attributes: new AttributeInfo({
             ignored: true,
@@ -2967,21 +2968,6 @@ class IEntity extends Serializable {
      */
     static isValueOfType(value, type) {
         return value != null && (value instanceof type || value.constructor === type)
-    }
-
-    static expectsAllKeys() {
-        return !Object.values(this.attributes)
-            .filter(/** @param {AttributeInformation} attribute */attribute => !attribute.ignored)
-            .some(/** @param {AttributeInformation} attribute */attribute => !attribute.expected)
-    }
-
-    static getAttribute(object, attribute) {
-        return this.getAttributes(object)[attribute]
-    }
-
-    /** @returns {AttributeDeclarations} */
-    static getAttributes(object) {
-        return object.attributes ?? object.constructor?.attributes ?? {}
     }
 
     static defineAttributes(object, attributes) {
@@ -3453,17 +3439,18 @@ class IntegerEntity extends IEntity {
         return Parsernostrum.numberInteger.map(v => new this(v))
     }
 
-    /** @param {Number | AttributeInfo<IntegerEntity>} value */
-    constructor(value = 0) {
-        if (value === -0) {
-            value = 0;
+    /** @param {Number | Object} values */
+    constructor(values = 0) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
+            };
         }
-        super(value.constructor === Object
-            ? value
-            : {
-                value: value,
-            }
-        );
+        values.value = Math.floor(values.value);
+        if (values.value === -0) {
+            values.value = 0;
+        }
+        super(values);
         /** @type {Number} */ this.value;
     }
 
@@ -4093,16 +4080,18 @@ class Integer64Entity extends IEntity {
         return Parsernostrum.numberBigInteger.map(v => new this(v))
     }
 
-    /** @param {BigInt | Number} value */
-    constructor(value = 0) {
-        if (value.constructor !== Object) {
-            value = {
-                // @ts-expect-error
-                value: value,
+    /** @param {BigInt | Number | Object} values */
+    constructor(values = 0) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
             };
         }
-        super(value);
-        /** @type {BigInt | Number} */ this.value;
+        if (values.value === -0) {
+            values.value = 0n;
+        }
+        super(values);
+        /** @type {BigInt} */ this.value;
     }
 
     valueOf() {
@@ -4339,13 +4328,13 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
     static createGrammar() {
         const number = Parsernostrum.number.getParser().parser.regexp.source;
         return Parsernostrum.alt(
-            Parsernostrum.reg(new RegExp(
+            Parsernostrum.regArray(new RegExp(
                 "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
-            )).map(([p, y, r]) => new this({
+            )).map(([_, p, y, r]) => new this({
                 R: Number(r),
                 P: Number(p),
                 Y: Number(y),
@@ -4362,11 +4351,11 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
     static createGrammar() {
         const number = Parsernostrum.number.getParser().parser.regexp.source;
         return Parsernostrum.alt(
-            Parsernostrum.reg(new RegExp(
+            Parsernostrum.regArray(new RegExp(
                 "(" + number + ")"
-                + "\\s*,\\s"
+                + "\\s*,\\s*"
                 + "(" + number + ")"
-            )).map(([x, y]) => new this({
+            )).map(([_, x, y]) => new this({
                 X: Number(x),
                 Y: Number(y),
             })),
@@ -6100,14 +6089,13 @@ class Serializer {
         attributeKeyPrinter = this.attributeKeyPrinter
     ) {
         let result = "";
-        const attributes = IEntity.getAttributes(entity);
         const keys = Object.keys(entity);
         let first = true;
         for (const key of keys) {
             const value = entity[key];
             if (value !== undefined && this.showProperty(entity, key)) {
                 let keyValue = entity instanceof Array ? `(${key})` : key;
-                if (attributes[key]?.quoted) {
+                if (AttributeInfo.getAttribute(entity, key, "quoted")) {
                     keyValue = `"${keyValue}"`;
                 }
                 const isSerialized = AttributeInfo.getAttribute(entity, key, "serialized");
@@ -7191,6 +7179,9 @@ class IMouseClickDrag extends IPointing {
     #trackingMouse = false
     #movementListenedElement
     #draggableElement
+    get draggableElement() {
+        return this.#draggableElement
+    }
 
     clickedOffset = /** @type {Coordinates} */([0, 0])
     clickedPosition = /** @type {Coordinates} */([0, 0])
@@ -8674,8 +8665,20 @@ class MouseClickDrag extends MouseMoveDraggable {
     }
 }
 
+/** @typedef {import("./IMouseClickDrag.js").Options} Options */
+
 /** @extends {MouseMoveDraggable<NodeElement>} */
 class MouseMoveNodes extends MouseMoveDraggable {
+
+    /**
+     * @param {NodeElement} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(target, blueprint, options = {}) {
+        super(target, blueprint, options);
+        this.draggableElement.classList.add("ueb-draggable");
+    }
 
     startDrag() {
         if (!this.target.selected) {
@@ -8717,9 +8720,8 @@ class IDraggableTemplate extends ITemplate {
     }
 
     createDraggableObject() {
-        return new MouseMoveDraggable(this.element, this.blueprint, {
-            draggableElement: this.getDraggableElement(),
-        })
+        const draggableElement = this.getDraggableElement();
+        return new MouseMoveDraggable(this.element, this.blueprint, { draggableElement })
     }
 
     createInputObjects() {
@@ -11309,15 +11311,19 @@ class INumericPinTemplate extends IInputPinTemplate {
      */
     setDefaultValue(values = [], rawValues) {
         this.element.setDefaultValue(/** @type {T} */(values[0]));
+        this.element.requestUpdate();
     }
 }
 
-/** @extends INumericPinTemplate<IntegerEntity> */
-class IntPinTemplate extends INumericPinTemplate {
+/** @extends INumericPinTemplate<Integer64Entity> */
+class Int64PinTemplate extends INumericPinTemplate {
 
-    setDefaultValue(values = [], rawValues = values) {
-        const integer = this.element.getDefaultValue(true);
-        integer.value = values[0];
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        this.element.setDefaultValue(new Integer64Entity(values[0]));
         this.element.requestUpdate();
     }
 
@@ -11331,21 +11337,25 @@ class IntPinTemplate extends INumericPinTemplate {
     }
 }
 
-class Int64PinTemplate extends IntPinTemplate {
+/** @extends INumericPinTemplate<IntegerEntity> */
+class IntPinTemplate extends INumericPinTemplate {
 
-    /** @param {String[]} values */
-    setInputs(values = [], updateDefaultValue = false) {
-        if (!values || values.length == 0) {
-            values = [this.getInput()];
-        }
-        super.setInputs(values, false);
-        if (updateDefaultValue) {
-            if (!values[0].match(/[\-\+]?[0-9]+/)) {
-                return
-            }
-            const parsedValues = [BigInt(values[0])];
-            this.setDefaultValue(parsedValues, values);
-        }
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        this.element.setDefaultValue(new IntegerEntity(values[0]));
+        this.element.requestUpdate();
+    }
+
+    renderInput() {
+        return x`
+            <div class="ueb-pin-input-wrapper ueb-pin-input">
+                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
+                </ueb-input>
+            </div>
+        `
     }
 }
 

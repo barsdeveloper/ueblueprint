@@ -1,7 +1,19 @@
 import MouseMoveDraggable from "./MouseMoveDraggable.js"
 
+/** @typedef {import("./IMouseClickDrag.js").Options} Options */
+
 /** @extends {MouseMoveDraggable<NodeElement>} */
 export default class MouseMoveNodes extends MouseMoveDraggable {
+
+    /**
+     * @param {NodeElement} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(target, blueprint, options = {}) {
+        super(target, blueprint, options)
+        this.draggableElement.classList.add("ueb-draggable")
+    }
 
     startDrag() {
         if (!this.target.selected) {

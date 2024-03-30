@@ -117,4 +117,15 @@ export default class BlueprintFixture {
 
     async cleanup() {
     }
+
+    blur() {
+        return this.page.evaluate(() => /** @type {HTMLElement} */(document.activeElement).blur())
+    }
+
+    getSerializedNodes() {
+        return this.blueprintLocator.evaluate(blueprint => {
+            blueprint.selectAll()
+            return blueprint.template.getCopyInputObject().getSerializedText()
+        })
+    }
 }

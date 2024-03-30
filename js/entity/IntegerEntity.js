@@ -17,17 +17,18 @@ export default class IntegerEntity extends IEntity {
         return Parsernostrum.numberInteger.map(v => new this(v))
     }
 
-    /** @param {Number | AttributeInfo<IntegerEntity>} value */
-    constructor(value = 0) {
-        if (value === -0) {
-            value = 0
-        }
-        super(value.constructor === Object
-            ? value
-            : {
-                value: value,
+    /** @param {Number | Object} values */
+    constructor(values = 0) {
+        if (values.constructor !== Object) {
+            values = {
+                value: values,
             }
-        )
+        }
+        values.value = Math.floor(values.value)
+        if (values.value === -0) {
+            values.value = 0
+        }
+        super(values)
         /** @type {Number} */ this.value
     }
 

@@ -6,8 +6,12 @@ import IntegerEntity from "../js/entity/IntegerEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
 import ObjectReferenceEntity from "../js/entity/ObjectReferenceEntity.js"
+import PinEntity from "../js/entity/PinEntity.js"
 import PinTypeEntity from "../js/entity/PinTypeEntity.js"
 import RotatorEntity from "../js/entity/RotatorEntity.js"
+import SimpleSerializationRotatorEntity from "../js/entity/SimpleSerializationRotatorEntity.js"
+import SimpleSerializationVector2DEntity from "../js/entity/SimpleSerializationVector2DEntity.js"
+import SimpleSerializationVectorEntity from "../js/entity/SimpleSerializationVectorEntity.js"
 import SymbolEntity from "../js/entity/SymbolEntity.js"
 import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 import Vector2DEntity from "../js/entity/Vector2DEntity.js"
@@ -15,7 +19,6 @@ import VectorEntity from "../js/entity/VectorEntity.js"
 import Grammar from "../js/serialization/Grammar.js"
 import SerializerFactory from "../js/serialization/SerializerFactory.js"
 import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
-import PinEntity from "../js/entity/PinEntity.js"
 
 test.beforeAll(() => initializeSerializerFactory())
 
@@ -297,6 +300,63 @@ test("PinEntity", () => {
     expect(serializer.read("Pin (PinType.PinSubCategoryMemberReference=())")).toMatchObject({
         "PinType": { "PinSubCategoryMemberReference": null }
     })
+})
+
+test("SimpleSerializationRotatorEntity", () => {
+    const serializer = SerializerFactory.getSerializer(SimpleSerializationRotatorEntity)
+
+    expect(serializer.read("0, 0, 0")).toEqual(new SimpleSerializationRotatorEntity({
+        R: 0,
+        P: 0,
+        Y: 0,
+    }))
+    expect(serializer.read("0.65, 1.0, 0.99")).toEqual(new SimpleSerializationRotatorEntity({
+        P: 0.65,
+        Y: 1.0,
+        R: 0.99,
+    }))
+    expect(serializer.read("7,6,5")).toEqual(new SimpleSerializationRotatorEntity({
+        P: 7,
+        Y: 6,
+        R: 5,
+    }))
+})
+
+test("SimpleSerializationVector2DEntity", () => {
+    const serializer = SerializerFactory.getSerializer(SimpleSerializationVector2DEntity)
+
+    expect(serializer.read("0, 0")).toEqual(new SimpleSerializationVector2DEntity({
+        X: 0,
+        Y: 0,
+    }))
+    expect(serializer.read("127.8, 13.3")).toEqual(new SimpleSerializationVector2DEntity({
+        X: 127.8,
+        Y: 13.3,
+    }))
+    expect(serializer.read("5,0")).toEqual(new SimpleSerializationVector2DEntity({
+        X: 5,
+        Y: 0,
+    }))
+})
+
+test("SimpleSerializationVectorEntity", () => {
+    const serializer = SerializerFactory.getSerializer(SimpleSerializationVectorEntity)
+
+    expect(serializer.read("0, 0, 0")).toEqual(new SimpleSerializationVectorEntity({
+        X: 0,
+        Y: 0,
+        Z: 0,
+    }))
+    expect(serializer.read("1001, 56.4, 0.5")).toEqual(new SimpleSerializationVectorEntity({
+        X: 1001,
+        Y: 56.4,
+        Z: 0.5,
+    }))
+    expect(serializer.read("-1,-2,-3")).toEqual(new SimpleSerializationVectorEntity({
+        X: -1,
+        Y: -2,
+        Z: -3,
+    }))
 })
 
 test("String", () => {

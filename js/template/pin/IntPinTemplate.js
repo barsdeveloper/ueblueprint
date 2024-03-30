@@ -1,12 +1,16 @@
 import { html } from "lit"
 import INumericPinTemplate from "./INumericPinTemplate.js"
+import IntegerEntity from "../../entity/IntegerEntity.js"
 
 /** @extends INumericPinTemplate<IntegerEntity> */
 export default class IntPinTemplate extends INumericPinTemplate {
 
-    setDefaultValue(values = [], rawValues = values) {
-        const integer = this.element.getDefaultValue(true)
-        integer.value = values[0]
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values = [], rawValues) {
+        this.element.setDefaultValue(new IntegerEntity(values[0]))
         this.element.requestUpdate()
     }
 

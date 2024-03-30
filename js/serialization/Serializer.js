@@ -80,14 +80,13 @@ export default class Serializer {
         attributeKeyPrinter = this.attributeKeyPrinter
     ) {
         let result = ""
-        const attributes = IEntity.getAttributes(entity)
         const keys = Object.keys(entity)
         let first = true
         for (const key of keys) {
             const value = entity[key]
             if (value !== undefined && this.showProperty(entity, key)) {
                 let keyValue = entity instanceof Array ? `(${key})` : key
-                if (attributes[key]?.quoted) {
+                if (AttributeInfo.getAttribute(entity, key, "quoted")) {
                     keyValue = `"${keyValue}"`
                 }
                 const isSerialized = AttributeInfo.getAttribute(entity, key, "serialized")

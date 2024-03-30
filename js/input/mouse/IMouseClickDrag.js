@@ -140,6 +140,9 @@ export default class IMouseClickDrag extends IPointing {
     #trackingMouse = false
     #movementListenedElement
     #draggableElement
+    get draggableElement() {
+        return this.#draggableElement
+    }
 
     clickedOffset = /** @type {Coordinates} */([0, 0])
     clickedPosition = /** @type {Coordinates} */([0, 0])

@@ -34,5 +34,6 @@ export default class INumericPinTemplate extends IInputPinTemplate {
      */
     setDefaultValue(values = [], rawValues) {
         this.element.setDefaultValue(/** @type {T} */(values[0]))
+        this.element.requestUpdate()
     }
 }
