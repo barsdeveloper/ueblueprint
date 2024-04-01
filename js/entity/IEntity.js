@@ -184,8 +184,11 @@ export default class IEntity extends Serializable {
                         return this["#" + attribute]
                     },
                     set(v) {
-                        this["#" + attribute] = v
+                        if (v == this["#" + attribute]) {
+                            return
+                        }
                         callback(v)
+                        this["#" + attribute] = v
                     }
                 },
             })

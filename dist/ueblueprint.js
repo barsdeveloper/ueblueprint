@@ -3137,8 +3137,11 @@ class IEntity extends Serializable {
                         return this["#" + attribute]
                     },
                     set(v) {
-                        this["#" + attribute] = v;
+                        if (v == this["#" + attribute]) {
+                            return
+                        }
                         callback(v);
+                        this["#" + attribute] = v;
                     }
                 },
             });
@@ -5426,19 +5429,10 @@ class ObjectEntity extends IEntity {
 
     /** @returns {[String, Number]} */
     getNameAndCounter() {
-        const result = this.getObjectName(false).match(ObjectEntity.nameRegex);
-        let name = "";
-        let counter = null;
-        if (result) {
-            if (result.length > 1) {
-                name = result[1];
-            }
-            if (result.length > 2) {
-                counter = parseInt(result[2]);
-            }
-            return [name, counter]
-        }
-        return ["", 0]
+        const result = this.getObjectName().match(ObjectEntity.nameRegex);
+        return result
+            ? [result[1] ?? "", parseInt(result[2] ?? "0")]
+            : ["", 0]
     }
 
     getCounter() {
@@ -9132,6 +9126,17 @@ class NodeElement extends ISelectableDraggableElement {
         return result
     }
 
+    #redirectLinksAfterRename(name) {
+        for (let sourcePinElement of this.getPinElements()) {
+            for (let targetPinReference of sourcePinElement.getLinks()) {
+                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
+                    objectName: name,
+                    pinGuid: sourcePinElement.entity.PinId,
+                }));
+            }
+        }
+    }
+
     initialize(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
         this.typePath = entity.getType();
         this.nodeTitle = entity.getObjectName();
@@ -9149,9 +9154,10 @@ class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes());
         }
-        entity.listenAttribute("Name", v => {
+        entity.listenAttribute("Name", name => {
             this.nodeTitle = entity.Name;
             this.nodeDisplayName = entity.nodeDisplayName();
+            this.#redirectLinksAfterRename(name);
         });
     }
 
@@ -9220,23 +9226,6 @@ class NodeElement extends ISelectableDraggableElement {
         this.getPinElements().forEach(pin => pin.sanitizeLinks(nodesWhitelist));
     }
 
-    /** @param {String} name */
-    rename(name) {
-        if (this.entity.Name == name) {
-            return false
-        }
-        for (let sourcePinElement of this.getPinElements()) {
-            for (let targetPinReference of sourcePinElement.getLinks()) {
-                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
-                    objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
-                }));
-            }
-        }
-        this.entity.Name = name;
-        this.nodeTitle = this.entity.Name;
-    }
-
     getPinElements() {
         return this.#pins
     }
@@ -9287,9 +9276,10 @@ class BlueprintEntity extends IEntity {
     }
 
     /** @param {String} name */
-    getFreeName(name) {
+    takeFreeName(name) {
         name = name.replace(/_\d+$/, "");
         const counter = (this.#objectEntitiesNameCounter.get(name) ?? -1) + 1;
+        this.#objectEntitiesNameCounter.set(name, counter);
         return Configuration.nodeTitle(name, counter)
     }
 
@@ -10744,7 +10734,7 @@ class Blueprint extends IElement {
                 const name = element.entity.getObjectName();
                 const homonym = this.entity.getHomonymObjectEntity(element.entity);
                 if (homonym) {
-                    homonym.Name = this.entity.getFreeName(name);
+                    homonym.Name = this.entity.takeFreeName(name);
                 }
                 this.nodes.push(element);
                 this.entity.addObjectEntity(element.entity);

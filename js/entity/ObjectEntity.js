@@ -485,19 +485,12 @@ export default class ObjectEntity extends IEntity {
 
     /** @returns {[String, Number]} */
     getNameAndCounter() {
-        const result = this.getObjectName(false).match(ObjectEntity.nameRegex)
+        const result = this.getObjectName().match(ObjectEntity.nameRegex)
         let name = ""
         let counter = null
-        if (result) {
-            if (result.length > 1) {
-                name = result[1]
-            }
-            if (result.length > 2) {
-                counter = parseInt(result[2])
-            }
-            return [name, counter]
-        }
-        return ["", 0]
+        return result
+            ? [result[1] ?? "", parseInt(result[2] ?? "0")]
+            : ["", 0]
     }
 
     getCounter() {

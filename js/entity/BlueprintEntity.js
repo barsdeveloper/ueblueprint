@@ -21,9 +21,10 @@ export default class BlueprintEntity extends IEntity {
     }
 
     /** @param {String} name */
-    getFreeName(name) {
+    takeFreeName(name) {
         name = name.replace(/_\d+$/, "")
         const counter = (this.#objectEntitiesNameCounter.get(name) ?? -1) + 1
+        this.#objectEntitiesNameCounter.set(name, counter)
         return Configuration.nodeTitle(name, counter)
     }
 

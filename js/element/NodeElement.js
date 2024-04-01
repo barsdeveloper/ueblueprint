@@ -199,6 +199,17 @@ export default class NodeElement extends ISelectableDraggableElement {
         return result
     }
 
+    #redirectLinksAfterRename(name) {
+        for (let sourcePinElement of this.getPinElements()) {
+            for (let targetPinReference of sourcePinElement.getLinks()) {
+                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
+                    objectName: name,
+                    pinGuid: sourcePinElement.entity.PinId,
+                }))
+            }
+        }
+    }
+
     initialize(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
         this.typePath = entity.getType()
         this.nodeTitle = entity.getObjectName()
@@ -216,9 +227,10 @@ export default class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes())
         }
-        entity.listenAttribute("Name", v => {
+        entity.listenAttribute("Name", name => {
             this.nodeTitle = entity.Name
             this.nodeDisplayName = entity.nodeDisplayName()
+            this.#redirectLinksAfterRename(name)
         })
     }
 
@@ -285,23 +297,6 @@ export default class NodeElement extends ISelectableDraggableElement {
     /** @param  {IElement[]} nodesWhitelist */
     sanitizeLinks(nodesWhitelist = []) {
         this.getPinElements().forEach(pin => pin.sanitizeLinks(nodesWhitelist))
-    }
-
-    /** @param {String} name */
-    rename(name) {
-        if (this.entity.Name == name) {
-            return false
-        }
-        for (let sourcePinElement of this.getPinElements()) {
-            for (let targetPinReference of sourcePinElement.getLinks()) {
-                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
-                    objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
-                }))
-            }
-        }
-        this.entity.Name = name
-        this.nodeTitle = this.entity.Name
     }
 
     getPinElements() {
