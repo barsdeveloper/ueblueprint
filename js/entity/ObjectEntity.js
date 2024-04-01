@@ -14,6 +14,7 @@ import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity.js"
 import MirroredEntity from "./MirroredEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PinEntity from "./PinEntity.js"
+import ScriptVariableEntity from "./ScriptVariableEntity.js"
 import SymbolEntity from "./SymbolEntity.js"
 import Union from "./Union.js"
 import UnknownPinEntity from "./UnknownPinEntity.js"
@@ -170,7 +171,12 @@ export default class ObjectEntity extends IEntity {
         NodeGuid: AttributeInfo.createType(GuidEntity),
         ErrorType: AttributeInfo.createType(IntegerEntity),
         ErrorMsg: AttributeInfo.createType(String),
+        ScriptVariables: new AttributeInfo({
+            type: ScriptVariableEntity,
+            inlined: true,
+        }),
         Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),
+        ExportedNodes: AttributeInfo.createType(String),
         CustomProperties: AttributeInfo.createType([new Union(PinEntity, UnknownPinEntity)]),
     }
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
@@ -348,10 +354,12 @@ export default class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity} */ this.SettingsInterface
         /** @type {ObjectReferenceEntity} */ this.StructType
         /** @type {ObjectReferenceEntity} */ this.TargetType
+        /** @type {ScriptVariableEntity[]} */ this.ScriptVariables
         /** @type {String[]} */ this.EnumEntries
         /** @type {String[]} */ this.PinNames
         /** @type {String} */ this.CustomFunctionName
         /** @type {String} */ this.DelegatePropertyName
+        /** @type {String} */ this.ExportedNodes
         /** @type {String} */ this.InputName
         /** @type {String} */ this.Name
         /** @type {String} */ this.NodeComment

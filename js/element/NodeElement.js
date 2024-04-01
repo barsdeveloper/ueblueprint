@@ -216,6 +216,10 @@ export default class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes())
         }
+        entity.listenAttribute("Name", v => {
+            this.nodeTitle = entity.Name
+            this.nodeDisplayName = entity.nodeDisplayName()
+        })
     }
 
     async getUpdateComplete() {

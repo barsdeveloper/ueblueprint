@@ -192,6 +192,7 @@ class Configuration {
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
+        niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
         pcgEditorGraphNodeInput: "/Script/PCGEditor.PCGEditorGraphNodeInput",
@@ -447,14 +448,6 @@ class Configuration {
     }
 }
 
-class Shortcuts {
-    static deleteNodes = "Delete"
-    static duplicateNodes = "(bCtrl=True,Key=D)"
-    static enableLinkDelete = "LeftAlt"
-    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
-    static selectAllNodes = "(bCtrl=True,Key=A)"
-}
-
 class ComputedType {
 
     #f
@@ -482,6 +475,7 @@ class ComputedType {
  *     inlined?: Boolean,
  *     quoted?: Boolean,
  *     silent?: Boolean,
+ *     uninitialized?: Boolean,
  *     predicate?: (value: T) => Boolean,
  * }} AttributeInfoSource
  */
@@ -499,6 +493,7 @@ class AttributeInfo {
         inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
         quoted: false, // Key is serialized with quotes
         silent: false, // Do not serialize if default
+        uninitialized: false, // Do not initialize with default
     }
 
     /** @param {AttributeInfoSource<T>} source */
@@ -512,6 +507,7 @@ class AttributeInfo {
         this.inlined = source.inlined;
         this.quoted = source.quoted;
         this.silent = source.silent;
+        this.uninitialized = source.uninitialized;
         this.predicate = source.predicate;
         if (this.type === Array && this.default instanceof Array && this.default.length > 0) {
             this.type = this.default
@@ -926,8 +922,9 @@ class Utility {
      * @template T
      * @param {Array<T>} a
      * @param {Array<T>} b
+     * @param {(l: T, r: T) => Boolean} predicate
      */
-    static mergeArrays(a = [], b = []) {
+    static mergeArrays(a = [], b = [], predicate = (l, r) => l == r) {
         let result = [];
         a = [...a];
         b = [...b];
@@ -935,7 +932,7 @@ class Utility {
         while (true) {
             for (let j = 0; j < b.length; ++j) {
                 for (let i = 0; i < a.length; ++i) {
-                    if (a[i] == b[j]) {
+                    if (predicate(a[i], b[j])) {
                         // Found an element in common in the two arrays
                         result.push(
                             // Take and append all the elements skipped from a
@@ -1119,79 +1116,213 @@ class Utility {
 }
 
 /**
- * @typedef {{
- *     consumeEvent?: Boolean,
- *     listenOnFocus?: Boolean,
- *     unlistenOnTextEdit?: Boolean,
- * }} Options
+ * @template {IEntity} EntityT
+ * @template {ITemplate} TemplateT
  */
-
-/** @template {Element} T */
-class IInput {
-
-    /** @type {T} */
-    #target
-    get target() {
-        return this.#target
-    }
+class IElement extends s {
 
     /** @type {Blueprint} */
     #blueprint
     get blueprint() {
         return this.#blueprint
     }
+    set blueprint(v) {
+        this.#blueprint = v;
+    }
 
-    consumeEvent
+    /** @type {EntityT} */
+    #entity
+    get entity() {
+        return this.#entity
+    }
+    set entity(entity) {
+        this.#entity = entity;
+    }
 
-    /** @type {Object} */
-    options
+    /** @type {TemplateT} */
+    #template
+    get template() {
+        return this.#template
+    }
 
+    isInitialized = false
+    isSetup = false
 
-    listenHandler = () => this.listenEvents()
-    unlistenHandler = () => this.unlistenEvents()
+    /** @type {IInput[]} */
+    inputObjects = []
 
     /**
-     * @param {T} target
-     * @param {Blueprint} blueprint
-     * @param {Options} options
+     * @param {EntityT} entity
+     * @param {TemplateT} template
      */
-    constructor(target, blueprint, options = {}) {
-        options.consumeEvent ??= false;
-        options.listenOnFocus ??= false;
-        options.unlistenOnTextEdit ??= false;
-        this.#target = target;
-        this.#blueprint = blueprint;
-        this.consumeEvent = options.consumeEvent;
-        this.options = options;
+    initialize(entity, template) {
+        this.requestUpdate();
+        this.#entity = entity;
+        this.#template = template;
+        this.#template.initialize(this);
+        if (this.isConnected) {
+            this.updateComplete.then(() => this.setup());
+        }
+        this.isInitialized = true;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.blueprint = /** @type {Blueprint} */(this.closest("ueb-blueprint"));
+        if (this.isInitialized) {
+            this.requestUpdate();
+            this.updateComplete.then(() => this.setup());
+        }
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (this.isSetup) {
+            this.updateComplete.then(() => this.cleanup());
+        }
+        this.acknowledgeDelete();
+    }
+
+    createRenderRoot() {
+        return this
     }
 
     setup() {
-        if (this.options.listenOnFocus) {
-            this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler);
-            this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler);
-        }
-        if (this.options.unlistenOnTextEdit) {
-            this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
-            this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler);
-        }
-        if (this.blueprint.focused) {
-            this.listenEvents();
-        }
+        this.template.setup();
+        this.isSetup = true;
     }
 
     cleanup() {
-        this.unlistenEvents();
-        this.blueprint.removeEventListener(Configuration.focusEventName.begin, this.listenHandler);
-        this.blueprint.removeEventListener(Configuration.focusEventName.end, this.unlistenHandler);
-        this.blueprint.removeEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
-        this.blueprint.removeEventListener(Configuration.editTextEventName.end, this.listenHandler);
+        this.template.cleanup();
+        this.isSetup = false;
     }
 
-    /* Subclasses will probabily override the following methods */
-    listenEvents() {
+    /** @param {PropertyValues} changedProperties */
+    willUpdate(changedProperties) {
+        super.willUpdate(changedProperties);
+        this.template.willUpdate(changedProperties);
     }
 
-    unlistenEvents() {
+    /** @param {PropertyValues} changedProperties */
+    update(changedProperties) {
+        super.update(changedProperties);
+        this.template.update(changedProperties);
+    }
+
+    render() {
+        return this.template.render()
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.template.firstUpdated(changedProperties);
+        this.template.inputSetup();
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        this.template.updated(changedProperties);
+    }
+
+    acknowledgeDelete() {
+        let deleteEvent = new CustomEvent(Configuration.removeEventName);
+        this.dispatchEvent(deleteEvent);
+    }
+
+    /** @param {IElement} element */
+    isSameGraph(element) {
+        return this.blueprint && this.blueprint == element?.blueprint
+    }
+}
+
+/**
+ * @template {IEntity} EntityT
+ * @template {ITemplate} TemplateT
+ * @extends {IElement<EntityT, TemplateT>}
+ */
+class IFromToPositionedElement extends IElement {
+
+    static properties = {
+        ...super.properties,
+        fromX: {
+            type: Number,
+            attribute: false,
+        },
+        fromY: {
+            type: Number,
+            attribute: false,
+        },
+        toX: {
+            type: Number,
+            attribute: false,
+        },
+        toY: {
+            type: Number,
+            attribute: false,
+        },
+    }
+
+    constructor() {
+        super();
+        this.fromX = 0;
+        this.fromY = 0;
+        this.toX = 0;
+        this.toY = 0;
+    }
+
+    /** @param {Coordinates} param0 */
+    setBothLocations([x, y]) {
+        this.fromX = x;
+        this.fromY = y;
+        this.toX = x;
+        this.toY = y;
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addSourceLocation(x, y) {
+        this.fromX += x;
+        this.fromY += y;
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addDestinationLocation(x, y) {
+        this.toX += x;
+        this.toY += y;
+    }
+}
+
+class Shortcuts {
+    static deleteNodes = "Delete"
+    static duplicateNodes = "(bCtrl=True,Key=D)"
+    static enableLinkDelete = "LeftAlt"
+    static enableZoomIn = ["LeftControl", "RightControl"] // Button to enable more than 1:1 zoom
+    static selectAllNodes = "(bCtrl=True,Key=A)"
+}
+
+class ElementFactory {
+
+    /** @type {Map<String, AnyConstructor<IElement>>} */
+    static #elementConstructors = new Map()
+
+    /**
+     * @param {String} tagName
+     * @param {AnyConstructor<IElement>} entityConstructor
+     */
+    static registerElement(tagName, entityConstructor) {
+        ElementFactory.#elementConstructors.set(tagName, entityConstructor);
+    }
+
+    /** @param {String} tagName */
+    static getConstructor(tagName) {
+        return ElementFactory.#elementConstructors.get(tagName)
     }
 }
 
@@ -2840,6 +2971,7 @@ class IEntity extends Serializable {
         lookbehind: new AttributeInfo({
             default: /** @type {String | Union<String[]>} */(""),
             ignored: true,
+            uninitialized: true,
         }),
     }
 
@@ -2932,7 +3064,7 @@ class IEntity extends Serializable {
                 assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)));
                 continue // We have a value, need nothing more
             }
-            if (defaultValue !== undefined) {
+            if (defaultValue !== undefined && !AttributeInfo.getAttribute(values, key, "uninitialized", Self)) {
                 assignAttribute(defaultValue);
             }
         }
@@ -2976,6 +3108,41 @@ class IEntity extends Serializable {
             configurable: false,
         });
         object.attributes = attributes;
+    }
+
+    /**
+     * 
+     * @param {String} attribute
+     * @param {(v: any) => void} callback
+     */
+    listenAttribute(attribute, callback) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, attribute);
+        const setter = descriptor.set;
+        if (setter) {
+            descriptor.set = v => {
+                setter(v);
+                callback(v);
+            };
+            Object.defineProperties(this, { [attribute]: descriptor });
+        } else if (descriptor.value) {
+            Object.defineProperties(this, {
+                ["#" + attribute]: {
+                    value: descriptor.value,
+                    writable: true,
+                    enumerable: false,
+                },
+                [attribute]: {
+                    enumerable: true,
+                    get() {
+                        return this["#" + attribute]
+                    },
+                    set(v) {
+                        this["#" + attribute] = v;
+                        callback(v);
+                    }
+                },
+            });
+        }
     }
 
     getLookbehind() {
@@ -4724,6 +4891,26 @@ class PinEntity extends IEntity {
     }
 }
 
+class ScriptVariableEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        ScriptVariable: AttributeInfo.createType(ObjectReferenceEntity),
+        OriginalChangeId: AttributeInfo.createType(GuidEntity),
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
+    }
+
+    constructor(values = {}, suppressWarns = false) {
+        super(values, suppressWarns);
+        /** @type {ObjectReferenceEntity} */ this.ScriptVariable;
+        /** @type {GuidEntity} */ this.OriginalChangeId;
+    }
+}
+
 class UnknownPinEntity extends PinEntity {
 
     static grammar = this.createGrammar()
@@ -4926,7 +5113,12 @@ class ObjectEntity extends IEntity {
         NodeGuid: AttributeInfo.createType(GuidEntity),
         ErrorType: AttributeInfo.createType(IntegerEntity),
         ErrorMsg: AttributeInfo.createType(String),
+        ScriptVariables: new AttributeInfo({
+            type: ScriptVariableEntity,
+            inlined: true,
+        }),
         Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),
+        ExportedNodes: AttributeInfo.createType(String),
         CustomProperties: AttributeInfo.createType([new Union(PinEntity, UnknownPinEntity)]),
     }
     static nameRegex = /^(\w+?)(?:_(\d+))?$/
@@ -5104,10 +5296,12 @@ class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity} */ this.SettingsInterface;
         /** @type {ObjectReferenceEntity} */ this.StructType;
         /** @type {ObjectReferenceEntity} */ this.TargetType;
+        /** @type {ScriptVariableEntity[]} */ this.ScriptVariables;
         /** @type {String[]} */ this.EnumEntries;
         /** @type {String[]} */ this.PinNames;
         /** @type {String} */ this.CustomFunctionName;
         /** @type {String} */ this.DelegatePropertyName;
+        /** @type {String} */ this.ExportedNodes;
         /** @type {String} */ this.InputName;
         /** @type {String} */ this.Name;
         /** @type {String} */ this.NodeComment;
@@ -6013,435 +6207,109 @@ class ObjectEntity extends IEntity {
     }
 }
 
-/** @template {AttributeConstructor<Attribute>} T */
-class Serializer {
-
-    /** @type {(v: String) => String} */
-    static same = v => v
-
-    /** @type {(entity: Attribute, serialized: String) => String} */
-    static notWrapped = (entity, serialized) => serialized
-
-    /** @type {(entity: Attribute, serialized: String) => String} */
-    static bracketsWrapped = (entity, serialized) => `(${serialized})`
-
-    /** @param {T} entityType */
-    constructor(
-        entityType,
-        /** @type {(entity: ConstructedType<T>, serialized: String) => String} */
-        wrap = (entity, serialized) => serialized,
-        attributeSeparator = ",",
-        trailingSeparator = false,
-        attributeValueConjunctionSign = "=",
-        attributeKeyPrinter = Serializer.same
-    ) {
-        this.entityType = entityType;
-        this.wrap = wrap;
-        this.attributeSeparator = attributeSeparator;
-        this.trailingSeparator = trailingSeparator;
-        this.attributeValueConjunctionSign = attributeValueConjunctionSign;
-        this.attributeKeyPrinter = attributeKeyPrinter;
-    }
+class KnotEntity extends ObjectEntity {
 
     /**
-     * @param {String} value
-     * @returns {ConstructedType<T>}
+     * @param {Object} values
+     * @param {PinEntity} pinReferenceForType
      */
-    read(value) {
-        return this.doRead(value.trim())
-    }
-
-    /** @param {ConstructedType<T>} value */
-    write(value, insideString = false) {
-        return this.doWrite(value, insideString)
-    }
-
-    /**
-     * @param {String} value
-     * @returns {ConstructedType<T>}
-     */
-    doRead(value) {
-        let grammar = Grammar.grammarFor(undefined, this.entityType);
-        const parseResult = grammar.run(value);
-        if (!parseResult.status) {
-            throw new Error(
-                this.entityType
-                    ? `Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`
-                    : "Error when trying to parse null"
-            )
+    constructor(values = {}, pinReferenceForType = undefined) {
+        values.Class = new ObjectReferenceEntity(Configuration.paths.knot);
+        values.Name = "K2Node_Knot";
+        const inputPinEntity = new PinEntity(
+            { PinName: "InputPin" },
+            true
+        );
+        const outputPinEntity = new PinEntity(
+            {
+                PinName: "OutputPin",
+                Direction: "EGPD_Output",
+            },
+            true
+        );
+        if (pinReferenceForType) {
+            inputPinEntity.copyTypeFrom(pinReferenceForType);
+            outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
-        return parseResult.value
-    }
-
-    /**
-     * @param {ConstructedType<T>} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    doWrite(
-        entity,
-        insideString = false,
-        indentation = "",
-        wrap = this.wrap,
-        attributeSeparator = this.attributeSeparator,
-        trailingSeparator = this.trailingSeparator,
-        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
-        attributeKeyPrinter = this.attributeKeyPrinter
-    ) {
-        let result = "";
-        const keys = Object.keys(entity);
-        let first = true;
-        for (const key of keys) {
-            const value = entity[key];
-            if (value !== undefined && this.showProperty(entity, key)) {
-                let keyValue = entity instanceof Array ? `(${key})` : key;
-                if (AttributeInfo.getAttribute(entity, key, "quoted")) {
-                    keyValue = `"${keyValue}"`;
-                }
-                const isSerialized = AttributeInfo.getAttribute(entity, key, "serialized");
-                if (first) {
-                    first = false;
-                } else {
-                    result += attributeSeparator;
-                }
-                if (AttributeInfo.getAttribute(entity, key, "inlined")) {
-                    result += this.doWrite(
-                        value,
-                        insideString,
-                        indentation,
-                        Serializer.notWrapped,
-                        attributeSeparator,
-                        false,
-                        attributeValueConjunctionSign,
-                        AttributeInfo.getAttribute(entity, key, "type") instanceof Array
-                            ? k => attributeKeyPrinter(`${keyValue}${k}`)
-                            : k => attributeKeyPrinter(`${keyValue}.${k}`)
-                    );
-                    continue
-                }
-                const keyPrinted = attributeKeyPrinter(keyValue);
-                const indentationPrinted = attributeSeparator.includes("\n") ? indentation : "";
-                result += (
-                    keyPrinted.length
-                        ? (indentationPrinted + keyPrinted + this.attributeValueConjunctionSign)
-                        : ""
-                )
-                    + (
-                        isSerialized
-                            ? `"${this.doWriteValue(value, true, indentation)}"`
-                            : this.doWriteValue(value, insideString, indentation)
-                    );
-            }
-        }
-        if (trailingSeparator && result.length) {
-            // append separator at the end if asked and there was printed content
-            result += attributeSeparator;
-        }
-        return wrap(entity, result)
-    }
-
-    /** @param {Boolean} insideString */
-    doWriteValue(value, insideString, indentation = "") {
-        const type = Utility.getType(value);
-        const serializer = SerializerFactory.getSerializer(type);
-        if (!serializer) {
-            throw new Error(
-                `Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, `
-                + "check initializeSerializerFactory.js"
-            )
-        }
-        return serializer.doWrite(value, insideString, indentation)
-    }
-
-    /**
-     * @param {IEntity} entity
-     * @param {String} key
-     */
-    showProperty(entity, key) {
-        if (entity instanceof IEntity) {
-            if (
-                AttributeInfo.getAttribute(entity, key, "ignored")
-                || AttributeInfo.getAttribute(entity, key, "silent") && Utility.equals(
-                    AttributeInfo.getAttribute(entity, key, "default"),
-                    entity[key]
-                )
-            ) {
-                return false
-            }
-        }
-        return true
-    }
-}
-
-/** @extends Serializer<ObjectEntityConstructor> */
-class ObjectSerializer extends Serializer {
-
-    constructor(entityType = ObjectEntity) {
-        super(entityType, undefined, "\n", true, undefined, Serializer.same);
-    }
-
-    showProperty(entity, key) {
-        switch (key) {
-            case "Class":
-            case "Name":
-            case "Archetype":
-            case "ExportPath":
-            case "CustomProperties":
-                // Serielized separately, check doWrite()
-                return false
-        }
-        return super.showProperty(entity, key)
-    }
-
-    /** @param {ObjectEntity} value */
-    write(value, insideString = false) {
-        return this.doWrite(value, insideString) + "\n"
-    }
-
-    /** @param {String} value */
-    doRead(value) {
-        return Grammar.grammarFor(undefined, this.entityType).parse(value)
-    }
-
-    /**
-     * @param {String} value
-     * @returns {ObjectEntity[]}
-     */
-    readMultiple(value) {
-        return ObjectEntity.getMultipleObjectsGrammar().parse(value)
-    }
-
-    /**
-     * @param {ObjectEntity} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    doWrite(
-        entity,
-        insideString,
-        indentation = "",
-        wrap = this.wrap,
-        attributeSeparator = this.attributeSeparator,
-        trailingSeparator = this.trailingSeparator,
-        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
-        attributeKeyPrinter = this.attributeKeyPrinter,
-    ) {
-        const moreIndentation = indentation + Configuration.indentation;
-        if (!(entity instanceof ObjectEntity)) {
-            return super.doWrite(
-                entity,
-                insideString,
-                indentation,
-                wrap,
-                attributeSeparator,
-                trailingSeparator,
-                attributeValueConjunctionSign,
-                // @ts-expect-error
-                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
-            )
-        }
-        let result = indentation + "Begin Object"
-            + (entity.Class?.type || entity.Class?.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
-            + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
-            + (entity.Archetype ? ` Archetype=${this.doWriteValue(entity.Archetype, insideString)}` : "")
-            + (entity.ExportPath?.type || entity.ExportPath?.path ? ` ExportPath=${this.doWriteValue(entity.ExportPath, insideString)}` : "")
-            + "\n"
-            + super.doWrite(
-                entity,
-                insideString,
-                moreIndentation,
-                wrap,
-                attributeSeparator,
-                true,
-                attributeValueConjunctionSign,
-                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
-            )
-            + (!AttributeInfo.getAttribute(entity, "CustomProperties", "ignored")
-                ? entity.getCustomproperties().map(pin =>
-                    moreIndentation
-                    + attributeKeyPrinter("CustomProperties ")
-                    + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
-                    + this.attributeSeparator
-                ).join("")
-                : ""
-            )
-            + indentation + "End Object";
-        return result
+        values["CustomProperties"] = [inputPinEntity, outputPinEntity];
+        super(values, true);
     }
 }
 
 /**
- * @typedef {import("../IInput.js").Options & {
+ * @typedef {{
+ *     consumeEvent?: Boolean,
  *     listenOnFocus?: Boolean,
  *     unlistenOnTextEdit?: Boolean,
  * }} Options
  */
 
-class Copy extends IInput {
+/** @template {Element} T */
+class IInput {
 
-    static #serializer = new ObjectSerializer()
-
-    /** @type {(e: ClipboardEvent) => void} */
-    #copyHandler
-
-    constructor(target, blueprint, options = {}) {
-        options.listenOnFocus ??= true;
-        options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
-        super(target, blueprint, options);
-        let self = this;
-        this.#copyHandler = () => self.copied();
+    /** @type {T} */
+    #target
+    get target() {
+        return this.#target
     }
 
-    listenEvents() {
-        window.addEventListener("copy", this.#copyHandler);
+    /** @type {Blueprint} */
+    #blueprint
+    get blueprint() {
+        return this.#blueprint
     }
 
-    unlistenEvents() {
-        window.removeEventListener("copy", this.#copyHandler);
-    }
+    consumeEvent
 
-    getSerializedText() {
-        return this.blueprint
-            .getNodes(true)
-            .map(node => Copy.#serializer.write(node.entity, false))
-            .join("")
-    }
+    /** @type {Object} */
+    options
 
-    copied() {
-        const value = this.getSerializedText();
-        navigator.clipboard.writeText(value);
-        return value
-    }
-}
 
-/**
- * @typedef {import("../IInput.js").Options & {
- *     listenOnFocus?: Boolean,
- *     unlistenOnTextEdit?: Boolean,
- * }} Options
- */
-
-class Cut extends IInput {
-
-    static #serializer = new ObjectSerializer()
-
-    /** @type {(e: ClipboardEvent) => void} */
-    #cutHandler
+    listenHandler = () => this.listenEvents()
+    unlistenHandler = () => this.unlistenEvents()
 
     /**
-     * @param {Element} target
+     * @param {T} target
      * @param {Blueprint} blueprint
      * @param {Options} options
      */
     constructor(target, blueprint, options = {}) {
-        options.listenOnFocus ??= true;
-        options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
-        super(target, blueprint, options);
-        let self = this;
-        this.#cutHandler = () => self.cut();
+        options.consumeEvent ??= false;
+        options.listenOnFocus ??= false;
+        options.unlistenOnTextEdit ??= false;
+        this.#target = target;
+        this.#blueprint = blueprint;
+        this.consumeEvent = options.consumeEvent;
+        this.options = options;
     }
 
-    listenEvents() {
-        window.addEventListener("cut", this.#cutHandler);
-    }
-
-    unlistenEvents() {
-        window.removeEventListener("cut", this.#cutHandler);
-    }
-
-    getSerializedText() {
-        return this.blueprint
-            .getNodes(true)
-            .map(node => Cut.#serializer.write(node.entity, false))
-            .join("")
-    }
-
-    cut() {
-        this.blueprint.template.getCopyInputObject().copied();
-        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
-    }
-}
-
-class ElementFactory {
-
-    /** @type {Map<String, AnyConstructor<IElement>>} */
-    static #elementConstructors = new Map()
-
-    /**
-     * @param {String} tagName
-     * @param {AnyConstructor<IElement>} entityConstructor
-     */
-    static registerElement(tagName, entityConstructor) {
-        ElementFactory.#elementConstructors.set(tagName, entityConstructor);
-    }
-
-    /** @param {String} tagName */
-    static getConstructor(tagName) {
-        return ElementFactory.#elementConstructors.get(tagName)
-    }
-}
-
-/**
- * @typedef {import("../IInput.js").Options & {
- *     listenOnFocus?: Boolean,
- *     unlistenOnTextEdit?: Boolean,
- * }} Options
- */
-
-class Paste extends IInput {
-
-    static #serializer = new ObjectSerializer()
-
-    /** @type {(e: ClipboardEvent) => void} */
-    #pasteHandle
-
-    /**
-     * @param {Element} target
-     * @param {Blueprint} blueprint
-     * @param {Options} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options.listenOnFocus ??= true;
-        options.unlistenOnTextEdit ??= true; // No nodes paste if inside a text field, just text (default behavior)
-        super(target, blueprint, options);
-        let self = this;
-        this.#pasteHandle = e => self.pasted(e.clipboardData.getData("Text"));
-    }
-
-    listenEvents() {
-        window.addEventListener("paste", this.#pasteHandle);
-    }
-
-    unlistenEvents() {
-        window.removeEventListener("paste", this.#pasteHandle);
-    }
-
-    /** @param {String} value */
-    pasted(value) {
-        let top = 0;
-        let left = 0;
-        let count = 0;
-        let nodes = Paste.#serializer.readMultiple(value).map(entity => {
-            let node = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
-                .newObject(entity);
-            top += node.locationY;
-            left += node.locationX;
-            ++count;
-            return node
-        });
-        top /= count;
-        left /= count;
-        if (nodes.length > 0) {
-            this.blueprint.unselectAll();
+    setup() {
+        if (this.options.listenOnFocus) {
+            this.blueprint.addEventListener(Configuration.focusEventName.begin, this.listenHandler);
+            this.blueprint.addEventListener(Configuration.focusEventName.end, this.unlistenHandler);
         }
-        let mousePosition = this.blueprint.mousePosition;
-        nodes.forEach(node => {
-            node.addLocation(mousePosition[0] - left, mousePosition[1] - top);
-            node.snapToGrid();
-            node.setSelected(true);
-        });
-        this.blueprint.addGraphElement(...nodes);
-        return true
+        if (this.options.unlistenOnTextEdit) {
+            this.blueprint.addEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
+            this.blueprint.addEventListener(Configuration.editTextEventName.end, this.listenHandler);
+        }
+        if (this.blueprint.focused) {
+            this.listenEvents();
+        }
+    }
+
+    cleanup() {
+        this.unlistenEvents();
+        this.blueprint.removeEventListener(Configuration.focusEventName.begin, this.listenHandler);
+        this.blueprint.removeEventListener(Configuration.focusEventName.end, this.unlistenHandler);
+        this.blueprint.removeEventListener(Configuration.editTextEventName.begin, this.unlistenHandler);
+        this.blueprint.removeEventListener(Configuration.editTextEventName.end, this.listenHandler);
+    }
+
+    /* Subclasses will probabily override the following methods */
+    listenEvents() {
+    }
+
+    unlistenEvents() {
     }
 }
 
@@ -6675,1193 +6543,6 @@ class IPointing extends IInput {
 }
 
 /**
- * @typedef {import("./IPointing.js").Options & {
- *     listenOnFocus?: Boolean,
- *     strictTarget?: Boolean,
- * }} Options
- */
-
-class MouseWheel extends IPointing {
-
-    /** @param {MouseWheel} self */
-    static #ignoreEvent = self => { }
-
-    #variation = 0
-    get variation() {
-        return this.#variation
-    }
-
-    /** @param {WheelEvent} e */
-    #mouseWheelHandler = e => {
-        if (this.enablerKey && !this.enablerActivated) {
-            return
-        }
-        e.preventDefault();
-        this.#variation = e.deltaY;
-        this.setLocationFromEvent(e);
-        this.wheel();
-    }
-
-    /** @param {WheelEvent} e */
-    #mouseParentWheelHandler = e => e.preventDefault()
-
-    /**
-     * @param {HTMLElement} target
-     * @param {Blueprint} blueprint
-     * @param {Options} options
-     */
-    constructor(
-        target,
-        blueprint,
-        options = {},
-        onWheel = MouseWheel.#ignoreEvent,
-    ) {
-        options.listenOnFocus = true;
-        options.strictTarget ??= false;
-        super(target, blueprint, options);
-        this.strictTarget = options.strictTarget;
-        this.onWheel = onWheel;
-    }
-
-    listenEvents() {
-        this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false);
-        this.movementSpace.parentElement?.addEventListener("wheel", this.#mouseParentWheelHandler);
-    }
-
-    unlistenEvents() {
-        this.movementSpace.removeEventListener("wheel", this.#mouseWheelHandler, false);
-        this.movementSpace.parentElement?.removeEventListener("wheel", this.#mouseParentWheelHandler);
-    }
-
-    /* Subclasses can override */
-    wheel() {
-        this.onWheel(this);
-    }
-}
-
-class Zoom extends MouseWheel {
-
-    #accumulatedVariation = 0
-
-    #enableZoonIn = false
-    get enableZoonIn() {
-        return this.#enableZoonIn
-    }
-    set enableZoonIn(value) {
-        if (value == this.#enableZoonIn) {
-            return
-        }
-        this.#enableZoonIn = value;
-    }
-
-    wheel() {
-        this.#accumulatedVariation += -this.variation;
-        if (Math.abs(this.#accumulatedVariation) < Configuration.mouseWheelZoomThreshold) {
-            return
-        }
-        let zoomLevel = this.blueprint.getZoom();
-        if (!this.enableZoonIn && zoomLevel == 0 && this.#accumulatedVariation > 0) {
-            return
-        }
-        zoomLevel += Math.sign(this.#accumulatedVariation);
-        this.blueprint.setZoom(zoomLevel, this.location);
-        this.#accumulatedVariation = 0;
-    }
-}
-
-/**
- * @typedef {import("./KeyboardShortcut.js").Options & {
- *     activationKeys?: String | KeyBindingEntity | (String | KeyBindingEntity)[],
- * }} Options
- */
-
-class KeyboardEnableZoom extends KeyboardShortcut {
-
-    /** @type {Zoom} */
-    #zoomInputObject
-
-    /**
-     * @param {HTMLElement} target
-     * @param {Blueprint} blueprint
-     * @param {Options} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options.activationKeys = Shortcuts.enableZoomIn;
-        super(target, blueprint, options);
-    }
-
-    fire() {
-        this.#zoomInputObject = this.blueprint.template.getZoomInputObject();
-        this.#zoomInputObject.enableZoonIn = true;
-    }
-
-    unfire() {
-        this.#zoomInputObject.enableZoonIn = false;
-    }
-}
-
-/**
- * @template {IEntity} EntityT
- * @template {ITemplate} TemplateT
- */
-class IElement extends s {
-
-    /** @type {Blueprint} */
-    #blueprint
-    get blueprint() {
-        return this.#blueprint
-    }
-    set blueprint(v) {
-        this.#blueprint = v;
-    }
-
-    /** @type {EntityT} */
-    #entity
-    get entity() {
-        return this.#entity
-    }
-    set entity(entity) {
-        this.#entity = entity;
-    }
-
-    /** @type {TemplateT} */
-    #template
-    get template() {
-        return this.#template
-    }
-
-    isInitialized = false
-    isSetup = false
-
-    /** @type {IInput[]} */
-    inputObjects = []
-
-    /**
-     * @param {EntityT} entity
-     * @param {TemplateT} template
-     */
-    initialize(entity, template) {
-        this.requestUpdate();
-        this.#entity = entity;
-        this.#template = template;
-        this.#template.initialize(this);
-        if (this.isConnected) {
-            this.updateComplete.then(() => this.setup());
-        }
-        this.isInitialized = true;
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        this.blueprint = /** @type {Blueprint} */(this.closest("ueb-blueprint"));
-        if (this.isInitialized) {
-            this.requestUpdate();
-            this.updateComplete.then(() => this.setup());
-        }
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        if (this.isSetup) {
-            this.updateComplete.then(() => this.cleanup());
-        }
-        this.acknowledgeDelete();
-    }
-
-    createRenderRoot() {
-        return this
-    }
-
-    setup() {
-        this.template.setup();
-        this.isSetup = true;
-    }
-
-    cleanup() {
-        this.template.cleanup();
-        this.isSetup = false;
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    willUpdate(changedProperties) {
-        super.willUpdate(changedProperties);
-        this.template.willUpdate(changedProperties);
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    update(changedProperties) {
-        super.update(changedProperties);
-        this.template.update(changedProperties);
-    }
-
-    render() {
-        return this.template.render()
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.template.firstUpdated(changedProperties);
-        this.template.inputSetup();
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    updated(changedProperties) {
-        super.updated(changedProperties);
-        this.template.updated(changedProperties);
-    }
-
-    acknowledgeDelete() {
-        let deleteEvent = new CustomEvent(Configuration.removeEventName);
-        this.dispatchEvent(deleteEvent);
-    }
-
-    /** @param {IElement} element */
-    isSameGraph(element) {
-        return this.blueprint && this.blueprint == element?.blueprint
-    }
-}
-
-/**
- * @template {IEntity} T
- * @template {IDraggableTemplate} U
- * @extends {IElement<T, U>}
- */
-class IDraggableElement extends IElement {
-
-    static properties = {
-        ...super.properties,
-        locationX: {
-            type: Number,
-            attribute: false,
-        },
-        locationY: {
-            type: Number,
-            attribute: false,
-        },
-        sizeX: {
-            type: Number,
-            attribute: false,
-        },
-        sizeY: {
-            type: Number,
-            attribute: false,
-        },
-    }
-    static dragEventName = Configuration.dragEventName
-    static dragGeneralEventName = Configuration.dragGeneralEventName
-
-    constructor() {
-        super();
-        this.locationX = 0;
-        this.locationY = 0;
-        this.sizeX = 0;
-        this.sizeY = 0;
-    }
-
-    computeSizes() {
-        const bounding = this.getBoundingClientRect();
-        this.sizeX = this.blueprint.scaleCorrect(bounding.width);
-        this.sizeY = this.blueprint.scaleCorrect(bounding.height);
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.computeSizes();
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    setLocation(x, y, acknowledge = true) {
-        const dx = x - this.locationX;
-        const dy = y - this.locationY;
-        this.locationX = x;
-        this.locationY = y;
-        if (this.blueprint && acknowledge) {
-            const dragLocalEvent = new CustomEvent(
-                /** @type {typeof IDraggableElement} */(this.constructor).dragEventName,
-                {
-                    detail: {
-                        value: [dx, dy],
-                    },
-                    bubbles: false,
-                    cancelable: true,
-                }
-            );
-            this.dispatchEvent(dragLocalEvent);
-        }
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    addLocation(x, y, acknowledge = true) {
-        this.setLocation(this.locationX + x, this.locationY + y, acknowledge);
-    }
-
-    /** @param {Coordinates} value */
-    acknowledgeDrag(value) {
-        const dragEvent = new CustomEvent(
-            /** @type {typeof IDraggableElement} */(this.constructor).dragGeneralEventName,
-            {
-                detail: {
-                    value: value
-                },
-                bubbles: true,
-                cancelable: true
-            }
-        );
-        this.dispatchEvent(dragEvent);
-    }
-
-    snapToGrid() {
-        const snappedLocation = Utility.snapToGrid(this.locationX, this.locationY, Configuration.gridSize);
-        if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
-            this.setLocation(snappedLocation[0], snappedLocation[1]);
-        }
-    }
-
-    topBoundary(justSelectableArea = false) {
-        return this.template.topBoundary(justSelectableArea)
-    }
-
-    rightBoundary(justSelectableArea = false) {
-        return this.template.rightBoundary(justSelectableArea)
-    }
-
-    bottomBoundary(justSelectableArea = false) {
-        return this.template.bottomBoundary(justSelectableArea)
-    }
-
-    leftBoundary(justSelectableArea = false) {
-        return this.template.leftBoundary(justSelectableArea)
-    }
-}
-
-/**
- * @typedef {import("./IPointing.js").Options & {
- *     clickButton?: Number,
- *     consumeEvent?: Boolean,
- *     draggableElement?: HTMLElement,
- *     exitAnyButton?: Boolean,
- *     moveEverywhere?: Boolean,
- *     movementSpace?: HTMLElement,
- *     repositionOnClick?: Boolean,
- *     scrollGraphEdge?: Boolean,
- *     strictTarget?: Boolean,
- *     stepSize?: Number,
- * }} Options
- */
-
-/**
- * @template {IElement} T
- * @extends {IPointing<T>}
- */
-class IMouseClickDrag extends IPointing {
-
-    /** @param {MouseEvent} e  */
-    #mouseDownHandler = e => {
-        this.blueprint.setFocused(true);
-        switch (e.button) {
-            case this.options.clickButton:
-                // Either doesn't matter or consider the click only when clicking on the parent, not descandants
-                if (!this.options.strictTarget || e.target == e.currentTarget) {
-                    if (this.consumeEvent) {
-                        e.stopImmediatePropagation(); // Captured, don't call anyone else
-                    }
-                    // Attach the listeners
-                    this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
-                    document.addEventListener("mouseup", this.#mouseUpHandler);
-                    this.setLocationFromEvent(e);
-                    this.clickedPosition[0] = this.location[0];
-                    this.clickedPosition[1] = this.location[1];
-                    this.blueprint.mousePosition[0] = this.location[0];
-                    this.blueprint.mousePosition[1] = this.location[1];
-                    if (this.target instanceof IDraggableElement) {
-                        this.clickedOffset = [
-                            this.clickedPosition[0] - this.target.locationX,
-                            this.clickedPosition[1] - this.target.locationY,
-                        ];
-                    }
-                    this.clicked(this.clickedPosition);
-                }
-                break
-            default:
-                if (!this.options.exitAnyButton) {
-                    this.#mouseUpHandler(e);
-                }
-                break
-        }
-    }
-
-    /** @param {MouseEvent} e  */
-    #mouseStartedMovingHandler = e => {
-        if (this.consumeEvent) {
-            e.stopImmediatePropagation(); // Captured, don't call anyone else
-        }
-        // Delegate from now on to this.#mouseMoveHandler
-        this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
-        this.#movementListenedElement.addEventListener("mousemove", this.#mouseMoveHandler);
-        // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
-        const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin);
-        this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
-        this.setLocationFromEvent(e);
-        // Do actual actions
-        this.lastLocation = Utility.snapToGrid(this.clickedPosition[0], this.clickedPosition[1], this.stepSize);
-        this.startDrag(this.location);
-        this.started = true;
-        this.#mouseMoveHandler(e);
-    }
-
-    /** @param {MouseEvent} e  */
-    #mouseMoveHandler = e => {
-        if (this.consumeEvent) {
-            e.stopImmediatePropagation(); // Captured, don't call anyone else
-        }
-        const location = this.setLocationFromEvent(e);
-        const movement = [e.movementX, e.movementY];
-        this.dragTo(location, movement);
-        if (this.#trackingMouse) {
-            this.blueprint.mousePosition = location;
-        }
-        if (this.options.scrollGraphEdge) {
-            const movementNorm = Math.sqrt(movement[0] * movement[0] + movement[1] * movement[1]);
-            const threshold = this.blueprint.scaleCorrect(Configuration.edgeScrollThreshold);
-            const leftThreshold = this.blueprint.template.gridLeftVisibilityBoundary() + threshold;
-            const rightThreshold = this.blueprint.template.gridRightVisibilityBoundary() - threshold;
-            let scrollX = 0;
-            if (location[0] < leftThreshold) {
-                scrollX = location[0] - leftThreshold;
-            } else if (location[0] > rightThreshold) {
-                scrollX = location[0] - rightThreshold;
-            }
-            const topThreshold = this.blueprint.template.gridTopVisibilityBoundary() + threshold;
-            const bottomThreshold = this.blueprint.template.gridBottomVisibilityBoundary() - threshold;
-            let scrollY = 0;
-            if (location[1] < topThreshold) {
-                scrollY = location[1] - topThreshold;
-            } else if (location[1] > bottomThreshold) {
-                scrollY = location[1] - bottomThreshold;
-            }
-            scrollX = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollX) ** 3 * movementNorm * 0.6, -20, 20);
-            scrollY = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollY) ** 3 * movementNorm * 0.6, -20, 20);
-            this.blueprint.scrollDelta(scrollX, scrollY);
-        }
-    }
-
-    /** @param {MouseEvent} e  */
-    #mouseUpHandler = e => {
-        if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
-            if (this.consumeEvent) {
-                e.stopImmediatePropagation(); // Captured, don't call anyone else
-            }
-            // Remove the handlers of "mousemove" and "mouseup"
-            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
-            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler);
-            document.removeEventListener("mouseup", this.#mouseUpHandler);
-            if (this.started) {
-                this.endDrag();
-            }
-            this.unclicked();
-            if (this.#trackingMouse) {
-                const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end);
-                this.target.dispatchEvent(dragEvent);
-                this.#trackingMouse = false;
-            }
-            this.started = false;
-        }
-    }
-
-    #trackingMouse = false
-    #movementListenedElement
-    #draggableElement
-    get draggableElement() {
-        return this.#draggableElement
-    }
-
-    clickedOffset = /** @type {Coordinates} */([0, 0])
-    clickedPosition = /** @type {Coordinates} */([0, 0])
-    lastLocation = /** @type {Coordinates} */([0, 0])
-    started = false
-    stepSize = 1
-
-    /**
-     * @param {T} target
-     * @param {Blueprint} blueprint
-     * @param {Options} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options.clickButton ??= Configuration.mouseClickButton;
-        options.consumeEvent ??= true;
-        options.draggableElement ??= target;
-        options.exitAnyButton ??= true;
-        options.moveEverywhere ??= false;
-        options.movementSpace ??= blueprint?.getGridDOMElement();
-        options.repositionOnClick ??= false;
-        options.scrollGraphEdge ??= false;
-        options.strictTarget ??= false;
-        super(target, blueprint, options);
-        this.stepSize = Number(options.stepSize ?? Configuration.gridSize);
-        this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
-        this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement);
-
-        this.listenEvents();
-    }
-
-    listenEvents() {
-        super.listenEvents();
-        this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler);
-        if (this.options.clickButton === Configuration.mouseRightClickButton) {
-            this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault());
-        }
-    }
-
-    unlistenEvents() {
-        super.unlistenEvents();
-        this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler);
-    }
-
-    getEvent(eventName) {
-        return new CustomEvent(eventName, {
-            detail: {
-                tracker: this
-            },
-            bubbles: true,
-            cancelable: true
-        })
-    }
-
-    /* Subclasses will override the following methods */
-    clicked(location) {
-    }
-
-    startDrag(location) {
-    }
-
-    dragTo(location, offset) {
-    }
-
-    endDrag() {
-    }
-
-    unclicked(location) {
-    }
-}
-
-class MouseScrollGraph extends IMouseClickDrag {
-
-    startDrag() {
-        this.blueprint.scrolling = true;
-    }
-
-    /**
-     * @param {Coordinates} location
-     * @param {Coordinates} movement
-     */
-    dragTo(location, movement) {
-        this.blueprint.scrollDelta(-movement[0], -movement[1]);
-    }
-
-    endDrag() {
-        this.blueprint.scrolling = false;
-    }
-}
-
-/**
- * @typedef {import("./IPointing.js").Options & {
- *     listenOnFocus?: Boolean,
- * }} Options
- */
-
-class MouseTracking extends IPointing {
-
-    /** @type {IPointing} */
-    #mouseTracker = null
-
-    /** @param {MouseEvent} e */
-    #mousemoveHandler = e => {
-        e.preventDefault();
-        this.setLocationFromEvent(e);
-        this.blueprint.mousePosition = [...this.location];
-    }
-
-    /** @param {CustomEvent} e */
-    #trackingMouseStolenHandler = e => {
-        if (!this.#mouseTracker) {
-            e.preventDefault();
-            this.#mouseTracker = e.detail.tracker;
-            this.unlistenMouseMove();
-        }
-    }
-
-    /** @param {CustomEvent} e */
-    #trackingMouseGaveBackHandler = e => {
-        if (this.#mouseTracker == e.detail.tracker) {
-            e.preventDefault();
-            this.#mouseTracker = null;
-            this.listenMouseMove();
-        }
-    }
-
-    /**
-     * @param {Element} target
-     * @param {Blueprint} blueprint
-     * @param {Options} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true;
-        super(target, blueprint, options);
-    }
-
-    listenMouseMove() {
-        this.target.addEventListener("mousemove", this.#mousemoveHandler);
-    }
-
-    unlistenMouseMove() {
-        this.target.removeEventListener("mousemove", this.#mousemoveHandler);
-    }
-
-    listenEvents() {
-        this.listenMouseMove();
-        this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.begin,
-            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
-        this.blueprint.addEventListener(
-            Configuration.trackingMouseEventName.end,
-            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
-    }
-
-    unlistenEvents() {
-        this.unlistenMouseMove();
-        this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.begin,
-            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
-        this.blueprint.removeEventListener(
-            Configuration.trackingMouseEventName.end,
-            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
-        );
-    }
-}
-
-/**
- * @typedef {import("./IMouseClickDrag.js").Options & {
- *     scrollGraphEdge?: Boolean,
- * }} Options
- */
-
-class Select extends IMouseClickDrag {
-
-    constructor(target, blueprint, options = {}) {
-        options.scrollGraphEdge ??= true;
-        super(target, blueprint, options);
-        this.selectorElement = this.blueprint.template.selectorElement;
-    }
-
-    startDrag() {
-        this.selectorElement.beginSelect(this.clickedPosition);
-    }
-
-    /**
-     * @param {Coordinates} location
-     * @param {Coordinates} movement
-     */
-    dragTo(location, movement) {
-        this.selectorElement.selectTo(location);
-    }
-
-    endDrag() {
-        if (this.started) {
-            this.selectorElement.endSelect();
-        }
-    }
-
-    unclicked() {
-        if (!this.started) {
-            this.blueprint.unselectAll();
-        }
-    }
-}
-
-/**
- * @typedef {import("../IInput.js").Options & {
- *     listenOnFocus?: Boolean,
- * }} Options
- */
-
-class Unfocus extends IInput {
-
-    /** @param {MouseEvent} e */
-    #clickHandler = e => this.clickedSomewhere(/** @type {HTMLElement} */(e.target))
-
-    /**
-     * @param {HTMLElement} target
-     * @param {Blueprint} blueprint
-     * @param {Options} options
-     */
-    constructor(target, blueprint, options = {}) {
-        options.listenOnFocus = true;
-        super(target, blueprint, options);
-        if (this.blueprint.focus) {
-            document.addEventListener("click", this.#clickHandler);
-        }
-    }
-
-    /** @param {HTMLElement} target */
-    clickedSomewhere(target) {
-        // If target is outside the blueprint grid
-        if (!target.closest("ueb-blueprint")) {
-            this.blueprint.setFocused(false);
-        }
-    }
-
-    listenEvents() {
-        document.addEventListener("click", this.#clickHandler);
-    }
-
-    unlistenEvents() {
-        document.removeEventListener("click", this.#clickHandler);
-    }
-}
-
-/** @template {IElement} ElementT */
-class ITemplate {
-
-    /** @type {ElementT} */
-    element
-
-    get blueprint() {
-        return this.element.blueprint
-    }
-
-    /** @type {IInput[]} */
-    #inputObjects = []
-    get inputObjects() {
-        return this.#inputObjects
-    }
-
-    /** @param {ElementT} element */
-    initialize(element) {
-        this.element = element;
-    }
-
-    createInputObjects() {
-        return /** @type {IInput[]} */([])
-    }
-
-    setup() {
-        this.#inputObjects.forEach(v => v.setup());
-    }
-
-    cleanup() {
-        this.#inputObjects.forEach(v => v.cleanup());
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    willUpdate(changedProperties) {
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    update(changedProperties) {
-    }
-
-    render() {
-        return x``
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    firstUpdated(changedProperties) {
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    updated(changedProperties) {
-    }
-
-    inputSetup() {
-        this.#inputObjects = this.createInputObjects();
-    }
-}
-
-/** @extends ITemplate<Blueprint> */
-class BlueprintTemplate extends ITemplate {
-
-    static styleVariables = {
-        "--ueb-font-size": `${Configuration.fontSize}`,
-        "--ueb-grid-axis-line-color": `${Configuration.gridAxisLineColor}`,
-        "--ueb-grid-expand": `${Configuration.expandGridSize}px`,
-        "--ueb-grid-line-color": `${Configuration.gridLineColor}`,
-        "--ueb-grid-line-width": `${Configuration.gridLineWidth}px`,
-        "--ueb-grid-set-line-color": `${Configuration.gridSetLineColor}`,
-        "--ueb-grid-set": `${Configuration.gridSet}`,
-        "--ueb-grid-size": `${Configuration.gridSize}px`,
-        "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
-        "--ueb-node-radius": `${Configuration.nodeRadius}px`,
-    }
-
-    #resizeObserver = new ResizeObserver(entries => {
-        const size = entries.find(entry => entry.target === this.viewportElement)?.devicePixelContentBoxSize?.[0];
-        if (size) {
-            this.viewportSize[0] = size.inlineSize;
-            this.viewportSize[1] = size.blockSize;
-        }
-    })
-
-    /** @type {Copy} */
-    #copyInputObject
-
-    /** @type {Paste} */
-    #pasteInputObject
-
-    /** @type {Zoom} */
-    #zoomInputObject
-
-    /** @type {HTMLElement} */ headerElement
-    /** @type {HTMLElement} */ overlayElement
-    /** @type {HTMLElement} */ viewportElement
-    /** @type {SelectorElement} */ selectorElement
-    /** @type {HTMLElement} */ gridElement
-    /** @type {HTMLElement} */ linksContainerElement
-    /** @type {HTMLElement} */ nodesContainerElement
-    viewportSize = [0, 0]
-
-    #setViewportSize() {
-
-    }
-
-    /** @param {Blueprint} element */
-    initialize(element) {
-        super.initialize(element);
-        this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables)
-            .map(([k, v]) => `${k}:${v};`).join("");
-        const htmlTemplate =  /** @type {HTMLTemplateElement} */(
-            this.element.querySelector(":scope > template")
-        )?.content.textContent;
-        if (htmlTemplate) {
-            this.element.requestUpdate();
-            this.element.updateComplete.then(() => {
-                this.blueprint.mousePosition = [
-                    Math.round(this.viewportSize[0] / 2),
-                    Math.round(this.viewportSize[1] / 2),
-                ];
-                this.getPasteInputObject().pasted(htmlTemplate);
-                this.blueprint.unselectAll();
-            });
-        }
-    }
-
-    setup() {
-        super.setup();
-        this.#resizeObserver.observe(this.viewportElement, {
-            box: "device-pixel-content-box",
-        });
-        const bounding = this.viewportElement.getBoundingClientRect();
-        this.viewportSize[0] = bounding.width;
-        this.viewportSize[1] = bounding.height;
-        if (this.blueprint.nodes.length > 0) {
-            this.blueprint.requestUpdate();
-            this.blueprint.updateComplete.then(() => this.centerContentInViewport());
-        }
-    }
-
-    cleanup() {
-        super.cleanup();
-        this.#resizeObserver.unobserve(this.viewportElement);
-    }
-
-    createInputObjects() {
-        const gridElement = this.element.getGridDOMElement();
-        this.#copyInputObject = new Copy(gridElement, this.blueprint);
-        this.#pasteInputObject = new Paste(gridElement, this.blueprint);
-        this.#zoomInputObject = new Zoom(gridElement, this.blueprint);
-        return [
-            ...super.createInputObjects(),
-            this.#copyInputObject,
-            this.#pasteInputObject,
-            this.#zoomInputObject,
-            new Cut(gridElement, this.blueprint),
-            new KeyboardShortcut(gridElement, this.blueprint, {
-                activationKeys: Shortcuts.duplicateNodes
-            }, () =>
-                this.blueprint.template.getPasteInputObject().pasted(
-                    this.blueprint.template.getCopyInputObject().copied()
-                )
-            ),
-            new KeyboardShortcut(gridElement, this.blueprint, {
-                activationKeys: Shortcuts.deleteNodes
-            }, () => this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))),
-            new KeyboardShortcut(gridElement, this.blueprint, {
-                activationKeys: Shortcuts.selectAllNodes
-            }, () => this.blueprint.selectAll()),
-            new Select(gridElement, this.blueprint, {
-                clickButton: Configuration.mouseClickButton,
-                exitAnyButton: true,
-                moveEverywhere: true,
-            }),
-            new MouseScrollGraph(gridElement, this.blueprint, {
-                clickButton: Configuration.mouseRightClickButton,
-                exitAnyButton: false,
-                moveEverywhere: true,
-            }),
-            new Unfocus(gridElement, this.blueprint),
-            new MouseTracking(gridElement, this.blueprint),
-            new KeyboardEnableZoom(gridElement, this.blueprint),
-        ]
-    }
-
-    render() {
-        return x`
-            <div class="ueb-viewport-header">
-                <div class="ueb-viewport-zoom">
-                    Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
-                </div>
-            </div>
-            <div class="ueb-viewport-overlay"></div>
-            <div class="ueb-viewport-body">
-                <div class="ueb-grid"
-                    style="--ueb-additional-x: ${Math.round(this.blueprint.translateX)}; --ueb-additional-y: ${Math.round(this.blueprint.translateY)}; --ueb-translate-x: ${Math.round(this.blueprint.translateX)}; --ueb-translate-y: ${Math.round(this.blueprint.translateY)};">
-                    <div class="ueb-grid-content">
-                        <div data-links></div>
-                        <div data-nodes></div>
-                        <ueb-selector></ueb-selector>
-                    </div>
-                </div>
-            </div>
-        `
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    firstUpdated(changedProperties) {
-        super.firstUpdated(changedProperties);
-        this.headerElement = this.blueprint.querySelector('.ueb-viewport-header');
-        this.overlayElement = this.blueprint.querySelector('.ueb-viewport-overlay');
-        this.viewportElement = this.blueprint.querySelector('.ueb-viewport-body');
-        this.selectorElement = this.blueprint.querySelector('ueb-selector');
-        this.gridElement = this.viewportElement.querySelector(".ueb-grid");
-        this.linksContainerElement = this.blueprint.querySelector("[data-links]");
-        this.linksContainerElement.append(...this.blueprint.getLinks());
-        this.nodesContainerElement = this.blueprint.querySelector("[data-nodes]");
-        this.nodesContainerElement.append(...this.blueprint.getNodes());
-        this.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    willUpdate(changedProperties) {
-        super.willUpdate(changedProperties);
-        if (this.headerElement && changedProperties.has("zoom")) {
-            this.headerElement.classList.add("ueb-zoom-changed");
-            this.headerElement.addEventListener(
-                "animationend",
-                () => this.headerElement.classList.remove("ueb-zoom-changed")
-            );
-        }
-    }
-
-    /** @param {PropertyValues} changedProperties */
-    updated(changedProperties) {
-        super.updated(changedProperties);
-        if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
-            this.viewportElement.scroll(this.blueprint.scrollX, this.blueprint.scrollY);
-        }
-        if (changedProperties.has("zoom")) {
-            this.blueprint.style.setProperty("--ueb-scale", this.blueprint.getScale());
-            const previousZoom = changedProperties.get("zoom");
-            const minZoom = Math.min(previousZoom, this.blueprint.zoom);
-            const maxZoom = Math.max(previousZoom, this.blueprint.zoom);
-            const classes = Utility.range(minZoom, maxZoom);
-            const getClassName = v => `ueb-zoom-${v}`;
-            if (previousZoom < this.blueprint.zoom) {
-                this.blueprint.classList.remove(...classes.filter(v => v < 0).map(getClassName));
-                this.blueprint.classList.add(...classes.filter(v => v > 0).map(getClassName));
-            } else {
-                this.blueprint.classList.remove(...classes.filter(v => v > 0).map(getClassName));
-                this.blueprint.classList.add(...classes.filter(v => v < 0).map(getClassName));
-            }
-        }
-    }
-
-    getCommentNodes(justSelected = false) {
-        return this.blueprint.querySelectorAll(
-            `ueb-node[data-type="${Configuration.paths.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
-            + `, ueb-node[data-type="${Configuration.paths.materialGraphNodeComment}"]${justSelected ? '[data-selected="true"]' : ''}`
-        )
-    }
-
-    /** @param {PinReferenceEntity} pinReference */
-    getPin(pinReference) {
-        return /** @type {PinElement} */(this.blueprint.querySelector(
-            `ueb-node[data-title="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
-        ))
-    }
-
-    getCopyInputObject() {
-        return this.#copyInputObject
-    }
-
-    getPasteInputObject() {
-        return this.#pasteInputObject
-    }
-
-    getZoomInputObject() {
-        return this.#zoomInputObject
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    isPointVisible(x, y) {
-        return false
-    }
-
-    gridTopVisibilityBoundary() {
-        return this.blueprint.scaleCorrect(this.blueprint.scrollY) - this.blueprint.translateY
-    }
-
-    gridRightVisibilityBoundary() {
-        return this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0])
-    }
-
-    gridBottomVisibilityBoundary() {
-        return this.gridTopVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[1])
-    }
-
-    gridLeftVisibilityBoundary() {
-        return this.blueprint.scaleCorrect(this.blueprint.scrollX) - this.blueprint.translateX
-    }
-
-    centerViewport(x = 0, y = 0, smooth = true) {
-        const centerX = this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0] / 2);
-        const centerY = this.gridTopVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[1] / 2);
-        this.blueprint.scrollDelta(
-            this.blueprint.scaleCorrectReverse(x - centerX),
-            this.blueprint.scaleCorrectReverse(y - centerY),
-            smooth
-        );
-    }
-
-    centerContentInViewport(smooth = true) {
-        let avgX = 0;
-        let avgY = 0;
-        let minX = Number.MAX_SAFE_INTEGER;
-        let maxX = Number.MIN_SAFE_INTEGER;
-        let minY = Number.MAX_SAFE_INTEGER;
-        let maxY = Number.MIN_SAFE_INTEGER;
-        const nodes = this.blueprint.getNodes();
-        for (const node of nodes) {
-            avgX += node.leftBoundary() + node.rightBoundary();
-            avgY += node.topBoundary() + node.bottomBoundary();
-            minX = Math.min(minX, node.leftBoundary());
-            maxX = Math.max(maxX, node.rightBoundary());
-            minY = Math.min(minY, node.topBoundary());
-            maxY = Math.max(maxY, node.bottomBoundary());
-        }
-        avgX = Math.round(maxX - minX <= this.viewportSize[0]
-            ? (maxX + minX) / 2
-            : avgX / (2 * nodes.length)
-        );
-        avgY = Math.round(maxY - minY <= this.viewportSize[1]
-            ? (maxY + minY) / 2
-            : avgY / (2 * nodes.length)
-        );
-        this.centerViewport(avgX, avgY, smooth);
-    }
-}
-
-/**
- * @template {IEntity} EntityT
- * @template {ITemplate} TemplateT
- * @extends {IElement<EntityT, TemplateT>}
- */
-class IFromToPositionedElement extends IElement {
-
-    static properties = {
-        ...super.properties,
-        fromX: {
-            type: Number,
-            attribute: false,
-        },
-        fromY: {
-            type: Number,
-            attribute: false,
-        },
-        toX: {
-            type: Number,
-            attribute: false,
-        },
-        toY: {
-            type: Number,
-            attribute: false,
-        },
-    }
-
-    constructor() {
-        super();
-        this.fromX = 0;
-        this.fromY = 0;
-        this.toX = 0;
-        this.toY = 0;
-    }
-
-    /** @param {Coordinates} param0 */
-    setBothLocations([x, y]) {
-        this.fromX = x;
-        this.fromY = y;
-        this.toX = x;
-        this.toY = y;
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    addSourceLocation(x, y) {
-        this.fromX += x;
-        this.fromY += y;
-    }
-
-    /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    addDestinationLocation(x, y) {
-        this.toX += x;
-        this.toY += y;
-    }
-}
-
-class KnotEntity extends ObjectEntity {
-
-    /**
-     * @param {Object} values
-     * @param {PinEntity} pinReferenceForType
-     */
-    constructor(values = {}, pinReferenceForType = undefined) {
-        values.Class = new ObjectReferenceEntity(Configuration.paths.knot);
-        values.Name = "K2Node_Knot";
-        const inputPinEntity = new PinEntity(
-            { PinName: "InputPin" },
-            true
-        );
-        const outputPinEntity = new PinEntity(
-            {
-                PinName: "OutputPin",
-                Direction: "EGPD_Output",
-            },
-            true
-        );
-        if (pinReferenceForType) {
-            inputPinEntity.copyTypeFrom(pinReferenceForType);
-            outputPinEntity.copyTypeFrom(pinReferenceForType);
-        }
-        values["CustomProperties"] = [inputPinEntity, outputPinEntity];
-        super(values, true);
-    }
-}
-
-/**
  * @typedef {import("./IMouseClickDrag.js").Options & {
 * }} Options
 */
@@ -8027,6 +6708,64 @@ class MouseDbClick extends IPointing {
     /** @param {Coordinates} location */
     dbclicked(location) {
         this.onDbClick(location);
+    }
+}
+
+/** @template {IElement} ElementT */
+class ITemplate {
+
+    /** @type {ElementT} */
+    element
+
+    get blueprint() {
+        return this.element.blueprint
+    }
+
+    /** @type {IInput[]} */
+    #inputObjects = []
+    get inputObjects() {
+        return this.#inputObjects
+    }
+
+    /** @param {ElementT} element */
+    initialize(element) {
+        this.element = element;
+    }
+
+    createInputObjects() {
+        return /** @type {IInput[]} */([])
+    }
+
+    setup() {
+        this.#inputObjects.forEach(v => v.setup());
+    }
+
+    cleanup() {
+        this.#inputObjects.forEach(v => v.cleanup());
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    willUpdate(changedProperties) {
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    update(changedProperties) {
+    }
+
+    render() {
+        return x``
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    updated(changedProperties) {
+    }
+
+    inputSetup() {
+        this.#inputObjects = this.createInputObjects();
     }
 }
 
@@ -8542,6 +7281,336 @@ class LinkElement extends IFromToPositionedElement {
         this.linkMessageIcon = SVGIcon.reject;
         this.linkMessageText =
             x`${Utility.capitalFirstLetter(a.pinType)} is not compatible with ${Utility.capitalFirstLetter(b.pinType)}.`;
+    }
+}
+
+/**
+ * @template {IEntity} T
+ * @template {IDraggableTemplate} U
+ * @extends {IElement<T, U>}
+ */
+class IDraggableElement extends IElement {
+
+    static properties = {
+        ...super.properties,
+        locationX: {
+            type: Number,
+            attribute: false,
+        },
+        locationY: {
+            type: Number,
+            attribute: false,
+        },
+        sizeX: {
+            type: Number,
+            attribute: false,
+        },
+        sizeY: {
+            type: Number,
+            attribute: false,
+        },
+    }
+    static dragEventName = Configuration.dragEventName
+    static dragGeneralEventName = Configuration.dragGeneralEventName
+
+    constructor() {
+        super();
+        this.locationX = 0;
+        this.locationY = 0;
+        this.sizeX = 0;
+        this.sizeY = 0;
+    }
+
+    computeSizes() {
+        const bounding = this.getBoundingClientRect();
+        this.sizeX = this.blueprint.scaleCorrect(bounding.width);
+        this.sizeY = this.blueprint.scaleCorrect(bounding.height);
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.computeSizes();
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    setLocation(x, y, acknowledge = true) {
+        const dx = x - this.locationX;
+        const dy = y - this.locationY;
+        this.locationX = x;
+        this.locationY = y;
+        if (this.blueprint && acknowledge) {
+            const dragLocalEvent = new CustomEvent(
+                /** @type {typeof IDraggableElement} */(this.constructor).dragEventName,
+                {
+                    detail: {
+                        value: [dx, dy],
+                    },
+                    bubbles: false,
+                    cancelable: true,
+                }
+            );
+            this.dispatchEvent(dragLocalEvent);
+        }
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    addLocation(x, y, acknowledge = true) {
+        this.setLocation(this.locationX + x, this.locationY + y, acknowledge);
+    }
+
+    /** @param {Coordinates} value */
+    acknowledgeDrag(value) {
+        const dragEvent = new CustomEvent(
+            /** @type {typeof IDraggableElement} */(this.constructor).dragGeneralEventName,
+            {
+                detail: {
+                    value: value
+                },
+                bubbles: true,
+                cancelable: true
+            }
+        );
+        this.dispatchEvent(dragEvent);
+    }
+
+    snapToGrid() {
+        const snappedLocation = Utility.snapToGrid(this.locationX, this.locationY, Configuration.gridSize);
+        if (this.locationX != snappedLocation[0] || this.locationY != snappedLocation[1]) {
+            this.setLocation(snappedLocation[0], snappedLocation[1]);
+        }
+    }
+
+    topBoundary(justSelectableArea = false) {
+        return this.template.topBoundary(justSelectableArea)
+    }
+
+    rightBoundary(justSelectableArea = false) {
+        return this.template.rightBoundary(justSelectableArea)
+    }
+
+    bottomBoundary(justSelectableArea = false) {
+        return this.template.bottomBoundary(justSelectableArea)
+    }
+
+    leftBoundary(justSelectableArea = false) {
+        return this.template.leftBoundary(justSelectableArea)
+    }
+}
+
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     clickButton?: Number,
+ *     consumeEvent?: Boolean,
+ *     draggableElement?: HTMLElement,
+ *     exitAnyButton?: Boolean,
+ *     moveEverywhere?: Boolean,
+ *     movementSpace?: HTMLElement,
+ *     repositionOnClick?: Boolean,
+ *     scrollGraphEdge?: Boolean,
+ *     strictTarget?: Boolean,
+ *     stepSize?: Number,
+ * }} Options
+ */
+
+/**
+ * @template {IElement} T
+ * @extends {IPointing<T>}
+ */
+class IMouseClickDrag extends IPointing {
+
+    /** @param {MouseEvent} e  */
+    #mouseDownHandler = e => {
+        this.blueprint.setFocused(true);
+        switch (e.button) {
+            case this.options.clickButton:
+                // Either doesn't matter or consider the click only when clicking on the parent, not descandants
+                if (!this.options.strictTarget || e.target == e.currentTarget) {
+                    if (this.consumeEvent) {
+                        e.stopImmediatePropagation(); // Captured, don't call anyone else
+                    }
+                    // Attach the listeners
+                    this.#movementListenedElement.addEventListener("mousemove", this.#mouseStartedMovingHandler);
+                    document.addEventListener("mouseup", this.#mouseUpHandler);
+                    this.setLocationFromEvent(e);
+                    this.clickedPosition[0] = this.location[0];
+                    this.clickedPosition[1] = this.location[1];
+                    this.blueprint.mousePosition[0] = this.location[0];
+                    this.blueprint.mousePosition[1] = this.location[1];
+                    if (this.target instanceof IDraggableElement) {
+                        this.clickedOffset = [
+                            this.clickedPosition[0] - this.target.locationX,
+                            this.clickedPosition[1] - this.target.locationY,
+                        ];
+                    }
+                    this.clicked(this.clickedPosition);
+                }
+                break
+            default:
+                if (!this.options.exitAnyButton) {
+                    this.#mouseUpHandler(e);
+                }
+                break
+        }
+    }
+
+    /** @param {MouseEvent} e  */
+    #mouseStartedMovingHandler = e => {
+        if (this.consumeEvent) {
+            e.stopImmediatePropagation(); // Captured, don't call anyone else
+        }
+        // Delegate from now on to this.#mouseMoveHandler
+        this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
+        this.#movementListenedElement.addEventListener("mousemove", this.#mouseMoveHandler);
+        // Handler calls e.preventDefault() when it receives the event, this means dispatchEvent returns false
+        const dragEvent = this.getEvent(Configuration.trackingMouseEventName.begin);
+        this.#trackingMouse = this.target.dispatchEvent(dragEvent) == false;
+        this.setLocationFromEvent(e);
+        // Do actual actions
+        this.lastLocation = Utility.snapToGrid(this.clickedPosition[0], this.clickedPosition[1], this.stepSize);
+        this.startDrag(this.location);
+        this.started = true;
+        this.#mouseMoveHandler(e);
+    }
+
+    /** @param {MouseEvent} e  */
+    #mouseMoveHandler = e => {
+        if (this.consumeEvent) {
+            e.stopImmediatePropagation(); // Captured, don't call anyone else
+        }
+        const location = this.setLocationFromEvent(e);
+        const movement = [e.movementX, e.movementY];
+        this.dragTo(location, movement);
+        if (this.#trackingMouse) {
+            this.blueprint.mousePosition = location;
+        }
+        if (this.options.scrollGraphEdge) {
+            const movementNorm = Math.sqrt(movement[0] * movement[0] + movement[1] * movement[1]);
+            const threshold = this.blueprint.scaleCorrect(Configuration.edgeScrollThreshold);
+            const leftThreshold = this.blueprint.template.gridLeftVisibilityBoundary() + threshold;
+            const rightThreshold = this.blueprint.template.gridRightVisibilityBoundary() - threshold;
+            let scrollX = 0;
+            if (location[0] < leftThreshold) {
+                scrollX = location[0] - leftThreshold;
+            } else if (location[0] > rightThreshold) {
+                scrollX = location[0] - rightThreshold;
+            }
+            const topThreshold = this.blueprint.template.gridTopVisibilityBoundary() + threshold;
+            const bottomThreshold = this.blueprint.template.gridBottomVisibilityBoundary() - threshold;
+            let scrollY = 0;
+            if (location[1] < topThreshold) {
+                scrollY = location[1] - topThreshold;
+            } else if (location[1] > bottomThreshold) {
+                scrollY = location[1] - bottomThreshold;
+            }
+            scrollX = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollX) ** 3 * movementNorm * 0.6, -20, 20);
+            scrollY = Utility.clamp(this.blueprint.scaleCorrectReverse(scrollY) ** 3 * movementNorm * 0.6, -20, 20);
+            this.blueprint.scrollDelta(scrollX, scrollY);
+        }
+    }
+
+    /** @param {MouseEvent} e  */
+    #mouseUpHandler = e => {
+        if (!this.options.exitAnyButton || e.button == this.options.clickButton) {
+            if (this.consumeEvent) {
+                e.stopImmediatePropagation(); // Captured, don't call anyone else
+            }
+            // Remove the handlers of "mousemove" and "mouseup"
+            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseStartedMovingHandler);
+            this.#movementListenedElement.removeEventListener("mousemove", this.#mouseMoveHandler);
+            document.removeEventListener("mouseup", this.#mouseUpHandler);
+            if (this.started) {
+                this.endDrag();
+            }
+            this.unclicked();
+            if (this.#trackingMouse) {
+                const dragEvent = this.getEvent(Configuration.trackingMouseEventName.end);
+                this.target.dispatchEvent(dragEvent);
+                this.#trackingMouse = false;
+            }
+            this.started = false;
+        }
+    }
+
+    #trackingMouse = false
+    #movementListenedElement
+    #draggableElement
+    get draggableElement() {
+        return this.#draggableElement
+    }
+
+    clickedOffset = /** @type {Coordinates} */([0, 0])
+    clickedPosition = /** @type {Coordinates} */([0, 0])
+    lastLocation = /** @type {Coordinates} */([0, 0])
+    started = false
+    stepSize = 1
+
+    /**
+     * @param {T} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.clickButton ??= Configuration.mouseClickButton;
+        options.consumeEvent ??= true;
+        options.draggableElement ??= target;
+        options.exitAnyButton ??= true;
+        options.moveEverywhere ??= false;
+        options.movementSpace ??= blueprint?.getGridDOMElement();
+        options.repositionOnClick ??= false;
+        options.scrollGraphEdge ??= false;
+        options.strictTarget ??= false;
+        super(target, blueprint, options);
+        this.stepSize = Number(options.stepSize ?? Configuration.gridSize);
+        this.#movementListenedElement = this.options.moveEverywhere ? document.documentElement : this.movementSpace;
+        this.#draggableElement = /** @type {HTMLElement} */(this.options.draggableElement);
+
+        this.listenEvents();
+    }
+
+    listenEvents() {
+        super.listenEvents();
+        this.#draggableElement.addEventListener("mousedown", this.#mouseDownHandler);
+        if (this.options.clickButton === Configuration.mouseRightClickButton) {
+            this.#draggableElement.addEventListener("contextmenu", e => e.preventDefault());
+        }
+    }
+
+    unlistenEvents() {
+        super.unlistenEvents();
+        this.#draggableElement.removeEventListener("mousedown", this.#mouseDownHandler);
+    }
+
+    getEvent(eventName) {
+        return new CustomEvent(eventName, {
+            detail: {
+                tracker: this
+            },
+            bubbles: true,
+            cancelable: true
+        })
+    }
+
+    /* Subclasses will override the following methods */
+    clicked(location) {
+    }
+
+    startDrag(location) {
+    }
+
+    dragTo(location, offset) {
+    }
+
+    endDrag() {
+    }
+
+    unclicked(location) {
     }
 }
 
@@ -10080,6 +9149,10 @@ class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes());
         }
+        entity.listenAttribute("Name", v => {
+            this.nodeTitle = entity.Name;
+            this.nodeDisplayName = entity.nodeDisplayName();
+        });
     }
 
     async getUpdateComplete() {
@@ -10196,7 +9269,1076 @@ class NodeElement extends ISelectableDraggableElement {
     }
 }
 
-/** @extends {IElement<Object, BlueprintTemplate>} */
+class BlueprintEntity extends IEntity {
+
+    /** @type {Map<String, Number>} */
+    #objectEntitiesNameCounter = new Map()
+
+    /** @type {ObjectEntity[]}" */
+    #objectEntities = []
+    get objectEntities() {
+        return this.#objectEntities
+    }
+
+    /** @param {ObjectEntity} entity */
+    getHomonymObjectEntity(entity) {
+        const name = entity.getObjectName(false);
+        return this.#objectEntities.find(entity => entity.getObjectName() == name)
+    }
+
+    /** @param {String} name */
+    getFreeName(name) {
+        name = name.replace(/_\d+$/, "");
+        const counter = (this.#objectEntitiesNameCounter.get(name) ?? -1) + 1;
+        return Configuration.nodeTitle(name, counter)
+    }
+
+    /** @param {ObjectEntity} entity */
+    addObjectEntity(entity) {
+        if (!this.#objectEntities.includes(entity)) {
+            this.#objectEntities.push(entity);
+            const [name, counter] = entity.getNameAndCounter();
+            this.#objectEntitiesNameCounter.set(
+                name,
+                Math.max((this.#objectEntitiesNameCounter.get(name) ?? 0), counter)
+            );
+            return true
+        }
+        return false
+    }
+
+    /** @param {ObjectEntity} entity */
+    removeObjectEntity(entity) {
+        const index = this.#objectEntities.indexOf(entity);
+        if (index >= 0) {
+            const last = this.#objectEntities.pop();
+            if (index < this.#objectEntities.length) {
+                this.#objectEntities[index] = last;
+            }
+            return true
+        }
+        return false
+    }
+
+    /** @param {ObjectEntity} entity */
+    merge(entity) {
+        if (!entity.ScriptVariables || entity.ScriptVariables.length === 0) {
+            return
+        }
+        if (!this.ScriptVariables || this.ScriptVariables.length === 0) {
+            this.ScriptVariables = entity.ScriptVariables;
+        }
+        let scriptVariables = Utility.mergeArrays(
+            this.ScriptVariables,
+            entity.ScriptVariables,
+            (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value
+        );
+        if (scriptVariables.length === this.ScriptVariables.length) {
+            return
+        }
+        for (let i = 0; i < entity.ScriptVariables.length; ++i) {
+            const current = entity.ScriptVariables[i];
+            if (!this.ScriptVariables.some(v => v.OriginalChangeId.equals(current.OriginalChangeId))) ;
+        }
+    }
+}
+
+/** @template {AttributeConstructor<Attribute>} T */
+class Serializer {
+
+    /** @type {(v: String) => String} */
+    static same = v => v
+
+    /** @type {(entity: Attribute, serialized: String) => String} */
+    static notWrapped = (entity, serialized) => serialized
+
+    /** @type {(entity: Attribute, serialized: String) => String} */
+    static bracketsWrapped = (entity, serialized) => `(${serialized})`
+
+    /** @param {T} entityType */
+    constructor(
+        entityType,
+        /** @type {(entity: ConstructedType<T>, serialized: String) => String} */
+        wrap = (entity, serialized) => serialized,
+        attributeSeparator = ",",
+        trailingSeparator = false,
+        attributeValueConjunctionSign = "=",
+        attributeKeyPrinter = Serializer.same
+    ) {
+        this.entityType = entityType;
+        this.wrap = wrap;
+        this.attributeSeparator = attributeSeparator;
+        this.trailingSeparator = trailingSeparator;
+        this.attributeValueConjunctionSign = attributeValueConjunctionSign;
+        this.attributeKeyPrinter = attributeKeyPrinter;
+    }
+
+    /**
+     * @param {String} value
+     * @returns {ConstructedType<T>}
+     */
+    read(value) {
+        return this.doRead(value.trim())
+    }
+
+    /** @param {ConstructedType<T>} value */
+    write(value, insideString = false) {
+        return this.doWrite(value, insideString)
+    }
+
+    /**
+     * @param {String} value
+     * @returns {ConstructedType<T>}
+     */
+    doRead(value) {
+        let grammar = Grammar.grammarFor(undefined, this.entityType);
+        const parseResult = grammar.run(value);
+        if (!parseResult.status) {
+            throw new Error(
+                this.entityType
+                    ? `Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`
+                    : "Error when trying to parse null"
+            )
+        }
+        return parseResult.value
+    }
+
+    /**
+     * @param {ConstructedType<T>} entity
+     * @param {Boolean} insideString
+     * @returns {String}
+     */
+    doWrite(
+        entity,
+        insideString = false,
+        indentation = "",
+        wrap = this.wrap,
+        attributeSeparator = this.attributeSeparator,
+        trailingSeparator = this.trailingSeparator,
+        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
+        attributeKeyPrinter = this.attributeKeyPrinter
+    ) {
+        let result = "";
+        const keys = Object.keys(entity);
+        let first = true;
+        for (const key of keys) {
+            const value = entity[key];
+            if (value !== undefined && this.showProperty(entity, key)) {
+                let keyValue = entity instanceof Array ? `(${key})` : key;
+                if (AttributeInfo.getAttribute(entity, key, "quoted")) {
+                    keyValue = `"${keyValue}"`;
+                }
+                const isSerialized = AttributeInfo.getAttribute(entity, key, "serialized");
+                if (first) {
+                    first = false;
+                } else {
+                    result += attributeSeparator;
+                }
+                if (AttributeInfo.getAttribute(entity, key, "inlined")) {
+                    result += this.doWrite(
+                        value,
+                        insideString,
+                        indentation,
+                        Serializer.notWrapped,
+                        attributeSeparator,
+                        false,
+                        attributeValueConjunctionSign,
+                        AttributeInfo.getAttribute(entity, key, "type") instanceof Array
+                            ? k => attributeKeyPrinter(`${keyValue}${k}`)
+                            : k => attributeKeyPrinter(`${keyValue}.${k}`)
+                    );
+                    continue
+                }
+                const keyPrinted = attributeKeyPrinter(keyValue);
+                const indentationPrinted = attributeSeparator.includes("\n") ? indentation : "";
+                result += (
+                    keyPrinted.length
+                        ? (indentationPrinted + keyPrinted + this.attributeValueConjunctionSign)
+                        : ""
+                )
+                    + (
+                        isSerialized
+                            ? `"${this.doWriteValue(value, true, indentation)}"`
+                            : this.doWriteValue(value, insideString, indentation)
+                    );
+            }
+        }
+        if (trailingSeparator && result.length) {
+            // append separator at the end if asked and there was printed content
+            result += attributeSeparator;
+        }
+        return wrap(entity, result)
+    }
+
+    /** @param {Boolean} insideString */
+    doWriteValue(value, insideString, indentation = "") {
+        const type = Utility.getType(value);
+        const serializer = SerializerFactory.getSerializer(type);
+        if (!serializer) {
+            throw new Error(
+                `Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, `
+                + "check initializeSerializerFactory.js"
+            )
+        }
+        return serializer.doWrite(value, insideString, indentation)
+    }
+
+    /**
+     * @param {IEntity} entity
+     * @param {String} key
+     */
+    showProperty(entity, key) {
+        if (entity instanceof IEntity) {
+            if (
+                AttributeInfo.getAttribute(entity, key, "ignored")
+                || AttributeInfo.getAttribute(entity, key, "silent") && Utility.equals(
+                    AttributeInfo.getAttribute(entity, key, "default"),
+                    entity[key]
+                )
+            ) {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+/** @extends Serializer<ObjectEntityConstructor> */
+class ObjectSerializer extends Serializer {
+
+    constructor(entityType = ObjectEntity) {
+        super(entityType, undefined, "\n", true, undefined, Serializer.same);
+    }
+
+    showProperty(entity, key) {
+        switch (key) {
+            case "Class":
+            case "Name":
+            case "Archetype":
+            case "ExportPath":
+            case "CustomProperties":
+                // Serielized separately, check doWrite()
+                return false
+        }
+        return super.showProperty(entity, key)
+    }
+
+    /** @param {ObjectEntity} value */
+    write(value, insideString = false) {
+        return this.doWrite(value, insideString) + "\n"
+    }
+
+    /** @param {String} value */
+    doRead(value) {
+        return Grammar.grammarFor(undefined, this.entityType).parse(value)
+    }
+
+    /**
+     * @param {String} value
+     * @returns {ObjectEntity[]}
+     */
+    readMultiple(value) {
+        return ObjectEntity.getMultipleObjectsGrammar().parse(value)
+    }
+
+    /**
+     * @param {ObjectEntity} entity
+     * @param {Boolean} insideString
+     * @returns {String}
+     */
+    doWrite(
+        entity,
+        insideString,
+        indentation = "",
+        wrap = this.wrap,
+        attributeSeparator = this.attributeSeparator,
+        trailingSeparator = this.trailingSeparator,
+        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
+        attributeKeyPrinter = this.attributeKeyPrinter,
+    ) {
+        const moreIndentation = indentation + Configuration.indentation;
+        if (!(entity instanceof ObjectEntity)) {
+            return super.doWrite(
+                entity,
+                insideString,
+                indentation,
+                wrap,
+                attributeSeparator,
+                trailingSeparator,
+                attributeValueConjunctionSign,
+                // @ts-expect-error
+                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
+            )
+        }
+        let result = indentation + "Begin Object"
+            + (entity.Class?.type || entity.Class?.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
+            + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
+            + (entity.Archetype ? ` Archetype=${this.doWriteValue(entity.Archetype, insideString)}` : "")
+            + (entity.ExportPath?.type || entity.ExportPath?.path ? ` ExportPath=${this.doWriteValue(entity.ExportPath, insideString)}` : "")
+            + "\n"
+            + super.doWrite(
+                entity,
+                insideString,
+                moreIndentation,
+                wrap,
+                attributeSeparator,
+                true,
+                attributeValueConjunctionSign,
+                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
+            )
+            + (!AttributeInfo.getAttribute(entity, "CustomProperties", "ignored")
+                ? entity.getCustomproperties().map(pin =>
+                    moreIndentation
+                    + attributeKeyPrinter("CustomProperties ")
+                    + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
+                    + this.attributeSeparator
+                ).join("")
+                : ""
+            )
+            + indentation + "End Object";
+        return result
+    }
+}
+
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
+class Copy extends IInput {
+
+    static #serializer = new ObjectSerializer()
+
+    /** @type {(e: ClipboardEvent) => void} */
+    #copyHandler
+
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus ??= true;
+        options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
+        super(target, blueprint, options);
+        let self = this;
+        this.#copyHandler = () => self.copied();
+    }
+
+    listenEvents() {
+        window.addEventListener("copy", this.#copyHandler);
+    }
+
+    unlistenEvents() {
+        window.removeEventListener("copy", this.#copyHandler);
+    }
+
+    getSerializedText() {
+        return this.blueprint
+            .getNodes(true)
+            .map(node => Copy.#serializer.write(node.entity, false))
+            .join("")
+    }
+
+    copied() {
+        const value = this.getSerializedText();
+        navigator.clipboard.writeText(value);
+        return value
+    }
+}
+
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
+class Cut extends IInput {
+
+    static #serializer = new ObjectSerializer()
+
+    /** @type {(e: ClipboardEvent) => void} */
+    #cutHandler
+
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus ??= true;
+        options.unlistenOnTextEdit ??= true; // No nodes copy if inside a text field, just text (default behavior)
+        super(target, blueprint, options);
+        let self = this;
+        this.#cutHandler = () => self.cut();
+    }
+
+    listenEvents() {
+        window.addEventListener("cut", this.#cutHandler);
+    }
+
+    unlistenEvents() {
+        window.removeEventListener("cut", this.#cutHandler);
+    }
+
+    getSerializedText() {
+        return this.blueprint
+            .getNodes(true)
+            .map(node => Cut.#serializer.write(node.entity, false))
+            .join("")
+    }
+
+    cut() {
+        this.blueprint.template.getCopyInputObject().copied();
+        this.blueprint.removeGraphElement(...this.blueprint.getNodes(true));
+    }
+}
+
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     unlistenOnTextEdit?: Boolean,
+ * }} Options
+ */
+
+class Paste extends IInput {
+
+    static #serializer = new ObjectSerializer()
+
+    /** @type {(e: ClipboardEvent) => void} */
+    #pasteHandle
+
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus ??= true;
+        options.unlistenOnTextEdit ??= true; // No nodes paste if inside a text field, just text (default behavior)
+        super(target, blueprint, options);
+        let self = this;
+        this.#pasteHandle = e => self.pasted(e.clipboardData.getData("Text"));
+    }
+
+    listenEvents() {
+        window.addEventListener("paste", this.#pasteHandle);
+    }
+
+    unlistenEvents() {
+        window.removeEventListener("paste", this.#pasteHandle);
+    }
+
+    /** @param {String} value */
+    pasted(value) {
+        let top = 0;
+        let left = 0;
+        let count = 0;
+        let nodes = Paste.#serializer.readMultiple(value).map(entity => {
+            let node = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
+                .newObject(entity);
+            top += node.locationY;
+            left += node.locationX;
+            ++count;
+            return node
+        });
+        top /= count;
+        left /= count;
+        if (nodes.length > 0) {
+            this.blueprint.unselectAll();
+        }
+        let mousePosition = this.blueprint.mousePosition;
+        nodes.forEach(node => {
+            node.addLocation(mousePosition[0] - left, mousePosition[1] - top);
+            node.snapToGrid();
+            node.setSelected(true);
+        });
+        this.blueprint.addGraphElement(...nodes);
+        return true
+    }
+}
+
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     listenOnFocus?: Boolean,
+ *     strictTarget?: Boolean,
+ * }} Options
+ */
+
+class MouseWheel extends IPointing {
+
+    /** @param {MouseWheel} self */
+    static #ignoreEvent = self => { }
+
+    #variation = 0
+    get variation() {
+        return this.#variation
+    }
+
+    /** @param {WheelEvent} e */
+    #mouseWheelHandler = e => {
+        if (this.enablerKey && !this.enablerActivated) {
+            return
+        }
+        e.preventDefault();
+        this.#variation = e.deltaY;
+        this.setLocationFromEvent(e);
+        this.wheel();
+    }
+
+    /** @param {WheelEvent} e */
+    #mouseParentWheelHandler = e => e.preventDefault()
+
+    /**
+     * @param {HTMLElement} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(
+        target,
+        blueprint,
+        options = {},
+        onWheel = MouseWheel.#ignoreEvent,
+    ) {
+        options.listenOnFocus = true;
+        options.strictTarget ??= false;
+        super(target, blueprint, options);
+        this.strictTarget = options.strictTarget;
+        this.onWheel = onWheel;
+    }
+
+    listenEvents() {
+        this.movementSpace.addEventListener("wheel", this.#mouseWheelHandler, false);
+        this.movementSpace.parentElement?.addEventListener("wheel", this.#mouseParentWheelHandler);
+    }
+
+    unlistenEvents() {
+        this.movementSpace.removeEventListener("wheel", this.#mouseWheelHandler, false);
+        this.movementSpace.parentElement?.removeEventListener("wheel", this.#mouseParentWheelHandler);
+    }
+
+    /* Subclasses can override */
+    wheel() {
+        this.onWheel(this);
+    }
+}
+
+class Zoom extends MouseWheel {
+
+    #accumulatedVariation = 0
+
+    #enableZoonIn = false
+    get enableZoonIn() {
+        return this.#enableZoonIn
+    }
+    set enableZoonIn(value) {
+        if (value == this.#enableZoonIn) {
+            return
+        }
+        this.#enableZoonIn = value;
+    }
+
+    wheel() {
+        this.#accumulatedVariation += -this.variation;
+        if (Math.abs(this.#accumulatedVariation) < Configuration.mouseWheelZoomThreshold) {
+            return
+        }
+        let zoomLevel = this.blueprint.getZoom();
+        if (!this.enableZoonIn && zoomLevel == 0 && this.#accumulatedVariation > 0) {
+            return
+        }
+        zoomLevel += Math.sign(this.#accumulatedVariation);
+        this.blueprint.setZoom(zoomLevel, this.location);
+        this.#accumulatedVariation = 0;
+    }
+}
+
+/**
+ * @typedef {import("./KeyboardShortcut.js").Options & {
+ *     activationKeys?: String | KeyBindingEntity | (String | KeyBindingEntity)[],
+ * }} Options
+ */
+
+class KeyboardEnableZoom extends KeyboardShortcut {
+
+    /** @type {Zoom} */
+    #zoomInputObject
+
+    /**
+     * @param {HTMLElement} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.activationKeys = Shortcuts.enableZoomIn;
+        super(target, blueprint, options);
+    }
+
+    fire() {
+        this.#zoomInputObject = this.blueprint.template.getZoomInputObject();
+        this.#zoomInputObject.enableZoonIn = true;
+    }
+
+    unfire() {
+        this.#zoomInputObject.enableZoonIn = false;
+    }
+}
+
+class MouseScrollGraph extends IMouseClickDrag {
+
+    startDrag() {
+        this.blueprint.scrolling = true;
+    }
+
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
+    dragTo(location, movement) {
+        this.blueprint.scrollDelta(-movement[0], -movement[1]);
+    }
+
+    endDrag() {
+        this.blueprint.scrolling = false;
+    }
+}
+
+/**
+ * @typedef {import("./IPointing.js").Options & {
+ *     listenOnFocus?: Boolean,
+ * }} Options
+ */
+
+class MouseTracking extends IPointing {
+
+    /** @type {IPointing} */
+    #mouseTracker = null
+
+    /** @param {MouseEvent} e */
+    #mousemoveHandler = e => {
+        e.preventDefault();
+        this.setLocationFromEvent(e);
+        this.blueprint.mousePosition = [...this.location];
+    }
+
+    /** @param {CustomEvent} e */
+    #trackingMouseStolenHandler = e => {
+        if (!this.#mouseTracker) {
+            e.preventDefault();
+            this.#mouseTracker = e.detail.tracker;
+            this.unlistenMouseMove();
+        }
+    }
+
+    /** @param {CustomEvent} e */
+    #trackingMouseGaveBackHandler = e => {
+        if (this.#mouseTracker == e.detail.tracker) {
+            e.preventDefault();
+            this.#mouseTracker = null;
+            this.listenMouseMove();
+        }
+    }
+
+    /**
+     * @param {Element} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus = true;
+        super(target, blueprint, options);
+    }
+
+    listenMouseMove() {
+        this.target.addEventListener("mousemove", this.#mousemoveHandler);
+    }
+
+    unlistenMouseMove() {
+        this.target.removeEventListener("mousemove", this.#mousemoveHandler);
+    }
+
+    listenEvents() {
+        this.listenMouseMove();
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
+        this.blueprint.addEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler));
+    }
+
+    unlistenEvents() {
+        this.unlistenMouseMove();
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.begin,
+            /** @type {(e: Event) => any} */(this.#trackingMouseStolenHandler));
+        this.blueprint.removeEventListener(
+            Configuration.trackingMouseEventName.end,
+            /** @type {(e: Event) => any} */(this.#trackingMouseGaveBackHandler)
+        );
+    }
+}
+
+/**
+ * @typedef {import("./IMouseClickDrag.js").Options & {
+ *     scrollGraphEdge?: Boolean,
+ * }} Options
+ */
+
+class Select extends IMouseClickDrag {
+
+    constructor(target, blueprint, options = {}) {
+        options.scrollGraphEdge ??= true;
+        super(target, blueprint, options);
+        this.selectorElement = this.blueprint.template.selectorElement;
+    }
+
+    startDrag() {
+        this.selectorElement.beginSelect(this.clickedPosition);
+    }
+
+    /**
+     * @param {Coordinates} location
+     * @param {Coordinates} movement
+     */
+    dragTo(location, movement) {
+        this.selectorElement.selectTo(location);
+    }
+
+    endDrag() {
+        if (this.started) {
+            this.selectorElement.endSelect();
+        }
+    }
+
+    unclicked() {
+        if (!this.started) {
+            this.blueprint.unselectAll();
+        }
+    }
+}
+
+/**
+ * @typedef {import("../IInput.js").Options & {
+ *     listenOnFocus?: Boolean,
+ * }} Options
+ */
+
+class Unfocus extends IInput {
+
+    /** @param {MouseEvent} e */
+    #clickHandler = e => this.clickedSomewhere(/** @type {HTMLElement} */(e.target))
+
+    /**
+     * @param {HTMLElement} target
+     * @param {Blueprint} blueprint
+     * @param {Options} options
+     */
+    constructor(target, blueprint, options = {}) {
+        options.listenOnFocus = true;
+        super(target, blueprint, options);
+        if (this.blueprint.focus) {
+            document.addEventListener("click", this.#clickHandler);
+        }
+    }
+
+    /** @param {HTMLElement} target */
+    clickedSomewhere(target) {
+        // If target is outside the blueprint grid
+        if (!target.closest("ueb-blueprint")) {
+            this.blueprint.setFocused(false);
+        }
+    }
+
+    listenEvents() {
+        document.addEventListener("click", this.#clickHandler);
+    }
+
+    unlistenEvents() {
+        document.removeEventListener("click", this.#clickHandler);
+    }
+}
+
+/** @extends ITemplate<Blueprint> */
+class BlueprintTemplate extends ITemplate {
+
+    static styleVariables = {
+        "--ueb-font-size": `${Configuration.fontSize}`,
+        "--ueb-grid-axis-line-color": `${Configuration.gridAxisLineColor}`,
+        "--ueb-grid-expand": `${Configuration.expandGridSize}px`,
+        "--ueb-grid-line-color": `${Configuration.gridLineColor}`,
+        "--ueb-grid-line-width": `${Configuration.gridLineWidth}px`,
+        "--ueb-grid-set-line-color": `${Configuration.gridSetLineColor}`,
+        "--ueb-grid-set": `${Configuration.gridSet}`,
+        "--ueb-grid-size": `${Configuration.gridSize}px`,
+        "--ueb-link-min-width": `${Configuration.linkMinWidth}`,
+        "--ueb-node-radius": `${Configuration.nodeRadius}px`,
+    }
+
+    #resizeObserver = new ResizeObserver(entries => {
+        const size = entries.find(entry => entry.target === this.viewportElement)?.devicePixelContentBoxSize?.[0];
+        if (size) {
+            this.viewportSize[0] = size.inlineSize;
+            this.viewportSize[1] = size.blockSize;
+        }
+    })
+
+    /** @type {Copy} */
+    #copyInputObject
+
+    /** @type {Paste} */
+    #pasteInputObject
+
+    /** @type {Zoom} */
+    #zoomInputObject
+
+    /** @type {HTMLElement} */ headerElement
+    /** @type {HTMLElement} */ overlayElement
+    /** @type {HTMLElement} */ viewportElement
+    /** @type {SelectorElement} */ selectorElement
+    /** @type {HTMLElement} */ gridElement
+    /** @type {HTMLElement} */ linksContainerElement
+    /** @type {HTMLElement} */ nodesContainerElement
+    viewportSize = [0, 0]
+
+    /** @param {Blueprint} element */
+    initialize(element) {
+        super.initialize(element);
+        this.element.style.cssText = Object.entries(BlueprintTemplate.styleVariables)
+            .map(([k, v]) => `${k}:${v};`).join("");
+        const htmlTemplate =  /** @type {HTMLTemplateElement} */(
+            this.element.querySelector(":scope > template")
+        )?.content.textContent;
+        if (htmlTemplate) {
+            this.element.requestUpdate();
+            this.element.updateComplete.then(() => {
+                this.blueprint.mousePosition = [
+                    Math.round(this.viewportSize[0] / 2),
+                    Math.round(this.viewportSize[1] / 2),
+                ];
+                this.getPasteInputObject().pasted(htmlTemplate);
+                this.blueprint.unselectAll();
+            });
+        }
+    }
+
+    setup() {
+        super.setup();
+        this.#resizeObserver.observe(this.viewportElement, {
+            box: "device-pixel-content-box",
+        });
+        const bounding = this.viewportElement.getBoundingClientRect();
+        this.viewportSize[0] = bounding.width;
+        this.viewportSize[1] = bounding.height;
+        if (this.blueprint.nodes.length > 0) {
+            this.blueprint.requestUpdate();
+            this.blueprint.updateComplete.then(() => this.centerContentInViewport());
+        }
+    }
+
+    cleanup() {
+        super.cleanup();
+        this.#resizeObserver.unobserve(this.viewportElement);
+    }
+
+    createInputObjects() {
+        const gridElement = this.element.getGridDOMElement();
+        this.#copyInputObject = new Copy(gridElement, this.blueprint);
+        this.#pasteInputObject = new Paste(gridElement, this.blueprint);
+        this.#zoomInputObject = new Zoom(gridElement, this.blueprint);
+        return [
+            ...super.createInputObjects(),
+            this.#copyInputObject,
+            this.#pasteInputObject,
+            this.#zoomInputObject,
+            new Cut(gridElement, this.blueprint),
+            new KeyboardShortcut(gridElement, this.blueprint, {
+                activationKeys: Shortcuts.duplicateNodes
+            }, () =>
+                this.blueprint.template.getPasteInputObject().pasted(
+                    this.blueprint.template.getCopyInputObject().copied()
+                )
+            ),
+            new KeyboardShortcut(gridElement, this.blueprint, {
+                activationKeys: Shortcuts.deleteNodes
+            }, () => this.blueprint.removeGraphElement(...this.blueprint.getNodes(true))),
+            new KeyboardShortcut(gridElement, this.blueprint, {
+                activationKeys: Shortcuts.selectAllNodes
+            }, () => this.blueprint.selectAll()),
+            new Select(gridElement, this.blueprint, {
+                clickButton: Configuration.mouseClickButton,
+                exitAnyButton: true,
+                moveEverywhere: true,
+            }),
+            new MouseScrollGraph(gridElement, this.blueprint, {
+                clickButton: Configuration.mouseRightClickButton,
+                exitAnyButton: false,
+                moveEverywhere: true,
+            }),
+            new Unfocus(gridElement, this.blueprint),
+            new MouseTracking(gridElement, this.blueprint),
+            new KeyboardEnableZoom(gridElement, this.blueprint),
+        ]
+    }
+
+    render() {
+        return x`
+            <div class="ueb-viewport-header">
+                <div class="ueb-viewport-zoom">
+                    Zoom ${this.blueprint.zoom == 0 ? "1:1" : (this.blueprint.zoom > 0 ? "+" : "") + this.blueprint.zoom}
+                </div>
+            </div>
+            <div class="ueb-viewport-overlay"></div>
+            <div class="ueb-viewport-body">
+                <div class="ueb-grid"
+                    style="--ueb-additional-x: ${Math.round(this.blueprint.translateX)}; --ueb-additional-y: ${Math.round(this.blueprint.translateY)}; --ueb-translate-x: ${Math.round(this.blueprint.translateX)}; --ueb-translate-y: ${Math.round(this.blueprint.translateY)};">
+                    <div class="ueb-grid-content">
+                        <div data-links></div>
+                        <div data-nodes></div>
+                        <ueb-selector></ueb-selector>
+                    </div>
+                </div>
+            </div>
+        `
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    firstUpdated(changedProperties) {
+        super.firstUpdated(changedProperties);
+        this.headerElement = this.blueprint.querySelector('.ueb-viewport-header');
+        this.overlayElement = this.blueprint.querySelector('.ueb-viewport-overlay');
+        this.viewportElement = this.blueprint.querySelector('.ueb-viewport-body');
+        this.selectorElement = this.blueprint.querySelector('ueb-selector');
+        this.gridElement = this.viewportElement.querySelector(".ueb-grid");
+        this.linksContainerElement = this.blueprint.querySelector("[data-links]");
+        this.linksContainerElement.append(...this.blueprint.getLinks());
+        this.nodesContainerElement = this.blueprint.querySelector("[data-nodes]");
+        this.nodesContainerElement.append(...this.blueprint.getNodes());
+        this.viewportElement.scroll(Configuration.expandGridSize, Configuration.expandGridSize);
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    willUpdate(changedProperties) {
+        super.willUpdate(changedProperties);
+        if (this.headerElement && changedProperties.has("zoom")) {
+            this.headerElement.classList.add("ueb-zoom-changed");
+            this.headerElement.addEventListener(
+                "animationend",
+                () => this.headerElement.classList.remove("ueb-zoom-changed")
+            );
+        }
+    }
+
+    /** @param {PropertyValues} changedProperties */
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        if (changedProperties.has("scrollX") || changedProperties.has("scrollY")) {
+            this.viewportElement.scroll(this.blueprint.scrollX, this.blueprint.scrollY);
+        }
+        if (changedProperties.has("zoom")) {
+            this.blueprint.style.setProperty("--ueb-scale", this.blueprint.getScale());
+            const previousZoom = changedProperties.get("zoom");
+            const minZoom = Math.min(previousZoom, this.blueprint.zoom);
+            const maxZoom = Math.max(previousZoom, this.blueprint.zoom);
+            const classes = Utility.range(minZoom, maxZoom);
+            const getClassName = v => `ueb-zoom-${v}`;
+            if (previousZoom < this.blueprint.zoom) {
+                this.blueprint.classList.remove(...classes.filter(v => v < 0).map(getClassName));
+                this.blueprint.classList.add(...classes.filter(v => v > 0).map(getClassName));
+            } else {
+                this.blueprint.classList.remove(...classes.filter(v => v > 0).map(getClassName));
+                this.blueprint.classList.add(...classes.filter(v => v < 0).map(getClassName));
+            }
+        }
+    }
+
+    getCommentNodes(justSelected = false) {
+        return this.blueprint.querySelectorAll(
+            `ueb-node[data-type="${Configuration.paths.comment}"]${justSelected ? '[data-selected="true"]' : ''}`
+            + `, ueb-node[data-type="${Configuration.paths.materialGraphNodeComment}"]${justSelected ? '[data-selected="true"]' : ''}`
+        )
+    }
+
+    /** @param {PinReferenceEntity} pinReference */
+    getPin(pinReference) {
+        return /** @type {PinElement} */(this.blueprint.querySelector(
+            `ueb-node[data-title="${pinReference.objectName}"] ueb-pin[data-id="${pinReference.pinGuid}"]`
+        ))
+    }
+
+    getCopyInputObject() {
+        return this.#copyInputObject
+    }
+
+    getPasteInputObject() {
+        return this.#pasteInputObject
+    }
+
+    getZoomInputObject() {
+        return this.#zoomInputObject
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     */
+    isPointVisible(x, y) {
+        return false
+    }
+
+    gridTopVisibilityBoundary() {
+        return this.blueprint.scaleCorrect(this.blueprint.scrollY) - this.blueprint.translateY
+    }
+
+    gridRightVisibilityBoundary() {
+        return this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0])
+    }
+
+    gridBottomVisibilityBoundary() {
+        return this.gridTopVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[1])
+    }
+
+    gridLeftVisibilityBoundary() {
+        return this.blueprint.scaleCorrect(this.blueprint.scrollX) - this.blueprint.translateX
+    }
+
+    centerViewport(x = 0, y = 0, smooth = true) {
+        const centerX = this.gridLeftVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[0] / 2);
+        const centerY = this.gridTopVisibilityBoundary() + this.blueprint.scaleCorrect(this.viewportSize[1] / 2);
+        this.blueprint.scrollDelta(
+            this.blueprint.scaleCorrectReverse(x - centerX),
+            this.blueprint.scaleCorrectReverse(y - centerY),
+            smooth
+        );
+    }
+
+    centerContentInViewport(smooth = true) {
+        let avgX = 0;
+        let avgY = 0;
+        let minX = Number.MAX_SAFE_INTEGER;
+        let maxX = Number.MIN_SAFE_INTEGER;
+        let minY = Number.MAX_SAFE_INTEGER;
+        let maxY = Number.MIN_SAFE_INTEGER;
+        const nodes = this.blueprint.getNodes();
+        for (const node of nodes) {
+            avgX += node.leftBoundary() + node.rightBoundary();
+            avgY += node.topBoundary() + node.bottomBoundary();
+            minX = Math.min(minX, node.leftBoundary());
+            maxX = Math.max(maxX, node.rightBoundary());
+            minY = Math.min(minY, node.topBoundary());
+            maxY = Math.max(maxY, node.bottomBoundary());
+        }
+        avgX = Math.round(maxX - minX <= this.viewportSize[0]
+            ? (maxX + minX) / 2
+            : avgX / (2 * nodes.length)
+        );
+        avgY = Math.round(maxY - minY <= this.viewportSize[1]
+            ? (maxY + minY) / 2
+            : avgY / (2 * nodes.length)
+        );
+        this.centerViewport(avgX, avgY, smooth);
+    }
+}
+
+/** @extends {IElement<BlueprintEntity, BlueprintTemplate>} */
 class Blueprint extends IElement {
 
     static properties = {
@@ -10263,8 +10405,6 @@ class Blueprint extends IElement {
         node.setSelected(selected);
     }
 
-    /** @type {Map<String, Number>} */
-    #nodeNameCounter = new Map()
     #xScrollingAnimationId = 0
     #yScrollingAnimationId = 0
     /** @type {NodeElement[]}" */
@@ -10287,7 +10427,7 @@ class Blueprint extends IElement {
         this.scrollY = Configuration.expandGridSize;
         this.translateX = Configuration.expandGridSize;
         this.translateY = Configuration.expandGridSize;
-        super.initialize({}, new BlueprintTemplate());
+        super.initialize(new BlueprintEntity(), new BlueprintTemplate());
     }
 
     initialize() {
@@ -10581,10 +10721,10 @@ class Blueprint extends IElement {
         const removeEventHandler = event => {
             const target = event.currentTarget;
             target.removeEventListener(Configuration.removeEventName, removeEventHandler);
-            const graphElementsArray = target instanceof NodeElement
-                ? this.nodes
+            const [graphElementsArray, entity] = target instanceof NodeElement
+                ? [this.nodes, target.entity]
                 : target instanceof LinkElement
-                    ? this.links
+                    ? [this.links]
                     : null;
             // @ts-expect-error
             const index = graphElementsArray?.indexOf(target);
@@ -10594,24 +10734,20 @@ class Blueprint extends IElement {
                     graphElementsArray[index] = last;
                 }
             }
+            if (entity) {
+                this.entity.removeObjectEntity(entity);
+            }
         };
         for (const element of graphElements) {
             element.blueprint = this;
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
                 const name = element.entity.getObjectName();
-                const homonymNode = this.nodes.find(node => node.entity.getObjectName() == name);
-                if (homonymNode) {
-                    // Inserted node keeps tha name and the homonym nodes is renamed
-                    let name = homonymNode.entity.getObjectName(true);
-                    this.#nodeNameCounter[name] = this.#nodeNameCounter[name] ?? -1;
-                    do {
-                        ++this.#nodeNameCounter[name];
-                    } while (this.nodes.find(node =>
-                        node.entity.getObjectName() == Configuration.nodeTitle(name, this.#nodeNameCounter[name])
-                    ))
-                    homonymNode.rename(Configuration.nodeTitle(name, this.#nodeNameCounter[name]));
+                const homonym = this.entity.getHomonymObjectEntity(element.entity);
+                if (homonym) {
+                    homonym.Name = this.entity.getFreeName(name);
                 }
                 this.nodes.push(element);
+                this.entity.addObjectEntity(element.entity);
                 element.addEventListener(Configuration.removeEventName, removeEventHandler);
                 this.template.nodesContainerElement?.appendChild(element);
             } else if (element instanceof LinkElement && !this.links.includes(element)) {

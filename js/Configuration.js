@@ -168,6 +168,7 @@ export default class Configuration {
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
+        niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
         pcgEditorGraphNodeInput: "/Script/PCGEditor.PCGEditorGraphNodeInput",

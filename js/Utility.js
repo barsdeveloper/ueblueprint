@@ -295,8 +295,9 @@ export default class Utility {
      * @template T
      * @param {Array<T>} a
      * @param {Array<T>} b
+     * @param {(l: T, r: T) => Boolean} predicate
      */
-    static mergeArrays(a = [], b = []) {
+    static mergeArrays(a = [], b = [], predicate = (l, r) => l == r) {
         let result = []
         a = [...a]
         b = [...b]
@@ -304,7 +305,7 @@ export default class Utility {
         while (true) {
             for (let j = 0; j < b.length; ++j) {
                 for (let i = 0; i < a.length; ++i) {
-                    if (a[i] == b[j]) {
+                    if (predicate(a[i], b[j])) {
                         // Found an element in common in the two arrays
                         result.push(
                             // Take and append all the elements skipped from a

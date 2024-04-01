@@ -10,6 +10,7 @@
  *     inlined?: Boolean,
  *     quoted?: Boolean,
  *     silent?: Boolean,
+ *     uninitialized?: Boolean,
  *     predicate?: (value: T) => Boolean,
  * }} AttributeInfoSource
  */
@@ -27,6 +28,7 @@ export default class AttributeInfo {
         inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
         quoted: false, // Key is serialized with quotes
         silent: false, // Do not serialize if default
+        uninitialized: false, // Do not initialize with default
     }
 
     /** @param {AttributeInfoSource<T>} source */
@@ -40,6 +42,7 @@ export default class AttributeInfo {
         this.inlined = source.inlined
         this.quoted = source.quoted
         this.silent = source.silent
+        this.uninitialized = source.uninitialized
         this.predicate = source.predicate
         if (this.type === Array && this.default instanceof Array && this.default.length > 0) {
             this.type = this.default

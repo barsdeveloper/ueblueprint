@@ -408,7 +408,6 @@ test("UnknownKeysEntity", () => {
     unknown = serializer.read('(A = (-1,-2,-3),  B = SomeFunction(B1 = "b1", B2 = (X=101,Y=102,Z=103)))')
     expect(unknown).toBeInstanceOf(UnknownKeysEntity)
     expect(unknown).toMatchObject({
-        lookbehind: "",
         A: [-1, -2, -3],
         B: new UnknownKeysEntity({
             lookbehind: "SomeFunction",

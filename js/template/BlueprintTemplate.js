@@ -56,10 +56,6 @@ export default class BlueprintTemplate extends ITemplate {
     /** @type {HTMLElement} */ nodesContainerElement
     viewportSize = [0, 0]
 
-    #setViewportSize() {
-
-    }
-
     /** @param {Blueprint} element */
     initialize(element) {
         super.initialize(element)

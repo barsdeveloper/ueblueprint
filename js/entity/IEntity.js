@@ -18,6 +18,7 @@ export default class IEntity extends Serializable {
         lookbehind: new AttributeInfo({
             default: /** @type {String | Union<String[]>} */(""),
             ignored: true,
+            uninitialized: true,
         }),
     }
 
@@ -110,7 +111,7 @@ export default class IEntity extends Serializable {
                 assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)))
                 continue // We have a value, need nothing more
             }
-            if (defaultValue !== undefined) {
+            if (defaultValue !== undefined && !AttributeInfo.getAttribute(values, key, "uninitialized", Self)) {
                 assignAttribute(defaultValue)
             }
         }
@@ -154,6 +155,41 @@ export default class IEntity extends Serializable {
             configurable: false,
         })
         object.attributes = attributes
+    }
+
+    /**
+     * 
+     * @param {String} attribute
+     * @param {(v: any) => void} callback
+     */
+    listenAttribute(attribute, callback) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, attribute)
+        const setter = descriptor.set
+        if (setter) {
+            descriptor.set = v => {
+                setter(v)
+                callback(v)
+            }
+            Object.defineProperties(this, { [attribute]: descriptor })
+        } else if (descriptor.value) {
+            Object.defineProperties(this, {
+                ["#" + attribute]: {
+                    value: descriptor.value,
+                    writable: true,
+                    enumerable: false,
+                },
+                [attribute]: {
+                    enumerable: true,
+                    get() {
+                        return this["#" + attribute]
+                    },
+                    set(v) {
+                        this["#" + attribute] = v
+                        callback(v)
+                    }
+                },
+            })
+        }
     }
 
     getLookbehind() {

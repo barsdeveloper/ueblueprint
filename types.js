@@ -128,7 +128,6 @@
  * @typedef {import("./js/element/PinElement.js").default} PinElement
  * @typedef {import("./js/element/SelectorElement.js").default} SelectorElement
  * @typedef {import("./js/element/WindowElement.js").default} WindowElement
- * @typedef {import("./js/entity/Base64ObjectsEncoded.js").default} Base64ObjectsEncoded
  * @typedef {import("./js/entity/ByteEntity.js").default} ByteEntity
  * @typedef {import("./js/entity/ColorChannelEntity.js").default} ColorChannelEntity
  * @typedef {import("./js/entity/ComputedType.js").default} ComputedType
