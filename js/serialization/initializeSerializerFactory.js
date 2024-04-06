@@ -26,6 +26,7 @@ import RBSerializationVector2DEntity from "../entity/RBSerializationVector2DEnti
 import RotatorEntity from "../entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity.js"
+import SimpleSerializationVector4DEntity from "../entity/SimpleSerializationVector4DEntity.js"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
 import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
@@ -33,6 +34,7 @@ import Union from "../entity/Union.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
+import Vector4DEntity from "../entity/Vector4DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
 import CustomSerializer from "./CustomSerializer.js"
 import Grammar from "./Grammar.js"
@@ -55,6 +57,7 @@ Grammar.unknownValue =
         InvariantTextEntity.createGrammar(),
         FormatTextEntity.createGrammar(),
         PinReferenceEntity.createGrammar(),
+        Vector4DEntity.createGrammar(),
         VectorEntity.createGrammar(),
         RotatorEntity.createGrammar(),
         LinearColorEntity.createGrammar(),
@@ -304,6 +307,14 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        SimpleSerializationVector4DEntity,
+        new CustomSerializer(
+            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}, ${value.W}`,
+            SimpleSerializationVector4DEntity
+        )
+    )
+
+    SerializerFactory.registerSerializer(
         SymbolEntity,
         new ToStringSerializer(SymbolEntity)
     )
@@ -326,5 +337,10 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         VectorEntity,
         new Serializer(VectorEntity, Serializer.bracketsWrapped)
+    )
+
+    SerializerFactory.registerSerializer(
+        Vector4DEntity,
+        new Serializer(Vector4DEntity, Serializer.bracketsWrapped)
     )
 }

@@ -29,6 +29,7 @@ class Configuration {
         black: i$3`20, 20, 20`,
         blue: i$3`84, 122, 156`,
         darkBlue: i$3`32, 80, 128`,
+        darkerBlue: i$3`18, 18, 130`,
         darkTurquoise: i$3`19, 100, 137`,
         gray: i$3`150,150,150`,
         green: i$3`95, 129, 90`,
@@ -140,6 +141,7 @@ class Configuration {
         edGraph: "/Script/Engine.EdGraph",
         eDrawDebugTrace: "/Script/Engine.EDrawDebugTrace",
         eMaterialSamplerType: "/Script/Engine.EMaterialSamplerType",
+        eNiagara_Float4Channel: "/Niagara/Enums/ENiagara_Float4Channel.ENiagara_Float4Channel",
         enum: "/Script/CoreUObject.Enum",
         enumLiteral: "/Script/BlueprintGraph.K2Node_EnumLiteral",
         eSamplerSourceMode: "/Script/Engine.ESamplerSourceMode",
@@ -192,7 +194,14 @@ class Configuration {
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
+        niagaraBool: "/Script/Niagara.NiagaraBool",
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
+        niagaraDataInterfaceVolumeTexture: "/Script/Niagara.NiagaraDataInterfaceVolumeTexture",
+        niagaraFloat: "/Script/Niagara.NiagaraFloat",
+        niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
+        niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
+        niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
+        niagaraPosition: "/Script/Niagara.NiagaraPosition",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
         pcgEditorGraphNodeInput: "/Script/PCGEditor.PCGEditorGraphNodeInput",
@@ -200,6 +209,7 @@ class Configuration {
         pcgHiGenGridSizeSettings: "/Script/PCG.PCGHiGenGridSizeSettings",
         pcgSubgraphSettings: "/Script/PCG.PCGSubgraphSettings",
         promotableOperator: "/Script/BlueprintGraph.K2Node_PromotableOperator",
+        quat4f: "/Script/CoreUObject.Quat4f",
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
         select: "/Script/BlueprintGraph.K2Node_Select",
@@ -218,16 +228,26 @@ class Configuration {
         variableSet: "/Script/BlueprintGraph.K2Node_VariableSet",
         vector: "/Script/CoreUObject.Vector",
         vector2D: "/Script/CoreUObject.Vector2D",
+        vector3f: "/Script/CoreUObject.Vector3f",
+        vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
     static pinColor = {
+        [this.paths.niagaraBool]: i$3`146, 0, 0`,
+        [this.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
+        [this.paths.niagaraFloat]: i$3`160, 250, 68`,
+        [this.paths.niagaraMatrix]: i$3`0, 88, 200`,
+        [this.paths.niagaraPosition]: i$3`251, 146, 251`,
+        [this.paths.quat4f]: i$3`0, 88, 200`,
         [this.paths.rotator]: i$3`157, 177, 251`,
         [this.paths.transform]: i$3`227, 103, 0`,
         [this.paths.vector]: i$3`251, 198, 34`,
+        [this.paths.vector3f]: i$3`250, 200, 36`,
+        [this.paths.vector4f]: i$3`0, 88, 200`,
         "Any": i$3`132, 132, 132`,
         "Any[]": i$3`132, 132, 132`,
         "blue": i$3`0, 0, 255`,
-        "bool": i$3`147, 0, 0`,
+        "bool": i$3`146, 0, 0`,
         "byte": i$3`0, 109, 99`,
         "class": i$3`88, 0, 186`,
         "default": i$3`255, 255, 255`,
@@ -239,15 +259,15 @@ class Configuration {
         "int64": i$3`169, 223, 172`,
         "interface": i$3`238, 252, 168`,
         "name": i$3`201, 128, 251`,
-        "object": i$3`0, 167, 240`,
+        "object": i$3`0, 168, 242`,
         "Param": i$3`255, 166, 39`,
         "Param[]": i$3`255, 166, 39`,
         "Point": i$3`63, 137, 255`,
         "Point[]": i$3`63, 137, 255`,
         "real": i$3`54, 208, 0`,
         "red": i$3`255, 0, 0`,
-        "string": i$3`251, 0, 209`,
-        "struct": i$3`0, 88, 201`,
+        "string": i$3`251, 0, 208`,
+        "struct": i$3`0, 88, 200`,
         "Surface": i$3`69, 196, 126`,
         "Surface[]": i$3`69, 196, 126`,
         "text": i$3`226, 121, 167`,
@@ -327,6 +347,12 @@ class Configuration {
             "Virtual Mask",
             "Virtual Linear Color",
             "Virtual Linear Grayscal",
+        ],
+        [this.paths.eNiagara_Float4Channel]: [
+            ["NewEnumerator0", "R"],
+            ["NewEnumerator1", "G"],
+            ["NewEnumerator2", "B"],
+            ["NewEnumerator3", "A"],
         ],
         [this.paths.eSamplerSourceMode]: ["From texture asset", "Shared: Wrap", "Shared: Clamp", "Hidden"],
         [this.paths.eSpawnActorCollisionHandlingMethod]: [
@@ -4534,6 +4560,74 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
     }
 }
 
+class Vector4DEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        X: new AttributeInfo({
+            default: 0,
+            expected: true,
+        }),
+        Y: new AttributeInfo({
+            default: 0,
+            expected: true,
+        }),
+        Z: new AttributeInfo({
+            default: 0,
+            expected: true,
+        }),
+        W: new AttributeInfo({
+            default: 0,
+            expected: true,
+        }),
+    }
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return Grammar.createEntityGrammar(Vector4DEntity, false)
+    }
+
+    constructor(values) {
+        super(values);
+        /** @type {Number} */ this.X;
+        /** @type {Number} */ this.Y;
+        /** @type {Number} */ this.Z;
+        /** @type {Number} */ this.W;
+    }
+
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.X, this.Y, this.Z, this.W]
+    }
+}
+
+class SimpleSerializationVector4DEntity extends Vector4DEntity {
+
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        const number = Parsernostrum.number.getParser().parser.regexp.source;
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                "(" + number + ")"
+                + "\\s*,\\s*"
+                + "(" + number + ")"
+                + "\\s*,\\s*"
+                + "(" + number + ")"
+                + "\\s*,\\s*"
+                + "(" + number + ")"
+            ))
+                .map(([_0, x, y, z, w]) => new this({
+                    X: Number(x),
+                    Y: Number(y),
+                    Z: Number(z),
+                    W: Number(w),
+                })),
+            Vector4DEntity.createGrammar()
+        )
+    }
+}
+
 class VectorEntity extends IEntity {
 
     static attributes = {
@@ -4602,6 +4696,7 @@ class PinEntity extends IEntity {
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
         [Configuration.paths.vector2D]: Vector2DEntity,
+        [Configuration.paths.vector4f]: Vector4DEntity,
         "bool": Boolean,
         "byte": ByteEntity,
         "enum": EnumEntity,
@@ -4618,6 +4713,8 @@ class PinEntity extends IEntity {
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
+        [Configuration.paths.vector3f]: SimpleSerializationVectorEntity,
+        [Configuration.paths.vector4f]: SimpleSerializationVector4DEntity,
     }
     static attributes = {
         ...super.attributes,
@@ -4708,8 +4805,8 @@ class PinEntity extends IEntity {
     }
 
     getType() {
-        const category = this.PinType.PinCategory;
-        if (category === "struct" || category === "object") {
+        const category = this.PinType.PinCategory.toLocaleLowerCase();
+        if (category === "struct" || category === "class" || category === "object" || category === "type") {
             return this.PinType.PinSubCategoryObject.path
         }
         if (this.isEnum()) {
@@ -5047,6 +5144,7 @@ class ObjectEntity extends IEntity {
         ComponentPropertyName: AttributeInfo.createType(String),
         EventReference: AttributeInfo.createType(FunctionReferenceEntity),
         FunctionReference: AttributeInfo.createType(FunctionReferenceEntity),
+        FunctionScript: AttributeInfo.createType(ObjectReferenceEntity),
         CustomFunctionName: AttributeInfo.createType(String),
         TargetType: AttributeInfo.createType(ObjectReferenceEntity),
         MacroGraphReference: AttributeInfo.createType(MacroGraphReferenceEntity),
@@ -5056,6 +5154,10 @@ class ObjectEntity extends IEntity {
             inlined: true,
         }),
         InputKey: AttributeInfo.createType(SymbolEntity),
+        OpName: AttributeInfo.createType(String),
+        CachedChangeId: AttributeInfo.createType(GuidEntity),
+        FunctionDisplayName: AttributeInfo.createType(String),
+        ChangeId: AttributeInfo.createType(GuidEntity),
         MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
         bOverrideFunction: AttributeInfo.createType(Boolean),
         bInternalEvent: AttributeInfo.createType(Boolean),
@@ -5290,6 +5392,7 @@ class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity} */ this.Class;
         /** @type {ObjectReferenceEntity} */ this.Enum;
         /** @type {ObjectReferenceEntity} */ this.ExportPath;
+        /** @type {ObjectReferenceEntity} */ this.FunctionScript;
         /** @type {ObjectReferenceEntity} */ this.Graph;
         /** @type {ObjectReferenceEntity} */ this.MaterialExpression;
         /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment;
@@ -5305,11 +5408,13 @@ class ObjectEntity extends IEntity {
         /** @type {String} */ this.CustomFunctionName;
         /** @type {String} */ this.DelegatePropertyName;
         /** @type {String} */ this.ExportedNodes;
+        /** @type {String} */ this.FunctionDisplayName;
         /** @type {String} */ this.InputName;
         /** @type {String} */ this.Name;
         /** @type {String} */ this.NodeComment;
         /** @type {String} */ this.NodeTitle;
         /** @type {String} */ this.Operation;
+        /** @type {String} */ this.OpName;
         /** @type {String} */ this.ProxyFactoryFunctionName;
         /** @type {String} */ this.SubgraphInstance;
         /** @type {String} */ this.Text;
@@ -5361,24 +5466,23 @@ class ObjectEntity extends IEntity {
         if (pcgObject) {
             pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX);
             pcgObject.PositionY && (pcgObject.PositionY.getter = () => this.NodePosY);
-            pcgObject.getSubobjects()
-                .forEach(
-                    /** @param {ObjectEntity} obj */
-                    obj => {
-                        if (obj.Node !== undefined) {
-                            const nodeRef = obj.Node.get();
-                            if (
-                                nodeRef.type === this.PCGNode.type
-                                && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
-                            ) {
-                                obj.Node.getter = () => new ObjectReferenceEntity({
-                                    type: this.PCGNode.type,
-                                    path: `${this.Name}.${this.PCGNode.path}`,
-                                });
-                            }
+            pcgObject.getSubobjects().forEach(
+                /** @param {ObjectEntity} obj */
+                obj => {
+                    if (obj.Node !== undefined) {
+                        const nodeRef = obj.Node.get();
+                        if (
+                            nodeRef.type === this.PCGNode.type
+                            && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
+                        ) {
+                            obj.Node.getter = () => new ObjectReferenceEntity({
+                                type: this.PCGNode.type,
+                                path: `${this.Name}.${this.PCGNode.path}`,
+                            });
                         }
                     }
-                );
+                }
+            );
 
         }
         let inputIndex = 0;
@@ -5569,6 +5673,10 @@ class ObjectEntity extends IEntity {
     isPcg() {
         return this.getClass() === Configuration.paths.pcgEditorGraphNode
             || this.getPcgSubobject()
+    }
+
+    isNiagara() {
+        return (this.Class.type ? this.Class.type : this.Class.path)?.startsWith("/Script/NiagaraEditor.")
     }
 
     /** @return {ObjectEntity} */
@@ -5923,6 +6031,23 @@ class ObjectEntity extends IEntity {
             }
             return Utility.formatStringName(memberName)
         }
+        if (this.OpName) {
+            switch (this.OpName) {
+                case "Boolean::LogicAnd": return "Logic AND"
+                case "Boolean::LogicEq": return "=="
+                case "Boolean::LogicNEq": return "!="
+                case "Boolean::LogicNot": return "Logic NOT"
+                case "Boolean::LogicOr": return "Logic OR"
+                case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
+                case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
+                case "Numeric::DistancePos": return "Distance"
+                case "Numeric::Mul": return String.fromCharCode(0x2a2f)
+            }
+            return Utility.formatStringName(this.OpName).replaceAll("::", " ")
+        }
+        if (this.FunctionDisplayName) {
+            return Utility.formatStringName(this.FunctionDisplayName)
+        }
         if (this.ObjectRef) {
             return this.ObjectRef.getName()
         }
@@ -5954,6 +6079,8 @@ class ObjectEntity extends IEntity {
                 return this.bIsPureFunc
                     ? Configuration.nodeColors.green
                     : Configuration.nodeColors.blue
+            case Configuration.paths.niagaraNodeFunctionCall:
+                return Configuration.nodeColors.darkerBlue
             case Configuration.paths.dynamicCast:
                 return Configuration.nodeColors.turquoise
             case Configuration.paths.inputDebugKey:
@@ -5999,7 +6126,7 @@ class ObjectEntity extends IEntity {
     }
 
     nodeIcon() {
-        if (this.isMaterial() || this.isPcg()) {
+        if (this.isMaterial() || this.isPcg() || this.isNiagara()) {
             return null
         }
         switch (this.getType()) {
@@ -9094,6 +9221,15 @@ class NodeElement extends ISelectableDraggableElement {
                 return CommentNodeTemplate
             case Configuration.paths.createDelegate:
                 return NodeTemplate
+            case Configuration.paths.niagaraNodeOp:
+                if ([
+                    "Boolean::LogicEq",
+                    "Boolean::LogicNEq",
+                    "Numeric::Mul",
+                ].includes(nodeEntity.OpName)) {
+                    return VariableOperationNodeTemplate
+                }
+                break
             case Configuration.paths.promotableOperator:
                 return VariableOperationNodeTemplate
             case Configuration.paths.knot:
@@ -12108,6 +12244,65 @@ class VectorInputPinTemplate extends INumericPinTemplate {
     }
 }
 
+/** @extends INumericPinTemplate<Vector4DEntity> */
+class Vector4DPinTemplate extends INumericPinTemplate {
+
+    #getX() {
+        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+    }
+
+    #getY() {
+        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+    }
+
+    #getZ() {
+        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
+    }
+
+    #getW() {
+        return Utility.printNumber(this.element.getDefaultValue()?.W ?? 0)
+    }
+
+    /**
+     * @param {Number[]} values
+     * @param {String[]} rawValues
+     */
+    setDefaultValue(values, rawValues) {
+        const vector = this.element.getDefaultValue(true);
+        if (!(vector instanceof Vector4DEntity)) {
+            throw new TypeError("Expected DefaultValue to be a Vector4DEntity")
+        }
+        vector.X = values[0];
+        vector.Y = values[1];
+        vector.Z = values[2];
+        vector.W = values[3];
+        this.element.requestUpdate("DefaultValue", vector);
+    }
+
+    renderInput() {
+        return x`
+            <div class="ueb-pin-input-wrapper">
+                <span class="ueb-pin-input-label">X</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getX()}"></ueb-input>
+                </div>
+                <span class="ueb-pin-input-label">Y</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getY()}"></ueb-input>
+                </div>
+                <span class="ueb-pin-input-label">Z</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getZ()}"></ueb-input>
+                </div>
+                <span class="ueb-pin-input-label">W</span>
+                <div class="ueb-pin-input">
+                    <ueb-input .singleLine="${true}" .innerText="${this.#getW()}"></ueb-input>
+                </div>
+            </div>
+        `
+    }
+}
+
 /** @extends INumericPinTemplate<VectorEntity> */
 class VectorPinTemplate extends INumericPinTemplate {
 
@@ -12165,6 +12360,14 @@ class VectorPinTemplate extends INumericPinTemplate {
 class PinElement extends IElement {
 
     static #inputPinTemplates = {
+        [Configuration.paths.linearColor]: LinearColorPinTemplate,
+        [Configuration.paths.niagaraBool]: BoolPinTemplate,
+        [Configuration.paths.niagaraPosition]: VectorPinTemplate,
+        [Configuration.paths.rotator]: RotatorPinTemplate,
+        [Configuration.paths.vector]: VectorPinTemplate,
+        [Configuration.paths.vector2D]: VectorInputPinTemplate,
+        [Configuration.paths.vector3f]: VectorPinTemplate,
+        [Configuration.paths.vector4f]: Vector4DPinTemplate,
         "bool": BoolPinTemplate,
         "byte": IntPinTemplate,
         "enum": EnumPinTemplate,
@@ -12175,10 +12378,6 @@ class PinElement extends IElement {
         "rg": VectorInputPinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
-        [Configuration.paths.linearColor]: LinearColorPinTemplate,
-        [Configuration.paths.rotator]: RotatorPinTemplate,
-        [Configuration.paths.vector]: VectorPinTemplate,
-        [Configuration.paths.vector2D]: VectorInputPinTemplate,
     }
 
     static properties = {
@@ -12945,6 +13144,7 @@ Grammar.unknownValue =
         InvariantTextEntity.createGrammar(),
         FormatTextEntity.createGrammar(),
         PinReferenceEntity.createGrammar(),
+        Vector4DEntity.createGrammar(),
         VectorEntity.createGrammar(),
         RotatorEntity.createGrammar(),
         LinearColorEntity.createGrammar(),
@@ -13194,6 +13394,14 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        SimpleSerializationVector4DEntity,
+        new CustomSerializer(
+            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}, ${value.W}`,
+            SimpleSerializationVector4DEntity
+        )
+    );
+
+    SerializerFactory.registerSerializer(
         SymbolEntity,
         new ToStringSerializer(SymbolEntity)
     );
@@ -13216,6 +13424,11 @@ function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         VectorEntity,
         new Serializer(VectorEntity, Serializer.bracketsWrapped)
+    );
+
+    SerializerFactory.registerSerializer(
+        Vector4DEntity,
+        new Serializer(Vector4DEntity, Serializer.bracketsWrapped)
     );
 }
 

@@ -167,6 +167,15 @@ export default class NodeElement extends ISelectableDraggableElement {
                 return CommentNodeTemplate
             case Configuration.paths.createDelegate:
                 return NodeTemplate
+            case Configuration.paths.niagaraNodeOp:
+                if ([
+                    "Boolean::LogicEq",
+                    "Boolean::LogicNEq",
+                    "Numeric::Mul",
+                ].includes(nodeEntity.OpName)) {
+                    return VariableOperationNodeTemplate
+                }
+                break
             case Configuration.paths.promotableOperator:
                 return VariableOperationNodeTemplate
             case Configuration.paths.knot:

@@ -21,9 +21,11 @@ import RBSerializationVector2DEntity from "./RBSerializationVector2DEntity.js"
 import RotatorEntity from "./RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEntity.js"
+import SimpleSerializationVector4DEntity from "./SimpleSerializationVector4DEntity.js"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity.js"
 import Union from "./Union.js"
 import Vector2DEntity from "./Vector2DEntity.js"
+import Vector4DEntity from "./Vector4DEntity.js"
 import VectorEntity from "./VectorEntity.js"
 
 /** @template {TerminalAttribute} T */
@@ -34,6 +36,7 @@ export default class PinEntity extends IEntity {
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
         [Configuration.paths.vector2D]: Vector2DEntity,
+        [Configuration.paths.vector4f]: Vector4DEntity,
         "bool": Boolean,
         "byte": ByteEntity,
         "enum": EnumEntity,
@@ -50,6 +53,8 @@ export default class PinEntity extends IEntity {
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
+        [Configuration.paths.vector3f]: SimpleSerializationVectorEntity,
+        [Configuration.paths.vector4f]: SimpleSerializationVector4DEntity,
     }
     static attributes = {
         ...super.attributes,
@@ -140,8 +145,8 @@ export default class PinEntity extends IEntity {
     }
 
     getType() {
-        const category = this.PinType.PinCategory
-        if (category === "struct" || category === "object") {
+        const category = this.PinType.PinCategory.toLocaleLowerCase()
+        if (category === "struct" || category === "class" || category === "object" || category === "type") {
             return this.PinType.PinSubCategoryObject.path
         }
         if (this.isEnum()) {

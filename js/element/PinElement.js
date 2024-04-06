@@ -17,6 +17,7 @@ import ReferencePinTemplate from "../template/pin/ReferencePinTemplate.js"
 import RotatorPinTemplate from "../template/pin/RotatorPinTemplate.js"
 import StringPinTemplate from "../template/pin/StringPinTemplate.js"
 import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate.js"
+import Vector4DPinTemplate from "../template/pin/Vector4DPinTemplate.js"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
 import ElementFactory from "./ElementFactory.js"
 import IElement from "./IElement.js"
@@ -28,6 +29,14 @@ import IElement from "./IElement.js"
 export default class PinElement extends IElement {
 
     static #inputPinTemplates = {
+        [Configuration.paths.linearColor]: LinearColorPinTemplate,
+        [Configuration.paths.niagaraBool]: BoolPinTemplate,
+        [Configuration.paths.niagaraPosition]: VectorPinTemplate,
+        [Configuration.paths.rotator]: RotatorPinTemplate,
+        [Configuration.paths.vector]: VectorPinTemplate,
+        [Configuration.paths.vector2D]: Vector2DPinTemplate,
+        [Configuration.paths.vector3f]: VectorPinTemplate,
+        [Configuration.paths.vector4f]: Vector4DPinTemplate,
         "bool": BoolPinTemplate,
         "byte": IntPinTemplate,
         "enum": EnumPinTemplate,
@@ -38,10 +47,6 @@ export default class PinElement extends IElement {
         "rg": Vector2DPinTemplate,
         "real": RealPinTemplate,
         "string": StringPinTemplate,
-        [Configuration.paths.linearColor]: LinearColorPinTemplate,
-        [Configuration.paths.rotator]: RotatorPinTemplate,
-        [Configuration.paths.vector]: VectorPinTemplate,
-        [Configuration.paths.vector2D]: Vector2DPinTemplate,
     }
 
     static properties = {

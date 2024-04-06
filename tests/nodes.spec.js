@@ -7,6 +7,7 @@ import InputNodes from "./resources/InputNodes.js"
 import IssuesNodes1 from "./resources/IssuesNodes1.js"
 import LegacyNodes from "./resources/LegacyNodes.js"
 import MaterialNodes from "./resources/MaterialNodes.js"
+import NiagaraNodes from "./resources/NiagaraNodes.js"
 import OperationsNodes from "./resources/OperationsNodes.js"
 import OtherNodes from "./resources/OtherNodes.js"
 import PCGNodes from "./resources/PCGNodes.js"
@@ -15,12 +16,13 @@ const nodeTests = [
     ...EventNodes.get(),
     ...FlowControlNodes.get(),
     ...InputNodes.get(),
+    ...IssuesNodes1.get(),
     ...LegacyNodes.get(),
     ...MaterialNodes.get(),
+    ...NiagaraNodes.get(),
     ...OperationsNodes.get(),
     ...OtherNodes.get(),
     ...PCGNodes.get(),
-    ...IssuesNodes1.get(),
 ]
 
 test.describe.configure({ mode: "parallel" })
@@ -33,6 +35,8 @@ for (const nodeTest of nodeTests) {
             await blueprintPage.removeNodes()
             await blueprintPage.paste(nodeTest.value)
         })
+
+        nodeTest.title ??= nodeTest.name
 
         if (nodeTest.color) {
             test(
@@ -59,14 +63,12 @@ for (const nodeTest of nodeTests) {
             }
         )
 
-        if (nodeTest.title) {
-            test(
-                `${nodeTest.name}: Has title ${nodeTest.title}`,
-                async ({ blueprintPage }) => expect(
-                    await blueprintPage.node.evaluate(node => node.nodeDisplayName)
-                ).toBe(nodeTest.title)
-            )
-        }
+        test(
+            `${nodeTest.name}: Has title ${nodeTest.title}`,
+            async ({ blueprintPage }) => expect(
+                await blueprintPage.node.evaluate(node => node.nodeDisplayName)
+            ).toBe(nodeTest.title)
+        )
 
         if (nodeTest.subtitle) {
             test(

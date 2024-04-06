@@ -102,6 +102,7 @@ export default class ObjectEntity extends IEntity {
         ComponentPropertyName: AttributeInfo.createType(String),
         EventReference: AttributeInfo.createType(FunctionReferenceEntity),
         FunctionReference: AttributeInfo.createType(FunctionReferenceEntity),
+        FunctionScript: AttributeInfo.createType(ObjectReferenceEntity),
         CustomFunctionName: AttributeInfo.createType(String),
         TargetType: AttributeInfo.createType(ObjectReferenceEntity),
         MacroGraphReference: AttributeInfo.createType(MacroGraphReferenceEntity),
@@ -111,6 +112,10 @@ export default class ObjectEntity extends IEntity {
             inlined: true,
         }),
         InputKey: AttributeInfo.createType(SymbolEntity),
+        OpName: AttributeInfo.createType(String),
+        CachedChangeId: AttributeInfo.createType(GuidEntity),
+        FunctionDisplayName: AttributeInfo.createType(String),
+        ChangeId: AttributeInfo.createType(GuidEntity),
         MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
         bOverrideFunction: AttributeInfo.createType(Boolean),
         bInternalEvent: AttributeInfo.createType(Boolean),
@@ -345,6 +350,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {ObjectReferenceEntity} */ this.Class
         /** @type {ObjectReferenceEntity} */ this.Enum
         /** @type {ObjectReferenceEntity} */ this.ExportPath
+        /** @type {ObjectReferenceEntity} */ this.FunctionScript
         /** @type {ObjectReferenceEntity} */ this.Graph
         /** @type {ObjectReferenceEntity} */ this.MaterialExpression
         /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment
@@ -360,11 +366,13 @@ export default class ObjectEntity extends IEntity {
         /** @type {String} */ this.CustomFunctionName
         /** @type {String} */ this.DelegatePropertyName
         /** @type {String} */ this.ExportedNodes
+        /** @type {String} */ this.FunctionDisplayName
         /** @type {String} */ this.InputName
         /** @type {String} */ this.Name
         /** @type {String} */ this.NodeComment
         /** @type {String} */ this.NodeTitle
         /** @type {String} */ this.Operation
+        /** @type {String} */ this.OpName
         /** @type {String} */ this.ProxyFactoryFunctionName
         /** @type {String} */ this.SubgraphInstance
         /** @type {String} */ this.Text
@@ -417,24 +425,23 @@ export default class ObjectEntity extends IEntity {
         if (pcgObject) {
             pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX)
             pcgObject.PositionY && (pcgObject.PositionY.getter = () => this.NodePosY)
-            pcgObject.getSubobjects()
-                .forEach(
-                    /** @param {ObjectEntity} obj */
-                    obj => {
-                        if (obj.Node !== undefined) {
-                            const nodeRef = obj.Node.get()
-                            if (
-                                nodeRef.type === this.PCGNode.type
-                                && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
-                            ) {
-                                obj.Node.getter = () => new ObjectReferenceEntity({
-                                    type: this.PCGNode.type,
-                                    path: `${this.Name}.${this.PCGNode.path}`,
-                                })
-                            }
+            pcgObject.getSubobjects().forEach(
+                /** @param {ObjectEntity} obj */
+                obj => {
+                    if (obj.Node !== undefined) {
+                        const nodeRef = obj.Node.get()
+                        if (
+                            nodeRef.type === this.PCGNode.type
+                            && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
+                        ) {
+                            obj.Node.getter = () => new ObjectReferenceEntity({
+                                type: this.PCGNode.type,
+                                path: `${this.Name}.${this.PCGNode.path}`,
+                            })
                         }
                     }
-                )
+                }
+            )
 
         }
         let inputIndex = 0
@@ -627,6 +634,10 @@ export default class ObjectEntity extends IEntity {
     isPcg() {
         return this.getClass() === Configuration.paths.pcgEditorGraphNode
             || this.getPcgSubobject()
+    }
+
+    isNiagara() {
+        return (this.Class.type ? this.Class.type : this.Class.path)?.startsWith("/Script/NiagaraEditor.")
     }
 
     /** @return {ObjectEntity} */
@@ -981,6 +992,23 @@ export default class ObjectEntity extends IEntity {
             }
             return Utility.formatStringName(memberName)
         }
+        if (this.OpName) {
+            switch (this.OpName) {
+                case "Boolean::LogicAnd": return "Logic AND"
+                case "Boolean::LogicEq": return "=="
+                case "Boolean::LogicNEq": return "!="
+                case "Boolean::LogicNot": return "Logic NOT"
+                case "Boolean::LogicOr": return "Logic OR"
+                case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
+                case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
+                case "Numeric::DistancePos": return "Distance"
+                case "Numeric::Mul": return String.fromCharCode(0x2a2f)
+            }
+            return Utility.formatStringName(this.OpName).replaceAll("::", " ")
+        }
+        if (this.FunctionDisplayName) {
+            return Utility.formatStringName(this.FunctionDisplayName)
+        }
         if (this.ObjectRef) {
             return this.ObjectRef.getName()
         }
@@ -1012,6 +1040,8 @@ export default class ObjectEntity extends IEntity {
                 return this.bIsPureFunc
                     ? Configuration.nodeColors.green
                     : Configuration.nodeColors.blue
+            case Configuration.paths.niagaraNodeFunctionCall:
+                return Configuration.nodeColors.darkerBlue
             case Configuration.paths.dynamicCast:
                 return Configuration.nodeColors.turquoise
             case Configuration.paths.inputDebugKey:
@@ -1057,7 +1087,7 @@ export default class ObjectEntity extends IEntity {
     }
 
     nodeIcon() {
-        if (this.isMaterial() || this.isPcg()) {
+        if (this.isMaterial() || this.isPcg() || this.isNiagara()) {
             return null
         }
         switch (this.getType()) {
