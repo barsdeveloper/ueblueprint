@@ -3238,11 +3238,12 @@ class Grammar {
     /**
      * @template T
      * @param {AttributeInfo<T>} attribute
+     * @param {Parsernostrum<any>} defaultGrammar
      * @returns {Parsernostrum<T>}
      */
     static grammarFor(attribute, type = attribute?.type, defaultGrammar = this.unknownValue) {
         let result = defaultGrammar;
-        if (type instanceof Array) {
+        if (type === Array || type instanceof Array) {
             if (attribute?.inlined) {
                 return this.grammarFor(undefined, type[0])
             }
@@ -3292,7 +3293,7 @@ class Grammar {
                 if (result == this.unknownValue) {
                     result = this.string;
                 } else {
-                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"'));
+                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"')).map(([_0, value, _2]) => value);
                 }
             }
             if (attribute.nullable) {
@@ -3401,8 +3402,7 @@ class Grammar {
             })
     }
 
-    /*   ---   Entity   ---   */
-
+    /** @type {Parsernostrum<any>} */
     static unknownValue // Defined in initializeSerializerFactor to avoid circular include
 }
 
@@ -4637,7 +4637,7 @@ class PinEntity extends IEntity {
             default: () => new GuidEntity()
         }),
         PinName: AttributeInfo.createValue(""),
-        PinFriendlyName: AttributeInfo.createType(new Union(LocalizedTextEntity, FormatTextEntity, String)),
+        PinFriendlyName: AttributeInfo.createType(new Union(LocalizedTextEntity, FormatTextEntity, InvariantTextEntity, String)),
         PinToolTip: AttributeInfo.createType(String),
         Direction: AttributeInfo.createType(String),
         PinType: new AttributeInfo({
@@ -5117,7 +5117,7 @@ class ObjectEntity extends IEntity {
         ErrorType: AttributeInfo.createType(IntegerEntity),
         ErrorMsg: AttributeInfo.createType(String),
         ScriptVariables: new AttributeInfo({
-            type: ScriptVariableEntity,
+            type: [ScriptVariableEntity],
             inlined: true,
         }),
         Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),
@@ -9311,9 +9311,9 @@ class BlueprintEntity extends IEntity {
     }
 
     /** @param {ObjectEntity} entity */
-    merge(entity) {
+    mergeWith(entity) {
         if (!entity.ScriptVariables || entity.ScriptVariables.length === 0) {
-            return
+            return this
         }
         if (!this.ScriptVariables || this.ScriptVariables.length === 0) {
             this.ScriptVariables = entity.ScriptVariables;
@@ -9324,12 +9324,22 @@ class BlueprintEntity extends IEntity {
             (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value
         );
         if (scriptVariables.length === this.ScriptVariables.length) {
-            return
+            return this
         }
-        for (let i = 0; i < entity.ScriptVariables.length; ++i) {
-            const current = entity.ScriptVariables[i];
-            if (!this.ScriptVariables.some(v => v.OriginalChangeId.equals(current.OriginalChangeId))) ;
-        }
+        const entries = scriptVariables.concat(scriptVariables).map((v, i) => {
+            const name = Configuration.subObjectAttributeNameFromReference(v.ScriptVariable, i >= scriptVariables.length);
+            return [
+                name,
+                this[name] ?? entity[name]
+            ]
+        });
+        entries.push(
+            ...Object.entries(this).filter(([k, v]) =>
+                !k.startsWith(Configuration.subObjectAttributeNamePrefix)
+                && k !== "ExportedNodes"
+            )
+        );
+        return new BlueprintEntity(Object.fromEntries(entries))
     }
 }
 
@@ -10731,6 +10741,12 @@ class Blueprint extends IElement {
         for (const element of graphElements) {
             element.blueprint = this;
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
+                if (element.getType() == Configuration.paths.niagaraClipboardContent) {
+                    this.entity = this.entity.mergeWith(element.entity);
+                    const additionalSerialization = atob(element.entity.ExportedNodes);
+                    this.template.getPasteInputObject().pasted(additionalSerialization);
+                    continue
+                }
                 const name = element.entity.getObjectName();
                 const homonym = this.entity.getHomonymObjectEntity(element.entity);
                 if (homonym) {
@@ -12937,6 +12953,7 @@ Grammar.unknownValue =
         SymbolEntity.createGrammar(),
         Grammar.grammarFor(undefined, [PinReferenceEntity]),
         Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
+        Parsernostrum.lazy(() => Grammar.grammarFor(undefined, [undefined])),
     );
 
 function initializeSerializerFactory() {

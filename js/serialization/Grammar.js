@@ -69,11 +69,12 @@ export default class Grammar {
     /**
      * @template T
      * @param {AttributeInfo<T>} attribute
+     * @param {Parsernostrum<any>} defaultGrammar
      * @returns {Parsernostrum<T>}
      */
     static grammarFor(attribute, type = attribute?.type, defaultGrammar = this.unknownValue) {
         let result = defaultGrammar
-        if (type instanceof Array) {
+        if (type === Array || type instanceof Array) {
             if (attribute?.inlined) {
                 return this.grammarFor(undefined, type[0])
             }
@@ -123,7 +124,7 @@ export default class Grammar {
                 if (result == this.unknownValue) {
                     result = this.string
                 } else {
-                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"'))
+                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"')).map(([_0, value, _2]) => value)
                 }
             }
             if (attribute.nullable) {
@@ -233,7 +234,6 @@ export default class Grammar {
             })
     }
 
-    /*   ---   Entity   ---   */
-
+    /** @type {Parsernostrum<any>} */
     static unknownValue // Defined in initializeSerializerFactor to avoid circular include
 }

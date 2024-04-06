@@ -409,6 +409,12 @@ export default class Blueprint extends IElement {
         for (const element of graphElements) {
             element.blueprint = this
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
+                if (element.getType() == Configuration.paths.niagaraClipboardContent) {
+                    this.entity = this.entity.mergeWith(element.entity)
+                    const additionalSerialization = atob(element.entity.ExportedNodes)
+                    this.template.getPasteInputObject().pasted(additionalSerialization)
+                    continue
+                }
                 const name = element.entity.getObjectName()
                 const homonym = this.entity.getHomonymObjectEntity(element.entity)
                 if (homonym) {

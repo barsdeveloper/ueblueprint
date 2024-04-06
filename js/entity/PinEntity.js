@@ -11,6 +11,7 @@ import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 import Integer64Entity from "./Integer64Entity.js"
 import IntegerEntity from "./IntegerEntity.js"
+import InvariantTextEntity from "./InvariantTextEntity.js"
 import LinearColorEntity from "./LinearColorEntity.js"
 import LocalizedTextEntity from "./LocalizedTextEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
@@ -68,7 +69,7 @@ export default class PinEntity extends IEntity {
             default: () => new GuidEntity()
         }),
         PinName: AttributeInfo.createValue(""),
-        PinFriendlyName: AttributeInfo.createType(new Union(LocalizedTextEntity, FormatTextEntity, String)),
+        PinFriendlyName: AttributeInfo.createType(new Union(LocalizedTextEntity, FormatTextEntity, InvariantTextEntity, String)),
         PinToolTip: AttributeInfo.createType(String),
         Direction: AttributeInfo.createType(String),
         PinType: new AttributeInfo({

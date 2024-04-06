@@ -29,7 +29,7 @@
  *     ? BooleanConstructor
  *     : T extends Array
  *     ? ArrayConstructor
- *     : T extends MirroredEntity<infer R>
+  *     : T extends MirroredEntity<infer R>
  *     ? MirroredEntityConstructor<R>
  *     : T extends IEntity
  *     ? AnyConstructor<T> & EntityConstructor

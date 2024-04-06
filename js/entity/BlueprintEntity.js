@@ -56,9 +56,9 @@ export default class BlueprintEntity extends IEntity {
     }
 
     /** @param {ObjectEntity} entity */
-    merge(entity) {
+    mergeWith(entity) {
         if (!entity.ScriptVariables || entity.ScriptVariables.length === 0) {
-            return
+            return this
         }
         if (!this.ScriptVariables || this.ScriptVariables.length === 0) {
             this.ScriptVariables = entity.ScriptVariables
@@ -69,13 +69,21 @@ export default class BlueprintEntity extends IEntity {
             (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value
         )
         if (scriptVariables.length === this.ScriptVariables.length) {
-            return
+            return this
         }
-        for (let i = 0; i < entity.ScriptVariables.length; ++i) {
-            const current = entity.ScriptVariables[i]
-            if (!this.ScriptVariables.some(v => v.OriginalChangeId.equals(current.OriginalChangeId))) {
-
-            }
-        }
+        const entries = scriptVariables.concat(scriptVariables).map((v, i) => {
+            const name = Configuration.subObjectAttributeNameFromReference(v.ScriptVariable, i >= scriptVariables.length)
+            return [
+                name,
+                this[name] ?? entity[name]
+            ]
+        })
+        entries.push(
+            ...Object.entries(this).filter(([k, v]) =>
+                !k.startsWith(Configuration.subObjectAttributeNamePrefix)
+                && k !== "ExportedNodes"
+            )
+        )
+        return new BlueprintEntity(Object.fromEntries(entries))
     }
 }

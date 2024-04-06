@@ -63,6 +63,7 @@ Grammar.unknownValue =
         SymbolEntity.createGrammar(),
         Grammar.grammarFor(undefined, [PinReferenceEntity]),
         Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
+        Parsernostrum.lazy(() => Grammar.grammarFor(undefined, [undefined])),
     )
 
 export default function initializeSerializerFactory() {

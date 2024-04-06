@@ -172,7 +172,7 @@ export default class ObjectEntity extends IEntity {
         ErrorType: AttributeInfo.createType(IntegerEntity),
         ErrorMsg: AttributeInfo.createType(String),
         ScriptVariables: new AttributeInfo({
-            type: ScriptVariableEntity,
+            type: [ScriptVariableEntity],
             inlined: true,
         }),
         Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),

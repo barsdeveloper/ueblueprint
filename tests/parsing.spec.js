@@ -7,7 +7,6 @@ import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
 import ObjectReferenceEntity from "../js/entity/ObjectReferenceEntity.js"
 import PinEntity from "../js/entity/PinEntity.js"
-import PinTypeEntity from "../js/entity/PinTypeEntity.js"
 import RotatorEntity from "../js/entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../js/entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../js/entity/SimpleSerializationVector2DEntity.js"
@@ -23,6 +22,58 @@ import initializeSerializerFactory from "../js/serialization/initializeSerialize
 test.beforeAll(() => initializeSerializerFactory())
 
 test.describe.configure({ mode: "parallel" })
+
+test("Array", () => {
+    const serializer = SerializerFactory.getSerializer(Array)
+
+    expect(serializer.read("()")).toStrictEqual([])
+    expect(serializer.read("( )")).toStrictEqual([])
+    expect(serializer.read("(1, 2, 3, 4, 5, 6)")).toStrictEqual([1, 2, 3, 4, 5, 6])
+    expect(serializer.read(`(
+        "alpha",
+        "beta",
+        123,
+        3BEF2168446CAA32D5B54289FAB2F0BA,
+        Some(a=1, b="2")
+    )`)).toStrictEqual([
+        "alpha",
+        "beta",
+        123,
+        new GuidEntity("3BEF2168446CAA32D5B54289FAB2F0BA"),
+        new UnknownKeysEntity({
+            lookbehind: "Some",
+            a: 1,
+            b: "2",
+        })
+    ])
+    expect(serializer.read(`(
+        A(first = (9,8,7,6,5), second = 00000000000000000000000000000000),
+        B(key="hello"),
+    )`)).toStrictEqual([
+        new UnknownKeysEntity({
+            lookbehind: "A",
+            first: [9, 8, 7, 6, 5],
+            second: new GuidEntity("00000000000000000000000000000000"),
+        }),
+        new UnknownKeysEntity({
+            lookbehind: "B",
+            key: "hello",
+        })
+    ])
+
+    // Nested
+    expect(serializer.read("((1, 2), (3, 4))")).toStrictEqual([[1, 2], [3, 4]])
+    expect(serializer.read('(((1, 2), (3, 4)), 5)')).toStrictEqual([[[1, 2], [3, 4]], 5])
+    expect(serializer.read(`(
+        One(a = (1,(2,(3,(4)))), b = ()),
+    )`)).toStrictEqual([
+        new UnknownKeysEntity({
+            lookbehind: "One",
+            a: [1, [2, [3, [4]]]],
+            b: null,
+        }),
+    ])
+})
 
 test("Boolean", () => {
     let serializer = SerializerFactory.getSerializer(Boolean)
