@@ -213,6 +213,7 @@ class Configuration {
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
         select: "/Script/BlueprintGraph.K2Node_Select",
+        self: "/Script/BlueprintGraph.K2Node_Self",
         slateBlueprintLibrary: "/Script/UMG.SlateBlueprintLibrary",
         spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",
@@ -5094,6 +5095,10 @@ class ObjectEntity extends IEntity {
     }
     static attributes = {
         ...super.attributes,
+        isExported: new AttributeInfo({
+            type: Boolean,
+            ignored: true,
+        }),
         Class: AttributeInfo.createType(ObjectReferenceEntity),
         Name: AttributeInfo.createType(String),
         Archetype: AttributeInfo.createType(ObjectReferenceEntity),
@@ -5362,6 +5367,7 @@ class ObjectEntity extends IEntity {
         // Attributes
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
         /** @type {Boolean} */ this.bIsPureFunc;
+        /** @type {Boolean} */ this.isExported;
         /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName;
         /** @type {FunctionReferenceEntity} */ this.EventReference;
         /** @type {FunctionReferenceEntity} */ this.FunctionReference;
@@ -8592,25 +8598,25 @@ class VariableManagementNodeTemplate extends NodeTemplate {
 
     #hasInput = false
     #hasOutput = false
-    #displayName = ""
+    displayName = ""
 
     static nodeStyleClasses = ["ueb-node-style-glass"]
 
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
-        this.#displayName = this.element.nodeDisplayName;
+        this.displayName = this.element.nodeDisplayName;
     }
 
     render() {
         return x`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
-                    ${this.#displayName ? x`
+                    ${this.displayName ? x`
                         <div class="ueb-node-top">
                             <div class="ueb-node-name">
                                 <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                                    ${this.#displayName}
+                                    ${this.displayName}
                                 </span>
                             </div>
                         </div>
@@ -9004,9 +9010,14 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element);
-        if (element.getType() === Configuration.paths.variableGet) {
+        const type = element.getType();
+        if (
+            type === Configuration.paths.variableGet
+            || type === Configuration.paths.self
+        ) {
             this.element.classList.add("ueb-node-style-getter");
-        } else if (element.getType() === Configuration.paths.variableSet) {
+            this.displayName = "";
+        } else if (type === Configuration.paths.variableSet) {
             this.element.classList.add("ueb-node-style-setter");
         }
     }
@@ -9016,6 +9027,111 @@ class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
         let outputPin = this.element.getPinElements().find(p => !p.entity.isHidden() && !p.entity.isExecution());
         this.element.style.setProperty("--ueb-node-color", outputPin.getColor().cssText);
     }
+}
+
+/**
+ * @param {ObjectEntity} nodeEntity
+ * @return {new () => NodeTemplate}
+ */
+function nodeTemplateClass(nodeEntity) {
+    if (
+        nodeEntity.getClass() === Configuration.paths.callFunction
+        || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
+        || nodeEntity.getClass() === Configuration.paths.callArrayFunction
+    ) {
+        const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
+        const memberName = nodeEntity.FunctionReference?.MemberName;
+        if (
+            memberName && (
+                memberParent === Configuration.paths.kismetMathLibrary
+                || memberParent === Configuration.paths.kismetArrayLibrary
+            )) {
+            if (memberName.startsWith("Conv_")) {
+                return VariableConversionNodeTemplate
+            }
+            if (
+                memberName.startsWith("And_")
+                || memberName.startsWith("Boolean") // Boolean logic operations
+                || memberName.startsWith("Cross_")
+                || memberName.startsWith("Dot_")
+                || memberName.startsWith("Not_")
+                || memberName.startsWith("Or_")
+                || memberName.startsWith("Percent_")
+                || memberName.startsWith("Xor_")
+            ) {
+                return VariableOperationNodeTemplate
+            }
+            switch (memberName) {
+                case "Abs":
+                case "Array_Add":
+                case "Array_AddUnique":
+                case "Array_Identical":
+                case "BMax":
+                case "BMin":
+                case "CrossProduct2D":
+                case "DotProduct2D":
+                case "Exp":
+                case "FMax":
+                case "FMin":
+                case "GetPI":
+                case "Max":
+                case "MaxInt64":
+                case "Min":
+                case "MinInt64":
+                case "Sqrt":
+                case "Square":
+                case "Vector4_CrossProduct3":
+                case "Vector4_DotProduct":
+                case "Vector4_DotProduct3":
+                // Trigonometry
+                case "Acos":
+                case "Asin":
+                case "Cos":
+                case "DegAcos":
+                case "DegCos":
+                case "DegSin":
+                case "DegTan":
+                case "Sin":
+                case "Tan":
+                    return VariableOperationNodeTemplate
+            }
+        }
+        if (memberParent === Configuration.paths.blueprintSetLibrary) {
+            return VariableOperationNodeTemplate
+        }
+        if (memberParent === Configuration.paths.blueprintMapLibrary) {
+            return VariableOperationNodeTemplate
+        }
+    }
+    switch (nodeEntity.getClass()) {
+        case Configuration.paths.comment:
+        case Configuration.paths.materialGraphNodeComment:
+            return CommentNodeTemplate
+        case Configuration.paths.createDelegate:
+            return NodeTemplate
+        case Configuration.paths.niagaraNodeOp:
+            if ([
+                "Boolean::LogicEq",
+                "Boolean::LogicNEq",
+                "Numeric::Mul",
+            ].includes(nodeEntity.OpName)) {
+                return VariableOperationNodeTemplate
+            }
+            break
+        case Configuration.paths.promotableOperator:
+            return VariableOperationNodeTemplate
+        case Configuration.paths.knot:
+            return KnotNodeTemplate
+        case Configuration.paths.literal:
+        case Configuration.paths.self:
+        case Configuration.paths.variableGet:
+        case Configuration.paths.variableSet:
+            return VariableAccessNodeTemplate
+    }
+    if (nodeEntity.isEvent()) {
+        return EventNodeTemplate
+    }
+    return NodeTemplate
 }
 
 /**
@@ -9141,110 +9257,6 @@ class NodeElement extends ISelectableDraggableElement {
         }
     }
 
-    /**
-     * @param {ObjectEntity} nodeEntity
-     * @return {new () => NodeTemplate}
-     */
-    static getTypeTemplate(nodeEntity) {
-        if (
-            nodeEntity.getClass() === Configuration.paths.callFunction
-            || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
-            || nodeEntity.getClass() === Configuration.paths.callArrayFunction
-        ) {
-            const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
-            const memberName = nodeEntity.FunctionReference?.MemberName;
-            if (
-                memberName && (
-                    memberParent === Configuration.paths.kismetMathLibrary
-                    || memberParent === Configuration.paths.kismetArrayLibrary
-                )) {
-                if (memberName.startsWith("Conv_")) {
-                    return VariableConversionNodeTemplate
-                }
-                if (
-                    memberName.startsWith("And_")
-                    || memberName.startsWith("Boolean") // Boolean logic operations
-                    || memberName.startsWith("Cross_")
-                    || memberName.startsWith("Dot_")
-                    || memberName.startsWith("Not_")
-                    || memberName.startsWith("Or_")
-                    || memberName.startsWith("Percent_")
-                    || memberName.startsWith("Xor_")
-                ) {
-                    return VariableOperationNodeTemplate
-                }
-                switch (memberName) {
-                    case "Abs":
-                    case "Array_Add":
-                    case "Array_AddUnique":
-                    case "Array_Identical":
-                    case "BMax":
-                    case "BMin":
-                    case "CrossProduct2D":
-                    case "DotProduct2D":
-                    case "Exp":
-                    case "FMax":
-                    case "FMin":
-                    case "GetPI":
-                    case "Max":
-                    case "MaxInt64":
-                    case "Min":
-                    case "MinInt64":
-                    case "Sqrt":
-                    case "Square":
-                    case "Vector4_CrossProduct3":
-                    case "Vector4_DotProduct":
-                    case "Vector4_DotProduct3":
-                    // Trigonometry
-                    case "Acos":
-                    case "Asin":
-                    case "Cos":
-                    case "DegAcos":
-                    case "DegCos":
-                    case "DegSin":
-                    case "DegTan":
-                    case "Sin":
-                    case "Tan":
-                        return VariableOperationNodeTemplate
-                }
-            }
-            if (memberParent === Configuration.paths.blueprintSetLibrary) {
-                return VariableOperationNodeTemplate
-            }
-            if (memberParent === Configuration.paths.blueprintMapLibrary) {
-                return VariableOperationNodeTemplate
-            }
-        }
-        switch (nodeEntity.getClass()) {
-            case Configuration.paths.comment:
-            case Configuration.paths.materialGraphNodeComment:
-                return CommentNodeTemplate
-            case Configuration.paths.createDelegate:
-                return NodeTemplate
-            case Configuration.paths.niagaraNodeOp:
-                if ([
-                    "Boolean::LogicEq",
-                    "Boolean::LogicNEq",
-                    "Numeric::Mul",
-                ].includes(nodeEntity.OpName)) {
-                    return VariableOperationNodeTemplate
-                }
-                break
-            case Configuration.paths.promotableOperator:
-                return VariableOperationNodeTemplate
-            case Configuration.paths.knot:
-                return KnotNodeTemplate
-            case Configuration.paths.literal:
-            case Configuration.paths.variableGet:
-            case Configuration.paths.variableSet:
-                return VariableAccessNodeTemplate
-        }
-        if (nodeEntity.isEvent()) {
-            return EventNodeTemplate
-        }
-        return NodeTemplate
-    }
-
     /** @param {String} str */
     static fromSerializedObject(str) {
         str = str.trim();
@@ -9256,7 +9268,7 @@ class NodeElement extends ISelectableDraggableElement {
      * @param {ObjectEntity} entity
      * @param {NodeTemplate} template
      */
-    static newObject(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+    static newObject(entity = new ObjectEntity(), template = new (nodeTemplateClass(entity))()) {
         const result = new NodeElement();
         result.initialize(entity, template);
         return result
@@ -9273,7 +9285,7 @@ class NodeElement extends ISelectableDraggableElement {
         }
     }
 
-    initialize(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+    initialize(entity = new ObjectEntity(), template = new (nodeTemplateClass(entity))()) {
         this.typePath = entity.getType();
         this.nodeTitle = entity.getObjectName();
         this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
@@ -9888,7 +9900,7 @@ class Paste extends IInput {
             node.setSelected(true);
         });
         this.blueprint.addGraphElement(...nodes);
-        return true
+        return nodes
     }
 }
 
@@ -10880,7 +10892,8 @@ class Blueprint extends IElement {
                 if (element.getType() == Configuration.paths.niagaraClipboardContent) {
                     this.entity = this.entity.mergeWith(element.entity);
                     const additionalSerialization = atob(element.entity.ExportedNodes);
-                    this.template.getPasteInputObject().pasted(additionalSerialization);
+                    this.template.getPasteInputObject().pasted(additionalSerialization)
+                        .forEach(node => node.entity.isExported = true);
                     continue
                 }
                 const name = element.entity.getObjectName();

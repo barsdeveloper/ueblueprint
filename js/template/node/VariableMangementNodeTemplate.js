@@ -7,25 +7,25 @@ export default class VariableManagementNodeTemplate extends NodeTemplate {
 
     #hasInput = false
     #hasOutput = false
-    #displayName = ""
+    displayName = ""
 
     static nodeStyleClasses = ["ueb-node-style-glass"]
 
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
-        this.#displayName = this.element.nodeDisplayName
+        this.displayName = this.element.nodeDisplayName
     }
 
     render() {
         return html`
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
-                    ${this.#displayName ? html`
+                    ${this.displayName ? html`
                         <div class="ueb-node-top">
                             <div class="ueb-node-name">
                                 <span class="ueb-node-name-text ueb-ellipsis-nowrap-text">
-                                    ${this.#displayName}
+                                    ${this.displayName}
                                 </span>
                             </div>
                         </div>

@@ -52,6 +52,10 @@ export default class ObjectEntity extends IEntity {
     }
     static attributes = {
         ...super.attributes,
+        isExported: new AttributeInfo({
+            type: Boolean,
+            ignored: true,
+        }),
         Class: AttributeInfo.createType(ObjectReferenceEntity),
         Name: AttributeInfo.createType(String),
         Archetype: AttributeInfo.createType(ObjectReferenceEntity),
@@ -320,6 +324,7 @@ export default class ObjectEntity extends IEntity {
         // Attributes
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
         /** @type {Boolean} */ this.bIsPureFunc
+        /** @type {Boolean} */ this.isExported
         /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName
         /** @type {FunctionReferenceEntity} */ this.EventReference
         /** @type {FunctionReferenceEntity} */ this.FunctionReference

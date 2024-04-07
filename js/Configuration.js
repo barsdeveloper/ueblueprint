@@ -189,6 +189,7 @@ export default class Configuration {
         reverseForEachLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ReverseForEachLoop",
         rotator: "/Script/CoreUObject.Rotator",
         select: "/Script/BlueprintGraph.K2Node_Select",
+        self: "/Script/BlueprintGraph.K2Node_Self",
         slateBlueprintLibrary: "/Script/UMG.SlateBlueprintLibrary",
         spawnActorFromClass: "/Script/BlueprintGraph.K2Node_SpawnActorFromClass",
         switchEnum: "/Script/BlueprintGraph.K2Node_SwitchEnum",

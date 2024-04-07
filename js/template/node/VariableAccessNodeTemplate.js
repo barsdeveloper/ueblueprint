@@ -6,9 +6,14 @@ export default class VariableAccessNodeTemplate extends VariableManagementNodeTe
     /** @param {NodeElement} element */
     initialize(element) {
         super.initialize(element)
-        if (element.getType() === Configuration.paths.variableGet) {
+        const type = element.getType()
+        if (
+            type === Configuration.paths.variableGet
+            || type === Configuration.paths.self
+        ) {
             this.element.classList.add("ueb-node-style-getter")
-        } else if (element.getType() === Configuration.paths.variableSet) {
+            this.displayName = ""
+        } else if (type === Configuration.paths.variableSet) {
             this.element.classList.add("ueb-node-style-setter")
         }
     }
