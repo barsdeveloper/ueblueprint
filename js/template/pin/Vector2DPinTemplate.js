@@ -6,7 +6,7 @@ import INumericPinTemplate from "./INumericPinTemplate.js"
 /**
  * @extends INumericPinTemplate<Vector2DEntity>
  */
-export default class VectorInputPinTemplate extends INumericPinTemplate {
+export default class Vector2DPinTemplate extends INumericPinTemplate {
 
     #getX() {
         return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)

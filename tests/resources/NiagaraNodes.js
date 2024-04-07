@@ -32,7 +32,7 @@ export default class NiagaraNodes extends NodeTests {
                     expect(await node.evaluate(node => node.classList.contains("ueb-node-style-glass"))).toBeTruthy()
                     for (const pin of pins) {
                         expect(await pin.evaluate(element => element.entity.pinColor().cssText))
-                            .toBe(Configuration.pinColor["bool"].cssText)
+                            .toBe(css`146, 0, 0`.cssText)
                     }
                 },
             },
@@ -59,7 +59,7 @@ export default class NiagaraNodes extends NodeTests {
                     expect(await node.evaluate(node => node.classList.contains("ueb-node-style-glass"))).toBeTruthy()
                     for (const pin of pins) {
                         expect(await pin.evaluate(element => element.entity.pinColor().cssText))
-                            .toBe(Configuration.pinColor["bool"].cssText)
+                            .toBe(css`146, 0, 0`.cssText)
                     }
                 },
             },
@@ -88,11 +88,11 @@ export default class NiagaraNodes extends NodeTests {
                     expect(await node.evaluate(node => node.classList.contains("ueb-node-style-glass"))).toBeFalsy()
                     expect(await node.evaluate(node => node.classList.contains("ueb-node-style-default"))).toBeTruthy()
                     expect(await pins[0].evaluate(element => element.entity.pinColor().cssText))
-                        .toBe(Configuration.pinColor["bool"].cssText)
+                        .toBe(css`146, 0, 0`.cssText)
                     expect(await pins[1].evaluate(element => element.entity.pinColor().cssText))
-                        .toBe(Configuration.pinColor["bool"].cssText)
+                        .toBe(css`146, 0, 0`.cssText)
                     expect(await pins[3].evaluate(element => element.entity.pinColor().cssText))
-                        .toBe(Configuration.pinColor["bool"].cssText)
+                        .toBe(css`146, 0, 0`.cssText)
                 },
             },
             {
@@ -120,11 +120,11 @@ export default class NiagaraNodes extends NodeTests {
                     expect(await node.evaluate(node => node.classList.contains("ueb-node-style-glass"))).toBeFalsy()
                     expect(await node.evaluate(node => node.classList.contains("ueb-node-style-default"))).toBeTruthy()
                     expect(await pins[0].evaluate(element => element.entity.pinColor().cssText))
-                        .toBe(Configuration.pinColor["bool"].cssText)
+                        .toBe(css`146, 0, 0`.cssText)
                     expect(await pins[1].evaluate(element => element.entity.pinColor().cssText))
-                        .toBe(Configuration.pinColor["bool"].cssText)
+                        .toBe(css`146, 0, 0`.cssText)
                     expect(await pins[3].evaluate(element => element.entity.pinColor().cssText))
-                        .toBe(Configuration.pinColor["bool"].cssText)
+                        .toBe(css`146, 0, 0`.cssText)
                 },
             },
             {
@@ -151,7 +151,7 @@ export default class NiagaraNodes extends NodeTests {
                     expect(await node.evaluate(node => node.classList.contains("ueb-node-style-default"))).toBeTruthy()
                     for (const pin of pins) {
                         expect(await pin.evaluate(element => element.entity.pinColor().cssText))
-                            .toBe(Configuration.pinColor["bool"].cssText)
+                            .toBe(css`146, 0, 0`.cssText)
                     }
                 },
             },

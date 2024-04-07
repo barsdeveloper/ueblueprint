@@ -1,5 +1,6 @@
 import Configuration from "../Configuration.js"
-import Utility from "../Utility.js"
+import pinColor from "../decoding/pinColor.js"
+import pinTitle from "../decoding/pinTitle.js"
 import Grammar from "../serialization/Grammar.js"
 import AttributeInfo from "./AttributeInfo.js"
 import ByteEntity from "./ByteEntity.js"
@@ -204,21 +205,8 @@ export default class PinEntity extends IEntity {
             : entity
     }
 
-    pinDisplayName() {
-        let result = this.PinFriendlyName
-            ? this.PinFriendlyName.toString()
-            : Utility.formatStringName(this.PinName ?? "")
-        let match
-        if (
-            this.PinToolTip
-            // Match up until the first \n excluded or last character
-            && (match = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
-        ) {
-            if (match[1].toLowerCase() === result.toLowerCase()) {
-                return match[1] // In case they match, then keep the case of the PinToolTip
-            }
-        }
-        return result
+    pinTitle() {
+        return pinTitle(this)
     }
 
     /** @param {PinEntity} other */
@@ -315,18 +303,7 @@ export default class PinEntity extends IEntity {
         return this.PinType.PinSubCategoryObject.path
     }
 
-    /** @return {CSSResult} */
     pinColor() {
-        if (this.PinType.PinCategory == "mask") {
-            const result = Configuration.pinColor[this.PinType.PinSubCategory]
-            if (result) {
-                return result
-            }
-        } else if (this.PinType.PinCategory == "optional") {
-            return Configuration.pinColorMaterial
-        }
-        return Configuration.pinColor[this.getType()]
-            ?? Configuration.pinColor[this.PinType.PinCategory.toLowerCase()]
-            ?? Configuration.pinColor["default"]
+        return pinColor(this)
     }
 }

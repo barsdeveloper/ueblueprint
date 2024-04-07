@@ -1,24 +1,10 @@
-import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
+import pinTemplate from "../decoding/pinTemplate.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
-import BoolPinTemplate from "../template/pin/BoolPinTemplate.js"
-import EnumPinTemplate from "../template/pin/EnumPinTemplate.js"
-import ExecPinTemplate from "../template/pin/ExecPinTemplate.js"
-import Int64PinTemplate from "../template/pin/Int64PinTemplate.js"
-import IntPinTemplate from "../template/pin/IntPinTemplate.js"
-import LinearColorPinTemplate from "../template/pin/LinearColorPinTemplate.js"
-import NamePinTemplate from "../template/pin/NamePinTemplate.js"
 import PinTemplate from "../template/pin/PinTemplate.js"
-import RealPinTemplate from "../template/pin/RealPinTemplate.js"
-import ReferencePinTemplate from "../template/pin/ReferencePinTemplate.js"
-import RotatorPinTemplate from "../template/pin/RotatorPinTemplate.js"
-import StringPinTemplate from "../template/pin/StringPinTemplate.js"
-import Vector2DPinTemplate from "../template/pin/Vector2DPinTemplate.js"
-import Vector4DPinTemplate from "../template/pin/Vector4DPinTemplate.js"
-import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
 import ElementFactory from "./ElementFactory.js"
 import IElement from "./IElement.js"
 
@@ -27,27 +13,6 @@ import IElement from "./IElement.js"
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 export default class PinElement extends IElement {
-
-    static #inputPinTemplates = {
-        [Configuration.paths.linearColor]: LinearColorPinTemplate,
-        [Configuration.paths.niagaraBool]: BoolPinTemplate,
-        [Configuration.paths.niagaraPosition]: VectorPinTemplate,
-        [Configuration.paths.rotator]: RotatorPinTemplate,
-        [Configuration.paths.vector]: VectorPinTemplate,
-        [Configuration.paths.vector2D]: Vector2DPinTemplate,
-        [Configuration.paths.vector3f]: VectorPinTemplate,
-        [Configuration.paths.vector4f]: Vector4DPinTemplate,
-        "bool": BoolPinTemplate,
-        "byte": IntPinTemplate,
-        "enum": EnumPinTemplate,
-        "int": IntPinTemplate,
-        "int64": Int64PinTemplate,
-        "MUTABLE_REFERENCE": ReferencePinTemplate,
-        "name": NamePinTemplate,
-        "rg": Vector2DPinTemplate,
-        "real": RealPinTemplate,
-        "string": StringPinTemplate,
-    }
 
     static properties = {
         pinId: {
@@ -108,23 +73,9 @@ export default class PinElement extends IElement {
     /** @type {NodeElement} */
     nodeElement
 
-    /** @param {PinEntity<any>} pinEntity */
-    static getTypeTemplate(pinEntity) {
-        if (pinEntity.PinType.ContainerType?.toString() === "Array") {
-            return PinTemplate
-        }
-        if (pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst) {
-            return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
-        }
-        if (pinEntity.getType() === "exec") {
-            return ExecPinTemplate
-        }
-        return (pinEntity.isInput() ? PinElement.#inputPinTemplates[pinEntity.getType()] : PinTemplate) ?? PinTemplate
-    }
-
     static newObject(
         entity = new PinEntity(),
-        template = /** @type {PinTemplate} */(new (PinElement.getTypeTemplate(entity))()),
+        template = /** @type {PinTemplate} */(new (pinTemplate(entity))()),
         nodeElement = undefined
     ) {
         const result = new PinElement()
@@ -134,7 +85,7 @@ export default class PinElement extends IElement {
 
     initialize(
         entity = /** @type {PinEntity<T>} */(new PinEntity()),
-        template = /** @type {PinTemplate} */(new (PinElement.getTypeTemplate(entity))()),
+        template = /** @type {PinTemplate} */(new (pinTemplate(entity))()),
         nodeElement = undefined
     ) {
         this.nodeElement = nodeElement
@@ -171,7 +122,7 @@ export default class PinElement extends IElement {
     }
 
     getPinDisplayName() {
-        return this.entity.pinDisplayName()
+        return this.entity.pinTitle()
     }
 
     /** @return {CSSResult} */

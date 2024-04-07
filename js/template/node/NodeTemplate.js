@@ -165,7 +165,7 @@ export default class NodeTemplate extends ISelectableDraggableTemplate {
             .filter(v => !v.isHidden())
             .map(pinEntity => {
                 this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName === "self" && pinEntity.pinDisplayName() === "Target"
+                    || pinEntity.PinName === "self" && pinEntity.pinTitle() === "Target"
                 return this.createPinElement(pinEntity)
             })
     }

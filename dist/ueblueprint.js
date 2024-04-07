@@ -233,50 +233,6 @@ class Configuration {
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
-    static pinColor = {
-        [this.paths.niagaraBool]: i$3`146, 0, 0`,
-        [this.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
-        [this.paths.niagaraFloat]: i$3`160, 250, 68`,
-        [this.paths.niagaraMatrix]: i$3`0, 88, 200`,
-        [this.paths.niagaraPosition]: i$3`251, 146, 251`,
-        [this.paths.quat4f]: i$3`0, 88, 200`,
-        [this.paths.rotator]: i$3`157, 177, 251`,
-        [this.paths.transform]: i$3`227, 103, 0`,
-        [this.paths.vector]: i$3`251, 198, 34`,
-        [this.paths.vector3f]: i$3`250, 200, 36`,
-        [this.paths.vector4f]: i$3`0, 88, 200`,
-        "Any": i$3`132, 132, 132`,
-        "Any[]": i$3`132, 132, 132`,
-        "blue": i$3`0, 0, 255`,
-        "bool": i$3`146, 0, 0`,
-        "byte": i$3`0, 109, 99`,
-        "class": i$3`88, 0, 186`,
-        "default": i$3`255, 255, 255`,
-        "delegate": i$3`255, 56, 56`,
-        "enum": i$3`0, 109, 99`,
-        "exec": i$3`240, 240, 240`,
-        "green": i$3`0, 255, 0`,
-        "int": i$3`31, 224, 172`,
-        "int64": i$3`169, 223, 172`,
-        "interface": i$3`238, 252, 168`,
-        "name": i$3`201, 128, 251`,
-        "object": i$3`0, 168, 242`,
-        "Param": i$3`255, 166, 39`,
-        "Param[]": i$3`255, 166, 39`,
-        "Point": i$3`63, 137, 255`,
-        "Point[]": i$3`63, 137, 255`,
-        "real": i$3`54, 208, 0`,
-        "red": i$3`255, 0, 0`,
-        "string": i$3`251, 0, 208`,
-        "struct": i$3`0, 88, 200`,
-        "Surface": i$3`69, 196, 126`,
-        "Surface[]": i$3`69, 196, 126`,
-        "text": i$3`226, 121, 167`,
-        "Volume": i$3`230, 69, 188`,
-        "Volume[]": i$3`230, 69, 188`,
-        "wildcard": i$3`128, 120, 120`,
-    }
-    static pinColorMaterial = i$3`120, 120, 120`
     static pinInputWrapWidth = 143 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
@@ -4584,6 +4540,85 @@ class MacroGraphReferenceEntity extends IEntity {
     }
 }
 
+const colors = {
+    [Configuration.paths.niagaraBool]: i$3`146, 0, 0`,
+    [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
+    [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
+    [Configuration.paths.niagaraMatrix]: i$3`0, 88, 200`,
+    [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
+    [Configuration.paths.quat4f]: i$3`0, 88, 200`,
+    [Configuration.paths.rotator]: i$3`157, 177, 251`,
+    [Configuration.paths.transform]: i$3`227, 103, 0`,
+    [Configuration.paths.vector]: i$3`251, 198, 34`,
+    [Configuration.paths.vector3f]: i$3`250, 200, 36`,
+    [Configuration.paths.vector4f]: i$3`0, 88, 200`,
+    "Any": i$3`132, 132, 132`,
+    "Any[]": i$3`132, 132, 132`,
+    "blue": i$3`0, 0, 255`,
+    "bool": i$3`146, 0, 0`,
+    "byte": i$3`0, 109, 99`,
+    "class": i$3`88, 0, 186`,
+    "default": i$3`255, 255, 255`,
+    "delegate": i$3`255, 56, 56`,
+    "enum": i$3`0, 109, 99`,
+    "exec": i$3`240, 240, 240`,
+    "green": i$3`0, 255, 0`,
+    "int": i$3`31, 224, 172`,
+    "int64": i$3`169, 223, 172`,
+    "interface": i$3`238, 252, 168`,
+    "name": i$3`201, 128, 251`,
+    "object": i$3`0, 168, 242`,
+    "Param": i$3`255, 166, 39`,
+    "Param[]": i$3`255, 166, 39`,
+    "Point": i$3`63, 137, 255`,
+    "Point[]": i$3`63, 137, 255`,
+    "real": i$3`54, 208, 0`,
+    "red": i$3`255, 0, 0`,
+    "string": i$3`251, 0, 208`,
+    "struct": i$3`0, 88, 200`,
+    "Surface": i$3`69, 196, 126`,
+    "Surface[]": i$3`69, 196, 126`,
+    "text": i$3`226, 121, 167`,
+    "Volume": i$3`230, 69, 188`,
+    "Volume[]": i$3`230, 69, 188`,
+    "wildcard": i$3`128, 120, 120`,
+};
+
+const pinColorMaterial = i$3`120, 120, 120`;
+
+/** @param {PinEntity} entity */
+function pinColor(entity) {
+    if (entity.PinType.PinCategory == "mask") {
+        const result = colors[entity.PinType.PinSubCategory];
+        if (result) {
+            return result
+        }
+    } else if (entity.PinType.PinCategory == "optional") {
+        return pinColorMaterial
+    }
+    return colors[entity.getType()]
+        ?? colors[entity.PinType.PinCategory.toLowerCase()]
+        ?? colors["default"]
+}
+
+/** @param {PinEntity} entity */
+function pinTitle(entity) {
+    let result = entity.PinFriendlyName
+        ? entity.PinFriendlyName.toString()
+        : Utility.formatStringName(entity.PinName ?? "");
+    let match;
+    if (
+        entity.PinToolTip
+        // Match up until the first \n excluded or last character
+        && (match = entity.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+    ) {
+        if (match[1].toLowerCase() === result.toLowerCase()) {
+            return match[1] // In case they match, then keep the case of the PinToolTip
+        }
+    }
+    return result
+}
+
 class ByteEntity extends IntegerEntity {
 
     static attributes = {
@@ -5397,21 +5432,8 @@ class PinEntity extends IEntity {
             : entity
     }
 
-    pinDisplayName() {
-        let result = this.PinFriendlyName
-            ? this.PinFriendlyName.toString()
-            : Utility.formatStringName(this.PinName ?? "");
-        let match;
-        if (
-            this.PinToolTip
-            // Match up until the first \n excluded or last character
-            && (match = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
-        ) {
-            if (match[1].toLowerCase() === result.toLowerCase()) {
-                return match[1] // In case they match, then keep the case of the PinToolTip
-            }
-        }
-        return result
+    pinTitle() {
+        return pinTitle(this)
     }
 
     /** @param {PinEntity} other */
@@ -5508,19 +5530,8 @@ class PinEntity extends IEntity {
         return this.PinType.PinSubCategoryObject.path
     }
 
-    /** @return {CSSResult} */
     pinColor() {
-        if (this.PinType.PinCategory == "mask") {
-            const result = Configuration.pinColor[this.PinType.PinSubCategory];
-            if (result) {
-                return result
-            }
-        } else if (this.PinType.PinCategory == "optional") {
-            return Configuration.pinColorMaterial
-        }
-        return Configuration.pinColor[this.getType()]
-            ?? Configuration.pinColor[this.PinType.PinCategory.toLowerCase()]
-            ?? Configuration.pinColor["default"]
+        return pinColor(this)
     }
 }
 
@@ -8198,7 +8209,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
             .filter(v => !v.isHidden())
             .map(pinEntity => {
                 this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName === "self" && pinEntity.pinDisplayName() === "Target";
+                    || pinEntity.PinName === "self" && pinEntity.pinTitle() === "Target";
                 return this.createPinElement(pinEntity)
             })
     }
@@ -9904,9 +9915,11 @@ class Paste extends IInput {
             this.blueprint.unselectAll();
         }
         let mousePosition = this.blueprint.mousePosition;
+        const targetLocation = Utility.snapToGrid(nodes[0].locationX, nodes[0].locationY, Configuration.gridSize);
+        mousePosition[0] += targetLocation[0] - nodes[0].locationX;
+        mousePosition[1] += targetLocation[1] - nodes[0].locationY;
         nodes.forEach(node => {
             node.addLocation(mousePosition[0] - left, mousePosition[1] - top);
-            node.snapToGrid();
             node.setSelected(true);
         });
         this.blueprint.addGraphElement(...nodes);
@@ -12227,7 +12240,7 @@ class StringPinTemplate extends IInputPinTemplate {
 /**
  * @extends INumericPinTemplate<Vector2DEntity>
  */
-class VectorInputPinTemplate extends INumericPinTemplate {
+class Vector2DPinTemplate extends INumericPinTemplate {
 
     #getX() {
         return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
@@ -12376,32 +12389,46 @@ class VectorPinTemplate extends INumericPinTemplate {
     }
 }
 
+const inputPinTemplates = {
+    [Configuration.paths.linearColor]: LinearColorPinTemplate,
+    [Configuration.paths.niagaraBool]: BoolPinTemplate,
+    [Configuration.paths.niagaraPosition]: VectorPinTemplate,
+    [Configuration.paths.rotator]: RotatorPinTemplate,
+    [Configuration.paths.vector]: VectorPinTemplate,
+    [Configuration.paths.vector2D]: Vector2DPinTemplate,
+    [Configuration.paths.vector3f]: VectorPinTemplate,
+    [Configuration.paths.vector4f]: Vector4DPinTemplate,
+    "bool": BoolPinTemplate,
+    "byte": IntPinTemplate,
+    "enum": EnumPinTemplate,
+    "int": IntPinTemplate,
+    "int64": Int64PinTemplate,
+    "MUTABLE_REFERENCE": ReferencePinTemplate,
+    "name": NamePinTemplate,
+    "rg": Vector2DPinTemplate,
+    "real": RealPinTemplate,
+    "string": StringPinTemplate,
+};
+
+/** @param {PinEntity} entity */
+function pinTemplate(entity) {
+    if (entity.PinType.ContainerType?.toString() === "Array") {
+        return PinTemplate
+    }
+    if (entity.PinType.bIsReference && !entity.PinType.bIsConst) {
+        return inputPinTemplates["MUTABLE_REFERENCE"]
+    }
+    if (entity.getType() === "exec") {
+        return ExecPinTemplate
+    }
+    return (entity.isInput() ? inputPinTemplates[entity.getType()] : PinTemplate) ?? PinTemplate
+}
+
 /**
  * @template {TerminalAttribute} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 class PinElement extends IElement {
-
-    static #inputPinTemplates = {
-        [Configuration.paths.linearColor]: LinearColorPinTemplate,
-        [Configuration.paths.niagaraBool]: BoolPinTemplate,
-        [Configuration.paths.niagaraPosition]: VectorPinTemplate,
-        [Configuration.paths.rotator]: RotatorPinTemplate,
-        [Configuration.paths.vector]: VectorPinTemplate,
-        [Configuration.paths.vector2D]: VectorInputPinTemplate,
-        [Configuration.paths.vector3f]: VectorPinTemplate,
-        [Configuration.paths.vector4f]: Vector4DPinTemplate,
-        "bool": BoolPinTemplate,
-        "byte": IntPinTemplate,
-        "enum": EnumPinTemplate,
-        "int": IntPinTemplate,
-        "int64": Int64PinTemplate,
-        "MUTABLE_REFERENCE": ReferencePinTemplate,
-        "name": NamePinTemplate,
-        "rg": VectorInputPinTemplate,
-        "real": RealPinTemplate,
-        "string": StringPinTemplate,
-    }
 
     static properties = {
         pinId: {
@@ -12462,23 +12489,9 @@ class PinElement extends IElement {
     /** @type {NodeElement} */
     nodeElement
 
-    /** @param {PinEntity<any>} pinEntity */
-    static getTypeTemplate(pinEntity) {
-        if (pinEntity.PinType.ContainerType?.toString() === "Array") {
-            return PinTemplate
-        }
-        if (pinEntity.PinType.bIsReference && !pinEntity.PinType.bIsConst) {
-            return PinElement.#inputPinTemplates["MUTABLE_REFERENCE"]
-        }
-        if (pinEntity.getType() === "exec") {
-            return ExecPinTemplate
-        }
-        return (pinEntity.isInput() ? PinElement.#inputPinTemplates[pinEntity.getType()] : PinTemplate) ?? PinTemplate
-    }
-
     static newObject(
         entity = new PinEntity(),
-        template = /** @type {PinTemplate} */(new (PinElement.getTypeTemplate(entity))()),
+        template = /** @type {PinTemplate} */(new (pinTemplate(entity))()),
         nodeElement = undefined
     ) {
         const result = new PinElement();
@@ -12488,7 +12501,7 @@ class PinElement extends IElement {
 
     initialize(
         entity = /** @type {PinEntity<T>} */(new PinEntity()),
-        template = /** @type {PinTemplate} */(new (PinElement.getTypeTemplate(entity))()),
+        template = /** @type {PinTemplate} */(new (pinTemplate(entity))()),
         nodeElement = undefined
     ) {
         this.nodeElement = nodeElement;
@@ -12525,7 +12538,7 @@ class PinElement extends IElement {
     }
 
     getPinDisplayName() {
-        return this.entity.pinDisplayName()
+        return this.entity.pinTitle()
     }
 
     /** @return {CSSResult} */
