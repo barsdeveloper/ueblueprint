@@ -1,6 +1,7 @@
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
 import nodeTemplateClass from "../decoding/nodeTemplate.js"
+import nodeTitle from "../decoding/nodeTitle.js"
 import IdentifierEntity from "../entity/IdentifierEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
@@ -115,7 +116,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.nodeTitle = entity.getObjectName()
         this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
         this.enabledState = entity.EnabledState
-        this.nodeDisplayName = entity.nodeDisplayName()
+        this.nodeDisplayName = nodeTitle(entity)
         this.pureFunction = entity.bIsPureFunc
         this.dragLinkObjects = []
         super.initialize(entity, template)
@@ -129,7 +130,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         }
         entity.listenAttribute("Name", name => {
             this.nodeTitle = entity.Name
-            this.nodeDisplayName = entity.nodeDisplayName()
+            this.nodeDisplayName = nodeTitle(entity)
             this.#redirectLinksAfterRename(name)
         })
     }
@@ -177,7 +178,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     computeNodeDisplayName() {
-        this.nodeDisplayName = this.entity.nodeDisplayName()
+        this.nodeDisplayName = nodeTitle(this.entity)
     }
 
     /** @param {Number} value */
