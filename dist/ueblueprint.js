@@ -2769,6 +2769,7 @@ class Grammar {
         static Word = Grammar.separatedBy("[a-zA-Z]", "_")
         static Symbol = /[a-zA-Z_]\w*/
         static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
+        static MultipleWordsSymbols = Grammar.separatedBy(this.Symbol.source, "(?:\\.|\\ +)")
         static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
         static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
         static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
@@ -2801,7 +2802,7 @@ class Grammar {
     static symbol = Parsernostrum.reg(Grammar.Regex.Symbol)
     static symbolQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'), 1)
     static attributeName = Parsernostrum.reg(Grammar.Regex.DotSeparatedSymbols)
-    static attributeNameQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'), 1)
+    static attributeNameQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.InsideString.source + ')"'), 1)
     static guid = Parsernostrum.reg(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
     static commaSeparation = Parsernostrum.reg(/\s*,\s*(?!\))/)
     static commaOrSpaceSeparation = Parsernostrum.reg(/\s*,\s*(?!\))|\s+/)
@@ -4355,14 +4356,12 @@ class ObjectReferenceEntity extends IEntity {
     static fullReferenceGrammar = Parsernostrum.regArray(
         new RegExp(
             "(" + this.typeReference.getParser().regexp.source + ")"
-            + /\s*/.source
             + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
         )
     ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
     static fullReferenceSerializedGrammar = Parsernostrum.regArray(
         new RegExp(
             "(" + this.typeReference.getParser().regexp.source + ")"
-            + /\s*/.source
             + `'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         )
     ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
@@ -5798,22 +5797,22 @@ class ObjectEntity extends IEntity {
 
     static createGrammar() {
         return Parsernostrum.seq(
-            Parsernostrum.reg(/Begin\s+Object/),
+            Parsernostrum.reg(/Begin +Object/),
             Parsernostrum.seq(
                 Parsernostrum.whitespace,
                 Parsernostrum.alt(
                     this.customPropertyGrammar,
-                    Grammar.createAttributeGrammar(this),
+                    this.createSubObjectGrammar(),
+                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
                     Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
                         Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
                     ),
                     this.inlinedArrayEntryGrammar,
-                    this.createSubObjectGrammar()
                 )
             )
                 .map(([_0, entry]) => entry)
                 .many(),
-            Parsernostrum.reg(/\s+End\s+Object/),
+            Parsernostrum.reg(/\s+End +Object/),
         )
             .map(([_0, attributes, _2]) => {
                 const values = {};
@@ -9915,11 +9914,9 @@ class Paste extends IInput {
             this.blueprint.unselectAll();
         }
         let mousePosition = this.blueprint.mousePosition;
-        const targetLocation = Utility.snapToGrid(nodes[0].locationX, nodes[0].locationY, Configuration.gridSize);
-        mousePosition[0] += targetLocation[0] - nodes[0].locationX;
-        mousePosition[1] += targetLocation[1] - nodes[0].locationY;
         nodes.forEach(node => {
             node.addLocation(mousePosition[0] - left, mousePosition[1] - top);
+            node.snapToGrid();
             node.setSelected(true);
         });
         this.blueprint.addGraphElement(...nodes);

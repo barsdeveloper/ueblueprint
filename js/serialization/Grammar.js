@@ -25,6 +25,7 @@ export default class Grammar {
         static Word = Grammar.separatedBy("[a-zA-Z]", "_")
         static Symbol = /[a-zA-Z_]\w*/
         static DotSeparatedSymbols = Grammar.separatedBy(this.Symbol.source, "\\.")
+        static MultipleWordsSymbols = Grammar.separatedBy(this.Symbol.source, "(?:\\.|\\ +)")
         static PathFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:]")
         static PathSpaceFragment = Grammar.separatedBy(this.Symbol.source, "[\\.:\\ ]")
         static Path = new RegExp(`(?:\\/${this.PathFragment.source}){2,}`) // Multiple (2+) /PathFragment
@@ -57,7 +58,7 @@ export default class Grammar {
     static symbol = Parsernostrum.reg(Grammar.Regex.Symbol)
     static symbolQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.Symbol.source + ')"'), 1)
     static attributeName = Parsernostrum.reg(Grammar.Regex.DotSeparatedSymbols)
-    static attributeNameQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.DotSeparatedSymbols.source + ')"'), 1)
+    static attributeNameQuoted = Parsernostrum.reg(new RegExp('"(' + Grammar.Regex.InsideString.source + ')"'), 1)
     static guid = Parsernostrum.reg(new RegExp(`${Grammar.Regex.HexDigit.source}{32}`))
     static commaSeparation = Parsernostrum.reg(/\s*,\s*(?!\))/)
     static commaOrSpaceSeparation = Parsernostrum.reg(/\s*,\s*(?!\))|\s+/)

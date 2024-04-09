@@ -30,14 +30,12 @@ export default class ObjectReferenceEntity extends IEntity {
     static fullReferenceGrammar = Parsernostrum.regArray(
         new RegExp(
             "(" + this.typeReference.getParser().regexp.source + ")"
-            + /\s*/.source
             + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
         )
     ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
     static fullReferenceSerializedGrammar = Parsernostrum.regArray(
         new RegExp(
             "(" + this.typeReference.getParser().regexp.source + ")"
-            + /\s*/.source
             + `'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         )
     ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))

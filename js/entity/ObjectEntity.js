@@ -213,22 +213,22 @@ export default class ObjectEntity extends IEntity {
 
     static createGrammar() {
         return Parsernostrum.seq(
-            Parsernostrum.reg(/Begin\s+Object/),
+            Parsernostrum.reg(/Begin +Object/),
             Parsernostrum.seq(
                 Parsernostrum.whitespace,
                 Parsernostrum.alt(
+                    this.createSubObjectGrammar(),
                     this.customPropertyGrammar,
-                    Grammar.createAttributeGrammar(this),
+                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
                     Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
                         Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
                     ),
                     this.inlinedArrayEntryGrammar,
-                    this.createSubObjectGrammar()
                 )
             )
                 .map(([_0, entry]) => entry)
                 .many(),
-            Parsernostrum.reg(/\s+End\s+Object/),
+            Parsernostrum.reg(/\s+End +Object/),
         )
             .map(([_0, attributes, _2]) => {
                 const values = {}
