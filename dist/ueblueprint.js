@@ -5801,8 +5801,8 @@ class ObjectEntity extends IEntity {
             Parsernostrum.seq(
                 Parsernostrum.whitespace,
                 Parsernostrum.alt(
-                    this.customPropertyGrammar,
                     this.createSubObjectGrammar(),
+                    this.customPropertyGrammar,
                     Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
                     Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
                         Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
