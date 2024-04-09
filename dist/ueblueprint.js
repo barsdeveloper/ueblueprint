@@ -6175,7 +6175,7 @@ class ObjectEntity extends IEntity {
     }
 
     isNiagara() {
-        return (this.Class.type ? this.Class.type : this.Class.path)?.startsWith("/Script/NiagaraEditor.")
+        return this.Class && (this.Class.type ? this.Class.type : this.Class.path)?.startsWith("/Script/NiagaraEditor.")
     }
 
     /** @return {ObjectEntity} */
