@@ -15,9 +15,9 @@ export default class PinReferenceEntity extends IEntity {
 
     static createGrammar() {
         return Parsernostrum.seq(
-            PathSymbolEntity.createGrammar(),
+            PathSymbolEntity.grammar,
             Parsernostrum.whitespace,
-            GuidEntity.createGrammar()
+            GuidEntity.grammar
         ).map(
             ([objectName, _1, pinGuid]) => new this({
                 objectName: objectName,

@@ -23,7 +23,7 @@ export default class SimpleSerializationVector4DEntity extends Vector4DEntity {
                     Z: Number(z),
                     W: Number(w),
                 })),
-            Vector4DEntity.createGrammar()
+            Vector4DEntity.grammar
         )
     }
 }

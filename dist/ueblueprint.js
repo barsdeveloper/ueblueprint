@@ -4910,9 +4910,9 @@ class PinReferenceEntity extends IEntity {
 
     static createGrammar() {
         return Parsernostrum.seq(
-            PathSymbolEntity.createGrammar(),
+            PathSymbolEntity.grammar,
             Parsernostrum.whitespace,
-            GuidEntity.createGrammar()
+            GuidEntity.grammar
         ).map(
             ([objectName, _1, pinGuid]) => new this({
                 objectName: objectName,
@@ -5036,7 +5036,7 @@ class RBSerializationVector2DEntity extends Vector2DEntity {
                 X: Number(x),
                 Y: Number(y),
             })),
-            Vector2DEntity.createGrammar()
+            Vector2DEntity.grammar
         )
     }
 }
@@ -5102,7 +5102,7 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
                 P: Number(p),
                 Y: Number(y),
             })),
-            RotatorEntity.createGrammar()
+            RotatorEntity.grammar
         )
     }
 }
@@ -5122,7 +5122,7 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
                 X: Number(x),
                 Y: Number(y),
             })),
-            Vector2DEntity.createGrammar()
+            Vector2DEntity.grammar
         )
     }
 }
@@ -5190,7 +5190,7 @@ class SimpleSerializationVector4DEntity extends Vector4DEntity {
                     Z: Number(z),
                     W: Number(w),
                 })),
-            Vector4DEntity.createGrammar()
+            Vector4DEntity.grammar
         )
     }
 }
@@ -5250,7 +5250,7 @@ class SimpleSerializationVectorEntity extends VectorEntity {
                     Y: Number(y),
                     Z: Number(z),
                 })),
-            VectorEntity.createGrammar()
+            VectorEntity.grammar
         )
     }
 }
@@ -5824,10 +5824,10 @@ class ObjectEntity extends IEntity {
     static getMultipleObjectsGrammar() {
         return Parsernostrum.seq(
             Parsernostrum.whitespaceOpt,
-            this.createGrammar(),
+            this.grammar,
             Parsernostrum.seq(
                 Parsernostrum.whitespace,
-                this.createGrammar(),
+                this.grammar,
             )
                 .map(([_0, object]) => object)
                 .many(),
@@ -13167,23 +13167,23 @@ Grammar.unknownValue =
     Parsernostrum.alt(
         // Remember to keep the order, otherwise parsing might fail
         Grammar.boolean,
-        GuidEntity.createGrammar(),
+        GuidEntity.grammar,
         Parsernostrum.str("None").map(() => new ObjectReferenceEntity({ type: "None" })),
         Grammar.null,
         Grammar.number,
         ObjectReferenceEntity.fullReferenceGrammar,
         Grammar.string,
-        LocalizedTextEntity.createGrammar(),
-        InvariantTextEntity.createGrammar(),
-        FormatTextEntity.createGrammar(),
-        PinReferenceEntity.createGrammar(),
-        Vector4DEntity.createGrammar(),
-        VectorEntity.createGrammar(),
-        RotatorEntity.createGrammar(),
-        LinearColorEntity.createGrammar(),
-        Vector2DEntity.createGrammar(),
-        UnknownKeysEntity.createGrammar(),
-        SymbolEntity.createGrammar(),
+        LocalizedTextEntity.grammar,
+        InvariantTextEntity.grammar,
+        FormatTextEntity.grammar,
+        PinReferenceEntity.grammar,
+        Vector4DEntity.grammar,
+        VectorEntity.grammar,
+        RotatorEntity.grammar,
+        LinearColorEntity.grammar,
+        Vector2DEntity.grammar,
+        UnknownKeysEntity.grammar,
+        SymbolEntity.grammar,
         Grammar.grammarFor(undefined, [PinReferenceEntity]),
         Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
         Parsernostrum.lazy(() => Grammar.grammarFor(undefined, [undefined])),

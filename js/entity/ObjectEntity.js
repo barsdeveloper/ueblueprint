@@ -240,10 +240,10 @@ export default class ObjectEntity extends IEntity {
     static getMultipleObjectsGrammar() {
         return Parsernostrum.seq(
             Parsernostrum.whitespaceOpt,
-            this.createGrammar(),
+            this.grammar,
             Parsernostrum.seq(
                 Parsernostrum.whitespace,
-                this.createGrammar(),
+                this.grammar,
             )
                 .map(([_0, object]) => object)
                 .many(),
