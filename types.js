@@ -1,12 +1,12 @@
 /**
-* @template T
-* @typedef {new (...args: any) => T} AnyConstructor
-*/
+ * @template T
+ * @typedef {new (...args: any) => T} AnyConstructor
+ */
 /**
  * @template {Attribute} T
  * @typedef {AnyConstructor<T> & EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
-*     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor<T>} AttributeConstructor
-*/
+ *     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor<T>} AttributeConstructor
+ */
 /**
  * @typedef {[Number, Number]} Coordinates
  * @typedef {IEntity | String | Number | BigInt | Boolean | Array} TerminalAttribute
@@ -29,7 +29,7 @@
  *     ? BooleanConstructor
  *     : T extends Array
  *     ? ArrayConstructor
-  *     : T extends MirroredEntity<infer R>
+ *     : T extends MirroredEntity<infer R>
  *     ? MirroredEntityConstructor<R>
  *     : T extends IEntity
  *     ? AnyConstructor<T> & EntityConstructor
@@ -56,10 +56,10 @@
 /**
  * @template T
  * @typedef {T extends [infer A] ? DescribedType<A>
-*     : T extends [infer A, ...infer B] ? (DescribedType<A> | DescribedTypesFromArray<B>)
-*     : any
-* } DescribedTypesFromArray
-**/
+ *     : T extends [infer A, ...infer B] ? (DescribedType<A> | DescribedTypesFromArray<B>)
+ *     : any
+ * } DescribedTypesFromArray
+ **/
 /**
  * @template T
  * @typedef {T extends AnyConstructor<infer R>
