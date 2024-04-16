@@ -150,14 +150,17 @@ export default class Serializer {
      */
     showProperty(entity, key) {
         if (entity instanceof IEntity) {
-            if (
-                AttributeInfo.getAttribute(entity, key, "ignored")
-                || AttributeInfo.getAttribute(entity, key, "silent") && Utility.equals(
-                    AttributeInfo.getAttribute(entity, key, "default"),
-                    entity[key]
-                )
-            ) {
+            if (AttributeInfo.getAttribute(entity, key, "ignored")) {
                 return false
+            }
+            if (AttributeInfo.getAttribute(entity, key, "silent")) {
+                let defaultValue = AttributeInfo.getAttribute(entity, key, "default")
+                if (defaultValue instanceof Function) {
+                    defaultValue = defaultValue(entity)
+                }
+                if (Utility.equals(entity[key], defaultValue)) {
+                    return false
+                }
             }
         }
         return true

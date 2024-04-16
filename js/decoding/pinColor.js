@@ -6,6 +6,7 @@ const colors = {
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: css`0, 168, 242`,
     [Configuration.paths.niagaraFloat]: css`160, 250, 68`,
     [Configuration.paths.niagaraMatrix]: css`0, 88, 200`,
+    [Configuration.paths.niagaraNumeric]: css`0, 88, 200`,
     [Configuration.paths.niagaraPosition]: css`251, 146, 251`,
     [Configuration.paths.quat4f]: css`0, 88, 200`,
     [Configuration.paths.rotator]: css`157, 177, 251`,

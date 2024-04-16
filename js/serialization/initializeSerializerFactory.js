@@ -84,10 +84,8 @@ export default function initializeSerializerFactory() {
         new CustomSerializer(
             (array, insideString) =>
                 `(${array
-                    .map(v =>
-                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString) + ","
-                    )
-                    .join("")
+                    .map(v => SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString))
+                    .join(",")
                 })`,
             Array
         )

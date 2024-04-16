@@ -40,6 +40,7 @@ export default function nodeIcon(entity) {
         case Configuration.paths.makeMap: return SVGIcon.makeMap
         case Configuration.paths.makeSet: return SVGIcon.makeSet
         case Configuration.paths.makeStruct: return SVGIcon.makeStruct
+        case Configuration.paths.metasoundEditorGraphExternalNode: return SVGIcon.metasoundFunction
         case Configuration.paths.select: return SVGIcon.select
         case Configuration.paths.spawnActorFromClass: return SVGIcon.spawnActor
         case Configuration.paths.timeline: return SVGIcon.timer

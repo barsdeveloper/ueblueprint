@@ -2,6 +2,7 @@ import Configuration from "../Configuration.js"
 import CommentNodeTemplate from "../template/node/CommentNodeTemplate.js"
 import EventNodeTemplate from "../template/node/EventNodeTemplate.js"
 import KnotNodeTemplate from "../template/node/KnotNodeTemplate.js"
+import MetasoundNodeTemplate from "../template/node/MetasoundNodeTemplate.js"
 import NodeTemplate from "../template/node/NodeTemplate.js"
 import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTemplate.js"
 import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
@@ -87,10 +88,14 @@ export default function nodeTemplateClass(nodeEntity) {
             return CommentNodeTemplate
         case Configuration.paths.createDelegate:
             return NodeTemplate
+        case Configuration.paths.metasoundEditorGraphExternalNode:
+            return MetasoundNodeTemplate
         case Configuration.paths.niagaraNodeOp:
             if ([
                 "Boolean::LogicEq",
                 "Boolean::LogicNEq",
+                "Numeric::Abs",
+                "Numeric::Add",
                 "Numeric::Mul",
             ].includes(nodeEntity.OpName)) {
                 return VariableOperationNodeTemplate

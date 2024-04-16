@@ -193,6 +193,7 @@ class Configuration {
         materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
+        metasoundEditorGraphExternalNode: "/Script/MetasoundEditor.MetasoundEditorGraphExternalNode",
         multiGate: "/Script/BlueprintGraph.K2Node_MultiGate",
         niagaraBool: "/Script/Niagara.NiagaraBool",
         niagaraClipboardContent: "/Script/NiagaraEditor.NiagaraClipboardContent",
@@ -201,6 +202,7 @@ class Configuration {
         niagaraMatrix: "/Script/Niagara.NiagaraMatrix",
         niagaraNodeFunctionCall: "/Script/NiagaraEditor.NiagaraNodeFunctionCall",
         niagaraNodeOp: "/Script/NiagaraEditor.NiagaraNodeOp",
+        niagaraNumeric: "/Script/Niagara.NiagaraNumeric",
         niagaraPosition: "/Script/Niagara.NiagaraPosition",
         pawn: "/Script/Engine.Pawn",
         pcgEditorGraphNode: "/Script/PCGEditor.PCGEditorGraphNode",
@@ -3660,6 +3662,12 @@ class SVGIcon {
         </svg>
     `
 
+    static metasoundFunction = x`
+        <svg viewBox="-8 1 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="currentColor" d="M7.14453 3.32422C7.14453 3.53255 7.07292 3.70833 6.92969 3.85156C6.78646 3.98828 6.61068 4.05664 6.40234 4.05664C6.19401 4.05664 6.00846 3.98828 5.8457 3.85156C5.68945 3.71484 5.61133 3.53581 5.61133 3.31445C5.61133 3.0931 5.69922 2.91081 5.875 2.76758C5.82943 2.61784 5.7513 2.49414 5.64063 2.39648C5.52995 2.29232 5.39323 2.24023 5.23047 2.24023C5.02214 2.24023 4.85612 2.31185 4.73242 2.45508C4.61523 2.5918 4.52734 2.76107 4.46875 2.96289C4.41016 3.1582 4.37435 3.36328 4.36133 3.57812C4.34831 3.79297 4.3418 3.972 4.3418 4.11523C4.3418 4.42773 4.35482 4.74023 4.38086 5.05273C4.4069 5.35872 4.4362 5.66797 4.46875 5.98047H6.38281V6.86914H4.61523L5.13281 11.3418C5.14583 11.4915 5.15885 11.6413 5.17188 11.791C5.19141 11.9473 5.20117 12.1003 5.20117 12.25C5.20117 12.5885 5.1556 12.9206 5.06445 13.2461C4.97331 13.5781 4.83333 13.8711 4.64453 14.125C4.46224 14.3854 4.22786 14.5937 3.94141 14.75C3.66146 14.9128 3.33268 14.9941 2.95508 14.9941C2.69466 14.9941 2.44401 14.9453 2.20313 14.8477C1.96875 14.7565 1.75716 14.6263 1.56836 14.457C1.38607 14.2878 1.23958 14.0859 1.12891 13.8516C1.01823 13.6237 0.962891 13.3763 0.962891 13.1094C0.962891 12.8945 1.03451 12.7187 1.17773 12.582C1.32096 12.4453 1.49675 12.377 1.70508 12.377C1.80273 12.377 1.89714 12.3932 1.98828 12.4258C2.08594 12.4648 2.17057 12.5169 2.24219 12.582C2.32031 12.6471 2.37891 12.722 2.41797 12.8066C2.46354 12.8978 2.48633 12.9954 2.48633 13.0996C2.48633 13.3079 2.4082 13.4902 2.25195 13.6465C2.29753 13.7897 2.37565 13.9102 2.48633 14.0078C2.59701 14.112 2.72721 14.1641 2.87695 14.1641C3.05273 14.1641 3.19596 14.1087 3.30664 13.998C3.42383 13.8939 3.51497 13.7637 3.58008 13.6074C3.64518 13.4577 3.6875 13.2949 3.70703 13.1191C3.73307 12.9499 3.74609 12.8001 3.74609 12.6699C3.74609 12.4225 3.72982 12.1751 3.69727 11.9277C3.67122 11.6803 3.63867 11.4329 3.59961 11.1855L3.58984 11.1758L3.0625 6.86914H1.60742V5.98047H2.96484C2.93229 5.73307 2.90625 5.48893 2.88672 5.24805C2.8737 5.00716 2.86719 4.76302 2.86719 4.51562C2.86719 4.15104 2.903 3.7832 2.97461 3.41211C3.04622 3.04102 3.16992 2.70898 3.3457 2.41602C3.52148 2.11654 3.7526 1.8724 4.03906 1.68359C4.33203 1.49479 4.69661 1.40039 5.13281 1.40039C5.39974 1.40039 5.65365 1.44922 5.89453 1.54687C6.13542 1.64453 6.34701 1.78125 6.5293 1.95703C6.7181 2.1263 6.86784 2.32812 6.97852 2.5625C7.08919 2.79687 7.14453 3.05078 7.14453 3.32422Z" />
+        </svg>
+    `
+
     static mouse = x`
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white" />
@@ -3967,15 +3975,24 @@ function nodeTitle(entity) {
             break
         case Configuration.paths.materialExpressionSquareRoot:
             return "Sqrt"
+        case Configuration.paths.metasoundEditorGraphExternalNode:
+            if (entity["ClassName"]?.["Name"]) {
+                return entity["ClassName"]["Name"]
+            }
         case Configuration.paths.pcgEditorGraphNodeInput:
             return "Input"
         case Configuration.paths.pcgEditorGraphNodeOutput:
             return "Output"
         case Configuration.paths.spawnActorFromClass:
-            return `SpawnActor ${Utility.formatStringName(
-                entity.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
-                ?? "NONE"
-            )}`
+            let className = entity.getCustomproperties()
+                .find(pinEntity => pinEntity.PinName == "ReturnValue")
+                ?.PinType
+                ?.PinSubCategoryObject
+                ?.getName();
+            if (className === "Actor") {
+                className = null;
+            }
+            return `SpawnActor ${Utility.formatStringName(className ?? "NONE")}`
         case Configuration.paths.switchEnum:
             return `Switch on ${entity.Enum?.getName() ?? "Enum"}`
         case Configuration.paths.switchInteger:
@@ -4190,6 +4207,8 @@ function nodeTitle(entity) {
             case "Boolean::LogicOr": return "Logic OR"
             case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
             case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
+            case "Numeric::Abs": return "Abs"
+            case "Numeric::Add": return "+"
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
         }
@@ -4242,6 +4261,7 @@ function nodeIcon(entity) {
         case Configuration.paths.makeMap: return SVGIcon.makeMap
         case Configuration.paths.makeSet: return SVGIcon.makeSet
         case Configuration.paths.makeStruct: return SVGIcon.makeStruct
+        case Configuration.paths.metasoundEditorGraphExternalNode: return SVGIcon.metasoundFunction
         case Configuration.paths.select: return SVGIcon.select
         case Configuration.paths.spawnActorFromClass: return SVGIcon.spawnActor
         case Configuration.paths.timeline: return SVGIcon.timer
@@ -4544,6 +4564,7 @@ const colors = {
     [Configuration.paths.niagaraDataInterfaceVolumeTexture]: i$3`0, 168, 242`,
     [Configuration.paths.niagaraFloat]: i$3`160, 250, 68`,
     [Configuration.paths.niagaraMatrix]: i$3`0, 88, 200`,
+    [Configuration.paths.niagaraNumeric]: i$3`0, 88, 200`,
     [Configuration.paths.niagaraPosition]: i$3`251, 146, 251`,
     [Configuration.paths.quat4f]: i$3`0, 88, 200`,
     [Configuration.paths.rotator]: i$3`157, 177, 251`,
@@ -5605,6 +5626,151 @@ class VariableReferenceEntity extends IEntity {
     }
 }
 
+/** @param {PinEntity} pinEntity */
+const indexFromUpperCaseLetterName = pinEntity =>
+    pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
+
+/** @param {ObjectEntity} entity */
+function nodeVariadic(entity) {
+    /** @type {() => PinEntity[]} */
+    let pinEntities;
+    /** @type {(pinEntity: PinEntity) => Number} */
+    let pinIndexFromEntity;
+    /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number, newPin: PinEntity) => String} */
+    let pinNameFromIndex;
+    const type = entity.getType();
+    let name;
+    switch (type) {
+        case Configuration.paths.commutativeAssociativeBinaryOperator:
+        case Configuration.paths.promotableOperator:
+            name = entity.FunctionReference?.MemberName;
+            switch (name) {
+                default:
+                    if (
+                        !name?.startsWith("Add_")
+                        && !name?.startsWith("Subtract_")
+                        && !name?.startsWith("Multiply_")
+                        && !name?.startsWith("Divide_")
+                    ) {
+                        break
+                    }
+                case "And_Int64Int64":
+                case "And_IntInt":
+                case "BMax":
+                case "BMin":
+                case "BooleanAND":
+                case "BooleanNAND":
+                case "BooleanOR":
+                case "Concat_StrStr":
+                case "FMax":
+                case "FMin":
+                case "Max":
+                case "MaxInt64":
+                case "Min":
+                case "MinInt64":
+                case "Or_Int64Int64":
+                case "Or_IntInt":
+                    pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput());
+                    pinIndexFromEntity ??= indexFromUpperCaseLetterName;
+                    pinNameFromIndex ??= (index, min = -1, max = -1) => {
+                        const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1);
+                        entity.NumAdditionalInputs = pinEntities().length - 1;
+                        return result
+                    };
+                    break
+            }
+            break
+        case Configuration.paths.multiGate:
+            pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
+            pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
+                `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
+            break
+        // case Configuration.paths.niagaraNodeOp:
+        //     pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput())
+        //     pinIndexFromEntity ??= indexFromUpperCaseLetterName
+        //     pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
+        //         const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1)
+        //         entity.AddedPins ??= []
+        //         entity.AddedPins.push(newPin)
+        //         return result
+        //     }
+        //     break
+        case Configuration.paths.switchInteger:
+            pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
+            pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => (index < 0 ? max + 1 : index).toString();
+            break
+        case Configuration.paths.switchGameplayTag:
+            pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
+                const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
+                entity.PinNames ??= [];
+                entity.PinNames.push(result);
+                delete entity.PinTags[entity.PinTags.length - 1];
+                entity.PinTags[entity.PinTags.length] = null;
+                return result
+            };
+        case Configuration.paths.switchName:
+        case Configuration.paths.switchString:
+            pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
+            pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
+                const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
+                entity.PinNames ??= [];
+                entity.PinNames.push(result);
+                return result
+            };
+            break
+    }
+    if (pinEntities) {
+        return () => {
+            let min = Number.MAX_SAFE_INTEGER;
+            let max = Number.MIN_SAFE_INTEGER;
+            let values = [];
+            const modelPin = pinEntities().reduce(
+                (acc, cur) => {
+                    const value = pinIndexFromEntity(cur);
+                    if (!isNaN(value)) {
+                        values.push(value);
+                        min = Math.min(value, min);
+                        if (value > max) {
+                            max = value;
+                            return cur
+                        }
+                    } else if (acc === undefined) {
+                        return cur
+                    }
+                    return acc
+                },
+                undefined
+            );
+            if (min === Number.MAX_SAFE_INTEGER || max === Number.MIN_SAFE_INTEGER) {
+                min = undefined;
+                max = undefined;
+            }
+            if (!modelPin) {
+                return null
+            }
+            values.sort((a, b) => a < b ? -1 : a === b ? 0 : 1);
+            let prev = values[0];
+            let index = values.findIndex(
+                // Search for a gap
+                value => {
+                    const result = value - prev > 1;
+                    prev = value;
+                    return result
+                }
+            );
+            const newPin = new PinEntity(modelPin);
+            newPin.PinId = GuidEntity.generateGuid();
+            newPin.PinName = pinNameFromIndex(index, min, max, newPin);
+            newPin.PinToolTip = undefined;
+            entity.getCustomproperties(true).push(newPin);
+            return newPin
+        }
+    }
+}
+
 class ObjectEntity extends IEntity {
 
     static attributes = {
@@ -5676,6 +5842,12 @@ class ObjectEntity extends IEntity {
         OpName: AttributeInfo.createType(String),
         CachedChangeId: AttributeInfo.createType(GuidEntity),
         FunctionDisplayName: AttributeInfo.createType(String),
+        AddedPins: new AttributeInfo({
+            type: [UnknownPinEntity],
+            default: () => [],
+            inlined: true,
+            silent: true,
+        }),
         ChangeId: AttributeInfo.createType(GuidEntity),
         MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
         bOverrideFunction: AttributeInfo.createType(Boolean),
@@ -5922,6 +6094,7 @@ class ObjectEntity extends IEntity {
         /** @type {SymbolEntity} */ this.InputAxisKey;
         /** @type {SymbolEntity} */ this.InputKey;
         /** @type {SymbolEntity} */ this.InputType;
+        /** @type {UnknownPinEntity[]} */ this.AddedPins;
         /** @type {VariableReferenceEntity} */ this.DelegateReference;
         /** @type {VariableReferenceEntity} */ this.VariableReference;
 
@@ -6225,132 +6398,7 @@ class ObjectEntity extends IEntity {
     }
 
     additionalPinInserter() {
-        /** @type {() => PinEntity[]} */
-        let pinEntities;
-        /** @type {(pinEntity: PinEntity) => Number} */
-        let pinIndexFromEntity;
-        /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number) => String} */
-        let pinNameFromIndex;
-        switch (this.getType()) {
-            case Configuration.paths.commutativeAssociativeBinaryOperator:
-            case Configuration.paths.promotableOperator:
-                switch (this.FunctionReference?.MemberName) {
-                    default:
-                        if (
-                            !this.FunctionReference?.MemberName?.startsWith("Add_")
-                            && !this.FunctionReference?.MemberName?.startsWith("Subtract_")
-                            && !this.FunctionReference?.MemberName?.startsWith("Multiply_")
-                            && !this.FunctionReference?.MemberName?.startsWith("Divide_")
-                        ) {
-                            break
-                        }
-                    case "And_Int64Int64":
-                    case "And_IntInt":
-                    case "BMax":
-                    case "BMin":
-                    case "BooleanAND":
-                    case "BooleanNAND":
-                    case "BooleanOR":
-                    case "Concat_StrStr":
-                    case "FMax":
-                    case "FMin":
-                    case "Max":
-                    case "MaxInt64":
-                    case "Min":
-                    case "MinInt64":
-                    case "Or_Int64Int64":
-                    case "Or_IntInt":
-
-                        pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput());
-                        pinIndexFromEntity ??= pinEntity =>
-                            pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
-                        pinNameFromIndex ??= (index, min = -1, max = -1) => {
-                            const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1);
-                            this.NumAdditionalInputs = pinEntities().length - 1;
-                            return result
-                        };
-                        break
-                }
-                break
-            case Configuration.paths.multiGate:
-                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
-                pinNameFromIndex ??= (index, min = -1, max = -1) =>
-                    `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
-                break
-            case Configuration.paths.switchInteger:
-                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
-                pinNameFromIndex ??= (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString();
-                break
-            case Configuration.paths.switchGameplayTag:
-                pinNameFromIndex ??= (index, min = -1, max = -1) => {
-                    const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
-                    this.PinNames ??= [];
-                    this.PinNames.push(result);
-                    delete this.PinTags[this.PinTags.length - 1];
-                    this.PinTags[this.PinTags.length] = null;
-                    return result
-                };
-            case Configuration.paths.switchName:
-            case Configuration.paths.switchString:
-                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
-                pinNameFromIndex ??= (index, min = -1, max = -1) => {
-                    const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
-                    this.PinNames ??= [];
-                    this.PinNames.push(result);
-                    return result
-                };
-                break
-        }
-        if (pinEntities) {
-            return () => {
-                let min = Number.MAX_SAFE_INTEGER;
-                let max = Number.MIN_SAFE_INTEGER;
-                let values = [];
-                const modelPin = pinEntities().reduce(
-                    (acc, cur) => {
-                        const value = pinIndexFromEntity(cur);
-                        if (!isNaN(value)) {
-                            values.push(value);
-                            min = Math.min(value, min);
-                            if (value > max) {
-                                max = value;
-                                return cur
-                            }
-                        } else if (acc === undefined) {
-                            return cur
-                        }
-                        return acc
-                    },
-                    undefined
-                );
-                if (min === Number.MAX_SAFE_INTEGER || max === Number.MIN_SAFE_INTEGER) {
-                    min = undefined;
-                    max = undefined;
-                }
-                if (!modelPin) {
-                    return null
-                }
-                values.sort((a, b) => a < b ? -1 : a === b ? 0 : 1);
-                let prev = values[0];
-                let index = values.findIndex(
-                    // Search for a gap
-                    value => {
-                        const result = value - prev > 1;
-                        prev = value;
-                        return result
-                    }
-                );
-                const newPin = new PinEntity(modelPin);
-                newPin.PinId = GuidEntity.generateGuid();
-                newPin.PinName = pinNameFromIndex(index, min, max);
-                newPin.PinToolTip = undefined;
-                this.getCustomproperties(true).push(newPin);
-                return newPin
-            }
-        }
+        return nodeVariadic(this)
     }
 }
 
@@ -9025,6 +9073,11 @@ class KnotNodeTemplate extends NodeTemplate {
     }
 }
 
+class MetasoundNodeTemplate extends NodeTemplate {
+
+    static nodeStyleClasses = ["ueb-node-style-metasound"]
+}
+
 class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 
     /** @param {NodeElement} element */
@@ -9129,10 +9182,14 @@ function nodeTemplateClass(nodeEntity) {
             return CommentNodeTemplate
         case Configuration.paths.createDelegate:
             return NodeTemplate
+        case Configuration.paths.metasoundEditorGraphExternalNode:
+            return MetasoundNodeTemplate
         case Configuration.paths.niagaraNodeOp:
             if ([
                 "Boolean::LogicEq",
                 "Boolean::LogicNEq",
+                "Numeric::Abs",
+                "Numeric::Add",
                 "Numeric::Mul",
             ].includes(nodeEntity.OpName)) {
                 return VariableOperationNodeTemplate
@@ -9657,14 +9714,17 @@ class Serializer {
      */
     showProperty(entity, key) {
         if (entity instanceof IEntity) {
-            if (
-                AttributeInfo.getAttribute(entity, key, "ignored")
-                || AttributeInfo.getAttribute(entity, key, "silent") && Utility.equals(
-                    AttributeInfo.getAttribute(entity, key, "default"),
-                    entity[key]
-                )
-            ) {
+            if (AttributeInfo.getAttribute(entity, key, "ignored")) {
                 return false
+            }
+            if (AttributeInfo.getAttribute(entity, key, "silent")) {
+                let defaultValue = AttributeInfo.getAttribute(entity, key, "default");
+                if (defaultValue instanceof Function) {
+                    defaultValue = defaultValue(entity);
+                }
+                if (Utility.equals(entity[key], defaultValue)) {
+                    return false
+                }
             }
         }
         return true
@@ -13204,10 +13264,8 @@ function initializeSerializerFactory() {
         new CustomSerializer(
             (array, insideString) =>
                 `(${array
-                    .map(v =>
-                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString) + ","
-                    )
-                    .join("")
+                    .map(v => SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString))
+                    .join(",")
                 })`,
             Array
         )

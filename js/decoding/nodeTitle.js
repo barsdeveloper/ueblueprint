@@ -150,15 +150,24 @@ export default function nodeTitle(entity) {
             break
         case Configuration.paths.materialExpressionSquareRoot:
             return "Sqrt"
+        case Configuration.paths.metasoundEditorGraphExternalNode:
+            if (entity["ClassName"]?.["Name"]) {
+                return entity["ClassName"]["Name"]
+            }
         case Configuration.paths.pcgEditorGraphNodeInput:
             return "Input"
         case Configuration.paths.pcgEditorGraphNodeOutput:
             return "Output"
         case Configuration.paths.spawnActorFromClass:
-            return `SpawnActor ${Utility.formatStringName(
-                entity.getCustomproperties().find(pinEntity => pinEntity.getType() == "class")?.DefaultObject?.getName()
-                ?? "NONE"
-            )}`
+            let className = entity.getCustomproperties()
+                .find(pinEntity => pinEntity.PinName == "ReturnValue")
+                ?.PinType
+                ?.PinSubCategoryObject
+                ?.getName()
+            if (className === "Actor") {
+                className = null
+            }
+            return `SpawnActor ${Utility.formatStringName(className ?? "NONE")}`
         case Configuration.paths.switchEnum:
             return `Switch on ${entity.Enum?.getName() ?? "Enum"}`
         case Configuration.paths.switchInteger:
@@ -373,6 +382,8 @@ export default function nodeTitle(entity) {
             case "Boolean::LogicOr": return "Logic OR"
             case "Matrix::MatrixMultiply": return "Multiply (Matrix * Matrix)"
             case "Matrix::MatrixVectorMultiply": return "Multiply (Matrix * Vector4)"
+            case "Numeric::Abs": return "Abs"
+            case "Numeric::Add": return "+"
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
         }

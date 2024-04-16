@@ -20,6 +20,7 @@ import SymbolEntity from "./SymbolEntity.js"
 import Union from "./Union.js"
 import UnknownPinEntity from "./UnknownPinEntity.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
+import nodeVariadic from "../decoding/nodeVariadic.js"
 
 export default class ObjectEntity extends IEntity {
 
@@ -92,6 +93,12 @@ export default class ObjectEntity extends IEntity {
         OpName: AttributeInfo.createType(String),
         CachedChangeId: AttributeInfo.createType(GuidEntity),
         FunctionDisplayName: AttributeInfo.createType(String),
+        AddedPins: new AttributeInfo({
+            type: [UnknownPinEntity],
+            default: () => [],
+            inlined: true,
+            silent: true,
+        }),
         ChangeId: AttributeInfo.createType(GuidEntity),
         MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
         bOverrideFunction: AttributeInfo.createType(Boolean),
@@ -338,6 +345,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {SymbolEntity} */ this.InputAxisKey
         /** @type {SymbolEntity} */ this.InputKey
         /** @type {SymbolEntity} */ this.InputType
+        /** @type {UnknownPinEntity[]} */ this.AddedPins
         /** @type {VariableReferenceEntity} */ this.DelegateReference
         /** @type {VariableReferenceEntity} */ this.VariableReference
 
@@ -644,131 +652,6 @@ export default class ObjectEntity extends IEntity {
     }
 
     additionalPinInserter() {
-        /** @type {() => PinEntity[]} */
-        let pinEntities
-        /** @type {(pinEntity: PinEntity) => Number} */
-        let pinIndexFromEntity
-        /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number) => String} */
-        let pinNameFromIndex
-        switch (this.getType()) {
-            case Configuration.paths.commutativeAssociativeBinaryOperator:
-            case Configuration.paths.promotableOperator:
-                switch (this.FunctionReference?.MemberName) {
-                    default:
-                        if (
-                            !this.FunctionReference?.MemberName?.startsWith("Add_")
-                            && !this.FunctionReference?.MemberName?.startsWith("Subtract_")
-                            && !this.FunctionReference?.MemberName?.startsWith("Multiply_")
-                            && !this.FunctionReference?.MemberName?.startsWith("Divide_")
-                        ) {
-                            break
-                        }
-                    case "And_Int64Int64":
-                    case "And_IntInt":
-                    case "BMax":
-                    case "BMin":
-                    case "BooleanAND":
-                    case "BooleanNAND":
-                    case "BooleanOR":
-                    case "Concat_StrStr":
-                    case "FMax":
-                    case "FMin":
-                    case "Max":
-                    case "MaxInt64":
-                    case "Min":
-                    case "MinInt64":
-                    case "Or_Int64Int64":
-                    case "Or_IntInt":
-
-                        pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isInput())
-                        pinIndexFromEntity ??= pinEntity =>
-                            pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0)
-                        pinNameFromIndex ??= (index, min = -1, max = -1) => {
-                            const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1)
-                            this.NumAdditionalInputs = pinEntities().length - 1
-                            return result
-                        }
-                        break
-                }
-                break
-            case Configuration.paths.multiGate:
-                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1])
-                pinNameFromIndex ??= (index, min = -1, max = -1) =>
-                    `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`
-                break
-            case Configuration.paths.switchInteger:
-                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1])
-                pinNameFromIndex ??= (index, min = -1, max = -1) => (index < 0 ? max + 1 : index).toString()
-                break
-            case Configuration.paths.switchGameplayTag:
-                pinNameFromIndex ??= (index, min = -1, max = -1) => {
-                    const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
-                    this.PinNames ??= []
-                    this.PinNames.push(result)
-                    delete this.PinTags[this.PinTags.length - 1]
-                    this.PinTags[this.PinTags.length] = null
-                    return result
-                }
-            case Configuration.paths.switchName:
-            case Configuration.paths.switchString:
-                pinEntities ??= () => this.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-                pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1])
-                pinNameFromIndex ??= (index, min = -1, max = -1) => {
-                    const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
-                    this.PinNames ??= []
-                    this.PinNames.push(result)
-                    return result
-                }
-                break
-        }
-        if (pinEntities) {
-            return () => {
-                let min = Number.MAX_SAFE_INTEGER
-                let max = Number.MIN_SAFE_INTEGER
-                let values = []
-                const modelPin = pinEntities().reduce(
-                    (acc, cur) => {
-                        const value = pinIndexFromEntity(cur)
-                        if (!isNaN(value)) {
-                            values.push(value)
-                            min = Math.min(value, min)
-                            if (value > max) {
-                                max = value
-                                return cur
-                            }
-                        } else if (acc === undefined) {
-                            return cur
-                        }
-                        return acc
-                    },
-                    undefined
-                )
-                if (min === Number.MAX_SAFE_INTEGER || max === Number.MIN_SAFE_INTEGER) {
-                    min = undefined
-                    max = undefined
-                }
-                if (!modelPin) {
-                    return null
-                }
-                values.sort((a, b) => a < b ? -1 : a === b ? 0 : 1)
-                let prev = values[0]
-                let index = values.findIndex(
-                    // Search for a gap
-                    value => {
-                        const result = value - prev > 1
-                        prev = value
-                        return result
-                    }
-                )
-                const newPin = new PinEntity(modelPin)
-                newPin.PinId = GuidEntity.generateGuid()
-                newPin.PinName = pinNameFromIndex(index, min, max)
-                newPin.PinToolTip = undefined
-                this.getCustomproperties(true).push(newPin)
-                return newPin
-            }
-        }
+        return nodeVariadic(this)
     }
 }

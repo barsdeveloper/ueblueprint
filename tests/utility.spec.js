@@ -53,8 +53,11 @@ test("approximatelyEqual method test", () => {
 
 test("equals method test", () => {
     expect(Utility.equals(0.2, 0.2)).toBeTruthy()
+    // @ts-expect-error
     expect(Utility.equals(new Number(0.7), 0.7)).toBeTruthy()
+    // @ts-expect-error
     expect(Utility.equals(-40.3, new Number(-40.3))).toBeTruthy()
+    // @ts-expect-error
     expect(Utility.equals(new Number(-40.3), new Number(-40.3))).toBeTruthy()
     expect(Utility.equals(0.2 + 0.1, 0.3)).toBeFalsy() // Strict equality
     expect(Utility.equals(null, undefined)).toBeFalsy()
@@ -65,8 +68,10 @@ test("equals method test", () => {
     expect(Utility.equals(-6845, -6845n)).toBeTruthy()
     expect(Utility.equals(7735n, 7736)).toBeFalsy()
     expect(Utility.equals("abc", "abc")).toBeTruthy()
+    // @ts-expect-error
     expect(Utility.equals(new String("abc"), new String("abc"))).toBeTruthy()
     expect(Utility.equals("abc", "aBc")).toBeFalsy()
+    expect(Utility.equals([], [])).toBeTruthy()
     expect(Utility.equals(
         [-2, "alpha", new String("beta"), new Number(40), [1, 2, 3]],
         [new Number(-2), new String("alpha"), new String("beta"), new Number(40), new Array(1, 2, 3)]
