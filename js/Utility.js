@@ -385,8 +385,10 @@ export default class Utility {
     }
 
     /** @param {String} pathValue */
-    static getNameFromPath(pathValue) {
-        return pathValue.match(/[^\.\/]+$/)?.[0] ?? ""
+    static getNameFromPath(pathValue, dropCounter = false) {
+        // From end to the first "/" or "."
+        const regex = dropCounter ? /([^\.\/]+?)(?:_\d+)$/ : /([^\.\/]+)$/
+        return pathValue.match(regex)?.[1] ?? ""
     }
 
     /** @param {LinearColorEntity} value */

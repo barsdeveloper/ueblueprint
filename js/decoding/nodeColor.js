@@ -64,8 +64,15 @@ export default function nodeColor(entity) {
             .toCSSRGBValues()
     }
     const pcgSubobject = entity.getPcgSubobject()
-    if (pcgSubobject && pcgSubobject.NodeTitleColor) {
-        return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
+    if (pcgSubobject) {
+        if (pcgSubobject.NodeTitleColor) {
+            return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
+        }
+        switch (entity.PCGNode?.getName(true)) {
+            case "Branch":
+            case "Select":
+                return Configuration.nodeColors.intenseGreen
+        }
     }
     if (entity.bIsPureFunc) {
         return Configuration.nodeColors.green

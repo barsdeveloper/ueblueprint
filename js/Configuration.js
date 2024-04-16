@@ -9,6 +9,7 @@ export default class Configuration {
         darkTurquoise: css`19, 100, 137`,
         gray: css`150,150,150`,
         green: css`95, 129, 90`,
+        intenseGreen: css`42, 140, 42`,
         lime: css`150, 160, 30`,
         red: css`151, 33, 32`,
         turquoise: css`46, 104, 106`,

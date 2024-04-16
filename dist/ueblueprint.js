@@ -33,6 +33,7 @@ class Configuration {
         darkTurquoise: i$3`19, 100, 137`,
         gray: i$3`150,150,150`,
         green: i$3`95, 129, 90`,
+        intenseGreen: i$3`42, 140, 42`,
         lime: i$3`150, 160, 30`,
         red: i$3`151, 33, 32`,
         turquoise: i$3`46, 104, 106`,
@@ -997,8 +998,10 @@ class Utility {
     }
 
     /** @param {String} pathValue */
-    static getNameFromPath(pathValue) {
-        return pathValue.match(/[^\.\/]+$/)?.[0] ?? ""
+    static getNameFromPath(pathValue, dropCounter = false) {
+        // From end to the first "/" or "."
+        const regex = dropCounter ? /([^\.\/]+?)(?:_\d+)$/ : /([^\.\/]+)$/;
+        return pathValue.match(regex)?.[1] ?? ""
     }
 
     /** @param {LinearColorEntity} value */
@@ -3403,8 +3406,15 @@ function nodeColor(entity) {
             .toCSSRGBValues()
     }
     const pcgSubobject = entity.getPcgSubobject();
-    if (pcgSubobject && pcgSubobject.NodeTitleColor) {
-        return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
+    if (pcgSubobject) {
+        if (pcgSubobject.NodeTitleColor) {
+            return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
+        }
+        switch (entity.PCGNode?.getName(true)) {
+            case "Branch":
+            case "Select":
+                return Configuration.nodeColors.intenseGreen
+        }
     }
     if (entity.bIsPureFunc) {
         return Configuration.nodeColors.green
@@ -4418,8 +4428,8 @@ class ObjectReferenceEntity extends IEntity {
         return new ObjectReferenceEntity({ type: "None", path: "" })
     }
 
-    getName() {
-        return Utility.getNameFromPath(this.path.replace(/_C$/, ""))
+    getName(dropCounter = false) {
+        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
     }
 
     toString() {

@@ -72,8 +72,8 @@ export default class ObjectReferenceEntity extends IEntity {
         return new ObjectReferenceEntity({ type: "None", path: "" })
     }
 
-    getName() {
-        return Utility.getNameFromPath(this.path.replace(/_C$/, ""))
+    getName(dropCounter = false) {
+        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
     }
 
     toString() {
