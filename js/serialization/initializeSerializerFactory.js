@@ -216,11 +216,12 @@ export default function initializeSerializerFactory() {
         new CustomSerializer(
             objectReference => {
                 let type = objectReference.type ?? ""
-                let name = objectReference.path ?? ""
-                if (type && name && Utility.isSerialized(objectReference, "path")) {
-                    name = `'${name}'`
+                let path = objectReference.path ?? ""
+                let delim = objectReference.delim ?? ""
+                if (type && path && Utility.isSerialized(objectReference, "path")) {
+                    path = delim + path + delim.split("").reverse().join("")
                 }
-                let result = type + name
+                let result = type + path
                 if (Utility.isSerialized(objectReference, "type")) {
                     result = `"${result}"`
                 }
@@ -237,7 +238,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
+        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", false)
     )
 
     SerializerFactory.registerSerializer(

@@ -256,7 +256,7 @@ export default class Configuration {
         7: 2,
     }
     static smoothScrollTime = 1000 // ms
-    static stringEscapedCharacters = /['"\\]/g
+    static stringEscapedCharacters = /["\\]/g
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
