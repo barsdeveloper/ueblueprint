@@ -327,6 +327,13 @@ export default class Utility {
     }
 
     /** @param {String} value */
+    static escapeNewlines(value) {
+        return value
+            .replaceAll("\n", "\\n") // Replace newline with \n
+            .replaceAll("\t", "\\t") // Replace tab with \t
+    }
+
+    /** @param {String} value */
     static escapeString(value) {
         return value
             .replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')

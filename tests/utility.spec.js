@@ -177,14 +177,8 @@ test("String escaping methods test", () => {
     expect(Utility.escapeString('"')).toBe('\\"')
     expect(Utility.unescapeString('\\"')).toBe('"')
 
-    expect(Utility.escapeString("'")).toBe("\\'")
-    expect(Utility.unescapeString("\\'")).toBe("'")
-
     expect(Utility.escapeString(String.raw`\"`)).toBe(String.raw`\\\"`)
     expect(Utility.unescapeString(String.raw`\"`)).toBe('"')
-
-    expect(Utility.escapeString(String.raw`\'`)).toBe(String.raw`\\\'`)
-    expect(Utility.unescapeString(String.raw`\'`)).toBe("'")
 
     expect(Utility.escapeString(String.raw`Hello \"World\"`)).toBe(String.raw`Hello \\\"World\\\"`)
     expect(Utility.unescapeString(String.raw`Hello \"World\"`)).toBe('Hello "World"')

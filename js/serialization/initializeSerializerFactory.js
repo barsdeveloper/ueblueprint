@@ -275,8 +275,8 @@ export default function initializeSerializerFactory() {
         String,
         new CustomSerializer(
             (value, insideString) => insideString
-                ? Utility.escapeString(value)
-                : `"${Utility.escapeString(value)}"`,
+                ? `"${Utility.escapeString(value)}"`
+                : Utility.escapeNewlines(value),
             String
         )
     )
