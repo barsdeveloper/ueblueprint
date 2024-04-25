@@ -261,7 +261,7 @@ class Configuration {
         7: 2,
     }
     static smoothScrollTime = 1000 // ms
-    static stringEscapedCharacters = /['"\\]/g
+    static stringEscapedCharacters = /["\\]/g
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
@@ -4363,6 +4363,11 @@ class GuidEntity extends IEntity {
 
 class ObjectReferenceEntity extends IEntity {
 
+    static #quoteSymbols = [
+        [`'"`, Grammar.Regex.InsideString.source],
+        [`'`, Grammar.Regex.InsideSingleQuotedString.source],
+        [`"`, Grammar.Regex.InsideString.source]
+    ]
     static attributes = {
         ...super.attributes,
         type: new AttributeInfo({
@@ -4373,11 +4378,13 @@ class ObjectReferenceEntity extends IEntity {
             default: "",
             serialized: true,
         }),
+        delim: new AttributeInfo({
+            ignored: true,
+        }),
     }
     static quoted = Parsernostrum.regArray(new RegExp(
-        `'"(` + Grammar.Regex.InsideString.source + `)"'`
-        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-        + `|"(` + Grammar.Regex.InsideString.source + `)"`
+        this.#quoteSymbols.map(([delim, parser]) =>
+            delim + "(" + parser + ")" + delim.split("").reverse().join("")).join("|")
     )).map(([_0, a, b, c]) => a ?? b ?? c)
     static path = this.quoted.getParser().parser.regexp.source + "|" + Grammar.Regex.Path.source
     static typeReference = Parsernostrum.reg(
@@ -4388,13 +4395,21 @@ class ObjectReferenceEntity extends IEntity {
             "(" + this.typeReference.getParser().regexp.source + ")"
             + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
         )
-    ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
+    ).map(([_0, type, ...path]) => new this({
+        type,
+        path: path.find(v => v),
+        delim: this.#quoteSymbols[path.findIndex(v => v)]?.[0] ?? "",
+    }))
     static fullReferenceSerializedGrammar = Parsernostrum.regArray(
         new RegExp(
             "(" + this.typeReference.getParser().regexp.source + ")"
             + `'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         )
-    ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
+    ).map(([_0, type, ...path]) => new this({
+        type,
+        path: path.find(v => v),
+        delim: "'",
+    }))
     static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "" }))
     static grammar = this.createGrammar()
 
@@ -4422,6 +4437,7 @@ class ObjectReferenceEntity extends IEntity {
         super(values);
         /** @type {String} */ this.type;
         /** @type {String} */ this.path;
+        /** @type {String} */ this.delim;
     }
 
     static createNoneInstance() {
@@ -4433,7 +4449,7 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     toString() {
-        return this.type + (this.path ? `'${this.path}'` : "")
+        return this.type + (this.path ? (this.delim + this.path + this.delim.split("").reverse().join("")) : "")
     }
 }
 
@@ -13408,11 +13424,12 @@ function initializeSerializerFactory() {
         new CustomSerializer(
             objectReference => {
                 let type = objectReference.type ?? "";
-                let name = objectReference.path ?? "";
-                if (type && name && Utility.isSerialized(objectReference, "path")) {
-                    name = `'${name}'`;
+                let path = objectReference.path ?? "";
+                let delim = objectReference.delim ?? "";
+                if (type && path && Utility.isSerialized(objectReference, "path")) {
+                    path = delim + path + delim.split("").reverse().join("");
                 }
-                let result = type + name;
+                let result = type + path;
                 if (Utility.isSerialized(objectReference, "type")) {
                     result = `"${result}"`;
                 }
@@ -13429,7 +13446,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
+        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", false)
     );
 
     SerializerFactory.registerSerializer(

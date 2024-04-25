@@ -1,8 +1,8 @@
 {
   "name": "ueblueprint",
+  "description": "UE's Blueprint visualisation library",
   "version": "1.0.0",
   "type": "module",
-  "description": "UE's Blueprint visualisation library",
   "main": "dist/ueblueprint.js",
   "types": "types.js",
   "scripts": {
@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "lit": "^2",
+    "mixwith": "^0.1.1",
     "parsernostrum": "^1"
   }
 }

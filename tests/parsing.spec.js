@@ -271,6 +271,7 @@ test("ObjectReferenceEntity", () => {
     reference = serializer.read(`EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`)
     expect(reference).toBeInstanceOf(ObjectReferenceEntity)
     expect(reference).toMatchObject({ type: "EdGraphPin", path: "K2Node_DynamicCast_2126.EdGraphPin_3990988" })
+    expect(serializer.write(reference)).toBe(`EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`)
 
     reference = serializer.read(
         `"/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'"`
@@ -292,6 +293,9 @@ test("ObjectReferenceEntity", () => {
         type: "/Script/Engine.EdGraph",
         path: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
     })
+    expect(serializer.write(reference)).toBe(
+        `/Script/Engine.EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N"'`
+    )
 
     reference = serializer.read(
         `EdGraphPin'"K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045"'`
@@ -301,6 +305,9 @@ test("ObjectReferenceEntity", () => {
         type: "EdGraphPin",
         path: "K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045",
     })
+    expect(serializer.write(reference)).toBe(
+        `EdGraphPin'"K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045"'`
+    )
 
     reference = serializer.read(
         `Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`
@@ -310,6 +317,9 @@ test("ObjectReferenceEntity", () => {
         type: "Function",
         path: "/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element",
     })
+    expect(serializer.write(reference)).toBe(
+        `Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`
+    )
 
     reference = serializer.read(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`)
     expect(reference).toBeInstanceOf(ObjectReferenceEntity)
@@ -317,14 +327,17 @@ test("ObjectReferenceEntity", () => {
         type: "EdGraph",
         path: "/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch",
     })
+    expect(serializer.write(reference)).toBe(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`)
 
     reference = serializer.read(`/Script/Engine.EdGraph'"+-Weird/2,Macro"'`)
     expect(reference).toBeInstanceOf(ObjectReferenceEntity)
     expect(reference).toMatchObject({ type: "/Script/Engine.EdGraph", path: "+-Weird/2,Macro" })
+    expect(serializer.write(reference)).toBe(`/Script/Engine.EdGraph'"+-Weird/2,Macro"'`)
 
     reference = serializer.read(`/Script/BlueprintGraph.K2Node_VariableGet`)
     expect(reference).toBeInstanceOf(ObjectReferenceEntity)
     expect(reference).toMatchObject({ type: "/Script/BlueprintGraph.K2Node_VariableGet", path: "" })
+    expect(serializer.write(reference)).toBe(`/Script/BlueprintGraph.K2Node_VariableGet`)
 
     reference = serializer.read(
         `/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'`
@@ -334,6 +347,9 @@ test("ObjectReferenceEntity", () => {
         type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         path: "MaterialExpressionMaterialFunctionCall_0",
     })
+    expect(serializer.write(reference)).toBe(
+        `/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'`
+    )
 
     reference = serializer.read(
         `/Script/Engine.MaterialExpressionMaterialFunctionCall'/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0'`
@@ -343,6 +359,17 @@ test("ObjectReferenceEntity", () => {
         type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         path: "/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0",
     })
+    expect(serializer.write(reference)).toBe(
+        `/Script/Engine.MaterialExpressionMaterialFunctionCall'/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0'`
+    )
+
+    reference = serializer.read(`/Script/CoreUObject.Class'"/Script/Engine.GameModeBase"'`)
+    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
+    expect(reference).toMatchObject({
+        type: "/Script/CoreUObject.Class",
+        path: "/Script/Engine.GameModeBase",
+    })
+    expect(serializer.write(reference)).toBe(`/Script/CoreUObject.Class'"/Script/Engine.GameModeBase"'`)
 })
 
 test("PinEntity", () => {
@@ -418,6 +445,9 @@ test("String", () => {
     expect(serializer.read('"hello world 123 - éèàò@ç ^ ^^^"')).toStrictEqual("hello world 123 - éèàò@ç ^ ^^^")
     expect(serializer.read('"\\""')).toStrictEqual('"')
     expect(() => serializer.read("Hello")).toThrow()
+
+    expect(serializer.write(`"/Script/CoreUObject.Class'/Script/Interhaptics.HapticSource'"`))
+        .toBe(`"/Script/CoreUObject.Class'/Script/Interhaptics.HapticSource'"`)
 })
 
 test("UnknownKeysValue", () => {

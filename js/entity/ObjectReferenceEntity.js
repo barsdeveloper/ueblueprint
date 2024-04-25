@@ -7,6 +7,11 @@ import IEntity from "./IEntity.js"
 
 export default class ObjectReferenceEntity extends IEntity {
 
+    static #quoteSymbols = [
+        [`'"`, Grammar.Regex.InsideString.source],
+        [`'`, Grammar.Regex.InsideSingleQuotedString.source],
+        [`"`, Grammar.Regex.InsideString.source]
+    ]
     static attributes = {
         ...super.attributes,
         type: new AttributeInfo({
@@ -17,11 +22,13 @@ export default class ObjectReferenceEntity extends IEntity {
             default: "",
             serialized: true,
         }),
+        delim: new AttributeInfo({
+            ignored: true,
+        }),
     }
     static quoted = Parsernostrum.regArray(new RegExp(
-        `'"(` + Grammar.Regex.InsideString.source + `)"'`
-        + `|'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
-        + `|"(` + Grammar.Regex.InsideString.source + `)"`
+        this.#quoteSymbols.map(([delim, parser]) =>
+            delim + "(" + parser + ")" + delim.split("").reverse().join("")).join("|")
     )).map(([_0, a, b, c]) => a ?? b ?? c)
     static path = this.quoted.getParser().parser.regexp.source + "|" + Grammar.Regex.Path.source
     static typeReference = Parsernostrum.reg(
@@ -32,13 +39,21 @@ export default class ObjectReferenceEntity extends IEntity {
             "(" + this.typeReference.getParser().regexp.source + ")"
             + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
         )
-    ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
+    ).map(([_0, type, ...path]) => new this({
+        type,
+        path: path.find(v => v),
+        delim: this.#quoteSymbols[path.findIndex(v => v)]?.[0] ?? "",
+    }))
     static fullReferenceSerializedGrammar = Parsernostrum.regArray(
         new RegExp(
             "(" + this.typeReference.getParser().regexp.source + ")"
             + `'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         )
-    ).map(([_0, type, ...path]) => new this({ type, path: path.find(v => v) }))
+    ).map(([_0, type, ...path]) => new this({
+        type,
+        path: path.find(v => v),
+        delim: "'",
+    }))
     static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "" }))
     static grammar = this.createGrammar()
 
@@ -66,6 +81,7 @@ export default class ObjectReferenceEntity extends IEntity {
         super(values)
         /** @type {String} */ this.type
         /** @type {String} */ this.path
+        /** @type {String} */ this.delim
     }
 
     static createNoneInstance() {
@@ -77,6 +93,6 @@ export default class ObjectReferenceEntity extends IEntity {
     }
 
     toString() {
-        return this.type + (this.path ? `'${this.path}'` : "")
+        return this.type + (this.path ? (this.delim + this.path + this.delim.split("").reverse().join("")) : "")
     }
 }
