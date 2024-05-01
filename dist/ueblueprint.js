@@ -3992,10 +3992,15 @@ function nodeTitle(entity) {
             break
         case Configuration.paths.materialExpressionSquareRoot:
             return "Sqrt"
-        case Configuration.paths.metasoundEditorGraphExternalNode:
-            if (entity["ClassName"]?.["Name"]) {
-                return entity["ClassName"]["Name"]
+        case Configuration.paths.metasoundEditorGraphExternalNode: {
+            const name = entity["ClassName"]?.["Name"];
+            if (name) {
+                switch (name) {
+                    case "Add": return "+"
+                    default: return name
+                }
             }
+        }
         case Configuration.paths.pcgEditorGraphNodeInput:
             return "Input"
         case Configuration.paths.pcgEditorGraphNodeOutput:
@@ -4607,6 +4612,7 @@ const colors = {
     [Configuration.paths.vector4f]: i$3`0, 88, 200`,
     "Any": i$3`132, 132, 132`,
     "Any[]": i$3`132, 132, 132`,
+    "audio": i$3`252, 148, 252`,
     "blue": i$3`0, 0, 255`,
     "bool": i$3`146, 0, 0`,
     "byte": i$3`0, 109, 99`,
@@ -4615,8 +4621,10 @@ const colors = {
     "delegate": i$3`255, 56, 56`,
     "enum": i$3`0, 109, 99`,
     "exec": i$3`240, 240, 240`,
+    "float": i$3`160, 252, 70`,
     "green": i$3`0, 255, 0`,
     "int": i$3`31, 224, 172`,
+    "int32": i$3`30, 224, 172`,
     "int64": i$3`169, 223, 172`,
     "interface": i$3`238, 252, 168`,
     "name": i$3`201, 128, 251`,
@@ -4632,6 +4640,7 @@ const colors = {
     "Surface": i$3`69, 196, 126`,
     "Surface[]": i$3`69, 196, 126`,
     "text": i$3`226, 121, 167`,
+    "time": i$3`148, 252, 252`,
     "Volume": i$3`230, 69, 188`,
     "Volume[]": i$3`230, 69, 188`,
     "wildcard": i$3`128, 120, 120`,
@@ -8755,6 +8764,10 @@ class VariableManagementNodeTemplate extends NodeTemplate {
     }
 }
 
+class MetasoundOperationTemplate extends VariableManagementNodeTemplate {
+    static nodeStyleClasses = ["ueb-node-style-metasound", "ueb-node-style-operation"]
+}
+
 class VariableConversionNodeTemplate extends VariableManagementNodeTemplate {
 
     static nodeStyleClasses = [...super.nodeStyleClasses, "ueb-node-style-conversion"]
@@ -8800,6 +8813,7 @@ class PinTemplate extends ITemplate {
             this.isNameRendered = !(
                 nodeTemplate instanceof VariableConversionNodeTemplate
                 || nodeTemplate instanceof VariableOperationNodeTemplate
+                || nodeTemplate instanceof MetasoundOperationTemplate
             );
         }
     }
@@ -9113,10 +9127,6 @@ class KnotNodeTemplate extends NodeTemplate {
 class MetasoundNodeTemplate extends NodeTemplate {
 
     static nodeStyleClasses = ["ueb-node-style-metasound"]
-}
-
-class MetasoundOperationTemplate extends VariableManagementNodeTemplate {
-    static nodeStyleClasses = ["ueb-node-style-metasound", "ueb-node-style-metasound-operation"]
 }
 
 class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {

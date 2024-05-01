@@ -150,10 +150,15 @@ export default function nodeTitle(entity) {
             break
         case Configuration.paths.materialExpressionSquareRoot:
             return "Sqrt"
-        case Configuration.paths.metasoundEditorGraphExternalNode:
-            if (entity["ClassName"]?.["Name"]) {
-                return entity["ClassName"]["Name"]
+        case Configuration.paths.metasoundEditorGraphExternalNode: {
+            const name = entity["ClassName"]?.["Name"]
+            if (name) {
+                switch (name) {
+                    case "Add": return "+"
+                    default: return name
+                }
             }
+        }
         case Configuration.paths.pcgEditorGraphNodeInput:
             return "Input"
         case Configuration.paths.pcgEditorGraphNodeOutput:
