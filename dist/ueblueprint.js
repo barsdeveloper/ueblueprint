@@ -940,6 +940,13 @@ class Utility {
     }
 
     /** @param {String} value */
+    static escapeNewlines(value) {
+        return value
+            .replaceAll("\n", "\\n") // Replace newline with \n
+            .replaceAll("\t", "\\t") // Replace tab with \t
+    }
+
+    /** @param {String} value */
     static escapeString(value) {
         return value
             .replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')
@@ -4769,6 +4776,10 @@ class InvariantTextEntity extends IEntity {
         super(values);
         /** @type {String} */ this.value;
     }
+
+    toString() {
+        return this.value
+    }
 }
 
 class LocalizedTextEntity extends IEntity {
@@ -6395,9 +6406,9 @@ class ObjectEntity extends IEntity {
 
     /** @return {ObjectEntity} */
     getSubgraphObject() {
-        const node = this.SubgraphInstance;
-        return node
-            ? this[Configuration.subObjectAttributeNameFromName(node)]
+        const name = this.SubgraphInstance;
+        return name
+            ? this[Configuration.subObjectAttributeNameFromName(name)]
             : null
     }
 
@@ -9104,6 +9115,10 @@ class MetasoundNodeTemplate extends NodeTemplate {
     static nodeStyleClasses = ["ueb-node-style-metasound"]
 }
 
+class MetasoundOperationTemplate extends VariableManagementNodeTemplate {
+    static nodeStyleClasses = ["ueb-node-style-metasound", "ueb-node-style-metasound-operation"]
+}
+
 class VariableAccessNodeTemplate extends VariableManagementNodeTemplate {
 
     /** @param {NodeElement} element */
@@ -9209,6 +9224,9 @@ function nodeTemplateClass(nodeEntity) {
         case Configuration.paths.createDelegate:
             return NodeTemplate
         case Configuration.paths.metasoundEditorGraphExternalNode:
+            if (nodeEntity["ClassName"]?.["Name"] == "Add") {
+                return MetasoundOperationTemplate
+            }
             return MetasoundNodeTemplate
         case Configuration.paths.niagaraNodeOp:
             if ([
@@ -9509,7 +9527,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 }
 
-class BlueprintEntity extends IEntity {
+class BlueprintEntity extends ObjectEntity {
 
     /** @type {Map<String, Number>} */
     #objectEntitiesNameCounter = new Map()
@@ -9885,10 +9903,15 @@ class Copy extends IInput {
     }
 
     getSerializedText() {
-        return this.blueprint
-            .getNodes(true)
-            .map(node => Copy.#serializer.write(node.entity, false))
-            .join("")
+        const allNodes = this.blueprint.getNodes(true).map(n => n.entity);
+        const exported = allNodes.filter(n => n.isExported).map(n => Copy.#serializer.write(n, false));
+        const result = allNodes.filter(n => !n.isExported).map(n => Copy.#serializer.write(n, false));
+        if (exported.length) {
+            this.blueprint.entity.ExportedNodes = btoa(exported.join(""));
+            result.splice(0, 0, Copy.#serializer.write(this.blueprint.entity, false));
+            delete this.blueprint.entity.ExportedNodes;
+        }
+        return result.join("")
     }
 
     copied() {
@@ -13303,6 +13326,11 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        BlueprintEntity,
+        new ObjectSerializer(BlueprintEntity),
+    );
+
+    SerializerFactory.registerSerializer(
         Boolean,
         new CustomSerializer(
             /** @param {Boolean} boolean */
@@ -13478,11 +13506,16 @@ function initializeSerializerFactory() {
     );
 
     SerializerFactory.registerSerializer(
+        ScriptVariableEntity,
+        new Serializer(ScriptVariableEntity, Serializer.bracketsWrapped)
+    );
+
+    SerializerFactory.registerSerializer(
         String,
         new CustomSerializer(
             (value, insideString) => insideString
-                ? Utility.escapeString(value)
-                : `"${Utility.escapeString(value)}"`,
+                ? `"${Utility.escapeString(value)}"`
+                : Utility.escapeNewlines(value),
             String
         )
     );

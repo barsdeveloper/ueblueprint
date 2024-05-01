@@ -623,9 +623,9 @@ export default class ObjectEntity extends IEntity {
 
     /** @return {ObjectEntity} */
     getSubgraphObject() {
-        const node = this.SubgraphInstance
-        return node
-            ? this[Configuration.subObjectAttributeNameFromName(node)]
+        const name = this.SubgraphInstance
+        return name
+            ? this[Configuration.subObjectAttributeNameFromName(name)]
             : null
     }
 

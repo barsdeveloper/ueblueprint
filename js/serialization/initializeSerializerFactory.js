@@ -1,5 +1,6 @@
 import Parsernostrum from "parsernostrum"
 import Utility from "../Utility.js"
+import BlueprintEntity from "../entity/BlueprintEntity.js"
 import ByteEntity from "../entity/ByteEntity.js"
 import ColorChannelEntity from "../entity/ColorChannelEntity.js"
 import EnumDisplayValueEntity from "../entity/EnumDisplayValueEntity.js"
@@ -24,6 +25,7 @@ import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import PinTypeEntity from "../entity/PinTypeEntity.js"
 import RBSerializationVector2DEntity from "../entity/RBSerializationVector2DEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
+import ScriptVariableEntity from "../entity/ScriptVariableEntity.js"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity.js"
 import SimpleSerializationVector4DEntity from "../entity/SimpleSerializationVector4DEntity.js"
@@ -94,6 +96,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         BigInt,
         new ToStringSerializer(BigInt)
+    )
+
+    SerializerFactory.registerSerializer(
+        BlueprintEntity,
+        new ObjectSerializer(BlueprintEntity),
     )
 
     SerializerFactory.registerSerializer(
@@ -269,6 +276,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         RotatorEntity,
         new Serializer(RotatorEntity, Serializer.bracketsWrapped)
+    )
+
+    SerializerFactory.registerSerializer(
+        ScriptVariableEntity,
+        new Serializer(ScriptVariableEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(

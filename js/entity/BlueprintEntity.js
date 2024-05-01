@@ -1,9 +1,8 @@
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
-import IEntity from "./IEntity.js"
 import ObjectEntity from "./ObjectEntity.js"
 
-export default class BlueprintEntity extends IEntity {
+export default class BlueprintEntity extends ObjectEntity {
 
     /** @type {Map<String, Number>} */
     #objectEntitiesNameCounter = new Map()
