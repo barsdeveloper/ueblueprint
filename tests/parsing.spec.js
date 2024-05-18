@@ -447,7 +447,7 @@ test("String", () => {
     expect(() => serializer.read("Hello")).toThrow()
 
     expect(serializer.write(`"/Script/CoreUObject.Class'/Script/Interhaptics.HapticSource'"`))
-        .toBe(`\\"/Script/CoreUObject.Class'/Script/Interhaptics.HapticSource'\\"`)
+        .toBe(String.raw`"\"/Script/CoreUObject.Class'/Script/Interhaptics.HapticSource'\""`)
 })
 
 test("UnknownKeysValue", () => {

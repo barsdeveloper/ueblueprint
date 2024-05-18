@@ -8,7 +8,6 @@
   "scripts": {
     "build": "rollup --config && sass scss/export.scss:dist/css/ueb-style.css && sass scss/export.scss:dist/css/ueb-style.min.css --style=compressed",
     "test": "npm run build && export UEBLUEPRINT_TEST_SERVER_PORT=8181 && npx concurrently -k \"http-server -s -p $UEBLUEPRINT_TEST_SERVER_PORT\" \"npx cypress run --env UEBLUEPRINT_TEST_SERVER_PORT=8181\"",
-    "cypress": "npm run build && export UEBLUEPRINT_TEST_SERVER_PORT=8181 && npx playwright test --ui",
     "start": "npx http-server"
   },
   "repository": {
@@ -27,15 +26,13 @@
   },
   "homepage": "https://github.com/barsdeveloper/ueblueprint#readme",
   "devDependencies": {
-    "@playwright/test": "^1.40.1",
-    "@rollup/plugin-commonjs": "^24",
+    "@playwright/test": "^1",
+    "@rollup/plugin-commonjs": "^25",
     "@rollup/plugin-node-resolve": "^15",
     "@rollup/plugin-terser": "^0",
     "concurrently": "^8",
-    "cypress": "^12",
     "http-server": "^14",
-    "minify-html-literals": "^1",
-    "rollup": "^3||^2",
+    "rollup": "^4 || ^3 || ^2",
     "rollup-plugin-copy": "^3",
     "rollup-plugin-minify-html-literals": "^1",
     "sass": "^1",
@@ -43,7 +40,6 @@
   },
   "dependencies": {
     "lit": "^2",
-    "mixwith": "^0.1.1",
     "parsernostrum": "^1"
   }
 }

@@ -212,7 +212,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         Number,
-        new ToStringSerializer(Number)
+        new CustomSerializer(v => Utility.minDecimals(v, 6), Number)
     )
 
     SerializerFactory.registerSerializer(
@@ -247,7 +247,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", false)
+        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
     )
 
     SerializerFactory.registerSerializer(
@@ -288,7 +288,7 @@ export default function initializeSerializerFactory() {
         new CustomSerializer(
             (value, insideString) => insideString
                 ? Utility.escapeString(value)
-                : `"${Utility.escapeNewlines(value)}"`,
+                : `"${Utility.escapeString(value)}"`,
             String
         )
     )

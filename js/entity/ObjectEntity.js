@@ -34,26 +34,6 @@ export default class ObjectEntity extends IEntity {
         Name: AttributeInfo.createType(String),
         Archetype: AttributeInfo.createType(ObjectReferenceEntity),
         ExportPath: AttributeInfo.createType(ObjectReferenceEntity),
-        R: new AttributeInfo({
-            type: new Union(Boolean, Number),
-            default: false,
-            silent: true,
-        }),
-        G: new AttributeInfo({
-            type: new Union(Boolean, Number),
-            default: false,
-            silent: true,
-        }),
-        B: new AttributeInfo({
-            type: new Union(Boolean, Number),
-            default: false,
-            silent: true,
-        }),
-        A: new AttributeInfo({
-            type: new Union(Boolean, Number),
-            default: false,
-            silent: true,
-        }),
         ObjectRef: AttributeInfo.createType(ObjectReferenceEntity),
         BlueprintElementType: AttributeInfo.createType(ObjectReferenceEntity),
         BlueprintElementInstance: AttributeInfo.createType(ObjectReferenceEntity),
