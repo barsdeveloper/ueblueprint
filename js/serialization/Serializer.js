@@ -80,7 +80,7 @@ export default class Serializer {
         attributeKeyPrinter = this.attributeKeyPrinter
     ) {
         let result = ""
-        const keys = Object.keys(entity)
+        const keys = entity._keys ?? Object.keys(entity)
         let first = true
         for (const key of keys) {
             const value = entity[key]

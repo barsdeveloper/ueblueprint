@@ -363,6 +363,15 @@ export default class ObjectEntity extends IEntity {
                 obj.G = new MirroredEntity(Boolean, () => rgbaPins[1].DefaultValue)
                 obj.B = new MirroredEntity(Boolean, () => rgbaPins[2].DefaultValue)
                 obj.A = new MirroredEntity(Boolean, () => rgbaPins[3].DefaultValue)
+                Utility.objectSet(obj, ["attributes", "R", "default"], false)
+                Utility.objectSet(obj, ["attributes", "R", "silent"], true)
+                Utility.objectSet(obj, ["attributes", "G", "default"], false)
+                Utility.objectSet(obj, ["attributes", "G", "silent"], true)
+                Utility.objectSet(obj, ["attributes", "B", "default"], false)
+                Utility.objectSet(obj, ["attributes", "B", "silent"], true)
+                Utility.objectSet(obj, ["attributes", "A", "default"], false)
+                Utility.objectSet(obj, ["attributes", "A", "silent"], true)
+                obj._keys = [...Configuration.rgba, ...Object.keys(obj).filter(k => !Configuration.rgba.includes(k))]
             }
         }
         /** @type {ObjectEntity} */

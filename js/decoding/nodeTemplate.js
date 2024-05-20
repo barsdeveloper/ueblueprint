@@ -30,7 +30,8 @@ export default function nodeTemplateClass(nodeEntity) {
                 return VariableConversionNodeTemplate
             }
             if (
-                memberName.startsWith("And_")
+                memberName.startsWith("Add_")
+                || memberName.startsWith("And_")
                 || memberName.startsWith("Boolean") // Boolean logic operations
                 || memberName.startsWith("Cross_")
                 || memberName.startsWith("Dot_")

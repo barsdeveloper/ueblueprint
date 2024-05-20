@@ -8,8 +8,11 @@ import Serializer from "./Serializer.js"
 export default class ToStringSerializer extends Serializer {
 
     /** @param {T} entityType */
-    constructor(entityType) {
+    constructor(entityType, escape = true) {
         super(entityType)
+        if (escape) {
+            this.wrap = (entity, serialized) => Utility.escapeString(serialized)
+        }
     }
 
     /**
@@ -17,8 +20,9 @@ export default class ToStringSerializer extends Serializer {
      * @param {Boolean} insideString
      */
     doWrite(entity, insideString, indentation = "") {
+
         return !insideString && entity.constructor === String
-            ? `"${Utility.escapeString(entity.toString())}"` // String will have quotes if not inside a string already
-            : Utility.escapeString(entity.toString())
+            ? `"${this.wrap(entity, entity.toString())}"` // String will have quotes if not inside a string already
+            : this.wrap(entity, entity.toString())
     }
 }

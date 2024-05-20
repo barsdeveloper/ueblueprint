@@ -339,7 +339,6 @@ class Configuration {
         "Alt",
         "Meta",
     ]
-    /** @type {["R", "G", "B", "A"]} */
     static rgba = ["R", "G", "B", "A"]
     static Keys = {
         /* UE name: JS name */
@@ -2624,6 +2623,15 @@ class IEntity extends Serializable {
         }),
     }
 
+    /** @type {String[]} */
+    #_keys
+    get _keys() {
+        return this.#_keys
+    }
+    set _keys(keys) {
+        this.#_keys = keys;
+    }
+
     constructor(values = {}, suppressWarns = false) {
         super();
         const Self = /** @type {typeof IEntity} */(this.constructor);
@@ -4437,11 +4445,6 @@ class GuidEntity extends IEntity {
 
 class ObjectReferenceEntity extends IEntity {
 
-    static #quoteSymbols = [
-        [`'"`, Grammar.Regex.InsideString.source],
-        [`'`, Grammar.Regex.InsideSingleQuotedString.source],
-        [`"`, Grammar.Regex.InsideString.source]
-    ]
     static attributes = {
         ...super.attributes,
         type: new AttributeInfo({
@@ -4452,14 +4455,15 @@ class ObjectReferenceEntity extends IEntity {
             default: "",
             serialized: true,
         }),
-        delim: new AttributeInfo({
+        _full: new AttributeInfo({
             ignored: true,
         }),
     }
     static quoted = Parsernostrum.regArray(new RegExp(
-        this.#quoteSymbols.map(([delim, parser]) =>
-            delim + "(" + parser + ")" + delim.split("").reverse().join("")).join("|")
-    )).map(([_0, a, b, c]) => a ?? b ?? c)
+        `'"(${Grammar.Regex.InsideString.source})"'`
+        + "|"
+        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
+    )).map(([_0, a, b]) => a ?? b)
     static path = this.quoted.getParser().parser.regexp.source + "|" + Grammar.Regex.Path.source
     static typeReference = Parsernostrum.reg(
         new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
@@ -4469,23 +4473,29 @@ class ObjectReferenceEntity extends IEntity {
             "(" + this.typeReference.getParser().regexp.source + ")"
             + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
         )
-    ).map(([_0, type, ...path]) => new this({
-        type,
-        path: path.find(v => v),
-        delim: this.#quoteSymbols[path.findIndex(v => v)]?.[0] ?? "",
-    }))
+    ).map(([_full, type, ...path]) => new this({ type, path: path.find(v => v), _full }))
     static fullReferenceSerializedGrammar = Parsernostrum.regArray(
         new RegExp(
             "(" + this.typeReference.getParser().regexp.source + ")"
             + `'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
         )
-    ).map(([_0, type, ...path]) => new this({
-        type,
-        path: path.find(v => v),
-        delim: "'",
-    }))
-    static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "" }))
+    ).map(([_full, type, ...path]) => new this({ type, path: path.find(v => v), _full }))
+    static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "", _full: v }))
     static grammar = this.createGrammar()
+
+    constructor(values = {}) {
+        if (values.constructor === String) {
+            values = {
+                path: values
+            };
+        }
+        super(values);
+        if (!values._full || values._full.length === 0) {
+            this._full = `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`;
+        }
+        /** @type {String} */ this.type;
+        /** @type {String} */ this.path;
+    }
 
     static createGrammar() {
         return Parsernostrum.alt(
@@ -4496,22 +4506,10 @@ class ObjectReferenceEntity extends IEntity {
                     this.typeReferenceGrammar,
                 ),
                 Parsernostrum.str('"'),
-            ).map(([_0, objectReference, _1]) => objectReference),
-            this.fullReferenceGrammar.map(v => (Utility.objectSet(v, ["attributes", "type", "serialized"], false), v)),
-            this.typeReferenceGrammar.map(v => (Utility.objectSet(v, ["attributes", "type", "serialized"], false), v)),
+            ).map(([_0, objectReference, _1]) => (objectReference._full = `"${objectReference._full}"`, objectReference)),
+            this.fullReferenceGrammar,
+            this.typeReferenceGrammar,
         )
-    }
-
-    constructor(values = {}) {
-        if (values.constructor === String) {
-            values = {
-                path: values
-            };
-        }
-        super(values);
-        /** @type {String} */ this.type;
-        /** @type {String} */ this.path;
-        /** @type {String} */ this.delim;
     }
 
     static createNoneInstance() {
@@ -4523,7 +4521,7 @@ class ObjectReferenceEntity extends IEntity {
     }
 
     toString() {
-        return this.type + (this.path ? (this.delim + this.path + this.delim.split("").reverse().join("")) : "")
+        return this._full
     }
 }
 
@@ -6219,6 +6217,15 @@ class ObjectEntity extends IEntity {
                 obj.G = new MirroredEntity(Boolean, () => rgbaPins[1].DefaultValue);
                 obj.B = new MirroredEntity(Boolean, () => rgbaPins[2].DefaultValue);
                 obj.A = new MirroredEntity(Boolean, () => rgbaPins[3].DefaultValue);
+                Utility.objectSet(obj, ["attributes", "R", "default"], false);
+                Utility.objectSet(obj, ["attributes", "R", "silent"], true);
+                Utility.objectSet(obj, ["attributes", "G", "default"], false);
+                Utility.objectSet(obj, ["attributes", "G", "silent"], true);
+                Utility.objectSet(obj, ["attributes", "B", "default"], false);
+                Utility.objectSet(obj, ["attributes", "B", "silent"], true);
+                Utility.objectSet(obj, ["attributes", "A", "default"], false);
+                Utility.objectSet(obj, ["attributes", "A", "silent"], true);
+                obj._keys = [...Configuration.rgba, ...Object.keys(obj).filter(k => !Configuration.rgba.includes(k))];
             }
         }
         /** @type {ObjectEntity} */
@@ -9216,7 +9223,8 @@ function nodeTemplateClass(nodeEntity) {
                 return VariableConversionNodeTemplate
             }
             if (
-                memberName.startsWith("And_")
+                memberName.startsWith("Add_")
+                || memberName.startsWith("And_")
                 || memberName.startsWith("Boolean") // Boolean logic operations
                 || memberName.startsWith("Cross_")
                 || memberName.startsWith("Dot_")
@@ -9740,7 +9748,7 @@ class Serializer {
         attributeKeyPrinter = this.attributeKeyPrinter
     ) {
         let result = "";
-        const keys = Object.keys(entity);
+        const keys = entity._keys ?? Object.keys(entity);
         let first = true;
         for (const key of keys) {
             const value = entity[key];
@@ -13309,8 +13317,11 @@ class CustomSerializer extends Serializer {
 class ToStringSerializer extends Serializer {
 
     /** @param {T} entityType */
-    constructor(entityType) {
+    constructor(entityType, escape = true) {
         super(entityType);
+        if (escape) {
+            this.wrap = (entity, serialized) => Utility.escapeString(serialized);
+        }
     }
 
     /**
@@ -13318,9 +13329,10 @@ class ToStringSerializer extends Serializer {
      * @param {Boolean} insideString
      */
     doWrite(entity, insideString, indentation = "") {
+
         return !insideString && entity.constructor === String
-            ? `"${Utility.escapeString(entity.toString())}"` // String will have quotes if not inside a string already
-            : Utility.escapeString(entity.toString())
+            ? `"${this.wrap(entity, entity.toString())}"` // String will have quotes if not inside a string already
+            : this.wrap(entity, entity.toString())
     }
 }
 
@@ -13491,7 +13503,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         Number,
-        new CustomSerializer(v => Utility.minDecimals(v, 6), Number)
+        new ToStringSerializer(Number)
     );
 
     SerializerFactory.registerSerializer(
@@ -13501,22 +13513,7 @@ function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         ObjectReferenceEntity,
-        new CustomSerializer(
-            objectReference => {
-                let type = objectReference.type ?? "";
-                let path = objectReference.path ?? "";
-                let delim = objectReference.delim ?? "";
-                if (type && path && Utility.isSerialized(objectReference, "path")) {
-                    path = delim + path + delim.split("").reverse().join("");
-                }
-                let result = type + path;
-                if (Utility.isSerialized(objectReference, "type")) {
-                    result = `"${result}"`;
-                }
-                return result
-            },
-            ObjectReferenceEntity
-        )
+        new ToStringSerializer(ObjectReferenceEntity, false)
     );
 
     SerializerFactory.registerSerializer(

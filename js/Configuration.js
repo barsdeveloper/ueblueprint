@@ -315,7 +315,6 @@ export default class Configuration {
         "Alt",
         "Meta",
     ]
-    /** @type {["R", "G", "B", "A"]} */
     static rgba = ["R", "G", "B", "A"]
     static Keys = {
         /* UE name: JS name */

@@ -22,6 +22,15 @@ export default class IEntity extends Serializable {
         }),
     }
 
+    /** @type {String[]} */
+    #_keys
+    get _keys() {
+        return this.#_keys
+    }
+    set _keys(keys) {
+        this.#_keys = keys
+    }
+
     constructor(values = {}, suppressWarns = false) {
         super()
         const Self = /** @type {typeof IEntity} */(this.constructor)

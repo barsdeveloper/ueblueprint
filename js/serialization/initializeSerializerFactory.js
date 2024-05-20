@@ -212,7 +212,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         Number,
-        new CustomSerializer(v => Utility.minDecimals(v, 6), Number)
+        new ToStringSerializer(Number)
     )
 
     SerializerFactory.registerSerializer(
@@ -222,22 +222,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         ObjectReferenceEntity,
-        new CustomSerializer(
-            objectReference => {
-                let type = objectReference.type ?? ""
-                let path = objectReference.path ?? ""
-                let delim = objectReference.delim ?? ""
-                if (type && path && Utility.isSerialized(objectReference, "path")) {
-                    path = delim + path + delim.split("").reverse().join("")
-                }
-                let result = type + path
-                if (Utility.isSerialized(objectReference, "type")) {
-                    result = `"${result}"`
-                }
-                return result
-            },
-            ObjectReferenceEntity
-        )
+        new ToStringSerializer(ObjectReferenceEntity, false)
     )
 
     SerializerFactory.registerSerializer(
