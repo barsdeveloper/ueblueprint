@@ -62,6 +62,6 @@ export default class Paste extends IInput {
             node.setSelected(true)
         })
         this.blueprint.addGraphElement(...nodes)
-        return true
+        return nodes
     }
 }

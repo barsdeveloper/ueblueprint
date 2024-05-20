@@ -1,17 +1,13 @@
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
+import nodeTemplateClass from "../decoding/nodeTemplate.js"
+import nodeTitle from "../decoding/nodeTitle.js"
 import IdentifierEntity from "../entity/IdentifierEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
-import CommentNodeTemplate from "../template/node/CommentNodeTemplate.js"
-import EventNodeTemplate from "../template/node/EventNodeTemplate.js"
-import KnotNodeTemplate from "../template/node/KnotNodeTemplate.js"
 import NodeTemplate from "../template/node/NodeTemplate.js"
-import VariableAccessNodeTemplate from "../template/node/VariableAccessNodeTemplate.js"
-import VariableConversionNodeTemplate from "../template/node/VariableConversionNodeTemplate.js"
-import VariableOperationNodeTemplate from "../template/node/VariableOperationNodeTemplate.js"
 import ISelectableDraggableElement from "./ISelectableDraggableElement.js"
 
 /** @extends {ISelectableDraggableElement<ObjectEntity, NodeTemplate>} */
@@ -87,101 +83,6 @@ export default class NodeElement extends ISelectableDraggableElement {
         }
     }
 
-    /**
-     * @param {ObjectEntity} nodeEntity
-     * @return {new () => NodeTemplate}
-     */
-    static getTypeTemplate(nodeEntity) {
-        if (
-            nodeEntity.getClass() === Configuration.paths.callFunction
-            || nodeEntity.getClass() === Configuration.paths.commutativeAssociativeBinaryOperator
-            || nodeEntity.getClass() === Configuration.paths.callArrayFunction
-        ) {
-            const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
-            const memberName = nodeEntity.FunctionReference?.MemberName
-            if (
-                memberName && (
-                    memberParent === Configuration.paths.kismetMathLibrary
-                    || memberParent === Configuration.paths.kismetArrayLibrary
-                )) {
-                if (memberName.startsWith("Conv_")) {
-                    return VariableConversionNodeTemplate
-                }
-                if (
-                    memberName.startsWith("And_")
-                    || memberName.startsWith("Boolean") // Boolean logic operations
-                    || memberName.startsWith("Cross_")
-                    || memberName.startsWith("Dot_")
-                    || memberName.startsWith("Not_")
-                    || memberName.startsWith("Or_")
-                    || memberName.startsWith("Percent_")
-                    || memberName.startsWith("Xor_")
-                ) {
-                    return VariableOperationNodeTemplate
-                }
-                switch (memberName) {
-                    case "Abs":
-                    case "Array_Add":
-                    case "Array_AddUnique":
-                    case "Array_Identical":
-                    case "BMax":
-                    case "BMin":
-                    case "CrossProduct2D":
-                    case "DotProduct2D":
-                    case "Exp":
-                    case "FMax":
-                    case "FMin":
-                    case "GetPI":
-                    case "Max":
-                    case "MaxInt64":
-                    case "Min":
-                    case "MinInt64":
-                    case "Sqrt":
-                    case "Square":
-                    case "Vector4_CrossProduct3":
-                    case "Vector4_DotProduct":
-                    case "Vector4_DotProduct3":
-                    // Trigonometry
-                    case "Acos":
-                    case "Asin":
-                    case "Cos":
-                    case "DegAcos":
-                    case "DegCos":
-                    case "DegSin":
-                    case "DegTan":
-                    case "Sin":
-                    case "Tan":
-                        return VariableOperationNodeTemplate
-                }
-            }
-            if (memberParent === Configuration.paths.blueprintSetLibrary) {
-                return VariableOperationNodeTemplate
-            }
-            if (memberParent === Configuration.paths.blueprintMapLibrary) {
-                return VariableOperationNodeTemplate
-            }
-        }
-        switch (nodeEntity.getClass()) {
-            case Configuration.paths.comment:
-            case Configuration.paths.materialGraphNodeComment:
-                return CommentNodeTemplate
-            case Configuration.paths.createDelegate:
-                return NodeTemplate
-            case Configuration.paths.promotableOperator:
-                return VariableOperationNodeTemplate
-            case Configuration.paths.knot:
-                return KnotNodeTemplate
-            case Configuration.paths.literal:
-            case Configuration.paths.variableGet:
-            case Configuration.paths.variableSet:
-                return VariableAccessNodeTemplate
-        }
-        if (nodeEntity.isEvent()) {
-            return EventNodeTemplate
-        }
-        return NodeTemplate
-    }
-
     /** @param {String} str */
     static fromSerializedObject(str) {
         str = str.trim()
@@ -193,18 +94,29 @@ export default class NodeElement extends ISelectableDraggableElement {
      * @param {ObjectEntity} entity
      * @param {NodeTemplate} template
      */
-    static newObject(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+    static newObject(entity = new ObjectEntity(), template = new (nodeTemplateClass(entity))()) {
         const result = new NodeElement()
         result.initialize(entity, template)
         return result
     }
 
-    initialize(entity = new ObjectEntity(), template = new (NodeElement.getTypeTemplate(entity))()) {
+    #redirectLinksAfterRename(name) {
+        for (let sourcePinElement of this.getPinElements()) {
+            for (let targetPinReference of sourcePinElement.getLinks()) {
+                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
+                    objectName: name,
+                    pinGuid: sourcePinElement.entity.PinId,
+                }))
+            }
+        }
+    }
+
+    initialize(entity = new ObjectEntity(), template = new (nodeTemplateClass(entity))()) {
         this.typePath = entity.getType()
         this.nodeTitle = entity.getObjectName()
         this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
         this.enabledState = entity.EnabledState
-        this.nodeDisplayName = entity.nodeDisplayName()
+        this.nodeDisplayName = nodeTitle(entity)
         this.pureFunction = entity.bIsPureFunc
         this.dragLinkObjects = []
         super.initialize(entity, template)
@@ -216,6 +128,11 @@ export default class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes())
         }
+        entity.listenAttribute("Name", name => {
+            this.nodeTitle = entity.Name
+            this.nodeDisplayName = nodeTitle(entity)
+            this.#redirectLinksAfterRename(name)
+        })
     }
 
     async getUpdateComplete() {
@@ -261,7 +178,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     computeNodeDisplayName() {
-        this.nodeDisplayName = this.entity.nodeDisplayName()
+        this.nodeDisplayName = nodeTitle(this.entity)
     }
 
     /** @param {Number} value */
@@ -281,23 +198,6 @@ export default class NodeElement extends ISelectableDraggableElement {
     /** @param  {IElement[]} nodesWhitelist */
     sanitizeLinks(nodesWhitelist = []) {
         this.getPinElements().forEach(pin => pin.sanitizeLinks(nodesWhitelist))
-    }
-
-    /** @param {String} name */
-    rename(name) {
-        if (this.entity.Name == name) {
-            return false
-        }
-        for (let sourcePinElement of this.getPinElements()) {
-            for (let targetPinReference of sourcePinElement.getLinks()) {
-                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
-                    objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
-                }))
-            }
-        }
-        this.entity.Name = name
-        this.nodeTitle = this.entity.Name
     }
 
     getPinElements() {

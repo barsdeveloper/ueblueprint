@@ -4,6 +4,7 @@ import SVGIcon from "../../SVGIcon.js"
 import Utility from "../../Utility.js"
 import MouseCreateLink from "../../input/mouse/MouseCreateLink.js"
 import ITemplate from "../ITemplate.js"
+import MetasoundOperationTemplate from "../node/MetasoundOperationTemplate.js"
 import VariableConversionNodeTemplate from "../node/VariableConversionNodeTemplate.js"
 import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate.js"
 
@@ -42,6 +43,7 @@ export default class PinTemplate extends ITemplate {
             this.isNameRendered = !(
                 nodeTemplate instanceof VariableConversionNodeTemplate
                 || nodeTemplate instanceof VariableOperationNodeTemplate
+                || nodeTemplate instanceof MetasoundOperationTemplate
             )
         }
     }

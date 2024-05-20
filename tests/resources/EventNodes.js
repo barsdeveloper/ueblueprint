@@ -66,7 +66,7 @@ export default class EventNodes extends NodeTests {
                 development: false,
             },
             {
-                name: "Call AS!%sasd Adsad DD",
+                name: "Call AS!%sasdAdsadDD",
                 value: String.raw`
                     Begin Object Class=/Script/BlueprintGraph.K2Node_CallDelegate Name="K2Node_CallDelegate_0" ExportPath=/Script/BlueprintGraph.K2Node_CallDelegate'"/PCG/BP_Elements/PCGAsset.PCGAsset:EventGraph.K2Node_CallDelegate_0"'
                         "DelegateReference"=(MemberName="AS!%sasdAdsadDD",MemberGuid=FB6F7CD342716A4FA22AA6AD6E6B7ED9,bSelfContext=True)

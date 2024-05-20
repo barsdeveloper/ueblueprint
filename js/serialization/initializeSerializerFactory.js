@@ -1,5 +1,6 @@
 import Parsernostrum from "parsernostrum"
 import Utility from "../Utility.js"
+import BlueprintEntity from "../entity/BlueprintEntity.js"
 import ByteEntity from "../entity/ByteEntity.js"
 import ColorChannelEntity from "../entity/ColorChannelEntity.js"
 import EnumDisplayValueEntity from "../entity/EnumDisplayValueEntity.js"
@@ -24,8 +25,10 @@ import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import PinTypeEntity from "../entity/PinTypeEntity.js"
 import RBSerializationVector2DEntity from "../entity/RBSerializationVector2DEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
+import ScriptVariableEntity from "../entity/ScriptVariableEntity.js"
 import SimpleSerializationRotatorEntity from "../entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../entity/SimpleSerializationVector2DEntity.js"
+import SimpleSerializationVector4DEntity from "../entity/SimpleSerializationVector4DEntity.js"
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
 import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
@@ -33,6 +36,7 @@ import Union from "../entity/Union.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
+import Vector4DEntity from "../entity/Vector4DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
 import CustomSerializer from "./CustomSerializer.js"
 import Grammar from "./Grammar.js"
@@ -45,24 +49,26 @@ Grammar.unknownValue =
     Parsernostrum.alt(
         // Remember to keep the order, otherwise parsing might fail
         Grammar.boolean,
-        GuidEntity.createGrammar(),
+        GuidEntity.grammar,
         Parsernostrum.str("None").map(() => new ObjectReferenceEntity({ type: "None" })),
         Grammar.null,
         Grammar.number,
         ObjectReferenceEntity.fullReferenceGrammar,
         Grammar.string,
-        LocalizedTextEntity.createGrammar(),
-        InvariantTextEntity.createGrammar(),
-        FormatTextEntity.createGrammar(),
-        PinReferenceEntity.createGrammar(),
-        VectorEntity.createGrammar(),
-        RotatorEntity.createGrammar(),
-        LinearColorEntity.createGrammar(),
-        Vector2DEntity.createGrammar(),
-        UnknownKeysEntity.createGrammar(),
-        SymbolEntity.createGrammar(),
+        LocalizedTextEntity.grammar,
+        InvariantTextEntity.grammar,
+        FormatTextEntity.grammar,
+        PinReferenceEntity.grammar,
+        Vector4DEntity.grammar,
+        VectorEntity.grammar,
+        RotatorEntity.grammar,
+        LinearColorEntity.grammar,
+        Vector2DEntity.grammar,
+        UnknownKeysEntity.grammar,
+        SymbolEntity.grammar,
         Grammar.grammarFor(undefined, [PinReferenceEntity]),
         Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
+        Parsernostrum.lazy(() => Grammar.grammarFor(undefined, [undefined])),
     )
 
 export default function initializeSerializerFactory() {
@@ -80,10 +86,8 @@ export default function initializeSerializerFactory() {
         new CustomSerializer(
             (array, insideString) =>
                 `(${array
-                    .map(v =>
-                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString) + ","
-                    )
-                    .join("")
+                    .map(v => SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString))
+                    .join(",")
                 })`,
             Array
         )
@@ -92,6 +96,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         BigInt,
         new ToStringSerializer(BigInt)
+    )
+
+    SerializerFactory.registerSerializer(
+        BlueprintEntity,
+        new ObjectSerializer(BlueprintEntity),
     )
 
     SerializerFactory.registerSerializer(
@@ -213,22 +222,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         ObjectReferenceEntity,
-        new CustomSerializer(
-            objectReference => {
-                let type = objectReference.type ?? ""
-                let path = objectReference.path ?? ""
-                let delim = objectReference.delim ?? ""
-                if (type && path && Utility.isSerialized(objectReference, "path")) {
-                    path = delim + path + delim.split("").reverse().join("")
-                }
-                let result = type + path
-                if (Utility.isSerialized(objectReference, "type")) {
-                    result = `"${result}"`
-                }
-                return result
-            },
-            ObjectReferenceEntity
-        )
+        new ToStringSerializer(ObjectReferenceEntity, false)
     )
 
     SerializerFactory.registerSerializer(
@@ -238,7 +232,7 @@ export default function initializeSerializerFactory() {
 
     SerializerFactory.registerSerializer(
         PinEntity,
-        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", false)
+        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
     )
 
     SerializerFactory.registerSerializer(
@@ -267,6 +261,11 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         RotatorEntity,
         new Serializer(RotatorEntity, Serializer.bracketsWrapped)
+    )
+
+    SerializerFactory.registerSerializer(
+        ScriptVariableEntity,
+        new Serializer(ScriptVariableEntity, Serializer.bracketsWrapped)
     )
 
     SerializerFactory.registerSerializer(
@@ -304,6 +303,14 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
+        SimpleSerializationVector4DEntity,
+        new CustomSerializer(
+            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}, ${value.W}`,
+            SimpleSerializationVector4DEntity
+        )
+    )
+
+    SerializerFactory.registerSerializer(
         SymbolEntity,
         new ToStringSerializer(SymbolEntity)
     )
@@ -326,5 +333,10 @@ export default function initializeSerializerFactory() {
     SerializerFactory.registerSerializer(
         VectorEntity,
         new Serializer(VectorEntity, Serializer.bracketsWrapped)
+    )
+
+    SerializerFactory.registerSerializer(
+        Vector4DEntity,
+        new Serializer(Vector4DEntity, Serializer.bracketsWrapped)
     )
 }

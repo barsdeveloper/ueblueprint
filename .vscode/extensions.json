@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "runem.lit-plugin"
+        "runem.lit-plugin",
+        "ms-playwright.playwright"
     ]
 }

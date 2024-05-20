@@ -19,7 +19,7 @@ export default class SimpleSerializationRotatorEntity extends RotatorEntity {
                 P: Number(p),
                 Y: Number(y),
             })),
-            RotatorEntity.createGrammar()
+            RotatorEntity.grammar
         )
     }
 }

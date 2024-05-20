@@ -1,12 +1,12 @@
 /**
-* @template T
-* @typedef {new (...args: any) => T} AnyConstructor
-*/
+ * @template T
+ * @typedef {new (...args: any) => T} AnyConstructor
+ */
 /**
  * @template {Attribute} T
  * @typedef {AnyConstructor<T> & EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
-*     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor<T>} AttributeConstructor
-*/
+ *     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor<T>} AttributeConstructor
+ */
 /**
  * @typedef {[Number, Number]} Coordinates
  * @typedef {IEntity | String | Number | BigInt | Boolean | Array} TerminalAttribute
@@ -56,10 +56,10 @@
 /**
  * @template T
  * @typedef {T extends [infer A] ? DescribedType<A>
-*     : T extends [infer A, ...infer B] ? (DescribedType<A> | DescribedTypesFromArray<B>)
-*     : any
-* } DescribedTypesFromArray
-**/
+ *     : T extends [infer A, ...infer B] ? (DescribedType<A> | DescribedTypesFromArray<B>)
+ *     : any
+ * } DescribedTypesFromArray
+ **/
 /**
  * @template T
  * @typedef {T extends AnyConstructor<infer R>
@@ -128,7 +128,6 @@
  * @typedef {import("./js/element/PinElement.js").default} PinElement
  * @typedef {import("./js/element/SelectorElement.js").default} SelectorElement
  * @typedef {import("./js/element/WindowElement.js").default} WindowElement
- * @typedef {import("./js/entity/Base64ObjectsEncoded.js").default} Base64ObjectsEncoded
  * @typedef {import("./js/entity/ByteEntity.js").default} ByteEntity
  * @typedef {import("./js/entity/ColorChannelEntity.js").default} ColorChannelEntity
  * @typedef {import("./js/entity/ComputedType.js").default} ComputedType

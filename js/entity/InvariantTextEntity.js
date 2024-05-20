@@ -37,4 +37,8 @@ export default class InvariantTextEntity extends IEntity {
         super(values)
         /** @type {String} */ this.value
     }
+
+    toString() {
+        return this.value
+    }
 }

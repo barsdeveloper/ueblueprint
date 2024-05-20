@@ -16,7 +16,7 @@ export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
                 X: Number(x),
                 Y: Number(y),
             })),
-            Vector2DEntity.createGrammar()
+            Vector2DEntity.grammar
         )
     }
 }

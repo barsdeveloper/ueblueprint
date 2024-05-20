@@ -20,7 +20,7 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
                     Y: Number(y),
                     Z: Number(z),
                 })),
-            VectorEntity.createGrammar()
+            VectorEntity.grammar
         )
     }
 }

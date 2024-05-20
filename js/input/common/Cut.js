@@ -1,5 +1,5 @@
-import IInput from "../IInput.js"
 import ObjectSerializer from "../../serialization/ObjectSerializer.js"
+import IInput from "../IInput.js"
 
 /**
  * @typedef {import("../IInput.js").Options & {

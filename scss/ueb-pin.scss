@@ -44,6 +44,10 @@ ueb-node[data-advanced-display="Hidden"] ueb-pin[data-advanced-view="true"][data
     align-items: center;
 }
 
+ueb-node.ueb-node-style-operation .ueb-pin-wrapper {
+    padding: 0;
+}
+
 ueb-node.ueb-node-style-minimal .ueb-pin-wrapper {
     min-height: 0;
 }

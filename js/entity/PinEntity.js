@@ -1,5 +1,6 @@
 import Configuration from "../Configuration.js"
-import Utility from "../Utility.js"
+import pinColor from "../decoding/pinColor.js"
+import pinTitle from "../decoding/pinTitle.js"
 import Grammar from "../serialization/Grammar.js"
 import AttributeInfo from "./AttributeInfo.js"
 import ByteEntity from "./ByteEntity.js"
@@ -11,6 +12,7 @@ import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 import Integer64Entity from "./Integer64Entity.js"
 import IntegerEntity from "./IntegerEntity.js"
+import InvariantTextEntity from "./InvariantTextEntity.js"
 import LinearColorEntity from "./LinearColorEntity.js"
 import LocalizedTextEntity from "./LocalizedTextEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
@@ -20,9 +22,11 @@ import RBSerializationVector2DEntity from "./RBSerializationVector2DEntity.js"
 import RotatorEntity from "./RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "./SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEntity.js"
+import SimpleSerializationVector4DEntity from "./SimpleSerializationVector4DEntity.js"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity.js"
 import Union from "./Union.js"
 import Vector2DEntity from "./Vector2DEntity.js"
+import Vector4DEntity from "./Vector4DEntity.js"
 import VectorEntity from "./VectorEntity.js"
 
 /** @template {TerminalAttribute} T */
@@ -33,6 +37,7 @@ export default class PinEntity extends IEntity {
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
         [Configuration.paths.vector2D]: Vector2DEntity,
+        [Configuration.paths.vector4f]: Vector4DEntity,
         "bool": Boolean,
         "byte": ByteEntity,
         "enum": EnumEntity,
@@ -49,6 +54,8 @@ export default class PinEntity extends IEntity {
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
+        [Configuration.paths.vector3f]: SimpleSerializationVectorEntity,
+        [Configuration.paths.vector4f]: SimpleSerializationVector4DEntity,
     }
     static attributes = {
         ...super.attributes,
@@ -68,7 +75,7 @@ export default class PinEntity extends IEntity {
             default: () => new GuidEntity()
         }),
         PinName: AttributeInfo.createValue(""),
-        PinFriendlyName: AttributeInfo.createType(new Union(LocalizedTextEntity, FormatTextEntity, String)),
+        PinFriendlyName: AttributeInfo.createType(new Union(LocalizedTextEntity, FormatTextEntity, InvariantTextEntity, String)),
         PinToolTip: AttributeInfo.createType(String),
         Direction: AttributeInfo.createType(String),
         PinType: new AttributeInfo({
@@ -139,8 +146,8 @@ export default class PinEntity extends IEntity {
     }
 
     getType() {
-        const category = this.PinType.PinCategory
-        if (category === "struct" || category === "object") {
+        const category = this.PinType.PinCategory.toLocaleLowerCase()
+        if (category === "struct" || category === "class" || category === "object" || category === "type") {
             return this.PinType.PinSubCategoryObject.path
         }
         if (this.isEnum()) {
@@ -198,21 +205,8 @@ export default class PinEntity extends IEntity {
             : entity
     }
 
-    pinDisplayName() {
-        let result = this.PinFriendlyName
-            ? this.PinFriendlyName.toString()
-            : Utility.formatStringName(this.PinName ?? "")
-        let match
-        if (
-            this.PinToolTip
-            // Match up until the first \n excluded or last character
-            && (match = this.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
-        ) {
-            if (match[1].toLowerCase() === result.toLowerCase()) {
-                return match[1] // In case they match, then keep the case of the PinToolTip
-            }
-        }
-        return result
+    pinTitle() {
+        return pinTitle(this)
     }
 
     /** @param {PinEntity} other */
@@ -309,18 +303,7 @@ export default class PinEntity extends IEntity {
         return this.PinType.PinSubCategoryObject.path
     }
 
-    /** @return {CSSResult} */
     pinColor() {
-        if (this.PinType.PinCategory == "mask") {
-            const result = Configuration.pinColor[this.PinType.PinSubCategory]
-            if (result) {
-                return result
-            }
-        } else if (this.PinType.PinCategory == "optional") {
-            return Configuration.pinColorMaterial
-        }
-        return Configuration.pinColor[this.getType()]
-            ?? Configuration.pinColor[this.PinType.PinCategory.toLowerCase()]
-            ?? Configuration.pinColor["default"]
+        return pinColor(this)
     }
 }

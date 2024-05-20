@@ -295,8 +295,9 @@ export default class Utility {
      * @template T
      * @param {Array<T>} a
      * @param {Array<T>} b
+     * @param {(l: T, r: T) => Boolean} predicate
      */
-    static mergeArrays(a = [], b = []) {
+    static mergeArrays(a = [], b = [], predicate = (l, r) => l == r) {
         let result = []
         a = [...a]
         b = [...b]
@@ -304,7 +305,7 @@ export default class Utility {
         while (true) {
             for (let j = 0; j < b.length; ++j) {
                 for (let i = 0; i < a.length; ++i) {
-                    if (a[i] == b[j]) {
+                    if (predicate(a[i], b[j])) {
                         // Found an element in common in the two arrays
                         result.push(
                             // Take and append all the elements skipped from a
@@ -323,6 +324,13 @@ export default class Utility {
         }
         // Append remaining the elements in the arrays and make it unique
         return [...(new Set(result.concat(...a, ...b)))]
+    }
+
+    /** @param {String} value */
+    static escapeNewlines(value) {
+        return value
+            .replaceAll("\n", "\\n") // Replace newline with \n
+            .replaceAll("\t", "\\t") // Replace tab with \t
     }
 
     /** @param {String} value */
@@ -384,8 +392,10 @@ export default class Utility {
     }
 
     /** @param {String} pathValue */
-    static getNameFromPath(pathValue) {
-        return pathValue.match(/[^\.\/]+$/)?.[0] ?? ""
+    static getNameFromPath(pathValue, dropCounter = false) {
+        // From end to the first "/" or "."
+        const regex = dropCounter ? /([^\.\/]+?)(?:_\d+)$/ : /([^\.\/]+)$/
+        return pathValue.match(regex)?.[1] ?? ""
     }
 
     /** @param {LinearColorEntity} value */

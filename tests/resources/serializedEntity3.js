@@ -8,8 +8,8 @@ export default `[[
     golf: ()
     hotel: ()
     india: ()
-    juliett: ("a","b","c","d","e",)
-    kilo: (True,False,False,True,True,)
+    juliett: ("a","b","c","d","e")
+    kilo: (True,False,False,True,True)
     mike: "Bar"
     november: 0
     oscar: Entity1(a=8, b=9)
@@ -23,7 +23,7 @@ export default `[[
     sierra.someBoolean: True
     sierra.someBoolean2: False
     sierra.someObjectString: "gamma"
-    sierra.someArray: (400,500,600,700,800,)
-    sierra.someArray2: (400,500,600,700,800,)
+    sierra.someArray: (400,500,600,700,800)
+    sierra.someArray2: (400,500,600,700,800)
     sierra.someEntity: Entity1(a=8, b=9)
 ]]`
