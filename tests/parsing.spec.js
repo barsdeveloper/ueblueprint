@@ -370,6 +370,13 @@ test("ObjectReferenceEntity", () => {
         path: "/Script/Engine.GameModeBase",
     })
     expect(serializer.write(reference)).toBe(`/Script/CoreUObject.Class'"/Script/Engine.GameModeBase"'`)
+
+    reference = serializer.read(`"/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"`)
+    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
+    expect(reference).toMatchObject({
+        type: "/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01",
+        path: "",
+    })
 })
 
 test("PinEntity", () => {
