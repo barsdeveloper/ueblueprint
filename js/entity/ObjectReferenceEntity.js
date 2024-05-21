@@ -37,10 +37,10 @@ export default class ObjectReferenceEntity extends IEntity {
     ).map(([_full, type, ...path]) => new this({ type, path: path.find(v => v), _full }))
     static fullReferenceSerializedGrammar = Parsernostrum.regArray(
         new RegExp(
-            "(" + this.typeReference.getParser().regexp.source + ")"
-            + `'(` + Grammar.Regex.InsideSingleQuotedString.source + `)'`
+            '"(' + Grammar.Regex.InsideString.source + "?)"
+            + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
         )
-    ).map(([_full, type, ...path]) => new this({ type, path: path.find(v => v), _full }))
+    ).map(([_full, type, path]) => new this({ type, path, _full }))
     static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "", _full: v }))
     static grammar = this.createGrammar()
 
@@ -60,14 +60,7 @@ export default class ObjectReferenceEntity extends IEntity {
 
     static createGrammar() {
         return Parsernostrum.alt(
-            Parsernostrum.seq(
-                Parsernostrum.str('"'),
-                Parsernostrum.alt(
-                    this.fullReferenceSerializedGrammar,
-                    this.typeReferenceGrammar,
-                ),
-                Parsernostrum.str('"'),
-            ).map(([_0, objectReference, _1]) => (objectReference._full = `"${objectReference._full}"`, objectReference)),
+            this.fullReferenceSerializedGrammar,
             this.fullReferenceGrammar,
             this.typeReferenceGrammar,
         )
