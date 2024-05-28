@@ -1,7 +1,4 @@
-import ComputedType from "./entity/ComputedType.js"
 import Configuration from "./Configuration.js"
-import MirroredEntity from "./entity/MirroredEntity.js"
-import Union from "./entity/Union.js"
 
 export default class Utility {
 
@@ -241,38 +238,6 @@ export default class Utility {
             type = type.getTargetType()
         }
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
-    }
-
-    /** @param {Attribute} value */
-    static sanitize(value, targetType = /** @type {AttributeTypeDescription } */(value?.constructor)) {
-        if (targetType instanceof Array) {
-            targetType = targetType[0]
-        }
-        if (targetType instanceof ComputedType) {
-            return value // The type is computed, can't say anything about it
-        }
-        if (targetType instanceof Union) {
-            let type = targetType.values.find(t => Utility.isValueOfType(value, t, false))
-            if (!type) {
-                type = targetType.values[0]
-            }
-            targetType = type
-        }
-        if (targetType instanceof MirroredEntity) {
-            if (value instanceof MirroredEntity) {
-                return value
-            }
-            return Utility.sanitize(value, targetType.getTargetType())
-        }
-        if (targetType && !Utility.isValueOfType(value, targetType, true)) {
-            value = targetType === BigInt
-                ? BigInt(/** @type {Number} */(value))
-                : new /** @type {EntityConstructor} */(targetType)(value)
-        }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = /** @type {TerminalAttribute} */(value.valueOf()) // Get the relative primitive value
-        }
-        return value
     }
 
     /**

@@ -1,5 +1,4 @@
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
@@ -8,17 +7,13 @@ export default class ScriptVariableEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        ScriptVariable: AttributeInfo.createType(ObjectReferenceEntity),
-        OriginalChangeId: AttributeInfo.createType(GuidEntity),
+        ScriptVariable: ObjectReferenceEntity,
+        OriginalChangeId: GuidEntity,
     }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.createEntityGrammar(this)
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values = {}, suppressWarns = false) {
-        super(values, suppressWarns)
+    constructor(values = {}) {
+        super(values)
         /** @type {ObjectReferenceEntity} */ this.ScriptVariable
         /** @type {GuidEntity} */ this.OriginalChangeId
     }

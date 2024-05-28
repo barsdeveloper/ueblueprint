@@ -1,36 +1,38 @@
-import AttributeInfo from "./AttributeInfo.js"
+import IEntity from "./IEntity.js"
 
-/** @template {Attribute} T */
-export default class MirroredEntity {
+/** @template {typeof IEntity} T */
+export default class MirroredEntity extends IEntity {
 
-    static attributes = {
-        type: new AttributeInfo({
-            ignored: true,
-        }),
-        getter: new AttributeInfo({
-            ignored: true,
-        }),
-    }
+    /** @type {typeof IEntity} */
+    static type
 
-    /**
-     * @param {ConstructorType<T>} type
-     * @param {() => T} getter
-     */
-    constructor(type, getter = null) {
-        this.type = type
+    /** @param {() => T} getter */
+    constructor(getter = null) {
+        super()
         this.getter = getter
     }
 
-    get() {
-        return this.getter()
+    /**
+     * @template {typeof IEntity} T
+     * @param {T} type
+     */
+    static of(type) {
+        const result = this.asUniqueClass()
+        result.type = type
+        result.grammar = result.getTargetType().grammar.map(v => new this())
+        return result
     }
 
-    /** @returns {AttributeConstructor<Attribute>} */
-    getTargetType() {
+    /** @returns {typeof IEntity} */
+    static getTargetType() {
         const result = this.type
-        if (result instanceof MirroredEntity) {
-            return result.getTargetType()
+        if (result.prototype instanceof MirroredEntity) {
+            return /** @type {typeof MirroredEntity} */(result).getTargetType()
         }
         return result
+    }
+
+    toString() {
+        return this.getter().toString()
     }
 }

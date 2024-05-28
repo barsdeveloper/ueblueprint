@@ -1,5 +1,6 @@
 // @ts-nocheck
 
+import NumberEntity from "../js/entity/NumberEntity.js"
 import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 import Grammar from "../js/serialization/Grammar.js"
 import ObjectSerializer from "../js/serialization/ObjectSerializer.js"
@@ -104,8 +105,8 @@ test("Entity3", () => {
     )
     expect(Object.keys(entity)).toHaveLength(keys.length)
     expect(Object.keys(entity)).toStrictEqual(keys)
-    expect(entity.alpha).toBe(32)
-    expect(entity.bravo).toBe(78)
+    expect(entity.alpha).toEqual(new NumberEntity(32))
+    expect(entity.bravo).toBe(new NumberEntity(78))
     expect(entity.charlie).toBe("Charlie")
     expect(entity.delta).toBeNull()
     expect(entity.echo).toBe("echo")
@@ -116,28 +117,10 @@ test("Entity3", () => {
     expect(entity.juliett).toStrictEqual(["a", "b", "c", "d", "e"])
     expect(entity.kilo).toStrictEqual([true, false, false, true, true])
     expect(entity.mike).toBe("Bar")
-    expect(entity.november).toBe(0)
+    expect(entity.november).toBe(new NumberEntity())
     expect(entity.oscar).toStrictEqual(new Entity1({ a: 8, b: 9 }))
     expect(entity.papa).toStrictEqual(new Entity1({ a: 12, b: 13 }))
-    expect(entity.quebec).toBeUndefined()
 
-    entity = new Entity3()
-    entity.quebec = 2
-    expect(entity.quebec).toBe(2)
-    entity["quebec"] = 7
-    expect(entity.quebec).toBe(7)
-    entity.quebec = 1
-    expect(entity.quebec).toBe(1)
-    entity["quebec"] = 10
-    expect(entity.quebec).toBe(10)
-    entity.quebec = 0
-    expect(entity.quebec).toBe(10)
-    entity["quebec"] = 11
-    expect(entity.quebec).toBe(10)
-    entity.quebec = -1
-    expect(entity.quebec).toBe(10)
-    entity.quebec = 6
-    expect(entity.quebec).toBe(6)
     expect(SerializerFactory.getSerializer(Entity3).write(entity)).toBe(entity3Value)
 
     expect(Grammar.getAttribute(Entity3, ["romeo", "b"]).type).toBe(Number)

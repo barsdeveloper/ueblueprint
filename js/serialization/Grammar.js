@@ -4,7 +4,6 @@ import Utility from "../Utility.js"
 import AttributeInfo from "../entity/AttributeInfo.js"
 import IEntity from "../entity/IEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
-import Union from "../entity/Union.js"
 import Serializable from "./Serializable.js"
 
 export default class Grammar {
@@ -36,7 +35,6 @@ export default class Grammar {
     static null = Parsernostrum.reg(/\(\s*\)/).map(() => null)
     static true = Parsernostrum.reg(/true/i).map(() => true)
     static false = Parsernostrum.reg(/false/i).map(() => false)
-    static boolean = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? true : false)
     static number = Parsernostrum.regArray(
         new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
     ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)

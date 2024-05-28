@@ -1,33 +1,32 @@
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
+import BooleanEntity from "./BooleanEntity.js"
 import IEntity from "./IEntity.js"
 import IdentifierEntity from "./IdentifierEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class KeyBindingEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        ActionName: AttributeInfo.createValue(""),
-        bShift: AttributeInfo.createValue(false),
-        bCtrl: AttributeInfo.createValue(false),
-        bAlt: AttributeInfo.createValue(false),
-        bCmd: AttributeInfo.createValue(false),
-        Key: AttributeInfo.createType(IdentifierEntity),
+        ActionName: StringEntity,
+        bShift: BooleanEntity,
+        bCtrl: BooleanEntity,
+        bAlt: BooleanEntity,
+        bCmd: BooleanEntity,
+        Key: IdentifierEntity,
     }
-    static grammar = this.createGrammar()
+    static grammar = P.alt(
+        IdentifierEntity.grammar.map(identifier => {
+            const result = new this()
+            result.Key = identifier
+            return result
+        }),
+        Grammar.createEntityGrammar(this)
+    )
 
-    static createGrammar() {
-        return Parsernostrum.alt(
-            IdentifierEntity.grammar.map(identifier => new this({
-                Key: identifier
-            })),
-            Grammar.createEntityGrammar(this)
-        )
-    }
-
-    constructor(values = {}) {
-        super(values, true)
+    constructor() {
+        super()
         /** @type {String} */ this.ActionName
         /** @type {Boolean} */ this.bShift
         /** @type {Boolean} */ this.bCtrl

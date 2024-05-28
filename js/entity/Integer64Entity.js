@@ -1,34 +1,25 @@
-import Parsernostrum from "parsernostrum"
-import AttributeInfo from "./AttributeInfo.js"
+import P from "parsernostrum"
 import IEntity from "./IEntity.js"
 
 export default class Integer64Entity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            default: 0n,
-            predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
-        }),
-    }
-    static grammar = this.createGrammar()
+    static grammar = P.numberBigInteger.map(v => new this(v))
 
-    static createGrammar() {
-        return Parsernostrum.numberBigInteger.map(v => new this(v))
+    /** @type {bigint} */
+    #value
+    get value() {
+        return this.#value
+    }
+    set value(value) {
+        if (value >= -(1n << 63n) && value < 1n << 63n) {
+            this.#value = value
+        }
     }
 
-    /** @param {BigInt | Number | Object} values */
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            }
-        }
-        if (values.value === -0) {
-            values.value = 0n
-        }
-        super(values)
-        /** @type {BigInt} */ this.value
+    /** @param {bigint | Number} value */
+    constructor(value = 0n) {
+        super()
+        this.value = BigInt(value)
     }
 
     valueOf() {

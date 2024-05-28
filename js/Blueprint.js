@@ -413,7 +413,7 @@ export default class Blueprint extends IElement {
                     this.entity = this.entity.mergeWith(element.entity)
                     const additionalSerialization = atob(element.entity.ExportedNodes)
                     this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity.isExported = true)
+                        .forEach(node => node.entity._exported = true)
                     continue
                 }
                 const name = element.entity.getObjectName()

@@ -32,7 +32,6 @@ import SimpleSerializationVector4DEntity from "../entity/SimpleSerializationVect
 import SimpleSerializationVectorEntity from "../entity/SimpleSerializationVectorEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
 import TerminalTypeEntity from "../entity/TerminalTypeEntity.js"
-import Union from "../entity/Union.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import VariableReferenceEntity from "../entity/VariableReferenceEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
@@ -44,17 +43,22 @@ import ObjectSerializer from "./ObjectSerializer.js"
 import Serializer from "./Serializer.js"
 import SerializerFactory from "./SerializerFactory.js"
 import ToStringSerializer from "./ToStringSerializer.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
+import NumberEntity from "../entity/NumberEntity.js"
+import StringEntity from "../entity/StringEntity.js"
+import ArrayEntity from "../entity/ArrayEntity.js"
+import AlternativesEntity from "../entity/AlternativesEntity.js"
 
 Grammar.unknownValue =
     Parsernostrum.alt(
         // Remember to keep the order, otherwise parsing might fail
-        Grammar.boolean,
+        BooleanEntity.grammar,
         GuidEntity.grammar,
-        Parsernostrum.str("None").map(() => new ObjectReferenceEntity({ type: "None" })),
+        Parsernostrum.str("None").map(() => ObjectReferenceEntity.createNoneInstance()),
         Grammar.null,
-        Grammar.number,
+        NumberEntity.grammar,
         ObjectReferenceEntity.fullReferenceGrammar,
-        Grammar.string,
+        StringEntity.grammar,
         LocalizedTextEntity.grammar,
         InvariantTextEntity.grammar,
         FormatTextEntity.grammar,
@@ -66,9 +70,9 @@ Grammar.unknownValue =
         Vector2DEntity.grammar,
         UnknownKeysEntity.grammar,
         SymbolEntity.grammar,
-        Grammar.grammarFor(undefined, [PinReferenceEntity]),
-        Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
-        Parsernostrum.lazy(() => Grammar.grammarFor(undefined, [undefined])),
+        ArrayEntity.of(PinReferenceEntity).grammar,
+        ArrayEntity.of(AlternativesEntity.accepting(NumberEntity, StringEntity, SymbolEntity)).grammar,
+        Parsernostrum.lazy(() => ArrayEntity.createGrammar(Grammar.unknownValue)),
     )
 
 export default function initializeSerializerFactory() {
@@ -202,7 +206,7 @@ export default function initializeSerializerFactory() {
         new Serializer(MacroGraphReferenceEntity, Serializer.bracketsWrapped)
     )
 
-    SerializerFactory.registerSerializer(
+    SerializerFactory.registeOrSerializer(
         MirroredEntity,
         new CustomSerializer(
             (v, insideString) => SerializerFactory.getSerializer(v.getTargetType()).write(v.get(), insideString),

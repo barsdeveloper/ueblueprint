@@ -1,15 +1,16 @@
-import AttributeInfo from "./AttributeInfo.js"
+import BooleanEntity from "./BooleanEntity.js"
 import IEntity from "./IEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class TerminalTypeEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        TerminalCategory: AttributeInfo.createType(String),
-        TerminalSubCategory: AttributeInfo.createType(String),
-        bTerminalIsConst: AttributeInfo.createType(Boolean),
-        bTerminalIsWeakPointer: AttributeInfo.createType(Boolean),
-        bTerminalIsUObjectWrapper: AttributeInfo.createType(Boolean),
+        TerminalCategory: StringEntity,
+        TerminalSubCategory: StringEntity,
+        bTerminalIsConst: BooleanEntity,
+        bTerminalIsWeakPointer: BooleanEntity,
+        bTerminalIsUObjectWrapper: BooleanEntity,
     }
 
     constructor(values) {

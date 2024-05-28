@@ -1,26 +1,21 @@
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
 import VectorEntity from "./VectorEntity.js"
 
 export default class SimpleSerializationVectorEntity extends VectorEntity {
 
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-            ))
-                .map(([_0, x, y, z]) => new this({
-                    X: Number(x),
-                    Y: Number(y),
-                    Z: Number(z),
-                })),
-            VectorEntity.grammar
-        )
-    }
+    static grammar = P.alt(
+        P.regArray(new RegExp(
+            `(${P.number.getParser().parser.regexp.source})`
+            + String.raw`\s*,\s*`
+            + `(${P.number.getParser().parser.regexp.source})`
+            + String.raw`\s*,\s*`
+            + `(${P.number.getParser().parser.regexp.source})`
+        ))
+            .map(([_0, x, y, z]) => new this({
+                X: Number(x),
+                Y: Number(y),
+                Z: Number(z),
+            })),
+        VectorEntity.grammar
+    )
 }

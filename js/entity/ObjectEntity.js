@@ -1,10 +1,14 @@
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
 import nodeColor from "../decoding/nodeColor.js"
 import nodeIcon from "../decoding/nodeIcon.js"
+import nodeVariadic from "../decoding/nodeVariadic.js"
 import Grammar from "../serialization/Grammar.js"
+import AlternativesEntity from "./AlternativesEntity.js"
+import ArrayEntity from "./ArrayEntity.js"
 import AttributeInfo from "./AttributeInfo.js"
+import BooleanEntity from "./BooleanEntity.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
@@ -13,160 +17,134 @@ import IntegerEntity from "./IntegerEntity.js"
 import LinearColorEntity from "./LinearColorEntity.js"
 import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity.js"
 import MirroredEntity from "./MirroredEntity.js"
+import NaturalNumberEntity from "./NaturalNumberEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PinEntity from "./PinEntity.js"
 import ScriptVariableEntity from "./ScriptVariableEntity.js"
+import StringEntity from "./StringEntity.js"
 import SymbolEntity from "./SymbolEntity.js"
-import Union from "./Union.js"
 import UnknownPinEntity from "./UnknownPinEntity.js"
 import VariableReferenceEntity from "./VariableReferenceEntity.js"
-import nodeVariadic from "../decoding/nodeVariadic.js"
 
 export default class ObjectEntity extends IEntity {
 
+    #_exported = false
+    get _exported() {
+        return this.#_exported
+    }
+    set _exported(value) {
+        this.#_exported = value
+    }
+
     static attributes = {
         ...super.attributes,
-        isExported: new AttributeInfo({
-            type: Boolean,
-            ignored: true,
-        }),
-        Class: AttributeInfo.createType(ObjectReferenceEntity),
-        Name: AttributeInfo.createType(String),
-        Archetype: AttributeInfo.createType(ObjectReferenceEntity),
-        ExportPath: AttributeInfo.createType(ObjectReferenceEntity),
-        ObjectRef: AttributeInfo.createType(ObjectReferenceEntity),
-        BlueprintElementType: AttributeInfo.createType(ObjectReferenceEntity),
-        BlueprintElementInstance: AttributeInfo.createType(ObjectReferenceEntity),
-        PinTags: new AttributeInfo({
-            type: [null],
-            inlined: true,
-        }),
-        PinNames: new AttributeInfo({
-            type: [String],
-            inlined: true,
-        }),
-        AxisKey: AttributeInfo.createType(SymbolEntity),
-        InputAxisKey: AttributeInfo.createType(SymbolEntity),
-        InputName: AttributeInfo.createType(String),
-        InputType: AttributeInfo.createType(SymbolEntity),
-        NumAdditionalInputs: AttributeInfo.createType(Number),
-        bIsPureFunc: AttributeInfo.createType(Boolean),
-        bIsConstFunc: AttributeInfo.createType(Boolean),
-        bIsCaseSensitive: AttributeInfo.createType(Boolean),
-        VariableReference: AttributeInfo.createType(VariableReferenceEntity),
-        SelfContextInfo: AttributeInfo.createType(SymbolEntity),
-        DelegatePropertyName: AttributeInfo.createType(String),
-        DelegateOwnerClass: AttributeInfo.createType(ObjectReferenceEntity),
-        ComponentPropertyName: AttributeInfo.createType(String),
-        EventReference: AttributeInfo.createType(FunctionReferenceEntity),
-        FunctionReference: AttributeInfo.createType(FunctionReferenceEntity),
-        FunctionScript: AttributeInfo.createType(ObjectReferenceEntity),
-        CustomFunctionName: AttributeInfo.createType(String),
-        TargetType: AttributeInfo.createType(ObjectReferenceEntity),
-        MacroGraphReference: AttributeInfo.createType(MacroGraphReferenceEntity),
-        Enum: AttributeInfo.createType(ObjectReferenceEntity),
-        EnumEntries: new AttributeInfo({
-            type: [String],
-            inlined: true,
-        }),
-        InputKey: AttributeInfo.createType(SymbolEntity),
-        OpName: AttributeInfo.createType(String),
-        CachedChangeId: AttributeInfo.createType(GuidEntity),
-        FunctionDisplayName: AttributeInfo.createType(String),
-        AddedPins: new AttributeInfo({
-            type: [UnknownPinEntity],
-            default: () => [],
-            inlined: true,
-            silent: true,
-        }),
-        ChangeId: AttributeInfo.createType(GuidEntity),
-        MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
-        bOverrideFunction: AttributeInfo.createType(Boolean),
-        bInternalEvent: AttributeInfo.createType(Boolean),
-        bConsumeInput: AttributeInfo.createType(Boolean),
-        bExecuteWhenPaused: AttributeInfo.createType(Boolean),
-        bOverrideParentBinding: AttributeInfo.createType(Boolean),
-        bControl: AttributeInfo.createType(Boolean),
-        bAlt: AttributeInfo.createType(Boolean),
-        bShift: AttributeInfo.createType(Boolean),
-        bCommand: AttributeInfo.createType(Boolean),
-        CommentColor: AttributeInfo.createType(LinearColorEntity),
-        bCommentBubbleVisible_InDetailsPanel: AttributeInfo.createType(Boolean),
-        bColorCommentBubble: AttributeInfo.createType(Boolean),
-        ProxyFactoryFunctionName: AttributeInfo.createType(String),
-        ProxyFactoryClass: AttributeInfo.createType(ObjectReferenceEntity),
-        ProxyClass: AttributeInfo.createType(ObjectReferenceEntity),
-        StructType: AttributeInfo.createType(ObjectReferenceEntity),
-        MaterialExpression: AttributeInfo.createType(ObjectReferenceEntity),
-        MaterialExpressionComment: AttributeInfo.createType(ObjectReferenceEntity),
-        MoveMode: AttributeInfo.createType(SymbolEntity),
-        TimelineName: AttributeInfo.createType(String),
-        TimelineGuid: AttributeInfo.createType(GuidEntity),
-        SizeX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        SizeY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        Text: AttributeInfo.createType(new MirroredEntity(String)),
-        MaterialExpressionEditorX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        MaterialExpressionEditorY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        NodeTitle: AttributeInfo.createType(String),
-        NodeTitleColor: AttributeInfo.createType(LinearColorEntity),
-        PositionX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        PositionY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        SettingsInterface: AttributeInfo.createType(ObjectReferenceEntity),
-        PCGNode: AttributeInfo.createType(ObjectReferenceEntity),
-        HiGenGridSize: AttributeInfo.createType(SymbolEntity),
-        Operation: AttributeInfo.createType(SymbolEntity),
-        NodePosX: AttributeInfo.createType(IntegerEntity),
-        NodePosY: AttributeInfo.createType(IntegerEntity),
-        NodeHeight: AttributeInfo.createType(IntegerEntity),
-        NodeWidth: AttributeInfo.createType(IntegerEntity),
-        Graph: AttributeInfo.createType(ObjectReferenceEntity),
-        SubgraphInstance: AttributeInfo.createType(String),
-        InputPins: new AttributeInfo({
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        }),
-        OutputPins: new AttributeInfo({
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        }),
-        bExposeToLibrary: AttributeInfo.createType(Boolean),
-        bCanRenameNode: AttributeInfo.createType(Boolean),
-        bCommentBubblePinned: AttributeInfo.createType(Boolean),
-        bCommentBubbleVisible: AttributeInfo.createType(Boolean),
-        NodeComment: AttributeInfo.createType(String),
-        AdvancedPinDisplay: AttributeInfo.createType(IdentifierEntity),
-        DelegateReference: AttributeInfo.createType(VariableReferenceEntity),
-        EnabledState: AttributeInfo.createType(IdentifierEntity),
-        NodeGuid: AttributeInfo.createType(GuidEntity),
-        ErrorType: AttributeInfo.createType(IntegerEntity),
-        ErrorMsg: AttributeInfo.createType(String),
-        ScriptVariables: new AttributeInfo({
-            type: [ScriptVariableEntity],
-            inlined: true,
-        }),
-        Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),
-        ExportedNodes: AttributeInfo.createType(String),
-        CustomProperties: AttributeInfo.createType([new Union(PinEntity, UnknownPinEntity)]),
+        Class: ObjectReferenceEntity,
+        Name: StringEntity,
+        Archetype: ObjectReferenceEntity,
+        ExportPath: ObjectReferenceEntity,
+        ObjectRef: ObjectReferenceEntity,
+        BlueprintElementType: ObjectReferenceEntity,
+        BlueprintElementInstance: ObjectReferenceEntity,
+        PinNames: ArrayEntity.of(StringEntity).flagInlined(),
+        AxisKey: SymbolEntity,
+        InputAxisKey: SymbolEntity,
+        InputName: StringEntity,
+        InputType: SymbolEntity,
+        NumAdditionalInputs: NaturalNumberEntity,
+        bIsPureFunc: BooleanEntity,
+        bIsConstFunc: BooleanEntity,
+        bIsCaseSensitive: BooleanEntity,
+        VariableReference: VariableReferenceEntity,
+        SelfContextInfo: SymbolEntity,
+        DelegatePropertyName: StringEntity,
+        DelegateOwnerClass: ObjectReferenceEntity,
+        ComponentPropertyName: StringEntity,
+        EventReference: FunctionReferenceEntity,
+        FunctionReference: FunctionReferenceEntity,
+        FunctionScript: ObjectReferenceEntity,
+        CustomFunctionName: StringEntity,
+        TargetType: ObjectReferenceEntity,
+        MacroGraphReference: MacroGraphReferenceEntity,
+        Enum: ObjectReferenceEntity,
+        EnumEntries: ArrayEntity.of(StringEntity).flagInlined(),
+        InputKey: SymbolEntity,
+        OpName: StringEntity,
+        CachedChangeId: GuidEntity,
+        FunctionDisplayName: StringEntity,
+        AddedPins: ArrayEntity.of(UnknownPinEntity).withDefault().flagInlined().flagSilent(),
+        ChangeId: GuidEntity,
+        MaterialFunction: ObjectReferenceEntity,
+        bOverrideFunction: BooleanEntity,
+        bInternalEvent: BooleanEntity,
+        bConsumeInput: BooleanEntity,
+        bExecuteWhenPaused: BooleanEntity,
+        bOverrideParentBinding: BooleanEntity,
+        bControl: BooleanEntity,
+        bAlt: BooleanEntity,
+        bShift: BooleanEntity,
+        bCommand: BooleanEntity,
+        CommentColor: LinearColorEntity,
+        bCommentBubbleVisible_InDetailsPanel: BooleanEntity,
+        bColorCommentBubble: BooleanEntity,
+        ProxyFactoryFunctionName: StringEntity,
+        ProxyFactoryClass: ObjectReferenceEntity,
+        ProxyClass: ObjectReferenceEntity,
+        StructType: ObjectReferenceEntity,
+        MaterialExpression: ObjectReferenceEntity,
+        MaterialExpressionComment: ObjectReferenceEntity,
+        MoveMode: SymbolEntity,
+        TimelineName: StringEntity,
+        TimelineGuid: GuidEntity,
+        SizeX: MirroredEntity.of(IntegerEntity),
+        SizeY: MirroredEntity.of(IntegerEntity),
+        Text: MirroredEntity.of(StringEntity),
+        MaterialExpressionEditorX: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionEditorY: MirroredEntity.of(IntegerEntity),
+        NodeTitle: StringEntity,
+        NodeTitleColor: LinearColorEntity,
+        PositionX: MirroredEntity.of(IntegerEntity),
+        PositionY: MirroredEntity.of(IntegerEntity),
+        SettingsInterface: ObjectReferenceEntity,
+        PCGNode: ObjectReferenceEntity,
+        HiGenGridSize: SymbolEntity,
+        Operation: SymbolEntity,
+        NodePosX: IntegerEntity,
+        NodePosY: IntegerEntity,
+        NodeHeight: IntegerEntity,
+        NodeWidth: IntegerEntity,
+        Graph: ObjectReferenceEntity,
+        SubgraphInstance: StringEntity,
+        InputPins: ArrayEntity.of(ObjectReferenceEntity).flagInlined(),
+        OutputPins: ArrayEntity.of(ObjectReferenceEntity).flagInlined(),
+        bExposeToLibrary: BooleanEntity,
+        bCanRenameNode: BooleanEntity,
+        bCommentBubblePinned: BooleanEntity,
+        bCommentBubbleVisible: BooleanEntity,
+        NodeComment: StringEntity,
+        AdvancedPinDisplay: IdentifierEntity,
+        DelegateReference: VariableReferenceEntity,
+        EnabledState: IdentifierEntity,
+        NodeGuid: GuidEntity,
+        ErrorType: IntegerEntity,
+        ErrorMsg: StringEntity,
+        ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
+        Node: MirroredEntity.of(ObjectReferenceEntity),
+        ExportedNodes: StringEntity,
+        CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)),
     }
-    static nameRegex = /^(\w+?)(?:_(\d+))?$/
-    static customPropertyGrammar = Parsernostrum.seq(
-        Parsernostrum.reg(/CustomProperties\s+/),
-        Grammar.grammarFor(
-            undefined,
-            this.attributes.CustomProperties.type[0]
-        ),
+    static #nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static customPropertyGrammar = P.seq(
+        P.reg(/CustomProperties\s+/),
+        this.attributes.CustomProperties.type.grammar,
     ).map(([_0, pin]) => values => {
-        if (!values.CustomProperties) {
-            values.CustomProperties = []
-        }
-        values.CustomProperties.push(pin)
+        (values.CustomProperties ??= []).push(pin)
     })
-    static inlinedArrayEntryGrammar = Parsernostrum.seq(
-        Parsernostrum.alt(
+    static inlinedArrayEntryGrammar = P.seq(
+        P.alt(
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        Parsernostrum.reg(
+        P.reg(
             new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
             1
         ).map(Number)
@@ -192,21 +170,21 @@ export default class ObjectEntity extends IEntity {
     static grammar = this.createGrammar()
 
     static createSubObjectGrammar() {
-        return Parsernostrum.lazy(() => this.grammar)
+        return P.lazy(() => this.grammar)
             .map(object =>
                 values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
             )
     }
 
     static createGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(/Begin +Object/),
-            Parsernostrum.seq(
-                Parsernostrum.whitespace,
-                Parsernostrum.alt(
+        return P.seq(
+            P.reg(/Begin +Object/),
+            P.seq(
+                P.whitespace,
+                P.alt(
                     this.createSubObjectGrammar(),
                     this.customPropertyGrammar,
-                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
+                    Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
                     Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
                         Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
                     ),
@@ -215,7 +193,7 @@ export default class ObjectEntity extends IEntity {
             )
                 .map(([_0, entry]) => entry)
                 .many(),
-            Parsernostrum.reg(/\s+End +Object/),
+            P.reg(/\s+End +Object/),
         )
             .map(([_0, attributes, _2]) => {
                 const values = {}
@@ -225,16 +203,16 @@ export default class ObjectEntity extends IEntity {
     }
 
     static getMultipleObjectsGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.whitespaceOpt,
+        return P.seq(
+            P.whitespaceOpt,
             this.grammar,
-            Parsernostrum.seq(
-                Parsernostrum.whitespace,
+            P.seq(
+                P.whitespace,
                 this.grammar,
             )
                 .map(([_0, object]) => object)
                 .many(),
-            Parsernostrum.whitespaceOpt
+            P.whitespaceOpt
         )
             .map(([_0, first, remaining, _4]) => [first, ...remaining])
     }
@@ -242,7 +220,7 @@ export default class ObjectEntity extends IEntity {
     /** @type {String} */
     #class
 
-    constructor(values = {}, suppressWarns = false) {
+    constructor(values = {}) {
         if ("NodePosX" in values !== "NodePosY" in values) {
             const entries = Object.entries(values)
             const [key, position] = "NodePosX" in values
@@ -252,13 +230,7 @@ export default class ObjectEntity extends IEntity {
             entries.splice(position, 0, entry)
             values = Object.fromEntries(entries)
         }
-        super(values, suppressWarns)
-
-        // Attributes not assigned a strong type in attributes because the names are too generic
-        /** @type {Number | MirroredEntity<Boolean>} */ this.R
-        /** @type {Number | MirroredEntity<Boolean>} */ this.G
-        /** @type {Number | MirroredEntity<Boolean>} */ this.B
-        /** @type {Number | MirroredEntity<Boolean>} */ this.A
+        super(values)
 
         // Attributes
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
@@ -359,19 +331,19 @@ export default class ObjectEntity extends IEntity {
                     this.getPinEntities().find(pin => pin.PinName === pinName && (pin.recomputesNodeTitleOnChange = true))
                 )
                 const attribute = {}
-                obj.R = new MirroredEntity(Boolean, () => rgbaPins[0].DefaultValue)
-                obj.G = new MirroredEntity(Boolean, () => rgbaPins[1].DefaultValue)
-                obj.B = new MirroredEntity(Boolean, () => rgbaPins[2].DefaultValue)
-                obj.A = new MirroredEntity(Boolean, () => rgbaPins[3].DefaultValue)
-                Utility.objectSet(obj, ["attributes", "R", "default"], false)
-                Utility.objectSet(obj, ["attributes", "R", "silent"], true)
-                Utility.objectSet(obj, ["attributes", "G", "default"], false)
-                Utility.objectSet(obj, ["attributes", "G", "silent"], true)
-                Utility.objectSet(obj, ["attributes", "B", "default"], false)
-                Utility.objectSet(obj, ["attributes", "B", "silent"], true)
-                Utility.objectSet(obj, ["attributes", "A", "default"], false)
-                Utility.objectSet(obj, ["attributes", "A", "silent"], true)
-                obj._keys = [...Configuration.rgba, ...Object.keys(obj).filter(k => !Configuration.rgba.includes(k))]
+                obj.R = new (
+                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
+                )(() => rgbaPins[0].DefaultValue)
+                obj.G = new (
+                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
+                )(() => rgbaPins[1].DefaultValue)
+                obj.B = new (
+                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
+                )(() => rgbaPins[2].DefaultValue)
+                obj.A = new (
+                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
+                )(() => rgbaPins[3].DefaultValue)
+                obj.keys = [...Configuration.rgba, ...super.keys.filter(k => !Configuration.rgba.includes(k))]
             }
         }
         /** @type {ObjectEntity} */
@@ -388,10 +360,10 @@ export default class ObjectEntity extends IEntity {
                             nodeRef.type === this.PCGNode.type
                             && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
                         ) {
-                            obj.Node.getter = () => new ObjectReferenceEntity({
-                                type: this.PCGNode.type,
-                                path: `${this.Name}.${this.PCGNode.path}`,
-                            })
+                            obj.Node.getter = () => new ObjectReferenceEntity(
+                                this.PCGNode.type,
+                                `${this.Name}.${this.PCGNode.path}`,
+                            )
                         }
                     }
                 }
@@ -446,7 +418,7 @@ export default class ObjectEntity extends IEntity {
 
     /** @returns {[String, Number]} */
     getNameAndCounter() {
-        const result = this.getObjectName().match(ObjectEntity.nameRegex)
+        const result = this.getObjectName().match(ObjectEntity.#nameRegex)
         let name = ""
         let counter = null
         return result

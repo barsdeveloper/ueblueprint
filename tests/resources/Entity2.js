@@ -1,21 +1,33 @@
-import AttributeInfo from "../../js/entity/AttributeInfo.js"
+import ArrayEntity from "../../js/entity/ArrayEntity.js"
+import BooleanEntity from "../../js/entity/BooleanEntity.js"
 import IEntity from "../../js/entity/IEntity.js"
+import NumberEntity from "../../js/entity/NumberEntity.js"
+import StringEntity from "../../js/entity/StringEntity.js"
 import Entity1 from "./Entity1.js"
 
 export default class Entity2 extends IEntity {
 
     static attributes = {
-        someNumber: AttributeInfo.createValue(567),
-        someString: AttributeInfo.createValue("alpha"),
-        someString2: AttributeInfo.createValue("beta"),
-        someBoolean: AttributeInfo.createValue(true),
-        someBoolean2: AttributeInfo.createValue(false),
-        someObjectString: AttributeInfo.createValue("gamma"),
-        someArray: AttributeInfo.createValue([400, 500, 600, 700, 800]),
-        someArray2: AttributeInfo.createValue(() => [400, 500, 600, 700, 800]),
-        someEntity: new AttributeInfo({
-            type: Entity1,
-            default: new Entity1()
-        }),
+        someNumber: NumberEntity.withDefault(type => new type(567)),
+        someString: StringEntity.withDefault(type => new type("alpha")),
+        someString2: StringEntity.withDefault(type => new type("beta")),
+        someBoolean: BooleanEntity.withDefault(type => new type(true)),
+        someBoolean2: BooleanEntity.withDefault(),
+        someObjectString: StringEntity.withDefault(type => new type("gamma")),
+        someArray: ArrayEntity.of(NumberEntity).withDefault(type => new type([
+            new NumberEntity(400),
+            new NumberEntity(500),
+            new NumberEntity(600),
+            new NumberEntity(700),
+            new NumberEntity(800),
+        ])),
+        someArray2: ArrayEntity.of(NumberEntity).withDefault(type => new type([
+            new NumberEntity(400),
+            new NumberEntity(500),
+            new NumberEntity(600),
+            new NumberEntity(700),
+            new NumberEntity(800),
+        ])).flagInlined(),
+        someEntity: Entity1.withDefault(),
     }
 }

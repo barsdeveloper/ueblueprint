@@ -1,39 +1,26 @@
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
+import NumberEntity from "./NumberEntity.js"
 
 export default class VectorEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        X: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Z: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+        Z: NumberEntity.withDefault(),
     }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(VectorEntity, false)
-    }
+    static grammar = Grammar.createEntityGrammar(VectorEntity, false)
 
     constructor(values) {
         super(values)
-        /** @type {Number} */ this.X
-        /** @type {Number} */ this.Y
-        /** @type {Number} */ this.Z
+        /** @type {NumberEntity} */ this.X
+        /** @type {NumberEntity} */ this.Y
+        /** @type {NumberEntity} */ this.Z
     }
 
     /** @returns {[Number, Number, Number]} */
     toArray() {
-        return [this.X, this.Y, this.Z]
+        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf()]
     }
 }

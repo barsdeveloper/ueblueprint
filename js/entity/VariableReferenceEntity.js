@@ -1,22 +1,19 @@
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
+import BooleanEntity from "./BooleanEntity.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class VariableReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        MemberScope: AttributeInfo.createType(String),
-        MemberName: AttributeInfo.createValue(""),
-        MemberGuid: AttributeInfo.createType(GuidEntity),
-        bSelfContext: AttributeInfo.createType(Boolean),
+        MemberScope: StringEntity,
+        MemberName: StringEntity.withDefault(),
+        MemberGuid: GuidEntity,
+        bSelfContext: BooleanEntity,
     }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
+    static grammar = Grammar.createEntityGrammar(this)
 
     constructor(values) {
         super(values)

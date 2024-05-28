@@ -433,189 +433,6 @@ class Configuration {
     }
 }
 
-class ComputedType {
-
-    #f
-
-    /** @param {Function} f */
-    constructor(f) {
-        this.#f = f;
-    }
-
-    /** @param {IEntity} entity */
-    compute(entity) {
-        return this.#f(entity)
-    }
-}
-
-/**
- * @template T
- * @typedef {{
- *     type?: AttributeTypeDescription,
- *     default?: T,
- *     nullable?: Boolean,
- *     ignored?: Boolean,
- *     serialized?: Boolean,
- *     expected?: Boolean,
- *     inlined?: Boolean,
- *     quoted?: Boolean,
- *     silent?: Boolean,
- *     uninitialized?: Boolean,
- *     predicate?: (value: T) => Boolean,
- * }} AttributeInfoSource
- */
-
-/** @template T */
-class AttributeInfo {
-
-    /** @typedef {keyof AttributeInfo<number>} AttributeKey */
-
-    static #default = {
-        nullable: false,
-        ignored: false, // Never serialize or deserialize
-        serialized: false, // Value is written and read as string
-        expected: false, // Must be there
-        inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
-        quoted: false, // Key is serialized with quotes
-        silent: false, // Do not serialize if default
-        uninitialized: false, // Do not initialize with default
-    }
-
-    /** @param {AttributeInfoSource<T>} source */
-    constructor(source) {
-        this.type = source.type ?? source.default?.constructor;
-        this.default = source.default;
-        this.nullable = source.nullable ?? source.default === null;
-        this.ignored = source.ignored;
-        this.serialized = source.serialized;
-        this.expected = source.expected;
-        this.inlined = source.inlined;
-        this.quoted = source.quoted;
-        this.silent = source.silent;
-        this.uninitialized = source.uninitialized;
-        this.predicate = source.predicate;
-        if (this.type === Array && this.default instanceof Array && this.default.length > 0) {
-            this.type = this.default
-                .map(v => v.constructor)
-                .reduce((acc, cur) => acc.includes(cur) ? acc : (acc.push(cur), acc), []);
-        }
-    }
-
-    /**
-     * @template {AttributeTypeDescription} D
-     * @param {D} type
-     * @returns {AttributeInfo<DescribedType<type>>}
-     */
-    static createType(type) {
-        return new AttributeInfo({ type })
-    }
-
-    /** 
-     * @template V
-     * @param {V} value
-     */
-    static createValue(value) {
-        return new AttributeInfo({ default: value })
-    }
-
-    /**
-     * @param {IEntity | Object} source
-     * @param {String} attribute
-     * @param {AttributeKey} key
-     */
-    static hasAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
-        const entity = /** @type {IEntity} */(source);
-        const result = entity.attributes[attribute]?.[key];
-        return /** @type {result} */(
-            result
-            ?? type?.attributes?.[attribute]?.[key]
-            ?? AttributeInfo.#default[key]
-        )
-    }
-
-    /**
-     * @template {IEntity | Object} S
-     * @template {EntityConstructor} C
-     * @template {keyof C["attributes"]} A
-     * @template {keyof C["attributes"][attribute]} K
-     * @param {S} source
-     * @param {A} attribute
-     * @param {K} key
-     * @param {C} type
-     * @returns {C["attributes"][attribute][key]}
-     */
-    static getAttribute(source, attribute, key, type = /** @type {C} */(source.constructor)) {
-        let result = source["attributes"]?.[attribute]?.[key];
-        // Remember null is a valid asignment value for some attributes
-        if (result !== undefined) {
-            return result
-        }
-        result = /** @type {C["attributes"]} */(type?.attributes)?.[attribute]?.[key];
-        if (result !== undefined) {
-            return result
-        }
-        result = /** @type {C["attributes"][attribute]} */(AttributeInfo.#default)[key];
-        if (result !== undefined) {
-            return result
-        }
-    }
-
-    /** @param {AttributeKey} key */
-    get(key) {
-        return this[key] ?? AttributeInfo.#default[key]
-    }
-}
-
-/** @template {Attribute} T */
-class MirroredEntity {
-
-    static attributes = {
-        type: new AttributeInfo({
-            ignored: true,
-        }),
-        getter: new AttributeInfo({
-            ignored: true,
-        }),
-    }
-
-    /**
-     * @param {ConstructorType<T>} type
-     * @param {() => T} getter
-     */
-    constructor(type, getter = null) {
-        this.type = type;
-        this.getter = getter;
-    }
-
-    get() {
-        return this.getter()
-    }
-
-    /** @returns {AttributeConstructor<Attribute>} */
-    getTargetType() {
-        const result = this.type;
-        if (result instanceof MirroredEntity) {
-            return result.getTargetType()
-        }
-        return result
-    }
-}
-
-/** @template {any[]} T */
-class Union {
-
-    /** @type {T} */
-    #values
-    get values() {
-        return this.#values
-    }
-
-    /** @param  {T} values */
-    constructor(...values) {
-        this.#values = values;
-    }
-}
-
 class Utility {
 
     static booleanConverter = {
@@ -853,38 +670,6 @@ class Utility {
             type = type.getTargetType();
         }
         return (acceptNull && value === null) || value instanceof type || value?.constructor === type
-    }
-
-    /** @param {Attribute} value */
-    static sanitize(value, targetType = /** @type {AttributeTypeDescription } */(value?.constructor)) {
-        if (targetType instanceof Array) {
-            targetType = targetType[0];
-        }
-        if (targetType instanceof ComputedType) {
-            return value // The type is computed, can't say anything about it
-        }
-        if (targetType instanceof Union) {
-            let type = targetType.values.find(t => Utility.isValueOfType(value, t, false));
-            if (!type) {
-                type = targetType.values[0];
-            }
-            targetType = type;
-        }
-        if (targetType instanceof MirroredEntity) {
-            if (value instanceof MirroredEntity) {
-                return value
-            }
-            return Utility.sanitize(value, targetType.getTargetType())
-        }
-        if (targetType && !Utility.isValueOfType(value, targetType, true)) {
-            value = targetType === BigInt
-                ? BigInt(/** @type {Number} */(value))
-                : new /** @type {EntityConstructor} */(targetType)(value);
-        }
-        if (value instanceof Boolean || value instanceof Number || value instanceof String) {
-            value = /** @type {TerminalAttribute} */(value.valueOf()); // Get the relative primitive value
-        }
-        return value
     }
 
     /**
@@ -2575,196 +2360,283 @@ class Parsernostrum {
     }
 }
 
-class Serializable {
+/**
+ * @template T
+ * @typedef {{
+ *     type?: AttributeTypeDescription,
+ *     default?: T,
+ *     nullable?: Boolean,
+ *     ignored?: Boolean,
+ *     serialized?: Boolean,
+ *     expected?: Boolean,
+ *     inlined?: Boolean,
+ *     quoted?: Boolean,
+ *     silent?: Boolean,
+ *     uninitialized?: Boolean,
+ *     predicate?: (value: T) => Boolean,
+ * }} AttributeInfoSource
+ */
 
-    static grammar = this.createGrammar()
+/** @template T */
+class AttributeInfo {
 
-    /** @protected */
-    static createGrammar() {
-        return /** @type {Parsernostrum<any>} */(Parsernostrum.failure())
+    /** @typedef {keyof AttributeInfo<number>} AttributeKey */
+
+    static #default = {
+        nullable: false,
+        ignored: false, // Never serialize or deserialize
+        serialized: false, // Value is written and read as string
+        expected: false, // Must be there
+        inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
+        quoted: false, // Key is serialized with quotes
+        silent: false, // Do not serialize if default
+        uninitialized: false, // Do not initialize with default
     }
-}
 
-class SerializerFactory {
-
-    static #serializers = new Map()
+    /** @param {AttributeInfoSource<T>} source */
+    constructor(source) {
+        this.type = source.type ?? source.default?.constructor;
+        this.default = source.default;
+        this.nullable = source.nullable ?? source.default === null;
+        this.ignored = source.ignored;
+        this.serialized = source.serialized;
+        this.expected = source.expected;
+        this.inlined = source.inlined;
+        this.quoted = source.quoted;
+        this.silent = source.silent;
+        this.uninitialized = source.uninitialized;
+        this.predicate = source.predicate;
+        if (this.type === Array && this.default instanceof Array && this.default.length > 0) {
+            this.type = this.default
+                .map(v => v.constructor)
+                .reduce((acc, cur) => acc.includes(cur) ? acc : (acc.push(cur), acc), []);
+        }
+    }
 
     /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} type
-     * @param {Serializer<T>} object
+     * @template {AttributeTypeDescription} D
+     * @param {D} type
+     * @returns {AttributeInfo<DescribedType<type>>}
      */
-    static registerSerializer(type, object) {
-        SerializerFactory.#serializers.set(type, object);
+    static createType(type) {
+        return new AttributeInfo({ type })
+    }
+
+    /** 
+     * @template V
+     * @param {V} value
+     */
+    static createValue(value) {
+        return new AttributeInfo({ default: value })
     }
 
     /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} type
-     * @returns {Serializer<T>}
+     * @param {IEntity | Object} source
+     * @param {String} attribute
+     * @param {AttributeKey} key
      */
-    static getSerializer(type) {
-        return SerializerFactory.#serializers.get(type)
+    static hasAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
+        const entity = /** @type {IEntity} */(source);
+        const result = entity.attributes[attribute]?.[key];
+        return /** @type {result} */(
+            result
+            ?? type?.attributes?.[attribute]?.[key]
+            ?? AttributeInfo.#default[key]
+        )
+    }
+
+    /**
+     * @template {IEntity | Object} S
+     * @template {EntityConstructor} C
+     * @template {keyof C["attributes"]} A
+     * @template {keyof C["attributes"][attribute]} K
+     * @param {S} source
+     * @param {A} attribute
+     * @param {K} key
+     * @param {C} type
+     * @returns {C["attributes"][attribute][key]}
+     */
+    static getAttribute(source, attribute, key, type = /** @type {C} */(source.constructor)) {
+        let result = source["attributes"]?.[attribute]?.[key];
+        // Remember null is a valid asignment value for some attributes
+        if (result !== undefined) {
+            return result
+        }
+        result = /** @type {C["attributes"]} */(type?.attributes)?.[attribute]?.[key];
+        if (result !== undefined) {
+            return result
+        }
+        result = /** @type {C["attributes"][attribute]} */(AttributeInfo.#default)[key];
+        if (result !== undefined) {
+            return result
+        }
+    }
+
+    /** @param {AttributeKey} key */
+    get(key) {
+        return this[key] ?? AttributeInfo.#default[key]
     }
 }
 
 /** @abstract */
-class IEntity extends Serializable {
+class IEntity {
 
-    /** @type {{ [attribute: String]: AttributeInfo }} */
-    static attributes = {
-        attributes: new AttributeInfo({
-            ignored: true,
-        }),
-        lookbehind: new AttributeInfo({
-            default: /** @type {String | Union<String[]>} */(""),
-            ignored: true,
-            uninitialized: true,
-        }),
+    /** @type {(v: String) => String} */
+    static same = v => v
+
+    /** @type {(entity: Attribute, serialized: String) => String} */
+    static notWrapped = (entity, serialized) => serialized
+
+    /** @type {(entity: Attribute, serialized: String) => String} */
+    static bracketsWrapped = (entity, serialized) => `(${serialized})`
+
+    static wrap = this.notWrapped
+
+    static attributeSeparator = ","
+
+    static trailingSeparator = false
+
+    /** @type {(k: String) => String} */
+    static printKey = k => k
+
+    /** @type {P<Parser>} */
+    static grammar = Parsernostrum.failure()
+
+    /** @type {{ [key: String]: typeof IEntity }} */
+    static attributes = {}
+
+    /** @type {String | String[]} */
+    static lookbehind = ""
+
+    /** @type {typeof IEntity.lookbehind} */
+    #lookbehind = this.Self().lookbehind
+    get lookbehind() {
+        return this.#lookbehind
+    }
+    set lookbehind(value) {
+        throw this.#lookbehind = value
     }
 
     /** @type {String[]} */
-    #_keys
-    get _keys() {
-        return this.#_keys
+    #keys
+    get keys() {
+        return this.#keys ?? Object.keys(this.Self().attributes)
     }
-    set _keys(keys) {
-        this.#_keys = keys;
+    set keys(value) {
+        this.#keys = [... new Set(value)];
     }
 
-    constructor(values = {}, suppressWarns = false) {
-        super();
-        const Self = /** @type {typeof IEntity} */(this.constructor);
-        /** @type {AttributeDeclarations?} */ this.attributes;
-        /** @type {String} */ this.lookbehind;
-        const valuesKeys = Object.keys(values);
-        const attributesKeys = values.attributes
-            ? Utility.mergeArrays(Object.keys(values.attributes), Object.keys(Self.attributes))
-            : Object.keys(Self.attributes);
-        const allAttributesKeys = Utility.mergeArrays(valuesKeys, attributesKeys);
-        for (const key of allAttributesKeys) {
-            let value = values[key];
-            if (!suppressWarns && !(key in values)) {
-                if (!(key in Self.attributes) && !key.startsWith(Configuration.subObjectAttributeNamePrefix)) {
-                    const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name;
-                    console.warn(
-                        `UEBlueprint: Attribute ${key} (of type ${typeName}) in the serialized data is not defined in ${Self.name}.attributes`
-                    );
-                }
-            }
-            if (!(key in Self.attributes)) {
-                // Remember attributeName can come from the values and be not defined in the attributes.
-                // In that case just assign it and skip the rest.
-                this[key] = value;
+    /** @type {(type: typeof IEntity) => InstanceType<typeof IEntity>} */
+    static default
+    static nullable = false
+    static ignored = false // Never serialize or deserialize
+    static serialized = false // Value is written and read as string
+    static expected = false // Must be there
+    static inlined = false // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
+    static quoted = false // Key is serialized with quotes
+    static silent = false // Do not serialize if default
+    static uninitialized = false // Do not initialize with default
+
+    constructor(values = {}) {
+        const keys = Utility.mergeArrays(Object.keys(values.attributes), Object.keys(this.Self().attributes));
+        for (const key of keys) {
+            if (values[key] !== undefined) {
+                this[key] = values[key];
                 continue
             }
-            Self.attributes.lookbehind;
-            const predicate = AttributeInfo.getAttribute(values, key, "predicate", Self);
-            const assignAttribute = !predicate
-                ? v => this[key] = v
-                : v => {
-                    Object.defineProperties(this, {
-                        ["#" + key]: {
-                            writable: true,
-                            enumerable: false,
-                        },
-                        [key]: {
-                            enumerable: true,
-                            get() {
-                                return this["#" + key]
-                            },
-                            set(v) {
-                                if (!predicate(v)) {
-                                    console.warn(
-                                        `UEBlueprint: Tried to assign attribute ${key} to ${Self.name} not satisfying the predicate`
-                                    );
-                                    return
-                                }
-                                this["#" + key] = v;
-                            }
-                        },
-                    });
-                    this[key] = v;
-                };
-
-            let defaultValue = AttributeInfo.getAttribute(values, key, "default", Self);
-            if (defaultValue instanceof Function) {
-                defaultValue = defaultValue(this);
-            }
-            let defaultType = AttributeInfo.getAttribute(values, key, "type", Self);
-            if (defaultType instanceof ComputedType) {
-                defaultType = defaultType.compute(this);
-            }
-            if (defaultType instanceof Array) {
-                defaultType = Array;
-            }
-            if (defaultType === undefined) {
-                defaultType = Utility.getType(defaultValue);
-            }
-
-            if (value !== undefined) {
-                // Remember value can still be null
-                if (
-                    value?.constructor === String
-                    && AttributeInfo.getAttribute(values, key, "serialized", Self)
-                    && defaultType !== String
-                ) {
-                    try {
-                        value = SerializerFactory
-                            .getSerializer(defaultType)
-                            .read(/** @type {String} */(value));
-                    } catch (e) {
-                        assignAttribute(value);
-                        continue
-                    }
-                }
-                assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)));
-                continue // We have a value, need nothing more
-            }
-            if (defaultValue !== undefined && !AttributeInfo.getAttribute(values, key, "uninitialized", Self)) {
-                assignAttribute(defaultValue);
+            const attribute = this.Self().attributes[key];
+            if (attribute.default !== undefined) {
+                this[key] = attribute.default(attribute);
+                continue
             }
         }
     }
 
-    /** @param {AttributeTypeDescription} attributeType */
-    static defaultValueProviderFromType(attributeType) {
-        if (attributeType === Boolean) {
-            return false
-        } else if (attributeType === Number) {
-            return 0
-        } else if (attributeType === BigInt) {
-            return 0n
-        } else if (attributeType === String) {
-            return ""
-        } else if (attributeType === Array || attributeType instanceof Array) {
-            return () => []
-        } else if (attributeType instanceof Union) {
-            return this.defaultValueProviderFromType(attributeType.values[0])
-        } else if (attributeType instanceof MirroredEntity) {
-            return () => new MirroredEntity(attributeType.type, attributeType.getter)
-        } else if (attributeType instanceof ComputedType) {
-            return undefined
-        } else {
-            return () => new /** @type {AnyConstructor<Attribute>} */(attributeType)()
+    /** @param {String} key */
+    showProperty(key) {
+        /** @type {IEntity} */
+        let value = this[key];
+        const Self = value.Self();
+        if (Self.silent && Self.default !== undefined) {
+            if (Self["#default"] === undefined) {
+                Self["#default"] = Self.default(Self);
+            }
+            const defaultValue = Self["#default"];
+            return !value.equals(defaultValue)
         }
+        return true
     }
 
     /**
-     * @template {new (...args: any) => any} C
-     * @param {C} type
-     * @returns {value is InstanceType<C>}
+     * @protected
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @returns {T}
      */
-    static isValueOfType(value, type) {
-        return value != null && (value instanceof type || value.constructor === type)
+    static asUniqueClass() {
+        if (this.name.length) {
+            // @ts-expect-error
+            return class extends this { }
+        }
+        return this
     }
 
-    static defineAttributes(object, attributes) {
-        Object.defineProperty(object, "attributes", {
-            writable: true,
-            configurable: false,
-        });
-        object.attributes = attributes;
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static withDefault(value = /** @type {(type: T) => InstanceType<T>} */(type => new type())) {
+        const result = this.asUniqueClass();
+        result.default = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagNullable(value = true) {
+        const result = this.asUniqueClass();
+        result.nullable = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagSerialized(value = true) {
+        const result = this.asUniqueClass();
+        result.serialized = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagInlined(value = true) {
+        const result = this.asUniqueClass();
+        result.inlined = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagSilent(value = true) {
+        const result = this.asUniqueClass();
+        result.silent = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {InstanceType<T>}
+     */
+    Self() {
+        return /** @type {T} */(this.constructor)
     }
 
     /**
@@ -2794,25 +2666,14 @@ class IEntity extends Serializable {
                         return this["#" + attribute]
                     },
                     set(v) {
-                        if (v == this["#" + attribute]) {
-                            return
+                        if (v != this["#" + attribute]) {
+                            callback(v);
+                            this["#" + attribute] = v;
                         }
-                        callback(v);
-                        this["#" + attribute] = v;
-                    }
+                    },
                 },
             });
         }
-    }
-
-    getLookbehind() {
-        let lookbehind = this.lookbehind ?? AttributeInfo.getAttribute(this, "lookbehind", "default");
-        lookbehind = lookbehind instanceof Union ? lookbehind.values[0] : lookbehind;
-        return lookbehind
-    }
-
-    unexpectedKeys() {
-        return Object.keys(this).length - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
     }
 
     /** @param {IEntity} other */
@@ -2822,15 +2683,98 @@ class IEntity extends Serializable {
         if (thisKeys.length != otherKeys.length) {
             return false
         }
-        for (const key of thisKeys) {
-            if (this[key] instanceof IEntity && !this[key].equals(other[key])) {
-                return false
-            } else if (!Utility.equals(this[key], other[key])) {
+        for (let i = 0; i < thisKeys.length; ++i) {
+            if (!(this[thisKeys[i]] instanceof IEntity && this[thisKeys[i]].equals(other[otherKeys[i]]))) {
                 return false
             }
         }
         return true
     }
+
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
+        const Self = this.Self();
+        let result = "";
+        let first = true;
+        for (const key of this.keys) {
+            /** @type {IEntity} */
+            const value = this[key];
+            if (value === undefined || !this.showProperty(key)) {
+                continue
+            }
+            if (first) {
+                first = false;
+            } else {
+                result += Self.attributeSeparator;
+            }
+            if (Self.inlined) {
+                result += value.toString(insideString, indentation, k => printKey(`${key}.${k}`));
+                continue
+            }
+            let keyValue = printKey(key);
+            if (keyValue.length) {
+                if (Self.quoted) {
+                    keyValue = `"${keyValue}"`;
+                }
+                result += Self.attributeSeparator.includes("\n") ? indentation : "";
+            }
+            let serialization = value.toString(insideString, indentation, printKey);
+            if (Self.serialized) {
+                serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`;
+            }
+            result += serialization;
+        }
+        if (Self.trailingSeparator && result.length) {
+            result += Self.attributeSeparator;
+        }
+        return Self.wrap(this, result)
+    }
+}
+
+/** @template {typeof IEntity} T */
+class MirroredEntity$1 extends IEntity {
+
+    /** @type {typeof IEntity} */
+    static type
+
+    /** @param {() => T} getter */
+    constructor(getter = null) {
+        super();
+        this.getter = getter;
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {T} type
+     */
+    static of(type) {
+        const result = this.asUniqueClass();
+        result.type = type;
+        result.grammar = result.getTargetType().grammar.map(v => new this());
+        return result
+    }
+
+    /** @returns {typeof IEntity} */
+    static getTargetType() {
+        const result = this.type;
+        if (result.prototype instanceof MirroredEntity$1) {
+            return /** @type {typeof MirroredEntity} */(result).getTargetType()
+        }
+        return result
+    }
+
+    toString() {
+        return this.getter().toString()
+    }
+}
+
+class Serializable {
+
+    /** @type {Parsernostrum<any>} */
+    static grammar = Parsernostrum.failure()
 }
 
 class Grammar {
@@ -2862,7 +2806,6 @@ class Grammar {
     static null = Parsernostrum.reg(/\(\s*\)/).map(() => null)
     static true = Parsernostrum.reg(/true/i).map(() => true)
     static false = Parsernostrum.reg(/false/i).map(() => false)
-    static boolean = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? true : false)
     static number = Parsernostrum.regArray(
         new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
     ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
@@ -2917,10 +2860,10 @@ class Grammar {
                     ? this.unknownValue
                     : Parsernostrum.alt(acc, cur)
                 );
-        } else if (type instanceof MirroredEntity) {
+        } else if (type instanceof MirroredEntity$1) {
             // @ts-expect-error
             return this.grammarFor(undefined, type.getTargetType())
-                .map(v => new MirroredEntity(type.type, () => v))
+                .map(v => new MirroredEntity$1(type.type, () => v))
         } else if (attribute?.constructor === Object) {
             result = this.grammarFor(undefined, type);
         } else {
@@ -3066,25 +3009,11 @@ class Grammar {
 
 class ColorChannelEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(0),
-    }
-    static grammar = this.createGrammar()
+    static grammar = Parsernostrum.number.map(v => new this(v))
 
-    static createGrammar() {
-        return Parsernostrum.number.map(value => new this(value))
-    }
-
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            // @ts-expect-error
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {Number} */ this.value;
+    constructor(value = 0) {
+        super();
+        this.value = value;
     }
 
     valueOf() {
@@ -3100,42 +3029,36 @@ class LinearColorEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        R: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        G: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        B: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        A: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(1),
-        }),
-        H: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
-        S: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
-        V: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
+        R: ColorChannelEntity.withDefault(),
+        G: ColorChannelEntity.withDefault(),
+        B: ColorChannelEntity.withDefault(),
+        A: ColorChannelEntity.withDefault(type => new type(1)),
     }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.createEntityGrammar(this, false)
+
+    #H = new ColorChannelEntity()
+    get H() {
+        return this.#H
+    }
+    set H(value) {
+        this.#H = value;
+    }
+
+    #S = new ColorChannelEntity()
+    get S() {
+        return this.#H
+    }
+    set S(value) {
+        this.#H = value;
+    }
+
+    #V = new ColorChannelEntity()
+    get V() {
+        return this.#H
+    }
+    set V(value) {
+        this.#H = value;
+    }
 
     /** @param {Number} x */
     static linearToSRGB(x) {
@@ -3171,16 +3094,13 @@ class LinearColorEntity extends IEntity {
         })
     }
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
-
     static getLinearColorFromHexGrammar() {
+        const hexDigit = /[0-9a-fA-F]/;
         return Parsernostrum.regArray(new RegExp(
-            "#(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})?"
+            "#(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})?"
         )).map(([m, R, G, B, A]) => new this({
             R: parseInt(R, 16) / 255,
             G: parseInt(G, 16) / 255,
@@ -3230,6 +3150,7 @@ class LinearColorEntity extends IEntity {
     }
 
     constructor(values) {
+        super(values);
         if (values instanceof Array) {
             values = {
                 R: values[0] ?? 0,
@@ -3238,14 +3159,10 @@ class LinearColorEntity extends IEntity {
                 A: values[3] ?? 1,
             };
         }
-        super(values);
         /** @type {ColorChannelEntity} */ this.R;
         /** @type {ColorChannelEntity} */ this.G;
         /** @type {ColorChannelEntity} */ this.B;
         /** @type {ColorChannelEntity} */ this.A;
-        /** @type {ColorChannelEntity} */ this.H;
-        /** @type {ColorChannelEntity} */ this.S;
-        /** @type {ColorChannelEntity} */ this.V;
         this.#updateHSV();
     }
 
@@ -4399,39 +4316,21 @@ if (typeof window === "undefined") {
 
 class GuidEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-    }
-    static grammar = this.createGrammar()
+    static grammar = Parsernostrum.reg(/[0-9a-fA-F]{32}/).map(v => new this(v))
 
-    static createGrammar() {
-        return Grammar.guid.map(v => new this(v))
-    }
-
-    static generateGuid(random = true) {
+    static generateGuid() {
         let values = new Uint32Array(4);
-        if (random === true) {
-            crypto.getRandomValues(values);
-        }
+        crypto.getRandomValues(values);
         let guid = "";
         values.forEach(n => {
             guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
         });
-        return new GuidEntity({ value: guid })
+        return guid
     }
 
-    constructor(values) {
-        if (!values) {
-            values = GuidEntity.generateGuid().value;
-        }
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
+    constructor(value = GuidEntity.generateGuid()) {
+        super();
+        this.value = value;
     }
 
     valueOf() {
@@ -4440,213 +4339,6 @@ class GuidEntity extends IEntity {
 
     toString() {
         return this.value
-    }
-}
-
-class ObjectReferenceEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        type: new AttributeInfo({
-            default: "",
-            serialized: true,
-        }),
-        path: new AttributeInfo({
-            default: "",
-            serialized: true,
-        }),
-        _full: new AttributeInfo({
-            ignored: true,
-        }),
-    }
-    static quoted = Parsernostrum.regArray(new RegExp(
-        `'"(${Grammar.Regex.InsideString.source})"'`
-        + "|"
-        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
-    )).map(([_0, a, b]) => a ?? b)
-    static path = this.quoted.getParser().parser.regexp.source + "|" + Grammar.Regex.Path.source
-    static typeReference = Parsernostrum.reg(
-        new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
-    )
-    static fullReferenceGrammar = Parsernostrum.regArray(
-        new RegExp(
-            "(" + this.typeReference.getParser().regexp.source + ")"
-            + "(?:" + this.quoted.getParser().parser.regexp.source + ")"
-        )
-    ).map(([_full, type, ...path]) => new this({ type, path: path.find(v => v), _full }))
-    static fullReferenceSerializedGrammar = Parsernostrum.regArray(
-        new RegExp(
-            '"(' + Grammar.Regex.InsideString.source + "?)"
-            + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
-        )
-    ).map(([_full, type, path]) => new this({ type, path, _full }))
-    static typeReferenceGrammar = this.typeReference.map(v => new this({ type: v, path: "", _full: v }))
-    static grammar = this.createGrammar()
-
-    constructor(values = {}) {
-        if (values.constructor === String) {
-            values = {
-                path: values
-            };
-        }
-        super(values);
-        if (!values._full || values._full.length === 0) {
-            this._full = `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`;
-        }
-        /** @type {String} */ this.type;
-        /** @type {String} */ this.path;
-    }
-
-    static createGrammar() {
-        return Parsernostrum.alt(
-            this.fullReferenceSerializedGrammar,
-            this.fullReferenceGrammar,
-            this.typeReferenceGrammar,
-        )
-    }
-
-    static createNoneInstance() {
-        return new ObjectReferenceEntity({ type: "None", path: "" })
-    }
-
-    getName(dropCounter = false) {
-        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
-    }
-
-    toString() {
-        return this._full
-    }
-}
-
-class FunctionReferenceEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        MemberParent: AttributeInfo.createType(ObjectReferenceEntity),
-        MemberName: AttributeInfo.createType(String),
-        MemberGuid: AttributeInfo.createType(GuidEntity),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {ObjectReferenceEntity} */ this.MemberParent;
-        /** @type {String} */ this.MemberName;
-        /** @type {GuidEntity} */ this.MemberGuid;
-    }
-}
-
-class IdentifierEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-    }
-    static attributeConverter = {
-        fromAttribute: (value, type) => new IdentifierEntity(value),
-        toAttribute: (value, type) => value.toString()
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
-    }
-
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value
-    }
-}
-
-class IntegerEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            default: 0,
-            predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
-        }),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.numberInteger.map(v => new this(v))
-    }
-
-    /** @param {Number | Object} values */
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        values.value = Math.floor(values.value);
-        if (values.value === -0) {
-            values.value = 0;
-        }
-        super(values);
-        /** @type {Number} */ this.value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
-    }
-}
-
-class MacroGraphReferenceEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        MacroGraph: new AttributeInfo({
-            type: ObjectReferenceEntity,
-            default: () => new ObjectReferenceEntity(),
-        }),
-        GraphBlueprint: new AttributeInfo({
-            type: ObjectReferenceEntity,
-            default: () => new ObjectReferenceEntity(),
-        }),
-        GraphGuid: new AttributeInfo({
-            type: GuidEntity,
-            default: () => new GuidEntity(),
-        }),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {ObjectReferenceEntity} */ this.MacroGraph;
-        /** @type {ObjectReferenceEntity} */ this.GraphBlueprint;
-        /** @type {GuidEntity} */ this.GuidEntity;
-    }
-
-    getMacroName() {
-        const colonIndex = this.MacroGraph.path.search(":");
-        return this.MacroGraph.path.substring(colonIndex + 1)
     }
 }
 
@@ -4734,47 +4426,175 @@ function pinTitle(entity) {
     return result
 }
 
-class ByteEntity extends IntegerEntity {
+class AlternativesEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            ...super.attributes.value,
-            predicate: v => v % 1 == 0 && v >= 0 && v < 1 << 8,
-        }),
-    }
-    static grammar = this.createGrammar()
+    /** @type {(typeof IEntity)[]} */
+    static alternatives = []
 
     static createGrammar() {
-        return Parsernostrum.numberByte.map(v => new this(v))
+        return this.alternatives
+            .map(entity => entity.grammar)
+            .reduce((acc, cur) => !cur || cur === Grammar.unknownValue || acc === Grammar.unknownValue
+                ? Grammar.unknownValue
+                : Parsernostrum.alt(acc, cur)
+            )
     }
 
-    constructor(values = 0) {
-        super(values);
+    /**
+     * @template {(typeof IEntity)[]} Types
+     * @param {Types} types
+     */
+    static accepting(...types) {
+        const result = /** @type {typeof AlternativesEntity & { alternatives: Types }} */(this.asUniqueClass());
+        result.alternatives = types;
+        result.grammar = result.createGrammar();
+        return result
+    }
+}
+
+/** @template {typeof IEntity} T */
+class ArrayEntity extends IEntity {
+
+    /** @type {typeof IEntity} */
+    static type
+
+    /** @param {InstanceType<T>[]} values */
+    constructor(values = []) {
+        super();
+        this.values = values;
+    }
+
+    static createGrammar(elementGrammar = this.type.grammar) {
+        return this.inlined
+            ? elementGrammar
+            : Parsernostrum.seq(
+                Parsernostrum.reg(/\(\s*/),
+                elementGrammar.sepBy(Grammar.commaSeparation).opt(),
+                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
+            ).map(([_0, values, _3]) => new this(values instanceof Array ? values : []))
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {NonNullable<T>} type
+     */
+    static of(type) {
+        const result = /** @type {(typeof ArrayEntity<T>) & { type: T }} */(this.asUniqueClass());
+        result.type = type;
+        this.grammar = result.createGrammar();
+        return result
+    }
+
+    valueOf() {
+        return this.values
+    }
+}
+
+class BooleanEntity extends IEntity {
+
+    static grammar = Parsernostrum.regArray(/(true)|false/i).map(v => v[1] ? new this(true) : new this(false))
+
+    constructor(value = false) {
+        super();
+        this.value = value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
+class NumberEntity extends IEntity {
+
+    static grammar = Parsernostrum.regArray(
+        new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
+    ).map(([_0, n, plusInf, minusInf]) => new this(
+        n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
+    ))
+
+    /** @type {Number} */
+    #value
+    get value() {
+        return this.#value
+    }
+    set value(value) {
+        if (value === -0) {
+            value = 0;
+        }
+        this.#value = value;
+    }
+
+    constructor(value = 0) {
+        super();
+        this.value = value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
+// @ts-expect-error
+class IntegerEntity extends NumberEntity {
+
+    static grammar = Parsernostrum.numberInteger.map(v => new this(v))
+
+    set value(value) {
+        if (value >= -(1 << 31) && value < 1 << 31) {
+            value = Math.floor(value);
+            super.value = value;
+        }
+    }
+}
+
+class ByteEntity extends IntegerEntity {
+
+    static grammar = Parsernostrum.numberByte.map(v => new this(v))
+
+    set value(value) {
+        if (value % 1 == 0 && value >= 0 && value < 1 << 8) {
+            super.value = value;
+        }
+    }
+}
+
+class ComputedTypeEntity extends IEntity {
+
+    /** @type {(entity: IEntity) => typeof IEntity} */
+    static f
+
+    /**
+     * @template {typeof ComputedTypeEntity.f} T
+     * @param {T} producer
+     */
+    static from(producer) {
+        const result = /** @type {(typeof ComputedTypeEntity) & { f: T }} */(this.asUniqueClass());
+        result.f = producer;
+        return result
+    }
+
+    /** @param {IEntity} entity */
+    compute(entity) {
+        return /** @type {typeof ComputedTypeEntity} */(this.Self()).f(entity)
     }
 }
 
 class SymbolEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-    }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.symbol.map(v => new this(v))
 
-    static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
-    }
-
-    /** @param {String | Object} values */
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
+    /** @param {String} value */
+    constructor(value = "") {
+        super();
+        this.value = value;
     }
 
     valueOf() {
@@ -4788,55 +4608,30 @@ class SymbolEntity extends IEntity {
 
 class EnumEntity extends SymbolEntity {
 
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
-    }
+    static grammar = Grammar.symbol.map(v => new this(v))
 }
 
 class EnumDisplayValueEntity extends EnumEntity {
 
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
-    }
+    static grammar = Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
 }
 
 class InvariantTextEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-        lookbehind: new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: "INVTEXT",
-        }),
-    }
-    static grammar = this.createGrammar()
+    static lookbehind = "INVTEXT"
 
-    static createGrammar() {
-        return Parsernostrum.alt(
-            Parsernostrum.seq(
-                Parsernostrum.reg(new RegExp(`${this.attributes.lookbehind.default}\\s*\\(`)),
-                Grammar.grammarFor(this.attributes.value),
-                Parsernostrum.reg(/\s*\)/)
-            )
-                .map(([_0, value, _2]) => value),
-            Parsernostrum.reg(new RegExp(this.attributes.lookbehind.default)) // InvariantTextEntity can not have arguments
-                .map(() => "")
-        ).map(value => new this(value))
-    }
+    static grammar = Parsernostrum.alt(
+        Parsernostrum.seq(
+            Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+            Parsernostrum.doubleQuotedString,
+            Parsernostrum.reg(/\s*\)/)
+        ).map(([_0, value, _2]) => new this(value)),
+        Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => new this()) // InvariantTextEntity can not have arguments
+    ).map(value => new this(value))
 
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
+    constructor(value = "") {
+        super();
+        this.value = value;
     }
 
     toString() {
@@ -4846,39 +4641,51 @@ class InvariantTextEntity extends IEntity {
 
 class LocalizedTextEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        namespace: AttributeInfo.createValue(""),
-        key: AttributeInfo.createValue(""),
-        value: AttributeInfo.createValue(""),
-        lookbehind: new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: "NSLOCTEXT",
-        }),
-    }
-    static grammar = this.createGrammar()
+    static lookbehind = "NSLOCTEXT"
+    static grammar = Parsernostrum.regArray(new RegExp(
+        String.raw`${this.attributes.lookbehind.default}\s*\(`
+        + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+        + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
+        + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
+        + String.raw`(?:,\s+)?`
+        + String.raw`\)`,
+        "m"
+    )).map(matchResult => new this(
+        Utility.unescapeString(matchResult[1]),
+        Utility.unescapeString(matchResult[2]),
+        Utility.unescapeString(matchResult[3]),
+    ))
 
-    static createGrammar() {
-        return Parsernostrum.regArray(new RegExp(
-            String.raw`${this.attributes.lookbehind.default}\s*\(`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-            + String.raw`(?:,\s+)?`
-            + String.raw`\)`,
-            "m"
-        )).map(matchResult => new this({
-            namespace: Utility.unescapeString(matchResult[1]),
-            key: Utility.unescapeString(matchResult[2]),
-            value: Utility.unescapeString(matchResult[3]),
-        }))
+    #namespace
+    get namespace() {
+        return this.#namespace
+    }
+    set namespace(value) {
+        this.#namespace = value;
     }
 
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.namespace;
-        /** @type {String} */ this.key;
-        /** @type {String} */ this.value;
+    #key
+    get key() {
+        return this.#key
+    }
+    set key(value) {
+        this.#key = value;
+    }
+
+    #value
+    get value() {
+        return this.#value
+    }
+    set value(value) {
+        this.#value = value;
+    }
+
+
+    constructor(namespace = "", key = "", value = "") {
+        super();
+        this.namespace = namespace;
+        this.key = key;
+        this.value = value;
     }
 
     toString() {
@@ -4886,50 +4693,54 @@ class LocalizedTextEntity extends IEntity {
     }
 }
 
-class FormatTextEntity extends IEntity {
+class StringEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            type: [new Union(String, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity)],
-            default: [],
-        }),
-        lookbehind: /** @type {AttributeInfo<Union<String[]>>} */(new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: new Union("LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"),
-        })),
-    }
-    static grammar = this.createGrammar()
+    static grammar = Parsernostrum.doubleQuotedString.map(insideString => Utility.unescapeString(insideString))
 
-    static createGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(
-                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                new RegExp(`(${this.attributes.lookbehind.default.values.reduce((acc, cur) => acc + "|" + cur)})\\s*`),
-                1
-            ),
-            Grammar.grammarFor(this.attributes.value)
-        )
-            .map(([lookbehind, values]) => {
-                const result = new this({
-                    value: values,
-                    lookbehind,
-                });
-                return result
-            })
+    /** @param {String} value */
+    constructor(value = "") {
+        super();
+        this.value = value;
     }
 
-    constructor(values) {
-        super(values);
-        /** @type {(String | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} */ this.value;
+    valueOf() {
+        return this.value
     }
 
     toString() {
-        const pattern = this.value?.[0]?.toString(); // The pattern is always the first element of the array
+        return this.value.toString()
+    }
+}
+
+class FormatTextEntity extends IEntity {
+
+    static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
+    static grammar = Parsernostrum.seq(
+        // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+        Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.reduce((acc, cur) => acc + "|" + cur)})\s*\(\s*)`), 1),
+        Parsernostrum.alt(
+            ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
+        ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
+        Parsernostrum.reg(/\s*\)/)
+    )
+        .map(([lookbehind, values]) => {
+            const result = new this(values);
+            result.lookbehind = lookbehind;
+            return result
+        })
+
+    /** @param {(StringEntity | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} values */
+    constructor(values) {
+        super();
+        this.values = values;
+    }
+
+    toString() {
+        const pattern = this.values?.[0]?.toString(); // The pattern is always the first element of the array
         if (!pattern) {
             return ""
         }
-        const values = this.value.slice(1).map(v => v.toString());
+        const values = this.values.slice(1).map(v => v.toString());
         return this.lookbehind == "LOCGEN_FORMAT_NAMED"
             ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
                 const argLocation = values.indexOf(arg) + 1;
@@ -4950,31 +4761,23 @@ class FormatTextEntity extends IEntity {
 
 class Integer64Entity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            default: 0n,
-            predicate: v => v >= -(1n << 63n) && v < 1n << 63n,
-        }),
-    }
-    static grammar = this.createGrammar()
+    static grammar = Parsernostrum.numberBigInteger.map(v => new this(v))
 
-    static createGrammar() {
-        return Parsernostrum.numberBigInteger.map(v => new this(v))
+    /** @type {bigint} */
+    #value
+    get value() {
+        return this.#value
+    }
+    set value(value) {
+        if (value >= -(1n << 63n) && value < 1n << 63n) {
+            this.#value = value;
+        }
     }
 
-    /** @param {BigInt | Number | Object} values */
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        if (values.value === -0) {
-            values.value = 0n;
-        }
-        super(values);
-        /** @type {BigInt} */ this.value;
+    /** @param {bigint | Number} value */
+    constructor(value = 0n) {
+        super();
+        this.value = BigInt(value);
     }
 
     valueOf() {
@@ -4986,28 +4789,87 @@ class Integer64Entity extends IEntity {
     }
 }
 
+class ObjectReferenceEntity extends IEntity {
+
+    static #quotedParser = Parsernostrum.regArray(new RegExp(
+        `'"(${Grammar.Regex.InsideString.source})"'`
+        + "|"
+        + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
+    )).map(([_0, a, b]) => a ?? b)
+    static typeReference = Parsernostrum.reg(
+        new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
+    )
+    static fullReferenceGrammar = Parsernostrum.regArray(
+        new RegExp(
+            "(" + this.typeReference.getParser().regexp.source + ")"
+            + "(?:" + this.#quotedParser.getParser().parser.regexp.source + ")"
+        )
+    ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
+    static fullReferenceSerializedGrammar = Parsernostrum.regArray(
+        new RegExp(
+            '"(' + Grammar.Regex.InsideString.source + "?)"
+            + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
+        )
+    ).map(([full, type, path]) => new this(type, path, full))
+    static typeReferenceGrammar = this.typeReference.map(v => new this(v, "", v))
+    static grammar = Parsernostrum.alt(
+        this.fullReferenceSerializedGrammar,
+        this.fullReferenceGrammar,
+        this.typeReferenceGrammar,
+    )
+
+    #type
+    get type() {
+        return this.#type
+    }
+    set type(value) {
+        this.#type = value;
+    }
+
+    #path
+    get path() {
+        return this.#path
+    }
+    set path(value) {
+        this.#path = value;
+    }
+
+    #full
+    get full() {
+        return this.#full
+    }
+    set full(value) {
+        this.#full = value;
+    }
+
+
+    constructor(type = "None", path = "", full = null) {
+        super();
+        this.#type = type;
+        this.#path = path;
+        this.#full = full ?? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`;
+    }
+
+    static createNoneInstance() {
+        return new ObjectReferenceEntity("None")
+    }
+
+    getName(dropCounter = false) {
+        return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+    }
+
+    toString() {
+        return this.full
+    }
+}
+
 class PathSymbolEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            default: "",
-        }),
-    }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.symbol.map(v => new this(v))
 
-    static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
-    }
-
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            };
-        }
-        super(values);
-        /** @type {String} */ this.value;
+    constructor(value = "") {
+        super();
+        this.value = value;
     }
 
     valueOf() {
@@ -5015,36 +4877,44 @@ class PathSymbolEntity extends IEntity {
     }
 
     toString() {
-        return this.value
+        return this.value.toString()
     }
 }
 
 class PinReferenceEntity extends IEntity {
 
+    static grammar = Parsernostrum.seq(
+        PathSymbolEntity.grammar,
+        Parsernostrum.whitespace,
+        GuidEntity.grammar
+    ).map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
+
+    /**
+     * @param {PathSymbolEntity} objectName
+     * @param {GuidEntity} pinGuid
+     */
+    constructor(objectName = null, pinGuid = null) {
+        super();
+        this.objectName = objectName;
+        this.pinGuid = pinGuid;
+    }
+}
+
+class FunctionReferenceEntity extends IEntity {
+
     static attributes = {
         ...super.attributes,
-        objectName: AttributeInfo.createType(PathSymbolEntity),
-        pinGuid: AttributeInfo.createType(GuidEntity),
+        MemberParent: ObjectReferenceEntity,
+        MemberName: StringEntity,
+        MemberGuid: GuidEntity,
     }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.seq(
-            PathSymbolEntity.grammar,
-            Parsernostrum.whitespace,
-            GuidEntity.grammar
-        ).map(
-            ([objectName, _1, pinGuid]) => new this({
-                objectName: objectName,
-                pinGuid: pinGuid,
-            })
-        )
-    }
+    static grammar = Grammar.createEntityGrammar(this)
 
     constructor(values) {
         super(values);
-        /** @type {PathSymbolEntity} */ this.objectName;
-        /** @type {GuidEntity} */ this.pinGuid;
+        /** @type {ObjectReferenceEntity} */ this.MemberParent;
+        /** @type {String} */ this.MemberName;
+        /** @type {GuidEntity} */ this.MemberGuid;
     }
 }
 
@@ -5052,35 +4922,22 @@ class PinTypeEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        PinCategory: AttributeInfo.createValue(""),
-        PinSubCategory: AttributeInfo.createValue(""),
-        PinSubCategoryObject: new AttributeInfo({
-            type: ObjectReferenceEntity,
-            default: () => ObjectReferenceEntity.createNoneInstance(),
-        }),
-        PinSubCategoryMemberReference: new AttributeInfo({
-            type: FunctionReferenceEntity,
-            default: null,
-        }),
-        PinValueType: new AttributeInfo({
-            type: PinTypeEntity,
-            default: null,
-        }),
-        ContainerType: AttributeInfo.createType(PathSymbolEntity),
-        bIsReference: AttributeInfo.createValue(false),
-        bIsConst: AttributeInfo.createValue(false),
-        bIsWeakPointer: AttributeInfo.createValue(false),
-        bIsUObjectWrapper: AttributeInfo.createValue(false),
-        bSerializeAsSinglePrecisionFloat: AttributeInfo.createValue(false),
+        PinCategory: StringEntity.withDefault(),
+        PinSubCategory: StringEntity.withDefault(),
+        PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
+        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(type => null),
+        PinValueType: PinTypeEntity.withDefault(),
+        ContainerType: PathSymbolEntity,
+        bIsReference: BooleanEntity.withDefault(),
+        bIsConst: BooleanEntity.withDefault(),
+        bIsWeakPointer: BooleanEntity.withDefault(),
+        bIsUObjectWrapper: BooleanEntity.withDefault(),
+        bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
     }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.createEntityGrammar(this)
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values = {}, suppressWarns = false) {
-        super(values, suppressWarns);
+    constructor(values = {}) {
+        super(values);
         /** @type {String} */ this.PinCategory;
         /** @type {String} */ this.PinSubCategory;
         /** @type {ObjectReferenceEntity} */ this.PinSubCategoryObject;
@@ -5097,17 +4954,11 @@ class PinTypeEntity extends IEntity {
 
     /** @param {PinTypeEntity} other */
     copyTypeFrom(other) {
-        this.PinCategory = other.PinCategory;
-        this.PinSubCategory = other.PinSubCategory;
-        this.PinSubCategoryObject = other.PinSubCategoryObject;
-        this.PinSubCategoryMemberReference = other.PinSubCategoryMemberReference;
-        this.PinValueType = other.PinValueType;
-        this.ContainerType = other.ContainerType;
-        this.bIsReference = other.bIsReference;
-        this.bIsConst = other.bIsConst;
-        this.bIsWeakPointer = other.bIsWeakPointer;
-        this.bIsUObjectWrapper = other.bIsUObjectWrapper;
-        this.bSerializeAsSinglePrecisionFloat = other.bSerializeAsSinglePrecisionFloat;
+        for (const key of this.keys) {
+            if (other[key] !== undefined) {
+                this[key] = other[key];
+            }
+        }
     }
 }
 
@@ -5115,80 +4966,53 @@ class Vector2DEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        X: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
     }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
+    static grammar = Grammar.createEntityGrammar(this, false)
 
     constructor(values) {
         super(values);
-        /** @type {Number} */ this.X;
-        /** @type {Number} */ this.Y;
+        /** @type {NumberEntity} */ this.X;
+        /** @type {NumberEntity} */ this.Y;
     }
 
     /** @returns {[Number, Number]} */
     toArray() {
-        return [this.X, this.Y]
+        return [this.X.valueOf(), this.Y.valueOf()]
     }
 }
 
 class RBSerializationVector2DEntity extends Vector2DEntity {
 
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                /X\s*=\s*/.source + "(?<x>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
-                + "\\s+"
-                + /Y\s*=\s*/.source + "(?<y>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
-            )).map(({ groups: { x, y } }) => new this({
-                X: Number(x),
-                Y: Number(y),
-            })),
-            Vector2DEntity.grammar
-        )
-    }
+    static grammar = Parsernostrum.alt(
+        Parsernostrum.regArray(new RegExp(
+            /X\s*=\s*/.source + "(?<x>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+            + "\\s+"
+            + /Y\s*=\s*/.source + "(?<y>" + Parsernostrum.number.getParser().parser.regexp.source + ")"
+        )).map(({ groups: { x, y } }) => new this({
+            X: Number(x),
+            Y: Number(y),
+        })),
+        Vector2DEntity.grammar
+    )
 }
 
 class RotatorEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        R: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        P: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        R: NumberEntity.withDefault(),
+        P: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
     }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
+    static grammar = Grammar.createEntityGrammar(this, false)
 
     constructor(values) {
         super(values);
-        /** @type {Number} */ this.R;
-        /** @type {Number} */ this.P;
-        /** @type {Number} */ this.Y;
+        /** @type {NumberEntity} */ this.R;
+        /** @type {NumberEntity} */ this.P;
+        /** @type {NumberEntity} */ this.Y;
     }
 
     getRoll() {
@@ -5206,85 +5030,59 @@ class RotatorEntity extends IEntity {
 
 class SimpleSerializationRotatorEntity extends RotatorEntity {
 
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source;
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-            )).map(([_, p, y, r]) => new this({
-                R: Number(r),
-                P: Number(p),
-                Y: Number(y),
-            })),
-            RotatorEntity.grammar
-        )
-    }
+    static grammar = Parsernostrum.alt(
+        Parsernostrum.regArray(new RegExp(
+            `(${Parsernostrum.number.getParser().parser.regexp.source})`
+            + String.raw`\s*,\s*`
+            + `(${Parsernostrum.number.getParser().parser.regexp.source})`
+            + String.raw`\s*,\s*`
+            + `(${Parsernostrum.number.getParser().parser.regexp.source})`
+        )).map(([_, p, y, r]) => new this({
+            R: Number(r),
+            P: Number(p),
+            Y: Number(y),
+        })),
+        RotatorEntity.grammar
+    )
 }
 
 class SimpleSerializationVector2DEntity extends Vector2DEntity {
 
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source;
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-            )).map(([_, x, y]) => new this({
-                X: Number(x),
-                Y: Number(y),
-            })),
-            Vector2DEntity.grammar
-        )
-    }
+    static grammar = Parsernostrum.alt(
+        Parsernostrum.regArray(new RegExp(
+            `(${Parsernostrum.number.getParser().parser.regexp.source})`
+            + String.raw`\s*,\s*`
+            + `(${Parsernostrum.number.getParser().parser.regexp.source})`
+        )).map(([_, x, y]) => new this({
+            X: Number(x),
+            Y: Number(y),
+        })),
+        Vector2DEntity.grammar
+    )
 }
 
 class Vector4DEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        X: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Z: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        W: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+        Z: NumberEntity.withDefault(),
+        W: NumberEntity.withDefault(),
     }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(Vector4DEntity, false)
-    }
+    static grammar = Grammar.createEntityGrammar(Vector4DEntity, false)
 
     constructor(values) {
         super(values);
-        /** @type {Number} */ this.X;
-        /** @type {Number} */ this.Y;
-        /** @type {Number} */ this.Z;
-        /** @type {Number} */ this.W;
+        /** @type {NumberEntity} */ this.X;
+        /** @type {NumberEntity} */ this.Y;
+        /** @type {NumberEntity} */ this.Z;
+        /** @type {NumberEntity} */ this.W;
     }
 
     /** @returns {[Number, Number, Number, Number]} */
     toArray() {
-        return [this.X, this.Y, this.Z, this.W]
+        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf(), this.W.valueOf()]
     }
 }
 
@@ -5293,16 +5091,16 @@ class SimpleSerializationVector4DEntity extends Vector4DEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source;
+        Parsernostrum.number.getParser().parser.regexp.source;
         return Parsernostrum.alt(
             Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
+                `(${Parsernostrum.number.getParser().parser.regexp.source})`
+                + String.raw`\s*,\s*`
+                + `(${Parsernostrum.number.getParser().parser.regexp.source})`
+                + String.raw`\s*,\s*`
+                + `(${Parsernostrum.number.getParser().parser.regexp.source})`
+                + String.raw`\s*,\s*`
+                + `(${Parsernostrum.number.getParser().parser.regexp.source})`
             ))
                 .map(([_0, x, y, z, w]) => new this({
                     X: Number(x),
@@ -5319,80 +5117,63 @@ class VectorEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        X: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Y: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
-        Z: new AttributeInfo({
-            default: 0,
-            expected: true,
-        }),
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+        Z: NumberEntity.withDefault(),
     }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(VectorEntity, false)
-    }
+    static grammar = Grammar.createEntityGrammar(VectorEntity, false)
 
     constructor(values) {
         super(values);
-        /** @type {Number} */ this.X;
-        /** @type {Number} */ this.Y;
-        /** @type {Number} */ this.Z;
+        /** @type {NumberEntity} */ this.X;
+        /** @type {NumberEntity} */ this.Y;
+        /** @type {NumberEntity} */ this.Z;
     }
 
     /** @returns {[Number, Number, Number]} */
     toArray() {
-        return [this.X, this.Y, this.Z]
+        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf()]
     }
 }
 
 class SimpleSerializationVectorEntity extends VectorEntity {
 
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        const number = Parsernostrum.number.getParser().parser.regexp.source;
-        return Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-                + "\\s*,\\s*"
-                + "(" + number + ")"
-            ))
-                .map(([_0, x, y, z]) => new this({
-                    X: Number(x),
-                    Y: Number(y),
-                    Z: Number(z),
-                })),
-            VectorEntity.grammar
-        )
-    }
+    static grammar = Parsernostrum.alt(
+        Parsernostrum.regArray(new RegExp(
+            `(${Parsernostrum.number.getParser().parser.regexp.source})`
+            + String.raw`\s*,\s*`
+            + `(${Parsernostrum.number.getParser().parser.regexp.source})`
+            + String.raw`\s*,\s*`
+            + `(${Parsernostrum.number.getParser().parser.regexp.source})`
+        ))
+            .map(([_0, x, y, z]) => new this({
+                X: Number(x),
+                Y: Number(y),
+                Z: Number(z),
+            })),
+        VectorEntity.grammar
+    )
 }
 
 /** @template {TerminalAttribute} T */
 class PinEntity extends IEntity {
 
+    static lookbehind = "INVTEXT"
     static #typeEntityMap = {
         [Configuration.paths.linearColor]: LinearColorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
         [Configuration.paths.vector]: VectorEntity,
         [Configuration.paths.vector2D]: Vector2DEntity,
         [Configuration.paths.vector4f]: Vector4DEntity,
-        "bool": Boolean,
+        "bool": BooleanEntity,
         "byte": ByteEntity,
         "enum": EnumEntity,
-        "exec": String,
+        "exec": StringEntity,
         "int": IntegerEntity,
         "int64": Integer64Entity,
-        "name": String,
-        "real": Number,
-        "string": String,
+        "name": StringEntity,
+        "real": NumberEntity,
+        "string": StringEntity,
     }
     static #alternativeTypeEntityMap = {
         "enum": EnumDisplayValueEntity,
@@ -5405,51 +5186,36 @@ class PinEntity extends IEntity {
     }
     static attributes = {
         ...super.attributes,
-        lookbehind: new AttributeInfo({
-            default: "Pin",
-            ignored: true,
-        }),
-        objectEntity: new AttributeInfo({
-            ignored: true,
-        }),
-        pinIndex: new AttributeInfo({
-            type: Number,
-            ignored: true,
-        }),
-        PinId: new AttributeInfo({
-            type: GuidEntity,
-            default: () => new GuidEntity()
-        }),
-        PinName: AttributeInfo.createValue(""),
-        PinFriendlyName: AttributeInfo.createType(new Union(LocalizedTextEntity, FormatTextEntity, InvariantTextEntity, String)),
-        PinToolTip: AttributeInfo.createType(String),
-        Direction: AttributeInfo.createType(String),
-        PinType: new AttributeInfo({
-            type: PinTypeEntity,
-            default: () => new PinTypeEntity(),
-            inlined: true,
-        }),
-        LinkedTo: AttributeInfo.createType([PinReferenceEntity]),
-        SubPins: AttributeInfo.createType([PinReferenceEntity]),
-        ParentPin: AttributeInfo.createType(PinReferenceEntity),
-        DefaultValue: new AttributeInfo({
-            type: new ComputedType(
+        PinId: GuidEntity.withDefault(),
+        PinName: StringEntity.withDefault(),
+        PinFriendlyName: AlternativesEntity.accepting(
+            LocalizedTextEntity,
+            FormatTextEntity,
+            InvariantTextEntity,
+            StringEntity
+        ),
+        PinToolTip: StringEntity,
+        Direction: StringEntity,
+        PinType: PinTypeEntity.withDefault().flagInlined(),
+        LinkedTo: ArrayEntity.of(PinReferenceEntity),
+        SubPins: ArrayEntity.of(PinReferenceEntity),
+        ParentPin: PinReferenceEntity,
+        DefaultValue:
+            ComputedTypeEntity.from(
                 /** @param {PinEntity} pinEntity */
-                pinEntity => pinEntity.getEntityType(true) ?? String
-            ),
-            serialized: true,
-        }),
-        AutogeneratedDefaultValue: AttributeInfo.createType(String),
-        DefaultObject: AttributeInfo.createType(ObjectReferenceEntity),
-        PersistentGuid: AttributeInfo.createType(GuidEntity),
-        bHidden: AttributeInfo.createValue(false),
-        bNotConnectable: AttributeInfo.createValue(false),
-        bDefaultValueIsReadOnly: AttributeInfo.createValue(false),
-        bDefaultValueIsIgnored: AttributeInfo.createValue(false),
-        bAdvancedView: AttributeInfo.createValue(false),
-        bOrphanedPin: AttributeInfo.createValue(false),
+                pinEntity => pinEntity.getEntityType(true) ?? StringEntity
+            ).flagSerialized(),
+        AutogeneratedDefaultValue: StringEntity,
+        DefaultObject: ObjectReferenceEntity,
+        PersistentGuid: GuidEntity,
+        bHidden: BooleanEntity.withDefault(),
+        bNotConnectable: BooleanEntity.withDefault(),
+        bDefaultValueIsReadOnly: BooleanEntity.withDefault(),
+        bDefaultValueIsIgnored: BooleanEntity.withDefault(),
+        bAdvancedView: BooleanEntity.withDefault(),
+        bOrphanedPin: BooleanEntity.withDefault(),
     }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.createEntityGrammar(this)
 
     #recomputesNodeTitleOnChange = false
     set recomputesNodeTitleOnChange(value) {
@@ -5459,12 +5225,24 @@ class PinEntity extends IEntity {
         return this.#recomputesNodeTitleOnChange
     }
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
+    #objectEntity
+    get objectEntity() {
+        return this.#objectEntity
+    }
+    set objectEntity(value) {
+        this.#objectEntity = value;
     }
 
-    constructor(values = {}, suppressWarns = false) {
-        super(values, suppressWarns);
+    #pinIndex
+    get pinIndex() {
+        return this.#pinIndex
+    }
+    set pinIndex(value) {
+        this.#pinIndex = value;
+    }
+
+    constructor(values = {}) {
+        super(values);
         /** @type {ObjectEntity} */ this.objectEntity;
         /** @type {Number} */ this.pinIndex;
         /** @type {GuidEntity} */ this.PinId;
@@ -5488,7 +5266,7 @@ class PinEntity extends IEntity {
 
     /** @param {ObjectEntity} objectEntity */
     static fromLegacyObject(objectEntity) {
-        return new PinEntity(objectEntity, true)
+        return new PinEntity(objectEntity)
     }
 
     getType() {
@@ -5654,77 +5432,6 @@ class PinEntity extends IEntity {
     }
 }
 
-class ScriptVariableEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        ScriptVariable: AttributeInfo.createType(ObjectReferenceEntity),
-        OriginalChangeId: AttributeInfo.createType(GuidEntity),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values = {}, suppressWarns = false) {
-        super(values, suppressWarns);
-        /** @type {ObjectReferenceEntity} */ this.ScriptVariable;
-        /** @type {GuidEntity} */ this.OriginalChangeId;
-    }
-}
-
-class UnknownPinEntity extends PinEntity {
-
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(
-                new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`),
-                1
-            ),
-            Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/)
-        ).map(([lookbehind, attributes, _2]) => {
-            lookbehind ??= "";
-            let values = {};
-            if (lookbehind.length) {
-                values.lookbehind = lookbehind;
-            }
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        })
-    }
-
-    constructor(values = {}) {
-        super(values, true);
-    }
-}
-
-class VariableReferenceEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        MemberScope: AttributeInfo.createType(String),
-        MemberName: AttributeInfo.createValue(""),
-        MemberGuid: AttributeInfo.createType(GuidEntity),
-        bSelfContext: AttributeInfo.createType(Boolean),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.MemberName;
-        /** @type {GuidEntity} */ this.GuidEntity;
-        /** @type {Boolean} */ this.bSelfContext;
-    }
-}
-
 /** @param {PinEntity} pinEntity */
 const indexFromUpperCaseLetterName = pinEntity =>
     pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
@@ -5870,144 +5577,230 @@ function nodeVariadic(entity) {
     }
 }
 
-class ObjectEntity extends IEntity {
+class IdentifierEntity extends IEntity {
+
+    static attributeConverter = {
+        fromAttribute: (value, type) => new IdentifierEntity(value),
+        toAttribute: (value, type) => value.toString()
+    }
+    static grammar = Grammar.symbol.map(v => new this(v))
+
+    /** @param {String} value */
+    constructor(value) {
+        super();
+        this.value = value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
+class MacroGraphReferenceEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        isExported: new AttributeInfo({
-            type: Boolean,
-            ignored: true,
-        }),
-        Class: AttributeInfo.createType(ObjectReferenceEntity),
-        Name: AttributeInfo.createType(String),
-        Archetype: AttributeInfo.createType(ObjectReferenceEntity),
-        ExportPath: AttributeInfo.createType(ObjectReferenceEntity),
-        ObjectRef: AttributeInfo.createType(ObjectReferenceEntity),
-        BlueprintElementType: AttributeInfo.createType(ObjectReferenceEntity),
-        BlueprintElementInstance: AttributeInfo.createType(ObjectReferenceEntity),
-        PinTags: new AttributeInfo({
-            type: [null],
-            inlined: true,
-        }),
-        PinNames: new AttributeInfo({
-            type: [String],
-            inlined: true,
-        }),
-        AxisKey: AttributeInfo.createType(SymbolEntity),
-        InputAxisKey: AttributeInfo.createType(SymbolEntity),
-        InputName: AttributeInfo.createType(String),
-        InputType: AttributeInfo.createType(SymbolEntity),
-        NumAdditionalInputs: AttributeInfo.createType(Number),
-        bIsPureFunc: AttributeInfo.createType(Boolean),
-        bIsConstFunc: AttributeInfo.createType(Boolean),
-        bIsCaseSensitive: AttributeInfo.createType(Boolean),
-        VariableReference: AttributeInfo.createType(VariableReferenceEntity),
-        SelfContextInfo: AttributeInfo.createType(SymbolEntity),
-        DelegatePropertyName: AttributeInfo.createType(String),
-        DelegateOwnerClass: AttributeInfo.createType(ObjectReferenceEntity),
-        ComponentPropertyName: AttributeInfo.createType(String),
-        EventReference: AttributeInfo.createType(FunctionReferenceEntity),
-        FunctionReference: AttributeInfo.createType(FunctionReferenceEntity),
-        FunctionScript: AttributeInfo.createType(ObjectReferenceEntity),
-        CustomFunctionName: AttributeInfo.createType(String),
-        TargetType: AttributeInfo.createType(ObjectReferenceEntity),
-        MacroGraphReference: AttributeInfo.createType(MacroGraphReferenceEntity),
-        Enum: AttributeInfo.createType(ObjectReferenceEntity),
-        EnumEntries: new AttributeInfo({
-            type: [String],
-            inlined: true,
-        }),
-        InputKey: AttributeInfo.createType(SymbolEntity),
-        OpName: AttributeInfo.createType(String),
-        CachedChangeId: AttributeInfo.createType(GuidEntity),
-        FunctionDisplayName: AttributeInfo.createType(String),
-        AddedPins: new AttributeInfo({
-            type: [UnknownPinEntity],
-            default: () => [],
-            inlined: true,
-            silent: true,
-        }),
-        ChangeId: AttributeInfo.createType(GuidEntity),
-        MaterialFunction: AttributeInfo.createType(ObjectReferenceEntity),
-        bOverrideFunction: AttributeInfo.createType(Boolean),
-        bInternalEvent: AttributeInfo.createType(Boolean),
-        bConsumeInput: AttributeInfo.createType(Boolean),
-        bExecuteWhenPaused: AttributeInfo.createType(Boolean),
-        bOverrideParentBinding: AttributeInfo.createType(Boolean),
-        bControl: AttributeInfo.createType(Boolean),
-        bAlt: AttributeInfo.createType(Boolean),
-        bShift: AttributeInfo.createType(Boolean),
-        bCommand: AttributeInfo.createType(Boolean),
-        CommentColor: AttributeInfo.createType(LinearColorEntity),
-        bCommentBubbleVisible_InDetailsPanel: AttributeInfo.createType(Boolean),
-        bColorCommentBubble: AttributeInfo.createType(Boolean),
-        ProxyFactoryFunctionName: AttributeInfo.createType(String),
-        ProxyFactoryClass: AttributeInfo.createType(ObjectReferenceEntity),
-        ProxyClass: AttributeInfo.createType(ObjectReferenceEntity),
-        StructType: AttributeInfo.createType(ObjectReferenceEntity),
-        MaterialExpression: AttributeInfo.createType(ObjectReferenceEntity),
-        MaterialExpressionComment: AttributeInfo.createType(ObjectReferenceEntity),
-        MoveMode: AttributeInfo.createType(SymbolEntity),
-        TimelineName: AttributeInfo.createType(String),
-        TimelineGuid: AttributeInfo.createType(GuidEntity),
-        SizeX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        SizeY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        Text: AttributeInfo.createType(new MirroredEntity(String)),
-        MaterialExpressionEditorX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        MaterialExpressionEditorY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        NodeTitle: AttributeInfo.createType(String),
-        NodeTitleColor: AttributeInfo.createType(LinearColorEntity),
-        PositionX: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        PositionY: AttributeInfo.createType(new MirroredEntity(IntegerEntity)),
-        SettingsInterface: AttributeInfo.createType(ObjectReferenceEntity),
-        PCGNode: AttributeInfo.createType(ObjectReferenceEntity),
-        HiGenGridSize: AttributeInfo.createType(SymbolEntity),
-        Operation: AttributeInfo.createType(SymbolEntity),
-        NodePosX: AttributeInfo.createType(IntegerEntity),
-        NodePosY: AttributeInfo.createType(IntegerEntity),
-        NodeHeight: AttributeInfo.createType(IntegerEntity),
-        NodeWidth: AttributeInfo.createType(IntegerEntity),
-        Graph: AttributeInfo.createType(ObjectReferenceEntity),
-        SubgraphInstance: AttributeInfo.createType(String),
-        InputPins: new AttributeInfo({
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        }),
-        OutputPins: new AttributeInfo({
-            type: [ObjectReferenceEntity],
-            inlined: true,
-        }),
-        bExposeToLibrary: AttributeInfo.createType(Boolean),
-        bCanRenameNode: AttributeInfo.createType(Boolean),
-        bCommentBubblePinned: AttributeInfo.createType(Boolean),
-        bCommentBubbleVisible: AttributeInfo.createType(Boolean),
-        NodeComment: AttributeInfo.createType(String),
-        AdvancedPinDisplay: AttributeInfo.createType(IdentifierEntity),
-        DelegateReference: AttributeInfo.createType(VariableReferenceEntity),
-        EnabledState: AttributeInfo.createType(IdentifierEntity),
-        NodeGuid: AttributeInfo.createType(GuidEntity),
-        ErrorType: AttributeInfo.createType(IntegerEntity),
-        ErrorMsg: AttributeInfo.createType(String),
-        ScriptVariables: new AttributeInfo({
-            type: [ScriptVariableEntity],
-            inlined: true,
-        }),
-        Node: AttributeInfo.createType(new MirroredEntity(ObjectReferenceEntity)),
-        ExportedNodes: AttributeInfo.createType(String),
-        CustomProperties: AttributeInfo.createType([new Union(PinEntity, UnknownPinEntity)]),
+        MacroGraph: ObjectReferenceEntity,
+        GraphBlueprint: ObjectReferenceEntity,
+        GraphGuid: GuidEntity,
     }
-    static nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static grammar = Grammar.createEntityGrammar(this)
+
+    constructor(values) {
+        super(values);
+        /** @type {ObjectReferenceEntity} */ this.MacroGraph;
+        /** @type {ObjectReferenceEntity} */ this.GraphBlueprint;
+        /** @type {GuidEntity} */ this.GuidEntity;
+    }
+
+    getMacroName() {
+        const colonIndex = this.MacroGraph.path.search(":");
+        return this.MacroGraph.path.substring(colonIndex + 1)
+    }
+}
+
+class NaturalNumberEntity extends IntegerEntity {
+
+    static grammar = Parsernostrum.numberNatural.map(v => new this(v))
+
+    set value(value) {
+        value = Math.round(Utility.clamp(this.value, 0));
+        super.value = value;
+    }
+
+    constructor(value = 0) {
+        super(value);
+    }
+}
+
+class ScriptVariableEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        ScriptVariable: ObjectReferenceEntity,
+        OriginalChangeId: GuidEntity,
+    }
+    static grammar = Grammar.createEntityGrammar(this)
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {ObjectReferenceEntity} */ this.ScriptVariable;
+        /** @type {GuidEntity} */ this.OriginalChangeId;
+    }
+}
+
+class UnknownPinEntity extends PinEntity {
+
+    static grammar = Parsernostrum.seq(
+        Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`), 1),
+        Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
+        Parsernostrum.reg(/\s*(?:,\s*)?\)/)
+    ).map(([lookbehind, attributes, _2]) => {
+        lookbehind ??= "";
+        let values = {};
+        if (lookbehind.length) {
+            values.lookbehind = lookbehind;
+        }
+        attributes.forEach(attributeSetter => attributeSetter(values));
+        return new this(values)
+    })
+}
+
+class VariableReferenceEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        MemberScope: StringEntity,
+        MemberName: StringEntity.withDefault(),
+        MemberGuid: GuidEntity,
+        bSelfContext: BooleanEntity,
+    }
+    static grammar = Grammar.createEntityGrammar(this)
+
+    constructor(values) {
+        super(values);
+        /** @type {String} */ this.MemberName;
+        /** @type {GuidEntity} */ this.GuidEntity;
+        /** @type {Boolean} */ this.bSelfContext;
+    }
+}
+
+class ObjectEntity extends IEntity {
+
+    #_exported = false
+    get _exported() {
+        return this.#_exported
+    }
+    set _exported(value) {
+        this.#_exported = value;
+    }
+
+    static attributes = {
+        ...super.attributes,
+        Class: ObjectReferenceEntity,
+        Name: StringEntity,
+        Archetype: ObjectReferenceEntity,
+        ExportPath: ObjectReferenceEntity,
+        ObjectRef: ObjectReferenceEntity,
+        BlueprintElementType: ObjectReferenceEntity,
+        BlueprintElementInstance: ObjectReferenceEntity,
+        PinNames: ArrayEntity.of(StringEntity).flagInlined(),
+        AxisKey: SymbolEntity,
+        InputAxisKey: SymbolEntity,
+        InputName: StringEntity,
+        InputType: SymbolEntity,
+        NumAdditionalInputs: NaturalNumberEntity,
+        bIsPureFunc: BooleanEntity,
+        bIsConstFunc: BooleanEntity,
+        bIsCaseSensitive: BooleanEntity,
+        VariableReference: VariableReferenceEntity,
+        SelfContextInfo: SymbolEntity,
+        DelegatePropertyName: StringEntity,
+        DelegateOwnerClass: ObjectReferenceEntity,
+        ComponentPropertyName: StringEntity,
+        EventReference: FunctionReferenceEntity,
+        FunctionReference: FunctionReferenceEntity,
+        FunctionScript: ObjectReferenceEntity,
+        CustomFunctionName: StringEntity,
+        TargetType: ObjectReferenceEntity,
+        MacroGraphReference: MacroGraphReferenceEntity,
+        Enum: ObjectReferenceEntity,
+        EnumEntries: ArrayEntity.of(StringEntity).flagInlined(),
+        InputKey: SymbolEntity,
+        OpName: StringEntity,
+        CachedChangeId: GuidEntity,
+        FunctionDisplayName: StringEntity,
+        AddedPins: ArrayEntity.of(UnknownPinEntity).withDefault().flagInlined().flagSilent(),
+        ChangeId: GuidEntity,
+        MaterialFunction: ObjectReferenceEntity,
+        bOverrideFunction: BooleanEntity,
+        bInternalEvent: BooleanEntity,
+        bConsumeInput: BooleanEntity,
+        bExecuteWhenPaused: BooleanEntity,
+        bOverrideParentBinding: BooleanEntity,
+        bControl: BooleanEntity,
+        bAlt: BooleanEntity,
+        bShift: BooleanEntity,
+        bCommand: BooleanEntity,
+        CommentColor: LinearColorEntity,
+        bCommentBubbleVisible_InDetailsPanel: BooleanEntity,
+        bColorCommentBubble: BooleanEntity,
+        ProxyFactoryFunctionName: StringEntity,
+        ProxyFactoryClass: ObjectReferenceEntity,
+        ProxyClass: ObjectReferenceEntity,
+        StructType: ObjectReferenceEntity,
+        MaterialExpression: ObjectReferenceEntity,
+        MaterialExpressionComment: ObjectReferenceEntity,
+        MoveMode: SymbolEntity,
+        TimelineName: StringEntity,
+        TimelineGuid: GuidEntity,
+        SizeX: MirroredEntity$1.of(IntegerEntity),
+        SizeY: MirroredEntity$1.of(IntegerEntity),
+        Text: MirroredEntity$1.of(StringEntity),
+        MaterialExpressionEditorX: MirroredEntity$1.of(IntegerEntity),
+        MaterialExpressionEditorY: MirroredEntity$1.of(IntegerEntity),
+        NodeTitle: StringEntity,
+        NodeTitleColor: LinearColorEntity,
+        PositionX: MirroredEntity$1.of(IntegerEntity),
+        PositionY: MirroredEntity$1.of(IntegerEntity),
+        SettingsInterface: ObjectReferenceEntity,
+        PCGNode: ObjectReferenceEntity,
+        HiGenGridSize: SymbolEntity,
+        Operation: SymbolEntity,
+        NodePosX: IntegerEntity,
+        NodePosY: IntegerEntity,
+        NodeHeight: IntegerEntity,
+        NodeWidth: IntegerEntity,
+        Graph: ObjectReferenceEntity,
+        SubgraphInstance: StringEntity,
+        InputPins: ArrayEntity.of(ObjectReferenceEntity).flagInlined(),
+        OutputPins: ArrayEntity.of(ObjectReferenceEntity).flagInlined(),
+        bExposeToLibrary: BooleanEntity,
+        bCanRenameNode: BooleanEntity,
+        bCommentBubblePinned: BooleanEntity,
+        bCommentBubbleVisible: BooleanEntity,
+        NodeComment: StringEntity,
+        AdvancedPinDisplay: IdentifierEntity,
+        DelegateReference: VariableReferenceEntity,
+        EnabledState: IdentifierEntity,
+        NodeGuid: GuidEntity,
+        ErrorType: IntegerEntity,
+        ErrorMsg: StringEntity,
+        ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
+        Node: MirroredEntity$1.of(ObjectReferenceEntity),
+        ExportedNodes: StringEntity,
+        CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)),
+    }
+    static #nameRegex = /^(\w+?)(?:_(\d+))?$/
     static customPropertyGrammar = Parsernostrum.seq(
         Parsernostrum.reg(/CustomProperties\s+/),
-        Grammar.grammarFor(
-            undefined,
-            this.attributes.CustomProperties.type[0]
-        ),
+        this.attributes.CustomProperties.type.grammar,
     ).map(([_0, pin]) => values => {
-        if (!values.CustomProperties) {
-            values.CustomProperties = [];
-        }
-        values.CustomProperties.push(pin);
+        (values.CustomProperties ??= []).push(pin);
     })
     static inlinedArrayEntryGrammar = Parsernostrum.seq(
         Parsernostrum.alt(
@@ -6090,7 +5883,7 @@ class ObjectEntity extends IEntity {
     /** @type {String} */
     #class
 
-    constructor(values = {}, suppressWarns = false) {
+    constructor(values = {}) {
         if ("NodePosX" in values !== "NodePosY" in values) {
             const entries = Object.entries(values);
             const [key, position] = "NodePosX" in values
@@ -6100,13 +5893,7 @@ class ObjectEntity extends IEntity {
             entries.splice(position, 0, entry);
             values = Object.fromEntries(entries);
         }
-        super(values, suppressWarns);
-
-        // Attributes not assigned a strong type in attributes because the names are too generic
-        /** @type {Number | MirroredEntity<Boolean>} */ this.R;
-        /** @type {Number | MirroredEntity<Boolean>} */ this.G;
-        /** @type {Number | MirroredEntity<Boolean>} */ this.B;
-        /** @type {Number | MirroredEntity<Boolean>} */ this.A;
+        super(values);
 
         // Attributes
         /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties;
@@ -6206,19 +5993,19 @@ class ObjectEntity extends IEntity {
                 const rgbaPins = Configuration.rgba.map(pinName =>
                     this.getPinEntities().find(pin => pin.PinName === pinName && (pin.recomputesNodeTitleOnChange = true))
                 );
-                obj.R = new MirroredEntity(Boolean, () => rgbaPins[0].DefaultValue);
-                obj.G = new MirroredEntity(Boolean, () => rgbaPins[1].DefaultValue);
-                obj.B = new MirroredEntity(Boolean, () => rgbaPins[2].DefaultValue);
-                obj.A = new MirroredEntity(Boolean, () => rgbaPins[3].DefaultValue);
-                Utility.objectSet(obj, ["attributes", "R", "default"], false);
-                Utility.objectSet(obj, ["attributes", "R", "silent"], true);
-                Utility.objectSet(obj, ["attributes", "G", "default"], false);
-                Utility.objectSet(obj, ["attributes", "G", "silent"], true);
-                Utility.objectSet(obj, ["attributes", "B", "default"], false);
-                Utility.objectSet(obj, ["attributes", "B", "silent"], true);
-                Utility.objectSet(obj, ["attributes", "A", "default"], false);
-                Utility.objectSet(obj, ["attributes", "A", "silent"], true);
-                obj._keys = [...Configuration.rgba, ...Object.keys(obj).filter(k => !Configuration.rgba.includes(k))];
+                obj.R = new (
+                    MirroredEntity$1.of(BooleanEntity).withDefault().flagSilent()
+                )(() => rgbaPins[0].DefaultValue);
+                obj.G = new (
+                    MirroredEntity$1.of(BooleanEntity).withDefault().flagSilent()
+                )(() => rgbaPins[1].DefaultValue);
+                obj.B = new (
+                    MirroredEntity$1.of(BooleanEntity).withDefault().flagSilent()
+                )(() => rgbaPins[2].DefaultValue);
+                obj.A = new (
+                    MirroredEntity$1.of(BooleanEntity).withDefault().flagSilent()
+                )(() => rgbaPins[3].DefaultValue);
+                obj.keys = [...Configuration.rgba, ...super.keys.filter(k => !Configuration.rgba.includes(k))];
             }
         }
         /** @type {ObjectEntity} */
@@ -6235,10 +6022,10 @@ class ObjectEntity extends IEntity {
                             nodeRef.type === this.PCGNode.type
                             && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
                         ) {
-                            obj.Node.getter = () => new ObjectReferenceEntity({
-                                type: this.PCGNode.type,
-                                path: `${this.Name}.${this.PCGNode.path}`,
-                            });
+                            obj.Node.getter = () => new ObjectReferenceEntity(
+                                this.PCGNode.type,
+                                `${this.Name}.${this.PCGNode.path}`,
+                            );
                         }
                     }
                 }
@@ -6293,7 +6080,7 @@ class ObjectEntity extends IEntity {
 
     /** @returns {[String, Number]} */
     getNameAndCounter() {
-        const result = this.getObjectName().match(ObjectEntity.nameRegex);
+        const result = this.getObjectName().match(ObjectEntity.#nameRegex);
         return result
             ? [result[1] ?? "", parseInt(result[2] ?? "0")]
             : ["", 0]
@@ -6501,21 +6288,19 @@ class KnotEntity extends ObjectEntity {
         values.Name = "K2Node_Knot";
         const inputPinEntity = new PinEntity(
             { PinName: "InputPin" },
-            true
         );
         const outputPinEntity = new PinEntity(
             {
                 PinName: "OutputPin",
                 Direction: "EGPD_Output",
             },
-            true
         );
         if (pinReferenceForType) {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
         values["CustomProperties"] = [inputPinEntity, outputPinEntity];
-        super(values, true);
+        super(values);
     }
 }
 
@@ -6600,26 +6385,24 @@ class KeyBindingEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        ActionName: AttributeInfo.createValue(""),
-        bShift: AttributeInfo.createValue(false),
-        bCtrl: AttributeInfo.createValue(false),
-        bAlt: AttributeInfo.createValue(false),
-        bCmd: AttributeInfo.createValue(false),
-        Key: AttributeInfo.createType(IdentifierEntity),
+        ActionName: StringEntity,
+        bShift: BooleanEntity,
+        bCtrl: BooleanEntity,
+        bAlt: BooleanEntity,
+        bCmd: BooleanEntity,
+        Key: IdentifierEntity,
     }
-    static grammar = this.createGrammar()
+    static grammar = Parsernostrum.alt(
+        IdentifierEntity.grammar.map(identifier => {
+            const result = new this();
+            result.Key = identifier;
+            return result
+        }),
+        Grammar.createEntityGrammar(this)
+    )
 
-    static createGrammar() {
-        return Parsernostrum.alt(
-            IdentifierEntity.grammar.map(identifier => new this({
-                Key: identifier
-            })),
-            Grammar.createEntityGrammar(this)
-        )
-    }
-
-    constructor(values = {}) {
-        super(values, true);
+    constructor() {
+        super();
         /** @type {String} */ this.ActionName;
         /** @type {Boolean} */ this.bShift;
         /** @type {Boolean} */ this.bCtrl;
@@ -9308,6 +9091,29 @@ function nodeTemplateClass(nodeEntity) {
     return NodeTemplate
 }
 
+class SerializerFactory {
+
+    static #serializers = new Map()
+
+    /**
+     * @template {AttributeConstructor<Attribute>} T
+     * @param {T} type
+     * @param {Serializer<T>} object
+     */
+    static registerSerializer(type, object) {
+        SerializerFactory.#serializers.set(type, object);
+    }
+
+    /**
+     * @template {AttributeConstructor<Attribute>} T
+     * @param {T} type
+     * @returns {Serializer<T>}
+     */
+    static getSerializer(type) {
+        return SerializerFactory.#serializers.get(type)
+    }
+}
+
 /**
  * @template {IEntity} EntityT
  * @template {ISelectableDraggableTemplate} TemplateT
@@ -11075,7 +10881,7 @@ class Blueprint extends IElement {
                     this.entity = this.entity.mergeWith(element.entity);
                     const additionalSerialization = atob(element.entity.ExportedNodes);
                     this.template.getPasteInputObject().pasted(additionalSerialization)
-                        .forEach(node => node.entity.isExported = true);
+                        .forEach(node => node.entity._exported = true);
                     continue
                 }
                 const name = element.entity.getObjectName();
@@ -13222,11 +13028,11 @@ class TerminalTypeEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        TerminalCategory: AttributeInfo.createType(String),
-        TerminalSubCategory: AttributeInfo.createType(String),
-        bTerminalIsConst: AttributeInfo.createType(Boolean),
-        bTerminalIsWeakPointer: AttributeInfo.createType(Boolean),
-        bTerminalIsUObjectWrapper: AttributeInfo.createType(Boolean),
+        TerminalCategory: StringEntity,
+        TerminalSubCategory: StringEntity,
+        bTerminalIsConst: BooleanEntity,
+        bTerminalIsWeakPointer: BooleanEntity,
+        bTerminalIsUObjectWrapper: BooleanEntity,
     }
 
     constructor(values) {
@@ -13242,36 +13048,29 @@ class TerminalTypeEntity extends IEntity {
 class UnknownKeysEntity extends IEntity {
 
 
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.seq(
-            // Lookbehind
-            Parsernostrum.reg(
-                new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`),
-                1
-            ),
-            Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
-                .chain(attributeName =>
-                    Grammar.unknownValue.map(attributeValue =>
-                        values => values[attributeName] = attributeValue
-                    )
+    static grammar = Parsernostrum.seq(
+        // Lookbehind
+        Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
+        Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
+            .chain(attributeName =>
+                Grammar.unknownValue.map(attributeValue =>
+                    values => values[attributeName] = attributeValue
                 )
-                .sepBy(Grammar.commaSeparation),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-        ).map(([lookbehind, attributes, _2]) => {
-            lookbehind ??= "";
-            let values = {};
-            if (lookbehind.length) {
-                values.lookbehind = lookbehind;
-            }
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        })
-    }
+            )
+            .sepBy(Grammar.commaSeparation),
+        Parsernostrum.reg(/\s*(?:,\s*)?\)/),
+    ).map(([lookbehind, attributes, _2]) => {
+        lookbehind ??= "";
+        let values = {};
+        if (lookbehind.length) {
+            values.lookbehind = lookbehind;
+        }
+        attributes.forEach(attributeSetter => attributeSetter(values));
+        return new this(values)
+    })
 
-    constructor(values) {
-        super(values, true);
+    constructor(values = {}) {
+        super(values);
     }
 }
 
@@ -13332,13 +13131,13 @@ class ToStringSerializer extends Serializer {
 Grammar.unknownValue =
     Parsernostrum.alt(
         // Remember to keep the order, otherwise parsing might fail
-        Grammar.boolean,
+        BooleanEntity.grammar,
         GuidEntity.grammar,
-        Parsernostrum.str("None").map(() => new ObjectReferenceEntity({ type: "None" })),
+        Parsernostrum.str("None").map(() => ObjectReferenceEntity.createNoneInstance()),
         Grammar.null,
-        Grammar.number,
+        NumberEntity.grammar,
         ObjectReferenceEntity.fullReferenceGrammar,
-        Grammar.string,
+        StringEntity.grammar,
         LocalizedTextEntity.grammar,
         InvariantTextEntity.grammar,
         FormatTextEntity.grammar,
@@ -13350,9 +13149,9 @@ Grammar.unknownValue =
         Vector2DEntity.grammar,
         UnknownKeysEntity.grammar,
         SymbolEntity.grammar,
-        Grammar.grammarFor(undefined, [PinReferenceEntity]),
-        Grammar.grammarFor(undefined, [new Union(Number, String, SymbolEntity)]),
-        Parsernostrum.lazy(() => Grammar.grammarFor(undefined, [undefined])),
+        ArrayEntity.of(PinReferenceEntity).grammar,
+        ArrayEntity.of(AlternativesEntity.accepting(NumberEntity, StringEntity, SymbolEntity)).grammar,
+        Parsernostrum.lazy(() => ArrayEntity.createGrammar(Grammar.unknownValue)),
     );
 
 function initializeSerializerFactory() {
@@ -13486,11 +13285,11 @@ function initializeSerializerFactory() {
         new Serializer(MacroGraphReferenceEntity, Serializer.bracketsWrapped)
     );
 
-    SerializerFactory.registerSerializer(
-        MirroredEntity,
+    SerializerFactory.registeOrSerializer(
+        MirroredEntity$1,
         new CustomSerializer(
             (v, insideString) => SerializerFactory.getSerializer(v.getTargetType()).write(v.get(), insideString),
-            MirroredEntity
+            MirroredEntity$1
         )
     );
 

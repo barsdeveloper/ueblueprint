@@ -478,7 +478,7 @@ test("UnknownKeysValue", () => {
     expect(parser.parse("(1,2,3,4,5,6,7,8,9)")).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
     expect(parser.parse(`( "Hello",  "World",  )`)).toStrictEqual(["Hello", "World"])
     expect(parser.parse(`( "Alpha", 123, Beta, "Gamma", "Delta", 99  )`))
-        .toStrictEqual(["Alpha", 123, new SymbolEntity({ value: "Beta" }), "Gamma", "Delta", 99])
+        .toStrictEqual(["Alpha", 123, new SymbolEntity("Beta"), "Gamma", "Delta", 99])
 })
 
 test("UnknownKeysEntity", () => {

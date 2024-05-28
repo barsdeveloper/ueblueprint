@@ -1,43 +1,31 @@
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
+import BooleanEntity from "./BooleanEntity.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import IEntity from "./IEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PathSymbolEntity from "./PathSymbolEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class PinTypeEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        PinCategory: AttributeInfo.createValue(""),
-        PinSubCategory: AttributeInfo.createValue(""),
-        PinSubCategoryObject: new AttributeInfo({
-            type: ObjectReferenceEntity,
-            default: () => ObjectReferenceEntity.createNoneInstance(),
-        }),
-        PinSubCategoryMemberReference: new AttributeInfo({
-            type: FunctionReferenceEntity,
-            default: null,
-        }),
-        PinValueType: new AttributeInfo({
-            type: PinTypeEntity,
-            default: null,
-        }),
-        ContainerType: AttributeInfo.createType(PathSymbolEntity),
-        bIsReference: AttributeInfo.createValue(false),
-        bIsConst: AttributeInfo.createValue(false),
-        bIsWeakPointer: AttributeInfo.createValue(false),
-        bIsUObjectWrapper: AttributeInfo.createValue(false),
-        bSerializeAsSinglePrecisionFloat: AttributeInfo.createValue(false),
+        PinCategory: StringEntity.withDefault(),
+        PinSubCategory: StringEntity.withDefault(),
+        PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
+        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(type => null),
+        PinValueType: PinTypeEntity.withDefault(),
+        ContainerType: PathSymbolEntity,
+        bIsReference: BooleanEntity.withDefault(),
+        bIsConst: BooleanEntity.withDefault(),
+        bIsWeakPointer: BooleanEntity.withDefault(),
+        bIsUObjectWrapper: BooleanEntity.withDefault(),
+        bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
     }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.createEntityGrammar(this)
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this)
-    }
-
-    constructor(values = {}, suppressWarns = false) {
-        super(values, suppressWarns)
+    constructor(values = {}) {
+        super(values)
         /** @type {String} */ this.PinCategory
         /** @type {String} */ this.PinSubCategory
         /** @type {ObjectReferenceEntity} */ this.PinSubCategoryObject
@@ -54,16 +42,10 @@ export default class PinTypeEntity extends IEntity {
 
     /** @param {PinTypeEntity} other */
     copyTypeFrom(other) {
-        this.PinCategory = other.PinCategory
-        this.PinSubCategory = other.PinSubCategory
-        this.PinSubCategoryObject = other.PinSubCategoryObject
-        this.PinSubCategoryMemberReference = other.PinSubCategoryMemberReference
-        this.PinValueType = other.PinValueType
-        this.ContainerType = other.ContainerType
-        this.bIsReference = other.bIsReference
-        this.bIsConst = other.bIsConst
-        this.bIsWeakPointer = other.bIsWeakPointer
-        this.bIsUObjectWrapper = other.bIsUObjectWrapper
-        this.bSerializeAsSinglePrecisionFloat = other.bSerializeAsSinglePrecisionFloat
+        for (const key of this.keys) {
+            if (other[key] !== undefined) {
+                this[key] = other[key]
+            }
+        }
     }
 }

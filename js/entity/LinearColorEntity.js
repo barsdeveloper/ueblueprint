@@ -1,8 +1,7 @@
 import { css } from "lit"
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
 import Utility from "../Utility.js"
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import ColorChannelEntity from "./ColorChannelEntity.js"
 import IEntity from "./IEntity.js"
 
@@ -10,42 +9,36 @@ export default class LinearColorEntity extends IEntity {
 
     static attributes = {
         ...super.attributes,
-        R: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        G: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        B: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            expected: true,
-        }),
-        A: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(1),
-        }),
-        H: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
-        S: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
-        V: new AttributeInfo({
-            type: ColorChannelEntity,
-            default: () => new ColorChannelEntity(),
-            ignored: true,
-        }),
+        R: ColorChannelEntity.withDefault(),
+        G: ColorChannelEntity.withDefault(),
+        B: ColorChannelEntity.withDefault(),
+        A: ColorChannelEntity.withDefault(type => new type(1)),
     }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.createEntityGrammar(this, false)
+
+    #H = new ColorChannelEntity()
+    get H() {
+        return this.#H
+    }
+    set H(value) {
+        this.#H = value
+    }
+
+    #S = new ColorChannelEntity()
+    get S() {
+        return this.#H
+    }
+    set S(value) {
+        this.#H = value
+    }
+
+    #V = new ColorChannelEntity()
+    get V() {
+        return this.#H
+    }
+    set V(value) {
+        this.#H = value
+    }
 
     /** @param {Number} x */
     static linearToSRGB(x) {
@@ -81,16 +74,13 @@ export default class LinearColorEntity extends IEntity {
         })
     }
 
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
-
     static getLinearColorFromHexGrammar() {
-        return Parsernostrum.regArray(new RegExp(
-            "#(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})"
-            + "(" + Grammar.Regex.HexDigit.source + "{2})?"
+        const hexDigit = /[0-9a-fA-F]/
+        return P.regArray(new RegExp(
+            "#(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})"
+            + "(" + hexDigit.source + "{2})?"
         )).map(([m, R, G, B, A]) => new this({
             R: parseInt(R, 16) / 255,
             G: parseInt(G, 16) / 255,
@@ -100,12 +90,12 @@ export default class LinearColorEntity extends IEntity {
     }
 
     static getLinearColorRGBListGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.numberByte,
+        return P.seq(
+            P.numberByte,
             Grammar.commaSeparation,
-            Parsernostrum.numberByte,
+            P.numberByte,
             Grammar.commaSeparation,
-            Parsernostrum.numberByte,
+            P.numberByte,
         ).map(([R, _1, G, _3, B]) => new this({
             R: R / 255,
             G: G / 255,
@@ -115,23 +105,23 @@ export default class LinearColorEntity extends IEntity {
     }
 
     static getLinearColorRGBGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(/rgb\s*\(\s*/),
+        return P.seq(
+            P.reg(/rgb\s*\(\s*/),
             this.getLinearColorRGBListGrammar(),
-            Parsernostrum.reg(/\s*\)/)
+            P.reg(/\s*\)/)
         ).map(([_0, linearColor, _2]) => linearColor)
     }
 
     static getLinearColorRGBAGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(/rgba\s*\(\s*/),
+        return P.seq(
+            P.reg(/rgba\s*\(\s*/),
             this.getLinearColorRGBListGrammar(),
-            Parsernostrum.reg(/\s*\)/)
+            P.reg(/\s*\)/)
         ).map(([_0, linearColor, _2]) => linearColor)
     }
 
     static getLinearColorFromAnyFormat() {
-        return Parsernostrum.alt(
+        return P.alt(
             this.getLinearColorFromHexGrammar(),
             this.getLinearColorRGBAGrammar(),
             this.getLinearColorRGBGrammar(),
@@ -140,6 +130,7 @@ export default class LinearColorEntity extends IEntity {
     }
 
     constructor(values) {
+        super(values)
         if (values instanceof Array) {
             values = {
                 R: values[0] ?? 0,
@@ -148,14 +139,10 @@ export default class LinearColorEntity extends IEntity {
                 A: values[3] ?? 1,
             }
         }
-        super(values)
         /** @type {ColorChannelEntity} */ this.R
         /** @type {ColorChannelEntity} */ this.G
         /** @type {ColorChannelEntity} */ this.B
         /** @type {ColorChannelEntity} */ this.A
-        /** @type {ColorChannelEntity} */ this.H
-        /** @type {ColorChannelEntity} */ this.S
-        /** @type {ColorChannelEntity} */ this.V
         this.#updateHSV()
     }
 

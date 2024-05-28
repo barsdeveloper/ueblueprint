@@ -1,17 +1,17 @@
-import IntegerEntity from "./IntegerEntity.js"
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
 import Utility from "../Utility.js"
+import IntegerEntity from "./IntegerEntity.js"
 
 export default class NaturalNumberEntity extends IntegerEntity {
 
-    static grammar = this.createGrammar()
+    static grammar = P.numberNatural.map(v => new this(v))
 
-    static createGrammar() {
-        return Parsernostrum.numberNatural.map(v => new this(v))
+    set value(value) {
+        value = Math.round(Utility.clamp(this.value, 0))
+        super.value = value
     }
 
-    constructor(values = 0) {
-        super(values)
-        this.value = Math.round(Utility.clamp(this.value, 0))
+    constructor(value = 0) {
+        super(value)
     }
 }

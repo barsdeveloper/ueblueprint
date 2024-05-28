@@ -1,31 +1,18 @@
 import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
 import IEntity from "./IEntity.js"
 
 export default class IdentifierEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-    }
     static attributeConverter = {
         fromAttribute: (value, type) => new IdentifierEntity(value),
         toAttribute: (value, type) => value.toString()
     }
-    static grammar = this.createGrammar()
+    static grammar = Grammar.symbol.map(v => new this(v))
 
-    static createGrammar() {
-        return Grammar.symbol.map(v => new this(v))
-    }
-
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            }
-        }
-        super(values)
-        /** @type {String} */ this.value
+    /** @param {String} value */
+    constructor(value) {
+        super()
+        this.value = value
     }
 
     valueOf() {
@@ -33,6 +20,6 @@ export default class IdentifierEntity extends IEntity {
     }
 
     toString() {
-        return this.value
+        return this.value.toString()
     }
 }

@@ -1,6 +1,6 @@
 /**
  * @template T
- * @typedef {new (...args: any) => T} AnyConstructor
+ * @typedef {abstract new (...args: any) => T} AnyConstructor
  */
 /**
  * @template {Attribute} T
@@ -76,8 +76,6 @@
  *     ? DescribedType<R>[]
  *     : T extends MirroredEntity<infer R>
  *     ? DescribedType<R>
- *     : T extends Union<infer R>
- *     ? DescribedTypesFromArray<R>
  *     : T
  * } DescribedType
  */
@@ -99,10 +97,6 @@
  * }} TypeGetter
  */
 /**
- * @template {any[]} T
- * @typedef {import("./js/entity/Union.js").default<T>} Union
- */
-/**
  * @typedef {typeof import("./js/Blueprint.js").default} BlueprintConstructor
  * @typedef {typeof import("./js/element/LinkElement.js").default} LinkElementConstructor
  * @typedef {typeof import("./js/element/NodeElement.js").default} NodeElementConstructor
@@ -112,6 +106,7 @@
  * @typedef {typeof import("./js/entity/ObjectEntity.js").default} ObjectEntityConstructor
  */
 /**
+ * @typedef {import ("./tests/fixtures/BlueprintFixture.js").default} BlueprintFixture
  * @typedef {import("./js/Blueprint.js").default} Blueprint
  * @typedef {import("./js/element/ColorHandlerElement.js").default} ColorHandlerElement
  * @typedef {import("./js/element/ColorSliderElement.js").default} ColorSliderElement
@@ -130,7 +125,7 @@
  * @typedef {import("./js/element/WindowElement.js").default} WindowElement
  * @typedef {import("./js/entity/ByteEntity.js").default} ByteEntity
  * @typedef {import("./js/entity/ColorChannelEntity.js").default} ColorChannelEntity
- * @typedef {import("./js/entity/ComputedType.js").default} ComputedType
+ * @typedef {import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntity
  * @typedef {import("./js/entity/EnumDisplayValueEntity.js").default} EnumDisplayValueEntity
  * @typedef {import("./js/entity/EnumEntity.js").default} EnumEntity
  * @typedef {import("./js/entity/FormatTextEntity.js").default} FormatTextEntity
@@ -209,10 +204,10 @@
  * @typedef {import("./js/template/SelectorTemplate.js").default} SelectorTemplate
  * @typedef {import("./js/template/window/ColorPickerWindowTemplate.js").default} ColorPickerWindowTemplate
  * @typedef {import("./js/template/window/WindowTemplate.js").default} WindowTemplate
- * @typedef {import ("./tests/fixtures/BlueprintFixture.js").default} BlueprintFixture
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
+ * @typedef {import("parsernostrum/src/parser/Parser.js").default} Parser
  */
 /**
  * @template {AttributeConstructor<Attribute>} T
