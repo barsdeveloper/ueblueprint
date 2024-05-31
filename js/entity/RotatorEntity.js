@@ -10,13 +10,13 @@ export default class RotatorEntity extends IEntity {
         P: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this, false)
+    static grammar = Grammar.createEntityGrammar(this).label("RotatorEntity")
 
     constructor(values) {
         super(values)
-        /** @type {NumberEntity} */ this.R
-        /** @type {NumberEntity} */ this.P
-        /** @type {NumberEntity} */ this.Y
+        /** @type {InstanceType<typeof RotatorEntity.attributes.R>} */ this.R
+        /** @type {InstanceType<typeof RotatorEntity.attributes.P>} */ this.P
+        /** @type {InstanceType<typeof RotatorEntity.attributes.Y>} */ this.Y
     }
 
     getRoll() {

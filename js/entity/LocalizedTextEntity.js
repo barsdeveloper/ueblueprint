@@ -1,24 +1,27 @@
 import P from "parsernostrum"
 import Utility from "../Utility.js"
 import Grammar from "../serialization/Grammar.js"
-import IEntity from "./IEntity.js"
+import IPrintableEntity from "./IPrintableEntity.js"
 
-export default class LocalizedTextEntity extends IEntity {
+export default class LocalizedTextEntity extends IPrintableEntity {
 
     static lookbehind = "NSLOCTEXT"
     static grammar = P.regArray(new RegExp(
-        String.raw`${this.attributes.lookbehind.default}\s*\(`
+        String.raw`${this.lookbehind}\s*\(`
         + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
         + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*,`
         + String.raw`\s*"(${Grammar.Regex.InsideString.source})"\s*`
-        + String.raw`(?:,\s+)?`
+        + String.raw`(,\s+)?`
         + String.raw`\)`,
         "m"
-    )).map(matchResult => new this(
-        Utility.unescapeString(matchResult[1]),
-        Utility.unescapeString(matchResult[2]),
-        Utility.unescapeString(matchResult[3]),
-    ))
+    )).map(matchResult => {
+        const self = matchResult[4] ? this.flagTrailing() : this
+        return new self(
+            Utility.unescapeString(matchResult[1]),
+            Utility.unescapeString(matchResult[2]),
+            Utility.unescapeString(matchResult[3]),
+        )
+    }).label("LocalizedTextEntity")
 
     #namespace
     get namespace() {
@@ -44,7 +47,6 @@ export default class LocalizedTextEntity extends IEntity {
         this.#value = value
     }
 
-
     constructor(namespace = "", key = "", value = "") {
         super()
         this.namespace = namespace
@@ -52,7 +54,12 @@ export default class LocalizedTextEntity extends IEntity {
         this.value = value
     }
 
-    toString() {
+    print() {
         return Utility.capitalFirstLetter(this.value)
+    }
+
+    toString() {
+        const trailer = this.Self().trailing ? ", " : ""
+        return `${this.lookbehind}(${this.namespace}, ${this.key}, ${this.value}${trailer})`
     }
 }

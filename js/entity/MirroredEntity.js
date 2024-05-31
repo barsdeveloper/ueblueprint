@@ -6,7 +6,7 @@ export default class MirroredEntity extends IEntity {
     /** @type {typeof IEntity} */
     static type
 
-    /** @param {() => T} getter */
+    /** @param {() => InstanceType<T>} getter */
     constructor(getter = null) {
         super()
         this.getter = getter
@@ -32,7 +32,11 @@ export default class MirroredEntity extends IEntity {
         return result
     }
 
-    toString() {
-        return this.getter().toString()
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
+        return this.getter().toString(insideString, indentation, printKey)
     }
 }

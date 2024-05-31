@@ -28,12 +28,14 @@ import VariableReferenceEntity from "./VariableReferenceEntity.js"
 
 export default class ObjectEntity extends IEntity {
 
-    #_exported = false
-    get _exported() {
-        return this.#_exported
+    static trailing = true
+
+    #exported = false
+    get exported() {
+        return this.#exported
     }
-    set _exported(value) {
-        this.#_exported = value
+    set exported(value) {
+        this.#exported = value
     }
 
     static attributes = {
@@ -130,7 +132,7 @@ export default class ObjectEntity extends IEntity {
         ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
         Node: MirroredEntity.of(ObjectReferenceEntity),
         ExportedNodes: StringEntity,
-        CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)),
+        CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
     }
     static #nameRegex = /^(\w+?)(?:_(\d+))?$/
     static customPropertyGrammar = P.seq(
@@ -144,28 +146,28 @@ export default class ObjectEntity extends IEntity {
             Grammar.symbolQuoted.map(v => [v, true]),
             Grammar.symbol.map(v => [v, false]),
         ),
-        P.reg(
-            new RegExp(`\\s*\\(\\s*(\\d+)\\s*\\)\\s*\\=\\s*`),
-            1
-        ).map(Number)
+        P.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number)
     )
         .chain(
-            /** @param {[[String, Boolean], Number]} param */
+            /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
             ([[symbol, quoted], index]) =>
-                Grammar.grammarFor(this.attributes[symbol])
-                    .map(currentValue =>
-                        values => {
-                            (values[symbol] ??= [])[index] = currentValue
-                            Utility.objectSet(values, ["attributes", symbol, "quoted"], quoted)
-                            if (!this.attributes[symbol]?.inlined) {
-                                if (!values.attributes) {
-                                    IEntity.defineAttributes(values, {})
-                                }
-                                Utility.objectSet(values, ["attributes", symbol, "type"], [currentValue.constructor])
-                                Utility.objectSet(values, ["attributes", symbol, "inlined"], true)
+                this.attributes[symbol].grammar.map(currentValue =>
+                    values => {
+                        if (values[symbol] === undefined) {
+                            let arrayEntity = ArrayEntity
+                            if (quoted != arrayEntity.quoted) {
+                                arrayEntity = arrayEntity.flagQuoted(quoted)
                             }
+                            if (!arrayEntity.inlined) {
+                                arrayEntity = arrayEntity.flagInlined()
+                            }
+                            values[symbol] = new arrayEntity()
                         }
-                    )
+                        /** @type {ArrayEntity} */
+                        const target = values[symbol]
+                        target.values[index] = currentValue
+                    }
+                )
         )
     static grammar = this.createGrammar()
 
@@ -233,73 +235,71 @@ export default class ObjectEntity extends IEntity {
         super(values)
 
         // Attributes
-        /** @type {(PinEntity | UnknownPinEntity)[]} */ this.CustomProperties
-        /** @type {Boolean} */ this.bIsPureFunc
-        /** @type {Boolean} */ this.isExported
-        /** @type {FunctionReferenceEntity} */ this.ComponentPropertyName
-        /** @type {FunctionReferenceEntity} */ this.EventReference
-        /** @type {FunctionReferenceEntity} */ this.FunctionReference
-        /** @type {IdentifierEntity} */ this.AdvancedPinDisplay
-        /** @type {IdentifierEntity} */ this.EnabledState
-        /** @type {IntegerEntity} */ this.NodeHeight
-        /** @type {IntegerEntity} */ this.NodePosX
-        /** @type {IntegerEntity} */ this.NodePosY
-        /** @type {IntegerEntity} */ this.NodeWidth
-        /** @type {LinearColorEntity} */ this.CommentColor
-        /** @type {LinearColorEntity} */ this.NodeTitleColor
-        /** @type {MacroGraphReferenceEntity} */ this.MacroGraphReference
-        /** @type {MirroredEntity} */ this.MaterialExpressionEditorX
-        /** @type {MirroredEntity} */ this.MaterialExpressionEditorY
-        /** @type {MirroredEntity} */ this.SizeX
-        /** @type {MirroredEntity} */ this.SizeY
-        /** @type {MirroredEntity} */ this.Text
-        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionX
-        /** @type {MirroredEntity<IntegerEntity>} */ this.PositionY
-        /** @type {MirroredEntity<ObjectReferenceEntity>} */ this.Node
-        /** @type {null[]} */ this.PinTags
-        /** @type {Number} */ this.NumAdditionalInputs
-        /** @type {ObjectReferenceEntity[]} */ this.InputPins
-        /** @type {ObjectReferenceEntity[]} */ this.OutputPins
-        /** @type {ObjectReferenceEntity} */ this.Archetype
-        /** @type {ObjectReferenceEntity} */ this.BlueprintElementInstance
-        /** @type {ObjectReferenceEntity} */ this.BlueprintElementType
-        /** @type {ObjectReferenceEntity} */ this.Class
-        /** @type {ObjectReferenceEntity} */ this.Enum
-        /** @type {ObjectReferenceEntity} */ this.ExportPath
-        /** @type {ObjectReferenceEntity} */ this.FunctionScript
-        /** @type {ObjectReferenceEntity} */ this.Graph
-        /** @type {ObjectReferenceEntity} */ this.MaterialExpression
-        /** @type {ObjectReferenceEntity} */ this.MaterialExpressionComment
-        /** @type {ObjectReferenceEntity} */ this.MaterialFunction
-        /** @type {ObjectReferenceEntity} */ this.ObjectRef
-        /** @type {ObjectReferenceEntity} */ this.PCGNode
-        /** @type {ObjectReferenceEntity} */ this.SettingsInterface
-        /** @type {ObjectReferenceEntity} */ this.StructType
-        /** @type {ObjectReferenceEntity} */ this.TargetType
-        /** @type {ScriptVariableEntity[]} */ this.ScriptVariables
-        /** @type {String[]} */ this.EnumEntries
-        /** @type {String[]} */ this.PinNames
-        /** @type {String} */ this.CustomFunctionName
-        /** @type {String} */ this.DelegatePropertyName
-        /** @type {String} */ this.ExportedNodes
-        /** @type {String} */ this.FunctionDisplayName
-        /** @type {String} */ this.InputName
-        /** @type {String} */ this.Name
-        /** @type {String} */ this.NodeComment
-        /** @type {String} */ this.NodeTitle
-        /** @type {String} */ this.Operation
-        /** @type {String} */ this.OpName
-        /** @type {String} */ this.ProxyFactoryFunctionName
-        /** @type {String} */ this.SubgraphInstance
-        /** @type {String} */ this.Text
-        /** @type {SymbolEntity} */ this.AxisKey
-        /** @type {SymbolEntity} */ this.HiGenGridSize
-        /** @type {SymbolEntity} */ this.InputAxisKey
-        /** @type {SymbolEntity} */ this.InputKey
-        /** @type {SymbolEntity} */ this.InputType
-        /** @type {UnknownPinEntity[]} */ this.AddedPins
-        /** @type {VariableReferenceEntity} */ this.DelegateReference
-        /** @type {VariableReferenceEntity} */ this.VariableReference
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AddedPins>} */ this.AddedPins
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AdvancedPinDisplay>} */ this.AdvancedPinDisplay
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey
+        /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc
+        /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance
+        /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class
+        /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.CustomProperties>} */ this.CustomProperties
+        /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Enum>} */ this.Enum
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EnumEntries>} */ this.EnumEntries
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EventReference>} */ this.EventReference
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ExportedNodes>} */ this.ExportedNodes
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ExportPath>} */ this.ExportPath
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionDisplayName>} */ this.FunctionDisplayName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionReference>} */ this.FunctionReference
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionScript>} */ this.FunctionScript
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Graph>} */ this.Graph
+        /** @type {InstanceType<typeof ObjectEntity.attributes.HiGenGridSize>} */ this.HiGenGridSize
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputAxisKey>} */ this.InputAxisKey
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputKey>} */ this.InputKey
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputName>} */ this.InputName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputPins>} */ this.InputPins
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputType>} */ this.InputType
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MacroGraphReference>} */ this.MacroGraphReference
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpression>} */ this.MaterialExpression
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionComment>} */ this.MaterialExpressionComment
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionEditorX>} */ this.MaterialExpressionEditorX
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionEditorY>} */ this.MaterialExpressionEditorY
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialFunction>} */ this.MaterialFunction
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Name>} */ this.Name
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Node>} */ this.Node
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeComment>} */ this.NodeComment
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeHeight>} */ this.NodeHeight
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodePosX>} */ this.NodePosX
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodePosY>} */ this.NodePosY
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeTitle>} */ this.NodeTitle
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeTitleColor>} */ this.NodeTitleColor
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeWidth>} */ this.NodeWidth
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NumAdditionalInputs>} */ this.NumAdditionalInputs
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ObjectRef>} */ this.ObjectRef
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Operation>} */ this.Operation
+        /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ProxyFactoryFunctionName>} */ this.ProxyFactoryFunctionName
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ScriptVariables>} */ this.ScriptVariables
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SettingsInterface>} */ this.SettingsInterface
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SizeX>} */ this.SizeX
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SizeY>} */ this.SizeY
+        /** @type {InstanceType<typeof ObjectEntity.attributes.StructType>} */ this.StructType
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SubgraphInstance>} */ this.SubgraphInstance
+        /** @type {InstanceType<typeof ObjectEntity.attributes.TargetType>} */ this.TargetType
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Text>} */ this.Text
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Text>} */ this.Text
+        /** @type {InstanceType<typeof ObjectEntity.attributes.VariableReference>} */ this.VariableReference
 
         // Legacy nodes pins
         if (this["Pins"] instanceof Array) {
@@ -481,10 +481,7 @@ export default class ObjectEntity extends IEntity {
     }
 
     getCustomproperties(canCreate = false) {
-        if (canCreate && !this.CustomProperties) {
-            this.CustomProperties = []
-        }
-        return this.CustomProperties ?? []
+        return this.CustomProperties.values
     }
 
     /** @returns {PinEntity[]} */
@@ -614,5 +611,45 @@ export default class ObjectEntity extends IEntity {
 
     additionalPinInserter() {
         return nodeVariadic(this)
+    }
+
+    /** @param {String} key */
+    showProperty(key) {
+        switch (key) {
+            case "Class":
+            case "Name":
+            case "Archetype":
+            case "ExportPath":
+            case "CustomProperties":
+                // Serielized separately, check doWrite()
+                return false
+        }
+        return super.showProperty(key)
+    }
+
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
+        const moreIndentation = indentation + Configuration.indentation
+        let result = indentation + "Begin Object"
+            + (this.Class?.type || this.Class?.path ? ` Class=${this.Class.toString(insideString)}` : "")
+            + (this.Name ? ` Name=${this.Name.toString(insideString)}` : "")
+            + (this.Archetype ? ` Archetype=${this.Archetype.toString(insideString)}` : "")
+            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.toString(insideString)}` : "")
+            + "\n"
+            + super.toString(insideString, moreIndentation, k => this[k] instanceof ObjectEntity ? "" : k)
+            + (!this.CustomProperties.Self().ignored
+                ? this.getCustomproperties().map(pin =>
+                    moreIndentation
+                    + printKey("CustomProperties ")
+                    + pin.toString(insideString)
+                    + this.Self().attributeSeparator
+                ).join("")
+                : ""
+            )
+            + indentation + "End Object"
+        return result
     }
 }

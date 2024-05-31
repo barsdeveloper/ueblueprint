@@ -7,13 +7,20 @@ export default class AlternativesEntity extends IEntity {
     /** @type {(typeof IEntity)[]} */
     static alternatives = []
 
+    static className() {
+        let result = super.className()
+        if (this.alternatives.length) {
+            result += " (accepting: " + this.alternatives.map(v => v.className()).join(", ") + ")"
+        }
+        return result
+    }
+
     static createGrammar() {
-        return this.alternatives
-            .map(entity => entity.grammar)
-            .reduce((acc, cur) => !cur || cur === Grammar.unknownValue || acc === Grammar.unknownValue
-                ? Grammar.unknownValue
-                : P.alt(acc, cur)
-            )
+        const grammars = this.alternatives.map(entity => entity.grammar)
+        if (grammars.includes(Grammar.unknownValue)) {
+            return Grammar.unknownValue
+        }
+        return P.alt(...grammars)
     }
 
     /**

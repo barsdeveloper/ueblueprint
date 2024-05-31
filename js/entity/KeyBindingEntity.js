@@ -27,11 +27,11 @@ export default class KeyBindingEntity extends IEntity {
 
     constructor() {
         super()
-        /** @type {String} */ this.ActionName
-        /** @type {Boolean} */ this.bShift
-        /** @type {Boolean} */ this.bCtrl
-        /** @type {Boolean} */ this.bAlt
-        /** @type {Boolean} */ this.bCmd
-        /** @type {IdentifierEntity} */ this.Key
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.ActionName>} */ this.ActionName
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bShift>} */ this.bShift
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCtrl>} */ this.bCtrl
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bAlt>} */ this.bAlt
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCmd>} */ this.bCmd
+        /** @type {InstanceType<typeof KeyBindingEntity.attributes.Key>} */ this.Key
     }
 }

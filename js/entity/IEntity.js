@@ -10,44 +10,21 @@ export default class IEntity {
     /** @type {(entity: Attribute, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
 
-    /** @type {(entity: Attribute, serialized: String) => String} */
-    static bracketsWrapped = (entity, serialized) => `(${serialized})`
+    /** @type {(entity: IEntity, serialized: String) => String} */
+    static defaultWrapped = (entity, serialized) => `${entity.lookbehind}(${serialized})`
 
-    static wrap = this.notWrapped
+    static wrap = this.defaultWrapped
 
     static attributeSeparator = ","
-
-    static trailingSeparator = false
 
     /** @type {(k: String) => String} */
     static printKey = k => k
 
-    /** @type {P<Parser>} */
-    static grammar = P.failure()
+    /** @type {P<InstanceType<typeof this>>} */
+    static grammar = /** @type {any} */(P.failure())
 
     /** @type {{ [key: String]: typeof IEntity }} */
     static attributes = {}
-
-    /** @type {String | String[]} */
-    static lookbehind = ""
-
-    /** @type {typeof IEntity.lookbehind} */
-    #lookbehind = this.Self().lookbehind
-    get lookbehind() {
-        return this.#lookbehind
-    }
-    set lookbehind(value) {
-        throw this.#lookbehind = value
-    }
-
-    /** @type {String[]} */
-    #keys
-    get keys() {
-        return this.#keys ?? Object.keys(this.Self().attributes)
-    }
-    set keys(value) {
-        this.#keys = [... new Set(value)]
-    }
 
     /** @type {(type: typeof IEntity) => InstanceType<typeof IEntity>} */
     static default
@@ -58,10 +35,30 @@ export default class IEntity {
     static inlined = false // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
     static quoted = false // Key is serialized with quotes
     static silent = false // Do not serialize if default
-    static uninitialized = false // Do not initialize with default
+    static trailing = false // Add attribute separator after the last attribute when serializing
+
+    /** @type {String | String[]} */
+    static lookbehind = ""
+
+    #lookbehind = /** @type {String} */(this.Self().lookbehind)
+    get lookbehind() {
+        return this.#lookbehind
+    }
+    set lookbehind(value) {
+        this.#lookbehind = value
+    }
+
+    /** @type {String[]} */
+    #keys
+    get keys() {
+        return this.#keys ?? Object.keys(this)
+    }
+    set keys(value) {
+        this.#keys = [... new Set(value)]
+    }
 
     constructor(values = {}) {
-        const keys = Utility.mergeArrays(Object.keys(values.attributes), Object.keys(this.Self().attributes))
+        const keys = Utility.mergeArrays(Object.keys(values), Object.keys(this.Self().attributes))
         for (const key of keys) {
             if (values[key] !== undefined) {
                 this[key] = values[key]
@@ -73,6 +70,14 @@ export default class IEntity {
                 continue
             }
         }
+    }
+
+    static className() {
+        let self = this
+        while (!self.name) {
+            self = Object.getPrototypeOf(self)
+        }
+        return self.name
     }
 
     /** @param {String} key */
@@ -102,6 +107,17 @@ export default class IEntity {
             return class extends this { }
         }
         return this
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @param {String} value
+     */
+    static withLookbehind(value) {
+        const result = this.asUniqueClass()
+        result.lookbehind = value
+        return result
     }
 
     /**
@@ -148,9 +164,29 @@ export default class IEntity {
      * @template {typeof IEntity} T
      * @this {T}
      */
+    static flagQuoted(value = true) {
+        const result = this.asUniqueClass()
+        result.quoted = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
     static flagSilent(value = true) {
         const result = this.asUniqueClass()
         result.silent = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagTrailing(value = true) {
+        const result = this.asUniqueClass()
+        result.trailing = value
         return result
     }
 
@@ -206,6 +242,9 @@ export default class IEntity {
         if (thisKeys.length != otherKeys.length) {
             return false
         }
+        if (this.valueOf && other.valueOf) {
+            return this.valueOf() === other.valueOf()
+        }
         for (let i = 0; i < thisKeys.length; ++i) {
             if (!(this[thisKeys[i]] instanceof IEntity && this[thisKeys[i]].equals(other[otherKeys[i]]))) {
                 return false
@@ -250,7 +289,7 @@ export default class IEntity {
             }
             result += serialization
         }
-        if (Self.trailingSeparator && result.length) {
+        if (Self.trailing && result.length) {
             result += Self.attributeSeparator
         }
         return Self.wrap(this, result)

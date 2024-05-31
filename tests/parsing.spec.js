@@ -1,16 +1,19 @@
 import { expect, test } from "@playwright/test"
 import Utility from "../js/Utility.js"
+import ArrayEntity from "../js/entity/ArrayEntity.js"
 import FormatTextEntity from "../js/entity/FormatTextEntity.js"
 import GuidEntity from "../js/entity/GuidEntity.js"
 import IntegerEntity from "../js/entity/IntegerEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
+import NumberEntity from "../js/entity/NumberEntity.js"
 import ObjectReferenceEntity from "../js/entity/ObjectReferenceEntity.js"
 import PinEntity from "../js/entity/PinEntity.js"
 import RotatorEntity from "../js/entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../js/entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../js/entity/SimpleSerializationVector2DEntity.js"
 import SimpleSerializationVectorEntity from "../js/entity/SimpleSerializationVectorEntity.js"
+import StringEntity from "../js/entity/StringEntity.js"
 import SymbolEntity from "../js/entity/SymbolEntity.js"
 import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 import Vector2DEntity from "../js/entity/Vector2DEntity.js"
@@ -23,30 +26,48 @@ test.beforeAll(() => initializeSerializerFactory())
 
 test.describe.configure({ mode: "parallel" })
 
-test("Array", () => {
-    const serializer = SerializerFactory.getSerializer(Array)
+test("ArrayEntity", () => {
+    let grammar = ArrayEntity.grammar
 
-    expect(serializer.read("()")).toStrictEqual([])
-    expect(serializer.read("( )")).toStrictEqual([])
-    expect(serializer.read("(1, 2, 3, 4, 5, 6)")).toStrictEqual([1, 2, 3, 4, 5, 6])
-    expect(serializer.read(`(
+    expect(grammar.parse("()")).toEqual(new ArrayEntity([]))
+    expect(grammar.parse("( )")).toEqual(new ArrayEntity([]))
+    expect(grammar.parse("(1, 2, 3, 4, 5, 6)")).toEqual(new ArrayEntity([
+        new NumberEntity(1),
+        new NumberEntity(2),
+        new NumberEntity(3),
+        new NumberEntity(4),
+        new NumberEntity(5),
+        new NumberEntity(6),
+    ]))
+    expect(ArrayEntity.of(NumberEntity).grammar.parse("(2,4,6,8)")).toEqual(new ArrayEntity([
+        new NumberEntity(2),
+        new NumberEntity(4),
+        new NumberEntity(6),
+        new NumberEntity(8),
+    ]))
+    expect(ArrayEntity.of(IntegerEntity).grammar.parse("(-0, -1, -2)")).toEqual(new ArrayEntity([
+        new IntegerEntity(0),
+        new IntegerEntity(-1),
+        new IntegerEntity(-2),
+    ]))
+    expect(() => ArrayEntity.of(IntegerEntity).grammar.parse("(-1, -2.1, -3)")).toThrowError()
+    expect(grammar.parse(`(
         "alpha",
         "beta",
         123,
         3BEF2168446CAA32D5B54289FAB2F0BA,
         Some(a=1, b="2")
-    )`)).toStrictEqual([
-        "alpha",
-        "beta",
-        123,
+    )`)).toStrictEqual(new ArrayEntity([
+        new StringEntity("alpha"),
+        new StringEntity("beta"),
+        new NumberEntity(123),
         new GuidEntity("3BEF2168446CAA32D5B54289FAB2F0BA"),
-        new UnknownKeysEntity({
-            lookbehind: "Some",
+        new (UnknownKeysEntity.withLookbehind("Some"))({
             a: 1,
             b: "2",
         })
-    ])
-    expect(serializer.read(`(
+    ]))
+    expect(grammar.parse(`(
         A(first = (9,8,7,6,5), second = 00000000000000000000000000000000),
         B(key="hello"),
     )`)).toStrictEqual([
@@ -62,9 +83,9 @@ test("Array", () => {
     ])
 
     // Nested
-    expect(serializer.read("((1, 2), (3, 4))")).toStrictEqual([[1, 2], [3, 4]])
-    expect(serializer.read('(((1, 2), (3, 4)), 5)')).toStrictEqual([[[1, 2], [3, 4]], 5])
-    expect(serializer.read(`(
+    expect(grammar.parse("((1, 2), (3, 4))")).toStrictEqual([[1, 2], [3, 4]])
+    expect(grammar.parse('(((1, 2), (3, 4)), 5)')).toStrictEqual([[[1, 2], [3, 4]], 5])
+    expect(grammar.parse(`(
         One(a = (1,(2,(3,(4)))), b = ()),
     )`)).toStrictEqual([
         new UnknownKeysEntity({

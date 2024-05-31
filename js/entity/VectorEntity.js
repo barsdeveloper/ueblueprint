@@ -10,13 +10,13 @@ export default class VectorEntity extends IEntity {
         Y: NumberEntity.withDefault(),
         Z: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(VectorEntity, false)
+    static grammar = Grammar.createEntityGrammar(this).label("VectorEntity")
 
     constructor(values) {
         super(values)
-        /** @type {NumberEntity} */ this.X
-        /** @type {NumberEntity} */ this.Y
-        /** @type {NumberEntity} */ this.Z
+        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.X
+        /** @type {InstanceType<typeof VectorEntity.attributes.Y>} */ this.Y
+        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.Z
     }
 
     /** @returns {[Number, Number, Number]} */

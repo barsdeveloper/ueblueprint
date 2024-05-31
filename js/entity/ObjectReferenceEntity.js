@@ -11,11 +11,14 @@ export default class ObjectReferenceEntity extends IEntity {
         + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
     )).map(([_0, a, b]) => a ?? b)
     static typeReference = P.reg(
+        // @ts-expect-error
         new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
     )
     static fullReferenceGrammar = P.regArray(
         new RegExp(
+            // @ts-expect-error
             "(" + this.typeReference.getParser().regexp.source + ")"
+            // @ts-expect-error
             + "(?:" + this.#quotedParser.getParser().parser.regexp.source + ")"
         )
     ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
@@ -30,7 +33,7 @@ export default class ObjectReferenceEntity extends IEntity {
         this.fullReferenceSerializedGrammar,
         this.fullReferenceGrammar,
         this.typeReferenceGrammar,
-    )
+    ).label("ObjectReferenceEntity")
 
     #type
     get type() {
@@ -72,7 +75,11 @@ export default class ObjectReferenceEntity extends IEntity {
         return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
     }
 
-    toString() {
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
         return this.full
     }
 }

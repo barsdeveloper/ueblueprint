@@ -3,8 +3,8 @@ import BooleanEntity from "./BooleanEntity.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import IEntity from "./IEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
-import PathSymbolEntity from "./PathSymbolEntity.js"
 import StringEntity from "./StringEntity.js"
+import SymbolEntity from "./SymbolEntity.js"
 
 export default class PinTypeEntity extends IEntity {
 
@@ -15,29 +15,29 @@ export default class PinTypeEntity extends IEntity {
         PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
         PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(type => null),
         PinValueType: PinTypeEntity.withDefault(),
-        ContainerType: PathSymbolEntity,
+        ContainerType: SymbolEntity,
         bIsReference: BooleanEntity.withDefault(),
         bIsConst: BooleanEntity.withDefault(),
         bIsWeakPointer: BooleanEntity.withDefault(),
         bIsUObjectWrapper: BooleanEntity.withDefault(),
         bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this)
+    static grammar = Grammar.createEntityGrammar(this).label("PinTypeEntity")
 
     constructor(values = {}) {
         super(values)
-        /** @type {String} */ this.PinCategory
-        /** @type {String} */ this.PinSubCategory
-        /** @type {ObjectReferenceEntity} */ this.PinSubCategoryObject
-        /** @type {FunctionReferenceEntity} */ this.PinSubCategoryMemberReference
-        /** @type {PinTypeEntity} */ this.PinValueType
-        /** @type {PathSymbolEntity} */ this.ContainerType
-        /** @type {Boolean} */ this.bIsReference
-        /** @type {Boolean} */ this.bIsConst
-        /** @type {Boolean} */ this.bIsWeakPointer
-        /** @type {Boolean} */ this.bIsUObjectWrapper
-        /** @type {Boolean} */ this.bIsUObjectWrapper
-        /** @type {Boolean} */ this.bSerializeAsSinglePrecisionFloat
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinCategory>} */ this.PinCategory
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategory>} */ this.PinSubCategory
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryObject>} */ this.PinSubCategoryObject
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryMemberReference>} */ this.PinSubCategoryMemberReference
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinValueType>} */ this.PinValueType
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.ContainerType>} */ this.ContainerType
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsReference>} */ this.bIsReference
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsConst>} */ this.bIsConst
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsWeakPointer>} */ this.bIsWeakPointer
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bSerializeAsSinglePrecisionFloat>} */ this.bSerializeAsSinglePrecisionFloat
     }
 
     /** @param {PinTypeEntity} other */

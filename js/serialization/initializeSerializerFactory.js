@@ -19,7 +19,6 @@ import MacroGraphReferenceEntity from "../entity/MacroGraphReferenceEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity.js"
-import PathSymbolEntity from "../entity/PathSymbolEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import PinTypeEntity from "../entity/PinTypeEntity.js"
@@ -49,33 +48,33 @@ import StringEntity from "../entity/StringEntity.js"
 import ArrayEntity from "../entity/ArrayEntity.js"
 import AlternativesEntity from "../entity/AlternativesEntity.js"
 
-Grammar.unknownValue =
-    Parsernostrum.alt(
-        // Remember to keep the order, otherwise parsing might fail
-        BooleanEntity.grammar,
-        GuidEntity.grammar,
-        Parsernostrum.str("None").map(() => ObjectReferenceEntity.createNoneInstance()),
-        Grammar.null,
-        NumberEntity.grammar,
-        ObjectReferenceEntity.fullReferenceGrammar,
-        StringEntity.grammar,
-        LocalizedTextEntity.grammar,
-        InvariantTextEntity.grammar,
-        FormatTextEntity.grammar,
-        PinReferenceEntity.grammar,
-        Vector4DEntity.grammar,
-        VectorEntity.grammar,
-        RotatorEntity.grammar,
-        LinearColorEntity.grammar,
-        Vector2DEntity.grammar,
-        UnknownKeysEntity.grammar,
-        SymbolEntity.grammar,
-        ArrayEntity.of(PinReferenceEntity).grammar,
-        ArrayEntity.of(AlternativesEntity.accepting(NumberEntity, StringEntity, SymbolEntity)).grammar,
-        Parsernostrum.lazy(() => ArrayEntity.createGrammar(Grammar.unknownValue)),
-    )
-
 export default function initializeSerializerFactory() {
+
+    Grammar.unknownValue =
+        Parsernostrum.alt(
+            // Remember to keep the order, otherwise parsing might fail
+            BooleanEntity.grammar,
+            GuidEntity.grammar,
+            Parsernostrum.str("None").map(() => ObjectReferenceEntity.createNoneInstance()),
+            Grammar.null,
+            NumberEntity.grammar,
+            ObjectReferenceEntity.fullReferenceGrammar,
+            StringEntity.grammar,
+            LocalizedTextEntity.grammar,
+            InvariantTextEntity.grammar,
+            FormatTextEntity.grammar,
+            PinReferenceEntity.grammar,
+            Vector4DEntity.grammar,
+            VectorEntity.grammar,
+            RotatorEntity.grammar,
+            LinearColorEntity.grammar,
+            Vector2DEntity.grammar,
+            UnknownKeysEntity.grammar,
+            SymbolEntity.grammar,
+            ArrayEntity.of(PinReferenceEntity).grammar,
+            ArrayEntity.of(AlternativesEntity.accepting(NumberEntity, StringEntity, SymbolEntity)).grammar,
+            Parsernostrum.lazy(() => ArrayEntity.createGrammar(Grammar.unknownValue)),
+        )
 
     SerializerFactory.registerSerializer(
         null,
@@ -123,26 +122,6 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
-        ByteEntity,
-        new ToStringSerializer(ByteEntity)
-    )
-
-    SerializerFactory.registerSerializer(
-        ColorChannelEntity,
-        new ToStringSerializer(ColorChannelEntity)
-    )
-
-    SerializerFactory.registerSerializer(
-        EnumDisplayValueEntity,
-        new ToStringSerializer(EnumDisplayValueEntity)
-    )
-
-    SerializerFactory.registerSerializer(
-        EnumEntity,
-        new ToStringSerializer(EnumEntity)
-    )
-
-    SerializerFactory.registerSerializer(
         FormatTextEntity,
         new CustomSerializer(
             (v, insideString) => {
@@ -157,91 +136,8 @@ export default function initializeSerializerFactory() {
     )
 
     SerializerFactory.registerSerializer(
-        FunctionReferenceEntity,
-        new Serializer(FunctionReferenceEntity, Serializer.bracketsWrapped)
-    )
-
-    SerializerFactory.registerSerializer(
-        GuidEntity,
-        new ToStringSerializer(GuidEntity)
-    )
-
-    SerializerFactory.registerSerializer(
-        IdentifierEntity,
-        new ToStringSerializer(IdentifierEntity)
-    )
-
-    SerializerFactory.registerSerializer(
-        Integer64Entity,
-        new ToStringSerializer(Integer64Entity)
-    )
-
-    SerializerFactory.registerSerializer(
-        IntegerEntity,
-        new ToStringSerializer(IntegerEntity)
-    )
-
-    SerializerFactory.registerSerializer(
-        InvariantTextEntity,
-        new Serializer(InvariantTextEntity, (entity, v) => `${entity.getLookbehind()}(${v})`, ", ", false, "", () => "")
-    )
-
-    SerializerFactory.registerSerializer(
-        KeyBindingEntity,
-        new Serializer(KeyBindingEntity, Serializer.bracketsWrapped)
-    )
-
-    SerializerFactory.registerSerializer(
-        LinearColorEntity,
-        new Serializer(LinearColorEntity, Serializer.bracketsWrapped)
-    )
-
-    SerializerFactory.registerSerializer(
-        LocalizedTextEntity,
-        new Serializer(LocalizedTextEntity, (entity, v) => `${entity.getLookbehind()}(${v})`, ", ", false, "", () => "")
-    )
-
-    SerializerFactory.registerSerializer(
-        MacroGraphReferenceEntity,
-        new Serializer(MacroGraphReferenceEntity, Serializer.bracketsWrapped)
-    )
-
-    SerializerFactory.registeOrSerializer(
-        MirroredEntity,
-        new CustomSerializer(
-            (v, insideString) => SerializerFactory.getSerializer(v.getTargetType()).write(v.get(), insideString),
-            MirroredEntity
-        )
-    )
-
-    SerializerFactory.registerSerializer(
-        Number,
-        new ToStringSerializer(Number)
-    )
-
-    SerializerFactory.registerSerializer(
-        ObjectEntity,
-        new ObjectSerializer()
-    )
-
-    SerializerFactory.registerSerializer(
-        ObjectReferenceEntity,
-        new ToStringSerializer(ObjectReferenceEntity, false)
-    )
-
-    SerializerFactory.registerSerializer(
-        PathSymbolEntity,
-        new ToStringSerializer(PathSymbolEntity)
-    )
-
-    SerializerFactory.registerSerializer(
         PinEntity,
         new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
-    )
-
-    SerializerFactory.registerSerializer(
-        PinReferenceEntity,
-        new Serializer(PinReferenceEntity, undefined, " ", false, "", () => "")
     )
 
     SerializerFactory.registerSerializer(

@@ -3,7 +3,7 @@ import IEntity from "./IEntity.js"
 
 export default class SymbolEntity extends IEntity {
 
-    static grammar = Grammar.symbol.map(v => new this(v))
+    static grammar = Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
 
     /** @param {String} value */
     constructor(value = "") {

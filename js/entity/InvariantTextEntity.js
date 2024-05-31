@@ -1,25 +1,39 @@
-import P from "parsernostrum"
-import IEntity from "./IEntity.js"
+import Parsernostrum from "parsernostrum"
+import IPrintableEntity from "./IPrintableEntity.js"
 
-export default class InvariantTextEntity extends IEntity {
+export default class InvariantTextEntity extends IPrintableEntity {
 
     static lookbehind = "INVTEXT"
 
-    static grammar = P.alt(
-        P.seq(
-            P.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
-            P.doubleQuotedString,
-            P.reg(/\s*\)/)
-        ).map(([_0, value, _2]) => new this(value)),
-        P.reg(new RegExp(this.lookbehind)).map(() => new this()) // InvariantTextEntity can not have arguments
-    ).map(value => new this(value))
+    static grammar = Parsernostrum.alt(
+        Parsernostrum.seq(
+            Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+            Parsernostrum.doubleQuotedString,
+            Parsernostrum.reg(/\s*\)/)
+        ).map(([_0, value, _2]) => Number(value)),
+        Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+    )
+        .map(value => new this(value))
+        .label("InvariantTextEntity")
 
     constructor(value = "") {
         super()
         this.value = value
     }
 
-    toString() {
+    print() {
+        let xxxx = Parsernostrum.alt(
+            Parsernostrum.seq(
+                Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                Parsernostrum.doubleQuotedString,
+                Parsernostrum.reg(/\s*\)/)
+            ).map(([_0, value, _2]) => Number(value)),
+            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+        )
         return this.value
+    }
+
+    toString() {
+        return this.lookbehind + "(" + this.value + ")"
     }
 }

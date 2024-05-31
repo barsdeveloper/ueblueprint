@@ -14,7 +14,7 @@ export default class LinearColorEntity extends IEntity {
         B: ColorChannelEntity.withDefault(),
         A: ColorChannelEntity.withDefault(type => new type(1)),
     }
-    static grammar = Grammar.createEntityGrammar(this, false)
+    static grammar = Grammar.createEntityGrammar(this).label("LinearColorEntity")
 
     #H = new ColorChannelEntity()
     get H() {
@@ -26,18 +26,35 @@ export default class LinearColorEntity extends IEntity {
 
     #S = new ColorChannelEntity()
     get S() {
-        return this.#H
+        return this.#S
     }
     set S(value) {
-        this.#H = value
+        this.#S = value
     }
 
     #V = new ColorChannelEntity()
     get V() {
-        return this.#H
+        return this.#V
     }
     set V(value) {
-        this.#H = value
+        this.#V = value
+    }
+
+    constructor(values) {
+        super(values)
+        if (values instanceof Array) {
+            values = {
+                R: values[0] ?? 0,
+                G: values[1] ?? 0,
+                B: values[2] ?? 0,
+                A: values[3] ?? 1,
+            }
+        }
+        /** @type {InstanceType<typeof LinearColorEntity.attributes.R>} */ this.R
+        /** @type {InstanceType<typeof LinearColorEntity.attributes.G>} */ this.G
+        /** @type {InstanceType<typeof LinearColorEntity.attributes.B>} */ this.B
+        /** @type {InstanceType<typeof LinearColorEntity.attributes.A>} */ this.A
+        this.#updateHSV()
     }
 
     /** @param {Number} x */
@@ -127,23 +144,6 @@ export default class LinearColorEntity extends IEntity {
             this.getLinearColorRGBGrammar(),
             this.getLinearColorRGBListGrammar(),
         )
-    }
-
-    constructor(values) {
-        super(values)
-        if (values instanceof Array) {
-            values = {
-                R: values[0] ?? 0,
-                G: values[1] ?? 0,
-                B: values[2] ?? 0,
-                A: values[3] ?? 1,
-            }
-        }
-        /** @type {ColorChannelEntity} */ this.R
-        /** @type {ColorChannelEntity} */ this.G
-        /** @type {ColorChannelEntity} */ this.B
-        /** @type {ColorChannelEntity} */ this.A
-        this.#updateHSV()
     }
 
     #updateHSV() {
@@ -310,9 +310,5 @@ export default class LinearColorEntity extends IEntity {
     /** @returns {[Number, Number, Number, Number]} */
     toArray() {
         return [this.R.value, this.G.value, this.B.value, this.A.value]
-    }
-
-    toString() {
-        return Utility.printLinearColor(this)
     }
 }

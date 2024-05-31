@@ -1,15 +1,16 @@
 import P from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
 import RotatorEntity from "./RotatorEntity.js"
 
 export default class SimpleSerializationRotatorEntity extends RotatorEntity {
 
     static grammar = P.alt(
         P.regArray(new RegExp(
-            `(${P.number.getParser().parser.regexp.source})`
+            `(${Grammar.numberRegexSource})`
             + String.raw`\s*,\s*`
-            + `(${P.number.getParser().parser.regexp.source})`
+            + `(${Grammar.numberRegexSource})`
             + String.raw`\s*,\s*`
-            + `(${P.number.getParser().parser.regexp.source})`
+            + `(${Grammar.numberRegexSource})`
         )).map(([_, p, y, r]) => new this({
             R: Number(r),
             P: Number(p),

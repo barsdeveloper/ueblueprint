@@ -3,7 +3,9 @@ import IEntity from "./IEntity.js"
 
 export default class BooleanEntity extends IEntity {
 
-    static grammar = P.regArray(/(true)|false/i).map(v => v[1] ? new this(true) : new this(false))
+    static grammar = P.regArray(/(true)|false/i)
+        .map(v => v[1] ? new this(true) : new this(false))
+        .label("BooleanEntity")
 
     constructor(value = false) {
         super()
@@ -14,7 +16,13 @@ export default class BooleanEntity extends IEntity {
         return this.value
     }
 
-    toString() {
-        return this.value.toString()
+    toString(insideString = false) {
+        return this.value
+            ? insideString
+                ? "true"
+                : "True"
+            : insideString
+                ? "false"
+                : "False"
     }
 }

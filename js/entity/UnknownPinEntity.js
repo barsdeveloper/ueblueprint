@@ -16,5 +16,5 @@ export default class UnknownPinEntity extends PinEntity {
         }
         attributes.forEach(attributeSetter => attributeSetter(values))
         return new this(values)
-    })
+    }).label("UnknownPinEntity")
 }

@@ -1,15 +1,16 @@
 import P from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
 import VectorEntity from "./VectorEntity.js"
 
 export default class SimpleSerializationVectorEntity extends VectorEntity {
 
     static grammar = P.alt(
         P.regArray(new RegExp(
-            `(${P.number.getParser().parser.regexp.source})`
+            `(${Grammar.numberRegexSource})`
             + String.raw`\s*,\s*`
-            + `(${P.number.getParser().parser.regexp.source})`
+            + `(${Grammar.numberRegexSource})`
             + String.raw`\s*,\s*`
-            + `(${P.number.getParser().parser.regexp.source})`
+            + `(${Grammar.numberRegexSource})`
         ))
             .map(([_0, x, y, z]) => new this({
                 X: Number(x),

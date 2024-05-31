@@ -1,7 +1,6 @@
 import P from "parsernostrum"
 import NumberEntity from "./NumberEntity.js"
 
-// @ts-expect-error
 export default class IntegerEntity extends NumberEntity {
 
     static grammar = P.numberInteger.map(v => new this(v))

@@ -4,7 +4,6 @@ import IEntity from "./IEntity.js"
 
 export default class UnknownKeysEntity extends IEntity {
 
-
     static grammar = P.seq(
         // Lookbehind
         P.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
@@ -24,7 +23,7 @@ export default class UnknownKeysEntity extends IEntity {
         }
         attributes.forEach(attributeSetter => attributeSetter(values))
         return new this(values)
-    })
+    }).label("UnknownKeysEntity")
 
     constructor(values = {}) {
         super(values)

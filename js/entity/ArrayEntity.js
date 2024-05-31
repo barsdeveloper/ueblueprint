@@ -7,21 +7,30 @@ export default class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
+    static grammar = this.createGrammar()
 
-    /** @param {InstanceType<T>[]} values */
+    /** @param {ExtractType<T>[]} values */
     constructor(values = []) {
         super()
         this.values = values
     }
 
-    static createGrammar(elementGrammar = this.type.grammar) {
+    static createGrammar(elementGrammar = this.type?.grammar ?? P.lazy(() => Grammar.unknownValue)) {
         return this.inlined
             ? elementGrammar
             : P.seq(
                 P.reg(/\(\s*/),
                 elementGrammar.sepBy(Grammar.commaSeparation).opt(),
-                P.reg(/\s*(?:,\s*)?\)/),
-            ).map(([_0, values, _3]) => new this(values instanceof Array ? values : []))
+                P.reg(/\s*(,\s*)?\)/, 1),
+            ).map(([_0, values, trailing]) => {
+                let self = this
+                const hasTrailing = trailing !== undefined
+                if (hasTrailing !== self.trailing) {
+                    self = self.flagTrailing(hasTrailing)
+                }
+                values = values instanceof Array ? values : []
+                return new self(values)
+            }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
     }
 
     /**
@@ -29,8 +38,10 @@ export default class ArrayEntity extends IEntity {
      * @param {NonNullable<T>} type
      */
     static of(type) {
-        const result = /** @type {(typeof ArrayEntity<T>) & { type: T }} */(this.asUniqueClass())
-        result.type = type
+        const result = /** @type {typeof ArrayEntity<T> & { type: ExtractType<T>, grammar: P<ArrayEntity<T>> }} */(
+            this.asUniqueClass()
+        )
+        result.type = /** @type {ExtractType<T>} */(type)
         this.grammar = result.createGrammar()
         return result
     }

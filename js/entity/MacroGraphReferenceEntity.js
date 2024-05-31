@@ -15,9 +15,9 @@ export default class MacroGraphReferenceEntity extends IEntity {
 
     constructor(values) {
         super(values)
-        /** @type {ObjectReferenceEntity} */ this.MacroGraph
-        /** @type {ObjectReferenceEntity} */ this.GraphBlueprint
-        /** @type {GuidEntity} */ this.GuidEntity
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.MacroGraph>} */ this.MacroGraph
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphBlueprint>} */ this.GraphBlueprint
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphGuid>} */ this.GraphGuid
     }
 
     getMacroName() {

@@ -11,14 +11,14 @@ export default class Vector4DEntity extends IEntity {
         Z: NumberEntity.withDefault(),
         W: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(Vector4DEntity, false)
+    static grammar = Grammar.createEntityGrammar(this).label("Vector4DEntity")
 
     constructor(values) {
         super(values)
-        /** @type {NumberEntity} */ this.X
-        /** @type {NumberEntity} */ this.Y
-        /** @type {NumberEntity} */ this.Z
-        /** @type {NumberEntity} */ this.W
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.X>} */ this.X
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.Y>} */ this.Y
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.Z>} */ this.Z
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.W>} */ this.W
     }
 
     /** @returns {[Number, Number, Number, Number]} */

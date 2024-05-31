@@ -97,12 +97,26 @@
  * }} TypeGetter
  */
 /**
+ * @template T
+ * @typedef {T extends [infer A extends EntityConstructor] ? InstanceType<A>
+ *     : T extends [infer A extends EntityConstructor, ...infer B] ? InstanceType<A> | UnionFromArray<B>
+ *     : never
+ * } UnionFromArray
+ */
+/**
+ * @template {EntityConstructor} T
+ * @typedef {T extends AlternativesEntityConstructor & { alternatives: infer R } ? UnionFromArray<R>
+ *     : InstanceType<T>
+ * } ExtractType
+ */
+/**
  * @typedef {typeof import("./js/Blueprint.js").default} BlueprintConstructor
  * @typedef {typeof import("./js/element/LinkElement.js").default} LinkElementConstructor
  * @typedef {typeof import("./js/element/NodeElement.js").default} NodeElementConstructor
  * @typedef {typeof import("./js/element/PinElement.js").default} PinElementConstructor
  * @typedef {typeof import("./js/element/WindowElement.js").default} WindowElementConstructor
  * @typedef {typeof import("./js/entity/IEntity.js").default} EntityConstructor
+ * @typedef {typeof import("./js/entity/AlternativesEntity.js").default} AlternativesEntityConstructor
  * @typedef {typeof import("./js/entity/ObjectEntity.js").default} ObjectEntityConstructor
  */
 /**
@@ -207,19 +221,10 @@
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
- * @typedef {import("parsernostrum/src/parser/Parser.js").default} Parser
  */
 /**
  * @template {AttributeConstructor<Attribute>} T
  * @typedef {import("./js/serialization/Serializer.js").default<T>} Serializer
- */
-/**
- * @template {Attribute} T
- * @typedef {import("./js/entity/MirroredEntity.js").default<T>} MirroredEntity
- */
-/**
- * @template {Attribute} T
- * @typedef {typeof import("./js/entity/MirroredEntity.js").default<T>} MirroredEntityConstructor
  */
 /**
  * @template T
@@ -227,4 +232,8 @@
  *     evaluate<R, Arg>(pageFunction: (node: T, arg: Arg) => R, arg: Arg, options?: { timeout?: number }): Promise<R>
  *     evaluate<R>(pageFunction: (node: T) => R, options?: { timeout?: number }): Promise<R>
  * } & import("@playwright/test").Locator} Locator
+ */
+/**
+ * @template T
+ * @typedef {import("parsernostrum").ProducerParser<T>} Parser
  */

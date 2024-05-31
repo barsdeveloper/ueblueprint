@@ -8,6 +8,10 @@ import Serializable from "./Serializable.js"
 
 export default class Grammar {
 
+    /** @type {String} */
+    // @ts-expect-error
+    static numberRegexSource = Parsernostrum.number.getParser().parser.regexp.source
+
     static separatedBy = (source, separator, min = 1) =>
         new RegExp(
             source + "(?:" + separator + source + ")"
@@ -188,46 +192,32 @@ export default class Grammar {
 
     /**
      * @template {IEntity} T
-     * @param {(new (...args: any) => T) & EntityConstructor} entityType
-     * @param {Boolean | Number} acceptUnknownKeys Number to specify the limit or true, to let it be a reasonable value
+     * @param {new (...args: any) => T} entityType
+     * @return {Parsernostrum<T>}
      */
-    static createEntityGrammar(entityType, acceptUnknownKeys = true, entriesSeparator = this.commaSeparation) {
-        const lookbehind = entityType.attributes.lookbehind.default
+    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation) {
+        const lookbehind = entityType.lookbehind instanceof Array ? entityType.lookbehind.join("|") : entityType.lookbehind
         return Parsernostrum.seq(
-            Parsernostrum.reg(
-                lookbehind instanceof Union
-                    ? new RegExp(`(${lookbehind.values.reduce((acc, cur) => acc + "|" + cur)})\\s*\\(\\s*`)
-                    : lookbehind.constructor == String && lookbehind.length > 0
-                        ? new RegExp(`(${lookbehind})\\s*\\(\\s*`)
-                        : /()\(\s*/,
-                1
-            ),
+            Parsernostrum.reg(new RegExp(String.raw`(${lookbehind})\s*\(\s*`), 1),
             this.createAttributeGrammar(entityType).sepBy(entriesSeparator),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/), // trailing comma
+            Parsernostrum.reg(/\s*(,\s*)?\)/, 1), // optional trailing comma
         )
-            .map(([lookbehind, attributes, _2]) => {
+            .map(([lookbehind, attributes, trailing]) => {
                 let values = {}
-                attributes.forEach(attributeSetter => attributeSetter(values))
                 if (lookbehind.length) {
-                    values.lookbehind = lookbehind
+                    values["#lookbehind"] = lookbehind
                 }
+                attributes.forEach(attributeSetter => attributeSetter(values))
+                values["#trailing"] = trailing !== undefined
                 return values
             })
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
             .chain(values => {
-                let totalKeys = Object.keys(values)
-                let missingKey
-                // Check missing values
-                if (
-                    Object.keys(/** @type {AttributeDeclarations} */(entityType.attributes))
-                        .filter(key => entityType.attributes[key].expected)
-                        .find(key => !totalKeys.includes(key) && (missingKey = key))
-                ) {
-                    return Parsernostrum.failure()
+                if (entityType.lookbehind instanceof Array || entityType.lookbehind !== lookbehind) {
+                    entityType = entityType.withLookbehind(lookbehind)
                 }
-                const unknownKeys = Object.keys(values).filter(key => !(key in entityType.attributes)).length
-                if (!acceptUnknownKeys && unknownKeys > 0) {
-                    return Parsernostrum.failure()
+                if (entityType.trailing !== values["#trailing"]) {
+                    entityType = entityType.flagTrailing(values["#trailing"])
                 }
                 return Parsernostrum.success().map(() => new entityType(values))
             })

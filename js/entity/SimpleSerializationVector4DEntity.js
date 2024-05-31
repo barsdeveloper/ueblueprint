@@ -1,4 +1,5 @@
 import P from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
 import Vector4DEntity from "./Vector4DEntity.js"
 
 export default class SimpleSerializationVector4DEntity extends Vector4DEntity {
@@ -6,16 +7,16 @@ export default class SimpleSerializationVector4DEntity extends Vector4DEntity {
     static grammar = this.createGrammar()
 
     static createGrammar() {
-        const number = P.number.getParser().parser.regexp.source
+        const number = Grammar.numberRegexSource
         return P.alt(
             P.regArray(new RegExp(
-                `(${P.number.getParser().parser.regexp.source})`
+                `(${Grammar.numberRegexSource})`
                 + String.raw`\s*,\s*`
-                + `(${P.number.getParser().parser.regexp.source})`
+                + `(${Grammar.numberRegexSource})`
                 + String.raw`\s*,\s*`
-                + `(${P.number.getParser().parser.regexp.source})`
+                + `(${Grammar.numberRegexSource})`
                 + String.raw`\s*,\s*`
-                + `(${P.number.getParser().parser.regexp.source})`
+                + `(${Grammar.numberRegexSource})`
             ))
                 .map(([_0, x, y, z, w]) => new this({
                     X: Number(x),

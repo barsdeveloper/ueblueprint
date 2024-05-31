@@ -10,11 +10,11 @@ export default class ScriptVariableEntity extends IEntity {
         ScriptVariable: ObjectReferenceEntity,
         OriginalChangeId: GuidEntity,
     }
-    static grammar = Grammar.createEntityGrammar(this)
+    static grammar = Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
 
     constructor(values = {}) {
         super(values)
-        /** @type {ObjectReferenceEntity} */ this.ScriptVariable
-        /** @type {GuidEntity} */ this.OriginalChangeId
+        /** @type {InstanceType<typeof ScriptVariableEntity.attributes.ScriptVariable>} */ this.ScriptVariable
+        /** @type {InstanceType<typeof ScriptVariableEntity.attributes.OriginalChangeId>} */ this.OriginalChangeId
     }
 }

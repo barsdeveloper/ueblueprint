@@ -10,7 +10,7 @@ if (typeof window === "undefined") {
 
 export default class GuidEntity extends IEntity {
 
-    static grammar = P.reg(/[0-9a-fA-F]{32}/).map(v => new this(v))
+    static grammar = P.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
 
     static generateGuid() {
         let values = new Uint32Array(4)

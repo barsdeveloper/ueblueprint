@@ -13,12 +13,13 @@ export default class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: BooleanEntity,
     }
-    static grammar = Grammar.createEntityGrammar(this)
+    static grammar = Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
 
     constructor(values) {
         super(values)
-        /** @type {String} */ this.MemberName
-        /** @type {GuidEntity} */ this.GuidEntity
-        /** @type {Boolean} */ this.bSelfContext
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberScope>} */ this.MemberScope
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberName>} */ this.MemberName
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.bSelfContext>} */ this.bSelfContext
     }
 }

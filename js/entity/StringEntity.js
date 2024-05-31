@@ -1,10 +1,12 @@
 import P from "parsernostrum"
-import IEntity from "./IEntity.js"
 import Utility from "../Utility.js"
+import IPrintableEntity from "./IPrintableEntity.js"
 
-export default class StringEntity extends IEntity {
+export default class StringEntity extends IPrintableEntity {
 
-    static grammar = P.doubleQuotedString.map(insideString => Utility.unescapeString(insideString))
+    static grammar = P.doubleQuotedString
+        .map(insideString => new this(Utility.unescapeString(insideString)))
+        .label("StringEntity")
 
     /** @param {String} value */
     constructor(value = "") {
@@ -12,11 +14,19 @@ export default class StringEntity extends IEntity {
         this.value = value
     }
 
+    print() {
+        return this.value
+    }
+
     valueOf() {
         return this.value
     }
 
-    toString() {
-        return this.value.toString()
+    toString(insideString = false) {
+        let result = Utility.escapeString(this.value)
+        if (!insideString) {
+            result = `"${result}"`
+        }
+        return result
     }
 }

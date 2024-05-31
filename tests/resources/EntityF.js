@@ -1,25 +1,17 @@
-import AttributeInfo from "../../js/entity/AttributeInfo.js"
 import IEntity from "../../js/entity/IEntity.js"
-import Union from "../../js/entity/Union.js"
+import NumberEntity from "../../js/entity/NumberEntity.js"
+import StringEntity from "../../js/entity/StringEntity.js"
 import Grammar from "../../js/serialization/Grammar.js"
 
 export default class EntityF extends IEntity {
 
+    static lookbehind = ["Foo", "Bar"]
     static attributes = {
         ...super.attributes,
-        arg1: AttributeInfo.createType(Number),
-        arg2: AttributeInfo.createType(String),
-        lookbehind: new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: new Union("Foo", "Bar"),
-        })
+        arg1: NumberEntity,
+        arg2: StringEntity,
     }
-
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Grammar.createEntityGrammar(this, false)
-    }
+    static grammar = Grammar.createEntityGrammar(this)
 
     constructor(values = {}) {
         super(values)
