@@ -57,43 +57,69 @@ test("ArrayEntity", () => {
         123,
         3BEF2168446CAA32D5B54289FAB2F0BA,
         Some(a=1, b="2")
-    )`)).toStrictEqual(new ArrayEntity([
+    )`)).toEqual(new ArrayEntity([
         new StringEntity("alpha"),
         new StringEntity("beta"),
         new NumberEntity(123),
         new GuidEntity("3BEF2168446CAA32D5B54289FAB2F0BA"),
         new (UnknownKeysEntity.withLookbehind("Some"))({
-            a: 1,
-            b: "2",
+            a: new NumberEntity(1),
+            b: new StringEntity("2"),
         })
     ]))
     expect(grammar.parse(`(
         A(first = (9,8,7,6,5), second = 00000000000000000000000000000000),
         B(key="hello"),
-    )`)).toStrictEqual([
+    )`)).toEqual(new ArrayEntity([
         new UnknownKeysEntity({
-            lookbehind: "A",
-            first: [9, 8, 7, 6, 5],
+            lookbehind: new StringEntity("A"),
+            first: new ArrayEntity([
+                new NumberEntity(9),
+                new NumberEntity(8),
+                new NumberEntity(7),
+                new NumberEntity(6),
+                new NumberEntity(5),
+            ]),
             second: new GuidEntity("00000000000000000000000000000000"),
         }),
         new UnknownKeysEntity({
-            lookbehind: "B",
-            key: "hello",
+            lookbehind: new StringEntity("B"),
+            key: new StringEntity("hello"),
         })
-    ])
+    ]))
 
     // Nested
-    expect(grammar.parse("((1, 2), (3, 4))")).toStrictEqual([[1, 2], [3, 4]])
-    expect(grammar.parse('(((1, 2), (3, 4)), 5)')).toStrictEqual([[[1, 2], [3, 4]], 5])
+    expect(grammar.parse("((1, 2), (3, 4))")).toEqual(new ArrayEntity([
+        new ArrayEntity([new NumberEntity(1), new NumberEntity(2)]),
+        new ArrayEntity([new NumberEntity(3), new NumberEntity(4)]),
+    ]))
+    expect(grammar.parse('(((1, 2), (3, 4)), 5)')).toEqual(new ArrayEntity([
+        new ArrayEntity([
+            new ArrayEntity([new NumberEntity(1), new NumberEntity(2)]),
+            new ArrayEntity([new NumberEntity(3), new NumberEntity(4)])
+        ]),
+        new NumberEntity(5)
+    ]))
     expect(grammar.parse(`(
         One(a = (1,(2,(3,(4)))), b = ()),
-    )`)).toStrictEqual([
+    )`)).toEqual(new ArrayEntity([
         new UnknownKeysEntity({
             lookbehind: "One",
-            a: [1, [2, [3, [4]]]],
+            a: new ArrayEntity([
+                new NumberEntity(1),
+                new ArrayEntity([
+                    new NumberEntity(2),
+                    new ArrayEntity([
+                        new NumberEntity(3),
+                        new ArrayEntity([
+                            new NumberEntity(4),
+                        ])
+                    ])
+                ])
+            ]),
             b: null,
         }),
-    ])
+    ]))
 })
 
 test("Boolean", () => {

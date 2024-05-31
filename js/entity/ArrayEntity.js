@@ -42,7 +42,7 @@ export default class ArrayEntity extends IEntity {
             this.asUniqueClass()
         )
         result.type = /** @type {ExtractType<T>} */(type)
-        this.grammar = result.createGrammar()
+        result.grammar = result.createGrammar()
         return result
     }
 

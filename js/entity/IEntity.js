@@ -57,6 +57,7 @@ export default class IEntity {
         this.#keys = [... new Set(value)]
     }
 
+    /** @param {{ [key: String]: IEntity }} values */
     constructor(values = {}) {
         const keys = Utility.mergeArrays(Object.keys(values), Object.keys(this.Self().attributes))
         for (const key of keys) {

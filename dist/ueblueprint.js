@@ -4525,7 +4525,14 @@ class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
-    static grammar = this.createGrammar()
+    static #grammar
+    static get grammar() {
+        return this.#grammar ?? this.createGrammar()
+    }
+    static set grammar(value) {
+        this.#grammar = value;
+    }
+    //static grammar = this.createGrammar()
 
     /** @param {ExtractType<T>[]} values */
     constructor(values = []) {
@@ -4560,7 +4567,7 @@ class ArrayEntity extends IEntity {
             this.asUniqueClass()
         );
         result.type = /** @type {ExtractType<T>} */(type);
-        this.grammar = result.createGrammar();
+        result.grammar = result.createGrammar();
         return result
     }
 
