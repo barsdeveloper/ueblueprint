@@ -2528,7 +2528,7 @@ class IEntity {
     /** @type {(k: String) => String} */
     static printKey = k => k
 
-    /** @type {P<InstanceType<typeof this>>} */
+    /** @type {P<IEntity>} */
     static grammar = /** @type {any} */(Parsernostrum.failure())
 
     /** @type {{ [key: String]: typeof IEntity }} */
@@ -2592,7 +2592,7 @@ class IEntity {
     showProperty(key) {
         /** @type {IEntity} */
         let value = this[key];
-        const Self = value.Self();
+        const Self = this.Self();
         if (Self.silent && Self.default !== undefined) {
             if (Self["#default"] === undefined) {
                 Self["#default"] = Self.default(Self);
@@ -4525,14 +4525,7 @@ class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
-    static #grammar
-    static get grammar() {
-        return this.#grammar ?? this.createGrammar()
-    }
-    static set grammar(value) {
-        this.#grammar = value;
-    }
-    //static grammar = this.createGrammar()
+    static grammar = this.createGrammar()
 
     /** @param {ExtractType<T>[]} values */
     constructor(values = []) {
@@ -4852,9 +4845,10 @@ class StringEntity extends IPrintableEntity {
 class FormatTextEntity extends IPrintableEntity {
 
     static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
-    static grammar = Parsernostrum.seq(
+    /** @type {P<FormatTextEntity>} */
+    static grammar = Parsernostrum.lazy(() => Parsernostrum.seq(
         // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-        Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.reduce((acc, cur) => acc + "|" + cur)})\s*`), 1),
+        Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
         Parsernostrum.alt(
             ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
         ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
@@ -4864,7 +4858,7 @@ class FormatTextEntity extends IPrintableEntity {
             const result = new this(values);
             result.lookbehind = lookbehind;
             return result
-        })
+        }))
         .label("FormatTextEntity")
 
     /** @param {(StringEntity | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} values */
@@ -4874,20 +4868,20 @@ class FormatTextEntity extends IPrintableEntity {
     }
 
     print() {
-        const pattern = this.values?.[0]?.toString(); // The pattern is always the first element of the array
+        const pattern = this.values?.[0]?.print(); // The pattern is always the first element of the array
         if (!pattern) {
             return ""
         }
 
-        const values = this.values.slice(1).map(v => v.toString());
-        let result = this.Self().lookbehind == "LOCGEN_FORMAT_NAMED"
+        const values = this.values.slice(1).map(v => v.print());
+        let result = this.lookbehind == "LOCGEN_FORMAT_NAMED"
             ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
                 const argLocation = values.indexOf(arg) + 1;
                 return argLocation > 0 && argLocation < values.length
                     ? values[argLocation]
                     : substring
             })
-            : this.Self().lookbehind == "LOCGEN_FORMAT_ORDERED"
+            : this.lookbehind == "LOCGEN_FORMAT_ORDERED"
                 ? pattern.replaceAll(/\{(\d+)\}/g, (substring, arg) => {
                     const argValue = Number(arg);
                     return argValue < values.length
@@ -4895,7 +4889,7 @@ class FormatTextEntity extends IPrintableEntity {
                         : substring
                 })
                 : "";
-        result = this.Self().lookbehind + "(" + result + ")";
+        return result
     }
 }
 
@@ -13237,10 +13231,6 @@ class UnknownKeysEntity extends IEntity {
         attributes.forEach(attributeSetter => attributeSetter(values));
         return new this(values)
     }).label("UnknownKeysEntity")
-
-    constructor(values = {}) {
-        super(values);
-    }
 }
 
 /**

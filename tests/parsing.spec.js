@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test"
 import Utility from "../js/Utility.js"
 import ArrayEntity from "../js/entity/ArrayEntity.js"
+import BooleanEntity from "../js/entity/BooleanEntity.js"
 import FormatTextEntity from "../js/entity/FormatTextEntity.js"
 import GuidEntity from "../js/entity/GuidEntity.js"
 import IntegerEntity from "../js/entity/IntegerEntity.js"
@@ -123,35 +124,35 @@ test("ArrayEntity", () => {
 })
 
 test("Boolean", () => {
-    let serializer = SerializerFactory.getSerializer(Boolean)
-    expect(serializer.read("true")).toStrictEqual(true)
-    expect(serializer.read("True")).toStrictEqual(true)
-    expect(serializer.read("false")).toStrictEqual(false)
-    expect(serializer.read("False")).toStrictEqual(false)
+    let grammar = BooleanEntity.grammar
+    expect(grammar.parse("true")).toEqual(new BooleanEntity(true))
+    expect(grammar.parse("True")).toEqual(new BooleanEntity(true))
+    expect(grammar.parse("false")).toEqual(new BooleanEntity(false))
+    expect(grammar.parse("False")).toEqual(new BooleanEntity(false))
 })
 
 test("FormatTextEntity", () => {
-    let serializer = SerializerFactory.getSerializer(FormatTextEntity)
+    let grammar = FormatTextEntity.grammar
     expect(
-        serializer.read(`LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")`)
-            .toString()
+        grammar.parse(`LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")`)
+            .print()
     ).toBe("Out Hit Blocking Hit")
     expect(
-        serializer.read(`LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Hit Bone Name")`)
-            .toString()
+        grammar.parse(`LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Hit Bone Name")`)
+            .print()
     ).toBe("Out Hit Hit Bone Name")
     expect(
-        serializer.read(String.raw`LOCGEN_FORMAT_ORDERED(
-                NSLOCTEXT(
-                    "PCGSettings",
-                    "OverridableParamPinTooltip",
-                    "{0}Attribute type is \"{1}\" and its exact name is \"{2}\""
-                ),
-                "If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\n",
-                "float",
-                "InRangeMin"
-            )`)
-            .toString()
+        grammar.parse(String.raw`LOCGEN_FORMAT_ORDERED(
+            NSLOCTEXT(
+                "PCGSettings",
+                "OverridableParamPinTooltip",
+                "{0}Attribute type is \"{1}\" and its exact name is \"{2}\""
+            ),
+            "If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\n",
+            "float",
+            "InRangeMin"
+        )`)
+            .print()
 
     ).toBe(`If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\nAttribute type is "float" and its exact name is "InRangeMin"`)
 })

@@ -20,7 +20,7 @@ export default class IEntity {
     /** @type {(k: String) => String} */
     static printKey = k => k
 
-    /** @type {P<InstanceType<typeof this>>} */
+    /** @type {P<IEntity>} */
     static grammar = /** @type {any} */(P.failure())
 
     /** @type {{ [key: String]: typeof IEntity }} */
@@ -57,7 +57,6 @@ export default class IEntity {
         this.#keys = [... new Set(value)]
     }
 
-    /** @param {{ [key: String]: IEntity }} values */
     constructor(values = {}) {
         const keys = Utility.mergeArrays(Object.keys(values), Object.keys(this.Self().attributes))
         for (const key of keys) {
@@ -85,7 +84,7 @@ export default class IEntity {
     showProperty(key) {
         /** @type {IEntity} */
         let value = this[key]
-        const Self = value.Self()
+        const Self = this.Self()
         if (Self.silent && Self.default !== undefined) {
             if (Self["#default"] === undefined) {
                 Self["#default"] = Self.default(Self)

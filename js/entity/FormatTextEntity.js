@@ -7,9 +7,10 @@ import StringEntity from "./StringEntity.js"
 export default class FormatTextEntity extends IPrintableEntity {
 
     static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
-    static grammar = P.seq(
+    /** @type {P<FormatTextEntity>} */
+    static grammar = P.lazy(() => P.seq(
         // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-        P.reg(new RegExp(String.raw`(${this.lookbehind.reduce((acc, cur) => acc + "|" + cur)})\s*`), 1),
+        P.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
         P.alt(
             ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
         ).sepBy(P.reg(/\s*\,\s*/)),
@@ -19,7 +20,7 @@ export default class FormatTextEntity extends IPrintableEntity {
             const result = new this(values)
             result.lookbehind = lookbehind
             return result
-        })
+        }))
         .label("FormatTextEntity")
 
     /** @param {(StringEntity | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} values */
@@ -29,20 +30,20 @@ export default class FormatTextEntity extends IPrintableEntity {
     }
 
     print() {
-        const pattern = this.values?.[0]?.toString() // The pattern is always the first element of the array
+        const pattern = this.values?.[0]?.print() // The pattern is always the first element of the array
         if (!pattern) {
             return ""
         }
 
-        const values = this.values.slice(1).map(v => v.toString())
-        let result = this.Self().lookbehind == "LOCGEN_FORMAT_NAMED"
+        const values = this.values.slice(1).map(v => v.print())
+        let result = this.lookbehind == "LOCGEN_FORMAT_NAMED"
             ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
                 const argLocation = values.indexOf(arg) + 1
                 return argLocation > 0 && argLocation < values.length
                     ? values[argLocation]
                     : substring
             })
-            : this.Self().lookbehind == "LOCGEN_FORMAT_ORDERED"
+            : this.lookbehind == "LOCGEN_FORMAT_ORDERED"
                 ? pattern.replaceAll(/\{(\d+)\}/g, (substring, arg) => {
                     const argValue = Number(arg)
                     return argValue < values.length
@@ -50,6 +51,6 @@ export default class FormatTextEntity extends IPrintableEntity {
                         : substring
                 })
                 : ""
-        result = this.Self().lookbehind + "(" + result + ")"
+        return result
     }
 }
