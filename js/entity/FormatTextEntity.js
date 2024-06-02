@@ -6,6 +6,7 @@ import StringEntity from "./StringEntity.js"
 
 export default class FormatTextEntity extends IPrintableEntity {
 
+    static attributeSeparator = ", "
     static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
     /** @type {P<FormatTextEntity>} */
     static grammar = P.lazy(() => P.seq(
@@ -52,5 +53,17 @@ export default class FormatTextEntity extends IPrintableEntity {
                 })
                 : ""
         return result
+    }
+
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
+        const separator = this.Self().attributeSeparator
+        return this.lookbehind + "("
+            + this.values.map(v => v.toString(insideString)).join(separator)
+            + (this.Self().trailing ? separator : "")
+            + ")"
     }
 }

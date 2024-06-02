@@ -2,19 +2,20 @@ import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
-/** @template {typeof IEntity} T */
+/** @template {IEntity} T */
 export default class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
     static grammar = this.createGrammar()
 
-    /** @param {ExtractType<T>[]} values */
+    /** @param {T[]} values */
     constructor(values = []) {
         super()
         this.values = values
     }
 
+    /** @returns {P<ArrayEntity<IEntity>>} */
     static createGrammar(elementGrammar = this.type?.grammar ?? P.lazy(() => Grammar.unknownValue)) {
         return this.inlined
             ? elementGrammar
@@ -35,10 +36,10 @@ export default class ArrayEntity extends IEntity {
 
     /**
      * @template {typeof IEntity} T
-     * @param {NonNullable<T>} type
+     * @param {T} type
      */
     static of(type) {
-        const result = /** @type {typeof ArrayEntity<T> & { type: ExtractType<T>, grammar: P<ArrayEntity<T>> }} */(
+        const result = /** @type {{type: T, grammar: P<ArrayEntity<ExtractType<T>>> } & typeof ArrayEntity<ExtractType<T>>} */(
             this.asUniqueClass()
         )
         result.type = /** @type {ExtractType<T>} */(type)
@@ -48,5 +49,17 @@ export default class ArrayEntity extends IEntity {
 
     valueOf() {
         return this.values
+    }
+
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
+        let result = this.values.map(v => v?.toString()).join(this.Self().attributeSeparator)
+        if (this.Self().trailing) {
+            result += this.Self().attributeSeparator
+        }
+        return `(${result})`
     }
 }

@@ -16,6 +16,7 @@ export default class IEntity {
     static wrap = this.defaultWrapped
 
     static attributeSeparator = ","
+    static keySeparator = "="
 
     /** @type {(k: String) => String} */
     static printKey = k => k
@@ -103,7 +104,6 @@ export default class IEntity {
      */
     static asUniqueClass() {
         if (this.name.length) {
-            // @ts-expect-error
             return class extends this { }
         }
         return this
@@ -281,9 +281,9 @@ export default class IEntity {
                 if (Self.quoted) {
                     keyValue = `"${keyValue}"`
                 }
-                result += Self.attributeSeparator.includes("\n") ? indentation : ""
+                result += (Self.attributeSeparator.includes("\n") ? indentation : "") + keyValue + Self.keySeparator
             }
-            let serialization = value.toString(insideString, indentation, printKey)
+            let serialization = value?.toString(insideString, indentation, printKey)
             if (Self.serialized) {
                 serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`
             }

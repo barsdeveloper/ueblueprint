@@ -5,8 +5,11 @@ export default class IntegerEntity extends NumberEntity {
 
     static grammar = P.numberInteger.map(v => new this(v))
 
+    get value() {
+        return super.value
+    }
     set value(value) {
-        if (value >= -(1 << 31) && value < 1 << 31) {
+        if (value >= 1 << 31 && value < -(1 << 31)) {
             value = Math.floor(value)
             super.value = value
         }

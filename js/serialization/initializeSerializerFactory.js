@@ -47,6 +47,7 @@ import NumberEntity from "../entity/NumberEntity.js"
 import StringEntity from "../entity/StringEntity.js"
 import ArrayEntity from "../entity/ArrayEntity.js"
 import AlternativesEntity from "../entity/AlternativesEntity.js"
+import NullEntity from "../entity/NullEntity.js"
 
 export default function initializeSerializerFactory() {
 
@@ -56,7 +57,7 @@ export default function initializeSerializerFactory() {
             BooleanEntity.grammar,
             GuidEntity.grammar,
             Parsernostrum.str("None").map(() => ObjectReferenceEntity.createNoneInstance()),
-            Grammar.null,
+            NullEntity.grammar,
             NumberEntity.grammar,
             ObjectReferenceEntity.fullReferenceGrammar,
             StringEntity.grammar,

@@ -5,6 +5,9 @@ export default class ByteEntity extends IntegerEntity {
 
     static grammar = P.numberByte.map(v => new this(v))
 
+    get value() {
+        return super.value
+    }
     set value(value) {
         if (value % 1 == 0 && value >= 0 && value < 1 << 8) {
             super.value = value

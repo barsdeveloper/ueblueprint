@@ -6,12 +6,11 @@ export default class NaturalNumberEntity extends IntegerEntity {
 
     static grammar = P.numberNatural.map(v => new this(v))
 
+    get value() {
+        return super.value
+    }
     set value(value) {
         value = Math.round(Utility.clamp(this.value, 0))
         super.value = value
-    }
-
-    constructor(value = 0) {
-        super(value)
     }
 }

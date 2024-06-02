@@ -28,7 +28,9 @@ export default class AlternativesEntity extends IEntity {
      * @param {Types} types
      */
     static accepting(...types) {
-        const result = /** @type {typeof AlternativesEntity & { alternatives: Types }} */(this.asUniqueClass())
+        const result = /** @type {typeof AlternativesEntity & { alternatives: Types }} */(
+            this.asUniqueClass()
+        )
         result.alternatives = types
         result.grammar = result.createGrammar()
         return result
