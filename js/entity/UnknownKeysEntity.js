@@ -9,7 +9,7 @@ export default class UnknownKeysEntity extends IEntity {
         P.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
         P.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
             .chain(attributeName =>
-                Grammar.unknownValue.map(attributeValue =>
+                this.unknownEntityGrammar.map(attributeValue =>
                     values => values[attributeName] = attributeValue
                 )
             )

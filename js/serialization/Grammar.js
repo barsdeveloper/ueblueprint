@@ -1,6 +1,7 @@
 import Parsernostrum from "parsernostrum"
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
+import AlternativesEntity from "../entity/AlternativesEntity.js"
 import AttributeInfo from "../entity/AttributeInfo.js"
 import IEntity from "../entity/IEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
@@ -137,36 +138,38 @@ export default class Grammar {
         return result
     }
 
+
     /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} entityType
+     * @param {typeof IEntity} entityType
      * @param {String[]} key
-     * @returns {AttributeInfo}
+     * @returns {typeof IEntity}
      */
-    static getAttribute(entityType, key) {
-        let result
-        let type
-        if (entityType instanceof Union) {
-            for (let t of entityType.values) {
-                if (result = this.getAttribute(t, key)) {
-                    return result
+    static getAttribute(entityType, [key, ...keys]) {
+        const attribute = entityType?.attributes?.[key]
+        if (!attribute) {
+            return
+        }
+        if (attribute.prototype instanceof AlternativesEntity) {
+            for (const alternative of /** @type {typeof AlternativesEntity} */(attribute).alternatives) {
+                const candidate = this.getAttribute(alternative, keys)
+                if (candidate) {
+                    return candidate
                 }
             }
         }
-        if (entityType instanceof IEntity.constructor) {
-            // @ts-expect-error
-            result = entityType.attributes[key[0]]
-            type = result?.type
-        } else if (entityType instanceof Array) {
-            result = entityType[key[0]]
-            type = result
+        if (keys.length > 0) {
+            return this.getAttribute(attribute, keys)
         }
-        if (key.length > 1) {
-            return this.getAttribute(type, key.slice(1))
-        }
-        return result
+        return attribute
     }
 
+    /**
+     * @param {typeof IEntity} entityType
+     * @param {*} attributeName
+     * @param {*} valueSeparator
+     * @param {*} handleObjectSet
+     * @returns 
+     */
     static createAttributeGrammar(
         entityType,
         attributeName = this.attributeName,
@@ -179,14 +182,12 @@ export default class Grammar {
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator)
             const attributeValue = this.getAttribute(entityType, attributeKey)
-            return this
-                .grammarFor(attributeValue)
-                .map(attributeValue =>
-                    values => {
-                        handleObjectSet(values, attributeKey, attributeValue)
-                        Utility.objectSet(values, attributeKey, attributeValue)
-                    }
-                )
+            return attributeValue.grammar.map(attributeValue =>
+                values => {
+                    handleObjectSet(values, attributeKey, attributeValue)
+                    Utility.objectSet(values, attributeKey, attributeValue)
+                }
+            )
         })
     }
 
@@ -205,19 +206,16 @@ export default class Grammar {
             .map(([lookbehind, attributes, trailing]) => {
                 let values = {}
                 if (lookbehind.length) {
-                    values["#lookbehind"] = lookbehind
+                    values["lookbehind"] = lookbehind
                 }
                 attributes.forEach(attributeSetter => attributeSetter(values))
-                values["#trailing"] = trailing !== undefined
+                values["trailing"] = trailing !== undefined
                 return values
             })
             // Decide if we accept the entity or not. It is accepted if it doesn't have too many unexpected keys
             .chain(values => {
                 if (entityType.lookbehind instanceof Array || entityType.lookbehind !== lookbehind) {
                     entityType = entityType.withLookbehind(lookbehind)
-                }
-                if (entityType.trailing !== values["#trailing"]) {
-                    entityType = entityType.flagTrailing(values["#trailing"])
                 }
                 return Parsernostrum.success().map(() => new entityType(values))
             })

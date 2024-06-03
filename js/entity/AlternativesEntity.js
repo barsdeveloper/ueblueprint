@@ -1,5 +1,4 @@
 import P from "parsernostrum"
-import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
 export default class AlternativesEntity extends IEntity {
@@ -17,8 +16,8 @@ export default class AlternativesEntity extends IEntity {
 
     static createGrammar() {
         const grammars = this.alternatives.map(entity => entity.grammar)
-        if (grammars.includes(Grammar.unknownValue)) {
-            return Grammar.unknownValue
+        if (grammars.includes(this.unknownEntityGrammar)) {
+            return this.unknownEntityGrammar
         }
         return P.alt(...grammars)
     }

@@ -8,7 +8,6 @@ import EnumEntity from "../entity/EnumEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../entity/FunctionReferenceEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
-import IdentifierEntity from "../entity/IdentifierEntity.js"
 import Integer64Entity from "../entity/Integer64Entity.js"
 import IntegerEntity from "../entity/IntegerEntity.js"
 import InvariantTextEntity from "../entity/InvariantTextEntity.js"
@@ -48,10 +47,11 @@ import StringEntity from "../entity/StringEntity.js"
 import ArrayEntity from "../entity/ArrayEntity.js"
 import AlternativesEntity from "../entity/AlternativesEntity.js"
 import NullEntity from "../entity/NullEntity.js"
+import IEntity from "../entity/IEntity.js"
 
 export default function initializeSerializerFactory() {
 
-    Grammar.unknownValue =
+    IEntity.unknownEntityGrammar =
         Parsernostrum.alt(
             // Remember to keep the order, otherwise parsing might fail
             BooleanEntity.grammar,

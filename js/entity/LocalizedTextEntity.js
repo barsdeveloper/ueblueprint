@@ -24,11 +24,11 @@ export default class LocalizedTextEntity extends IPrintableEntity {
         + String.raw`\)`,
         "m"
     )).map(({ groups: { namespace, key, value, trailing } }) => {
-        const self = trailing ? this.flagTrailing() : this
-        return new self({
+        return new this({
             namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
             key: new (this.attributes.namespace)(Utility.unescapeString(key)),
             value: new (this.attributes.namespace)(Utility.unescapeString(value)),
+            trailing: trailing !== undefined,
         })
     }).label("LocalizedTextEntity")
 

@@ -85,9 +85,9 @@ export default class LinearColorEntity extends IEntity {
 
     static getWhite() {
         return new LinearColorEntity({
-            R: 1,
-            G: 1,
-            B: 1,
+            R: new ColorChannelEntity(1),
+            G: new ColorChannelEntity(1),
+            B: new ColorChannelEntity(1),
         })
     }
 

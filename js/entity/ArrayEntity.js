@@ -16,7 +16,7 @@ export default class ArrayEntity extends IEntity {
     }
 
     /** @returns {P<ArrayEntity<IEntity>>} */
-    static createGrammar(elementGrammar = this.type?.grammar ?? P.lazy(() => Grammar.unknownValue)) {
+    static createGrammar(elementGrammar = this.type?.grammar ?? P.lazy(() => this.unknownEntityGrammar)) {
         return this.inlined
             ? elementGrammar
             : P.seq(
@@ -24,13 +24,9 @@ export default class ArrayEntity extends IEntity {
                 elementGrammar.sepBy(Grammar.commaSeparation).opt(),
                 P.reg(/\s*(,\s*)?\)/, 1),
             ).map(([_0, values, trailing]) => {
-                let self = this
-                const hasTrailing = trailing !== undefined
-                if (hasTrailing !== self.trailing) {
-                    self = self.flagTrailing(hasTrailing)
-                }
                 values = values instanceof Array ? values : []
-                return new self(values)
+                const result = new this(values)
+                result.trailing = trailing !== undefined
             }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
     }
 

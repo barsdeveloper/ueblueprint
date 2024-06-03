@@ -12,7 +12,6 @@ import BooleanEntity from "./BooleanEntity.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
-import IdentifierEntity from "./IdentifierEntity.js"
 import IntegerEntity from "./IntegerEntity.js"
 import LinearColorEntity from "./LinearColorEntity.js"
 import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity.js"
@@ -123,9 +122,9 @@ export default class ObjectEntity extends IEntity {
         bCommentBubblePinned: BooleanEntity,
         bCommentBubbleVisible: BooleanEntity,
         NodeComment: StringEntity,
-        AdvancedPinDisplay: IdentifierEntity,
+        AdvancedPinDisplay: SymbolEntity,
         DelegateReference: VariableReferenceEntity,
-        EnabledState: IdentifierEntity,
+        EnabledState: SymbolEntity,
         NodeGuid: GuidEntity,
         ErrorType: IntegerEntity,
         ErrorMsg: StringEntity,

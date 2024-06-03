@@ -2,8 +2,8 @@ import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import BooleanEntity from "./BooleanEntity.js"
 import IEntity from "./IEntity.js"
-import IdentifierEntity from "./IdentifierEntity.js"
 import StringEntity from "./StringEntity.js"
+import SymbolEntity from "./SymbolEntity.js"
 
 export default class KeyBindingEntity extends IEntity {
 
@@ -14,19 +14,15 @@ export default class KeyBindingEntity extends IEntity {
         bCtrl: BooleanEntity,
         bAlt: BooleanEntity,
         bCmd: BooleanEntity,
-        Key: IdentifierEntity,
+        Key: SymbolEntity,
     }
     static grammar = P.alt(
-        IdentifierEntity.grammar.map(identifier => {
-            const result = new this()
-            result.Key = identifier
-            return result
-        }),
+        SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
         Grammar.createEntityGrammar(this)
     )
 
-    constructor() {
-        super()
+    constructor(values) {
+        super(values)
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.ActionName>} */ this.ActionName
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.bShift>} */ this.bShift
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCtrl>} */ this.bCtrl

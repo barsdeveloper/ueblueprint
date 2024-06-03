@@ -2,10 +2,10 @@ import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
 import nodeTemplateClass from "../decoding/nodeTemplate.js"
 import nodeTitle from "../decoding/nodeTitle.js"
-import IdentifierEntity from "../entity/IdentifierEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
+import SymbolEntity from "../entity/SymbolEntity.js"
 import SerializerFactory from "../serialization/SerializerFactory.js"
 import NodeTemplate from "../template/node/NodeTemplate.js"
 import ISelectableDraggableElement from "./ISelectableDraggableElement.js"
@@ -28,7 +28,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         advancedPinDisplay: {
             type: String,
             attribute: "data-advanced-display",
-            converter: IdentifierEntity.attributeConverter,
+            converter: SymbolEntity.attributeConverter,
             reflect: true,
         },
         enabledState: {
@@ -223,7 +223,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     setShowAdvancedPinDisplay(value) {
-        this.entity.AdvancedPinDisplay = new IdentifierEntity(value ? "Shown" : "Hidden")
+        this.entity.AdvancedPinDisplay = new SymbolEntity(value ? "Shown" : "Hidden")
         this.advancedPinDisplay = this.entity.AdvancedPinDisplay
     }
 

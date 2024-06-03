@@ -3,9 +3,21 @@ import IEntity from "./IEntity.js"
 
 export default class BooleanEntity extends IEntity {
 
-    static grammar = P.regArray(/(true)|false/i)
-        .map(v => v[1] ? new this(true) : new this(false))
+    static grammar = P.regArray(/(true)|(True)|(false)|(False)/)
+        .map(v => {
+            const result = (v[1] ?? v[2]) ? new this(true) : new this(false)
+            result.uppercase = (v[2] ?? v[4]) !== undefined
+            return result
+        })
         .label("BooleanEntity")
+
+    #uppercase = true
+    get uppercase() {
+        return this.#uppercase
+    }
+    set uppercase(value) {
+        this.#uppercase = value
+    }
 
     constructor(value = false) {
         super()
@@ -16,13 +28,17 @@ export default class BooleanEntity extends IEntity {
         return this.value
     }
 
-    toString(insideString = false) {
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
         return this.value
-            ? insideString
-                ? "true"
-                : "True"
-            : insideString
-                ? "false"
-                : "False"
+            ? this.#uppercase
+                ? "True"
+                : "true"
+            : this.#uppercase
+                ? "False"
+                : "false"
     }
 }

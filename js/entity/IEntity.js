@@ -24,6 +24,9 @@ export default class IEntity {
     /** @type {P<IEntity>} */
     static grammar = /** @type {any} */(P.failure())
 
+    /** @type {P<IEntity>} */
+    static unknownEntityGrammar
+
     /** @type {{ [key: String]: typeof IEntity }} */
     static attributes = {}
 
@@ -37,6 +40,14 @@ export default class IEntity {
     static quoted = false // Key is serialized with quotes
     static silent = false // Do not serialize if default
     static trailing = false // Add attribute separator after the last attribute when serializing
+
+    #trailing = this.Self().trailing
+    get trailing() {
+        return this.#trailing
+    }
+    set trailing(value) {
+        this.#trailing = value
+    }
 
     /** @type {String | String[]} */
     static lookbehind = ""
@@ -177,16 +188,6 @@ export default class IEntity {
     static flagSilent(value = true) {
         const result = this.asUniqueClass()
         result.silent = value
-        return result
-    }
-
-    /**
-     * @template {typeof IEntity} T
-     * @this {T}
-     */
-    static flagTrailing(value = true) {
-        const result = this.asUniqueClass()
-        result.trailing = value
         return result
     }
 

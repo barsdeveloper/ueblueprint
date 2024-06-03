@@ -3,9 +3,12 @@ import IEntity from "./IEntity.js"
 
 export default class SymbolEntity extends IEntity {
 
+    static attributeConverter = {
+        fromAttribute: (value, type) => new this(value),
+        toAttribute: (value, type) => value.toString()
+    }
     static grammar = Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
 
-    /** @param {String} value */
     constructor(value = "") {
         super()
         this.value = value
