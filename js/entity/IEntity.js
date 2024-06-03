@@ -238,17 +238,25 @@ export default class IEntity {
 
     /** @param {IEntity} other */
     equals(other) {
-        const thisKeys = Object.keys(this)
-        const otherKeys = Object.keys(other)
-        if (thisKeys.length != otherKeys.length) {
+        if (!(other instanceof IEntity)) {
             return false
         }
-        if (this.valueOf && other.valueOf) {
-            return this.valueOf() === other.valueOf()
+        const thisKeys = Object.keys(this)
+        const otherKeys = Object.keys(other)
+        if (thisKeys.length != otherKeys.length || !(this instanceof other.constructor) && !(other instanceof this.constructor)) {
+            return false
         }
         for (let i = 0; i < thisKeys.length; ++i) {
-            if (!(this[thisKeys[i]] instanceof IEntity && this[thisKeys[i]].equals(other[otherKeys[i]]))) {
-                return false
+            const a = this[thisKeys[i]]
+            const b = other[otherKeys[i]]
+            if (a instanceof IEntity) {
+                if (!a.equals(b)) {
+                    return false
+                }
+            } else {
+                if (a !== b) {
+                    return false
+                }
             }
         }
         return true

@@ -29,6 +29,7 @@ export default class ObjectReferenceEntity extends IEntity {
         )
     ).map(([full, type, path]) => new this(type, path, full))
     static typeReferenceGrammar = this.typeReference.map(v => new this(v, "", v))
+    /** @type {P<ObjectReferenceEntity>} */
     static grammar = P.alt(
         this.fullReferenceSerializedGrammar,
         this.fullReferenceGrammar,
@@ -51,6 +52,8 @@ export default class ObjectReferenceEntity extends IEntity {
         this.#path = value
     }
 
+    #fullEscaped
+    /** @type {String} */
     #full
     get full() {
         return this.#full
@@ -75,11 +78,25 @@ export default class ObjectReferenceEntity extends IEntity {
         return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
     }
 
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ObjectReferenceEntity)) {
+            return false
+        }
+        return this.type == other.type && this.path == other.path
+    }
+
     toString(
         insideString = false,
         indentation = "",
         printKey = this.Self().printKey,
     ) {
+        if (insideString) {
+            if (this.#fullEscaped === undefined) {
+                this.#fullEscaped = Utility.escapeString(this.#full, false)
+            }
+            return this.#fullEscaped
+        }
         return this.full
     }
 }

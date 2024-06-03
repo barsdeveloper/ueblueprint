@@ -27,6 +27,7 @@ export default class ArrayEntity extends IEntity {
                 values = values instanceof Array ? values : []
                 const result = new this(values)
                 result.trailing = trailing !== undefined
+                return result
             }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
     }
 
@@ -43,6 +44,19 @@ export default class ArrayEntity extends IEntity {
         return result
     }
 
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
+            return false
+        }
+        for (let i = 0; i < this.values.length; ++i) {
+            if (!this.values[i].equals(other.values[i])) {
+                return false
+            }
+        }
+        return true
+    }
+
     valueOf() {
         return this.values
     }
@@ -53,7 +67,7 @@ export default class ArrayEntity extends IEntity {
         printKey = this.Self().printKey,
     ) {
         let result = this.values.map(v => v?.toString()).join(this.Self().attributeSeparator)
-        if (this.Self().trailing) {
+        if (this.trailing) {
             result += this.Self().attributeSeparator
         }
         return `(${result})`

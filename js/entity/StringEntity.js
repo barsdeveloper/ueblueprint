@@ -23,9 +23,9 @@ export default class StringEntity extends IPrintableEntity {
     }
 
     toString(insideString = false) {
-        let result = Utility.escapeString(this.value)
-        if (!insideString) {
-            result = `"${result}"`
+        let result = `"${Utility.escapeString(this.value)}"`
+        if (insideString) {
+            result = Utility.escapeString(result, false)
         }
         return result
     }

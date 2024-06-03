@@ -9,7 +9,8 @@ export default class ByteEntity extends IntegerEntity {
         return super.value
     }
     set value(value) {
-        if (value % 1 == 0 && value >= 0 && value < 1 << 8) {
+        value = Math.trunc(value)
+        if (value >= 0 && value < 1 << 8) {
             super.value = value
         }
     }

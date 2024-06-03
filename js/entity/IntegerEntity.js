@@ -9,6 +9,7 @@ export default class IntegerEntity extends NumberEntity {
         return super.value
     }
     set value(value) {
+        value = Math.trunc(value)
         if (value >= 1 << 31 && value < -(1 << 31)) {
             value = Math.floor(value)
             super.value = value

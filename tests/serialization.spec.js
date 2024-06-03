@@ -3,8 +3,10 @@ import Utility from "../js/Utility.js"
 import AlternativesEntity from "../js/entity/AlternativesEntity.js"
 import ArrayEntity from "../js/entity/ArrayEntity.js"
 import BooleanEntity from "../js/entity/BooleanEntity.js"
+import ColorChannelEntity from "../js/entity/ColorChannelEntity.js"
 import FormatTextEntity from "../js/entity/FormatTextEntity.js"
 import GuidEntity from "../js/entity/GuidEntity.js"
+import IEntity from "../js/entity/IEntity.js"
 import IntegerEntity from "../js/entity/IntegerEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
@@ -22,11 +24,10 @@ import SymbolEntity from "../js/entity/SymbolEntity.js"
 import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 import Vector2DEntity from "../js/entity/Vector2DEntity.js"
 import VectorEntity from "../js/entity/VectorEntity.js"
-import Grammar from "../js/serialization/Grammar.js"
 import SerializerFactory from "../js/serialization/SerializerFactory.js"
 import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
-import IEntity from "../js/entity/IEntity.js"
-import ColorChannelEntity from "../js/entity/ColorChannelEntity.js"
+import { Exception } from "sass"
+import ByteEntity from "../js/entity/ByteEntity.js"
 
 test.beforeAll(() => initializeSerializerFactory())
 
@@ -50,6 +51,39 @@ test("ArrayEntity", () => {
             new NumberEntity(5),
             new NumberEntity(6),
         ]))
+        expect(value.equals(new ArrayEntity([
+            new NumberEntity(1),
+            new NumberEntity(2),
+            new NumberEntity(3),
+            new NumberEntity(4),
+            new NumberEntity(5),
+            new NumberEntity(6),
+        ]))).toBeTruthy()
+        expect(value.equals(new ArrayEntity([
+            new NumberEntity(1),
+            new NumberEntity(2),
+            new NumberEntity(3),
+            new NumberEntity(4),
+            new NumberEntity(5),
+            new NumberEntity(6),
+            new NumberEntity(7),
+        ]))).toBeFalsy()
+        expect(value.equals(new ArrayEntity([
+            new NumberEntity(1),
+            new NumberEntity(2),
+            new NumberEntity(3),
+            new NumberEntity(4),
+            new NumberEntity(-5),
+            new NumberEntity(6),
+        ]))).toBeFalsy()
+        expect(value.equals(new ArrayEntity([
+            new NumberEntity(1),
+            new NumberEntity(2),
+            new NumberEntity(3),
+            new NumberEntity(4),
+            new StringEntity("5"),
+            new NumberEntity(6),
+        ]))).toBeFalsy()
         expect(value.toString()).toEqual("(1,2,3,4,5,6)")
         expect(value.Self().className()).toEqual("ArrayEntity")
         value.values.map(v => v.Self().className()).forEach(v => expect(v).toEqual("NumberEntity"))
@@ -59,7 +93,7 @@ test("ArrayEntity", () => {
             new NumberEntity(2),
         ]))
         expect(value.toString()).toEqual("(1,2,)")
-        expect(grammar.parse("( - )")).toThrow("Could not parse")
+        expect(() => grammar.parse("( - )")).toThrow("Could not parse")
     }
     {
         const grammar = ArrayEntity.of(NumberEntity).grammar
@@ -194,18 +228,25 @@ test("ArrayEntity", () => {
 
 test("Boolean", () => {
     let grammar = BooleanEntity.grammar
+
     let value = grammar.parse("true")
     expect(value).toBeInstanceOf(BooleanEntity)
     expect(value).toEqual(new BooleanEntity(true))
     expect(value.toString()).toEqual("true")
+    expect(value.equals(new (BooleanEntity.withDefault().flagNullable())(true))).toBeTruthy()
+
     value = grammar.parse("True")
     expect(value).toBeInstanceOf(BooleanEntity)
     expect(value).toEqual(new BooleanEntity(true))
     expect(value.toString()).toEqual("True")
+    expect(value.equals(new BooleanEntity(true))).toBeTruthy()
+    expect(value.equals(new BooleanEntity(false))).toBeFalsy()
+
     value = grammar.parse("false")
     expect(value).toBeInstanceOf(BooleanEntity)
     expect(value).toEqual(new BooleanEntity(false))
     expect(value.toString()).toEqual("false")
+
     value = grammar.parse("False")
     expect(value).toBeInstanceOf(BooleanEntity)
     expect(value).toEqual(new BooleanEntity(false))
@@ -239,11 +280,14 @@ test("FormatTextEntity", () => {
 })
 
 test("GuidEntity", () => {
-    let grammar = GuidEntity.grammar
+    let grammar = GuidEntity.flagInlined().grammar
 
     let value = grammar.parse("0556a3ecabf648d0a5c07b2478e9dd32")
     expect(value).toBeInstanceOf(GuidEntity)
     expect(value).toEqual(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))
+    expect(value.equals(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
+    expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
+    expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd33"))).toBeFalsy()
     expect(value.toString()).toEqual("0556a3ecabf648d0a5c07b2478e9dd32")
 
     value = grammar.parse("64023BC344E0453DBB583FAC411489BC")
@@ -265,32 +309,47 @@ test("IntegerEntity", () => {
     let grammar = IntegerEntity.grammar
 
     let value = grammar.parse("0")
-    expect(value).toEqual(new IntegerEntity(0))
     expect(value).toBeInstanceOf(IntegerEntity)
+    expect(value).toEqual(new IntegerEntity(0))
+    expect(value.equals(new IntegerEntity(0))).toBeTruthy()
+    expect(value.equals(new IntegerEntity(0.1))).toBeTruthy()
+    expect(value.equals(new NumberEntity(0))).toBeTruthy()
+    expect(value.equals(new NumberEntity(0.1))).toBeFalsy()
+    expect(value.equals(new ByteEntity(0))).toBeTruthy()
+    expect(value.equals(new ByteEntity(0.9))).toBeTruthy()
+    expect(value.equals(new ByteEntity(-0.9))).toBeTruthy()
+    expect(value.equals(new ByteEntity(1))).toBeFalsy()
+    expect(value.toString()).toEqual("0")
 
     value = grammar.parse("+0")
-    expect(value).toEqual(new IntegerEntity(0))
     expect(value).toBeInstanceOf(IntegerEntity)
+    expect(value).toEqual(new IntegerEntity(0))
+    expect(value.toString()).toEqual("0")
 
     value = grammar.parse("-0")
-    expect(value).toEqual(new IntegerEntity(0))
     expect(value).toBeInstanceOf(IntegerEntity)
+    expect(value).toEqual(new IntegerEntity(0))
+    expect(value.toString()).toEqual("0")
 
     value = grammar.parse("99")
-    expect(value).toEqual(new IntegerEntity(99))
     expect(value).toBeInstanceOf(IntegerEntity)
+    expect(value).toEqual(new IntegerEntity(99))
+    expect(value.toString()).toEqual("99")
 
     value = grammar.parse("-8685")
-    expect(value).toEqual(new IntegerEntity(-8685))
     expect(value).toBeInstanceOf(IntegerEntity)
+    expect(value).toEqual(new IntegerEntity(-8685))
+    expect(value.toString()).toEqual("-8685")
 
     value = grammar.parse("+555")
-    expect(value).toEqual(new IntegerEntity(555))
     expect(value).toBeInstanceOf(IntegerEntity)
+    expect(value).toEqual(new IntegerEntity(555))
+    expect(value.toString()).toEqual("555")
 
     value = grammar.parse("1000000000")
-    expect(value).toEqual(new IntegerEntity(1000000000))
     expect(value).toBeInstanceOf(IntegerEntity)
+    expect(value).toEqual(new IntegerEntity(1000000000))
+    expect(value.toString()).toEqual("1000000000")
 
     expect(() => grammar.parse("1.2").value).toThrow()
 })
@@ -299,16 +358,16 @@ test("KeyBindingEntity", () => {
     let grammar = KeyBindingEntity.grammar
 
     let value = grammar.parse("A")
-    expect(value).toEqual(new KeyBindingEntity({ Key: new SymbolEntity("A") }))
     expect(value).toBeInstanceOf(KeyBindingEntity)
+    expect(value).toEqual(new KeyBindingEntity({ Key: new SymbolEntity("A") }))
     expect(value.toString()).toEqual("(Key=A)")
 
     value = grammar.parse("(bCtrl=True,Key=A)")
-    expect(value).toEqual(new KeyBindingEntity({ bCtrl: new BooleanEntity(true), Key: new SymbolEntity("A") }))
     expect(value).toBeInstanceOf(KeyBindingEntity)
+    expect(value).toEqual(new KeyBindingEntity({ bCtrl: new BooleanEntity(true), Key: new SymbolEntity("A") }))
     expect(value.toString()).toEqual("(bCtrl=True,Key=A)")
 
-    value = grammar.parse("(bCtrl=false,bShift=false,bCmd=true,bAlt=false,Key=X)")
+    value = grammar.parse("(bCtrl=false, bShift=false,bCmd=true,bAlt=false,Key=X)")
     expect(value).toBeInstanceOf(KeyBindingEntity)
     expect(value).toEqual(new KeyBindingEntity({
         bCtrl: new BooleanEntity(false),
@@ -317,15 +376,18 @@ test("KeyBindingEntity", () => {
         bAlt: new BooleanEntity(false),
         Key: new SymbolEntity("X"),
     }))
-    expect(value.toString()).toEqual("(bCtrl=False,bShift=False,bCmd=True,bAlt=False,Key=X)")
+    expect(value.toString()).toEqual("(bCtrl=false,bShift=false,bCmd=true,bAlt=false,Key=X)")
 
-    value = grammar.parse("(       bCtrl=  false  \n,       Key \n\n\n  =Y ,bAlt=true     )")
+    value = grammar.parse("(       bCtrl=  false  \n,       Key \n\n\n  =Y ,bAlt=True     )")
+    expect(value).toBeInstanceOf(KeyBindingEntity)
     expect(value).toEqual(new KeyBindingEntity({
         bCtrl: new BooleanEntity(false),
         Key: new SymbolEntity("Y"),
         bAlt: new BooleanEntity(true),
     }))
-    expect(value).toBeInstanceOf(KeyBindingEntity)
+    expect(value.toString()).toEqual("(bCtrl=false,Key=Y,bAlt=True)")
+
+    expect(() => grammar.parse("(Key=K"))
 })
 
 test("LinearColorEntity", () => {
@@ -401,6 +463,9 @@ test("NullEntity", () => {
     expect(value).toBeInstanceOf(NullEntity)
     expect(value).toEqual(new NullEntity())
     expect(value.toString()).toEqual("()")
+    expect(value.equals(new NullEntity())).toBeTruthy()
+    expect(value.equals(new NumberEntity())).toBeFalsy()
+    expect(value.equals(123)).toBeFalsy()
     expect(() => grammar.parse("123")).toThrow("Could not parse")
     expect(() => grammar.parse("(a)")).toThrow("Could not parse")
     expect(() => grammar.parse("(")).toThrow("Could not parse")
@@ -408,148 +473,182 @@ test("NullEntity", () => {
 
 test("NumberEntity", () => {
     const grammar = NumberEntity.grammar
-
-    expect(grammar.parse("0")).toBeCloseTo(0, 0.00001)
-    expect(grammar.parse("+0")).toBeCloseTo(0, 0.00001)
-    expect(grammar.parse("-0")).toBeCloseTo(0, 0.00001)
-    expect(grammar.parse("5")).toBeCloseTo(5, 0.00001)
-    expect(grammar.parse("0.05")).toBeCloseTo(0.05, 0.00001)
-    expect(grammar.parse("-999.666")).toBeCloseTo(-999.666, 0.001)
-    expect(grammar.parse("+45.4545")).toBeCloseTo(45.4545, 0.001)
-    expect(grammar.parse("+1000000000")).toBeCloseTo(1E9, 0.1)
-    expect(grammar.parse("inf")).toBe(Number.POSITIVE_INFINITY)
-    expect(grammar.parse("+inf")).toBe(Number.POSITIVE_INFINITY)
-    expect(grammar.parse("-inf")).toBe(Number.NEGATIVE_INFINITY)
+    expect(grammar.parse("0").value).toBeCloseTo(0, 0.00001)
+    expect(grammar.parse("+0").value).toBeCloseTo(0, 0.00001)
+    expect(grammar.parse("-0").value).toBeCloseTo(0, 0.00001)
+    expect(grammar.parse("5").value).toBeCloseTo(5, 0.00001)
+    expect(grammar.parse("0.05").value).toBeCloseTo(0.05, 0.00001)
+    expect(grammar.parse("-999.666").value).toBeCloseTo(-999.666, 0.001)
+    expect(grammar.parse("+45.454500").value).toBeCloseTo(45.4545, 0.001)
+    expect(grammar.parse("+1000000000").value).toBeCloseTo(1E9, 0.1)
+    expect(grammar.parse("1").toString()).toBe("1")
+    expect(grammar.parse("1.000").toString()).toBe("1.000")
+    expect(grammar.parse("+933.75500010").toString()).toBe("933.75500010")
+    expect(grammar.parse("inf").value).toBe(Number.POSITIVE_INFINITY)
+    expect(grammar.parse("+inf").value).toBe(Number.POSITIVE_INFINITY)
+    expect(grammar.parse("-inf").value).toBe(Number.NEGATIVE_INFINITY)
+    expect(grammar.parse("0")).toBeInstanceOf(NumberEntity)
+    expect(grammar.parse("123")).toBeInstanceOf(NumberEntity)
+    expect(grammar.parse("-76.3")).toBeInstanceOf(NumberEntity)
+    expect(grammar.parse("-inf")).toBeInstanceOf(NumberEntity)
+    expect(() => grammar.parse("57.2.3")).toThrow()
     expect(() => grammar.parse("alpha")).toThrow()
 })
 
 test("ObjectReferenceEntity", () => {
-    const serializer = SerializerFactory.getSerializer(ObjectReferenceEntity)
+    const grammar = ObjectReferenceEntity.grammar
 
-    let reference = serializer.read("Class")
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({ type: "Class", path: "" })
-    expect(serializer.write(reference)).toBe("Class")
+    let value = grammar.parse("Class")
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity("Class"))
+    expect(value.equals(new ObjectReferenceEntity("Class"))).toBeTruthy()
+    expect(value.equals(new ObjectReferenceEntity("Class", "a"))).toBeFalsy()
+    expect(value.toString()).toEqual("Class")
 
-    reference = serializer.read(`Class'/Script/ShooterGame.ShooterGameMode'`)
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({ type: "Class", path: "/Script/ShooterGame.ShooterGameMode" })
-    expect(serializer.write(reference)).toBe(`Class'/Script/ShooterGame.ShooterGameMode'`)
+    value = grammar.parse(`Class'/Script/ShooterGame.ShooterGameMode'`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity("Class", "/Script/ShooterGame.ShooterGameMode"))
+    expect(value.equals(new ObjectReferenceEntity("Class", "/Script/ShooterGame.ShooterGameMode"))).toBeTruthy()
+    expect(value.equals(new ObjectReferenceEntity("Class1", "/Script/ShooterGame.ShooterGameMode"))).toBeFalsy()
+    expect(value.equals(new ObjectReferenceEntity("Class", "/Script/ShooterGame.ShooterGameMode1"))).toBeFalsy()
+    expect(value.toString()).toEqual(`Class'/Script/ShooterGame.ShooterGameMode'`)
+    expect(value.toString(true)).toEqual(`Class'/Script/ShooterGame.ShooterGameMode'`)
 
-    reference = serializer.read(`EdGraphPin'EdGraphPin_45417'`)
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({ type: "EdGraphPin", path: "EdGraphPin_45417" })
-    expect(serializer.write(reference)).toBe(`EdGraphPin'EdGraphPin_45417'`)
+    value = grammar.parse(`EdGraphPin'EdGraphPin_45417'`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity("EdGraphPin", "EdGraphPin_45417"))
+    expect(value.toString()).toEqual(`EdGraphPin'EdGraphPin_45417'`)
+    expect(value.toString(true)).toEqual(`EdGraphPin'EdGraphPin_45417'`)
 
-    reference = serializer.read(`EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`)
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({ type: "EdGraphPin", path: "K2Node_DynamicCast_2126.EdGraphPin_3990988" })
-    expect(serializer.write(reference)).toBe(`EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`)
+    value = grammar.parse(`EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity("EdGraphPin", "K2Node_DynamicCast_2126.EdGraphPin_3990988"))
+    expect(value.toString()).toEqual(`EdGraphPin'"K2Node_DynamicCast_2126.EdGraphPin_3990988"'`)
+    expect(value.toString(true)).toEqual(String.raw`EdGraphPin'\"K2Node_DynamicCast_2126.EdGraphPin_3990988\"'`)
 
-    reference = serializer.read(
+    value = grammar.parse(
         `"/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'"`
     )
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
-        path: "MaterialExpressionMaterialFunctionCall_0",
-    })
-    expect(serializer.write(reference)).toBe(
-        `"/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'"`
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "/Script/Engine.MaterialExpressionMaterialFunctionCall",
+        "MaterialExpressionMaterialFunctionCall_0",
+    ))
+    expect(value.toString(false)).toEqual(
+        String.raw`"/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'"`
+    )
+    expect(value.toString(true)).toEqual(
+        String.raw`\"/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'\"`
     )
 
-    reference = serializer.read(
+    value = grammar.parse(
         `/Script/Engine.EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N"'`
     )
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "/Script/Engine.EdGraph",
-        path: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
-    })
-    expect(serializer.write(reference)).toBe(
-        `/Script/Engine.EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N"'`
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "/Script/Engine.EdGraph",
+        "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N",
+    ))
+    expect(value.toString()).toEqual(
+        String.raw`/Script/Engine.EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N"'`
+    )
+    expect(value.toString(true)).toEqual(
+        String.raw`/Script/Engine.EdGraph'\"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:Do N\"'`
     )
 
-    reference = serializer.read(
+    value = grammar.parse(
         `EdGraphPin'"K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045"'`
     )
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "EdGraphPin",
-        path: "K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045",
-    })
-    expect(serializer.write(reference)).toBe(
-        `EdGraphPin'"K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045"'`
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "EdGraphPin",
+        "K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045",
+    ))
+    expect(value.toString()).toEqual(
+        String.raw`EdGraphPin'"K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045"'`
+    )
+    expect(value.toString(true)).toEqual(
+        String.raw`EdGraphPin'\"K2Node_CommutativeAssociativeBinaryOperator_152.EdGraphPin_4045\"'`
     )
 
-    reference = serializer.read(
+    value = grammar.parse(
         `Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`
     )
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "Function",
-        path: "/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element",
-    })
-    expect(serializer.write(reference)).toBe(
-        `Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "Function",
+        "/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element",
+    ))
+    expect(value.toString()).toEqual(
+        String.raw`Function'"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element"'`
+    )
+    expect(value.toString(true)).toEqual(
+        String.raw`Function'\"/Game/Mods/CrazyDinos/ElementalDragon/CDElementalDragon_Character_BP.SKEL_CDElementalDragon_Character_BP_C:ROS Change Element\"'`
     )
 
-    reference = serializer.read(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`)
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "EdGraph",
-        path: "/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch",
-    })
-    expect(serializer.write(reference)).toBe(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`)
+    value = grammar.parse(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value.equals(new ObjectReferenceEntity(
+        "EdGraph",
+        "/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch",
+    ))).toBeTruthy()
+    expect(value.equals(new ObjectReferenceEntity(
+        "EdGraph",
+        "/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch1",
+    ))).toBeFalsy()
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "EdGraph",
+        "/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch",
+    ))
+    expect(value.toString(false)).toEqual(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`)
+    expect(value.toString(true)).toEqual(`EdGraph'/Game/Systems/BP_MacroGlobal.BP_MacroGlobal:Or+Branch'`)
 
-    reference = serializer.read(`/Script/Engine.EdGraph'"+-Weird/2,Macro"'`)
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({ type: "/Script/Engine.EdGraph", path: "+-Weird/2,Macro" })
-    expect(serializer.write(reference)).toBe(`/Script/Engine.EdGraph'"+-Weird/2,Macro"'`)
+    value = grammar.parse(`/Script/Engine.EdGraph'"+-Weird/2,Macro"'`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity("/Script/Engine.EdGraph", "+-Weird/2,Macro"))
+    expect(value.toString(false)).toEqual(String.raw`/Script/Engine.EdGraph'"+-Weird/2,Macro"'`)
+    expect(value.toString(true)).toEqual(String.raw`/Script/Engine.EdGraph'\"+-Weird/2,Macro\"'`)
 
-    reference = serializer.read(`/Script/BlueprintGraph.K2Node_VariableGet`)
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({ type: "/Script/BlueprintGraph.K2Node_VariableGet", path: "" })
-    expect(serializer.write(reference)).toBe(`/Script/BlueprintGraph.K2Node_VariableGet`)
+    value = grammar.parse(`/Script/BlueprintGraph.K2Node_VariableGet`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity("/Script/BlueprintGraph.K2Node_VariableGet", ""))
+    expect(value.toString()).toEqual(`/Script/BlueprintGraph.K2Node_VariableGet`)
 
-    reference = serializer.read(
+    value = grammar.parse(
         `/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'`
     )
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
-        path: "MaterialExpressionMaterialFunctionCall_0",
-    })
-    expect(serializer.write(reference)).toBe(
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "/Script/Engine.MaterialExpressionMaterialFunctionCall",
+        "MaterialExpressionMaterialFunctionCall_0",
+    ))
+    expect(value.toString()).toEqual(
         `/Script/Engine.MaterialExpressionMaterialFunctionCall'MaterialExpressionMaterialFunctionCall_0'`
     )
 
-    reference = serializer.read(
+    value = grammar.parse(
         `/Script/Engine.MaterialExpressionMaterialFunctionCall'/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0'`
     )
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
-        path: "/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0",
-    })
-    expect(serializer.write(reference)).toBe(
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "/Script/Engine.MaterialExpressionMaterialFunctionCall",
+        "/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0",
+    ))
+    expect(value.toString()).toEqual(
         `/Script/Engine.MaterialExpressionMaterialFunctionCall'/Engine/Transient.Material_0:MaterialGraph_0.MaterialGraphNode_3.MaterialExpressionMaterialFunctionCall_0'`
     )
 
-    reference = serializer.read(`/Script/CoreUObject.Class'"/Script/Engine.GameModeBase"'`)
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "/Script/CoreUObject.Class",
-        path: "/Script/Engine.GameModeBase",
-    })
-    expect(serializer.write(reference)).toBe(`/Script/CoreUObject.Class'"/Script/Engine.GameModeBase"'`)
+    value = grammar.parse(`/Script/CoreUObject.Class'"/Script/Engine.GameModeBase"'`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity(
+        "/Script/CoreUObject.Class",
+        "/Script/Engine.GameModeBase",
+    ))
+    expect(value.toString()).toEqual(`/Script/CoreUObject.Class'"/Script/Engine.GameModeBase"'`)
 
-    reference = serializer.read(`"/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"`)
-    expect(reference).toBeInstanceOf(ObjectReferenceEntity)
-    expect(reference).toMatchObject({
-        type: "/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01",
-        path: "",
-    })
+    value = grammar.parse(`"/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"`)
+    expect(value).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value).toEqual(new ObjectReferenceEntity("/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"))
 })
 
 test("PinEntity", () => {
@@ -561,78 +660,207 @@ test("PinEntity", () => {
 })
 
 test("SimpleSerializationRotatorEntity", () => {
-    const serializer = SerializerFactory.getSerializer(SimpleSerializationRotatorEntity)
-
-    expect(serializer.read("0, 0, 0")).toEqual(new SimpleSerializationRotatorEntity({
-        R: 0,
-        P: 0,
-        Y: 0,
-    }))
-    expect(serializer.read("0.65, 1.0, 0.99")).toEqual(new SimpleSerializationRotatorEntity({
-        P: 0.65,
-        Y: 1.0,
-        R: 0.99,
-    }))
-    expect(serializer.read("7,6,5")).toEqual(new SimpleSerializationRotatorEntity({
-        P: 7,
-        Y: 6,
-        R: 5,
-    }))
+    const grammar = SimpleSerializationRotatorEntity.grammar
+    {
+        let value = grammar.parse("0, 0, 0")
+        expect(value).toBeInstanceOf(SimpleSerializationRotatorEntity)
+        expect(value).toEqual(new SimpleSerializationRotatorEntity({
+            R: new NumberEntity(0),
+            P: new NumberEntity(0),
+            Y: new NumberEntity(0),
+        }))
+        expect(value.equals(new SimpleSerializationRotatorEntity({
+            R: new NumberEntity(0),
+            P: new NumberEntity(0),
+            Y: new NumberEntity(0),
+        }))).toBeTruthy()
+        expect(value.equals(new RotatorEntity({
+            R: new NumberEntity(0),
+            P: new NumberEntity(0),
+            Y: new NumberEntity(0),
+        }))).toBeTruthy()
+        expect(value.equals(new SimpleSerializationRotatorEntity({
+            R: new NumberEntity(0),
+            P: new NumberEntity(0),
+            Y: new NumberEntity(0.1),
+        }))).toBeFalsy()
+        expect(value.equals(new RotatorEntity({
+            R: new NumberEntity(0),
+            P: new NumberEntity(0.5),
+            Y: new NumberEntity(0),
+        }))).toBeFalsy()
+        expect(value.toString()).toEqual("0, 0, 0")
+    }
+    {
+        let value = grammar.parse("0.65, 1.0, 0.99")
+        expect(value).toEqual(new SimpleSerializationRotatorEntity({
+            P: new NumberEntity(0.65),
+            Y: new NumberEntity(1.0),
+            R: new NumberEntity(0.99),
+        }))
+        expect(value.equals(new SimpleSerializationRotatorEntity({
+            P: new NumberEntity(0.651),
+            Y: new NumberEntity(1.0),
+            R: new NumberEntity(0.99),
+        }))).toBeFalsy()
+        expect(value.toString()).toEqual("0.65, 1.0, 0.99")
+    }
+    {
+        let value = grammar.parse("7.1000,6.00,5.990000")
+        expect(value).toEqual(new SimpleSerializationRotatorEntity({
+            P: new NumberEntity(7.1),
+            Y: new NumberEntity(6),
+            R: new NumberEntity(5.99),
+        }))
+        expect(value.toString("true")).toEqual("7.1000, 6.00, 5.990000")
+    }
+    {
+        let value = grammar.parse("-1.0,-2.00,-3.000")
+        expect(value).toEqual(new SimpleSerializationRotatorEntity({
+            P: new NumberEntity(-1),
+            Y: new NumberEntity(-2),
+            R: new NumberEntity(-3),
+        }))
+        expect(value.toString("true")).toEqual("-1.0, -2.00, -3.000")
+    }
 })
 
 test("SimpleSerializationVector2DEntity", () => {
-    const serializer = SerializerFactory.getSerializer(SimpleSerializationVector2DEntity)
-
-    expect(serializer.read("0, 0")).toEqual(new SimpleSerializationVector2DEntity({
-        X: 0,
-        Y: 0,
-    }))
-    expect(serializer.read("127.8, 13.3")).toEqual(new SimpleSerializationVector2DEntity({
-        X: 127.8,
-        Y: 13.3,
-    }))
-    expect(serializer.read("5,0")).toEqual(new SimpleSerializationVector2DEntity({
-        X: 5,
-        Y: 0,
-    }))
+    const grammar = SimpleSerializationVector2DEntity.grammar
+    {
+        let value = grammar.parse("0, 0")
+        expect(value).toBeInstanceOf(SimpleSerializationVector2DEntity)
+        expect(value.equals(new SimpleSerializationVector2DEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(0),
+        }))).toBeTruthy()
+        expect(value).toEqual(new SimpleSerializationVector2DEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(0),
+        }))
+        expect(value.toString()).toEqual("0, 0")
+    }
+    {
+        let value = grammar.parse("127.8000, 13.3")
+        expect(value).toBeInstanceOf(SimpleSerializationVector2DEntity)
+        expect(value.equals(new SimpleSerializationVector2DEntity({
+            X: new NumberEntity(127.8),
+            Y: new NumberEntity(13.3),
+        }))).toBeTruthy()
+        expect(value).toEqual(new SimpleSerializationVector2DEntity({
+            X: new NumberEntity(127.8),
+            Y: new NumberEntity(13.3),
+        }))
+        expect(value.toString()).toEqual("127.8000, 13.3")
+    }
+    {
+        let value = grammar.parse("5,0")
+        expect(value).toBeInstanceOf(SimpleSerializationVector2DEntity)
+        expect(value.equals(new SimpleSerializationVector2DEntity({
+            X: new NumberEntity(5),
+            Y: new NumberEntity(0),
+        }))).toBeTruthy()
+        expect(value).toEqual(new SimpleSerializationVector2DEntity({
+            X: new NumberEntity(5),
+            Y: new NumberEntity(0),
+        }))
+        expect(value.toString()).toEqual("5, 0")
+    }
 })
 
 test("SimpleSerializationVectorEntity", () => {
-    const serializer = SerializerFactory.getSerializer(SimpleSerializationVectorEntity)
-
-    expect(serializer.read("0, 0, 0")).toEqual(new SimpleSerializationVectorEntity({
-        X: 0,
-        Y: 0,
-        Z: 0,
-    }))
-    expect(serializer.read("1001, 56.4, 0.5")).toEqual(new SimpleSerializationVectorEntity({
-        X: 1001,
-        Y: 56.4,
-        Z: 0.5,
-    }))
-    expect(serializer.read("-1,-2,-3")).toEqual(new SimpleSerializationVectorEntity({
-        X: -1,
-        Y: -2,
-        Z: -3,
-    }))
+    const grammar = SimpleSerializationVectorEntity.grammar
+    {
+        let value = grammar.parse("0, 0, 0")
+        expect(value).toBeInstanceOf(SimpleSerializationVectorEntity)
+        expect(value.equals(new SimpleSerializationVectorEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(0),
+            Z: new NumberEntity(0),
+        }))).toBeTruthy()
+        expect(value).toEqual(new SimpleSerializationVectorEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(0),
+            Z: new NumberEntity(0),
+        }))
+        expect(value.toString()).toEqual("0, 0, 0")
+    }
+    {
+        let value = grammar.parse("1001, 56.4, 0.5")
+        expect(value).toBeInstanceOf(SimpleSerializationVectorEntity)
+        expect(value.equals(new SimpleSerializationVectorEntity({
+            X: new NumberEntity(1001),
+            Y: new NumberEntity(56.4),
+            Z: new NumberEntity(0.5),
+        }))).toBeTruthy()
+        expect(value).toEqual(new SimpleSerializationVectorEntity({
+            X: new NumberEntity(1001),
+            Y: new NumberEntity(56.4),
+            Z: new NumberEntity(0.5),
+        }))
+        expect(value.toString(true)).toEqual("1001, 56.4, 0.5")
+    }
+    {
+        let value = grammar.parse("-1.0,-2.00,-3.000")
+        expect(value).toBeInstanceOf(SimpleSerializationVectorEntity)
+        expect(value.equals(new SimpleSerializationVectorEntity({
+            X: new NumberEntity(-1),
+            Y: new NumberEntity(-2),
+            Z: new NumberEntity(-3),
+        }))).toBeTruthy()
+        expect(value).toEqual(new SimpleSerializationVectorEntity({
+            X: new NumberEntity(-1),
+            Y: new NumberEntity(-2),
+            Z: new NumberEntity(-3),
+        }))
+        expect(value.toString()).toEqual("-1.0, -2.00, -3.000")
+    }
 })
 
 test("String", () => {
-    const serializer = SerializerFactory.getSerializer(String)
-
-    expect(serializer.read('""')).toStrictEqual("")
-    expect(serializer.read('"hello"')).toStrictEqual("hello")
-    expect(serializer.read('"hello world 123 - éèàò@ç ^ ^^^"')).toStrictEqual("hello world 123 - éèàò@ç ^ ^^^")
-    expect(serializer.read('"\\""')).toStrictEqual('"')
-    expect(() => serializer.read("Hello")).toThrow()
-
-    expect(serializer.write(`"/Script/CoreUObject.Class'/Script/Interhaptics.HapticSource'"`))
-        .toBe(String.raw`"\"/Script/CoreUObject.Class'/Script/Interhaptics.HapticSource'\""`)
+    const grammar = StringEntity.grammar
+    {
+        let value = grammar.parse('""')
+        expect(value).toBeInstanceOf(StringEntity)
+        expect(value).toEqual(new StringEntity(""))
+        expect(value.equals(new StringEntity(""))).toBeTruthy()
+        expect(value.equals(new StringEntity("1"))).toBeFalsy()
+        expect(value.print()).toEqual("")
+        expect(value.toString()).toEqual(`""`)
+        expect(value.toString(true)).toEqual(String.raw`\"\"`)
+    }
+    {
+        let value = grammar.parse('"hello"')
+        expect(value).toEqual(new StringEntity("hello"))
+        expect(value.equals(new StringEntity("hello"))).toBeTruthy()
+        expect(value.equals(new NumberEntity())).toBeFalsy()
+        expect(value.print()).toEqual("hello")
+        expect(value.toString()).toEqual(`"hello"`)
+        expect(value.toString(true)).toEqual(String.raw`\"hello\"`)
+    }
+    {
+        let value = grammar.parse('"hello world 123 - éèàò@ç ^ ^^^"')
+        expect(value).toEqual(new StringEntity("hello world 123 - éèàò@ç ^ ^^^"))
+        expect(value.equals(new StringEntity("hello world 123 - éèàò@ç ^ ^^^"))).toBeTruthy()
+        expect(value.equals(new StringEntity("hello world 123 - éèàò@ç ^ ^^^-"))).toBeFalsy()
+        expect(value.print()).toEqual("hello world 123 - éèàò@ç ^ ^^^")
+        expect(value.toString()).toEqual(`"hello world 123 - éèàò@ç ^ ^^^"`)
+        expect(value.toString(true)).toEqual(String.raw`\"hello world 123 - éèàò@ç ^ ^^^\"`)
+    }
+    {
+        let value = grammar.parse(String.raw`"a:\"hello\", b:\"word is \\\"world\\\"\""`)
+        expect(value).toEqual(new StringEntity(String.raw`a:"hello", b:"word is \"world\""`))
+        expect(value.equals(new StringEntity(String.raw`a:"hello", b:"word is \"world\""`))).toBeTruthy()
+        expect(value.equals(new NumberEntity())).toBeFalsy()
+        expect(value.print()).toEqual(String.raw`a:"hello", b:"word is \"world\""`)
+        expect(value.toString(false)).toEqual(String.raw`"a:\"hello\", b:\"word is \\\"world\\\"\""`)
+        expect(value.toString(true)).toEqual(String.raw`\"a:\\\"hello\\\", b:\\\"word is \\\\\\\"world\\\\\\\"\\\"\"`)
+    }
+    expect(() => grammar.parse("Hello")).toThrow()
 })
 
 test("UnknownKeysValue", () => {
     const parser = IEntity.unknownEntityGrammar
-
     expect(parser.parse('"Hello"').constructor).toStrictEqual(String)
     expect(parser.parse("()")).toBeNull()
     expect(parser.parse("8345").constructor).toStrictEqual(Number)
@@ -649,8 +877,8 @@ test("UnknownKeysValue", () => {
     expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`).constructor)
         .toStrictEqual(ObjectReferenceEntity)
     expect(parser.parse("(1,2,3,4,5,6,7,8,9)")).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    expect(parser.parse(`( "Hello",  "World",  )`)).toStrictEqual(["Hello", "World"])
-    expect(parser.parse(`( "Alpha", 123, Beta, "Gamma", "Delta", 99  )`))
+    expect(parser.parse(`("Hello", "World",)`)).toStrictEqual(["Hello", "World"])
+    expect(parser.parse(`("Alpha", 123, Beta, "Gamma", "Delta", 99)`))
         .toStrictEqual(["Alpha", 123, new SymbolEntity("Beta"), "Gamma", "Delta", 99])
 })
 
@@ -698,14 +926,14 @@ test("VectorEntity", () => {
     }))
 
     vector = serializer.read(`(
-            Z  =   -3.66    ,   
-                
-                        X
-                            =        -1 ,     Y       =
-                            
-                            
-                    -2
-  ,
+            Z = -3.66,
+
+            X
+            = -1, Y =
+
+
+        -2
+            ,
         )`)
     expect(vector).toBeInstanceOf(VectorEntity)
     expect(vector).toStrictEqual(new VectorEntity({
@@ -737,10 +965,10 @@ test("Vector2DEntity", () => {
     }))
 
     vector = serializer.read(`(
-            Y  =   +93.004    ,   
-                
-                        X
-                            =        0 ,     
+            Y = +93.004,
+
+            X
+            = 0,
         )`)
     expect(vector).toBeInstanceOf(Vector2DEntity)
     expect(vector).toStrictEqual(new Vector2DEntity({

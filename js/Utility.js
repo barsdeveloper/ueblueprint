@@ -299,11 +299,14 @@ export default class Utility {
     }
 
     /** @param {String} value */
-    static escapeString(value) {
-        return value
-            .replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')
-            .replaceAll("\n", "\\n") // Replace newline with \n
-            .replaceAll("\t", "\\t") // Replace tab with \t
+    static escapeString(value, inline = true) {
+        let result = value.replaceAll(new RegExp(`(${Configuration.stringEscapedCharacters.source})`, "g"), '\\$1')
+        if (inline) {
+            result = result
+                .replaceAll("\n", "\\n") // Replace newline with \n
+                .replaceAll("\t", "\\t") // Replace tab with \t
+        }
+        return result
     }
 
     /** @param {String} value */
