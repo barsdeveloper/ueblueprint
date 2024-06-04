@@ -1,6 +1,6 @@
 import ElementFactory from "../../element/ElementFactory.js"
+import ObjectEntity from "../../entity/ObjectEntity.js"
 import IInput from "../IInput.js"
-import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 
 /**
  * @typedef {import("../IInput.js").Options & {
@@ -10,8 +10,6 @@ import ObjectSerializer from "../../serialization/ObjectSerializer.js"
  */
 
 export default class Paste extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
@@ -42,7 +40,7 @@ export default class Paste extends IInput {
         let top = 0
         let left = 0
         let count = 0
-        let nodes = Paste.#serializer.readMultiple(value).map(entity => {
+        let nodes = ObjectEntity.grammarMultipleObjects.parse(value).map(entity => {
             let node = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
                 .newObject(entity)
             top += node.locationY

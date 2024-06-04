@@ -6,7 +6,6 @@ import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
-import SerializerFactory from "../serialization/SerializerFactory.js"
 import NodeTemplate from "../template/node/NodeTemplate.js"
 import ISelectableDraggableElement from "./ISelectableDraggableElement.js"
 
@@ -86,7 +85,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     /** @param {String} str */
     static fromSerializedObject(str) {
         str = str.trim()
-        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str)
+        let entity = ObjectEntity.grammar.parse(str)
         return NodeElement.newObject(/** @type {ObjectEntity} */(entity))
     }
 
@@ -103,10 +102,13 @@ export default class NodeElement extends ISelectableDraggableElement {
     #redirectLinksAfterRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
-                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
-                    objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
-                }))
+                this.blueprint.getPin(targetPinReference).redirectLink(
+                    sourcePinElement,
+                    new PinReferenceEntity(
+                        name,
+                        sourcePinElement.entity.PinId,
+                    )
+                )
             }
         }
     }

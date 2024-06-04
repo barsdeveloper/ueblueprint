@@ -7,7 +7,6 @@ import nodeVariadic from "../decoding/nodeVariadic.js"
 import Grammar from "../serialization/Grammar.js"
 import AlternativesEntity from "./AlternativesEntity.js"
 import ArrayEntity from "./ArrayEntity.js"
-import AttributeInfo from "./AttributeInfo.js"
 import BooleanEntity from "./BooleanEntity.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
 import GuidEntity from "./GuidEntity.js"
@@ -168,7 +167,41 @@ export default class ObjectEntity extends IEntity {
                     }
                 )
         )
-    static grammar = this.createGrammar()
+    /** @type {P<ObjectEntity>} */
+    static grammar = P.seq(
+        P.reg(/Begin +Object/),
+        P.seq(
+            P.whitespace,
+            P.alt(
+                this.createSubObjectGrammar(),
+                this.customPropertyGrammar,
+                Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
+                Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                    Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
+                ),
+                this.inlinedArrayEntryGrammar,
+            )
+        )
+            .map(([_0, entry]) => entry)
+            .many(),
+        P.reg(/\s+End +Object/),
+    )
+        .map(([_0, attributes, _2]) => {
+            const values = {}
+            attributes.forEach(attributeSetter => attributeSetter(values))
+            return new this(values)
+        })
+    static grammarMultipleObjects = P.seq(
+        P.whitespaceOpt,
+        this.grammar,
+        P.seq(
+            P.whitespace,
+            this.grammar,
+        )
+            .map(([_0, object]) => object)
+            .many(),
+        P.whitespaceOpt
+    ).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
     static createSubObjectGrammar() {
         return P.lazy(() => this.grammar)
@@ -177,58 +210,16 @@ export default class ObjectEntity extends IEntity {
             )
     }
 
-    static createGrammar() {
-        return P.seq(
-            P.reg(/Begin +Object/),
-            P.seq(
-                P.whitespace,
-                P.alt(
-                    this.createSubObjectGrammar(),
-                    this.customPropertyGrammar,
-                    Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
-                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
-                    ),
-                    this.inlinedArrayEntryGrammar,
-                )
-            )
-                .map(([_0, entry]) => entry)
-                .many(),
-            P.reg(/\s+End +Object/),
-        )
-            .map(([_0, attributes, _2]) => {
-                const values = {}
-                attributes.forEach(attributeSetter => attributeSetter(values))
-                return new this(values)
-            })
-    }
-
-    static getMultipleObjectsGrammar() {
-        return P.seq(
-            P.whitespaceOpt,
-            this.grammar,
-            P.seq(
-                P.whitespace,
-                this.grammar,
-            )
-                .map(([_0, object]) => object)
-                .many(),
-            P.whitespaceOpt
-        )
-            .map(([_0, first, remaining, _4]) => [first, ...remaining])
-    }
-
     /** @type {String} */
     #class
 
     constructor(values = {}) {
-        if ("NodePosX" in values !== "NodePosY" in values) {
+        if (("NodePosX" in values) !== ("NodePosY" in values)) {
             const entries = Object.entries(values)
             const [key, position] = "NodePosX" in values
                 ? ["NodePosY", Object.keys(values).indexOf("NodePosX") + 1]
                 : ["NodePosX", Object.keys(values).indexOf("NodePosY")]
-            const entry = [key, new (AttributeInfo.getAttribute(values, key, "type", ObjectEntity))()]
-            entries.splice(position, 0, entry)
+            entries.splice(position, 0, [key, new IntegerEntity(0)])
             values = Object.fromEntries(entries)
         }
         super(values)

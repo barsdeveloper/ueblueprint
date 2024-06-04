@@ -5,7 +5,6 @@ import AlternativesEntity from "../entity/AlternativesEntity.js"
 import AttributeInfo from "../entity/AttributeInfo.js"
 import IEntity from "../entity/IEntity.js"
 import MirroredEntity from "../entity/MirroredEntity.js"
-import Serializable from "./Serializable.js"
 
 export default class Grammar {
 
@@ -69,75 +68,6 @@ export default class Grammar {
     static hexColorChannel = Parsernostrum.reg(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
 
     /*   ---   Factory   ---   */
-
-    /**
-     * @template T
-     * @param {AttributeInfo<T>} attribute
-     * @param {Parsernostrum<any>} defaultGrammar
-     * @returns {Parsernostrum<T>}
-     */
-    static grammarFor(attribute, type = attribute?.type, defaultGrammar = this.unknownValue) {
-        let result = defaultGrammar
-        if (type === Array || type instanceof Array) {
-            if (attribute?.inlined) {
-                return this.grammarFor(undefined, type[0])
-            }
-            result = Parsernostrum.seq(
-                Parsernostrum.reg(/\(\s*/),
-                this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation).opt(),
-                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-            ).map(([_0, values, _3]) => values instanceof Array ? values : [])
-        } else if (type instanceof Union) {
-            result = type.values
-                .map(v => this.grammarFor(undefined, v))
-                .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
-                    ? this.unknownValue
-                    : Parsernostrum.alt(acc, cur)
-                )
-        } else if (type instanceof MirroredEntity) {
-            // @ts-expect-error
-            return this.grammarFor(undefined, type.getTargetType())
-                .map(v => new MirroredEntity(type.type, () => v))
-        } else if (attribute?.constructor === Object) {
-            result = this.grammarFor(undefined, type)
-        } else {
-            switch (type) {
-                case Boolean:
-                    result = this.boolean
-                    break
-                case null:
-                    result = this.null
-                    break
-                case Number:
-                    result = this.number
-                    break
-                case BigInt:
-                    result = this.bigInt
-                    break
-                case String:
-                    result = this.string
-                    break
-                default:
-                    if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
-                        result = /** @type {typeof Serializable} */(type).grammar
-                    }
-            }
-        }
-        if (attribute) {
-            if (attribute.serialized && type.constructor !== String) {
-                if (result == this.unknownValue) {
-                    result = this.string
-                } else {
-                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"')).map(([_0, value, _2]) => value)
-                }
-            }
-            if (attribute.nullable) {
-                result = Parsernostrum.alt(result, this.null)
-            }
-        }
-        return result
-    }
-
 
     /**
      * @param {typeof IEntity} entityType
@@ -225,7 +155,4 @@ export default class Grammar {
                     : Parsernostrum.success().map(() => new entityType(values))
             })
     }
-
-    /** @type {Parsernostrum<any>} */
-    static unknownValue // Defined in initializeSerializerFactor to avoid circular include
 }

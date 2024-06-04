@@ -1,4 +1,3 @@
-import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 import IInput from "../IInput.js"
 
 /**
@@ -9,8 +8,6 @@ import IInput from "../IInput.js"
  */
 
 export default class Copy extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #copyHandler
@@ -33,11 +30,11 @@ export default class Copy extends IInput {
 
     getSerializedText() {
         const allNodes = this.blueprint.getNodes(true).map(n => n.entity)
-        const exported = allNodes.filter(n => n.isExported).map(n => Copy.#serializer.write(n, false))
-        const result = allNodes.filter(n => !n.isExported).map(n => Copy.#serializer.write(n, false))
+        const exported = allNodes.filter(n => n.exported).map(n => n.toString())
+        const result = allNodes.filter(n => !n.exported).map(n => n.toString())
         if (exported.length) {
             this.blueprint.entity.ExportedNodes = btoa(exported.join(""))
-            result.splice(0, 0, Copy.#serializer.write(this.blueprint.entity, false))
+            result.splice(0, 0, this.blueprint.entity.toString(false))
             delete this.blueprint.entity.ExportedNodes
         }
         return result.join("")

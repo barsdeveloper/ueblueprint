@@ -2748,124 +2748,6 @@ class AlternativesEntity extends IEntity {
     }
 }
 
-/**
- * @template T
- * @typedef {{
- *     type?: AttributeTypeDescription,
- *     default?: T,
- *     nullable?: Boolean,
- *     ignored?: Boolean,
- *     serialized?: Boolean,
- *     expected?: Boolean,
- *     inlined?: Boolean,
- *     quoted?: Boolean,
- *     silent?: Boolean,
- *     uninitialized?: Boolean,
- *     predicate?: (value: T) => Boolean,
- * }} AttributeInfoSource
- */
-
-/** @template T */
-class AttributeInfo {
-
-    /** @typedef {keyof AttributeInfo<number>} AttributeKey */
-
-    static #default = {
-        nullable: false,
-        ignored: false, // Never serialize or deserialize
-        serialized: false, // Value is written and read as string
-        expected: false, // Must be there
-        inlined: false, // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
-        quoted: false, // Key is serialized with quotes
-        silent: false, // Do not serialize if default
-        uninitialized: false, // Do not initialize with default
-    }
-
-    /** @param {AttributeInfoSource<T>} source */
-    constructor(source) {
-        this.type = source.type ?? source.default?.constructor;
-        this.default = source.default;
-        this.nullable = source.nullable ?? source.default === null;
-        this.ignored = source.ignored;
-        this.serialized = source.serialized;
-        this.expected = source.expected;
-        this.inlined = source.inlined;
-        this.quoted = source.quoted;
-        this.silent = source.silent;
-        this.uninitialized = source.uninitialized;
-        this.predicate = source.predicate;
-        if (this.type === Array && this.default instanceof Array && this.default.length > 0) {
-            this.type = this.default
-                .map(v => v.constructor)
-                .reduce((acc, cur) => acc.includes(cur) ? acc : (acc.push(cur), acc), []);
-        }
-    }
-
-    /**
-     * @template {AttributeTypeDescription} D
-     * @param {D} type
-     * @returns {AttributeInfo<DescribedType<type>>}
-     */
-    static createType(type) {
-        return new AttributeInfo({ type })
-    }
-
-    /** 
-     * @template V
-     * @param {V} value
-     */
-    static createValue(value) {
-        return new AttributeInfo({ default: value })
-    }
-
-    /**
-     * @param {IEntity | Object} source
-     * @param {String} attribute
-     * @param {AttributeKey} key
-     */
-    static hasAttribute(source, attribute, key, type = /** @type {EntityConstructor} */(source.constructor)) {
-        const entity = /** @type {IEntity} */(source);
-        const result = entity.attributes[attribute]?.[key];
-        return /** @type {result} */(
-            result
-            ?? type?.attributes?.[attribute]?.[key]
-            ?? AttributeInfo.#default[key]
-        )
-    }
-
-    /**
-     * @template {IEntity | Object} S
-     * @template {EntityConstructor} C
-     * @template {keyof C["attributes"]} A
-     * @template {keyof C["attributes"][attribute]} K
-     * @param {S} source
-     * @param {A} attribute
-     * @param {K} key
-     * @param {C} type
-     * @returns {C["attributes"][attribute][key]}
-     */
-    static getAttribute(source, attribute, key, type = /** @type {C} */(source.constructor)) {
-        let result = source["attributes"]?.[attribute]?.[key];
-        // Remember null is a valid asignment value for some attributes
-        if (result !== undefined) {
-            return result
-        }
-        result = /** @type {C["attributes"]} */(type?.attributes)?.[attribute]?.[key];
-        if (result !== undefined) {
-            return result
-        }
-        result = /** @type {C["attributes"][attribute]} */(AttributeInfo.#default)[key];
-        if (result !== undefined) {
-            return result
-        }
-    }
-
-    /** @param {AttributeKey} key */
-    get(key) {
-        return this[key] ?? AttributeInfo.#default[key]
-    }
-}
-
 /** @template {typeof IEntity} T */
 class MirroredEntity$1 extends IEntity {
 
@@ -2905,12 +2787,6 @@ class MirroredEntity$1 extends IEntity {
     ) {
         return this.getter().toString(insideString, indentation, printKey)
     }
-}
-
-class Serializable {
-
-    /** @type {Parsernostrum<any>} */
-    static grammar = Parsernostrum.failure()
 }
 
 class Grammar {
@@ -2975,75 +2851,6 @@ class Grammar {
     static hexColorChannel = Parsernostrum.reg(new RegExp(Grammar.Regex.HexDigit.source + "{2}"))
 
     /*   ---   Factory   ---   */
-
-    /**
-     * @template T
-     * @param {AttributeInfo<T>} attribute
-     * @param {Parsernostrum<any>} defaultGrammar
-     * @returns {Parsernostrum<T>}
-     */
-    static grammarFor(attribute, type = attribute?.type, defaultGrammar = this.unknownValue) {
-        let result = defaultGrammar;
-        if (type === Array || type instanceof Array) {
-            if (attribute?.inlined) {
-                return this.grammarFor(undefined, type[0])
-            }
-            result = Parsernostrum.seq(
-                Parsernostrum.reg(/\(\s*/),
-                this.grammarFor(undefined, type[0]).sepBy(this.commaSeparation).opt(),
-                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-            ).map(([_0, values, _3]) => values instanceof Array ? values : []);
-        } else if (type instanceof Union) {
-            result = type.values
-                .map(v => this.grammarFor(undefined, v))
-                .reduce((acc, cur) => !cur || cur === this.unknownValue || acc === this.unknownValue
-                    ? this.unknownValue
-                    : Parsernostrum.alt(acc, cur)
-                );
-        } else if (type instanceof MirroredEntity$1) {
-            // @ts-expect-error
-            return this.grammarFor(undefined, type.getTargetType())
-                .map(v => new MirroredEntity$1(type.type, () => v))
-        } else if (attribute?.constructor === Object) {
-            result = this.grammarFor(undefined, type);
-        } else {
-            switch (type) {
-                case Boolean:
-                    result = this.boolean;
-                    break
-                case null:
-                    result = this.null;
-                    break
-                case Number:
-                    result = this.number;
-                    break
-                case BigInt:
-                    result = this.bigInt;
-                    break
-                case String:
-                    result = this.string;
-                    break
-                default:
-                    if (/** @type {AttributeConstructor<any>} */(type)?.prototype instanceof Serializable) {
-                        result = /** @type {typeof Serializable} */(type).grammar;
-                    }
-            }
-        }
-        if (attribute) {
-            if (attribute.serialized && type.constructor !== String) {
-                if (result == this.unknownValue) {
-                    result = this.string;
-                } else {
-                    result = Parsernostrum.seq(Parsernostrum.str('"'), result, Parsernostrum.str('"')).map(([_0, value, _2]) => value);
-                }
-            }
-            if (attribute.nullable) {
-                result = Parsernostrum.alt(result, this.null);
-            }
-        }
-        return result
-    }
-
 
     /**
      * @param {typeof IEntity} entityType
@@ -3131,9 +2938,6 @@ class Grammar {
                     : Parsernostrum.success().map(() => new entityType(values))
             })
     }
-
-    /** @type {Parsernostrum<any>} */
-    static unknownValue // Defined in initializeSerializerFactor to avoid circular include
 }
 
 class ColorChannelEntity extends IEntity {
@@ -6102,7 +5906,41 @@ class ObjectEntity extends IEntity {
                     }
                 )
         )
-    static grammar = this.createGrammar()
+    /** @type {P<ObjectEntity>} */
+    static grammar = Parsernostrum.seq(
+        Parsernostrum.reg(/Begin +Object/),
+        Parsernostrum.seq(
+            Parsernostrum.whitespace,
+            Parsernostrum.alt(
+                this.createSubObjectGrammar(),
+                this.customPropertyGrammar,
+                Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
+                Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                    Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
+                ),
+                this.inlinedArrayEntryGrammar,
+            )
+        )
+            .map(([_0, entry]) => entry)
+            .many(),
+        Parsernostrum.reg(/\s+End +Object/),
+    )
+        .map(([_0, attributes, _2]) => {
+            const values = {};
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            return new this(values)
+        })
+    static grammarMultipleObjects = Parsernostrum.seq(
+        Parsernostrum.whitespaceOpt,
+        this.grammar,
+        Parsernostrum.seq(
+            Parsernostrum.whitespace,
+            this.grammar,
+        )
+            .map(([_0, object]) => object)
+            .many(),
+        Parsernostrum.whitespaceOpt
+    ).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
     static createSubObjectGrammar() {
         return Parsernostrum.lazy(() => this.grammar)
@@ -6111,58 +5949,16 @@ class ObjectEntity extends IEntity {
             )
     }
 
-    static createGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.reg(/Begin +Object/),
-            Parsernostrum.seq(
-                Parsernostrum.whitespace,
-                Parsernostrum.alt(
-                    this.createSubObjectGrammar(),
-                    this.customPropertyGrammar,
-                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
-                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
-                    ),
-                    this.inlinedArrayEntryGrammar,
-                )
-            )
-                .map(([_0, entry]) => entry)
-                .many(),
-            Parsernostrum.reg(/\s+End +Object/),
-        )
-            .map(([_0, attributes, _2]) => {
-                const values = {};
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return new this(values)
-            })
-    }
-
-    static getMultipleObjectsGrammar() {
-        return Parsernostrum.seq(
-            Parsernostrum.whitespaceOpt,
-            this.grammar,
-            Parsernostrum.seq(
-                Parsernostrum.whitespace,
-                this.grammar,
-            )
-                .map(([_0, object]) => object)
-                .many(),
-            Parsernostrum.whitespaceOpt
-        )
-            .map(([_0, first, remaining, _4]) => [first, ...remaining])
-    }
-
     /** @type {String} */
     #class
 
     constructor(values = {}) {
-        if ("NodePosX" in values !== "NodePosY" in values) {
+        if (("NodePosX" in values) !== ("NodePosY" in values)) {
             const entries = Object.entries(values);
             const [key, position] = "NodePosX" in values
                 ? ["NodePosY", Object.keys(values).indexOf("NodePosX") + 1]
                 : ["NodePosX", Object.keys(values).indexOf("NodePosY")];
-            const entry = [key, new (AttributeInfo.getAttribute(values, key, "type", ObjectEntity))()];
-            entries.splice(position, 0, entry);
+            entries.splice(position, 0, [key, new IntegerEntity(0)]);
             values = Object.fromEntries(entries);
         }
         super(values);
@@ -9395,29 +9191,6 @@ function nodeTemplateClass(nodeEntity) {
     return NodeTemplate
 }
 
-class SerializerFactory {
-
-    static #serializers = new Map()
-
-    /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} type
-     * @param {Serializer<T>} object
-     */
-    static registerSerializer(type, object) {
-        SerializerFactory.#serializers.set(type, object);
-    }
-
-    /**
-     * @template {AttributeConstructor<Attribute>} T
-     * @param {T} type
-     * @returns {Serializer<T>}
-     */
-    static getSerializer(type) {
-        return SerializerFactory.#serializers.get(type)
-    }
-}
-
 /**
  * @template {IEntity} EntityT
  * @template {ISelectableDraggableTemplate} TemplateT
@@ -9544,7 +9317,7 @@ class NodeElement extends ISelectableDraggableElement {
     /** @param {String} str */
     static fromSerializedObject(str) {
         str = str.trim();
-        let entity = SerializerFactory.getSerializer(ObjectEntity).read(str);
+        let entity = ObjectEntity.grammar.parse(str);
         return NodeElement.newObject(/** @type {ObjectEntity} */(entity))
     }
 
@@ -9561,10 +9334,13 @@ class NodeElement extends ISelectableDraggableElement {
     #redirectLinksAfterRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
-                this.blueprint.getPin(targetPinReference).redirectLink(sourcePinElement, new PinReferenceEntity({
-                    objectName: name,
-                    pinGuid: sourcePinElement.entity.PinId,
-                }));
+                this.blueprint.getPin(targetPinReference).redirectLink(
+                    sourcePinElement,
+                    new PinReferenceEntity(
+                        name,
+                        sourcePinElement.entity.PinId,
+                    )
+                );
             }
         }
     }
@@ -9775,266 +9551,6 @@ class BlueprintEntity extends ObjectEntity {
     }
 }
 
-/** @template {AttributeConstructor<Attribute>} T */
-class Serializer {
-
-    /** @type {(v: String) => String} */
-    static same = v => v
-
-    /** @type {(entity: Attribute, serialized: String) => String} */
-    static notWrapped = (entity, serialized) => serialized
-
-    /** @type {(entity: Attribute, serialized: String) => String} */
-    static bracketsWrapped = (entity, serialized) => `(${serialized})`
-
-    /** @param {T} entityType */
-    constructor(
-        entityType,
-        /** @type {(entity: ConstructedType<T>, serialized: String) => String} */
-        wrap = (entity, serialized) => serialized,
-        attributeSeparator = ",",
-        trailingSeparator = false,
-        attributeValueConjunctionSign = "=",
-        attributeKeyPrinter = Serializer.same
-    ) {
-        this.entityType = entityType;
-        this.wrap = wrap;
-        this.attributeSeparator = attributeSeparator;
-        this.trailingSeparator = trailingSeparator;
-        this.attributeValueConjunctionSign = attributeValueConjunctionSign;
-        this.attributeKeyPrinter = attributeKeyPrinter;
-    }
-
-    /**
-     * @param {String} value
-     * @returns {ConstructedType<T>}
-     */
-    read(value) {
-        return this.doRead(value.trim())
-    }
-
-    /** @param {ConstructedType<T>} value */
-    write(value, insideString = false) {
-        return this.doWrite(value, insideString)
-    }
-
-    /**
-     * @param {String} value
-     * @returns {ConstructedType<T>}
-     */
-    doRead(value) {
-        let grammar = Grammar.grammarFor(undefined, this.entityType);
-        const parseResult = grammar.run(value);
-        if (!parseResult.status) {
-            throw new Error(
-                this.entityType
-                    ? `Error when trying to parse the entity ${this.entityType.prototype.constructor.name}`
-                    : "Error when trying to parse null"
-            )
-        }
-        return parseResult.value
-    }
-
-    /**
-     * @param {ConstructedType<T>} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    doWrite(
-        entity,
-        insideString = false,
-        indentation = "",
-        wrap = this.wrap,
-        attributeSeparator = this.attributeSeparator,
-        trailingSeparator = this.trailingSeparator,
-        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
-        attributeKeyPrinter = this.attributeKeyPrinter
-    ) {
-        let result = "";
-        const keys = entity._keys ?? Object.keys(entity);
-        let first = true;
-        for (const key of keys) {
-            const value = entity[key];
-            if (value !== undefined && this.showProperty(entity, key)) {
-                let keyValue = entity instanceof Array ? `(${key})` : key;
-                if (AttributeInfo.getAttribute(entity, key, "quoted")) {
-                    keyValue = `"${keyValue}"`;
-                }
-                const isSerialized = AttributeInfo.getAttribute(entity, key, "serialized");
-                if (first) {
-                    first = false;
-                } else {
-                    result += attributeSeparator;
-                }
-                if (AttributeInfo.getAttribute(entity, key, "inlined")) {
-                    result += this.doWrite(
-                        value,
-                        insideString,
-                        indentation,
-                        Serializer.notWrapped,
-                        attributeSeparator,
-                        false,
-                        attributeValueConjunctionSign,
-                        AttributeInfo.getAttribute(entity, key, "type") instanceof Array
-                            ? k => attributeKeyPrinter(`${keyValue}${k}`)
-                            : k => attributeKeyPrinter(`${keyValue}.${k}`)
-                    );
-                    continue
-                }
-                const keyPrinted = attributeKeyPrinter(keyValue);
-                const indentationPrinted = attributeSeparator.includes("\n") ? indentation : "";
-                result += (
-                    keyPrinted.length
-                        ? (indentationPrinted + keyPrinted + this.attributeValueConjunctionSign)
-                        : ""
-                )
-                    + (
-                        isSerialized
-                            ? `"${this.doWriteValue(value, true, indentation)}"`
-                            : this.doWriteValue(value, insideString, indentation)
-                    );
-            }
-        }
-        if (trailingSeparator && result.length) {
-            // append separator at the end if asked and there was printed content
-            result += attributeSeparator;
-        }
-        return wrap(entity, result)
-    }
-
-    /** @param {Boolean} insideString */
-    doWriteValue(value, insideString, indentation = "") {
-        const type = Utility.getType(value);
-        const serializer = SerializerFactory.getSerializer(type);
-        if (!serializer) {
-            throw new Error(
-                `Unknown value type "${type.name}", a serializer must be registered in the SerializerFactory class, `
-                + "check initializeSerializerFactory.js"
-            )
-        }
-        return serializer.doWrite(value, insideString, indentation)
-    }
-
-    /**
-     * @param {IEntity} entity
-     * @param {String} key
-     */
-    showProperty(entity, key) {
-        if (entity instanceof IEntity) {
-            if (AttributeInfo.getAttribute(entity, key, "ignored")) {
-                return false
-            }
-            if (AttributeInfo.getAttribute(entity, key, "silent")) {
-                let defaultValue = AttributeInfo.getAttribute(entity, key, "default");
-                if (defaultValue instanceof Function) {
-                    defaultValue = defaultValue(entity);
-                }
-                if (Utility.equals(entity[key], defaultValue)) {
-                    return false
-                }
-            }
-        }
-        return true
-    }
-}
-
-/** @extends Serializer<ObjectEntityConstructor> */
-class ObjectSerializer extends Serializer {
-
-    constructor(entityType = ObjectEntity) {
-        super(entityType, undefined, "\n", true, undefined, Serializer.same);
-    }
-
-    showProperty(entity, key) {
-        switch (key) {
-            case "Class":
-            case "Name":
-            case "Archetype":
-            case "ExportPath":
-            case "CustomProperties":
-                // Serielized separately, check doWrite()
-                return false
-        }
-        return super.showProperty(entity, key)
-    }
-
-    /** @param {ObjectEntity} value */
-    write(value, insideString = false) {
-        return this.doWrite(value, insideString) + "\n"
-    }
-
-    /** @param {String} value */
-    doRead(value) {
-        return Grammar.grammarFor(undefined, this.entityType).parse(value)
-    }
-
-    /**
-     * @param {String} value
-     * @returns {ObjectEntity[]}
-     */
-    readMultiple(value) {
-        return ObjectEntity.getMultipleObjectsGrammar().parse(value)
-    }
-
-    /**
-     * @param {ObjectEntity} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    doWrite(
-        entity,
-        insideString,
-        indentation = "",
-        wrap = this.wrap,
-        attributeSeparator = this.attributeSeparator,
-        trailingSeparator = this.trailingSeparator,
-        attributeValueConjunctionSign = this.attributeValueConjunctionSign,
-        attributeKeyPrinter = this.attributeKeyPrinter,
-    ) {
-        const moreIndentation = indentation + Configuration.indentation;
-        if (!(entity instanceof ObjectEntity)) {
-            return super.doWrite(
-                entity,
-                insideString,
-                indentation,
-                wrap,
-                attributeSeparator,
-                trailingSeparator,
-                attributeValueConjunctionSign,
-                // @ts-expect-error
-                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
-            )
-        }
-        let result = indentation + "Begin Object"
-            + (entity.Class?.type || entity.Class?.path ? ` Class=${this.doWriteValue(entity.Class, insideString)}` : "")
-            + (entity.Name ? ` Name=${this.doWriteValue(entity.Name, insideString)}` : "")
-            + (entity.Archetype ? ` Archetype=${this.doWriteValue(entity.Archetype, insideString)}` : "")
-            + (entity.ExportPath?.type || entity.ExportPath?.path ? ` ExportPath=${this.doWriteValue(entity.ExportPath, insideString)}` : "")
-            + "\n"
-            + super.doWrite(
-                entity,
-                insideString,
-                moreIndentation,
-                wrap,
-                attributeSeparator,
-                true,
-                attributeValueConjunctionSign,
-                key => entity[key] instanceof ObjectEntity ? "" : attributeKeyPrinter(key)
-            )
-            + (!AttributeInfo.getAttribute(entity, "CustomProperties", "ignored")
-                ? entity.getCustomproperties().map(pin =>
-                    moreIndentation
-                    + attributeKeyPrinter("CustomProperties ")
-                    + SerializerFactory.getSerializer(PinEntity).doWrite(pin, insideString)
-                    + this.attributeSeparator
-                ).join("")
-                : ""
-            )
-            + indentation + "End Object";
-        return result
-    }
-}
-
 /**
  * @typedef {import("../IInput.js").Options & {
  *     listenOnFocus?: Boolean,
@@ -10043,8 +9559,6 @@ class ObjectSerializer extends Serializer {
  */
 
 class Copy extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #copyHandler
@@ -10067,11 +9581,11 @@ class Copy extends IInput {
 
     getSerializedText() {
         const allNodes = this.blueprint.getNodes(true).map(n => n.entity);
-        const exported = allNodes.filter(n => n.isExported).map(n => Copy.#serializer.write(n, false));
-        const result = allNodes.filter(n => !n.isExported).map(n => Copy.#serializer.write(n, false));
+        const exported = allNodes.filter(n => n.exported).map(n => n.toString());
+        const result = allNodes.filter(n => !n.exported).map(n => n.toString());
         if (exported.length) {
             this.blueprint.entity.ExportedNodes = btoa(exported.join(""));
-            result.splice(0, 0, Copy.#serializer.write(this.blueprint.entity, false));
+            result.splice(0, 0, this.blueprint.entity.toString(false));
             delete this.blueprint.entity.ExportedNodes;
         }
         return result.join("")
@@ -10092,8 +9606,6 @@ class Copy extends IInput {
  */
 
 class Cut extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #cutHandler
@@ -10122,7 +9634,7 @@ class Cut extends IInput {
     getSerializedText() {
         return this.blueprint
             .getNodes(true)
-            .map(node => Cut.#serializer.write(node.entity, false))
+            .map(node => node.entity.toString())
             .join("")
     }
 
@@ -10140,8 +9652,6 @@ class Cut extends IInput {
  */
 
 class Paste extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #pasteHandle
@@ -10172,7 +9682,7 @@ class Paste extends IInput {
         let top = 0;
         let left = 0;
         let count = 0;
-        let nodes = Paste.#serializer.readMultiple(value).map(entity => {
+        let nodes = ObjectEntity.grammarMultipleObjects.parse(value).map(entity => {
             let node = /** @type {NodeElementConstructor} */(ElementFactory.getConstructor("ueb-node"))
                 .newObject(entity);
             top += node.locationY;
@@ -13328,27 +12838,6 @@ function defineElements() {
     define("ueb-window", WindowElement);
 }
 
-class TerminalTypeEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        TerminalCategory: StringEntity,
-        TerminalSubCategory: StringEntity,
-        bTerminalIsConst: BooleanEntity,
-        bTerminalIsWeakPointer: BooleanEntity,
-        bTerminalIsUObjectWrapper: BooleanEntity,
-    }
-
-    constructor(values) {
-        super(values);
-        /** @type {String} */ this.TerminalCategory;
-        /** @type {String} */ this.TerminalSubCategory;
-        /** @type {Boolean} */ this.bTerminalIsConst;
-        /** @type {Boolean} */ this.bTerminalIsWeakPointer;
-        /** @type {Boolean} */ this.bTerminalIsUObjectWrapper;
-    }
-}
-
 class UnknownKeysEntity extends IEntity {
 
     /** @type {P<UnknownKeysEntity>} */
@@ -13372,60 +12861,6 @@ class UnknownKeysEntity extends IEntity {
         attributes.forEach(attributeSetter => attributeSetter(values));
         return new this(values)
     }).label("UnknownKeysEntity")
-}
-
-/**
- * @template {AttributeConstructor<Attribute>} T
- * @extends {Serializer<T>}
- */
-class CustomSerializer extends Serializer {
-
-    #objectWriter
-
-    /**
-     * @param {(v: ConstructedType<T>, insideString: Boolean) => String} objectWriter
-     * @param {T} entityType
-     */
-    constructor(objectWriter, entityType) {
-        super(entityType);
-        this.#objectWriter = objectWriter;
-    }
-
-    /**
-     * @param {ConstructedType<T>} entity
-     * @param {Boolean} insideString
-     * @returns {String}
-     */
-    doWrite(entity, insideString, indentation = "") {
-        let result = this.#objectWriter(entity, insideString);
-        return result
-    }
-}
-
-/**
- * @template {AttributeConstructor<Attribute>} T
- * @extends {Serializer<T>}
- */
-class ToStringSerializer extends Serializer {
-
-    /** @param {T} entityType */
-    constructor(entityType, escape = true) {
-        super(entityType);
-        if (escape) {
-            this.wrap = (entity, serialized) => Utility.escapeString(serialized);
-        }
-    }
-
-    /**
-     * @param {ConstructedType<T>} entity
-     * @param {Boolean} insideString
-     */
-    doWrite(entity, insideString, indentation = "") {
-
-        return !insideString && entity.constructor === String
-            ? `"${this.wrap(entity, entity.toString())}"` // String will have quotes if not inside a string already
-            : this.wrap(entity, entity.toString())
-    }
 }
 
 class NullEntity extends IEntity {
@@ -13469,170 +12904,6 @@ function initializeSerializerFactory() {
             ArrayEntity.of(AlternativesEntity.accepting(NumberEntity, StringEntity, SymbolEntity)).grammar,
             Parsernostrum.lazy(() => ArrayEntity.createGrammar(IEntity.unknownEntityGrammar)),
         );
-
-    SerializerFactory.registerSerializer(
-        null,
-        new CustomSerializer(
-            (nullValue, insideString) => "()",
-            null
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        Array,
-        new CustomSerializer(
-            (array, insideString) =>
-                `(${array
-                    .map(v => SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString))
-                    .join(",")
-                })`,
-            Array
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        BigInt,
-        new ToStringSerializer(BigInt)
-    );
-
-    SerializerFactory.registerSerializer(
-        BlueprintEntity,
-        new ObjectSerializer(BlueprintEntity),
-    );
-
-    SerializerFactory.registerSerializer(
-        Boolean,
-        new CustomSerializer(
-            /** @param {Boolean} boolean */
-            (boolean, insideString) => boolean
-                ? insideString
-                    ? "true"
-                    : "True"
-                : insideString
-                    ? "false"
-                    : "False",
-            Boolean
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        FormatTextEntity,
-        new CustomSerializer(
-            (v, insideString) => {
-                let result = v.getLookbehind() + "("
-                    + v.value.map(v =>
-                        SerializerFactory.getSerializer(Utility.getType(v)).write(v, insideString)
-                    ).join(", ")
-                    + ")";
-                return result
-            },
-            FormatTextEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        PinEntity,
-        new Serializer(PinEntity, (entity, v) => `${entity.getLookbehind()} (${v})`, ",", true)
-    );
-
-    SerializerFactory.registerSerializer(
-        PinTypeEntity,
-        new Serializer(PinTypeEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        TerminalTypeEntity,
-        new Serializer(TerminalTypeEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        RBSerializationVector2DEntity,
-        new CustomSerializer(
-            (value, insideString) => `X=${value.X} Y=${value.Y}`,
-            RBSerializationVector2DEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        RotatorEntity,
-        new Serializer(RotatorEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        ScriptVariableEntity,
-        new Serializer(ScriptVariableEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        String,
-        new CustomSerializer(
-            (value, insideString) => insideString
-                ? Utility.escapeString(value)
-                : `"${Utility.escapeString(value)}"`,
-            String
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SimpleSerializationRotatorEntity,
-        new CustomSerializer(
-            (value, insideString) => `${value.P}, ${value.Y}, ${value.R}`,
-            SimpleSerializationRotatorEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SimpleSerializationVector2DEntity,
-        new CustomSerializer(
-            (value, insideString) => `${value.X}, ${value.Y}`,
-            SimpleSerializationVector2DEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SimpleSerializationVectorEntity,
-        new CustomSerializer(
-            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}`,
-            SimpleSerializationVectorEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SimpleSerializationVector4DEntity,
-        new CustomSerializer(
-            (value, insideString) => `${value.X}, ${value.Y}, ${value.Z}, ${value.W}`,
-            SimpleSerializationVector4DEntity
-        )
-    );
-
-    SerializerFactory.registerSerializer(
-        SymbolEntity,
-        new ToStringSerializer(SymbolEntity)
-    );
-
-    SerializerFactory.registerSerializer(
-        UnknownKeysEntity,
-        new Serializer(UnknownKeysEntity, (entity, string) => `${entity.getLookbehind() ?? ""}(${string})`)
-    );
-
-    SerializerFactory.registerSerializer(
-        VariableReferenceEntity,
-        new Serializer(VariableReferenceEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        Vector2DEntity,
-        new Serializer(Vector2DEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        VectorEntity,
-        new Serializer(VectorEntity, Serializer.bracketsWrapped)
-    );
-
-    SerializerFactory.registerSerializer(
-        Vector4DEntity,
-        new Serializer(Vector4DEntity, Serializer.bracketsWrapped)
-    );
 }
 
 initializeSerializerFactory();
