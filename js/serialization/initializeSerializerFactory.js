@@ -67,14 +67,14 @@ export default function initializeSerializerFactory() {
             PinReferenceEntity.grammar,
             Vector4DEntity.grammar,
             VectorEntity.grammar,
+            Vector2DEntity.grammar,
             RotatorEntity.grammar,
             LinearColorEntity.grammar,
-            Vector2DEntity.grammar,
             UnknownKeysEntity.grammar,
             SymbolEntity.grammar,
             ArrayEntity.of(PinReferenceEntity).grammar,
             ArrayEntity.of(AlternativesEntity.accepting(NumberEntity, StringEntity, SymbolEntity)).grammar,
-            Parsernostrum.lazy(() => ArrayEntity.createGrammar(Grammar.unknownValue)),
+            Parsernostrum.lazy(() => ArrayEntity.createGrammar(IEntity.unknownEntityGrammar)),
         )
 
     SerializerFactory.registerSerializer(

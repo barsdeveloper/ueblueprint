@@ -243,12 +243,20 @@ export default class IEntity {
         }
         const thisKeys = Object.keys(this)
         const otherKeys = Object.keys(other)
-        if (thisKeys.length != otherKeys.length || !(this instanceof other.constructor) && !(other instanceof this.constructor)) {
+        if (
+            thisKeys.length !== otherKeys.length
+            || this.lookbehind != other.lookbehind
+            || !(this instanceof other.constructor) && !(other instanceof this.constructor)
+        ) {
             return false
         }
         for (let i = 0; i < thisKeys.length; ++i) {
-            const a = this[thisKeys[i]]
-            const b = other[otherKeys[i]]
+            const k = thisKeys[i]
+            if (!otherKeys.includes(k)) {
+                return false
+            }
+            const a = this[k]
+            const b = other[k]
             if (a instanceof IEntity) {
                 if (!a.equals(b)) {
                     return false
@@ -298,7 +306,7 @@ export default class IEntity {
             }
             result += serialization
         }
-        if (Self.trailing && result.length) {
+        if (this.trailing && result.length) {
             result += Self.attributeSeparator
         }
         return Self.wrap(this, result)

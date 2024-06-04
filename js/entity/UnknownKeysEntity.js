@@ -4,6 +4,7 @@ import IEntity from "./IEntity.js"
 
 export default class UnknownKeysEntity extends IEntity {
 
+    /** @type {P<UnknownKeysEntity>} */
     static grammar = P.seq(
         // Lookbehind
         P.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),

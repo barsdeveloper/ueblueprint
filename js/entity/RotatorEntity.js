@@ -10,7 +10,7 @@ export default class RotatorEntity extends IEntity {
         P: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this).label("RotatorEntity")
+    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
 
     constructor(values) {
         super(values)

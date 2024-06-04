@@ -182,7 +182,7 @@ export default class Grammar {
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator)
             const attributeValue = this.getAttribute(entityType, attributeKey)
-            return attributeValue.grammar.map(attributeValue =>
+            return (attributeValue?.grammar ?? IEntity.unknownEntityGrammar).map(attributeValue =>
                 values => {
                     handleObjectSet(values, attributeKey, attributeValue)
                     Utility.objectSet(values, attributeKey, attributeValue)
@@ -192,11 +192,11 @@ export default class Grammar {
     }
 
     /**
-     * @template {IEntity} T
-     * @param {new (...args: any) => T} entityType
-     * @return {Parsernostrum<T>}
+     * @template {typeof IEntity} T
+     * @param {T} entityType
+     * @return {Parsernostrum<InstanceType<T>>}
      */
-    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation) {
+    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, complete = false) {
         const lookbehind = entityType.lookbehind instanceof Array ? entityType.lookbehind.join("|") : entityType.lookbehind
         return Parsernostrum.seq(
             Parsernostrum.reg(new RegExp(String.raw`(${lookbehind})\s*\(\s*`), 1),
@@ -217,7 +217,12 @@ export default class Grammar {
                 if (entityType.lookbehind instanceof Array || entityType.lookbehind !== lookbehind) {
                     entityType = entityType.withLookbehind(lookbehind)
                 }
-                return Parsernostrum.success().map(() => new entityType(values))
+                const keys = Object.keys(values)
+                return complete
+                    ? Parsernostrum.success()
+                        .assert(v => Object.keys(entityType.attributes).every(k => keys.includes(k)))
+                        .map(() => new entityType(values))
+                    : Parsernostrum.success().map(() => new entityType(values))
             })
     }
 

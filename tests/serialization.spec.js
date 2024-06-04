@@ -28,6 +28,7 @@ import SerializerFactory from "../js/serialization/SerializerFactory.js"
 import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
 import { Exception } from "sass"
 import ByteEntity from "../js/entity/ByteEntity.js"
+import Vector4DEntity from "../js/entity/Vector4DEntity.js"
 
 test.beforeAll(() => initializeSerializerFactory())
 
@@ -817,7 +818,7 @@ test("SimpleSerializationVectorEntity", () => {
     }
 })
 
-test("String", () => {
+test("StringEntity", () => {
     const grammar = StringEntity.grammar
     {
         let value = grammar.parse('""')
@@ -833,6 +834,7 @@ test("String", () => {
         let value = grammar.parse('"hello"')
         expect(value).toEqual(new StringEntity("hello"))
         expect(value.equals(new StringEntity("hello"))).toBeTruthy()
+        expect(value.equals(new SymbolEntity("hello"))).toBeFalsy()
         expect(value.equals(new NumberEntity())).toBeFalsy()
         expect(value.print()).toEqual("hello")
         expect(value.toString()).toEqual(`"hello"`)
@@ -861,122 +863,235 @@ test("String", () => {
 
 test("UnknownKeysValue", () => {
     const parser = IEntity.unknownEntityGrammar
-    expect(parser.parse('"Hello"').constructor).toStrictEqual(String)
-    expect(parser.parse("()")).toBeNull()
-    expect(parser.parse("8345").constructor).toStrictEqual(Number)
-    expect(parser.parse("True").constructor).toStrictEqual(Boolean)
-    expect(parser.parse("False").constructor).toStrictEqual(Boolean)
-    expect(parser.parse("F0223D3742E67C0D9FEFB2A64946B7F0").constructor).toStrictEqual(GuidEntity)
-    expect(parser.parse("SYMBOL1").constructor).toStrictEqual(SymbolEntity)
-    expect(parser.parse("Symbol_2_3_4").constructor).toStrictEqual(SymbolEntity)
-    expect(parser.parse("(X=-0.495,  Y=0, )").constructor).toStrictEqual(Vector2DEntity)
-    expect(parser.parse("(X=-0.495,Y=+765.0,Z=7)").constructor).toStrictEqual(VectorEntity)
-    expect(parser.parse("(R=1.000000,P=7.6,Y=+88.99)").constructor).toStrictEqual(RotatorEntity)
-    expect(parser.parse("(R=0.000000,G=0.660000,B=1.000000,A=1.000000)").constructor)
-        .toStrictEqual(LinearColorEntity)
-    expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`).constructor)
-        .toStrictEqual(ObjectReferenceEntity)
-    expect(parser.parse("(1,2,3,4,5,6,7,8,9)")).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    expect(parser.parse(`("Hello", "World",)`)).toStrictEqual(["Hello", "World"])
-    expect(parser.parse(`("Alpha", 123, Beta, "Gamma", "Delta", 99)`))
-        .toStrictEqual(["Alpha", 123, new SymbolEntity("Beta"), "Gamma", "Delta", 99])
+    expect(parser.parse('"Hello"')).toBeInstanceOf(StringEntity)
+    expect(parser.parse("()")).toBeInstanceOf(NullEntity)
+    expect(parser.parse("8345")).toBeInstanceOf(NumberEntity)
+    expect(parser.parse("True")).toBeInstanceOf(BooleanEntity)
+    expect(parser.parse("False")).toBeInstanceOf(BooleanEntity)
+    expect(parser.parse("F0223D3742E67C0D9FEFB2A64946B7F0")).toBeInstanceOf(GuidEntity)
+    expect(parser.parse("SYMBOL1")).toBeInstanceOf(SymbolEntity)
+    expect(parser.parse("Symbol_2_3_4")).toBeInstanceOf(SymbolEntity)
+    expect(parser.parse("(X=-0.495,Y=+765.0,Z=7,W=56)")).toBeInstanceOf(Vector4DEntity)
+    expect(parser.parse("(X=-0.495,  Y=0, )")).toBeInstanceOf(Vector2DEntity)
+    expect(parser.parse("(X=-0.495,Y=+765.0,Z=7)")).toBeInstanceOf(VectorEntity)
+    expect(parser.parse("(R=1.000000,P=7.6,Y=+88.99)")).toBeInstanceOf(RotatorEntity)
+    expect(parser.parse("(R=0.000000,G=0.660000,B=1.000000,A=1.000000)")).toBeInstanceOf(LinearColorEntity)
+    expect(parser.parse(`Class'"/Script/Engine.KismetSystemLibrary"'`)).toBeInstanceOf(ObjectReferenceEntity)
+    expect(parser.parse("(1,2,3,4,5,6,7,8,9)")).toBeInstanceOf(ArrayEntity)
+    expect(parser.parse(`("Hello", "World",)`)).toBeInstanceOf(ArrayEntity)
+    expect(parser.parse(`("Alpha", 123, Beta, "Gamma", "Delta", 99)`)).toBeInstanceOf(ArrayEntity)
 })
 
 test("UnknownKeysEntity", () => {
-    const serializer = SerializerFactory.getSerializer(UnknownKeysEntity)
-
-    let unknown = serializer.read('LookbehindValue(FirstKey=1,SecondKey=SOME_SYMBOL2,ThirdKey="Hello")')
-    expect(unknown).toBeInstanceOf(UnknownKeysEntity)
-    expect(unknown).toMatchObject({
-        lookbehind: "LookbehindValue",
-        FirstKey: 1,
-        SecondKey: new SymbolEntity("SOME_SYMBOL2"),
-        ThirdKey: "Hello",
-    })
-
-    unknown = serializer.read('(A = (-1,-2,-3),  B = SomeFunction(B1 = "b1", B2 = (X=101,Y=102,Z=103)))')
-    expect(unknown).toBeInstanceOf(UnknownKeysEntity)
-    expect(unknown).toMatchObject({
-        A: [-1, -2, -3],
-        B: new UnknownKeysEntity({
-            lookbehind: "SomeFunction",
-            B1: "b1",
-            B2: new VectorEntity({ X: 101, Y: 102, Z: 103 }),
-        }),
-    })
+    const grammar = UnknownKeysEntity.grammar
+    {
+        let value = grammar.parse('LookbehindValue(FirstKey=1,SecondKey=SOME_SYMBOL2,ThirdKey="Hello")')
+        expect(value).toBeInstanceOf(UnknownKeysEntity)
+        expect(value).toEqual(new UnknownKeysEntity({
+            lookbehind: "LookbehindValue",
+            FirstKey: new NumberEntity(1),
+            SecondKey: new SymbolEntity("SOME_SYMBOL2"),
+            ThirdKey: new StringEntity("Hello"),
+        }))
+        expect(value.equals(new UnknownKeysEntity({
+            lookbehind: "LookbehindValue",
+            FirstKey: new NumberEntity(1),
+            SecondKey: new SymbolEntity("SOME_SYMBOL2"),
+            ThirdKey: new StringEntity("Hello"),
+        }))).toBeTruthy()
+        expect(value.equals(new UnknownKeysEntity({
+            lookbehind: "LookbehindValue modified",
+            FirstKey: new NumberEntity(1),
+            SecondKey: new SymbolEntity("SOME_SYMBOL2"),
+            ThirdKey: new StringEntity("Hello"),
+        }))).toBeFalsy()
+        expect(value.equals(new UnknownKeysEntity({
+            lookbehind: "LookbehindValue",
+            FirstKey: new NumberEntity(1),
+            SecondKey: new StringEntity("SOME_SYMBOL2"),
+            ThirdKey: new StringEntity("Hello"),
+        }))).toBeFalsy
+        expect(value.toString()).toEqual('LookbehindValue(FirstKey=1,SecondKey=SOME_SYMBOL2,ThirdKey="Hello")')
+        expect(value.toString(true)).toEqual(
+            String.raw`LookbehindValue(FirstKey=1,SecondKey=SOME_SYMBOL2,ThirdKey=\"Hello\")`
+        )
+    }
+    {
+        let value = grammar.parse('(A = (-1,-2,-3),  B = SomeFunction(B1 = "b1", B2 = (X=101,Y=102,Z=103)))')
+        expect(value).toBeInstanceOf(UnknownKeysEntity)
+        expect(value).toEqual(new UnknownKeysEntity({
+            A: new ArrayEntity([new NumberEntity(-1), new NumberEntity(-2), new NumberEntity(-3)]),
+            B: new UnknownKeysEntity({
+                lookbehind: "SomeFunction",
+                B1: new StringEntity("b1"),
+                B2: new VectorEntity({ X: new NumberEntity(101), Y: new NumberEntity(102), Z: new NumberEntity(103) }),
+            }),
+        }))
+        expect(value.equals(new UnknownKeysEntity({
+            A: new ArrayEntity([new NumberEntity(-1), new NumberEntity(-2), new NumberEntity(-3)]),
+            B: new UnknownKeysEntity({
+                lookbehind: "SomeFunction",
+                B1: new StringEntity("b1"),
+                B2: new VectorEntity({ X: new NumberEntity(101), Y: new NumberEntity(102), Z: new NumberEntity(103) }),
+            }),
+        }))).toBeTruthy()
+        expect(value.equals(new UnknownKeysEntity({
+            A: new ArrayEntity([new NumberEntity(-1), new NumberEntity(-2), new NumberEntity(-3)]),
+            B: new UnknownKeysEntity({
+                lookbehind: "SomeFunction",
+                B1: new StringEntity("b1"),
+                B2: new VectorEntity({ X: new IntegerEntity(101), Y: new NumberEntity(102), Z: new ByteEntity(103) }),
+            }),
+        }))).toBeTruthy()
+        expect(value.equals(new UnknownKeysEntity({
+            A: new ArrayEntity([new NumberEntity(-1), new NumberEntity(-2), new NumberEntity(-3)]),
+            B: new UnknownKeysEntity({
+                lookbehind: "SomeFunction",
+                B1: new StringEntity("b2"),
+                B2: new VectorEntity({ X: new NumberEntity(101), Y: new NumberEntity(102), Z: new NumberEntity(103) }),
+            }),
+        }))).toBeFalsy()
+        expect(value.equals(new UnknownKeysEntity({
+            A: new ArrayEntity([new NumberEntity(-1), new NumberEntity(-2), new NumberEntity(-3)]),
+            B: new UnknownKeysEntity({
+                lookbehind: "SomeFunction",
+                B1: new StringEntity("b1"),
+                B2: new VectorEntity({ X: new NumberEntity(101), Y: new NumberEntity(-102), Z: new NumberEntity(103) }),
+            }),
+        }))).toBeFalsy()
+        expect(value.toString()).toEqual('(A=(-1,-2,-3),B=SomeFunction(B1="b1",B2=(X=101,Y=102,Z=103)))')
+        expect(value.toString(true)).toEqual(String.raw`(A=(-1,-2,-3),B=SomeFunction(B1=\"b1\",B2=(X=101,Y=102,Z=103)))`)
+    }
+    expect(() => grammar.parse('LookbehindValue(FirstKey=1,SecondKey=SOME_SYMBOL2,ThirdKey="Hello)')).toThrow("Could not parse")
+    expect(() => grammar.parse('LookbehindValue(FirstKey=1,SecondKey=SOME_SYMBOL2,ThirdKey="Hello"')).toThrow("Could not parse")
 })
 
 test("VectorEntity", () => {
-    const serializer = SerializerFactory.getSerializer(VectorEntity)
-
-    let vector = serializer.read("(X=1,Y=2,Z=3.5)")
-    expect(vector).toBeInstanceOf(VectorEntity)
-    expect(vector).toStrictEqual(new VectorEntity({
-        X: 1,
-        Y: 2,
-        Z: 3.5,
-    }))
-
-    vector = serializer.read("(X=10,Y=+20.88,Z=-30.54,)")
-    expect(vector).toBeInstanceOf(VectorEntity)
-    expect(vector).toStrictEqual(new VectorEntity({
-        X: 10,
-        Y: 20.88,
-        Z: -30.54,
-    }))
-
-    vector = serializer.read(`(
+    const grammar = VectorEntity.grammar
+    {
+        let value = grammar.parse("(X=1,Y=2,Z=3.500)")
+        expect(value).toBeInstanceOf(VectorEntity)
+        expect(value).toEqual(new VectorEntity({
+            X: new NumberEntity(1),
+            Y: new NumberEntity(2),
+            Z: new NumberEntity(3.5),
+        }))
+        expect(value.toArray()).toStrictEqual([1, 2, 3.5])
+        expect(value.equals(new VectorEntity({
+            X: new NumberEntity(1),
+            Y: new NumberEntity(2),
+            Z: new NumberEntity(3.5),
+        }))).toBeTruthy()
+        expect(value.equals(new VectorEntity({
+            X: new NumberEntity(1),
+            Y: new NumberEntity(2),
+            Z: new NumberEntity(3.5),
+            w: new NumberEntity(7),
+        }))).toBeFalsy()
+        expect(value.toString()).toEqual("(X=1,Y=2,Z=3.500)")
+        expect(value.toString(true)).toEqual("(X=1,Y=2,Z=3.500)")
+    }
+    {
+        let value = grammar.parse("(X=10,Y=+20.880,Z=-30.54,)")
+        expect(value).toBeInstanceOf(VectorEntity)
+        expect(value).toEqual(new VectorEntity({
+            X: new NumberEntity(10),
+            Y: new NumberEntity(20.88),
+            Z: new NumberEntity(-30.54),
+        }))
+        expect(value.equals(new VectorEntity({
+            X: new NumberEntity(10),
+            Y: new NumberEntity(20.88),
+            Z: new NumberEntity(-30.54),
+        }))).toBeTruthy()
+        expect(value.toString()).toEqual("(X=10,Y=20.880,Z=-30.54,)")
+    }
+    {
+        let value = grammar.parse(`(
             Z = -3.66,
 
             X
-            = -1, Y =
+            = -0, Y =
 
 
         -2
             ,
         )`)
-    expect(vector).toBeInstanceOf(VectorEntity)
-    expect(vector).toStrictEqual(new VectorEntity({
-        X: -1,
-        Y: -2,
-        Z: -3.66,
-    }))
-
-    expect(() => serializer.read("(X=1,Y=\"2\",Z=3)")).toThrow()
-    expect(() => serializer.read("(X=1,Z=3)")).toThrow()
-    expect(() => serializer.read("(X=1,Y=2,Unexpected=6,Z=3.5)")).toThrow()
+        expect(value).toBeInstanceOf(VectorEntity)
+        expect(value).toEqual(new VectorEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(-2),
+            Z: new NumberEntity(-3.66),
+        }))
+        expect(value.toArray()).toStrictEqual([0, -2, -3.66])
+        expect(value.equals(new VectorEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(-2),
+            Z: new NumberEntity(-3.66),
+        }))).toBeTruthy()
+        expect(value.equals(new VectorEntity({
+            X: new NumberEntity(-0),
+            Y: new NumberEntity(-2.01),
+            Z: new NumberEntity(-3.66),
+        }))).toBeFalsy()
+        expect(value.equals(new VectorEntity({
+            X: new NumberEntity(-0),
+            Y: new NumberEntity(-2),
+            Z: new NumberEntity(-3.65),
+        }))).toBeFalsy()
+        expect(value.toString()).toEqual("(Z=-3.66,X=0,Y=-2,)")
+    }
+    expect(() => grammar.parse("(X=1,Y=\"2\",Z=3)")).toThrow("Could not parse")
+    expect(() => grammar.parse("(X=1,Z=3)")).toThrow("Could not parse")
 })
 
 test("Vector2DEntity", () => {
-    let serializer = SerializerFactory.getSerializer(Vector2DEntity)
-
-    let vector = serializer.read("(X=78,Y=56.3)")
-    expect(vector).toBeInstanceOf(Vector2DEntity)
-    expect(vector).toStrictEqual(new Vector2DEntity({
-        X: 78,
-        Y: 56.3,
-    }))
-
-    vector = serializer.read("(X=+4.5,Y=-8.88,)")
-    expect(vector).toBeInstanceOf(Vector2DEntity)
-    expect(vector).toStrictEqual(new Vector2DEntity({
-        X: 4.5,
-        Y: -8.88,
-    }))
-
-    vector = serializer.read(`(
-            Y = +93.004,
+    const grammar = Vector2DEntity.grammar
+    {
+        const value = grammar.parse("(X=78,Y=56.3)")
+        expect(value).toBeInstanceOf(Vector2DEntity)
+        expect(value).toEqual(new Vector2DEntity({
+            X: new NumberEntity(78),
+            Y: new NumberEntity(56.3),
+        }))
+        expect(value.toArray()).toStrictEqual([78, 56.3])
+        expect(value.equals(new Vector2DEntity({
+            X: new NumberEntity(78),
+            Y: new NumberEntity(56.3),
+        }))).toBeTruthy()
+        expect(value.toString(true)).toEqual("(X=78,Y=56.3)")
+    }
+    {
+        const value = grammar.parse("(X=+4.5,Y=-8.88,)")
+        expect(value).toBeInstanceOf(Vector2DEntity)
+        expect(value).toEqual(new Vector2DEntity({
+            X: new NumberEntity(4.5),
+            Y: new NumberEntity(-8.88),
+        }))
+        expect(value.equals(new Vector2DEntity({
+            X: new IntegerEntity(4.5),
+            Y: new NumberEntity(-8.88),
+        }))).toBeFalsy()
+    }
+    {
+        const value = grammar.parse(`(
+            Y = +93.004000,
 
             X
             = 0,
         )`)
-    expect(vector).toBeInstanceOf(Vector2DEntity)
-    expect(vector).toStrictEqual(new Vector2DEntity({
-        X: 0,
-        Y: 93.004,
-    }))
-
-    expect(() => serializer.read("(X=1,Y=\"2\")")).toThrow()
-    expect(() => serializer.read("(X=1)")).toThrow()
-    expect(() => serializer.read("(X=777, Y=555, Unexpected=6, HH=2)")).toThrow()
+        expect(value).toBeInstanceOf(Vector2DEntity)
+        expect(value).toEqual(new Vector2DEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(93.004),
+        }))
+        expect(value.equals(new Vector2DEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(93.004),
+        }))).toBeTruthy()
+        expect(value.toString()).toEqual("(Y=93.004000,X=0,)")
+    }
+    expect(() => grammar.parse("(X=1,Y=2")).toThrow("Could not parse")
+    expect(() => grammar.parse("(X=1,Y=\"2\")")).toThrow("Could not parse")
+    expect(() => grammar.parse("(X=1)")).toThrow("Could not parse")
 })

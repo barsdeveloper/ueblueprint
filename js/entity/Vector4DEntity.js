@@ -11,7 +11,7 @@ export default class Vector4DEntity extends IEntity {
         Z: NumberEntity.withDefault(),
         W: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this).label("Vector4DEntity")
+    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector4DEntity")
 
     constructor(values) {
         super(values)

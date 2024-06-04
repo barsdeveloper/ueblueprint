@@ -1,3 +1,4 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 import NumberEntity from "./NumberEntity.js"
@@ -9,7 +10,8 @@ export default class Vector2DEntity extends IEntity {
         X: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this).label("Vector2DEntity")
+    /** @type {P<Vector2DEntity>} */
+    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
 
     constructor(values) {
         super(values)
