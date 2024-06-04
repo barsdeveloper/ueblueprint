@@ -13,7 +13,7 @@ export default class PinTypeEntity extends IEntity {
         PinCategory: StringEntity.withDefault(),
         PinSubCategory: StringEntity.withDefault(),
         PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
-        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(type => null),
+        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(),
         PinValueType: PinTypeEntity.withDefault(),
         ContainerType: SymbolEntity,
         bIsReference: BooleanEntity.withDefault(),

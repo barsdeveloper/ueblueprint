@@ -1,3 +1,4 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
@@ -12,6 +13,7 @@ export default class FunctionReferenceEntity extends IEntity {
         MemberName: StringEntity,
         MemberGuid: GuidEntity,
     }
+    /** @type {P<FunctionReferenceEntity>} */
     static grammar = Grammar.createEntityGrammar(this)
 
     constructor(values) {

@@ -64,9 +64,14 @@ export default class ArrayEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        let result = this.values.map(v => v?.toString()).join(this.Self().attributeSeparator)
+        if (this.Self().inlined) {
+            return super.toString.bind(this.values, insideString, indentation, Self, printKey, wrap)()
+        }
+        let result = this.values.map(v => v?.toString(insideString)).join(this.Self().attributeSeparator)
         if (this.trailing) {
             result += this.Self().attributeSeparator
         }

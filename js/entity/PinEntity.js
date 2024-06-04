@@ -31,11 +31,12 @@ import StringEntity from "./StringEntity.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import Vector4DEntity from "./Vector4DEntity.js"
 import VectorEntity from "./VectorEntity.js"
+import P from "parsernostrum"
 
 /** @template {IEntity} T */
 export default class PinEntity extends IEntity {
 
-    static lookbehind = "INVTEXT"
+    static lookbehind = "Pin"
     static #typeEntityMap = {
         [Configuration.paths.linearColor]: LinearColorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
@@ -92,6 +93,7 @@ export default class PinEntity extends IEntity {
         bAdvancedView: BooleanEntity.withDefault(),
         bOrphanedPin: BooleanEntity.withDefault(),
     }
+    /** @type {P<PinEntity>} */
     static grammar = Grammar.createEntityGrammar(this)
 
     #recomputesNodeTitleOnChange = false

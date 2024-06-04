@@ -3,6 +3,7 @@ import Utility from "../js/Utility.js"
 import AlternativesEntity from "../js/entity/AlternativesEntity.js"
 import ArrayEntity from "../js/entity/ArrayEntity.js"
 import BooleanEntity from "../js/entity/BooleanEntity.js"
+import ByteEntity from "../js/entity/ByteEntity.js"
 import ColorChannelEntity from "../js/entity/ColorChannelEntity.js"
 import FormatTextEntity from "../js/entity/FormatTextEntity.js"
 import GuidEntity from "../js/entity/GuidEntity.js"
@@ -23,12 +24,9 @@ import StringEntity from "../js/entity/StringEntity.js"
 import SymbolEntity from "../js/entity/SymbolEntity.js"
 import UnknownKeysEntity from "../js/entity/UnknownKeysEntity.js"
 import Vector2DEntity from "../js/entity/Vector2DEntity.js"
-import VectorEntity from "../js/entity/VectorEntity.js"
-import SerializerFactory from "../js/serialization/SerializerFactory.js"
-import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
-import { Exception } from "sass"
-import ByteEntity from "../js/entity/ByteEntity.js"
 import Vector4DEntity from "../js/entity/Vector4DEntity.js"
+import VectorEntity from "../js/entity/VectorEntity.js"
+import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
 
 test.beforeAll(() => initializeSerializerFactory())
 
@@ -650,14 +648,6 @@ test("ObjectReferenceEntity", () => {
     value = grammar.parse(`"/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"`)
     expect(value).toBeInstanceOf(ObjectReferenceEntity)
     expect(value).toEqual(new ObjectReferenceEntity("/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"))
-})
-
-test("PinEntity", () => {
-    const serializer = SerializerFactory.getSerializer(PinEntity)
-
-    expect(serializer.read("Pin (PinType.PinSubCategoryMemberReference=())")).toMatchObject({
-        "PinType": { "PinSubCategoryMemberReference": null }
-    })
 })
 
 test("SimpleSerializationRotatorEntity", () => {

@@ -145,7 +145,6 @@
  * @typedef {import("./js/entity/FormatTextEntity.js").default} FormatTextEntity
  * @typedef {import("./js/entity/FunctionReferenceEntity.js").default} FunctionReferenceEntity
  * @typedef {import("./js/entity/GuidEntity.js").default} GuidEntity
- * @typedef {import("./js/entity/IdentifierEntity.js").default} IdentifierEntity
  * @typedef {import("./js/entity/IEntity.js").default} IEntity
  * @typedef {import("./js/entity/Integer64Entity.js").default} Integer64Entity
  * @typedef {import("./js/entity/IntegerEntity.js").default} IntegerEntity
@@ -155,10 +154,10 @@
  * @typedef {import("./js/entity/LocalizedTextEntity.js").default} LocalizedTextEntity
  * @typedef {import("./js/entity/MacroGraphReferenceEntity.js").default} MacroGraphReferenceEntity
  * @typedef {import("./js/entity/NaturalNumberEntity.js").default} NaturalNumberEntity
+ * @typedef {import("./js/entity/NullEntity.js").default} NullEntity
  * @typedef {import("./js/entity/ObjectEntity.js").default} ObjectEntity
  * @typedef {import("./js/entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
  * @typedef {import("./js/entity/objects/KnotEntity.js").default} KnotEntity
- * @typedef {import("./js/entity/PathSymbolEntity.js").default} PathSymbolEntity
  * @typedef {import("./js/entity/PinEntity.js").default} PinEntity
  * @typedef {import("./js/entity/PinReferenceEntity.js").default} PinReferenceEntity
  * @typedef {import("./js/entity/PinTypeEntity.js").default} PinTypeEntity

@@ -135,7 +135,7 @@ export default class IEntity {
      * @template {typeof IEntity} T
      * @this {T}
      */
-    static withDefault(value = /** @type {(type: T) => InstanceType<T>} */(type => new type())) {
+    static withDefault(value = /** @type {(type: T) => (InstanceType<T> | NullEntity)} */(type => new type())) {
         const result = this.asUniqueClass()
         result.default = value
         return result
@@ -270,18 +270,22 @@ export default class IEntity {
         return true
     }
 
+    /** @this {IEntity | Array} */
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        const Self = this.Self()
         let result = ""
         let first = true
-        for (const key of this.keys) {
+        const keys = this instanceof IEntity ? this.keys : Object.keys(this)
+        for (const key of keys) {
             /** @type {IEntity} */
             const value = this[key]
-            if (value === undefined || !this.showProperty(key)) {
+            let keyValue = this instanceof Array ? `(${key})` : key
+            if (value === undefined || this instanceof IEntity && !this.showProperty(key)) {
                 continue
             }
             if (first) {
@@ -289,26 +293,29 @@ export default class IEntity {
             } else {
                 result += Self.attributeSeparator
             }
-            if (Self.inlined) {
-                result += value.toString(insideString, indentation, k => printKey(`${key}.${k}`))
+            if (value.Self?.().inlined) {
+                const inlinedPrintKey = value.Self().className() === "ArrayEntity"
+                    ? k => printKey(`${keyValue}${k}`)
+                    : k => printKey(`${keyValue}.${k}`)
+                result += value.toString(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped)
                 continue
             }
-            let keyValue = printKey(key)
+            keyValue = printKey(keyValue)
             if (keyValue.length) {
                 if (Self.quoted) {
                     keyValue = `"${keyValue}"`
                 }
                 result += (Self.attributeSeparator.includes("\n") ? indentation : "") + keyValue + Self.keySeparator
             }
-            let serialization = value?.toString(insideString, indentation, printKey)
+            let serialization = value?.toString(insideString, indentation)
             if (Self.serialized) {
                 serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`
             }
             result += serialization
         }
-        if (this.trailing && result.length) {
+        if (this instanceof IEntity && this.trailing && result.length) {
             result += Self.attributeSeparator
         }
-        return Self.wrap(this, result)
+        return wrap(this, result)
     }
 }

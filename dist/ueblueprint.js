@@ -2528,7 +2528,7 @@ class IEntity {
      * @template {typeof IEntity} T
      * @this {T}
      */
-    static withDefault(value = /** @type {(type: T) => InstanceType<T>} */(type => new type())) {
+    static withDefault(value = /** @type {(type: T) => (InstanceType<T> | NullEntity)} */(type => new type())) {
         const result = this.asUniqueClass();
         result.default = value;
         return result
@@ -2636,12 +2636,20 @@ class IEntity {
         }
         const thisKeys = Object.keys(this);
         const otherKeys = Object.keys(other);
-        if (thisKeys.length != otherKeys.length || !(this instanceof other.constructor) && !(other instanceof this.constructor)) {
+        if (
+            thisKeys.length !== otherKeys.length
+            || this.lookbehind != other.lookbehind
+            || !(this instanceof other.constructor) && !(other instanceof this.constructor)
+        ) {
             return false
         }
         for (let i = 0; i < thisKeys.length; ++i) {
-            const a = this[thisKeys[i]];
-            const b = other[otherKeys[i]];
+            const k = thisKeys[i];
+            if (!otherKeys.includes(k)) {
+                return false
+            }
+            const a = this[k];
+            const b = other[k];
             if (a instanceof IEntity) {
                 if (!a.equals(b)) {
                     return false
@@ -2655,18 +2663,22 @@ class IEntity {
         return true
     }
 
+    /** @this {IEntity | Array} */
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        const Self = this.Self();
         let result = "";
         let first = true;
-        for (const key of this.keys) {
+        const keys = this instanceof IEntity ? this.keys : Object.keys(this);
+        for (const key of keys) {
             /** @type {IEntity} */
             const value = this[key];
-            if (value === undefined || !this.showProperty(key)) {
+            let keyValue = this instanceof Array ? `(${key})` : key;
+            if (value === undefined || this instanceof IEntity && !this.showProperty(key)) {
                 continue
             }
             if (first) {
@@ -2674,27 +2686,30 @@ class IEntity {
             } else {
                 result += Self.attributeSeparator;
             }
-            if (Self.inlined) {
-                result += value.toString(insideString, indentation, k => printKey(`${key}.${k}`));
+            if (value.Self?.().inlined) {
+                const inlinedPrintKey = value.Self().className() === "ArrayEntity"
+                    ? k => printKey(`${keyValue}${k}`)
+                    : k => printKey(`${keyValue}.${k}`);
+                result += value.toString(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped);
                 continue
             }
-            let keyValue = printKey(key);
+            keyValue = printKey(keyValue);
             if (keyValue.length) {
                 if (Self.quoted) {
                     keyValue = `"${keyValue}"`;
                 }
                 result += (Self.attributeSeparator.includes("\n") ? indentation : "") + keyValue + Self.keySeparator;
             }
-            let serialization = value?.toString(insideString, indentation, printKey);
+            let serialization = value?.toString(insideString, indentation);
             if (Self.serialized) {
                 serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`;
             }
             result += serialization;
         }
-        if (Self.trailing && result.length) {
+        if (this instanceof IEntity && this.trailing && result.length) {
             result += Self.attributeSeparator;
         }
-        return Self.wrap(this, result)
+        return wrap(this, result)
     }
 }
 
@@ -4598,9 +4613,14 @@ class ArrayEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        let result = this.values.map(v => v?.toString()).join(this.Self().attributeSeparator);
+        if (this.Self().inlined) {
+            return super.toString.bind(this.values, insideString, indentation, Self, printKey, wrap)()
+        }
+        let result = this.values.map(v => v?.toString(insideString)).join(this.Self().attributeSeparator);
         if (this.trailing) {
             result += this.Self().attributeSeparator;
         }
@@ -5135,6 +5155,7 @@ class FunctionReferenceEntity extends IEntity {
         MemberName: StringEntity,
         MemberGuid: GuidEntity,
     }
+    /** @type {P<FunctionReferenceEntity>} */
     static grammar = Grammar.createEntityGrammar(this)
 
     constructor(values) {
@@ -5152,7 +5173,7 @@ class PinTypeEntity extends IEntity {
         PinCategory: StringEntity.withDefault(),
         PinSubCategory: StringEntity.withDefault(),
         PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
-        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(type => null),
+        PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(),
         PinValueType: PinTypeEntity.withDefault(),
         ContainerType: SymbolEntity,
         bIsReference: BooleanEntity.withDefault(),
@@ -5196,6 +5217,7 @@ class Vector2DEntity extends IEntity {
         X: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
+    /** @type {P<Vector2DEntity>} */
     static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
 
     constructor(values) {
@@ -5379,6 +5401,7 @@ class VectorEntity extends IEntity {
         Y: NumberEntity.withDefault(),
         Z: NumberEntity.withDefault(),
     }
+    /** @type {P<VectorEntity>} */
     static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
 
     constructor(values) {
@@ -5433,7 +5456,7 @@ class SimpleSerializationVectorEntity extends VectorEntity {
 /** @template {IEntity} T */
 class PinEntity extends IEntity {
 
-    static lookbehind = "INVTEXT"
+    static lookbehind = "Pin"
     static #typeEntityMap = {
         [Configuration.paths.linearColor]: LinearColorEntity,
         [Configuration.paths.rotator]: RotatorEntity,
@@ -5490,6 +5513,7 @@ class PinEntity extends IEntity {
         bAdvancedView: BooleanEntity.withDefault(),
         bOrphanedPin: BooleanEntity.withDefault(),
     }
+    /** @type {P<PinEntity>} */
     static grammar = Grammar.createEntityGrammar(this)
 
     #recomputesNodeTitleOnChange = false
@@ -13327,6 +13351,7 @@ class TerminalTypeEntity extends IEntity {
 
 class UnknownKeysEntity extends IEntity {
 
+    /** @type {P<UnknownKeysEntity>} */
     static grammar = Parsernostrum.seq(
         // Lookbehind
         Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
@@ -13433,16 +13458,16 @@ function initializeSerializerFactory() {
             InvariantTextEntity.grammar,
             FormatTextEntity.grammar,
             PinReferenceEntity.grammar,
-            Vector2DEntity.grammar,
-            VectorEntity.grammar,
             Vector4DEntity.grammar,
+            VectorEntity.grammar,
+            Vector2DEntity.grammar,
             RotatorEntity.grammar,
             LinearColorEntity.grammar,
             UnknownKeysEntity.grammar,
             SymbolEntity.grammar,
             ArrayEntity.of(PinReferenceEntity).grammar,
             ArrayEntity.of(AlternativesEntity.accepting(NumberEntity, StringEntity, SymbolEntity)).grammar,
-            Parsernostrum.lazy(() => ArrayEntity.createGrammar(Grammar.unknownValue)),
+            Parsernostrum.lazy(() => ArrayEntity.createGrammar(IEntity.unknownEntityGrammar)),
         );
 
     SerializerFactory.registerSerializer(
