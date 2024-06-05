@@ -86,13 +86,6 @@ test("equals method test", () => {
     )).toBeFalsy() // Second element is different
 })
 
-test("isValueOfType method test", () => {
-    expect(Utility.isValueOfType(34, Number)).toBeTruthy()
-    expect(Utility.isValueOfType(new Number(34), Number)).toBeTruthy()
-    expect(Utility.isValueOfType("34", String)).toBeTruthy()
-    expect(Utility.isValueOfType("34", Number)).toBeFalsy()
-})
-
 test("mergeArrays method test", () => {
     expect(Utility.mergeArrays(
         [],

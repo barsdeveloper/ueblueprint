@@ -14,7 +14,7 @@ export default class FunctionReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
     }
     /** @type {P<FunctionReferenceEntity>} */
-    static grammar = Grammar.createEntityGrammar(this)
+    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
 
     constructor(values) {
         super(values)

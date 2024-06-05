@@ -213,34 +213,6 @@ export default class Utility {
     }
 
     /**
-     * @template {Attribute | AttributeTypeDescription} T
-     * @param {T} value
-     * @returns {AttributeConstructor<T>}
-     */
-    static getType(value) {
-        if (value === null) {
-            return null
-        }
-        if (value?.constructor === Object && /** @type {AttributeInformation} */(value)?.type instanceof Function) {
-            return /** @type {AttributeInformation} */(value).type
-        }
-        return /** @type {AttributeConstructor<any>} */(value?.constructor)
-    }
-
-    /**
-     * @template {Attribute} V
-     * @template {AttributeConstructor<V>} C
-     * @param {C} type
-     * @returns {value is InstanceType<C>}
-     */
-    static isValueOfType(value, type, acceptNull = false) {
-        if (type instanceof MirroredEntity) {
-            type = type.getTargetType()
-        }
-        return (acceptNull && value === null) || value instanceof type || value?.constructor === type
-    }
-
-    /**
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize

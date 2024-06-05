@@ -362,7 +362,7 @@ export default class ObjectEntity extends IEntity {
         }
         let inputIndex = 0
         let outputIndex = 0
-        this.CustomProperties?.forEach((pinEntity, i) => {
+        this.getCustomproperties().forEach((pinEntity, i) => {
             pinEntity.objectEntity = this
             pinEntity.pinIndex = pinEntity.isInput()
                 ? inputIndex++

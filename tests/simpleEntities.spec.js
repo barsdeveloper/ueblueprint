@@ -6,16 +6,15 @@ import BooleanEntity from "../js/entity/BooleanEntity.js"
 import ByteEntity from "../js/entity/ByteEntity.js"
 import ColorChannelEntity from "../js/entity/ColorChannelEntity.js"
 import FormatTextEntity from "../js/entity/FormatTextEntity.js"
+import FunctionReferenceEntity from "../js/entity/FunctionReferenceEntity.js"
 import GuidEntity from "../js/entity/GuidEntity.js"
 import IEntity from "../js/entity/IEntity.js"
 import IntegerEntity from "../js/entity/IntegerEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
-import NaturalNumberEntity from "../js/entity/NaturalNumberEntity.js"
 import NullEntity from "../js/entity/NullEntity.js"
 import NumberEntity from "../js/entity/NumberEntity.js"
 import ObjectReferenceEntity from "../js/entity/ObjectReferenceEntity.js"
-import PinEntity from "../js/entity/PinEntity.js"
 import RotatorEntity from "../js/entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../js/entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../js/entity/SimpleSerializationVector2DEntity.js"
@@ -278,27 +277,127 @@ test("FormatTextEntity", () => {
     expect(() => grammar.parse("LOCGEN_FORMAT_NAMED")).toThrow("Could not parse")
 })
 
+test("FunctionReferenceEntity", () => {
+    let grammar = FunctionReferenceEntity.grammar
+    {
+        const s = `(MemberParent=/Script/Engine.BlueprintGeneratedClass'"/Temp/Untitled_1.Untitled_C"',MemberName="MoveCharacterRandomLocation",MemberGuid=9C3BF2E5A27C4B45825C025A224639EA)`
+        const value = grammar.parse(s)
+        expect(value).toBeInstanceOf(FunctionReferenceEntity)
+        expect(value.equals(new FunctionReferenceEntity({
+            MemberParent: new ObjectReferenceEntity(
+                "/Script/Engine.BlueprintGeneratedClass",
+                "/Temp/Untitled_1.Untitled_C"
+            ),
+            MemberName: new StringEntity("MoveCharacterRandomLocation"),
+            MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
+        }))).toBeTruthy()
+        expect(value.equals(new FunctionReferenceEntity({
+            MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
+            MemberName: new StringEntity("MoveCharacterRandomLocation"),
+            MemberParent: new ObjectReferenceEntity(
+                "/Script/Engine.BlueprintGeneratedClass",
+                "/Temp/Untitled_1.Untitled_C"
+            ),
+        }))).toBeTruthy()
+        expect(value.equals(new FunctionReferenceEntity({
+            MemberParent: new ObjectReferenceEntity(
+                "/Script/Engine.BlueprintGeneratedClass2",
+                "/Temp/Untitled_1.Untitled_C"
+            ),
+            MemberName: new StringEntity("MoveCharacterRandomLocation"),
+            MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
+        }))).toBeFalsy()
+        expect(value.equals(new FunctionReferenceEntity({
+            MemberParent: new ObjectReferenceEntity(
+                "/Script/Engine.BlueprintGeneratedClass",
+                "/Temp/Untitled_1.Untitled_C"
+            ),
+            MemberName: new StringEntity("MoveCharacterRandomLocation2"),
+            MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
+        }))).toBeFalsy()
+        expect(value.equals(new FunctionReferenceEntity({
+            MemberParent: new ObjectReferenceEntity(
+                "/Script/Engine.BlueprintGeneratedClass",
+                "/Temp/Untitled_1.Untitled_C"
+            ),
+            MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
+        }))).toBeFalsy()
+        expect(value.toString()).toEqual(s)
+        expect(value.toString(true)).toEqual(
+            String.raw`(MemberParent=/Script/Engine.BlueprintGeneratedClass'\"/Temp/Untitled_1.Untitled_C\"',MemberName=\"MoveCharacterRandomLocation\",MemberGuid=9C3BF2E5A27C4B45825C025A224639EA)`
+        )
+    }
+    {
+        const s = `(MemberParent=/Script/Engine.BlueprintGeneratedClass'"/Temp/Untitled_1.Untitled_C"',MemberName="InpAxisKeyEvt_MouseX_K2Node_InputAxisKeyEvent_2")`
+        const value = grammar.parse(s)
+        expect(value).toBeInstanceOf(FunctionReferenceEntity)
+        expect(value.equals(new FunctionReferenceEntity({
+            MemberParent: new ObjectReferenceEntity(
+                "/Script/Engine.BlueprintGeneratedClass",
+                "/Temp/Untitled_1.Untitled_C"
+            ),
+            MemberName: new StringEntity("InpAxisKeyEvt_MouseX_K2Node_InputAxisKeyEvent_2"),
+        }))).toBeTruthy()
+        expect(value.equals(new FunctionReferenceEntity({
+            MemberParent: new ObjectReferenceEntity(
+                "/Script/Engine.BlueprintGeneratedClass",
+                "/Temp/Untitled_1.Untitled_C"
+            ),
+            MemberName: new StringEntity("InpAxisKeyEvt_MouseX_K2Node_InputAxisKeyEvent_2"),
+            MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
+        }))).toBeFalsy()
+        expect(value.toString()).toEqual(s)
+        expect(value.toString(true)).toEqual(
+            String.raw`(MemberParent=/Script/Engine.BlueprintGeneratedClass'\"/Temp/Untitled_1.Untitled_C\"',MemberName=\"InpAxisKeyEvt_MouseX_K2Node_InputAxisKeyEvent_2\")`
+        )
+    }
+    {
+        const s = `()`
+        const value = grammar.parse(s)
+        expect(value).toBeInstanceOf(FunctionReferenceEntity)
+        expect(value.equals(new FunctionReferenceEntity())).toBeTruthy()
+        expect(value.equals(new FunctionReferenceEntity({
+            MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA")
+        }))).toBeFalsy()
+        expect(value.toString()).toEqual("()")
+        expect(value.toString(true)).toEqual("()")
+    }
+    {
+        const s = `(Unexpected="Hello")`
+        const value = grammar.parse(s)
+        expect(value).toBeInstanceOf(FunctionReferenceEntity)
+        expect(value.equals(new FunctionReferenceEntity({
+            Unexpected: new StringEntity("Hello")
+        }))).toBeTruthy()
+        expect(value.equals(new FunctionReferenceEntity())).toBeFalsy()
+        expect(value.toString()).toEqual(`(Unexpected="Hello")`)
+        expect(value.toString(true)).toEqual(String.raw`(Unexpected=\"Hello\")`)
+    }
+})
+
 test("GuidEntity", () => {
     let grammar = GuidEntity.flagInlined().grammar
-
-    let value = grammar.parse("0556a3ecabf648d0a5c07b2478e9dd32")
-    expect(value).toBeInstanceOf(GuidEntity)
-    expect(value).toEqual(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))
-    expect(value.equals(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
-    expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
-    expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd33"))).toBeFalsy()
-    expect(value.toString()).toEqual("0556a3ecabf648d0a5c07b2478e9dd32")
-
-    value = grammar.parse("64023BC344E0453DBB583FAC411489BC")
-    expect(value).toBeInstanceOf(GuidEntity)
-    expect(value).toEqual(new GuidEntity("64023BC344E0453DBB583FAC411489BC"))
-    expect(value.toString()).toEqual("64023BC344E0453DBB583FAC411489BC")
-
-    value = grammar.parse("6edC4a425ca948da8bC78bA52DED6C6C")
-    expect(value).toBeInstanceOf(GuidEntity)
-    expect(value).toEqual(new GuidEntity("6edC4a425ca948da8bC78bA52DED6C6C"))
-    expect(value.toString()).toEqual("6edC4a425ca948da8bC78bA52DED6C6C")
-
+    {
+        let value = grammar.parse("0556a3ecabf648d0a5c07b2478e9dd32")
+        expect(value).toBeInstanceOf(GuidEntity)
+        expect(value).toEqual(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))
+        expect(value.equals(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
+        expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
+        expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd33"))).toBeFalsy()
+        expect(value.toString()).toEqual("0556a3ecabf648d0a5c07b2478e9dd32")
+    }
+    {
+        const value = grammar.parse("64023BC344E0453DBB583FAC411489BC")
+        expect(value).toBeInstanceOf(GuidEntity)
+        expect(value).toEqual(new GuidEntity("64023BC344E0453DBB583FAC411489BC"))
+        expect(value.toString()).toEqual("64023BC344E0453DBB583FAC411489BC")
+    }
+    {
+        const value = grammar.parse("6edC4a425ca948da8bC78bA52DED6C6C")
+        expect(value).toBeInstanceOf(GuidEntity)
+        expect(value).toEqual(new GuidEntity("6edC4a425ca948da8bC78bA52DED6C6C"))
+        expect(value.toString()).toEqual("6edC4a425ca948da8bC78bA52DED6C6C")
+    }
     expect(() => grammar.parse("172087193 9B04362973544B3564FDB2C")).toThrow("Could not parse")
     expect(() => grammar.parse("E25F14F8F3E9441AB07153E7DA2BA2B")).toThrow("Could not parse")
     expect(() => grammar.parse("A78988B0097E48418C8CB87EC5A67ABF7")).toThrow("Could not parse")

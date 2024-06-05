@@ -2,9 +2,7 @@ import Parsernostrum from "parsernostrum"
 import Configuration from "../Configuration.js"
 import Utility from "../Utility.js"
 import AlternativesEntity from "../entity/AlternativesEntity.js"
-import AttributeInfo from "../entity/AttributeInfo.js"
 import IEntity from "../entity/IEntity.js"
-import MirroredEntity from "../entity/MirroredEntity.js"
 
 export default class Grammar {
 
@@ -126,11 +124,11 @@ export default class Grammar {
      * @param {T} entityType
      * @return {Parsernostrum<InstanceType<T>>}
      */
-    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, complete = false) {
+    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, complete = false, minKeys = 1) {
         const lookbehind = entityType.lookbehind instanceof Array ? entityType.lookbehind.join("|") : entityType.lookbehind
         return Parsernostrum.seq(
             Parsernostrum.reg(new RegExp(String.raw`(${lookbehind})\s*\(\s*`), 1),
-            this.createAttributeGrammar(entityType).sepBy(entriesSeparator),
+            this.createAttributeGrammar(entityType).sepBy(entriesSeparator, minKeys),
             Parsernostrum.reg(/\s*(,\s*)?\)/, 1), // optional trailing comma
         )
             .map(([lookbehind, attributes, trailing]) => {

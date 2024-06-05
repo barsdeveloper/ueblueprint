@@ -7,7 +7,7 @@ export default class IEntity {
     /** @type {(v: String) => String} */
     static same = v => v
 
-    /** @type {(entity: Attribute, serialized: String) => String} */
+    /** @type {(entity: IEntity, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
 
     /** @type {(entity: IEntity, serialized: String) => String} */
@@ -92,21 +92,6 @@ export default class IEntity {
         return self.name
     }
 
-    /** @param {String} key */
-    showProperty(key) {
-        /** @type {IEntity} */
-        let value = this[key]
-        const Self = this.Self()
-        if (Self.silent && Self.default !== undefined) {
-            if (Self["#default"] === undefined) {
-                Self["#default"] = Self.default(Self)
-            }
-            const defaultValue = Self["#default"]
-            return !value.equals(defaultValue)
-        }
-        return true
-    }
-
     /**
      * @protected
      * @template {typeof IEntity} T
@@ -115,6 +100,7 @@ export default class IEntity {
      */
     static asUniqueClass() {
         if (this.name.length) {
+            // @ts-expect-error
             return class extends this { }
         }
         return this
@@ -197,6 +183,21 @@ export default class IEntity {
      */
     Self() {
         return /** @type {T} */(this.constructor)
+    }
+
+    /** @param {String} key */
+    showProperty(key) {
+        /** @type {IEntity} */
+        let value = this[key]
+        const Self = this.Self()
+        if (Self.silent && Self.default !== undefined) {
+            if (Self["#default"] === undefined) {
+                Self["#default"] = Self.default(Self)
+            }
+            const defaultValue = Self["#default"]
+            return !value.equals(defaultValue)
+        }
+        return true
     }
 
     /**
@@ -316,6 +317,6 @@ export default class IEntity {
         if (this instanceof IEntity && this.trailing && result.length) {
             result += Self.attributeSeparator
         }
-        return wrap(this, result)
+        return wrap(/** @type {IEntity} */(this), result)
     }
 }
