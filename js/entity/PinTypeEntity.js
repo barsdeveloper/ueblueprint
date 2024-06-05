@@ -14,7 +14,6 @@ export default class PinTypeEntity extends IEntity {
         PinSubCategory: StringEntity.withDefault(),
         PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
         PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(),
-        PinValueType: PinTypeEntity.withDefault(),
         ContainerType: SymbolEntity,
         bIsReference: BooleanEntity.withDefault(),
         bIsConst: BooleanEntity.withDefault(),
@@ -30,7 +29,6 @@ export default class PinTypeEntity extends IEntity {
         /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategory>} */ this.PinSubCategory
         /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryObject>} */ this.PinSubCategoryObject
         /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryMemberReference>} */ this.PinSubCategoryMemberReference
-        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinValueType>} */ this.PinValueType
         /** @type {InstanceType<typeof PinTypeEntity.attributes.ContainerType>} */ this.ContainerType
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsReference>} */ this.bIsReference
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsConst>} */ this.bIsConst

@@ -137,7 +137,9 @@ export default class ObjectEntity extends IEntity {
         P.reg(/CustomProperties\s+/),
         this.attributes.CustomProperties.type.grammar,
     ).map(([_0, pin]) => values => {
-        (values.CustomProperties ??= []).push(pin)
+        /** @type {InstanceType<typeof this.attributes.CustomProperties>} */(
+            values.CustomProperties ??= new (this.attributes.CustomProperties)()
+        ).values.push(pin)
     })
     static inlinedArrayEntryGrammar = P.seq(
         P.alt(
@@ -191,6 +193,7 @@ export default class ObjectEntity extends IEntity {
             attributes.forEach(attributeSetter => attributeSetter(values))
             return new this(values)
         })
+        .label("ObjectEntity")
     static grammarMultipleObjects = P.seq(
         P.whitespaceOpt,
         this.grammar,

@@ -212,17 +212,7 @@ export default class PinEntity extends IEntity {
 
     /** @param {PinEntity} other */
     copyTypeFrom(other) {
-        this.PinType.PinCategory = other.PinType.PinCategory
-        this.PinType.PinSubCategory = other.PinType.PinSubCategory
-        this.PinType.PinSubCategoryObject = other.PinType.PinSubCategoryObject
-        this.PinType.PinSubCategoryMemberReference = other.PinType.PinSubCategoryMemberReference
-        this.PinType.PinValueType = other.PinType.PinValueType
-        this.PinType.ContainerType = other.PinType.ContainerType
-        this.PinType.bIsReference = other.PinType.bIsReference
-        this.PinType.bIsConst = other.PinType.bIsConst
-        this.PinType.bIsWeakPointer = other.PinType.bIsWeakPointer
-        this.PinType.bIsUObjectWrapper = other.PinType.bIsUObjectWrapper
-        this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat
+        this.PinType = other.PinType
     }
 
     getDefaultValue(maybeCreate = false) {

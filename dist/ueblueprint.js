@@ -4920,7 +4920,6 @@ class PinTypeEntity extends IEntity {
         PinSubCategory: StringEntity.withDefault(),
         PinSubCategoryObject: ObjectReferenceEntity.withDefault(),
         PinSubCategoryMemberReference: FunctionReferenceEntity.withDefault(),
-        PinValueType: PinTypeEntity.withDefault(),
         ContainerType: SymbolEntity,
         bIsReference: BooleanEntity.withDefault(),
         bIsConst: BooleanEntity.withDefault(),
@@ -4936,7 +4935,6 @@ class PinTypeEntity extends IEntity {
         /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategory>} */ this.PinSubCategory;
         /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryObject>} */ this.PinSubCategoryObject;
         /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryMemberReference>} */ this.PinSubCategoryMemberReference;
-        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinValueType>} */ this.PinValueType;
         /** @type {InstanceType<typeof PinTypeEntity.attributes.ContainerType>} */ this.ContainerType;
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsReference>} */ this.bIsReference;
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsConst>} */ this.bIsConst;
@@ -5378,17 +5376,7 @@ class PinEntity extends IEntity {
 
     /** @param {PinEntity} other */
     copyTypeFrom(other) {
-        this.PinType.PinCategory = other.PinType.PinCategory;
-        this.PinType.PinSubCategory = other.PinType.PinSubCategory;
-        this.PinType.PinSubCategoryObject = other.PinType.PinSubCategoryObject;
-        this.PinType.PinSubCategoryMemberReference = other.PinType.PinSubCategoryMemberReference;
-        this.PinType.PinValueType = other.PinType.PinValueType;
-        this.PinType.ContainerType = other.PinType.ContainerType;
-        this.PinType.bIsReference = other.PinType.bIsReference;
-        this.PinType.bIsConst = other.PinType.bIsConst;
-        this.PinType.bIsWeakPointer = other.PinType.bIsWeakPointer;
-        this.PinType.bIsUObjectWrapper = other.PinType.bIsUObjectWrapper;
-        this.PinType.bSerializeAsSinglePrecisionFloat = other.PinType.bSerializeAsSinglePrecisionFloat;
+        this.PinType = other.PinType;
     }
 
     getDefaultValue(maybeCreate = false) {
@@ -5859,7 +5847,9 @@ class ObjectEntity extends IEntity {
         Parsernostrum.reg(/CustomProperties\s+/),
         this.attributes.CustomProperties.type.grammar,
     ).map(([_0, pin]) => values => {
-        (values.CustomProperties ??= []).push(pin);
+        /** @type {InstanceType<typeof this.attributes.CustomProperties>} */(
+            values.CustomProperties ??= new (this.attributes.CustomProperties)()
+        ).values.push(pin);
     })
     static inlinedArrayEntryGrammar = Parsernostrum.seq(
         Parsernostrum.alt(
@@ -5913,6 +5903,7 @@ class ObjectEntity extends IEntity {
             attributes.forEach(attributeSetter => attributeSetter(values));
             return new this(values)
         })
+        .label("ObjectEntity")
     static grammarMultipleObjects = Parsernostrum.seq(
         Parsernostrum.whitespaceOpt,
         this.grammar,
