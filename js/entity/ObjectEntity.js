@@ -406,7 +406,7 @@ export default class ObjectEntity extends IEntity {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
         }
-        return this.Name
+        return this.Name.print()
     }
 
     /** @returns {[String, Number]} */

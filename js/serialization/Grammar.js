@@ -127,7 +127,7 @@ export default class Grammar {
     static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, complete = false, minKeys = 1) {
         const lookbehind = entityType.lookbehind instanceof Array ? entityType.lookbehind.join("|") : entityType.lookbehind
         return Parsernostrum.seq(
-            Parsernostrum.reg(new RegExp(String.raw`(${lookbehind})\s*\(\s*`), 1),
+            Parsernostrum.reg(new RegExp(String.raw`(${lookbehind}\s*)\(\s*`), 1),
             this.createAttributeGrammar(entityType).sepBy(entriesSeparator, minKeys),
             Parsernostrum.reg(/\s*(,\s*)?\)/, 1), // optional trailing comma
         )

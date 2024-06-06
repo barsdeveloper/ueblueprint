@@ -6,30 +6,24 @@ export default class IEntity {
 
     /** @type {(v: String) => String} */
     static same = v => v
-
     /** @type {(entity: IEntity, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
-
     /** @type {(entity: IEntity, serialized: String) => String} */
-    static defaultWrapped = (entity, serialized) => `${entity.lookbehind}(${serialized})`
-
+    static defaultWrapped = (entity, serialized) => `${entity.#lookbehind}(${serialized})`
     static wrap = this.defaultWrapped
-
     static attributeSeparator = ","
     static keySeparator = "="
-
     /** @type {(k: String) => String} */
     static printKey = k => k
-
     /** @type {P<IEntity>} */
     static grammar = /** @type {any} */(P.failure())
-
     /** @type {P<IEntity>} */
     static unknownEntityGrammar
-
+    static unknownEntity
     /** @type {{ [key: String]: typeof IEntity }} */
     static attributes = {}
-
+    /** @type {String | String[]} */
+    static lookbehind = ""
     /** @type {(type: typeof IEntity) => InstanceType<typeof IEntity>} */
     static default
     static nullable = false
@@ -49,12 +43,9 @@ export default class IEntity {
         this.#trailing = value
     }
 
-    /** @type {String | String[]} */
-    static lookbehind = ""
-
     #lookbehind = /** @type {String} */(this.Self().lookbehind)
     get lookbehind() {
-        return this.#lookbehind
+        return this.#lookbehind.trim()
     }
     set lookbehind(value) {
         this.#lookbehind = value
@@ -70,13 +61,23 @@ export default class IEntity {
     }
 
     constructor(values = {}) {
-        const keys = Utility.mergeArrays(Object.keys(values), Object.keys(this.Self().attributes))
+        const attributes = this.Self().attributes
+        const keys = Utility.mergeArrays(
+            Object.keys(values),
+            Object.entries(attributes).filter(([k, v]) => v.default !== undefined).map(([k, v]) => k)
+        )
         for (const key of keys) {
             if (values[key] !== undefined) {
+                if (values[key].constructor === Object) {
+                    // It is part of a nested key (words separated by ".")
+                    values[key] = new (
+                        attributes[key] !== undefined ? attributes[key] : IEntity.unknownEntity
+                    )(values[key])
+                }
                 this[key] = values[key]
                 continue
             }
-            const attribute = this.Self().attributes[key]
+            const attribute = attributes[key]
             if (attribute.default !== undefined) {
                 this[key] = attribute.default(attribute)
                 continue

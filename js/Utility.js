@@ -182,37 +182,6 @@ export default class Utility {
     }
 
     /**
-     * @param {Attribute} a
-     * @param {Attribute} b
-     */
-    static equals(a, b) {
-        while (a instanceof MirroredEntity) {
-            a = a.get()
-        }
-        while (b instanceof MirroredEntity) {
-            b = b.get()
-        }
-        // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
-            return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
-        }
-        a = Utility.sanitize(a)
-        b = Utility.sanitize(b)
-        if (a?.constructor === BigInt && b?.constructor === Number) {
-            b = BigInt(b)
-        } else if (a?.constructor === Number && b?.constructor === BigInt) {
-            a = BigInt(a)
-        }
-        if (a === b) {
-            return true
-        }
-        if (a instanceof Array && b instanceof Array) {
-            return a.length === b.length && a.every((value, i) => Utility.equals(value, b[i]))
-        }
-        return false
-    }
-
-    /**
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize

@@ -26,6 +26,8 @@ import Vector2DEntity from "../js/entity/Vector2DEntity.js"
 import Vector4DEntity from "../js/entity/Vector4DEntity.js"
 import VectorEntity from "../js/entity/VectorEntity.js"
 import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
+import PinEntity from "../js/entity/PinEntity.js"
+import PinTypeEntity from "../js/entity/PinTypeEntity.js"
 
 test.beforeAll(() => initializeSerializerFactory())
 
@@ -747,6 +749,27 @@ test("ObjectReferenceEntity", () => {
     value = grammar.parse(`"/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"`)
     expect(value).toBeInstanceOf(ObjectReferenceEntity)
     expect(value).toEqual(new ObjectReferenceEntity("/Game/_YukiritoLib/Textures/T_紫色渐变01.T_紫色渐变01"))
+})
+
+test("PinEntity", () => {
+    const grammar = PinEntity.grammar
+    const s = `Pin (PinId=370DE2594FC6D3DF81672491D09FA4F2,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_ComponentBoundEvent_2 CA668D354E07DD5D3FDF828A8DCB31E2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)`
+    let value = grammar.parse(s)
+    expect(value).toBeInstanceOf(PinEntity)
+    expect(value.PinId).toBeInstanceOf(GuidEntity)
+    expect(value.PinId.equals(new GuidEntity("370DE2594FC6D3DF81672491D09FA4F2"))).toBeTruthy()
+    expect(value.PinName).toBeInstanceOf(StringEntity)
+    expect(value.PinName.equals(new StringEntity("execute"))).toBeTruthy()
+    expect(value.PinType).toBeInstanceOf(PinTypeEntity)
+    expect(value.PinType.PinCategory).toBeInstanceOf(StringEntity)
+    expect(value.PinType.PinCategory.equals(new StringEntity("exec"))).toBeTruthy()
+    expect(value.PinType.PinSubCategory).toBeInstanceOf(StringEntity)
+    expect(value.PinType.PinSubCategory.equals(new StringEntity(""))).toBeTruthy()
+    expect(value.PinType.PinSubCategoryObject).toBeInstanceOf(ObjectReferenceEntity)
+    expect(value.PinType.PinSubCategoryObject.equals(ObjectReferenceEntity.createNoneInstance())).toBeTruthy()
+    expect(value.PinType.bIsReference).toBeInstanceOf(BooleanEntity)
+    expect(value.PinType.bIsReference.equals(new BooleanEntity(false))).toBeTruthy()
+    expect(value.toString()).toEqual(s)
 })
 
 test("SimpleSerializationRotatorEntity", () => {

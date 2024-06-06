@@ -9,6 +9,10 @@ export default class ArrayEntity extends IEntity {
     static type
     static grammar = this.createGrammar()
 
+    get length() {
+        return this.values.length
+    }
+
     /** @param {T[]} values */
     constructor(values = []) {
         super()
@@ -36,7 +40,7 @@ export default class ArrayEntity extends IEntity {
      * @param {T} type
      */
     static of(type) {
-        const result = /** @type {{type: T, grammar: P<ArrayEntity<ExtractType<T>>> } & typeof ArrayEntity<ExtractType<T>>} */(
+        const result = /** @type {typeof ArrayEntity<ExtractType<T>> & {type: T, grammar: P<ArrayEntity<ExtractType<T>>> }} */(
             this.asUniqueClass()
         )
         result.type = /** @type {ExtractType<T>} */(type)

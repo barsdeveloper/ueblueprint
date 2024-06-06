@@ -614,37 +614,6 @@ class Utility {
     }
 
     /**
-     * @param {Attribute} a
-     * @param {Attribute} b
-     */
-    static equals(a, b) {
-        while (a instanceof MirroredEntity) {
-            a = a.get();
-        }
-        while (b instanceof MirroredEntity) {
-            b = b.get();
-        }
-        // Here we cannot check both instanceof IEntity because this would introduce a circular include dependency
-        if (/** @type {IEntity?} */(a)?.equals && /** @type {IEntity?} */(b)?.equals) {
-            return /** @type {IEntity} */(a).equals(/** @type {IEntity} */(b))
-        }
-        a = Utility.sanitize(a);
-        b = Utility.sanitize(b);
-        if (a?.constructor === BigInt && b?.constructor === Number) {
-            b = BigInt(b);
-        } else if (a?.constructor === Number && b?.constructor === BigInt) {
-            a = BigInt(a);
-        }
-        if (a === b) {
-            return true
-        }
-        if (a instanceof Array && b instanceof Array) {
-            return a.length === b.length && a.every((value, i) => Utility.equals(value, b[i]))
-        }
-        return false
-    }
-
-    /**
      * @param {Number} x
      * @param {Number} y
      * @param {Number} gridSize
@@ -2381,30 +2350,24 @@ class IEntity {
 
     /** @type {(v: String) => String} */
     static same = v => v
-
     /** @type {(entity: IEntity, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
-
     /** @type {(entity: IEntity, serialized: String) => String} */
-    static defaultWrapped = (entity, serialized) => `${entity.lookbehind}(${serialized})`
-
+    static defaultWrapped = (entity, serialized) => `${entity.#lookbehind}(${serialized})`
     static wrap = this.defaultWrapped
-
     static attributeSeparator = ","
     static keySeparator = "="
-
     /** @type {(k: String) => String} */
     static printKey = k => k
-
     /** @type {P<IEntity>} */
     static grammar = /** @type {any} */(Parsernostrum.failure())
-
     /** @type {P<IEntity>} */
     static unknownEntityGrammar
-
+    static unknownEntity
     /** @type {{ [key: String]: typeof IEntity }} */
     static attributes = {}
-
+    /** @type {String | String[]} */
+    static lookbehind = ""
     /** @type {(type: typeof IEntity) => InstanceType<typeof IEntity>} */
     static default
     static nullable = false
@@ -2424,12 +2387,9 @@ class IEntity {
         this.#trailing = value;
     }
 
-    /** @type {String | String[]} */
-    static lookbehind = ""
-
     #lookbehind = /** @type {String} */(this.Self().lookbehind)
     get lookbehind() {
-        return this.#lookbehind
+        return this.#lookbehind.trim()
     }
     set lookbehind(value) {
         this.#lookbehind = value;
@@ -2445,13 +2405,23 @@ class IEntity {
     }
 
     constructor(values = {}) {
-        const keys = Utility.mergeArrays(Object.keys(values), Object.keys(this.Self().attributes));
+        const attributes = this.Self().attributes;
+        const keys = Utility.mergeArrays(
+            Object.keys(values),
+            Object.entries(attributes).filter(([k, v]) => v.default !== undefined).map(([k, v]) => k)
+        );
         for (const key of keys) {
             if (values[key] !== undefined) {
+                if (values[key].constructor === Object) {
+                    // It is part of a nested key (words separated by ".")
+                    values[key] = new (
+                        attributes[key] !== undefined ? attributes[key] : IEntity.unknownEntity
+                    )(values[key]);
+                }
                 this[key] = values[key];
                 continue
             }
-            const attribute = this.Self().attributes[key];
+            const attribute = attributes[key];
             if (attribute.default !== undefined) {
                 this[key] = attribute.default(attribute);
                 continue
@@ -2854,7 +2824,7 @@ class Grammar {
     static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, complete = false, minKeys = 1) {
         const lookbehind = entityType.lookbehind instanceof Array ? entityType.lookbehind.join("|") : entityType.lookbehind;
         return Parsernostrum.seq(
-            Parsernostrum.reg(new RegExp(String.raw`(${lookbehind})\s*\(\s*`), 1),
+            Parsernostrum.reg(new RegExp(String.raw`(${lookbehind}\s*)\(\s*`), 1),
             this.createAttributeGrammar(entityType).sepBy(entriesSeparator, minKeys),
             Parsernostrum.reg(/\s*(,\s*)?\)/, 1), // optional trailing comma
         )
@@ -4304,6 +4274,10 @@ class ArrayEntity extends IEntity {
     static type
     static grammar = this.createGrammar()
 
+    get length() {
+        return this.values.length
+    }
+
     /** @param {T[]} values */
     constructor(values = []) {
         super();
@@ -4331,7 +4305,7 @@ class ArrayEntity extends IEntity {
      * @param {T} type
      */
     static of(type) {
-        const result = /** @type {{type: T, grammar: P<ArrayEntity<ExtractType<T>>> } & typeof ArrayEntity<ExtractType<T>>} */(
+        const result = /** @type {typeof ArrayEntity<ExtractType<T>> & {type: T, grammar: P<ArrayEntity<ExtractType<T>>> }} */(
             this.asUniqueClass()
         );
         result.type = /** @type {ExtractType<T>} */(type);
@@ -4508,6 +4482,7 @@ class ByteEntity extends IntegerEntity {
 
 class ComputedTypeEntity extends IEntity {
 
+    static grammar = undefined
     /** @type {(entity: IEntity) => typeof IEntity} */
     static f
 
@@ -5227,7 +5202,6 @@ class PinEntity extends IEntity {
         [Configuration.paths.vector4f]: SimpleSerializationVector4DEntity,
     }
     static attributes = {
-        ...super.attributes,
         PinId: GuidEntity.withDefault(),
         PinName: StringEntity.withDefault(),
         PinFriendlyName: AlternativesEntity.accepting(
@@ -5239,12 +5213,12 @@ class PinEntity extends IEntity {
         PinToolTip: StringEntity,
         Direction: StringEntity,
         PinType: PinTypeEntity.withDefault().flagInlined(),
-        LinkedTo: ArrayEntity.of(PinReferenceEntity),
+        LinkedTo: ArrayEntity.of(PinReferenceEntity).withDefault().flagSilent(),
         SubPins: ArrayEntity.of(PinReferenceEntity),
         ParentPin: PinReferenceEntity,
         DefaultValue:
             ComputedTypeEntity.from(
-                /** @param {PinEntity} pinEntity */
+                // @ts-expect-error
                 pinEntity => pinEntity.getEntityType(true) ?? StringEntity
             ).flagSerialized(),
         AutogeneratedDefaultValue: StringEntity,
@@ -5311,7 +5285,7 @@ class PinEntity extends IEntity {
     }
 
     getType() {
-        const category = this.PinType.PinCategory.toLocaleLowerCase();
+        const category = this.PinType.PinCategory.toString().toLocaleLowerCase();
         if (category === "struct" || category === "class" || category === "object" || category === "type") {
             return this.PinType.PinSubCategoryObject.path
         }
@@ -5345,7 +5319,7 @@ class PinEntity extends IEntity {
             }
         }
         if (category === "optional") {
-            switch (this.PinType.PinSubCategory) {
+            switch (this.PinType.PinSubCategory.toString()) {
                 case "red":
                     return "real"
                 case "rg":
@@ -5394,7 +5368,7 @@ class PinEntity extends IEntity {
     }
 
     isExecution() {
-        return this.PinType.PinCategory === "exec"
+        return this.PinType.PinCategory.toString() === "exec"
     }
 
     isHidden() {
@@ -5402,11 +5376,11 @@ class PinEntity extends IEntity {
     }
 
     isInput() {
-        return !this.bHidden && this.Direction != "EGPD_Output"
+        return !this.bHidden && this.Direction.toString() != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.bHidden && this.Direction == "EGPD_Output"
+        return !this.bHidden && this.Direction.toString() == "EGPD_Output"
     }
 
     isLinked() {
@@ -5419,12 +5393,12 @@ class PinEntity extends IEntity {
      * @returns true if it was not already linked to the tarket
      */
     linkTo(targetObjectName, targetPinEntity) {
-        const linkFound = this.LinkedTo?.some(pinReferenceEntity =>
+        const linkFound = this.LinkedTo.values?.some(pinReferenceEntity =>
             pinReferenceEntity.objectName.toString() == targetObjectName
             && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         );
         if (!linkFound) {
-            (this.LinkedTo ??= []).push(new PinReferenceEntity(targetObjectName, targetPinEntity.PinId,));
+            this.LinkedTo.values.push(new PinReferenceEntity(targetObjectName, targetPinEntity.PinId,));
             return true
         }
         return false // Already linked
@@ -5436,12 +5410,12 @@ class PinEntity extends IEntity {
      * @returns true if it was linked to the target
      */
     unlinkFrom(targetObjectName, targetPinEntity) {
-        const indexElement = this.LinkedTo?.findIndex(pinReferenceEntity => {
+        const indexElement = this.LinkedTo.values?.findIndex(pinReferenceEntity => {
             return pinReferenceEntity.objectName.toString() == targetObjectName
                 && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
         if (indexElement >= 0) {
-            this.LinkedTo.splice(indexElement, 1);
+            this.LinkedTo.values.splice(indexElement, 1);
             if (this.LinkedTo.length === 0 && PinEntity.attributes.LinkedTo.default === undefined) {
                 this.LinkedTo = undefined;
             }
@@ -5628,7 +5602,7 @@ class MacroGraphReferenceEntity extends IEntity {
 }
 
 /** @template {typeof IEntity} T */
-class MirroredEntity$1 extends IEntity {
+class MirroredEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
@@ -5653,7 +5627,7 @@ class MirroredEntity$1 extends IEntity {
     /** @returns {typeof IEntity} */
     static getTargetType() {
         const result = this.type;
-        if (result.prototype instanceof MirroredEntity$1) {
+        if (result.prototype instanceof MirroredEntity) {
             return /** @type {typeof MirroredEntity} */(result).getTargetType()
         }
         return result
@@ -5805,15 +5779,15 @@ class ObjectEntity extends IEntity {
         MoveMode: SymbolEntity,
         TimelineName: StringEntity,
         TimelineGuid: GuidEntity,
-        SizeX: MirroredEntity$1.of(IntegerEntity),
-        SizeY: MirroredEntity$1.of(IntegerEntity),
-        Text: MirroredEntity$1.of(StringEntity),
-        MaterialExpressionEditorX: MirroredEntity$1.of(IntegerEntity),
-        MaterialExpressionEditorY: MirroredEntity$1.of(IntegerEntity),
+        SizeX: MirroredEntity.of(IntegerEntity),
+        SizeY: MirroredEntity.of(IntegerEntity),
+        Text: MirroredEntity.of(StringEntity),
+        MaterialExpressionEditorX: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionEditorY: MirroredEntity.of(IntegerEntity),
         NodeTitle: StringEntity,
         NodeTitleColor: LinearColorEntity,
-        PositionX: MirroredEntity$1.of(IntegerEntity),
-        PositionY: MirroredEntity$1.of(IntegerEntity),
+        PositionX: MirroredEntity.of(IntegerEntity),
+        PositionY: MirroredEntity.of(IntegerEntity),
         SettingsInterface: ObjectReferenceEntity,
         PCGNode: ObjectReferenceEntity,
         HiGenGridSize: SymbolEntity,
@@ -5838,7 +5812,7 @@ class ObjectEntity extends IEntity {
         ErrorType: IntegerEntity,
         ErrorMsg: StringEntity,
         ScriptVariables: ArrayEntity.of(ScriptVariableEntity),
-        Node: MirroredEntity$1.of(ObjectReferenceEntity),
+        Node: MirroredEntity.of(ObjectReferenceEntity),
         ExportedNodes: StringEntity,
         CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
     }
@@ -6034,16 +6008,16 @@ class ObjectEntity extends IEntity {
                     this.getPinEntities().find(pin => pin.PinName === pinName && (pin.recomputesNodeTitleOnChange = true))
                 );
                 obj.R = new (
-                    MirroredEntity$1.of(BooleanEntity).withDefault().flagSilent()
+                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
                 )(() => rgbaPins[0].DefaultValue);
                 obj.G = new (
-                    MirroredEntity$1.of(BooleanEntity).withDefault().flagSilent()
+                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
                 )(() => rgbaPins[1].DefaultValue);
                 obj.B = new (
-                    MirroredEntity$1.of(BooleanEntity).withDefault().flagSilent()
+                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
                 )(() => rgbaPins[2].DefaultValue);
                 obj.A = new (
-                    MirroredEntity$1.of(BooleanEntity).withDefault().flagSilent()
+                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
                 )(() => rgbaPins[3].DefaultValue);
                 obj.keys = [...Configuration.rgba, ...super.keys.filter(k => !Configuration.rgba.includes(k))];
             }
@@ -6115,7 +6089,7 @@ class ObjectEntity extends IEntity {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
         }
-        return this.Name
+        return this.Name.print()
     }
 
     /** @returns {[String, Number]} */
@@ -12835,10 +12809,15 @@ class UnknownKeysEntity extends IEntity {
         attributes.forEach(attributeSetter => attributeSetter(values));
         return new this(values)
     }).label("UnknownKeysEntity")
+
+    static {
+        IEntity.unknownEntity = this;
+    }
 }
 
 class NullEntity extends IEntity {
 
+    // @ts-expect-error
     static grammar = Parsernostrum.reg(new RegExp(String.raw`\(${Parsernostrum.whitespaceInlineOpt.getParser().regexp.source}\)`))
         .map(v => new this())
 

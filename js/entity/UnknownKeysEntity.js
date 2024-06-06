@@ -25,4 +25,8 @@ export default class UnknownKeysEntity extends IEntity {
         attributes.forEach(attributeSetter => attributeSetter(values))
         return new this(values)
     }).label("UnknownKeysEntity")
+
+    static {
+        IEntity.unknownEntity = this
+    }
 }

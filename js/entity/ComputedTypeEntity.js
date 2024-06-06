@@ -2,6 +2,7 @@ import IEntity from "./IEntity.js"
 
 export default class ComputedTypeEntity extends IEntity {
 
+    static grammar = undefined
     /** @type {(entity: IEntity) => typeof IEntity} */
     static f
 
