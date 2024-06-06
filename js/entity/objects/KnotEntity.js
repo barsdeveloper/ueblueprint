@@ -14,20 +14,18 @@ export default class KnotEntity extends ObjectEntity {
         values.Name = "K2Node_Knot"
         const inputPinEntity = new PinEntity(
             { PinName: "InputPin" },
-            true
         )
         const outputPinEntity = new PinEntity(
             {
                 PinName: "OutputPin",
                 Direction: "EGPD_Output",
             },
-            true
         )
         if (pinReferenceForType) {
             inputPinEntity.copyTypeFrom(pinReferenceForType)
             outputPinEntity.copyTypeFrom(pinReferenceForType)
         }
         values["CustomProperties"] = [inputPinEntity, outputPinEntity]
-        super(values, true)
+        super(values)
     }
 }

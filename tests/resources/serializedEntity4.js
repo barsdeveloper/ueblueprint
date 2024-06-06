@@ -23,7 +23,7 @@ export default `Begin
   \${first.sierra.someBoolean2} => False
   \${first.sierra.someObjectString} => "gamma"
   \${first.sierra.someArray} => (400,500,600,700,800)
-  \${first.sierra.someArray2} => (400,500,600,700,800)
+  \${first.sierra.someArray2} => (-400,-500,-600,-700,-800)
   \${first.sierra.someEntity} => E1[A:8 - B:9]
   \${second(0).a} => 1
   \${second(0).b} => 2

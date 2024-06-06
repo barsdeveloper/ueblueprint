@@ -1,169 +1,204 @@
-import Configuration from "../Configuration.js"
+import P from "parsernostrum"
 import Utility from "../Utility.js"
-import Serializable from "../serialization/Serializable.js"
-import SerializerFactory from "../serialization/SerializerFactory.js"
-import AttributeInfo from "./AttributeInfo.js"
-import ComputedType from "./ComputedType.js"
-import MirroredEntity from "./MirroredEntity.js"
-import Union from "./Union.js"
 
 /** @abstract */
-export default class IEntity extends Serializable {
+export default class IEntity {
 
-    /** @type {{ [attribute: String]: AttributeInfo }} */
-    static attributes = {
-        attributes: new AttributeInfo({
-            ignored: true,
-        }),
-        lookbehind: new AttributeInfo({
-            default: /** @type {String | Union<String[]>} */(""),
-            ignored: true,
-            uninitialized: true,
-        }),
+    /** @type {(v: String) => String} */
+    static same = v => v
+    /** @type {(entity: IEntity, serialized: String) => String} */
+    static notWrapped = (entity, serialized) => serialized
+    /** @type {(entity: IEntity, serialized: String) => String} */
+    static defaultWrapped = (entity, serialized) => `${entity.#lookbehind}(${serialized})`
+    static wrap = this.defaultWrapped
+    static attributeSeparator = ","
+    static keySeparator = "="
+    /** @type {(k: String) => String} */
+    static printKey = k => k
+    /** @type {P<IEntity>} */
+    static grammar = /** @type {any} */(P.failure())
+    /** @type {P<IEntity>} */
+    static unknownEntityGrammar
+    static unknownEntity
+    /** @type {{ [key: String]: typeof IEntity }} */
+    static attributes = {}
+    /** @type {String | String[]} */
+    static lookbehind = ""
+    /** @type {(type: typeof IEntity) => InstanceType<typeof IEntity>} */
+    static default
+    static nullable = false
+    static ignored = false // Never serialize or deserialize
+    static serialized = false // Value is written and read as string
+    static expected = false // Must be there
+    static inlined = false // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
+    static quoted = false // Key is serialized with quotes
+    static silent = false // Do not serialize if default
+    static trailing = false // Add attribute separator after the last attribute when serializing
+
+    #trailing = this.Self().trailing
+    get trailing() {
+        return this.#trailing
+    }
+    set trailing(value) {
+        this.#trailing = value
+    }
+
+    #lookbehind = /** @type {String} */(this.Self().lookbehind)
+    get lookbehind() {
+        return this.#lookbehind.trim()
+    }
+    set lookbehind(value) {
+        this.#lookbehind = value
     }
 
     /** @type {String[]} */
-    #_keys
-    get _keys() {
-        return this.#_keys
+    #keys
+    get keys() {
+        return this.#keys ?? Object.keys(this)
     }
-    set _keys(keys) {
-        this.#_keys = keys
+    set keys(value) {
+        this.#keys = [... new Set(value)]
     }
 
-    constructor(values = {}, suppressWarns = false) {
-        super()
-        const Self = /** @type {typeof IEntity} */(this.constructor)
-        /** @type {AttributeDeclarations?} */ this.attributes
-        /** @type {String} */ this.lookbehind
-        const valuesKeys = Object.keys(values)
-        const attributesKeys = values.attributes
-            ? Utility.mergeArrays(Object.keys(values.attributes), Object.keys(Self.attributes))
-            : Object.keys(Self.attributes)
-        const allAttributesKeys = Utility.mergeArrays(valuesKeys, attributesKeys)
-        for (const key of allAttributesKeys) {
-            let value = values[key]
-            if (!suppressWarns && !(key in values)) {
-                if (!(key in Self.attributes) && !key.startsWith(Configuration.subObjectAttributeNamePrefix)) {
-                    const typeName = value instanceof Array ? `[${value[0]?.constructor.name}]` : value.constructor.name
-                    console.warn(
-                        `UEBlueprint: Attribute ${key} (of type ${typeName}) in the serialized data is not defined in ${Self.name}.attributes`
-                    )
+    constructor(values = {}) {
+        const attributes = this.Self().attributes
+        const keys = Utility.mergeArrays(
+            Object.keys(values),
+            Object.entries(attributes).filter(([k, v]) => v.default !== undefined).map(([k, v]) => k)
+        )
+        for (const key of keys) {
+            if (values[key] !== undefined) {
+                if (values[key].constructor === Object) {
+                    // It is part of a nested key (words separated by ".")
+                    values[key] = new (
+                        attributes[key] !== undefined ? attributes[key] : IEntity.unknownEntity
+                    )(values[key])
                 }
-            }
-            if (!(key in Self.attributes)) {
-                // Remember attributeName can come from the values and be not defined in the attributes.
-                // In that case just assign it and skip the rest.
-                this[key] = value
+                this[key] = values[key]
                 continue
             }
-            Self.attributes.lookbehind
-            const predicate = AttributeInfo.getAttribute(values, key, "predicate", Self)
-            const assignAttribute = !predicate
-                ? v => this[key] = v
-                : v => {
-                    Object.defineProperties(this, {
-                        ["#" + key]: {
-                            writable: true,
-                            enumerable: false,
-                        },
-                        [key]: {
-                            enumerable: true,
-                            get() {
-                                return this["#" + key]
-                            },
-                            set(v) {
-                                if (!predicate(v)) {
-                                    console.warn(
-                                        `UEBlueprint: Tried to assign attribute ${key} to ${Self.name} not satisfying the predicate`
-                                    )
-                                    return
-                                }
-                                this["#" + key] = v
-                            }
-                        },
-                    })
-                    this[key] = v
-                }
-
-            let defaultValue = AttributeInfo.getAttribute(values, key, "default", Self)
-            if (defaultValue instanceof Function) {
-                defaultValue = defaultValue(this)
-            }
-            let defaultType = AttributeInfo.getAttribute(values, key, "type", Self)
-            if (defaultType instanceof ComputedType) {
-                defaultType = defaultType.compute(this)
-            }
-            if (defaultType instanceof Array) {
-                defaultType = Array
-            }
-            if (defaultType === undefined) {
-                defaultType = Utility.getType(defaultValue)
-            }
-
-            if (value !== undefined) {
-                // Remember value can still be null
-                if (
-                    value?.constructor === String
-                    && AttributeInfo.getAttribute(values, key, "serialized", Self)
-                    && defaultType !== String
-                ) {
-                    try {
-                        value = SerializerFactory
-                            .getSerializer(defaultType)
-                            .read(/** @type {String} */(value))
-                    } catch (e) {
-                        assignAttribute(value)
-                        continue
-                    }
-                }
-                assignAttribute(Utility.sanitize(value, /** @type {AttributeConstructor<Attribute>} */(defaultType)))
-                continue // We have a value, need nothing more
-            }
-            if (defaultValue !== undefined && !AttributeInfo.getAttribute(values, key, "uninitialized", Self)) {
-                assignAttribute(defaultValue)
+            const attribute = attributes[key]
+            if (attribute.default !== undefined) {
+                this[key] = attribute.default(attribute)
+                continue
             }
         }
     }
 
-    /** @param {AttributeTypeDescription} attributeType */
-    static defaultValueProviderFromType(attributeType) {
-        if (attributeType === Boolean) {
-            return false
-        } else if (attributeType === Number) {
-            return 0
-        } else if (attributeType === BigInt) {
-            return 0n
-        } else if (attributeType === String) {
-            return ""
-        } else if (attributeType === Array || attributeType instanceof Array) {
-            return () => []
-        } else if (attributeType instanceof Union) {
-            return this.defaultValueProviderFromType(attributeType.values[0])
-        } else if (attributeType instanceof MirroredEntity) {
-            return () => new MirroredEntity(attributeType.type, attributeType.getter)
-        } else if (attributeType instanceof ComputedType) {
-            return undefined
-        } else {
-            return () => new /** @type {AnyConstructor<Attribute>} */(attributeType)()
+    static className() {
+        let self = this
+        while (!self.name) {
+            self = Object.getPrototypeOf(self)
         }
+        return self.name
     }
 
     /**
-     * @template {new (...args: any) => any} C
-     * @param {C} type
-     * @returns {value is InstanceType<C>}
+     * @protected
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @returns {T}
      */
-    static isValueOfType(value, type) {
-        return value != null && (value instanceof type || value.constructor === type)
+    static asUniqueClass() {
+        if (this.name.length) {
+            // @ts-expect-error
+            return class extends this { }
+        }
+        return this
     }
 
-    static defineAttributes(object, attributes) {
-        Object.defineProperty(object, "attributes", {
-            writable: true,
-            configurable: false,
-        })
-        object.attributes = attributes
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @param {String} value
+     */
+    static withLookbehind(value) {
+        const result = this.asUniqueClass()
+        result.lookbehind = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static withDefault(value = /** @type {(type: T) => (InstanceType<T> | NullEntity)} */(type => new type())) {
+        const result = this.asUniqueClass()
+        result.default = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagNullable(value = true) {
+        const result = this.asUniqueClass()
+        result.nullable = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagSerialized(value = true) {
+        const result = this.asUniqueClass()
+        result.serialized = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagInlined(value = true) {
+        const result = this.asUniqueClass()
+        result.inlined = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagQuoted(value = true) {
+        const result = this.asUniqueClass()
+        result.quoted = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagSilent(value = true) {
+        const result = this.asUniqueClass()
+        result.silent = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {InstanceType<T>}
+     */
+    Self() {
+        return /** @type {T} */(this.constructor)
+    }
+
+    /** @param {String} key */
+    showProperty(key) {
+        /** @type {IEntity} */
+        let value = this[key]
+        const Self = this.Self()
+        if (Self.silent && Self.default !== undefined) {
+            if (Self["#default"] === undefined) {
+                Self["#default"] = Self.default(Self)
+            }
+            const defaultValue = Self["#default"]
+            return !value.equals(defaultValue)
+        }
+        return true
     }
 
     /**
@@ -193,41 +228,96 @@ export default class IEntity extends Serializable {
                         return this["#" + attribute]
                     },
                     set(v) {
-                        if (v == this["#" + attribute]) {
-                            return
+                        if (v != this["#" + attribute]) {
+                            callback(v)
+                            this["#" + attribute] = v
                         }
-                        callback(v)
-                        this["#" + attribute] = v
-                    }
+                    },
                 },
             })
         }
     }
 
-    getLookbehind() {
-        let lookbehind = this.lookbehind ?? AttributeInfo.getAttribute(this, "lookbehind", "default")
-        lookbehind = lookbehind instanceof Union ? lookbehind.values[0] : lookbehind
-        return lookbehind
-    }
-
-    unexpectedKeys() {
-        return Object.keys(this).length - Object.keys(/** @type {typeof IEntity} */(this.constructor).attributes).length
-    }
-
     /** @param {IEntity} other */
     equals(other) {
-        const thisKeys = Object.keys(this)
-        const otherKeys = Object.keys(other)
-        if (thisKeys.length != otherKeys.length) {
+        if (!(other instanceof IEntity)) {
             return false
         }
-        for (const key of thisKeys) {
-            if (this[key] instanceof IEntity && !this[key].equals(other[key])) {
+        const thisKeys = Object.keys(this)
+        const otherKeys = Object.keys(other)
+        if (
+            thisKeys.length !== otherKeys.length
+            || this.lookbehind != other.lookbehind
+            || !(this instanceof other.constructor) && !(other instanceof this.constructor)
+        ) {
+            return false
+        }
+        for (let i = 0; i < thisKeys.length; ++i) {
+            const k = thisKeys[i]
+            if (!otherKeys.includes(k)) {
                 return false
-            } else if (!Utility.equals(this[key], other[key])) {
-                return false
+            }
+            const a = this[k]
+            const b = other[k]
+            if (a instanceof IEntity) {
+                if (!a.equals(b)) {
+                    return false
+                }
+            } else {
+                if (a !== b) {
+                    return false
+                }
             }
         }
         return true
+    }
+
+    /** @this {IEntity | Array} */
+    toString(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
+        let result = ""
+        let first = true
+        const keys = this instanceof IEntity ? this.keys : Object.keys(this)
+        for (const key of keys) {
+            /** @type {IEntity} */
+            const value = this[key]
+            let keyValue = this instanceof Array ? `(${key})` : key
+            if (value === undefined || this instanceof IEntity && !this.showProperty(key)) {
+                continue
+            }
+            if (first) {
+                first = false
+            } else {
+                result += Self.attributeSeparator
+            }
+            if (value.Self?.().inlined) {
+                const inlinedPrintKey = value.Self().className() === "ArrayEntity"
+                    ? k => printKey(`${keyValue}${k}`)
+                    : k => printKey(`${keyValue}.${k}`)
+                result += value.toString(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped)
+                continue
+            }
+            keyValue = printKey(keyValue)
+            if (keyValue.length) {
+                if (Self.quoted) {
+                    keyValue = `"${keyValue}"`
+                }
+                result += (Self.attributeSeparator.includes("\n") ? indentation : "") + keyValue + Self.keySeparator
+            }
+            let serialization = value?.toString(insideString, indentation)
+            if (Self.serialized) {
+                serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`
+            }
+            result += serialization
+        }
+        if (this instanceof IEntity && this.trailing && result.length) {
+            result += Self.attributeSeparator
+        }
+        return wrap(/** @type {IEntity} */(this), result)
     }
 }

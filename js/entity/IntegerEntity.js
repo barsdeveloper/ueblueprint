@@ -1,42 +1,20 @@
-import Parsernostrum from "parsernostrum"
-import AttributeInfo from "./AttributeInfo.js"
-import IEntity from "./IEntity.js"
+import P from "parsernostrum"
+import NumberEntity from "./NumberEntity.js"
 
-export default class IntegerEntity extends IEntity {
+export default class IntegerEntity extends NumberEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: new AttributeInfo({
-            default: 0,
-            predicate: v => v % 1 == 0 && v > 1 << 31 && v < -(1 << 31),
-        }),
+    static grammar = /** @type {P<IntegerEntity>} */(
+        P.numberInteger.map(v => new this(v))
+    )
+
+    get value() {
+        return super.value
     }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.numberInteger.map(v => new this(v))
-    }
-
-    /** @param {Number | Object} values */
-    constructor(values = 0) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            }
+    set value(value) {
+        value = Math.trunc(value)
+        if (value >= 1 << 31 && value < -(1 << 31)) {
+            value = Math.floor(value)
+            super.value = value
         }
-        values.value = Math.floor(values.value)
-        if (values.value === -0) {
-            values.value = 0
-        }
-        super(values)
-        /** @type {Number} */ this.value
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString() {
-        return this.value.toString()
     }
 }

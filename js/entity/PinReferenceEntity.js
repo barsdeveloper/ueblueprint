@@ -1,34 +1,35 @@
-import Parsernostrum from "parsernostrum"
+import P from "parsernostrum"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
-import PathSymbolEntity from "./PathSymbolEntity.js"
-import AttributeInfo from "./AttributeInfo.js"
+import SymbolEntity from "./SymbolEntity.js"
 
 export default class PinReferenceEntity extends IEntity {
 
-    static attributes = {
-        ...super.attributes,
-        objectName: AttributeInfo.createType(PathSymbolEntity),
-        pinGuid: AttributeInfo.createType(GuidEntity),
-    }
-    static grammar = this.createGrammar()
-
-    static createGrammar() {
-        return Parsernostrum.seq(
-            PathSymbolEntity.grammar,
-            Parsernostrum.whitespace,
+    static grammar = /** @type {P<PinReferenceEntity>} */(
+        P.seq(
+            SymbolEntity.grammar,
+            P.whitespace,
             GuidEntity.grammar
-        ).map(
-            ([objectName, _1, pinGuid]) => new this({
-                objectName: objectName,
-                pinGuid: pinGuid,
-            })
         )
+            .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
+            .label("PinReferenceEntity")
+    )
+
+    /**
+     * @param {SymbolEntity} objectName
+     * @param {GuidEntity} pinGuid
+     */
+    constructor(objectName = null, pinGuid = null) {
+        super()
+        this.objectName = objectName
+        this.pinGuid = pinGuid
     }
 
-    constructor(values) {
-        super(values)
-        /** @type {PathSymbolEntity} */ this.objectName
-        /** @type {GuidEntity} */ this.pinGuid
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
+        return this.objectName.toString() + " " + this.pinGuid.toString()
     }
 }

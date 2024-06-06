@@ -14,7 +14,6 @@ export default `[[
     november: 0
     oscar: Entity1(a=8, b=9)
     papa: Entity1(a=12, b=13)
-    quebec: 6
     romeo.a: 8
     romeo.b: 9
     sierra.someNumber: 567
@@ -24,6 +23,6 @@ export default `[[
     sierra.someBoolean2: False
     sierra.someObjectString: "gamma"
     sierra.someArray: (400,500,600,700,800)
-    sierra.someArray2: (400,500,600,700,800)
+    sierra.someArray2: (-400,-500,-600,-700,-800)
     sierra.someEntity: Entity1(a=8, b=9)
 ]]`

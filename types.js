@@ -1,6 +1,6 @@
 /**
  * @template T
- * @typedef {new (...args: any) => T} AnyConstructor
+ * @typedef {abstract new (...args: any) => T} AnyConstructor
  */
 /**
  * @template {Attribute} T
@@ -76,8 +76,6 @@
  *     ? DescribedType<R>[]
  *     : T extends MirroredEntity<infer R>
  *     ? DescribedType<R>
- *     : T extends Union<infer R>
- *     ? DescribedTypesFromArray<R>
  *     : T
  * } DescribedType
  */
@@ -99,8 +97,17 @@
  * }} TypeGetter
  */
 /**
- * @template {any[]} T
- * @typedef {import("./js/entity/Union.js").default<T>} Union
+ * @template T
+ * @typedef {T extends [infer A extends EntityConstructor] ? InstanceType<A>
+ *     : T extends [infer A extends EntityConstructor, ...infer B] ? InstanceType<A> | UnionFromArray<B>
+ *     : never
+ * } UnionFromArray
+ */
+/**
+ * @template {EntityConstructor} T
+ * @typedef {T extends AlternativesEntityConstructor & { alternatives: infer R } ? UnionFromArray<R>
+ *     : InstanceType<T>
+ * } ExtractType
  */
 /**
  * @typedef {typeof import("./js/Blueprint.js").default} BlueprintConstructor
@@ -109,9 +116,11 @@
  * @typedef {typeof import("./js/element/PinElement.js").default} PinElementConstructor
  * @typedef {typeof import("./js/element/WindowElement.js").default} WindowElementConstructor
  * @typedef {typeof import("./js/entity/IEntity.js").default} EntityConstructor
+ * @typedef {typeof import("./js/entity/AlternativesEntity.js").default} AlternativesEntityConstructor
  * @typedef {typeof import("./js/entity/ObjectEntity.js").default} ObjectEntityConstructor
  */
 /**
+ * @typedef {import ("./tests/fixtures/BlueprintFixture.js").default} BlueprintFixture
  * @typedef {import("./js/Blueprint.js").default} Blueprint
  * @typedef {import("./js/element/ColorHandlerElement.js").default} ColorHandlerElement
  * @typedef {import("./js/element/ColorSliderElement.js").default} ColorSliderElement
@@ -130,13 +139,12 @@
  * @typedef {import("./js/element/WindowElement.js").default} WindowElement
  * @typedef {import("./js/entity/ByteEntity.js").default} ByteEntity
  * @typedef {import("./js/entity/ColorChannelEntity.js").default} ColorChannelEntity
- * @typedef {import("./js/entity/ComputedType.js").default} ComputedType
+ * @typedef {import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntity
  * @typedef {import("./js/entity/EnumDisplayValueEntity.js").default} EnumDisplayValueEntity
  * @typedef {import("./js/entity/EnumEntity.js").default} EnumEntity
  * @typedef {import("./js/entity/FormatTextEntity.js").default} FormatTextEntity
  * @typedef {import("./js/entity/FunctionReferenceEntity.js").default} FunctionReferenceEntity
  * @typedef {import("./js/entity/GuidEntity.js").default} GuidEntity
- * @typedef {import("./js/entity/IdentifierEntity.js").default} IdentifierEntity
  * @typedef {import("./js/entity/IEntity.js").default} IEntity
  * @typedef {import("./js/entity/Integer64Entity.js").default} Integer64Entity
  * @typedef {import("./js/entity/IntegerEntity.js").default} IntegerEntity
@@ -146,10 +154,10 @@
  * @typedef {import("./js/entity/LocalizedTextEntity.js").default} LocalizedTextEntity
  * @typedef {import("./js/entity/MacroGraphReferenceEntity.js").default} MacroGraphReferenceEntity
  * @typedef {import("./js/entity/NaturalNumberEntity.js").default} NaturalNumberEntity
+ * @typedef {import("./js/entity/NullEntity.js").default} NullEntity
  * @typedef {import("./js/entity/ObjectEntity.js").default} ObjectEntity
  * @typedef {import("./js/entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
  * @typedef {import("./js/entity/objects/KnotEntity.js").default} KnotEntity
- * @typedef {import("./js/entity/PathSymbolEntity.js").default} PathSymbolEntity
  * @typedef {import("./js/entity/PinEntity.js").default} PinEntity
  * @typedef {import("./js/entity/PinReferenceEntity.js").default} PinReferenceEntity
  * @typedef {import("./js/entity/PinTypeEntity.js").default} PinTypeEntity
@@ -209,7 +217,6 @@
  * @typedef {import("./js/template/SelectorTemplate.js").default} SelectorTemplate
  * @typedef {import("./js/template/window/ColorPickerWindowTemplate.js").default} ColorPickerWindowTemplate
  * @typedef {import("./js/template/window/WindowTemplate.js").default} WindowTemplate
- * @typedef {import ("./tests/fixtures/BlueprintFixture.js").default} BlueprintFixture
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
@@ -219,17 +226,13 @@
  * @typedef {import("./js/serialization/Serializer.js").default<T>} Serializer
  */
 /**
- * @template {Attribute} T
- * @typedef {import("./js/entity/MirroredEntity.js").default<T>} MirroredEntity
- */
-/**
- * @template {Attribute} T
- * @typedef {typeof import("./js/entity/MirroredEntity.js").default<T>} MirroredEntityConstructor
- */
-/**
  * @template T
  * @typedef {{
  *     evaluate<R, Arg>(pageFunction: (node: T, arg: Arg) => R, arg: Arg, options?: { timeout?: number }): Promise<R>
  *     evaluate<R>(pageFunction: (node: T) => R, options?: { timeout?: number }): Promise<R>
  * } & import("@playwright/test").Locator} Locator
+ */
+/**
+ * @template T
+ * @typedef {import("parsernostrum").ProducerParser<T>} Parser
  */

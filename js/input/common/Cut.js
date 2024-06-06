@@ -1,4 +1,3 @@
-import ObjectSerializer from "../../serialization/ObjectSerializer.js"
 import IInput from "../IInput.js"
 
 /**
@@ -9,8 +8,6 @@ import IInput from "../IInput.js"
  */
 
 export default class Cut extends IInput {
-
-    static #serializer = new ObjectSerializer()
 
     /** @type {(e: ClipboardEvent) => void} */
     #cutHandler
@@ -39,7 +36,7 @@ export default class Cut extends IInput {
     getSerializedText() {
         return this.blueprint
             .getNodes(true)
-            .map(node => Cut.#serializer.write(node.entity, false))
+            .map(node => node.entity.toString())
             .join("")
     }
 

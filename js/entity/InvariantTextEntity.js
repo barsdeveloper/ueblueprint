@@ -1,44 +1,41 @@
-import Parsernostrum from "parsernostrum"
-import Grammar from "../serialization/Grammar.js"
-import AttributeInfo from "./AttributeInfo.js"
-import IEntity from "./IEntity.js"
+import P from "parsernostrum"
+import IPrintableEntity from "./IPrintableEntity.js"
 
-export default class InvariantTextEntity extends IEntity {
+export default class InvariantTextEntity extends IPrintableEntity {
 
-    static attributes = {
-        ...super.attributes,
-        value: AttributeInfo.createValue(""),
-        lookbehind: new AttributeInfo({
-            ...super.attributes.lookbehind,
-            default: "INVTEXT",
-        }),
-    }
-    static grammar = this.createGrammar()
+    static lookbehind = "INVTEXT"
 
-    static createGrammar() {
-        return Parsernostrum.alt(
-            Parsernostrum.seq(
-                Parsernostrum.reg(new RegExp(`${this.attributes.lookbehind.default}\\s*\\(`)),
-                Grammar.grammarFor(this.attributes.value),
-                Parsernostrum.reg(/\s*\)/)
-            )
-                .map(([_0, value, _2]) => value),
-            Parsernostrum.reg(new RegExp(this.attributes.lookbehind.default)) // InvariantTextEntity can not have arguments
-                .map(() => "")
-        ).map(value => new this(value))
+    static grammar = /** @type {P<InvariantTextEntity>} */(
+        P.alt(
+            P.seq(
+                P.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                P.doubleQuotedString,
+                P.reg(/\s*\)/)
+            ).map(([_0, value, _2]) => Number(value)),
+            P.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+        )
+            .map(value => new this(value))
+            .label("InvariantTextEntity")
+    )
+
+    constructor(value = "") {
+        super()
+        this.value = value
     }
 
-    constructor(values) {
-        if (values.constructor !== Object) {
-            values = {
-                value: values,
-            }
-        }
-        super(values)
-        /** @type {String} */ this.value
+    print() {
+        let xxxx = P.alt(
+            P.seq(
+                P.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                P.doubleQuotedString,
+                P.reg(/\s*\)/)
+            ).map(([_0, value, _2]) => Number(value)),
+            P.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+        )
+        return this.value
     }
 
     toString() {
-        return this.value
+        return this.lookbehind + "(" + this.value + ")"
     }
 }
