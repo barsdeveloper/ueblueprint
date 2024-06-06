@@ -5,13 +5,15 @@ import IEntity from "./IEntity.js"
 export default class NumberEntity extends IEntity {
 
     static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
-    static grammar = P.regArray(
-        new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
-    ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
-        n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
-        precision?.length
+    static grammar = /** @type {P<NumberEntity>} */(
+        P.regArray(
+            new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
+        ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
+            n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
+            precision?.length
+        )
+        ).label("NumberEntity")
     )
-    ).label("NumberEntity")
 
     #precision = 0
     get precision() {

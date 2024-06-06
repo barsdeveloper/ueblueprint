@@ -1,3 +1,5 @@
+import P from "parsernostrum"
+import Grammar from "../serialization/Grammar.js"
 import BooleanEntity from "./BooleanEntity.js"
 import IEntity from "./IEntity.js"
 import StringEntity from "./StringEntity.js"
@@ -12,6 +14,9 @@ export default class TerminalTypeEntity extends IEntity {
         bTerminalIsWeakPointer: BooleanEntity,
         bTerminalIsUObjectWrapper: BooleanEntity,
     }
+    static grammar = /** @type {P<TerminalTypeEntity>} */(
+        Grammar.createEntityGrammar(this)
+    )
 
     constructor(values) {
         super(values)

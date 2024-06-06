@@ -5,13 +5,15 @@ import SymbolEntity from "./SymbolEntity.js"
 
 export default class PinReferenceEntity extends IEntity {
 
-    static grammar = P.seq(
-        SymbolEntity.grammar,
-        P.whitespace,
-        GuidEntity.grammar
+    static grammar = /** @type {P<PinReferenceEntity>} */(
+        P.seq(
+            SymbolEntity.grammar,
+            P.whitespace,
+            GuidEntity.grammar
+        )
+            .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
+            .label("PinReferenceEntity")
     )
-        .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
-        .label("PinReferenceEntity")
 
     /**
      * @param {SymbolEntity} objectName

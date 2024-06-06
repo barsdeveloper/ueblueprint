@@ -4,5 +4,7 @@ import EnumEntity from "./EnumEntity.js"
 
 export default class EnumDisplayValueEntity extends EnumEntity {
 
-    static grammar = P.reg(Grammar.Regex.InsideString).map(v => new this(v))
+    static grammar = /** @type {P<EnumDisplayValueEntity>} */(
+        P.reg(Grammar.Regex.InsideString).map(v => new this(v))
+    )
 }

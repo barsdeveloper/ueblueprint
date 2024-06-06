@@ -3,7 +3,9 @@ import IntegerEntity from "./IntegerEntity.js"
 
 export default class ByteEntity extends IntegerEntity {
 
-    static grammar = P.numberByte.map(v => new this(v))
+    static grammar = /** @type {P<ByteEntity>} */(
+        P.numberByte.map(v => new this(v))
+    )
 
     get value() {
         return super.value

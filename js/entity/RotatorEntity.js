@@ -1,3 +1,4 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 import NumberEntity from "./NumberEntity.js"
@@ -10,7 +11,9 @@ export default class RotatorEntity extends IEntity {
         P: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
+    static grammar = /** @type {P<RotatorEntity>} */(
+        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
+    )
 
     constructor(values) {
         super(values)

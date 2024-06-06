@@ -1,3 +1,4 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
@@ -11,7 +12,9 @@ export default class MacroGraphReferenceEntity extends IEntity {
         GraphBlueprint: ObjectReferenceEntity,
         GraphGuid: GuidEntity,
     }
-    static grammar = Grammar.createEntityGrammar(this)
+    static grammar = /** @type {P<MacroGraphReferenceEntity>} */(
+        Grammar.createEntityGrammar(this)
+    )
 
     constructor(values) {
         super(values)

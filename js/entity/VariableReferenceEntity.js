@@ -1,3 +1,4 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import BooleanEntity from "./BooleanEntity.js"
 import GuidEntity from "./GuidEntity.js"
@@ -13,7 +14,9 @@ export default class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: BooleanEntity,
     }
-    static grammar = Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+    static grammar = /** @type {P<VariableReferenceEntity>} */(
+        Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+    )
 
     constructor(values) {
         super(values)

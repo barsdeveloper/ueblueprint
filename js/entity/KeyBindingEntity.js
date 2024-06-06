@@ -16,10 +16,11 @@ export default class KeyBindingEntity extends IEntity {
         bCmd: BooleanEntity,
         Key: SymbolEntity,
     }
-    /** @type {P<KeyBindingEntity>} */
-    static grammar = P.alt(
-        SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
-        Grammar.createEntityGrammar(this)
+    static grammar = /** @type {P<KeyBindingEntity>} */(
+        P.alt(
+            SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
+            Grammar.createEntityGrammar(this)
+        )
     )
 
     constructor(values) {

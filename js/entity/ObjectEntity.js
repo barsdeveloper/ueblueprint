@@ -169,31 +169,32 @@ export default class ObjectEntity extends IEntity {
                     }
                 )
         )
-    /** @type {P<ObjectEntity>} */
-    static grammar = P.seq(
-        P.reg(/Begin +Object/),
+    static grammar = /** @type {P<ObjectEntity>} */(
         P.seq(
-            P.whitespace,
-            P.alt(
-                this.createSubObjectGrammar(),
-                this.customPropertyGrammar,
-                Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
-                Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                    Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
-                ),
-                this.inlinedArrayEntryGrammar,
+            P.reg(/Begin +Object/),
+            P.seq(
+                P.whitespace,
+                P.alt(
+                    this.createSubObjectGrammar(),
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
+                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
+                    ),
+                    this.inlinedArrayEntryGrammar,
+                )
             )
+                .map(([_0, entry]) => entry)
+                .many(),
+            P.reg(/\s+End +Object/),
         )
-            .map(([_0, entry]) => entry)
-            .many(),
-        P.reg(/\s+End +Object/),
+            .map(([_0, attributes, _2]) => {
+                const values = {}
+                attributes.forEach(attributeSetter => attributeSetter(values))
+                return new this(values)
+            })
+            .label("ObjectEntity")
     )
-        .map(([_0, attributes, _2]) => {
-            const values = {}
-            attributes.forEach(attributeSetter => attributeSetter(values))
-            return new this(values)
-        })
-        .label("ObjectEntity")
     static grammarMultipleObjects = P.seq(
         P.whitespaceOpt,
         this.grammar,
@@ -302,7 +303,7 @@ export default class ObjectEntity extends IEntity {
                     const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)]
                     if (pinObject) {
                         const pinEntity = PinEntity.fromLegacyObject(pinObject)
-                        pinEntity.LinkedTo = []
+                        pinEntity.LinkedTo = new (PinEntity.attributes.LinkedTo)()
                         this.getCustomproperties(true).push(pinEntity)
                         Utility.objectSet(this, ["attributes", "CustomProperties", "ignored"], true)
                     }
@@ -321,21 +322,14 @@ export default class ObjectEntity extends IEntity {
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
                 // The following attributes are too generic therefore not assigned a MirroredEntity
                 const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName === pinName && (pin.recomputesNodeTitleOnChange = true))
+                    this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
                 )
                 const attribute = {}
-                obj.R = new (
-                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
-                )(() => rgbaPins[0].DefaultValue)
-                obj.G = new (
-                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
-                )(() => rgbaPins[1].DefaultValue)
-                obj.B = new (
-                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
-                )(() => rgbaPins[2].DefaultValue)
-                obj.A = new (
-                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
-                )(() => rgbaPins[3].DefaultValue)
+                const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
+                obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue)
+                obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue)
+                obj["B"] = new silentBool(() => rgbaPins[2].DefaultValue)
+                obj["A"] = new silentBool(() => rgbaPins[3].DefaultValue)
                 obj.keys = [...Configuration.rgba, ...super.keys.filter(k => !Configuration.rgba.includes(k))]
             }
         }
@@ -591,7 +585,7 @@ export default class ObjectEntity extends IEntity {
     }
 
     getDelegatePin() {
-        return this.getCustomproperties().find(pin => pin.PinType.PinCategory === "delegate")
+        return this.getCustomproperties().find(pin => pin.PinType.PinCategory.toString() === "delegate")
     }
 
     nodeColor() {

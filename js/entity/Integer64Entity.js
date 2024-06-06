@@ -3,7 +3,9 @@ import IEntity from "./IEntity.js"
 
 export default class Integer64Entity extends IEntity {
 
-    static grammar = P.numberBigInteger.map(v => new this(v))
+    static grammar = /** @type {P<Integer64Entity>} */(
+        P.numberBigInteger.map(v => new this(v))
+    )
 
     /** @type {bigint} */
     #value

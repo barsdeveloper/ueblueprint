@@ -4,7 +4,9 @@ import IntegerEntity from "./IntegerEntity.js"
 
 export default class NaturalNumberEntity extends IntegerEntity {
 
-    static grammar = P.numberNatural.map(v => new this(v))
+    static grammar = /** @type {P<NaturalNumberEntity>} */(
+        P.numberNatural.map(v => new this(v))
+    )
 
     get value() {
         return super.value

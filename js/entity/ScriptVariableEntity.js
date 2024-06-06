@@ -1,3 +1,4 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import GuidEntity from "./GuidEntity.js"
 import IEntity from "./IEntity.js"
@@ -10,7 +11,9 @@ export default class ScriptVariableEntity extends IEntity {
         ScriptVariable: ObjectReferenceEntity,
         OriginalChangeId: GuidEntity,
     }
-    static grammar = Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
+    static grammar = /** @type {P<ScriptVariableEntity>} */(
+        Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
+    )
 
     constructor(values = {}) {
         super(values)

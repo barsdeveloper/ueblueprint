@@ -1,3 +1,4 @@
+import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import BooleanEntity from "./BooleanEntity.js"
 import FunctionReferenceEntity from "./FunctionReferenceEntity.js"
@@ -21,7 +22,9 @@ export default class PinTypeEntity extends IEntity {
         bIsUObjectWrapper: BooleanEntity.withDefault(),
         bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this).label("PinTypeEntity")
+    static grammar = /** @type {P<PinTypeEntity>} */(
+        Grammar.createEntityGrammar(this).label("PinTypeEntity")
+    )
 
     constructor(values = {}) {
         super(values)

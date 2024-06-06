@@ -4,9 +4,11 @@ import IPrintableEntity from "./IPrintableEntity.js"
 
 export default class StringEntity extends IPrintableEntity {
 
-    static grammar = P.doubleQuotedString
-        .map(insideString => new this(Utility.unescapeString(insideString)))
-        .label("StringEntity")
+    static grammar = /** @type {P<StringEntity>} */(
+        P.doubleQuotedString
+            .map(insideString => new this(Utility.unescapeString(insideString)))
+            .label("StringEntity")
+    )
 
     /** @param {String} value */
     constructor(value = "") {

@@ -3,7 +3,9 @@ import IEntity from "./IEntity.js"
 
 export default class ColorChannelEntity extends IEntity {
 
-    static grammar = P.number.map(v => new this(v))
+    static grammar = /** @type {P<ColorChannelEntity>} */(
+        P.number.map(v => new this(v))
+    )
 
     constructor(value = 0) {
         super()

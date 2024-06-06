@@ -7,7 +7,9 @@ export default class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
-    static grammar = this.createGrammar()
+    static grammar = /** @type {P<ArrayEntity<IEntity>>} */(
+        this.createGrammar()
+    )
 
     get length() {
         return this.values.length
@@ -43,8 +45,8 @@ export default class ArrayEntity extends IEntity {
         const result = /** @type {typeof ArrayEntity<ExtractType<T>> & {type: T, grammar: P<ArrayEntity<ExtractType<T>>> }} */(
             this.asUniqueClass()
         )
-        result.type = /** @type {ExtractType<T>} */(type)
-        result.grammar = result.createGrammar()
+        result.type = type
+        result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar())
         return result
     }
 

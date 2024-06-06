@@ -92,8 +92,9 @@ export default class PinEntity extends IEntity {
         bAdvancedView: BooleanEntity.withDefault(),
         bOrphanedPin: BooleanEntity.withDefault(),
     }
-    /** @type {P<PinEntity>} */
-    static grammar = Grammar.createEntityGrammar(this)
+    static grammar = /** @type {P<PinEntity>} */(
+        Grammar.createEntityGrammar(this)
+    )
 
     #recomputesNodeTitleOnChange = false
     set recomputesNodeTitleOnChange(value) {

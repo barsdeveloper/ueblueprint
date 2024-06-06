@@ -11,8 +11,9 @@ export default class VectorEntity extends IEntity {
         Y: NumberEntity.withDefault(),
         Z: NumberEntity.withDefault(),
     }
-    /** @type {P<VectorEntity>} */
-    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
+    static grammar = /** @type {P<VectorEntity>} */(
+        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
+    )
 
     constructor(values) {
         super(values)

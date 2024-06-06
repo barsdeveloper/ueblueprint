@@ -4,7 +4,7 @@ import Vector2DEntity from "./Vector2DEntity.js"
 
 export default class RBSerializationVector2DEntity extends Vector2DEntity {
 
-    static grammar = P.alt(
+    static grammar = /** @type {P<RBSerializationVector2DEntity>} */(P.alt(
         P.regArray(new RegExp(
             /X\s*=\s*/.source + "(?<x>" + Grammar.numberRegexSource + ")"
             + "\\s+"
@@ -14,5 +14,5 @@ export default class RBSerializationVector2DEntity extends Vector2DEntity {
             Y: Number(y),
         })),
         Vector2DEntity.grammar
-    ).label("RBSerializationVector2DEntity")
+    ).label("RBSerializationVector2DEntity"))
 }

@@ -6,21 +6,22 @@ import NumberEntity from "./NumberEntity.js"
 export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
 
     static attributeSeparator = ", "
-    /** @type {P<SimpleSerializationVector2DEntity>} */
-    static grammar = P.alt(
-        P.regArray(new RegExp(
-            `(${NumberEntity.numberRegexSource})`
-            + String.raw`\s*,\s*`
-            + `(${NumberEntity.numberRegexSource})`
-        )).map(([_, x, xPrecision, y, yPrecision]) => new this({
-            X: new NumberEntity(x, xPrecision?.length),
-            Y: new NumberEntity(y, yPrecision?.length),
-        })),
-        Vector2DEntity.grammar.map(v => new this({
-            X: v.X,
-            Y: v.Y,
-        }))
-    ).label("SimpleSerializationVector2DEntity")
+    static grammar = /** @type {P<SimpleSerializationVector2DEntity>} */(
+        P.alt(
+            P.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+            )).map(([_, x, xPrecision, y, yPrecision]) => new this({
+                X: new NumberEntity(x, xPrecision?.length),
+                Y: new NumberEntity(y, yPrecision?.length),
+            })),
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
+        ).label("SimpleSerializationVector2DEntity")
+    )
 
     toString(
         insideString = false,

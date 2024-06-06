@@ -14,7 +14,9 @@ export default class LinearColorEntity extends IEntity {
         B: ColorChannelEntity.withDefault(),
         A: ColorChannelEntity.withDefault(type => new type(1)),
     }
-    static grammar = Grammar.createEntityGrammar(this).label("LinearColorEntity")
+    static grammar = /** @type {P<LinearColorEntity>} */(
+        Grammar.createEntityGrammar(this).label("LinearColorEntity")
+    )
 
     #H = new ColorChannelEntity()
     get H() {
