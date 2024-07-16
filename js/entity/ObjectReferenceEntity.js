@@ -90,7 +90,9 @@ export default class ObjectReferenceEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
         if (insideString) {
             if (this.#fullEscaped === undefined) {

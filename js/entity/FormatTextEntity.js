@@ -1,10 +1,10 @@
 import P from "parsernostrum"
-import IPrintableEntity from "./IPrintableEntity.js"
 import InvariantTextEntity from "./InvariantTextEntity.js"
 import LocalizedTextEntity from "./LocalizedTextEntity.js"
 import StringEntity from "./StringEntity.js"
+import IEntity from "./IEntity.js"
 
-export default class FormatTextEntity extends IPrintableEntity {
+export default class FormatTextEntity extends IEntity {
 
     static attributeSeparator = ", "
     static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
@@ -31,13 +31,12 @@ export default class FormatTextEntity extends IPrintableEntity {
         this.values = values
     }
 
-    print() {
-        const pattern = this.values?.[0]?.print() // The pattern is always the first element of the array
+    valueOf() {
+        const pattern = this.values?.[0]?.valueOf() // The pattern is always the first element of the array
         if (!pattern) {
             return ""
         }
-
-        const values = this.values.slice(1).map(v => v.print())
+        const values = this.values.slice(1).map(v => v?.valueOf())
         let result = this.lookbehind == "LOCGEN_FORMAT_NAMED"
             ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
                 const argLocation = values.indexOf(arg) + 1
@@ -59,7 +58,9 @@ export default class FormatTextEntity extends IPrintableEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
         const separator = this.Self().attributeSeparator
         return this.lookbehind + "("

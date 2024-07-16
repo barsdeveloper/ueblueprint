@@ -16,6 +16,7 @@ import LinearColorEntity from "./LinearColorEntity.js"
 import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity.js"
 import MirroredEntity from "./MirroredEntity.js"
 import NaturalNumberEntity from "./NaturalNumberEntity.js"
+import NullEntity from "./NullEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PinEntity from "./PinEntity.js"
 import ScriptVariableEntity from "./ScriptVariableEntity.js"
@@ -45,6 +46,7 @@ export default class ObjectEntity extends IEntity {
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
+        PinTags: ArrayEntity.of(NullEntity).flagInlined(),
         PinNames: ArrayEntity.of(StringEntity).flagInlined(),
         AxisKey: SymbolEntity,
         InputAxisKey: SymbolEntity,
@@ -280,6 +282,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName
         /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins
         /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY
@@ -324,7 +327,6 @@ export default class ObjectEntity extends IEntity {
                 const rgbaPins = Configuration.rgba.map(pinName =>
                     this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
                 )
-                const attribute = {}
                 const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
                 obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue)
                 obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue)
@@ -400,7 +402,7 @@ export default class ObjectEntity extends IEntity {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
         }
-        return this.Name.print()
+        return this.Name.valueOf()
     }
 
     /** @returns {[String, Number]} */
@@ -617,7 +619,9 @@ export default class ObjectEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
         const moreIndentation = indentation + Configuration.indentation
         let result = indentation + "Begin Object"
@@ -626,7 +630,7 @@ export default class ObjectEntity extends IEntity {
             + (this.Archetype ? ` Archetype=${this.Archetype.toString(insideString)}` : "")
             + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.toString(insideString)}` : "")
             + "\n"
-            + super.toString(insideString, moreIndentation, k => this[k] instanceof ObjectEntity ? "" : k)
+            + super.toString(insideString, moreIndentation, Self, printKey, wrap)
             + (!this.CustomProperties.Self().ignored
                 ? this.getCustomproperties().map(pin =>
                     moreIndentation

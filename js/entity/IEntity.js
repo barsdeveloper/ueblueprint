@@ -16,7 +16,7 @@ export default class IEntity {
     /** @type {(k: String) => String} */
     static printKey = k => k
     /** @type {P<IEntity>} */
-    static grammar = /** @type {any} */(P.failure())
+    static grammar = P.lazy(() => this.unknownEntity)
     /** @type {P<IEntity>} */
     static unknownEntityGrammar
     static unknownEntity

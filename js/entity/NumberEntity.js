@@ -51,7 +51,9 @@ export default class NumberEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"

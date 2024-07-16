@@ -258,7 +258,7 @@ test("FormatTextEntity", () => {
     let grammar = FormatTextEntity.grammar
 
     let value = grammar.parse('LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema",   "SplitPinFriendlyNameFormat",  "{PinDisplayName} {ProtoPinDisplayName}"),   "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")')
-    expect(value.print()).toEqual("Out Hit Blocking Hit")
+    expect(value.valueOf()).toEqual("Out Hit Blocking Hit")
     expect(value.toString())
         .toEqual('LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")')
 
@@ -272,7 +272,7 @@ test("FormatTextEntity", () => {
         "float",
         "InRangeMin"
     )`)
-    expect(value.print())
+    expect(value.valueOf())
         .toEqual(`If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\nAttribute type is "float" and its exact name is "InRangeMin"`)
     expect(value.toString())
         .toEqual(String.raw`LOCGEN_FORMAT_ORDERED(NSLOCTEXT("PCGSettings", "OverridableParamPinTooltip", "{0}Attribute type is \"{1}\" and its exact name is \"{2}\""), "If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\n", "float", "InRangeMin")`)
@@ -938,7 +938,7 @@ test("StringEntity", () => {
         expect(value).toEqual(new StringEntity(""))
         expect(value.equals(new StringEntity(""))).toBeTruthy()
         expect(value.equals(new StringEntity("1"))).toBeFalsy()
-        expect(value.print()).toEqual("")
+        expect(value.valueOf()).toEqual("")
         expect(value.toString()).toEqual(`""`)
         expect(value.toString(true)).toEqual(String.raw`\"\"`)
     }
@@ -948,7 +948,7 @@ test("StringEntity", () => {
         expect(value.equals(new StringEntity("hello"))).toBeTruthy()
         expect(value.equals(new SymbolEntity("hello"))).toBeFalsy()
         expect(value.equals(new NumberEntity())).toBeFalsy()
-        expect(value.print()).toEqual("hello")
+        expect(value.valueOf()).toEqual("hello")
         expect(value.toString()).toEqual(`"hello"`)
         expect(value.toString(true)).toEqual(String.raw`\"hello\"`)
     }
@@ -957,7 +957,7 @@ test("StringEntity", () => {
         expect(value).toEqual(new StringEntity("hello world 123 - éèàò@ç ^ ^^^"))
         expect(value.equals(new StringEntity("hello world 123 - éèàò@ç ^ ^^^"))).toBeTruthy()
         expect(value.equals(new StringEntity("hello world 123 - éèàò@ç ^ ^^^-"))).toBeFalsy()
-        expect(value.print()).toEqual("hello world 123 - éèàò@ç ^ ^^^")
+        expect(value.valueOf()).toEqual("hello world 123 - éèàò@ç ^ ^^^")
         expect(value.toString()).toEqual(`"hello world 123 - éèàò@ç ^ ^^^"`)
         expect(value.toString(true)).toEqual(String.raw`\"hello world 123 - éèàò@ç ^ ^^^\"`)
     }
@@ -966,7 +966,7 @@ test("StringEntity", () => {
         expect(value).toEqual(new StringEntity(String.raw`a:"hello", b:"word is \"world\""`))
         expect(value.equals(new StringEntity(String.raw`a:"hello", b:"word is \"world\""`))).toBeTruthy()
         expect(value.equals(new NumberEntity())).toBeFalsy()
-        expect(value.print()).toEqual(String.raw`a:"hello", b:"word is \"world\""`)
+        expect(value.valueOf()).toEqual(String.raw`a:"hello", b:"word is \"world\""`)
         expect(value.toString(false)).toEqual(String.raw`"a:\"hello\", b:\"word is \\\"world\\\"\""`)
         expect(value.toString(true)).toEqual(String.raw`\"a:\\\"hello\\\", b:\\\"word is \\\\\\\"world\\\\\\\"\\\"\"`)
     }

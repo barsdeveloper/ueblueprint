@@ -1,7 +1,7 @@
 import P from "parsernostrum"
-import IPrintableEntity from "./IPrintableEntity.js"
+import IEntity from "./IEntity.js"
 
-export default class InvariantTextEntity extends IPrintableEntity {
+export default class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
 
@@ -23,15 +23,7 @@ export default class InvariantTextEntity extends IPrintableEntity {
         this.value = value
     }
 
-    print() {
-        let xxxx = P.alt(
-            P.seq(
-                P.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
-                P.doubleQuotedString,
-                P.reg(/\s*\)/)
-            ).map(([_0, value, _2]) => Number(value)),
-            P.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
-        )
+    valueOf() {
         return this.value
     }
 

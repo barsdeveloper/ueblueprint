@@ -1,8 +1,8 @@
 import P from "parsernostrum"
 import Utility from "../Utility.js"
-import IPrintableEntity from "./IPrintableEntity.js"
+import IEntity from "./IEntity.js"
 
-export default class StringEntity extends IPrintableEntity {
+export default class StringEntity extends IEntity {
 
     static grammar = /** @type {P<StringEntity>} */(
         P.doubleQuotedString
@@ -14,10 +14,6 @@ export default class StringEntity extends IPrintableEntity {
     constructor(value = "") {
         super()
         this.value = value
-    }
-
-    print() {
-        return this.value
     }
 
     valueOf() {

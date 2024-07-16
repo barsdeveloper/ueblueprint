@@ -2360,7 +2360,7 @@ class IEntity {
     /** @type {(k: String) => String} */
     static printKey = k => k
     /** @type {P<IEntity>} */
-    static grammar = /** @type {any} */(Parsernostrum.failure())
+    static grammar = Parsernostrum.lazy(() => this.unknownEntity)
     /** @type {P<IEntity>} */
     static unknownEntityGrammar
     static unknownEntity
@@ -2854,7 +2854,9 @@ class Grammar {
 
 class ColorChannelEntity extends IEntity {
 
-    static grammar = Parsernostrum.number.map(v => new this(v))
+    static grammar = /** @type {P<ColorChannelEntity>} */(
+        Parsernostrum.number.map(v => new this(v))
+    )
 
     constructor(value = 0) {
         super();
@@ -2879,7 +2881,9 @@ class LinearColorEntity extends IEntity {
         B: ColorChannelEntity.withDefault(),
         A: ColorChannelEntity.withDefault(type => new type(1)),
     }
-    static grammar = Grammar.createEntityGrammar(this).label("LinearColorEntity")
+    static grammar = /** @type {P<LinearColorEntity>} */(
+        Grammar.createEntityGrammar(this).label("LinearColorEntity")
+    )
 
     #H = new ColorChannelEntity()
     get H() {
@@ -3671,6 +3675,179 @@ class SVGIcon {
     `
 }
 
+class BooleanEntity extends IEntity {
+
+    static grammar = /** @type {P<BooleanEntity>} */(
+        Parsernostrum.regArray(/(true)|(True)|(false)|(False)/)
+            .map(v => {
+                const result = (v[1] ?? v[2]) ? new this(true) : new this(false);
+                result.uppercase = (v[2] ?? v[4]) !== undefined;
+                return result
+            })
+            .label("BooleanEntity")
+    )
+
+    #uppercase = true
+    get uppercase() {
+        return this.#uppercase
+    }
+    set uppercase(value) {
+        this.#uppercase = value;
+    }
+
+    constructor(value = false) {
+        super();
+        this.value = value;
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
+        return this.value
+            ? this.#uppercase
+                ? "True"
+                : "true"
+            : this.#uppercase
+                ? "False"
+                : "false"
+    }
+}
+
+/** @template {typeof IEntity} T */
+class MirroredEntity extends IEntity {
+
+    /** @type {typeof IEntity} */
+    static type
+
+    /** @param {() => InstanceType<T>} getter */
+    constructor(getter = null) {
+        super();
+        this.getter = getter;
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {T} type
+     */
+    static of(type) {
+        const result = this.asUniqueClass();
+        result.type = type;
+        result.grammar = result.getTargetType().grammar.map(v => new this());
+        return result
+    }
+
+    /** @returns {typeof IEntity} */
+    static getTargetType() {
+        const result = this.type;
+        if (result.prototype instanceof MirroredEntity) {
+            return /** @type {typeof MirroredEntity} */(result).getTargetType()
+        }
+        return result
+    }
+
+    toString(
+        insideString = false,
+        indentation = "",
+        printKey = this.Self().printKey,
+    ) {
+        return this.getter().toString(insideString, indentation, printKey)
+    }
+}
+
+class NumberEntity extends IEntity {
+
+    static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
+    static grammar = /** @type {P<NumberEntity>} */(
+        Parsernostrum.regArray(
+            new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
+        ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
+            n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
+            precision?.length
+        )
+        ).label("NumberEntity")
+    )
+
+    #precision = 0
+    get precision() {
+        return this.#precision
+    }
+    set precision(value) {
+        this.#precision = value;
+    }
+
+    /**
+     * @protected
+     * @type {Number}
+     */
+    _value
+    get value() {
+        return this._value
+    }
+    set value(value) {
+        if (value === -0) {
+            value = 0;
+        }
+        this._value = value;
+    }
+
+    constructor(value = 0, precision = 0) {
+        super();
+        this.value = Number(value);
+        this.#precision = Number(precision);
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
+        if (this.value === Number.POSITIVE_INFINITY) {
+            return "+inf"
+        }
+        if (this.value === Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        return this.#precision ? this.value.toFixed(this.#precision) : this.value.toString()
+    }
+}
+
+class VectorEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+        Z: NumberEntity.withDefault(),
+    }
+    static grammar = /** @type {P<VectorEntity>} */(
+        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
+    )
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.X;
+        /** @type {InstanceType<typeof VectorEntity.attributes.Y>} */ this.Y;
+        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.Z;
+    }
+
+    /** @returns {[Number, Number, Number]} */
+    toArray() {
+        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf()]
+    }
+}
+
 const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/;
 const keyNameValue = {
     "A_AccentGrave": "à",
@@ -3726,18 +3903,18 @@ function nodeTitle(entity) {
     switch (entity.getType()) {
         case Configuration.paths.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
-                return Utility.formatStringName(entity.ProxyFactoryFunctionName)
+                return Utility.formatStringName(entity.ProxyFactoryFunctionName?.valueOf())
             }
         case Configuration.paths.actorBoundEvent:
         case Configuration.paths.componentBoundEvent:
-            return `${Utility.formatStringName(entity.DelegatePropertyName)} (${entity.ComponentPropertyName ?? "Unknown"})`
+            return `${Utility.formatStringName(entity.DelegatePropertyName?.valueOf())} (${entity.ComponentPropertyName?.valueOf() ?? "Unknown"})`
         case Configuration.paths.callDelegate:
-            return `Call ${entity.DelegateReference?.MemberName ?? "None"}`
+            return `Call ${entity.DelegateReference?.MemberName?.valueOf() ?? "None"}`
         case Configuration.paths.createDelegate:
             return "Create Event"
         case Configuration.paths.customEvent:
             if (entity.CustomFunctionName) {
-                return entity.CustomFunctionName
+                return entity.CustomFunctionName?.valueOf()
             }
         case Configuration.paths.dynamicCast:
             if (!entity.TargetType) {
@@ -3747,7 +3924,7 @@ function nodeTitle(entity) {
         case Configuration.paths.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
         case Configuration.paths.event:
-            return `Event ${(entity.EventReference?.MemberName ?? "").replace(/^Receive/, "")}`
+            return `Event ${(entity.EventReference?.MemberName?.valueOf() ?? "").replace(/^Receive/, "")}`
         case Configuration.paths.executionSequence:
             return "Sequence"
         case Configuration.paths.forEachElementInEnum:
@@ -3755,9 +3932,9 @@ function nodeTitle(entity) {
         case Configuration.paths.forEachLoopWithBreak:
             return "For Each Loop with Break"
         case Configuration.paths.functionEntry:
-            return entity.FunctionReference?.MemberName === "UserConstructionScript"
+            return entity.FunctionReference?.MemberName?.valueOf() === "UserConstructionScript"
                 ? "Construction Script"
-                : entity.FunctionReference?.MemberName
+                : entity.FunctionReference?.MemberName?.valueOf()
         case Configuration.paths.functionResult:
             return "Return Node"
         case Configuration.paths.ifThenElse:
@@ -3769,35 +3946,29 @@ function nodeTitle(entity) {
         case Configuration.paths.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject();
             return `Mask ( ${Configuration.rgba
-                .filter(k => /** @type {MirroredEntity<any>} */(materialObject[k]).get() === true)
+                .filter(k => /** @type {MirroredEntity<typeof BooleanEntity>} */(materialObject[k]).getter().value === true)
                 .map(v => v + " ")
                 .join("")})`
         }
         case Configuration.paths.materialExpressionConstant:
-            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "Value")?.DefaultValue];
+            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.valueOf() == "Value")?.DefaultValue];
         case Configuration.paths.materialExpressionConstant2Vector:
             input ??= [
-                entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "X")?.DefaultValue,
-                entity.getCustomproperties().find(pinEntity => pinEntity.PinName == "Y")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.valueOf() == "X")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.valueOf() == "Y")?.DefaultValue,
             ];
         case Configuration.paths.materialExpressionConstant3Vector:
-            if (!input) {
-                /** @type {VectorEntity} */
-                const vector = entity.getCustomproperties()
-                    .find(pinEntity => pinEntity.PinName == "Constant")
-                    ?.DefaultValue;
-                input = [vector.X, vector.Y, vector.Z];
-            }
         case Configuration.paths.materialExpressionConstant4Vector:
             if (!input) {
-                /** @type {LinearColorEntity} */
                 const vector = entity.getCustomproperties()
-                    .find(pinEntity => pinEntity.PinName == "Constant")
+                    .find(pinEntity => pinEntity.PinName?.valueOf() == "Constant")
                     ?.DefaultValue;
-                input = [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf());
+                input = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
+                    : vector instanceof LinearColorEntity ? [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
+                        : /** @type {Number[]} */([]);
             }
             if (input.length > 0) {
-                return input.map(v => Utility.printExponential(v)).reduce((acc, cur) => acc + "," + cur)
+                return input.map(v => Utility.printExponential(v)).join(",")
             }
             break
         case Configuration.paths.materialExpressionFunctionInput: {
@@ -3835,7 +4006,7 @@ function nodeTitle(entity) {
             return "Output"
         case Configuration.paths.spawnActorFromClass:
             let className = entity.getCustomproperties()
-                .find(pinEntity => pinEntity.PinName == "ReturnValue")
+                .find(pinEntity => pinEntity.PinName.valueOf() == "ReturnValue")
                 ?.PinType
                 ?.PinSubCategoryObject
                 ?.getName();
@@ -3902,7 +4073,7 @@ function nodeTitle(entity) {
             return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
         }
         if (settingsObject.Operation) {
-            const match = settingsObject.Name.match(/PCGMetadata(\w+)Settings_\d+/);
+            const match = settingsObject.Name?.valueOf().match(/PCGMetadata(\w+)Settings_\d+/);
             if (match) {
                 return Utility.formatStringName(match[1] + ": " + settingsObject.Operation)
             }
@@ -3912,9 +4083,9 @@ function nodeTitle(entity) {
             return settingsSubgraphObject.Graph.getName()
         }
     }
-    let memberName = entity.FunctionReference?.MemberName;
+    let memberName = entity.FunctionReference?.MemberName?.valueOf();
     if (memberName) {
-        const memberParent = entity.FunctionReference.MemberParent?.path ?? "";
+        const memberParent = entity.FunctionReference.MemberParent?.path?.valueOf() ?? "";
         switch (memberName) {
             case "AddKey":
                 let result = memberParent.match(sequencerScriptingNameRegex);
@@ -4049,7 +4220,7 @@ function nodeTitle(entity) {
         return Utility.formatStringName(memberName)
     }
     if (entity.OpName) {
-        switch (entity.OpName) {
+        switch (entity.OpName.valueOf()) {
             case "Boolean::LogicAnd": return "Logic AND"
             case "Boolean::LogicEq": return "=="
             case "Boolean::LogicNEq": return "!="
@@ -4062,10 +4233,10 @@ function nodeTitle(entity) {
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
         }
-        return Utility.formatStringName(entity.OpName).replaceAll("::", " ")
+        return Utility.formatStringName(entity.OpName.valueOf()).replaceAll("::", " ")
     }
     if (entity.FunctionDisplayName) {
-        return Utility.formatStringName(entity.FunctionDisplayName)
+        return Utility.formatStringName(entity.FunctionDisplayName.valueOf())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()
@@ -4148,6 +4319,89 @@ function nodeIcon(entity) {
     return SVGIcon.functionSymbol
 }
 
+/** @template {IEntity} T */
+class ArrayEntity extends IEntity {
+
+    /** @type {typeof IEntity} */
+    static type
+    static grammar = /** @type {P<ArrayEntity<IEntity>>} */(
+        this.createGrammar()
+    )
+
+    get length() {
+        return this.values.length
+    }
+
+    /** @param {T[]} values */
+    constructor(values = []) {
+        super();
+        this.values = values;
+    }
+
+    /** @returns {P<ArrayEntity<IEntity>>} */
+    static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
+        return this.inlined
+            ? elementGrammar
+            : Parsernostrum.seq(
+                Parsernostrum.reg(/\(\s*/),
+                elementGrammar.sepBy(Grammar.commaSeparation).opt(),
+                Parsernostrum.reg(/\s*(,\s*)?\)/, 1),
+            ).map(([_0, values, trailing]) => {
+                values = values instanceof Array ? values : [];
+                const result = new this(values);
+                result.trailing = trailing !== undefined;
+                return result
+            }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {T} type
+     */
+    static of(type) {
+        const result = /** @type {typeof ArrayEntity<ExtractType<T>> & {type: T, grammar: P<ArrayEntity<ExtractType<T>>> }} */(
+            this.asUniqueClass()
+        );
+        result.type = type;
+        result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar());
+        return result
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
+            return false
+        }
+        for (let i = 0; i < this.values.length; ++i) {
+            if (!this.values[i].equals(other.values[i])) {
+                return false
+            }
+        }
+        return true
+    }
+
+    valueOf() {
+        return this.values
+    }
+
+    toString(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
+        if (this.Self().inlined) {
+            return super.toString.bind(this.values, insideString, indentation, Self, printKey, wrap)()
+        }
+        let result = this.values.map(v => v?.toString(insideString)).join(this.Self().attributeSeparator);
+        if (this.trailing) {
+            result += this.Self().attributeSeparator;
+        }
+        return `(${result})`
+    }
+}
+
 var crypto;
 if (typeof window === "undefined") {
     import('crypto').then(mod => crypto = mod.default).catch();
@@ -4157,7 +4411,9 @@ if (typeof window === "undefined") {
 
 class GuidEntity extends IEntity {
 
-    static grammar = Parsernostrum.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
+    static grammar = /** @type {P<GuidEntity>} */(
+        Parsernostrum.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
+    )
 
     static generateGuid() {
         let values = new Uint32Array(4);
@@ -4180,6 +4436,39 @@ class GuidEntity extends IEntity {
 
     toString() {
         return this.value
+    }
+}
+
+class IntegerEntity extends NumberEntity {
+
+    static grammar = /** @type {P<IntegerEntity>} */(
+        Parsernostrum.numberInteger.map(v => new this(v))
+    )
+
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.trunc(value);
+        if (value >= 1 << 31 && value < -(1 << 31)) {
+            value = Math.floor(value);
+            super.value = value;
+        }
+    }
+}
+
+class NaturalNumberEntity extends IntegerEntity {
+
+    static grammar = /** @type {P<NaturalNumberEntity>} */(
+        Parsernostrum.numberNatural.map(v => new this(v))
+    )
+
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.round(Utility.clamp(this.value, 0));
+        super.value = value;
     }
 }
 
@@ -4236,16 +4525,16 @@ const pinColorMaterial = i$3`120, 120, 120`;
 
 /** @param {PinEntity} entity */
 function pinColor(entity) {
-    if (entity.PinType.PinCategory == "mask") {
+    if (entity.PinType.PinCategory?.valueOf() == "mask") {
         const result = colors[entity.PinType.PinSubCategory];
         if (result) {
             return result
         }
-    } else if (entity.PinType.PinCategory == "optional") {
+    } else if (entity.PinType.PinCategory?.valueOf() == "optional") {
         return pinColorMaterial
     }
     return colors[entity.getType()]
-        ?? colors[entity.PinType.PinCategory.toLowerCase()]
+        ?? colors[entity.PinType.PinCategory?.valueOf().toLowerCase()]
         ?? colors["default"]
 }
 
@@ -4267,207 +4556,11 @@ function pinTitle(entity) {
     return result
 }
 
-/** @template {IEntity} T */
-class ArrayEntity extends IEntity {
-
-    /** @type {typeof IEntity} */
-    static type
-    static grammar = this.createGrammar()
-
-    get length() {
-        return this.values.length
-    }
-
-    /** @param {T[]} values */
-    constructor(values = []) {
-        super();
-        this.values = values;
-    }
-
-    /** @returns {P<ArrayEntity<IEntity>>} */
-    static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
-        return this.inlined
-            ? elementGrammar
-            : Parsernostrum.seq(
-                Parsernostrum.reg(/\(\s*/),
-                elementGrammar.sepBy(Grammar.commaSeparation).opt(),
-                Parsernostrum.reg(/\s*(,\s*)?\)/, 1),
-            ).map(([_0, values, trailing]) => {
-                values = values instanceof Array ? values : [];
-                const result = new this(values);
-                result.trailing = trailing !== undefined;
-                return result
-            }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
-    }
-
-    /**
-     * @template {typeof IEntity} T
-     * @param {T} type
-     */
-    static of(type) {
-        const result = /** @type {typeof ArrayEntity<ExtractType<T>> & {type: T, grammar: P<ArrayEntity<ExtractType<T>>> }} */(
-            this.asUniqueClass()
-        );
-        result.type = /** @type {ExtractType<T>} */(type);
-        result.grammar = result.createGrammar();
-        return result
-    }
-
-    /** @param {IEntity} other */
-    equals(other) {
-        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
-            return false
-        }
-        for (let i = 0; i < this.values.length; ++i) {
-            if (!this.values[i].equals(other.values[i])) {
-                return false
-            }
-        }
-        return true
-    }
-
-    valueOf() {
-        return this.values
-    }
-
-    toString(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        if (this.Self().inlined) {
-            return super.toString.bind(this.values, insideString, indentation, Self, printKey, wrap)()
-        }
-        let result = this.values.map(v => v?.toString(insideString)).join(this.Self().attributeSeparator);
-        if (this.trailing) {
-            result += this.Self().attributeSeparator;
-        }
-        return `(${result})`
-    }
-}
-
-class BooleanEntity extends IEntity {
-
-    static grammar = Parsernostrum.regArray(/(true)|(True)|(false)|(False)/)
-        .map(v => {
-            const result = (v[1] ?? v[2]) ? new this(true) : new this(false);
-            result.uppercase = (v[2] ?? v[4]) !== undefined;
-            return result
-        })
-        .label("BooleanEntity")
-
-    #uppercase = true
-    get uppercase() {
-        return this.#uppercase
-    }
-    set uppercase(value) {
-        this.#uppercase = value;
-    }
-
-    constructor(value = false) {
-        super();
-        this.value = value;
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString(
-        insideString = false,
-        indentation = "",
-        printKey = this.Self().printKey,
-    ) {
-        return this.value
-            ? this.#uppercase
-                ? "True"
-                : "true"
-            : this.#uppercase
-                ? "False"
-                : "false"
-    }
-}
-
-class NumberEntity extends IEntity {
-
-    static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
-    static grammar = Parsernostrum.regArray(
-        new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
-    ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
-        n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
-        precision?.length
-    )
-    ).label("NumberEntity")
-
-    #precision = 0
-    get precision() {
-        return this.#precision
-    }
-    set precision(value) {
-        this.#precision = value;
-    }
-
-    /**
-     * @protected
-     * @type {Number}
-     */
-    _value
-    get value() {
-        return this._value
-    }
-    set value(value) {
-        if (value === -0) {
-            value = 0;
-        }
-        this._value = value;
-    }
-
-    constructor(value = 0, precision = 0) {
-        super();
-        this.value = Number(value);
-        this.#precision = Number(precision);
-    }
-
-    valueOf() {
-        return this.value
-    }
-
-    toString(
-        insideString = false,
-        indentation = "",
-        printKey = this.Self().printKey,
-    ) {
-        if (this.value === Number.POSITIVE_INFINITY) {
-            return "+inf"
-        }
-        if (this.value === Number.NEGATIVE_INFINITY) {
-            return "-inf"
-        }
-        return this.#precision ? this.value.toFixed(this.#precision) : this.value.toString()
-    }
-}
-
-class IntegerEntity extends NumberEntity {
-
-    static grammar = Parsernostrum.numberInteger.map(v => new this(v))
-
-    get value() {
-        return super.value
-    }
-    set value(value) {
-        value = Math.trunc(value);
-        if (value >= 1 << 31 && value < -(1 << 31)) {
-            value = Math.floor(value);
-            super.value = value;
-        }
-    }
-}
-
 class ByteEntity extends IntegerEntity {
 
-    static grammar = Parsernostrum.numberByte.map(v => new this(v))
+    static grammar = /** @type {P<ByteEntity>} */(
+        Parsernostrum.numberByte.map(v => new this(v))
+    )
 
     get value() {
         return super.value
@@ -4508,7 +4601,9 @@ class SymbolEntity extends IEntity {
         fromAttribute: (value, type) => new this(value),
         toAttribute: (value, type) => value.toString()
     }
-    static grammar = Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
+    static grammar = /** @type {P<SymbolEntity>} */(
+        Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
+    )
 
     constructor(value = "") {
         super();
@@ -4526,42 +4621,23 @@ class SymbolEntity extends IEntity {
 
 class EnumEntity extends SymbolEntity {
 
-    static grammar = Grammar.symbol.map(v => new this(v))
+    static grammar = /** @type {P<EnumEntity>} */(
+        Grammar.symbol.map(v => new this(v))
+    )
 }
 
 class EnumDisplayValueEntity extends EnumEntity {
 
-    static grammar = Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
+    static grammar = /** @type {P<EnumDisplayValueEntity>} */(
+        Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
+    )
 }
 
-class IPrintableEntity extends IEntity {
-
-    print() {
-        return this.toString()
-    }
-}
-
-class InvariantTextEntity extends IPrintableEntity {
+class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
 
-    static grammar = Parsernostrum.alt(
-        Parsernostrum.seq(
-            Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
-            Parsernostrum.doubleQuotedString,
-            Parsernostrum.reg(/\s*\)/)
-        ).map(([_0, value, _2]) => Number(value)),
-        Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
-    )
-        .map(value => new this(value))
-        .label("InvariantTextEntity")
-
-    constructor(value = "") {
-        super();
-        this.value = value;
-    }
-
-    print() {
+    static grammar = /** @type {P<InvariantTextEntity>} */(
         Parsernostrum.alt(
             Parsernostrum.seq(
                 Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
@@ -4569,7 +4645,17 @@ class InvariantTextEntity extends IPrintableEntity {
                 Parsernostrum.reg(/\s*\)/)
             ).map(([_0, value, _2]) => Number(value)),
             Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
-        );
+        )
+            .map(value => new this(value))
+            .label("InvariantTextEntity")
+    )
+
+    constructor(value = "") {
+        super();
+        this.value = value;
+    }
+
+    valueOf() {
         return this.value
     }
 
@@ -4578,20 +4664,18 @@ class InvariantTextEntity extends IPrintableEntity {
     }
 }
 
-class StringEntity extends IPrintableEntity {
+class StringEntity extends IEntity {
 
-    static grammar = Parsernostrum.doubleQuotedString
-        .map(insideString => new this(Utility.unescapeString(insideString)))
-        .label("StringEntity")
+    static grammar = /** @type {P<StringEntity>} */(
+        Parsernostrum.doubleQuotedString
+            .map(insideString => new this(Utility.unescapeString(insideString)))
+            .label("StringEntity")
+    )
 
     /** @param {String} value */
     constructor(value = "") {
         super();
         this.value = value;
-    }
-
-    print() {
-        return this.value
     }
 
     valueOf() {
@@ -4607,7 +4691,7 @@ class StringEntity extends IPrintableEntity {
     }
 }
 
-class LocalizedTextEntity extends IPrintableEntity {
+class LocalizedTextEntity extends IEntity {
 
     static attributeSeparator = ", "
     static printKey = k => ""
@@ -4618,22 +4702,24 @@ class LocalizedTextEntity extends IPrintableEntity {
         key: StringEntity.withDefault(),
         value: StringEntity.withDefault(),
     }
-    static grammar = Parsernostrum.regArray(new RegExp(
-        String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
-        + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
-        + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
-        + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
-        + String.raw`(?<trailing>,\s+)?`
-        + String.raw`\)`,
-        "m"
-    )).map(({ groups: { namespace, key, value, trailing } }) => {
-        return new this({
-            namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
-            key: new (this.attributes.namespace)(Utility.unescapeString(key)),
-            value: new (this.attributes.namespace)(Utility.unescapeString(value)),
-            trailing: trailing !== undefined,
-        })
-    }).label("LocalizedTextEntity")
+    static grammar = /** @type {P<LocalizedTextEntity>} */(
+        Parsernostrum.regArray(new RegExp(
+            String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+            + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
+            + String.raw`(?<trailing>,\s+)?`
+            + String.raw`\)`,
+            "m"
+        )).map(({ groups: { namespace, key, value, trailing } }) => {
+            return new this({
+                namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
+                key: new (this.attributes.namespace)(Utility.unescapeString(key)),
+                value: new (this.attributes.namespace)(Utility.unescapeString(value)),
+                trailing: trailing !== undefined,
+            })
+        }).label("LocalizedTextEntity")
+    )
 
     constructor(values = {}) {
         super(values);
@@ -4642,30 +4728,31 @@ class LocalizedTextEntity extends IPrintableEntity {
         /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value;
     }
 
-    print() {
+    valueOf() {
         return Utility.capitalFirstLetter(this.value.valueOf())
     }
 }
 
-class FormatTextEntity extends IPrintableEntity {
+class FormatTextEntity extends IEntity {
 
     static attributeSeparator = ", "
     static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
-    /** @type {P<FormatTextEntity>} */
-    static grammar = Parsernostrum.lazy(() => Parsernostrum.seq(
-        // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-        Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
-        Parsernostrum.alt(
-            ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
-        ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
-        Parsernostrum.reg(/\s*\)/)
+    static grammar = /** @type {P<FormatTextEntity>} */(
+        Parsernostrum.lazy(() => Parsernostrum.seq(
+            // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+            Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
+            Parsernostrum.alt(
+                ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
+            ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
+            Parsernostrum.reg(/\s*\)/)
+        )
+            .map(([lookbehind, values]) => {
+                const result = new this(values);
+                result.lookbehind = lookbehind;
+                return result
+            }))
+            .label("FormatTextEntity")
     )
-        .map(([lookbehind, values]) => {
-            const result = new this(values);
-            result.lookbehind = lookbehind;
-            return result
-        }))
-        .label("FormatTextEntity")
 
     /** @param {(StringEntity | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} values */
     constructor(values) {
@@ -4673,13 +4760,12 @@ class FormatTextEntity extends IPrintableEntity {
         this.values = values;
     }
 
-    print() {
-        const pattern = this.values?.[0]?.print(); // The pattern is always the first element of the array
+    valueOf() {
+        const pattern = this.values?.[0]?.valueOf(); // The pattern is always the first element of the array
         if (!pattern) {
             return ""
         }
-
-        const values = this.values.slice(1).map(v => v.print());
+        const values = this.values.slice(1).map(v => v?.valueOf());
         let result = this.lookbehind == "LOCGEN_FORMAT_NAMED"
             ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
                 const argLocation = values.indexOf(arg) + 1;
@@ -4701,7 +4787,9 @@ class FormatTextEntity extends IPrintableEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
         const separator = this.Self().attributeSeparator;
         return this.lookbehind + "("
@@ -4713,7 +4801,9 @@ class FormatTextEntity extends IPrintableEntity {
 
 class Integer64Entity extends IEntity {
 
-    static grammar = Parsernostrum.numberBigInteger.map(v => new this(v))
+    static grammar = /** @type {P<Integer64Entity>} */(
+        Parsernostrum.numberBigInteger.map(v => new this(v))
+    )
 
     /** @type {bigint} */
     #value
@@ -4767,12 +4857,13 @@ class ObjectReferenceEntity extends IEntity {
         )
     ).map(([full, type, path]) => new this(type, path, full))
     static typeReferenceGrammar = this.typeReference.map(v => new this(v, "", v))
-    /** @type {P<ObjectReferenceEntity>} */
-    static grammar = Parsernostrum.alt(
-        this.fullReferenceSerializedGrammar,
-        this.fullReferenceGrammar,
-        this.typeReferenceGrammar,
-    ).label("ObjectReferenceEntity")
+    static grammar = /** @type {P<ObjectReferenceEntity>} */(
+        Parsernostrum.alt(
+            this.fullReferenceSerializedGrammar,
+            this.fullReferenceGrammar,
+            this.typeReferenceGrammar,
+        ).label("ObjectReferenceEntity")
+    )
 
     #type
     get type() {
@@ -4827,7 +4918,9 @@ class ObjectReferenceEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
         if (insideString) {
             if (this.#fullEscaped === undefined) {
@@ -4841,13 +4934,15 @@ class ObjectReferenceEntity extends IEntity {
 
 class PinReferenceEntity extends IEntity {
 
-    static grammar = Parsernostrum.seq(
-        SymbolEntity.grammar,
-        Parsernostrum.whitespace,
-        GuidEntity.grammar
+    static grammar = /** @type {P<PinReferenceEntity>} */(
+        Parsernostrum.seq(
+            SymbolEntity.grammar,
+            Parsernostrum.whitespace,
+            GuidEntity.grammar
+        )
+            .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
+            .label("PinReferenceEntity")
     )
-        .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
-        .label("PinReferenceEntity")
 
     /**
      * @param {SymbolEntity} objectName
@@ -4862,7 +4957,9 @@ class PinReferenceEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
         return this.objectName.toString() + " " + this.pinGuid.toString()
     }
@@ -4876,8 +4973,9 @@ class FunctionReferenceEntity extends IEntity {
         MemberName: StringEntity,
         MemberGuid: GuidEntity,
     }
-    /** @type {P<FunctionReferenceEntity>} */
-    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
+    static grammar = /** @type {P<FunctionReferenceEntity>} */(
+        Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
+    )
 
     constructor(values) {
         super(values);
@@ -4902,7 +5000,9 @@ class PinTypeEntity extends IEntity {
         bIsUObjectWrapper: BooleanEntity.withDefault(),
         bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this).label("PinTypeEntity")
+    static grammar = /** @type {P<PinTypeEntity>} */(
+        Grammar.createEntityGrammar(this).label("PinTypeEntity")
+    )
 
     constructor(values = {}) {
         super(values);
@@ -4936,8 +5036,9 @@ class Vector2DEntity extends IEntity {
         X: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    /** @type {P<Vector2DEntity>} */
-    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
+    static grammar = /** @type {P<Vector2DEntity>} */(
+        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
+    )
 
     constructor(values) {
         super(values);
@@ -4953,7 +5054,7 @@ class Vector2DEntity extends IEntity {
 
 class RBSerializationVector2DEntity extends Vector2DEntity {
 
-    static grammar = Parsernostrum.alt(
+    static grammar = /** @type {P<RBSerializationVector2DEntity>} */(Parsernostrum.alt(
         Parsernostrum.regArray(new RegExp(
             /X\s*=\s*/.source + "(?<x>" + Grammar.numberRegexSource + ")"
             + "\\s+"
@@ -4963,7 +5064,7 @@ class RBSerializationVector2DEntity extends Vector2DEntity {
             Y: Number(y),
         })),
         Vector2DEntity.grammar
-    ).label("RBSerializationVector2DEntity")
+    ).label("RBSerializationVector2DEntity"))
 }
 
 class RotatorEntity extends IEntity {
@@ -4974,7 +5075,9 @@ class RotatorEntity extends IEntity {
         P: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
+    static grammar = /** @type {P<RotatorEntity>} */(
+        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
+    )
 
     constructor(values) {
         super(values);
@@ -4999,25 +5102,26 @@ class RotatorEntity extends IEntity {
 class SimpleSerializationRotatorEntity extends RotatorEntity {
 
     static attributeSeparator = ", "
-    /** @type {P<SimpleSerializationRotatorEntity>} */
-    static grammar = Parsernostrum.alt(
-        Parsernostrum.regArray(new RegExp(
-            `(${NumberEntity.numberRegexSource})`
-            + String.raw`\s*,\s*`
-            + `(${NumberEntity.numberRegexSource})`
-            + String.raw`\s*,\s*`
-            + `(${NumberEntity.numberRegexSource})`
-        )).map(([_, p, pPrecision, y, yPrecision, r, rPrecision]) => new this({
-            R: new NumberEntity(r, rPrecision?.length),
-            P: new NumberEntity(p, pPrecision?.length),
-            Y: new NumberEntity(y, yPrecision?.length),
-        })),
-        RotatorEntity.grammar.map(v => new this({
-            R: v.R,
-            P: v.P,
-            Y: v.Y,
-        }))
-    ).label("SimpleSerializationRotatorEntity")
+    static grammar = /** @type {P<SimpleSerializationRotatorEntity>} */(
+        Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+            )).map(([_, p, pPrecision, y, yPrecision, r, rPrecision]) => new this({
+                R: new NumberEntity(r, rPrecision?.length),
+                P: new NumberEntity(p, pPrecision?.length),
+                Y: new NumberEntity(y, yPrecision?.length),
+            })),
+            RotatorEntity.grammar.map(v => new this({
+                R: v.R,
+                P: v.P,
+                Y: v.Y,
+            }))
+        ).label("SimpleSerializationRotatorEntity")
+    )
 
     toString(
         insideString = false,
@@ -5034,21 +5138,22 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
 class SimpleSerializationVector2DEntity extends Vector2DEntity {
 
     static attributeSeparator = ", "
-    /** @type {P<SimpleSerializationVector2DEntity>} */
-    static grammar = Parsernostrum.alt(
-        Parsernostrum.regArray(new RegExp(
-            `(${NumberEntity.numberRegexSource})`
-            + String.raw`\s*,\s*`
-            + `(${NumberEntity.numberRegexSource})`
-        )).map(([_, x, xPrecision, y, yPrecision]) => new this({
-            X: new NumberEntity(x, xPrecision?.length),
-            Y: new NumberEntity(y, yPrecision?.length),
-        })),
-        Vector2DEntity.grammar.map(v => new this({
-            X: v.X,
-            Y: v.Y,
-        }))
-    ).label("SimpleSerializationVector2DEntity")
+    static grammar = /** @type {P<SimpleSerializationVector2DEntity>} */(
+        Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+            )).map(([_, x, xPrecision, y, yPrecision]) => new this({
+                X: new NumberEntity(x, xPrecision?.length),
+                Y: new NumberEntity(y, yPrecision?.length),
+            })),
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
+        ).label("SimpleSerializationVector2DEntity")
+    )
 
     toString(
         insideString = false,
@@ -5070,7 +5175,9 @@ class Vector4DEntity extends IEntity {
         Z: NumberEntity.withDefault(),
         W: NumberEntity.withDefault(),
     }
-    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector4DEntity")
+    static grammar = /** @type {P<Vector4DEntity>} */(
+        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector4DEntity")
+    )
 
     constructor(values) {
         super(values);
@@ -5088,7 +5195,7 @@ class Vector4DEntity extends IEntity {
 
 class SimpleSerializationVector4DEntity extends Vector4DEntity {
 
-    static grammar = this.createGrammar()
+    static grammar = /** @type {P<SimpleSerializationVector4DEntity> } */(this.createGrammar())
 
     static createGrammar() {
         return Parsernostrum.alt(
@@ -5112,52 +5219,29 @@ class SimpleSerializationVector4DEntity extends Vector4DEntity {
     }
 }
 
-class VectorEntity extends IEntity {
-
-    static attributes = {
-        ...super.attributes,
-        X: NumberEntity.withDefault(),
-        Y: NumberEntity.withDefault(),
-        Z: NumberEntity.withDefault(),
-    }
-    /** @type {P<VectorEntity>} */
-    static grammar = Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
-
-    constructor(values) {
-        super(values);
-        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.X;
-        /** @type {InstanceType<typeof VectorEntity.attributes.Y>} */ this.Y;
-        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.Z;
-    }
-
-    /** @returns {[Number, Number, Number]} */
-    toArray() {
-        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf()]
-    }
-}
-
 class SimpleSerializationVectorEntity extends VectorEntity {
 
     static attributeSeparator = ", "
-    /** @type {P<SimpleSerializationVectorEntity>} */
-    static grammar = Parsernostrum.alt(
-        Parsernostrum.regArray(new RegExp(
-            `(${NumberEntity.numberRegexSource})`
-            + String.raw`\s*,\s*`
-            + `(${NumberEntity.numberRegexSource})`
-            + String.raw`\s*,\s*`
-            + `(${NumberEntity.numberRegexSource})`
-        ))
-            .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
-                X: new NumberEntity(x, xPrecision?.length),
-                Y: new NumberEntity(y, yPrecision?.length),
-                Z: new NumberEntity(z, zPrecision?.length),
-            })),
-        VectorEntity.grammar.map(v => new this({
-            X: v.X,
-            Y: v.Y,
-            Z: v.Z,
-        }))
+    static grammar = /** @type {P<SimpleSerializationVectorEntity>} */(
+        Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+            ))
+                .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
+                    X: new NumberEntity(x, xPrecision?.length),
+                    Y: new NumberEntity(y, yPrecision?.length),
+                    Z: new NumberEntity(z, zPrecision?.length),
+                })),
+            VectorEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+                Z: v.Z,
+            }))
+        )
     )
 
     toString(
@@ -5218,7 +5302,7 @@ class PinEntity extends IEntity {
         ParentPin: PinReferenceEntity,
         DefaultValue:
             ComputedTypeEntity.from(
-                // @ts-expect-error
+                /** @param {PinEntity} pinEntity */
                 pinEntity => pinEntity.getEntityType(true) ?? StringEntity
             ).flagSerialized(),
         AutogeneratedDefaultValue: StringEntity,
@@ -5231,8 +5315,9 @@ class PinEntity extends IEntity {
         bAdvancedView: BooleanEntity.withDefault(),
         bOrphanedPin: BooleanEntity.withDefault(),
     }
-    /** @type {P<PinEntity>} */
-    static grammar = Grammar.createEntityGrammar(this)
+    static grammar = /** @type {P<PinEntity>} */(
+        Grammar.createEntityGrammar(this)
+    )
 
     #recomputesNodeTitleOnChange = false
     set recomputesNodeTitleOnChange(value) {
@@ -5335,6 +5420,7 @@ class PinEntity extends IEntity {
         return category
     }
 
+    /** @returns {typeof IEntity} */
     getEntityType(alternative = false) {
         const typeString = this.getType();
         const entity = PinEntity.#typeEntityMap[typeString];
@@ -5435,7 +5521,7 @@ class PinEntity extends IEntity {
 
 /** @param {PinEntity} pinEntity */
 const indexFromUpperCaseLetterName = pinEntity =>
-    pinEntity.PinName.match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
+    pinEntity.PinName?.valueOf().match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
 
 /** @param {ObjectEntity} entity */
 function nodeVariadic(entity) {
@@ -5450,7 +5536,7 @@ function nodeVariadic(entity) {
     switch (type) {
         case Configuration.paths.commutativeAssociativeBinaryOperator:
         case Configuration.paths.promotableOperator:
-            name = entity.FunctionReference?.MemberName;
+            name = entity.FunctionReference?.MemberName?.valueOf();
             switch (name) {
                 default:
                     if (
@@ -5481,7 +5567,7 @@ function nodeVariadic(entity) {
                     pinIndexFromEntity ??= indexFromUpperCaseLetterName;
                     pinNameFromIndex ??= (index, min = -1, max = -1) => {
                         const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1);
-                        entity.NumAdditionalInputs = pinEntities().length - 1;
+                        entity.NumAdditionalInputs = new NaturalNumberEntity(pinEntities().length - 1);
                         return result
                     };
                     break
@@ -5489,7 +5575,7 @@ function nodeVariadic(entity) {
             break
         case Configuration.paths.multiGate:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.valueOf().match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
                 `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
             break
@@ -5505,26 +5591,26 @@ function nodeVariadic(entity) {
         //     break
         case Configuration.paths.switchInteger:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*(\d+)\s*$/)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.valueOf().match(/^\s*(\d+)\s*$/)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => (index < 0 ? max + 1 : index).toString();
             break
         case Configuration.paths.switchGameplayTag:
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
-                entity.PinNames ??= [];
-                entity.PinNames.push(result);
-                delete entity.PinTags[entity.PinTags.length - 1];
-                entity.PinTags[entity.PinTags.length] = null;
+                entity.PinNames ??= new ArrayEntity();
+                entity.PinNames.values.push(new StringEntity(result));
+                delete entity.PinTags.values[entity.PinTags.length - 1];
+                entity.PinTags.values[entity.PinTags.length] = null;
                 return result
             };
         case Configuration.paths.switchName:
         case Configuration.paths.switchString:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.valueOf().match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
-                entity.PinNames ??= [];
-                entity.PinNames.push(result);
+                entity.PinNames ??= new ArrayEntity();
+                entity.PinNames.values.push(new StringEntity(result));
                 return result
             };
             break
@@ -5569,8 +5655,8 @@ function nodeVariadic(entity) {
                 }
             );
             const newPin = new PinEntity(modelPin);
-            newPin.PinId = GuidEntity.generateGuid();
-            newPin.PinName = pinNameFromIndex(index, min, max, newPin);
+            newPin.PinId = new GuidEntity();
+            newPin.PinName = new StringEntity(pinNameFromIndex(index, min, max, newPin));
             newPin.PinToolTip = undefined;
             entity.getCustomproperties(true).push(newPin);
             return newPin
@@ -5586,7 +5672,9 @@ class MacroGraphReferenceEntity extends IEntity {
         GraphBlueprint: ObjectReferenceEntity,
         GraphGuid: GuidEntity,
     }
-    static grammar = Grammar.createEntityGrammar(this)
+    static grammar = /** @type {P<MacroGraphReferenceEntity>} */(
+        Grammar.createEntityGrammar(this)
+    )
 
     constructor(values) {
         super(values);
@@ -5601,57 +5689,20 @@ class MacroGraphReferenceEntity extends IEntity {
     }
 }
 
-/** @template {typeof IEntity} T */
-class MirroredEntity extends IEntity {
+class NullEntity extends IEntity {
 
-    /** @type {typeof IEntity} */
-    static type
-
-    /** @param {() => InstanceType<T>} getter */
-    constructor(getter = null) {
-        super();
-        this.getter = getter;
-    }
-
-    /**
-     * @template {typeof IEntity} T
-     * @param {T} type
-     */
-    static of(type) {
-        const result = this.asUniqueClass();
-        result.type = type;
-        result.grammar = result.getTargetType().grammar.map(v => new this());
-        return result
-    }
-
-    /** @returns {typeof IEntity} */
-    static getTargetType() {
-        const result = this.type;
-        if (result.prototype instanceof MirroredEntity) {
-            return /** @type {typeof MirroredEntity} */(result).getTargetType()
-        }
-        return result
-    }
+    static grammar = /** @type {P<NullEntity>} */(
+        // @ts-expect-error
+        Parsernostrum.reg(new RegExp(String.raw`\(${Parsernostrum.whitespaceInlineOpt.getParser().regexp.source}\)`))
+            .map(v => new this())
+    )
 
     toString(
         insideString = false,
         indentation = "",
         printKey = this.Self().printKey,
     ) {
-        return this.getter().toString(insideString, indentation, printKey)
-    }
-}
-
-class NaturalNumberEntity extends IntegerEntity {
-
-    static grammar = Parsernostrum.numberNatural.map(v => new this(v))
-
-    get value() {
-        return super.value
-    }
-    set value(value) {
-        value = Math.round(Utility.clamp(this.value, 0));
-        super.value = value;
+        return "()"
     }
 }
 
@@ -5662,7 +5713,9 @@ class ScriptVariableEntity extends IEntity {
         ScriptVariable: ObjectReferenceEntity,
         OriginalChangeId: GuidEntity,
     }
-    static grammar = Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
+    static grammar = /** @type {P<ScriptVariableEntity>} */(
+        Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
+    )
 
     constructor(values = {}) {
         super(values);
@@ -5673,19 +5726,21 @@ class ScriptVariableEntity extends IEntity {
 
 class UnknownPinEntity extends PinEntity {
 
-    static grammar = Parsernostrum.seq(
-        Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`), 1),
-        Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
-        Parsernostrum.reg(/\s*(?:,\s*)?\)/)
-    ).map(([lookbehind, attributes, _2]) => {
-        lookbehind ??= "";
-        let values = {};
-        if (lookbehind.length) {
-            values.lookbehind = lookbehind;
-        }
-        attributes.forEach(attributeSetter => attributeSetter(values));
-        return new this(values)
-    }).label("UnknownPinEntity")
+    static grammar = /** @type {P<UnknownPinEntity>} */(
+        Parsernostrum.seq(
+            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`), 1),
+            Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
+            Parsernostrum.reg(/\s*(?:,\s*)?\)/)
+        ).map(([lookbehind, attributes, _2]) => {
+            lookbehind ??= "";
+            let values = {};
+            if (lookbehind.length) {
+                values.lookbehind = lookbehind;
+            }
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            return new this(values)
+        }).label("UnknownPinEntity")
+    )
 }
 
 class VariableReferenceEntity extends IEntity {
@@ -5697,7 +5752,9 @@ class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: BooleanEntity,
     }
-    static grammar = Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+    static grammar = /** @type {P<VariableReferenceEntity>} */(
+        Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+    )
 
     constructor(values) {
         super(values);
@@ -5729,6 +5786,7 @@ class ObjectEntity extends IEntity {
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
+        PinTags: ArrayEntity.of(NullEntity).flagInlined(),
         PinNames: ArrayEntity.of(StringEntity).flagInlined(),
         AxisKey: SymbolEntity,
         InputAxisKey: SymbolEntity,
@@ -5853,31 +5911,32 @@ class ObjectEntity extends IEntity {
                     }
                 )
         )
-    /** @type {P<ObjectEntity>} */
-    static grammar = Parsernostrum.seq(
-        Parsernostrum.reg(/Begin +Object/),
+    static grammar = /** @type {P<ObjectEntity>} */(
         Parsernostrum.seq(
-            Parsernostrum.whitespace,
-            Parsernostrum.alt(
-                this.createSubObjectGrammar(),
-                this.customPropertyGrammar,
-                Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
-                Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                    Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
-                ),
-                this.inlinedArrayEntryGrammar,
+            Parsernostrum.reg(/Begin +Object/),
+            Parsernostrum.seq(
+                Parsernostrum.whitespace,
+                Parsernostrum.alt(
+                    this.createSubObjectGrammar(),
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
+                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
+                    ),
+                    this.inlinedArrayEntryGrammar,
+                )
             )
+                .map(([_0, entry]) => entry)
+                .many(),
+            Parsernostrum.reg(/\s+End +Object/),
         )
-            .map(([_0, entry]) => entry)
-            .many(),
-        Parsernostrum.reg(/\s+End +Object/),
+            .map(([_0, attributes, _2]) => {
+                const values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
+            .label("ObjectEntity")
     )
-        .map(([_0, attributes, _2]) => {
-            const values = {};
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        })
-        .label("ObjectEntity")
     static grammarMultipleObjects = Parsernostrum.seq(
         Parsernostrum.whitespaceOpt,
         this.grammar,
@@ -5963,6 +6022,7 @@ class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX;
         /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY;
@@ -5986,7 +6046,7 @@ class ObjectEntity extends IEntity {
                     const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)];
                     if (pinObject) {
                         const pinEntity = PinEntity.fromLegacyObject(pinObject);
-                        pinEntity.LinkedTo = [];
+                        pinEntity.LinkedTo = new (PinEntity.attributes.LinkedTo)();
                         this.getCustomproperties(true).push(pinEntity);
                         Utility.objectSet(this, ["attributes", "CustomProperties", "ignored"], true);
                     }
@@ -6005,20 +6065,13 @@ class ObjectEntity extends IEntity {
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
                 // The following attributes are too generic therefore not assigned a MirroredEntity
                 const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName === pinName && (pin.recomputesNodeTitleOnChange = true))
+                    this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
                 );
-                obj.R = new (
-                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
-                )(() => rgbaPins[0].DefaultValue);
-                obj.G = new (
-                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
-                )(() => rgbaPins[1].DefaultValue);
-                obj.B = new (
-                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
-                )(() => rgbaPins[2].DefaultValue);
-                obj.A = new (
-                    MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
-                )(() => rgbaPins[3].DefaultValue);
+                const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent();
+                obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue);
+                obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue);
+                obj["B"] = new silentBool(() => rgbaPins[2].DefaultValue);
+                obj["A"] = new silentBool(() => rgbaPins[3].DefaultValue);
                 obj.keys = [...Configuration.rgba, ...super.keys.filter(k => !Configuration.rgba.includes(k))];
             }
         }
@@ -6089,7 +6142,7 @@ class ObjectEntity extends IEntity {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
         }
-        return this.Name.print()
+        return this.Name.valueOf()
     }
 
     /** @returns {[String, Number]} */
@@ -6272,7 +6325,7 @@ class ObjectEntity extends IEntity {
     }
 
     getDelegatePin() {
-        return this.getCustomproperties().find(pin => pin.PinType.PinCategory === "delegate")
+        return this.getCustomproperties().find(pin => pin.PinType.PinCategory.toString() === "delegate")
     }
 
     nodeColor() {
@@ -6304,7 +6357,9 @@ class ObjectEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
         const moreIndentation = indentation + Configuration.indentation;
         let result = indentation + "Begin Object"
@@ -6313,7 +6368,7 @@ class ObjectEntity extends IEntity {
             + (this.Archetype ? ` Archetype=${this.Archetype.toString(insideString)}` : "")
             + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.toString(insideString)}` : "")
             + "\n"
-            + super.toString(insideString, moreIndentation, k => this[k] instanceof ObjectEntity ? "" : k)
+            + super.toString(insideString, moreIndentation, Self, printKey, wrap)
             + (!this.CustomProperties.Self().ignored
                 ? this.getCustomproperties().map(pin =>
                     moreIndentation
@@ -6443,10 +6498,11 @@ class KeyBindingEntity extends IEntity {
         bCmd: BooleanEntity,
         Key: SymbolEntity,
     }
-    /** @type {P<KeyBindingEntity>} */
-    static grammar = Parsernostrum.alt(
-        SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
-        Grammar.createEntityGrammar(this)
+    static grammar = /** @type {P<KeyBindingEntity>} */(
+        Parsernostrum.alt(
+            SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
+            Grammar.createEntityGrammar(this)
+        )
     )
 
     constructor(values) {
@@ -9037,7 +9093,7 @@ function nodeTemplateClass(nodeEntity) {
         || nodeEntity.getClass() === Configuration.paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
-        const memberName = nodeEntity.FunctionReference?.MemberName;
+        const memberName = nodeEntity.FunctionReference?.MemberName?.valueOf();
         if (
             memberName && (
                 memberParent === Configuration.paths.kismetMathLibrary
@@ -9113,13 +9169,15 @@ function nodeTemplateClass(nodeEntity) {
             }
             return MetasoundNodeTemplate
         case Configuration.paths.niagaraNodeOp:
-            if ([
-                "Boolean::LogicEq",
-                "Boolean::LogicNEq",
-                "Numeric::Abs",
-                "Numeric::Add",
-                "Numeric::Mul",
-            ].includes(nodeEntity.OpName)) {
+            if (
+                [
+                    "Boolean::LogicEq",
+                    "Boolean::LogicNEq",
+                    "Numeric::Abs",
+                    "Numeric::Add",
+                    "Numeric::Mul",
+                ].includes(nodeEntity.OpName?.valueOf())
+            ) {
                 return VariableOperationNodeTemplate
             }
             break
@@ -12788,45 +12846,31 @@ function defineElements() {
 
 class UnknownKeysEntity extends IEntity {
 
-    /** @type {P<UnknownKeysEntity>} */
-    static grammar = Parsernostrum.seq(
-        // Lookbehind
-        Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
-        Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
-            .chain(attributeName =>
-                this.unknownEntityGrammar.map(attributeValue =>
-                    values => values[attributeName] = attributeValue
+    static grammar = /** @type {P<UnknownKeysEntity>} */(
+        Parsernostrum.seq(
+            // Lookbehind
+            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
+            Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
+                .chain(attributeName =>
+                    this.unknownEntityGrammar.map(attributeValue =>
+                        values => values[attributeName] = attributeValue
+                    )
                 )
-            )
-            .sepBy(Grammar.commaSeparation),
-        Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-    ).map(([lookbehind, attributes, _2]) => {
-        lookbehind ??= "";
-        let values = {};
-        if (lookbehind.length) {
-            values.lookbehind = lookbehind;
-        }
-        attributes.forEach(attributeSetter => attributeSetter(values));
-        return new this(values)
-    }).label("UnknownKeysEntity")
+                .sepBy(Grammar.commaSeparation),
+            Parsernostrum.reg(/\s*(?:,\s*)?\)/),
+        ).map(([lookbehind, attributes, _2]) => {
+            lookbehind ??= "";
+            let values = {};
+            if (lookbehind.length) {
+                values.lookbehind = lookbehind;
+            }
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            return new this(values)
+        }).label("UnknownKeysEntity")
+    )
 
     static {
         IEntity.unknownEntity = this;
-    }
-}
-
-class NullEntity extends IEntity {
-
-    // @ts-expect-error
-    static grammar = Parsernostrum.reg(new RegExp(String.raw`\(${Parsernostrum.whitespaceInlineOpt.getParser().regexp.source}\)`))
-        .map(v => new this())
-
-    toString(
-        insideString = false,
-        indentation = "",
-        printKey = this.Self().printKey,
-    ) {
-        return "()"
     }
 }
 

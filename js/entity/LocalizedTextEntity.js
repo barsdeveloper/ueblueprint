@@ -1,10 +1,10 @@
 import P from "parsernostrum"
 import Utility from "../Utility.js"
 import Grammar from "../serialization/Grammar.js"
-import IPrintableEntity from "./IPrintableEntity.js"
 import StringEntity from "./StringEntity.js"
+import IEntity from "./IEntity.js"
 
-export default class LocalizedTextEntity extends IPrintableEntity {
+export default class LocalizedTextEntity extends IEntity {
 
     static attributeSeparator = ", "
     static printKey = k => ""
@@ -41,7 +41,7 @@ export default class LocalizedTextEntity extends IPrintableEntity {
         /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value
     }
 
-    print() {
+    valueOf() {
         return Utility.capitalFirstLetter(this.value.valueOf())
     }
 }
