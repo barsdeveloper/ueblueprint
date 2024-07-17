@@ -147,7 +147,7 @@ export default class PinEntity extends IEntity {
     }
 
     getType() {
-        const category = this.PinType.PinCategory.toString().toLocaleLowerCase()
+        const category = this.PinType.PinCategory.valueOf().toLocaleLowerCase()
         if (category === "struct" || category === "class" || category === "object" || category === "type") {
             return this.PinType.PinSubCategoryObject.path
         }
@@ -162,7 +162,7 @@ export default class PinEntity extends IEntity {
             if (pinObjectReference) {
                 /** @type {ObjectEntity} */
                 const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)]
-                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? ""
+                let allowedTypes = pinObject.Properties?.AllowedTypes?.valueOf() ?? ""
                 if (allowedTypes == "") {
                     allowedTypes = this.PinType.PinCategory ?? ""
                     if (allowedTypes == "") {
@@ -171,8 +171,8 @@ export default class PinEntity extends IEntity {
                 }
                 if (allowedTypes) {
                     if (
-                        pinObject.Properties.bAllowMultipleData !== false
-                        && pinObject.Properties.bAllowMultipleConnections !== false
+                        pinObject.Properties.bAllowMultipleData?.valueOf() !== false
+                        && pinObject.Properties.bAllowMultipleConnections?.valueOf() !== false
                     ) {
                         allowedTypes += "[]"
                     }
@@ -235,15 +235,15 @@ export default class PinEntity extends IEntity {
     }
 
     isHidden() {
-        return this.bHidden
+        return this.bHidden?.valueOf()
     }
 
     isInput() {
-        return !this.bHidden && this.Direction.toString() != "EGPD_Output"
+        return !this.isHidden() && this.Direction.valueOf() != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.bHidden && this.Direction.toString() == "EGPD_Output"
+        return !this.isHidden() && this.Direction.valueOf() == "EGPD_Output"
     }
 
     isLinked() {

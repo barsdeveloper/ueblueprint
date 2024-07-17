@@ -24,7 +24,7 @@ export default function nodeColor(entity) {
     }
     switch (entity.getClass()) {
         case Configuration.paths.callFunction:
-            return entity.bIsPureFunc
+            return entity.bIsPureFunc?.valueOf()
                 ? Configuration.nodeColors.green
                 : Configuration.nodeColors.blue
         case Configuration.paths.niagaraNodeFunctionCall:
@@ -74,7 +74,7 @@ export default function nodeColor(entity) {
                 return Configuration.nodeColors.intenseGreen
         }
     }
-    if (entity.bIsPureFunc) {
+    if (entity.bIsPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
     }
     return Configuration.nodeColors.blue

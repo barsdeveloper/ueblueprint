@@ -119,7 +119,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
         this.enabledState = entity.EnabledState
         this.nodeDisplayName = nodeTitle(entity)
-        this.pureFunction = entity.bIsPureFunc
+        this.pureFunction = entity.bIsPureFunc?.valueOf()
         this.dragLinkObjects = []
         super.initialize(entity, template)
         this.#pins = this.template.createPinElements()

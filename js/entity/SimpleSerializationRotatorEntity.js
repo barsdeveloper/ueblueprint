@@ -30,11 +30,12 @@ export default class SimpleSerializationRotatorEntity extends RotatorEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        const Self = this.Self()
-        return this.P.toString(insideString) + Self.attributeSeparator
-            + this.Y.toString(insideString) + Self.attributeSeparator
-            + this.R.toString(insideString) + (this.trailing ? Self.attributeSeparator : "")
+        return this.P.toString() + Self.attributeSeparator
+            + this.Y.toString() + Self.attributeSeparator
+            + this.R.toString() + (this.trailing ? Self.attributeSeparator : "")
     }
 }

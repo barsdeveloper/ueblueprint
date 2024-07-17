@@ -1,5 +1,6 @@
 import { html } from "lit"
 import Configuration from "../../Configuration.js"
+import StringEntity from "../../entity/StringEntity.js"
 import Utility from "../../Utility.js"
 import IInputPinTemplate from "./IInputPinTemplate.js"
 
@@ -15,11 +16,11 @@ export default class EnumPinTemplate extends IInputPinTemplate {
 
     setup() {
         super.setup()
-        const enumEntries = this.element.nodeElement.entity.EnumEntries
+        const enumEntries = this.element.nodeElement.entity.EnumEntries.valueOf()
         this.#dropdownEntries =
             enumEntries?.map(k => {
-                if (k === "") {
-                    k = "None"
+                if (k.valueOf() === "") {
+                    k = new StringEntity("None")
                 }
                 return [
                     k,

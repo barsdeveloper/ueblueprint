@@ -74,12 +74,12 @@ export default class ArrayEntity extends IEntity {
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        if (this.Self().inlined) {
+        if (Self.inlined) {
             return super.toString.bind(this.values, insideString, indentation, Self, printKey, wrap)()
         }
-        let result = this.values.map(v => v?.toString(insideString)).join(this.Self().attributeSeparator)
+        let result = this.values.map(v => v?.toString(insideString)).join(Self.attributeSeparator)
         if (this.trailing) {
-            result += this.Self().attributeSeparator
+            result += Self.attributeSeparator
         }
         return `(${result})`
     }

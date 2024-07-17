@@ -48,13 +48,7 @@ export default class NumberEntity extends IEntity {
         return this.value
     }
 
-    toString(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
+    toString() {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"
         }

@@ -28,7 +28,13 @@ export default class Integer64Entity extends IEntity {
         return this.value
     }
 
-    toString() {
+    toString(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
         return this.value.toString()
     }
 }

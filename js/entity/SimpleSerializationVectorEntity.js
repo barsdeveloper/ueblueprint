@@ -31,11 +31,12 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        const Self = this.Self()
-        return this.X.toString(insideString) + Self.attributeSeparator
-            + this.Y.toString(insideString) + Self.attributeSeparator
-            + this.Z.toString(insideString) + (this.trailing ? Self.attributeSeparator : "")
+        return this.X.toString() + Self.attributeSeparator
+            + this.Y.toString() + Self.attributeSeparator
+            + this.Z.toString() + (this.trailing ? Self.attributeSeparator : "")
     }
 }

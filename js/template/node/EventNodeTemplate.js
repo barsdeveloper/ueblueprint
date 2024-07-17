@@ -40,7 +40,7 @@ export default class EventNodeTemplate extends NodeTemplate {
 
     createDelegatePinElement() {
         const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory === "delegate"),
+            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.valueOf() === "delegate"),
             new MinimalPinTemplate(),
             this.element
         )

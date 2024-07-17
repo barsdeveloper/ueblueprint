@@ -25,13 +25,7 @@ export default class PinReferenceEntity extends IEntity {
         this.pinGuid = pinGuid
     }
 
-    toString(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
+    toString() {
         return this.objectName.toString() + " " + this.pinGuid.toString()
     }
 }

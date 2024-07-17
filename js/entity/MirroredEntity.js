@@ -35,8 +35,11 @@ export default class MirroredEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        return this.getter().toString(insideString, indentation, printKey)
+        this.toString = this.getter.toString.bind(this.getter())
+        return this.toString(insideString, indentation, Self, printKey, wrap)
     }
 }

@@ -4,12 +4,12 @@ import Utility from "../Utility.js"
 export default function pinTitle(entity) {
     let result = entity.PinFriendlyName
         ? entity.PinFriendlyName.toString()
-        : Utility.formatStringName(entity.PinName ?? "")
+        : Utility.formatStringName(entity.PinName?.valueOf() ?? "")
     let match
     if (
         entity.PinToolTip
         // Match up until the first \n excluded or last character
-        && (match = entity.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+        && (match = entity.PinToolTip?.valueOf().match(/\s*(.+?(?=\n)|.+\S)\s*/))
     ) {
         if (match[1].toLowerCase() === result.toLowerCase()) {
             return match[1] // In case they match, then keep the case of the PinToolTip

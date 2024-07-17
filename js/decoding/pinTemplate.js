@@ -38,10 +38,10 @@ const inputPinTemplates = {
 
 /** @param {PinEntity} entity */
 export default function pinTemplate(entity) {
-    if (entity.PinType.ContainerType?.toString() === "Array") {
+    if (entity.PinType.ContainerType?.valueOf() === "Array") {
         return PinTemplate
     }
-    if (entity.PinType.bIsReference && !entity.PinType.bIsConst) {
+    if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
         return inputPinTemplates["MUTABLE_REFERENCE"]
     }
     if (entity.getType() === "exec") {

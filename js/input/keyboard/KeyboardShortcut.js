@@ -64,9 +64,12 @@ export default class KeyboardShortcut extends IInput {
 
         this.#activationKeys = this.options.activationKeys ?? []
 
-        const wantsShift = keyEntry => keyEntry.bShift || keyEntry.Key == "LeftShift" || keyEntry.Key == "RightShift"
-        const wantsCtrl = keyEntry => keyEntry.bCtrl || keyEntry.Key == "LeftControl" || keyEntry.Key == "RightControl"
-        const wantsAlt = keyEntry => keyEntry.bAlt || keyEntry.Key == "LeftAlt" || keyEntry.Key == "RightAlt"
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsShift = keyEntry => keyEntry.bShift?.valueOf() || keyEntry.Key.valueOf() == "LeftShift" || keyEntry.Key.valueOf() == "RightShift"
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsCtrl = keyEntry => keyEntry.bCtrl?.valueOf() || keyEntry.Key.valueOf() == "LeftControl" || keyEntry.Key.valueOf() == "RightControl"
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsAlt = keyEntry => keyEntry.bAlt?.valueOf() || keyEntry.Key.valueOf() == "LeftAlt" || keyEntry.Key.valueOf() == "RightAlt"
 
         let self = this
         /** @param {KeyboardEvent} e */
@@ -94,10 +97,10 @@ export default class KeyboardShortcut extends IInput {
         this.keyUpHandler = e => {
             if (
                 self.#activationKeys.some(keyEntry =>
-                    keyEntry.bShift && e.key == "Shift"
-                    || keyEntry.bCtrl && e.key == "Control"
-                    || keyEntry.bAlt && e.key == "Alt"
-                    || keyEntry.bCmd && e.key == "Meta"
+                    keyEntry.bShift?.valueOf() && e.key == "Shift"
+                    || keyEntry.bCtrl?.valueOf() && e.key == "Control"
+                    || keyEntry.bAlt?.valueOf() && e.key == "Alt"
+                    || keyEntry.bCmd?.valueOf() && e.key == "Meta"
                     || Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {

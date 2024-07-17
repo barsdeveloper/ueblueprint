@@ -115,7 +115,7 @@ export default class PinTemplate extends ITemplate {
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType?.PinCategory?.valueOf().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
@@ -141,8 +141,8 @@ export default class PinTemplate extends ITemplate {
 
     isInputRendered() {
         return this.element.isInput()
-            && !this.element.entity.bDefaultValueIsIgnored
-            && !this.element.entity.PinType.bIsReference
+            && !this.element.entity.bDefaultValueIsIgnored?.valueOf()
+            && !this.element.entity.PinType.bIsReference?.valueOf()
     }
 
     renderInput() {

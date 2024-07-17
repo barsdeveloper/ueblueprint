@@ -20,7 +20,13 @@ export default class StringEntity extends IEntity {
         return this.value
     }
 
-    toString(insideString = false) {
+    toString(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
         let result = `"${Utility.escapeString(this.value)}"`
         if (insideString) {
             result = Utility.escapeString(result, false)

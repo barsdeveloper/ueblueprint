@@ -9,11 +9,7 @@ export default class NullEntity extends IEntity {
             .map(v => new this())
     )
 
-    toString(
-        insideString = false,
-        indentation = "",
-        printKey = this.Self().printKey,
-    ) {
+    toString() {
         return "()"
     }
 }

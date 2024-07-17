@@ -26,10 +26,11 @@ export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        const Self = this.Self()
-        return this.X.toString(insideString) + Self.attributeSeparator
-            + this.Y.toString(insideString) + (this.trailing ? Self.attributeSeparator : "")
+        return this.X.toString() + Self.attributeSeparator
+            + this.Y.toString() + (this.trailing ? Self.attributeSeparator : "")
     }
 }

@@ -3205,7 +3205,7 @@ function nodeColor(entity) {
     }
     switch (entity.getClass()) {
         case Configuration.paths.callFunction:
-            return entity.bIsPureFunc
+            return entity.bIsPureFunc?.valueOf()
                 ? Configuration.nodeColors.green
                 : Configuration.nodeColors.blue
         case Configuration.paths.niagaraNodeFunctionCall:
@@ -3255,7 +3255,7 @@ function nodeColor(entity) {
                 return Configuration.nodeColors.intenseGreen
         }
     }
-    if (entity.bIsPureFunc) {
+    if (entity.bIsPureFunc?.valueOf()) {
         return Configuration.nodeColors.green
     }
     return Configuration.nodeColors.blue
@@ -3704,11 +3704,7 @@ class BooleanEntity extends IEntity {
         return this.value
     }
 
-    toString(
-        insideString = false,
-        indentation = "",
-        printKey = this.Self().printKey,
-    ) {
+    toString() {
         return this.value
             ? this.#uppercase
                 ? "True"
@@ -3754,9 +3750,12 @@ class MirroredEntity extends IEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        return this.getter().toString(insideString, indentation, printKey)
+        this.toString = this.getter.toString.bind(this.getter());
+        return this.toString(insideString, indentation, Self, printKey, wrap)
     }
 }
 
@@ -3806,13 +3805,7 @@ class NumberEntity extends IEntity {
         return this.value
     }
 
-    toString(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
+    toString() {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"
         }
@@ -4391,12 +4384,12 @@ class ArrayEntity extends IEntity {
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        if (this.Self().inlined) {
+        if (Self.inlined) {
             return super.toString.bind(this.values, insideString, indentation, Self, printKey, wrap)()
         }
-        let result = this.values.map(v => v?.toString(insideString)).join(this.Self().attributeSeparator);
+        let result = this.values.map(v => v?.toString(insideString)).join(Self.attributeSeparator);
         if (this.trailing) {
-            result += this.Self().attributeSeparator;
+            result += Self.attributeSeparator;
         }
         return `(${result})`
     }
@@ -4542,12 +4535,12 @@ function pinColor(entity) {
 function pinTitle(entity) {
     let result = entity.PinFriendlyName
         ? entity.PinFriendlyName.toString()
-        : Utility.formatStringName(entity.PinName ?? "");
+        : Utility.formatStringName(entity.PinName?.valueOf() ?? "");
     let match;
     if (
         entity.PinToolTip
         // Match up until the first \n excluded or last character
-        && (match = entity.PinToolTip.match(/\s*(.+?(?=\n)|.+\S)\s*/))
+        && (match = entity.PinToolTip?.valueOf().match(/\s*(.+?(?=\n)|.+\S)\s*/))
     ) {
         if (match[1].toLowerCase() === result.toLowerCase()) {
             return match[1] // In case they match, then keep the case of the PinToolTip
@@ -4682,7 +4675,13 @@ class StringEntity extends IEntity {
         return this.value
     }
 
-    toString(insideString = false) {
+    toString(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
         let result = `"${Utility.escapeString(this.value)}"`;
         if (insideString) {
             result = Utility.escapeString(result, false);
@@ -4791,10 +4790,10 @@ class FormatTextEntity extends IEntity {
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        const separator = this.Self().attributeSeparator;
+        const separator = Self.attributeSeparator;
         return this.lookbehind + "("
             + this.values.map(v => v.toString(insideString)).join(separator)
-            + (this.Self().trailing ? separator : "")
+            + (Self.trailing ? separator : "")
             + ")"
     }
 }
@@ -4826,7 +4825,13 @@ class Integer64Entity extends IEntity {
         return this.value
     }
 
-    toString() {
+    toString(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
         return this.value.toString()
     }
 }
@@ -4954,13 +4959,7 @@ class PinReferenceEntity extends IEntity {
         this.pinGuid = pinGuid;
     }
 
-    toString(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
+    toString() {
         return this.objectName.toString() + " " + this.pinGuid.toString()
     }
 }
@@ -5126,12 +5125,13 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        const Self = this.Self();
-        return this.P.toString(insideString) + Self.attributeSeparator
-            + this.Y.toString(insideString) + Self.attributeSeparator
-            + this.R.toString(insideString) + (this.trailing ? Self.attributeSeparator : "")
+        return this.P.toString() + Self.attributeSeparator
+            + this.Y.toString() + Self.attributeSeparator
+            + this.R.toString() + (this.trailing ? Self.attributeSeparator : "")
     }
 }
 
@@ -5158,11 +5158,12 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        const Self = this.Self();
-        return this.X.toString(insideString) + Self.attributeSeparator
-            + this.Y.toString(insideString) + (this.trailing ? Self.attributeSeparator : "")
+        return this.X.toString() + Self.attributeSeparator
+            + this.Y.toString() + (this.trailing ? Self.attributeSeparator : "")
     }
 }
 
@@ -5247,12 +5248,13 @@ class SimpleSerializationVectorEntity extends VectorEntity {
     toString(
         insideString = false,
         indentation = "",
-        printKey = this.Self().printKey,
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
     ) {
-        const Self = this.Self();
-        return this.X.toString(insideString) + Self.attributeSeparator
-            + this.Y.toString(insideString) + Self.attributeSeparator
-            + this.Z.toString(insideString) + (this.trailing ? Self.attributeSeparator : "")
+        return this.X.toString() + Self.attributeSeparator
+            + this.Y.toString() + Self.attributeSeparator
+            + this.Z.toString() + (this.trailing ? Self.attributeSeparator : "")
     }
 }
 
@@ -5385,7 +5387,7 @@ class PinEntity extends IEntity {
             if (pinObjectReference) {
                 /** @type {ObjectEntity} */
                 const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)];
-                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? "";
+                let allowedTypes = pinObject.Properties?.AllowedTypes?.valueOf() ?? "";
                 if (allowedTypes == "") {
                     allowedTypes = this.PinType.PinCategory ?? "";
                     if (allowedTypes == "") {
@@ -5394,8 +5396,8 @@ class PinEntity extends IEntity {
                 }
                 if (allowedTypes) {
                     if (
-                        pinObject.Properties.bAllowMultipleData !== false
-                        && pinObject.Properties.bAllowMultipleConnections !== false
+                        pinObject.Properties.bAllowMultipleData?.valueOf() !== false
+                        && pinObject.Properties.bAllowMultipleConnections?.valueOf() !== false
                     ) {
                         allowedTypes += "[]";
                     }
@@ -5458,15 +5460,15 @@ class PinEntity extends IEntity {
     }
 
     isHidden() {
-        return this.bHidden
+        return this.bHidden?.valueOf()
     }
 
     isInput() {
-        return !this.bHidden && this.Direction.toString() != "EGPD_Output"
+        return !this.isHidden() && this.Direction.valueOf() != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.bHidden && this.Direction.toString() == "EGPD_Output"
+        return !this.isHidden() && this.Direction.valueOf() == "EGPD_Output"
     }
 
     isLinked() {
@@ -5598,9 +5600,9 @@ function nodeVariadic(entity) {
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
                 entity.PinNames ??= new ArrayEntity();
-                entity.PinNames.values.push(new StringEntity(result));
-                delete entity.PinTags.values[entity.PinTags.length - 1];
-                entity.PinTags.values[entity.PinTags.length] = null;
+                entity.PinNames.valueOf().push(new StringEntity(result));
+                delete entity.PinTags.valueOf()[entity.PinTags.length - 1];
+                entity.PinTags.valueOf()[entity.PinTags.length] = null;
                 return result
             };
         case Configuration.paths.switchName:
@@ -5610,7 +5612,7 @@ function nodeVariadic(entity) {
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
                 entity.PinNames ??= new ArrayEntity();
-                entity.PinNames.values.push(new StringEntity(result));
+                entity.PinNames.valueOf().push(new StringEntity(result));
                 return result
             };
             break
@@ -5697,11 +5699,7 @@ class NullEntity extends IEntity {
             .map(v => new this())
     )
 
-    toString(
-        insideString = false,
-        indentation = "",
-        printKey = this.Self().printKey,
-    ) {
+    toString() {
         return "()"
     }
 }
@@ -6578,9 +6576,12 @@ class KeyboardShortcut extends IInput {
 
         this.#activationKeys = this.options.activationKeys ?? [];
 
-        const wantsShift = keyEntry => keyEntry.bShift || keyEntry.Key == "LeftShift" || keyEntry.Key == "RightShift";
-        const wantsCtrl = keyEntry => keyEntry.bCtrl || keyEntry.Key == "LeftControl" || keyEntry.Key == "RightControl";
-        const wantsAlt = keyEntry => keyEntry.bAlt || keyEntry.Key == "LeftAlt" || keyEntry.Key == "RightAlt";
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsShift = keyEntry => keyEntry.bShift?.valueOf() || keyEntry.Key.valueOf() == "LeftShift" || keyEntry.Key.valueOf() == "RightShift";
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsCtrl = keyEntry => keyEntry.bCtrl?.valueOf() || keyEntry.Key.valueOf() == "LeftControl" || keyEntry.Key.valueOf() == "RightControl";
+        /** @param {KeyBindingEntity} keyEntry */
+        const wantsAlt = keyEntry => keyEntry.bAlt?.valueOf() || keyEntry.Key.valueOf() == "LeftAlt" || keyEntry.Key.valueOf() == "RightAlt";
 
         let self = this;
         /** @param {KeyboardEvent} e */
@@ -6608,10 +6609,10 @@ class KeyboardShortcut extends IInput {
         this.keyUpHandler = e => {
             if (
                 self.#activationKeys.some(keyEntry =>
-                    keyEntry.bShift && e.key == "Shift"
-                    || keyEntry.bCtrl && e.key == "Control"
-                    || keyEntry.bAlt && e.key == "Alt"
-                    || keyEntry.bCmd && e.key == "Meta"
+                    keyEntry.bShift?.valueOf() && e.key == "Shift"
+                    || keyEntry.bCtrl?.valueOf() && e.key == "Control"
+                    || keyEntry.bAlt?.valueOf() && e.key == "Alt"
+                    || keyEntry.bCmd?.valueOf() && e.key == "Meta"
                     || Configuration.Keys[keyEntry.Key.value] == e.code
                 )
             ) {
@@ -8814,7 +8815,7 @@ class PinTemplate extends ITemplate {
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType?.PinCategory?.valueOf().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
@@ -8840,8 +8841,8 @@ class PinTemplate extends ITemplate {
 
     isInputRendered() {
         return this.element.isInput()
-            && !this.element.entity.bDefaultValueIsIgnored
-            && !this.element.entity.PinType.bIsReference
+            && !this.element.entity.bDefaultValueIsIgnored?.valueOf()
+            && !this.element.entity.PinType.bIsReference?.valueOf()
     }
 
     renderInput() {
@@ -9357,7 +9358,7 @@ class NodeElement extends ISelectableDraggableElement {
         this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
         this.enabledState = entity.EnabledState;
         this.nodeDisplayName = nodeTitle(entity);
-        this.pureFunction = entity.bIsPureFunc;
+        this.pureFunction = entity.bIsPureFunc?.valueOf();
         this.dragLinkObjects = [];
         super.initialize(entity, template);
         this.#pins = this.template.createPinElements();
@@ -9526,18 +9527,18 @@ class BlueprintEntity extends ObjectEntity {
 
     /** @param {ObjectEntity} entity */
     mergeWith(entity) {
-        if (!entity.ScriptVariables || entity.ScriptVariables.values.length === 0) {
+        if (!entity.ScriptVariables || entity.ScriptVariables.length === 0) {
             return this
         }
-        if (!this.ScriptVariables || this.ScriptVariables.values.length === 0) {
+        if (!this.ScriptVariables || this.ScriptVariables.length === 0) {
             this.ScriptVariables = entity.ScriptVariables;
         }
         let scriptVariables = Utility.mergeArrays(
-            this.ScriptVariables.values,
-            entity.ScriptVariables.values,
+            this.ScriptVariables.valueOf(),
+            entity.ScriptVariables.valueOf(),
             (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value
         );
-        if (scriptVariables.length === this.ScriptVariables.values.length) {
+        if (scriptVariables.length === this.ScriptVariables.length) {
             return this
         }
         const entries = scriptVariables.concat(scriptVariables).map((v, i) => {
@@ -12200,7 +12201,7 @@ function pinTemplate(entity) {
     if (entity.PinType.ContainerType?.toString() === "Array") {
         return PinTemplate
     }
-    if (entity.PinType.bIsReference && !entity.PinType.bIsConst) {
+    if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
         return inputPinTemplates["MUTABLE_REFERENCE"]
     }
     if (entity.getType() === "exec") {
@@ -12290,9 +12291,9 @@ class PinElement extends IElement {
         nodeElement = undefined
     ) {
         this.nodeElement = nodeElement;
-        this.advancedView = entity.bAdvancedView;
+        this.advancedView = entity.bAdvancedView?.valueOf();
         this.isLinked = false;
-        this.connectable = !entity.bNotConnectable;
+        this.connectable = !entity.bNotConnectable?.valueOf();
         super.initialize(entity, template);
         this.pinType = this.entity.getType();
         this.defaultValue = this.entity.getDefaultValue();
@@ -12307,7 +12308,7 @@ class PinElement extends IElement {
 
     createPinReference() {
         return new PinReferenceEntity({
-            objectName: this.nodeElement.getNodeName(),
+            objectName: new StringEntity(this.nodeElement.getNodeName()),
             pinGuid: this.getPinId(),
         })
     }
@@ -12319,7 +12320,7 @@ class PinElement extends IElement {
 
     /** @returns {String} */
     getPinName() {
-        return this.entity.PinName
+        return this.entity.PinName?.valueOf() ?? ""
     }
 
     getPinDisplayName() {
@@ -12366,21 +12367,23 @@ class PinElement extends IElement {
 
     /** @param  {IElement[]} nodesWhitelist */
     sanitizeLinks(nodesWhitelist = []) {
-        this.entity.LinkedTo = this.entity.LinkedTo?.filter(pinReference => {
-            let pin = this.blueprint.getPin(pinReference);
-            if (pin) {
-                if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
-                    return false
+        this.entity.LinkedTo = new ArrayEntity(
+            this.entity.LinkedTo?.valueOf().filter(pinReference => {
+                let pin = this.blueprint.getPin(pinReference);
+                if (pin) {
+                    if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
+                        return false
+                    }
+                    let link = this.blueprint.getLink(this, pin);
+                    if (!link) {
+                        link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+                            .newObject(this, pin);
+                        this.blueprint.addGraphElement(link);
+                    }
                 }
-                let link = this.blueprint.getLink(this, pin);
-                if (!link) {
-                    link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
-                        .newObject(this, pin);
-                    this.blueprint.addGraphElement(link);
-                }
-            }
-            return pin
-        });
+                return pin
+            })
+        );
         this.isLinked = this.entity.isLinked();
     }
 

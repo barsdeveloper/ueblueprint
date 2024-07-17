@@ -84,9 +84,9 @@ export default function nodeVariadic(entity) {
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
                 entity.PinNames ??= new ArrayEntity()
-                entity.PinNames.values.push(new StringEntity(result))
-                delete entity.PinTags.values[entity.PinTags.length - 1]
-                entity.PinTags.values[entity.PinTags.length] = null
+                entity.PinNames.valueOf().push(new StringEntity(result))
+                delete entity.PinTags.valueOf()[entity.PinTags.length - 1]
+                entity.PinTags.valueOf()[entity.PinTags.length] = null
                 return result
             }
         case Configuration.paths.switchName:
@@ -96,7 +96,7 @@ export default function nodeVariadic(entity) {
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`
                 entity.PinNames ??= new ArrayEntity()
-                entity.PinNames.values.push(new StringEntity(result))
+                entity.PinNames.valueOf().push(new StringEntity(result))
                 return result
             }
             break

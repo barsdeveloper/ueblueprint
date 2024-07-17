@@ -1,9 +1,11 @@
 import Utility from "../Utility.js"
 import pinTemplate from "../decoding/pinTemplate.js"
+import ArrayEntity from "../entity/ArrayEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
+import StringEntity from "../entity/StringEntity.js"
 import PinTemplate from "../template/pin/PinTemplate.js"
 import ElementFactory from "./ElementFactory.js"
 import IElement from "./IElement.js"
@@ -89,9 +91,9 @@ export default class PinElement extends IElement {
         nodeElement = undefined
     ) {
         this.nodeElement = nodeElement
-        this.advancedView = entity.bAdvancedView
+        this.advancedView = entity.bAdvancedView?.valueOf()
         this.isLinked = false
-        this.connectable = !entity.bNotConnectable
+        this.connectable = !entity.bNotConnectable?.valueOf()
         super.initialize(entity, template)
         this.pinType = this.entity.getType()
         this.defaultValue = this.entity.getDefaultValue()
@@ -106,7 +108,7 @@ export default class PinElement extends IElement {
 
     createPinReference() {
         return new PinReferenceEntity({
-            objectName: this.nodeElement.getNodeName(),
+            objectName: new StringEntity(this.nodeElement.getNodeName()),
             pinGuid: this.getPinId(),
         })
     }
@@ -118,7 +120,7 @@ export default class PinElement extends IElement {
 
     /** @returns {String} */
     getPinName() {
-        return this.entity.PinName
+        return this.entity.PinName?.valueOf() ?? ""
     }
 
     getPinDisplayName() {
@@ -147,7 +149,7 @@ export default class PinElement extends IElement {
     }
 
     getLinks() {
-        return this.entity.LinkedTo ?? []
+        return this.entity.LinkedTo?.valueOf() ?? []
     }
 
     getDefaultValue(maybeCreate = false) {
@@ -165,21 +167,23 @@ export default class PinElement extends IElement {
 
     /** @param  {IElement[]} nodesWhitelist */
     sanitizeLinks(nodesWhitelist = []) {
-        this.entity.LinkedTo = this.entity.LinkedTo?.filter(pinReference => {
-            let pin = this.blueprint.getPin(pinReference)
-            if (pin) {
-                if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
-                    return false
+        this.entity.LinkedTo = new ArrayEntity(
+            this.entity.LinkedTo?.valueOf().filter(pinReference => {
+                let pin = this.blueprint.getPin(pinReference)
+                if (pin) {
+                    if (nodesWhitelist.length && !nodesWhitelist.includes(pin.nodeElement)) {
+                        return false
+                    }
+                    let link = this.blueprint.getLink(this, pin)
+                    if (!link) {
+                        link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
+                            .newObject(this, pin)
+                        this.blueprint.addGraphElement(link)
+                    }
                 }
-                let link = this.blueprint.getLink(this, pin)
-                if (!link) {
-                    link = /** @type {LinkElementConstructor} */(ElementFactory.getConstructor("ueb-link"))
-                        .newObject(this, pin)
-                    this.blueprint.addGraphElement(link)
-                }
-            }
-            return pin
-        })
+                return pin
+            })
+        )
         this.isLinked = this.entity.isLinked()
     }
 

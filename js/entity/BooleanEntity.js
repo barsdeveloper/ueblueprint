@@ -30,11 +30,7 @@ export default class BooleanEntity extends IEntity {
         return this.value
     }
 
-    toString(
-        insideString = false,
-        indentation = "",
-        printKey = this.Self().printKey,
-    ) {
+    toString() {
         return this.value
             ? this.#uppercase
                 ? "True"

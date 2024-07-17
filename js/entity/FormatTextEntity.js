@@ -62,10 +62,10 @@ export default class FormatTextEntity extends IEntity {
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        const separator = this.Self().attributeSeparator
+        const separator = Self.attributeSeparator
         return this.lookbehind + "("
             + this.values.map(v => v.toString(insideString)).join(separator)
-            + (this.Self().trailing ? separator : "")
+            + (Self.trailing ? separator : "")
             + ")"
     }
 }

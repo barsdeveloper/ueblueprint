@@ -56,18 +56,18 @@ export default class BlueprintEntity extends ObjectEntity {
 
     /** @param {ObjectEntity} entity */
     mergeWith(entity) {
-        if (!entity.ScriptVariables || entity.ScriptVariables.values.length === 0) {
+        if (!entity.ScriptVariables || entity.ScriptVariables.length === 0) {
             return this
         }
-        if (!this.ScriptVariables || this.ScriptVariables.values.length === 0) {
+        if (!this.ScriptVariables || this.ScriptVariables.length === 0) {
             this.ScriptVariables = entity.ScriptVariables
         }
         let scriptVariables = Utility.mergeArrays(
-            this.ScriptVariables.values,
-            entity.ScriptVariables.values,
+            this.ScriptVariables.valueOf(),
+            entity.ScriptVariables.valueOf(),
             (l, r) => l.OriginalChangeId.value == r.OriginalChangeId.value
         )
-        if (scriptVariables.length === this.ScriptVariables.values.length) {
+        if (scriptVariables.length === this.ScriptVariables.length) {
             return this
         }
         const entries = scriptVariables.concat(scriptVariables).map((v, i) => {
