@@ -325,7 +325,7 @@ export default class ObjectEntity extends IEntity {
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
                 // The following attributes are too generic therefore not assigned a MirroredEntity
                 const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
+                    this.getPinEntities().find(pin => pin.PinName.serialize() === pinName && (pin.recomputesNodeTitleOnChange = true))
                 )
                 const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
                 obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue)
@@ -578,7 +578,7 @@ export default class ObjectEntity extends IEntity {
 
     isDevelopmentOnly() {
         const nodeClass = this.getClass()
-        return this.EnabledState?.toString() === "DevelopmentOnly"
+        return this.EnabledState?.serialize() === "DevelopmentOnly"
             || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
     }
 
@@ -616,7 +616,7 @@ export default class ObjectEntity extends IEntity {
         return super.showProperty(key)
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -625,17 +625,17 @@ export default class ObjectEntity extends IEntity {
     ) {
         const moreIndentation = indentation + Configuration.indentation
         let result = indentation + "Begin Object"
-            + (this.Class?.type || this.Class?.path ? ` Class=${this.Class.toString(insideString)}` : "")
-            + (this.Name ? ` Name=${this.Name.toString(insideString)}` : "")
-            + (this.Archetype ? ` Archetype=${this.Archetype.toString(insideString)}` : "")
-            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.toString(insideString)}` : "")
+            + (this.Class?.type || this.Class?.path ? ` Class=${this.Class.serialize(insideString)}` : "")
+            + (this.Name ? ` Name=${this.Name.serialize(insideString)}` : "")
+            + (this.Archetype ? ` Archetype=${this.Archetype.serialize(insideString)}` : "")
+            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.serialize(insideString)}` : "")
             + "\n"
-            + super.toString(insideString, moreIndentation, Self, printKey, wrap)
+            + super.serialize(insideString, moreIndentation, Self, printKey, wrap)
             + (!this.CustomProperties.Self().ignored
                 ? this.getCustomproperties().map(pin =>
                     moreIndentation
                     + printKey("CustomProperties ")
-                    + pin.toString(insideString)
+                    + pin.serialize(insideString)
                     + this.Self().attributeSeparator
                 ).join("")
                 : ""

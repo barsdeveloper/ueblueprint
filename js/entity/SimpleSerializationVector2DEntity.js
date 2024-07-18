@@ -23,14 +23,14 @@ export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
         ).label("SimpleSerializationVector2DEntity")
     )
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        return this.X.toString() + Self.attributeSeparator
-            + this.Y.toString() + (this.trailing ? Self.attributeSeparator : "")
+        return this.X.serialize() + Self.attributeSeparator
+            + this.Y.serialize() + (this.trailing ? Self.attributeSeparator : "")
     }
 }

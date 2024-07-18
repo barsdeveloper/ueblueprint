@@ -257,13 +257,13 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
     renderContent() {
         const theta = this.color.H.value * 2 * Math.PI
         const style = {
-            "--ueb-color-r": this.color.R.toString(),
-            "--ueb-color-g": this.color.G.toString(),
-            "--ueb-color-b": this.color.B.toString(),
-            "--ueb-color-a": this.color.A.toString(),
-            "--ueb-color-h": this.color.H.toString(),
-            "--ueb-color-s": this.color.S.toString(),
-            "--ueb-color-v": this.color.V.toString(),
+            "--ueb-color-r": this.color.R.serialize(),
+            "--ueb-color-g": this.color.G.serialize(),
+            "--ueb-color-b": this.color.B.serialize(),
+            "--ueb-color-a": this.color.A.serialize(),
+            "--ueb-color-h": this.color.H.serialize(),
+            "--ueb-color-s": this.color.S.serialize(),
+            "--ueb-color-v": this.color.V.serialize(),
             "--ueb-color-wheel-x": `${(this.color.S.value * Math.cos(theta) * 0.5 + 0.5) * 100}%`,
             "--ueb-color-wheel-y": `${(this.color.S.value * Math.sin(theta) * 0.5 + 0.5) * 100}%`,
         }

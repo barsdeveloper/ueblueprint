@@ -234,7 +234,7 @@ export default class PinElement extends IElement {
      */
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
-            pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
+            pinReference.objectName.serialize() == originalPinElement.getNodeElement().getNodeName()
             && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
         )
         if (index >= 0) {

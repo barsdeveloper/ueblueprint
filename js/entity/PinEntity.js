@@ -232,7 +232,7 @@ export default class PinEntity extends IEntity {
     }
 
     isExecution() {
-        return this.PinType.PinCategory.toString() === "exec"
+        return this.PinType.PinCategory.serialize() === "exec"
     }
 
     isHidden() {
@@ -240,11 +240,11 @@ export default class PinEntity extends IEntity {
     }
 
     isInput() {
-        return !this.isHidden() && this.Direction.valueOf() != "EGPD_Output"
+        return !this.isHidden() && this.Direction?.valueOf() != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.isHidden() && this.Direction.valueOf() == "EGPD_Output"
+        return !this.isHidden() && this.Direction?.valueOf() == "EGPD_Output"
     }
 
     isLinked() {
@@ -258,7 +258,7 @@ export default class PinEntity extends IEntity {
      */
     linkTo(targetObjectName, targetPinEntity) {
         const linkFound = this.LinkedTo.values?.some(pinReferenceEntity =>
-            pinReferenceEntity.objectName.toString() == targetObjectName
+            pinReferenceEntity.objectName.serialize() == targetObjectName
             && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         )
         if (!linkFound) {
@@ -275,7 +275,7 @@ export default class PinEntity extends IEntity {
      */
     unlinkFrom(targetObjectName, targetPinEntity) {
         const indexElement = this.LinkedTo.values?.findIndex(pinReferenceEntity => {
-            return pinReferenceEntity.objectName.toString() == targetObjectName
+            return pinReferenceEntity.objectName.serialize() == targetObjectName
                 && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         })
         if (indexElement >= 0) {

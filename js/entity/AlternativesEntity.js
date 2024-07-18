@@ -1,6 +1,7 @@
 import P from "parsernostrum"
 import IEntity from "./IEntity.js"
 
+/** @template {(typeof IEntity)[]} T */
 export default class AlternativesEntity extends IEntity {
 
     /** @type {(typeof IEntity)[]} */
@@ -27,11 +28,16 @@ export default class AlternativesEntity extends IEntity {
      * @param {Types} types
      */
     static accepting(...types) {
-        const result = /** @type {typeof AlternativesEntity & { alternatives: Types }} */(
+        const result = /** @type {typeof AlternativesEntity<Types> & { alternatives: Types }} */(
             this.asUniqueClass()
         )
         result.alternatives = types
         result.grammar = result.createGrammar()
         return result
+    }
+
+    /** @returns {UnionFromArray<T>} */
+    valueOf() {
+        return
     }
 }

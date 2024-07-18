@@ -125,7 +125,7 @@ export default class IInputPinTemplate extends PinTemplate {
         return html`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.serialize() ?? "")}">
                 </ueb-input>
             </div>
         `

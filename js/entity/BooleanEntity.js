@@ -30,7 +30,7 @@ export default class BooleanEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         return this.value
             ? this.#uppercase
                 ? "True"

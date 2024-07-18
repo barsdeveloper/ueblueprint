@@ -19,7 +19,7 @@ test.describe.configure({ mode: "parallel" })
 test("Entity2", () => {
     const value = new Entity2()
     expect(Object.keys(value)).toHaveLength(9)
-    expect(value.toString()).toEqual(entity2Value)
+    expect(value.serialize()).toEqual(entity2Value)
     const other = new Entity2({ someString2: new StringEntity("gamma") })
     expect(value.equals(other)).toBeFalsy()
     other.someString2 = new StringEntity("beta")
@@ -29,7 +29,7 @@ test("Entity2", () => {
 test("Entity2-1", () => {
     Entity2.attributes.someEntity = Entity2.attributes.someEntity.flagInlined()
     const value = new Entity2()
-    expect(value.toString()).toEqual(entity2Value1)
+    expect(value.serialize()).toEqual(entity2Value1)
 })
 
 test("Entity3", () => {
@@ -56,7 +56,7 @@ test("Entity3", () => {
         "sierra",
     ]
     expect(Object.keys(value)).toStrictEqual(keys)
-    expect(value.toString()).toEqual(entity3Value)
+    expect(value.serialize()).toEqual(entity3Value)
 })
 
 test("Entity4", () => {
@@ -65,5 +65,5 @@ test("Entity4", () => {
     Entity1.printKey = k => k.toUpperCase()
     Entity1.wrap = (entity, v) => `E1[${v}]`
     const entity = new Entity4()
-    expect(entity.toString()).toEqual(entity4Value)
+    expect(entity.serialize()).toEqual(entity4Value)
 })

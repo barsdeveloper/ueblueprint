@@ -55,7 +55,7 @@ export default class FormatTextEntity extends IEntity {
         return result
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -64,7 +64,7 @@ export default class FormatTextEntity extends IEntity {
     ) {
         const separator = Self.attributeSeparator
         return this.lookbehind + "("
-            + this.values.map(v => v.toString(insideString)).join(separator)
+            + this.values.map(v => v.serialize(insideString)).join(separator)
             + (Self.trailing ? separator : "")
             + ")"
     }

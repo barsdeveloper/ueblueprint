@@ -67,7 +67,7 @@ export default class ArrayEntity extends IEntity {
         return this.values
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -75,9 +75,9 @@ export default class ArrayEntity extends IEntity {
         wrap = Self.wrap,
     ) {
         if (Self.inlined) {
-            return super.toString.bind(this.values, insideString, indentation, Self, printKey, wrap)()
+            return super.serialize.bind(this.values, insideString, indentation, Self, printKey, wrap)()
         }
-        let result = this.values.map(v => v?.toString(insideString)).join(Self.attributeSeparator)
+        let result = this.values.map(v => v?.serialize(insideString)).join(Self.attributeSeparator)
         if (this.trailing) {
             result += Self.attributeSeparator
         }

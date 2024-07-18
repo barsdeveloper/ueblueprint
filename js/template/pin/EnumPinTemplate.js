@@ -25,7 +25,7 @@ export default class EnumPinTemplate extends IInputPinTemplate {
                 return [
                     k,
                     this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
-                        ?.PinFriendlyName.toString()
+                        ?.PinFriendlyName.serialize()
                     ?? k
                 ]
             })
@@ -35,7 +35,7 @@ export default class EnumPinTemplate extends IInputPinTemplate {
                     : [k, Utility.formatStringName(k)]
             )
             ?? []
-        const defaultEntry = this.element.getDefaultValue().toString()
+        const defaultEntry = this.element.getDefaultValue().serialize()
         if (!this.#dropdownEntries.find(([k, v]) => k === defaultEntry)) {
             this.#dropdownEntries.push([defaultEntry, Utility.formatStringName(defaultEntry)])
         }

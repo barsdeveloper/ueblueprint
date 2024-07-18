@@ -48,7 +48,7 @@ export default class NumberEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"
         }

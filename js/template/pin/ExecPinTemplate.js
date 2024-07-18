@@ -9,7 +9,7 @@ export default class ExecPinTemplate extends PinTemplate {
     }
 
     renderName() {
-        let pinName = this.element.entity.PinName
+        let pinName = this.element.entity.PinName.valueOf()
         if (this.element.entity.PinFriendlyName) {
             pinName = this.element.entity.PinFriendlyName.valueOf()
         } else if (pinName === "execute" || pinName === "then") {

@@ -9,7 +9,7 @@ export default class NullEntity extends IEntity {
             .map(v => new this())
     )
 
-    toString() {
+    serialize() {
         return "()"
     }
 }

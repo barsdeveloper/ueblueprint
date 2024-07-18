@@ -36,7 +36,7 @@ export default class Cut extends IInput {
     getSerializedText() {
         return this.blueprint
             .getNodes(true)
-            .map(node => node.entity.toString())
+            .map(node => node.entity.serialize())
             .join("")
     }
 

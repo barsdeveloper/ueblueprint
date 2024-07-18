@@ -87,7 +87,7 @@ export default class ObjectReferenceEntity extends IEntity {
         return this.type == other.type && this.path == other.path
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),

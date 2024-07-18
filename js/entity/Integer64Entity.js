@@ -28,7 +28,7 @@ export default class Integer64Entity extends IEntity {
         return this.value
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),

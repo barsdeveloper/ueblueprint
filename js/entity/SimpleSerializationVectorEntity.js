@@ -28,15 +28,15 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
         )
     )
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        return this.X.toString() + Self.attributeSeparator
-            + this.Y.toString() + Self.attributeSeparator
-            + this.Z.toString() + (this.trailing ? Self.attributeSeparator : "")
+        return this.X.serialize() + Self.attributeSeparator
+            + this.Y.serialize() + Self.attributeSeparator
+            + this.Z.serialize() + (this.trailing ? Self.attributeSeparator : "")
     }
 }

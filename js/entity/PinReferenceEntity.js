@@ -25,7 +25,7 @@ export default class PinReferenceEntity extends IEntity {
         this.pinGuid = pinGuid
     }
 
-    toString() {
-        return this.objectName.toString() + " " + this.pinGuid.toString()
+    serialize() {
+        return this.objectName.serialize() + " " + this.pinGuid.serialize()
     }
 }

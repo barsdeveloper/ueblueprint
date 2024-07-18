@@ -33,7 +33,7 @@ export default class GuidEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         return this.value
     }
 }

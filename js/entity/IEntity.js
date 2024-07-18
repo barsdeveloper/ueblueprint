@@ -273,7 +273,7 @@ export default class IEntity {
     }
 
     /** @this {IEntity | Array} */
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -299,7 +299,7 @@ export default class IEntity {
                 const inlinedPrintKey = value.Self().className() === "ArrayEntity"
                     ? k => printKey(`${keyValue}${k}`)
                     : k => printKey(`${keyValue}.${k}`)
-                result += value.toString(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped)
+                result += value.serialize(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped)
                 continue
             }
             keyValue = printKey(keyValue)
@@ -309,7 +309,7 @@ export default class IEntity {
                 }
                 result += (Self.attributeSeparator.includes("\n") ? indentation : "") + keyValue + Self.keySeparator
             }
-            let serialization = value?.toString(insideString, indentation)
+            let serialization = value?.serialize(insideString, indentation)
             if (Self.serialized) {
                 serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`
             }

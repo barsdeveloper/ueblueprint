@@ -2617,7 +2617,7 @@ class IEntity {
     }
 
     /** @this {IEntity | Array} */
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -2643,7 +2643,7 @@ class IEntity {
                 const inlinedPrintKey = value.Self().className() === "ArrayEntity"
                     ? k => printKey(`${keyValue}${k}`)
                     : k => printKey(`${keyValue}.${k}`);
-                result += value.toString(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped);
+                result += value.serialize(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped);
                 continue
             }
             keyValue = printKey(keyValue);
@@ -2653,7 +2653,7 @@ class IEntity {
                 }
                 result += (Self.attributeSeparator.includes("\n") ? indentation : "") + keyValue + Self.keySeparator;
             }
-            let serialization = value?.toString(insideString, indentation);
+            let serialization = value?.serialize(insideString, indentation);
             if (Self.serialized) {
                 serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`;
             }
@@ -2666,6 +2666,7 @@ class IEntity {
     }
 }
 
+/** @template {(typeof IEntity)[]} T */
 class AlternativesEntity extends IEntity {
 
     /** @type {(typeof IEntity)[]} */
@@ -2692,12 +2693,17 @@ class AlternativesEntity extends IEntity {
      * @param {Types} types
      */
     static accepting(...types) {
-        const result = /** @type {typeof AlternativesEntity & { alternatives: Types }} */(
+        const result = /** @type {typeof AlternativesEntity<Types> & { alternatives: Types }} */(
             this.asUniqueClass()
         );
         result.alternatives = types;
         result.grammar = result.createGrammar();
         return result
+    }
+
+    /** @returns {UnionFromArray<T>} */
+    valueOf() {
+        return
     }
 }
 
@@ -2867,7 +2873,7 @@ class ColorChannelEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         return this.value.toFixed(6)
     }
 }
@@ -3704,7 +3710,7 @@ class BooleanEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         return this.value
             ? this.#uppercase
                 ? "True"
@@ -3730,6 +3736,7 @@ class MirroredEntity extends IEntity {
     /**
      * @template {typeof IEntity} T
      * @param {T} type
+     * @returns {typeof MirroredEntity<T>}
      */
     static of(type) {
         const result = this.asUniqueClass();
@@ -3747,15 +3754,15 @@ class MirroredEntity extends IEntity {
         return result
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        this.toString = this.getter.toString.bind(this.getter());
-        return this.toString(insideString, indentation, Self, printKey, wrap)
+        this.serialize = this.getter.toString.bind(this.getter());
+        return this.serialize(insideString, indentation, Self, printKey, wrap)
     }
 }
 
@@ -3805,7 +3812,7 @@ class NumberEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"
         }
@@ -4028,7 +4035,7 @@ function nodeTitle(entity) {
     }
     const keyNameSymbol = entity.getHIDAttribute();
     if (keyNameSymbol) {
-        const name = keyNameSymbol.toString();
+        const name = keyNameSymbol.serialize();
         let title = keyName(name) ?? Utility.formatStringName(name);
         if (entity.getClass() === Configuration.paths.inputDebugKey) {
             title = "Debug Key " + title;
@@ -4058,8 +4065,8 @@ function nodeTitle(entity) {
     if (settingsObject) {
         if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
-                settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
-                ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
+                settingsObject.HiGenGridSize?.serialize().match(/\d+/)?.[0]?.concat("00")
+                ?? settingsObject.HiGenGridSize?.serialize().match(/^\w+$/)?.[0]
             ) ?? "256"}`
         }
         if (settingsObject.BlueprintElementInstance) {
@@ -4289,7 +4296,7 @@ function nodeIcon(entity) {
     if (entity.getClass() === Configuration.paths.macro) {
         return SVGIcon.macro
     }
-    const hidValue = entity.getHIDAttribute()?.toString();
+    const hidValue = entity.getHIDAttribute()?.serialize();
     if (hidValue) {
         if (hidValue.includes("Mouse")) {
             return SVGIcon.mouse
@@ -4377,7 +4384,7 @@ class ArrayEntity extends IEntity {
         return this.values
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -4385,9 +4392,9 @@ class ArrayEntity extends IEntity {
         wrap = Self.wrap,
     ) {
         if (Self.inlined) {
-            return super.toString.bind(this.values, insideString, indentation, Self, printKey, wrap)()
+            return super.serialize.bind(this.values, insideString, indentation, Self, printKey, wrap)()
         }
-        let result = this.values.map(v => v?.toString(insideString)).join(Self.attributeSeparator);
+        let result = this.values.map(v => v?.serialize(insideString)).join(Self.attributeSeparator);
         if (this.trailing) {
             result += Self.attributeSeparator;
         }
@@ -4427,7 +4434,7 @@ class GuidEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         return this.value
     }
 }
@@ -4534,14 +4541,10 @@ function pinColor(entity) {
 /** @param {PinEntity} entity */
 function pinTitle(entity) {
     let result = entity.PinFriendlyName
-        ? entity.PinFriendlyName.toString()
+        ? entity.PinFriendlyName.valueOf()
         : Utility.formatStringName(entity.PinName?.valueOf() ?? "");
     let match;
-    if (
-        entity.PinToolTip
-        // Match up until the first \n excluded or last character
-        && (match = entity.PinToolTip?.valueOf().match(/\s*(.+?(?=\n)|.+\S)\s*/))
-    ) {
+    if (match = entity.PinToolTip?.valueOf().match(/\s*(.+?(?=\n)|.+\S)\s*/)) {
         if (match[1].toLowerCase() === result.toLowerCase()) {
             return match[1] // In case they match, then keep the case of the PinToolTip
         }
@@ -4607,7 +4610,7 @@ class SymbolEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         return this.value
     }
 }
@@ -4652,7 +4655,7 @@ class InvariantTextEntity extends IEntity {
         return this.value
     }
 
-    toString() {
+    serialize() {
         return this.lookbehind + "(" + this.value + ")"
     }
 }
@@ -4675,7 +4678,7 @@ class StringEntity extends IEntity {
         return this.value
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -4783,7 +4786,7 @@ class FormatTextEntity extends IEntity {
         return result
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -4792,7 +4795,7 @@ class FormatTextEntity extends IEntity {
     ) {
         const separator = Self.attributeSeparator;
         return this.lookbehind + "("
-            + this.values.map(v => v.toString(insideString)).join(separator)
+            + this.values.map(v => v.serialize(insideString)).join(separator)
             + (Self.trailing ? separator : "")
             + ")"
     }
@@ -4825,7 +4828,7 @@ class Integer64Entity extends IEntity {
         return this.value
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -4920,7 +4923,7 @@ class ObjectReferenceEntity extends IEntity {
         return this.type == other.type && this.path == other.path
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -4959,8 +4962,8 @@ class PinReferenceEntity extends IEntity {
         this.pinGuid = pinGuid;
     }
 
-    toString() {
-        return this.objectName.toString() + " " + this.pinGuid.toString()
+    serialize() {
+        return this.objectName.serialize() + " " + this.pinGuid.serialize()
     }
 }
 
@@ -5122,16 +5125,16 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
         ).label("SimpleSerializationRotatorEntity")
     )
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        return this.P.toString() + Self.attributeSeparator
-            + this.Y.toString() + Self.attributeSeparator
-            + this.R.toString() + (this.trailing ? Self.attributeSeparator : "")
+        return this.P.serialize() + Self.attributeSeparator
+            + this.Y.serialize() + Self.attributeSeparator
+            + this.R.serialize() + (this.trailing ? Self.attributeSeparator : "")
     }
 }
 
@@ -5155,15 +5158,15 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
         ).label("SimpleSerializationVector2DEntity")
     )
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        return this.X.toString() + Self.attributeSeparator
-            + this.Y.toString() + (this.trailing ? Self.attributeSeparator : "")
+        return this.X.serialize() + Self.attributeSeparator
+            + this.Y.serialize() + (this.trailing ? Self.attributeSeparator : "")
     }
 }
 
@@ -5245,16 +5248,16 @@ class SimpleSerializationVectorEntity extends VectorEntity {
         )
     )
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        return this.X.toString() + Self.attributeSeparator
-            + this.Y.toString() + Self.attributeSeparator
-            + this.Z.toString() + (this.trailing ? Self.attributeSeparator : "")
+        return this.X.serialize() + Self.attributeSeparator
+            + this.Y.serialize() + Self.attributeSeparator
+            + this.Z.serialize() + (this.trailing ? Self.attributeSeparator : "")
     }
 }
 
@@ -5354,7 +5357,7 @@ class PinEntity extends IEntity {
         /** @type {InstanceType<typeof PinEntity.attributes.Direction>} */ this.Direction;
         /** @type {InstanceType<typeof PinEntity.attributes.PinType>} */ this.PinType;
         /** @type {InstanceType<typeof PinEntity.attributes.LinkedTo>} */ this.LinkedTo;
-        /** @type {InstanceType<typeof PinEntity.attributes.DefaultValue>} */ this.DefaultValue;
+        /** @type {T} */ this.DefaultValue;
         /** @type {InstanceType<typeof PinEntity.attributes.AutogeneratedDefaultValue>} */ this.AutogeneratedDefaultValue;
         /** @type {InstanceType<typeof PinEntity.attributes.DefaultObject>} */ this.DefaultObject;
         /** @type {InstanceType<typeof PinEntity.attributes.PersistentGuid>} */ this.PersistentGuid;
@@ -5457,7 +5460,7 @@ class PinEntity extends IEntity {
     }
 
     isExecution() {
-        return this.PinType.PinCategory.toString() === "exec"
+        return this.PinType.PinCategory.serialize() === "exec"
     }
 
     isHidden() {
@@ -5465,11 +5468,11 @@ class PinEntity extends IEntity {
     }
 
     isInput() {
-        return !this.isHidden() && this.Direction.valueOf() != "EGPD_Output"
+        return !this.isHidden() && this.Direction?.valueOf() != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.isHidden() && this.Direction.valueOf() == "EGPD_Output"
+        return !this.isHidden() && this.Direction?.valueOf() == "EGPD_Output"
     }
 
     isLinked() {
@@ -5483,7 +5486,7 @@ class PinEntity extends IEntity {
      */
     linkTo(targetObjectName, targetPinEntity) {
         const linkFound = this.LinkedTo.values?.some(pinReferenceEntity =>
-            pinReferenceEntity.objectName.toString() == targetObjectName
+            pinReferenceEntity.objectName.serialize() == targetObjectName
             && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         );
         if (!linkFound) {
@@ -5500,7 +5503,7 @@ class PinEntity extends IEntity {
      */
     unlinkFrom(targetObjectName, targetPinEntity) {
         const indexElement = this.LinkedTo.values?.findIndex(pinReferenceEntity => {
-            return pinReferenceEntity.objectName.toString() == targetObjectName
+            return pinReferenceEntity.objectName.serialize() == targetObjectName
                 && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
         });
         if (indexElement >= 0) {
@@ -5700,7 +5703,7 @@ class NullEntity extends IEntity {
             .map(v => new this())
     )
 
-    toString() {
+    serialize() {
         return "()"
     }
 }
@@ -6064,7 +6067,7 @@ class ObjectEntity extends IEntity {
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
                 // The following attributes are too generic therefore not assigned a MirroredEntity
                 const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
+                    this.getPinEntities().find(pin => pin.PinName.serialize() === pinName && (pin.recomputesNodeTitleOnChange = true))
                 );
                 const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent();
                 obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue);
@@ -6083,7 +6086,7 @@ class ObjectEntity extends IEntity {
                 /** @param {ObjectEntity} obj */
                 obj => {
                     if (obj.Node !== undefined) {
-                        const nodeRef = obj.Node.get();
+                        const nodeRef = obj.Node.getter();
                         if (
                             nodeRef.type === this.PCGNode.type
                             && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
@@ -6315,7 +6318,7 @@ class ObjectEntity extends IEntity {
 
     isDevelopmentOnly() {
         const nodeClass = this.getClass();
-        return this.EnabledState?.toString() === "DevelopmentOnly"
+        return this.EnabledState?.serialize() === "DevelopmentOnly"
             || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
     }
 
@@ -6353,7 +6356,7 @@ class ObjectEntity extends IEntity {
         return super.showProperty(key)
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
@@ -6362,17 +6365,17 @@ class ObjectEntity extends IEntity {
     ) {
         const moreIndentation = indentation + Configuration.indentation;
         let result = indentation + "Begin Object"
-            + (this.Class?.type || this.Class?.path ? ` Class=${this.Class.toString(insideString)}` : "")
-            + (this.Name ? ` Name=${this.Name.toString(insideString)}` : "")
-            + (this.Archetype ? ` Archetype=${this.Archetype.toString(insideString)}` : "")
-            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.toString(insideString)}` : "")
+            + (this.Class?.type || this.Class?.path ? ` Class=${this.Class.serialize(insideString)}` : "")
+            + (this.Name ? ` Name=${this.Name.serialize(insideString)}` : "")
+            + (this.Archetype ? ` Archetype=${this.Archetype.serialize(insideString)}` : "")
+            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.serialize(insideString)}` : "")
             + "\n"
-            + super.toString(insideString, moreIndentation, Self, printKey, wrap)
+            + super.serialize(insideString, moreIndentation, Self, printKey, wrap)
             + (!this.CustomProperties.Self().ignored
                 ? this.getCustomproperties().map(pin =>
                     moreIndentation
                     + printKey("CustomProperties ")
-                    + pin.toString(insideString)
+                    + pin.serialize(insideString)
                     + this.Self().attributeSeparator
                 ).join("")
                 : ""
@@ -8811,7 +8814,7 @@ class PinTemplate extends ITemplate {
                     return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType?.ContainerType?.toString()) {
+        switch (this.element.entity.PinType?.ContainerType?.serialize()) {
             case "Array": return SVGIcon.arrayPin
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
@@ -8871,6 +8874,7 @@ class PinTemplate extends ITemplate {
 
     getLinkLocation() {
         const rect = this.iconElement.getBoundingClientRect();
+        /** @type {[Number, Number]} */
         const boundingLocation = [this.element.isInput() ? rect.left : rect.right + 1, (rect.top + rect.bottom) / 2];
         const location = Utility.convertLocation(boundingLocation, this.blueprint.template.gridElement);
         return this.blueprint.compensateTranslation(location[0], location[1])
@@ -9356,7 +9360,7 @@ class NodeElement extends ISelectableDraggableElement {
     initialize(entity = new ObjectEntity(), template = new (nodeTemplateClass(entity))()) {
         this.typePath = entity.getType();
         this.nodeTitle = entity.getObjectName();
-        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
+        this.advancedPinDisplay = entity.AdvancedPinDisplay?.serialize();
         this.enabledState = entity.EnabledState;
         this.nodeDisplayName = nodeTitle(entity);
         this.pureFunction = entity.bIsPureFunc?.valueOf();
@@ -9470,7 +9474,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     toggleShowAdvancedPinDisplay() {
-        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.toString() != "Shown");
+        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.serialize() != "Shown");
     }
 }
 
@@ -9589,11 +9593,11 @@ class Copy extends IInput {
 
     getSerializedText() {
         const allNodes = this.blueprint.getNodes(true).map(n => n.entity);
-        const exported = allNodes.filter(n => n.exported).map(n => n.toString());
-        const result = allNodes.filter(n => !n.exported).map(n => n.toString());
+        const exported = allNodes.filter(n => n.exported).map(n => n.serialize());
+        const result = allNodes.filter(n => !n.exported).map(n => n.serialize());
         if (exported.length) {
             this.blueprint.entity.ExportedNodes = btoa(exported.join(""));
-            result.splice(0, 0, this.blueprint.entity.toString(false));
+            result.splice(0, 0, this.blueprint.entity.serialize(false));
             delete this.blueprint.entity.ExportedNodes;
         }
         return result.join("")
@@ -9642,7 +9646,7 @@ class Cut extends IInput {
     getSerializedText() {
         return this.blueprint
             .getNodes(true)
-            .map(node => node.entity.toString())
+            .map(node => node.entity.serialize())
             .join("")
     }
 
@@ -10626,12 +10630,12 @@ class Blueprint extends IElement {
     getPin(pinReference) {
         let result = this.template.getPin(pinReference);
         // Remember could be renamed in the meantime and DOM not yet updated
-        if (!result || result.nodeElement.getNodeName() != pinReference.objectName.toString()) {
+        if (!result || result.nodeElement.getNodeName() != pinReference.objectName.serialize()) {
             // Slower fallback
             result = [... this.nodes
-                .find(n => pinReference.objectName.toString() == n.getNodeName())
+                .find(n => pinReference.objectName.serialize() == n.getNodeName())
                 ?.getPinElements() ?? []]
-                .find(p => pinReference.pinGuid.toString() == p.getPinId().toString());
+                .find(p => pinReference.pinGuid.serialize() == p.getPinId().serialize());
         }
         return result
     }
@@ -11293,7 +11297,7 @@ class IInputPinTemplate extends PinTemplate {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.serialize() ?? "")}">
                 </ueb-input>
             </div>
         `
@@ -11321,7 +11325,7 @@ class EnumPinTemplate extends IInputPinTemplate {
                 return [
                     k,
                     this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
-                        ?.PinFriendlyName.toString()
+                        ?.PinFriendlyName.serialize()
                     ?? k
                 ]
             })
@@ -11331,7 +11335,7 @@ class EnumPinTemplate extends IInputPinTemplate {
                     : [k, Utility.formatStringName(k)]
             )
             ?? [];
-        const defaultEntry = this.element.getDefaultValue().toString();
+        const defaultEntry = this.element.getDefaultValue().serialize();
         if (!this.#dropdownEntries.find(([k, v]) => k === defaultEntry)) {
             this.#dropdownEntries.push([defaultEntry, Utility.formatStringName(defaultEntry)]);
         }
@@ -11368,9 +11372,9 @@ class ExecPinTemplate extends PinTemplate {
     }
 
     renderName() {
-        let pinName = this.element.entity.PinName;
+        let pinName = this.element.entity.PinName.valueOf();
         if (this.element.entity.PinFriendlyName) {
-            pinName = this.element.entity.PinFriendlyName.toString();
+            pinName = this.element.entity.PinFriendlyName.valueOf();
         } else if (pinName === "execute" || pinName === "then") {
             return x``
         }
@@ -11431,7 +11435,7 @@ class Int64PinTemplate extends INumericPinTemplate {
     renderInput() {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
-                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
+                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.serialize() ?? "0"}">
                 </ueb-input>
             </div>
         `
@@ -11453,7 +11457,7 @@ class IntPinTemplate extends INumericPinTemplate {
     renderInput() {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
-                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
+                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.serialize() ?? "0"}">
                 </ueb-input>
             </div>
         `
@@ -11795,13 +11799,13 @@ class ColorPickerWindowTemplate extends WindowTemplate {
     renderContent() {
         const theta = this.color.H.value * 2 * Math.PI;
         const style = {
-            "--ueb-color-r": this.color.R.toString(),
-            "--ueb-color-g": this.color.G.toString(),
-            "--ueb-color-b": this.color.B.toString(),
-            "--ueb-color-a": this.color.A.toString(),
-            "--ueb-color-h": this.color.H.toString(),
-            "--ueb-color-s": this.color.S.toString(),
-            "--ueb-color-v": this.color.V.toString(),
+            "--ueb-color-r": this.color.R.serialize(),
+            "--ueb-color-g": this.color.G.serialize(),
+            "--ueb-color-b": this.color.B.serialize(),
+            "--ueb-color-a": this.color.A.serialize(),
+            "--ueb-color-h": this.color.H.serialize(),
+            "--ueb-color-s": this.color.S.serialize(),
+            "--ueb-color-v": this.color.V.serialize(),
             "--ueb-color-wheel-x": `${(this.color.S.value * Math.cos(theta) * 0.5 + 0.5) * 100}%`,
             "--ueb-color-wheel-y": `${(this.color.S.value * Math.sin(theta) * 0.5 + 0.5) * 100}%`,
         };
@@ -11933,9 +11937,9 @@ class LinearColorPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <span class="ueb-pin-input-wrapper ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? A}"
+            <span class="ueb-pin-input-wrapper ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.serialize() ?? A}"
                 @click="${this.#launchColorPickerWindow}"
-                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? A})">
+                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.serialize() ?? A})">
             </span>
         `
     }
@@ -11978,15 +11982,15 @@ class ReferencePinTemplate extends PinTemplate {
 class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
-        return Utility.printNumber(this.element.getDefaultValue()?.R ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.R.valueOf() ?? 0)
     }
 
     #getP() {
-        return Utility.printNumber(this.element.getDefaultValue()?.P ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.P.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     setDefaultValue(values = [], rawValues = values) {
@@ -11994,9 +11998,9 @@ class RotatorPinTemplate extends INumericPinTemplate {
         if (!(rotator instanceof RotatorEntity)) {
             throw new TypeError("Expected DefaultValue to be a RotatorEntity")
         }
-        rotator.R = values[0]; // Roll
-        rotator.P = values[1]; // Pitch
-        rotator.Y = values[2]; // Yaw
+        rotator.R.value = values[0]; // Roll
+        rotator.P.value = values[1]; // Pitch
+        rotator.Y.value = values[2]; // Yaw
         this.element.requestUpdate("DefaultValue", rotator);
     }
 
@@ -12030,11 +12034,11 @@ class StringPinTemplate extends IInputPinTemplate {
 class Vector2DPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     /**
@@ -12046,8 +12050,8 @@ class Vector2DPinTemplate extends INumericPinTemplate {
         if (!(vector instanceof Vector2DEntity)) {
             throw new TypeError("Expected DefaultValue to be a Vector2DEntity")
         }
-        vector.X = values[0];
-        vector.Y = values[1];
+        vector.X.value = values[0];
+        vector.Y.value = values[1];
         this.element.requestUpdate("DefaultValue", vector);
     }
 
@@ -12071,19 +12075,19 @@ class Vector2DPinTemplate extends INumericPinTemplate {
 class Vector4DPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     #getZ() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Z.valueOf() ?? 0)
     }
 
     #getW() {
-        return Utility.printNumber(this.element.getDefaultValue()?.W ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.W.valueOf() ?? 0)
     }
 
     /**
@@ -12095,10 +12099,10 @@ class Vector4DPinTemplate extends INumericPinTemplate {
         if (!(vector instanceof Vector4DEntity)) {
             throw new TypeError("Expected DefaultValue to be a Vector4DEntity")
         }
-        vector.X = values[0];
-        vector.Y = values[1];
-        vector.Z = values[2];
-        vector.W = values[3];
+        vector.X.value = values[0];
+        vector.Y.value = values[1];
+        vector.Z.value = values[2];
+        vector.W.value = values[3];
         this.element.requestUpdate("DefaultValue", vector);
     }
 
@@ -12130,15 +12134,15 @@ class Vector4DPinTemplate extends INumericPinTemplate {
 class VectorPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     #getZ() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Z ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Z.valueOf() ?? 0)
     }
 
     /**
@@ -12150,9 +12154,9 @@ class VectorPinTemplate extends INumericPinTemplate {
         if (!(vector instanceof VectorEntity)) {
             throw new TypeError("Expected DefaultValue to be a VectorEntity")
         }
-        vector.X = values[0];
-        vector.Y = values[1];
-        vector.Z = values[2];
+        vector.X.value = values[0];
+        vector.Y.value = values[1];
+        vector.Z.value = values[2];
         this.element.requestUpdate("DefaultValue", vector);
     }
 
@@ -12435,7 +12439,7 @@ class PinElement extends IElement {
      */
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
-            pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
+            pinReference.objectName.serialize() == originalPinElement.getNodeElement().getNodeName()
             && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
         );
         if (index >= 0) {

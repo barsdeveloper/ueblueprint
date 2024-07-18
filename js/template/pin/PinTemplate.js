@@ -110,7 +110,7 @@ export default class PinTemplate extends ITemplate {
                     return SVGIcon.pcgStackPin
             }
         }
-        switch (this.element.entity.PinType?.ContainerType?.toString()) {
+        switch (this.element.entity.PinType?.ContainerType?.serialize()) {
             case "Array": return SVGIcon.arrayPin
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin

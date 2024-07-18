@@ -192,7 +192,7 @@ export default function nodeTitle(entity) {
     }
     const keyNameSymbol = entity.getHIDAttribute()
     if (keyNameSymbol) {
-        const name = keyNameSymbol.toString()
+        const name = keyNameSymbol.serialize()
         let title = keyName(name) ?? Utility.formatStringName(name)
         if (entity.getClass() === Configuration.paths.inputDebugKey) {
             title = "Debug Key " + title
@@ -222,8 +222,8 @@ export default function nodeTitle(entity) {
     if (settingsObject) {
         if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
-                settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
-                ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
+                settingsObject.HiGenGridSize?.serialize().match(/\d+/)?.[0]?.concat("00")
+                ?? settingsObject.HiGenGridSize?.serialize().match(/^\w+$/)?.[0]
             ) ?? "256"}`
         }
         if (settingsObject.BlueprintElementInstance) {

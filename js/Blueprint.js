@@ -336,12 +336,12 @@ export default class Blueprint extends IElement {
     getPin(pinReference) {
         let result = this.template.getPin(pinReference)
         // Remember could be renamed in the meantime and DOM not yet updated
-        if (!result || result.nodeElement.getNodeName() != pinReference.objectName.toString()) {
+        if (!result || result.nodeElement.getNodeName() != pinReference.objectName.serialize()) {
             // Slower fallback
             result = [... this.nodes
-                .find(n => pinReference.objectName.toString() == n.getNodeName())
+                .find(n => pinReference.objectName.serialize() == n.getNodeName())
                 ?.getPinElements() ?? []]
-                .find(p => pinReference.pinGuid.toString() == p.getPinId().toString())
+                .find(p => pinReference.pinGuid.serialize() == p.getPinId().serialize())
         }
         return result
     }

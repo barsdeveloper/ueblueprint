@@ -27,15 +27,15 @@ export default class SimpleSerializationRotatorEntity extends RotatorEntity {
         ).label("SimpleSerializationRotatorEntity")
     )
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
         wrap = Self.wrap,
     ) {
-        return this.P.toString() + Self.attributeSeparator
-            + this.Y.toString() + Self.attributeSeparator
-            + this.R.toString() + (this.trailing ? Self.attributeSeparator : "")
+        return this.P.serialize() + Self.attributeSeparator
+            + this.Y.serialize() + Self.attributeSeparator
+            + this.R.serialize() + (this.trailing ? Self.attributeSeparator : "")
     }
 }

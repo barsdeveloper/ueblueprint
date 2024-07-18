@@ -20,7 +20,7 @@ export default class StringEntity extends IEntity {
         return this.value
     }
 
-    toString(
+    serialize(
         insideString = false,
         indentation = "",
         Self = this.Self(),
