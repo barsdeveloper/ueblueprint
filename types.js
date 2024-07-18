@@ -80,10 +80,6 @@
  * } DescribedType
  */
 /**
- * @typedef {import("./js/entity/AttributeInfo.js").default} AttributeInfo
- * @typedef {{ [key: String]: AttributeInfo }} AttributeDeclarations
- */
-/**
  * @typedef {CustomEvent<{ value: Coordinates }>} UEBDragEvent
  */
 /**
@@ -220,10 +216,6 @@
  * @typedef {import("lit").CSSResult} CSSResult
  * @typedef {import("lit").PropertyValues} PropertyValues
  * @typedef {import("lit").TemplateResult} TemplateResult
- */
-/**
- * @template {AttributeConstructor<Attribute>} T
- * @typedef {import("./js/serialization/Serializer.js").default<T>} Serializer
  */
 /**
  * @template T

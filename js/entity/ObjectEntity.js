@@ -344,7 +344,7 @@ export default class ObjectEntity extends IEntity {
                 /** @param {ObjectEntity} obj */
                 obj => {
                     if (obj.Node !== undefined) {
-                        const nodeRef = obj.Node.get()
+                        const nodeRef = obj.Node.getter()
                         if (
                             nodeRef.type === this.PCGNode.type
                             && nodeRef.path === `${this.Name}.${this.PCGNode.path}`

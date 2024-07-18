@@ -5372,9 +5372,9 @@ class PinEntity extends IEntity {
     }
 
     getType() {
-        const category = this.PinType.PinCategory.toString().toLocaleLowerCase();
+        const category = this.PinType.PinCategory?.valueOf().toLocaleLowerCase();
         if (category === "struct" || category === "class" || category === "object" || category === "type") {
-            return this.PinType.PinSubCategoryObject.path
+            return this.PinType.PinSubCategoryObject?.path
         }
         if (this.isEnum()) {
             return "enum"
@@ -5406,7 +5406,8 @@ class PinEntity extends IEntity {
             }
         }
         if (category === "optional") {
-            switch (this.PinType.PinSubCategory.toString()) {
+            const subCategory = this.PinType.PinSubCategory?.valueOf();
+            switch (subCategory) {
                 case "red":
                     return "real"
                 case "rg":
@@ -5416,7 +5417,7 @@ class PinEntity extends IEntity {
                 case "rgba":
                     return Configuration.paths.linearColor
                 default:
-                    return this.PinType.PinSubCategory
+                    return subCategory
             }
         }
         return category
@@ -8424,7 +8425,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top"
-                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment)}">
+                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment?.valueOf())}">
                     </div>
                 </div>
             </div>
@@ -8538,7 +8539,7 @@ class MouseCreateLink extends IMouseClickDrag {
                 this.link.setMessageReplaceOutputLink();
                 this.linkValid = true;
             } else if (
-                (a.entity.PinType.PinCategory != "object" || b.entity.PinType.PinCategory != "object")
+                (a.entity.PinType.PinCategory.valueOf() != "object" || b.entity.PinType.PinCategory.valueOf() != "object")
                 && a.pinType != b.pinType
             ) {
                 this.link.setMessageTypesIncompatible(a, b);
@@ -8931,7 +8932,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createDelegatePinElement() {
         const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory === "delegate"),
+            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.valueOf() === "delegate"),
             new MinimalPinTemplate(),
             this.element
         );
@@ -11311,11 +11312,11 @@ class EnumPinTemplate extends IInputPinTemplate {
 
     setup() {
         super.setup();
-        const enumEntries = this.element.nodeElement.entity.EnumEntries;
+        const enumEntries = this.element.nodeElement.entity.EnumEntries.valueOf();
         this.#dropdownEntries =
             enumEntries?.map(k => {
-                if (k === "") {
-                    k = "None";
+                if (k.valueOf() === "") {
+                    k = new StringEntity("None");
                 }
                 return [
                     k,
@@ -12198,7 +12199,7 @@ const inputPinTemplates = {
 
 /** @param {PinEntity} entity */
 function pinTemplate(entity) {
-    if (entity.PinType.ContainerType?.toString() === "Array") {
+    if (entity.PinType.ContainerType?.valueOf() === "Array") {
         return PinTemplate
     }
     if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
@@ -12349,7 +12350,7 @@ class PinElement extends IElement {
     }
 
     getLinks() {
-        return this.entity.LinkedTo ?? []
+        return this.entity.LinkedTo?.valueOf() ?? []
     }
 
     getDefaultValue(maybeCreate = false) {

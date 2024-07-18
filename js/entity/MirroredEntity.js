@@ -15,6 +15,7 @@ export default class MirroredEntity extends IEntity {
     /**
      * @template {typeof IEntity} T
      * @param {T} type
+     * @returns {typeof MirroredEntity<T>}
      */
     static of(type) {
         const result = this.asUniqueClass()

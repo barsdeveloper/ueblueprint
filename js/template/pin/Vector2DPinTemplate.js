@@ -9,11 +9,11 @@ import INumericPinTemplate from "./INumericPinTemplate.js"
 export default class Vector2DPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y ?? 0)
+        return Utility.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     /**
@@ -25,8 +25,8 @@ export default class Vector2DPinTemplate extends INumericPinTemplate {
         if (!(vector instanceof Vector2DEntity)) {
             throw new TypeError("Expected DefaultValue to be a Vector2DEntity")
         }
-        vector.X = values[0]
-        vector.Y = values[1]
+        vector.X.value = values[0]
+        vector.Y.value = values[1]
         this.element.requestUpdate("DefaultValue", vector)
     }
 
