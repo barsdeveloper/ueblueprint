@@ -242,7 +242,7 @@ export default class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor
         /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName
         /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName
-        /** @type {InstanceType<typeof ObjectEntity.attributes.CustomProperties>} */ this.CustomProperties
+        /** @type {ExtractType<typeof ObjectEntity.attributes.CustomProperties>} */ this.CustomProperties
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference
         /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState
@@ -545,7 +545,7 @@ export default class ObjectEntity extends IEntity {
 
     isPcg() {
         return this.getClass() === Configuration.paths.pcgEditorGraphNode
-            || this.getPcgSubobject()
+            || this.getPcgSubobject() != null
     }
 
     isNiagara() {

@@ -91,18 +91,12 @@ export default class Grammar {
         return attribute
     }
 
-    /**
-     * @param {typeof IEntity} entityType
-     * @param {*} attributeName
-     * @param {*} valueSeparator
-     * @param {*} handleObjectSet
-     * @returns 
-     */
+    /** @param {typeof IEntity} entityType */
     static createAttributeGrammar(
         entityType,
         attributeName = this.attributeName,
         valueSeparator = this.equalSeparation,
-        handleObjectSet = (obj, k, v) => { }
+        handleObjectSet = (obj, k, v) => { },
     ) {
         return Parsernostrum.seq(
             attributeName,
@@ -120,7 +114,7 @@ export default class Grammar {
     }
 
     /**
-     * @template {typeof IEntity} T
+     * @template {typeof IEntity & (new (...values: any) => InstanceType<T>)} T
      * @param {T} entityType
      * @return {Parsernostrum<InstanceType<T>>}
      */

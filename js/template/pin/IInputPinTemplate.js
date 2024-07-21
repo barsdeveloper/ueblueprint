@@ -4,7 +4,7 @@ import Utility from "../../Utility.js"
 import PinTemplate from "./PinTemplate.js"
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends PinTemplate<T>
  */
 export default class IInputPinTemplate extends PinTemplate {
@@ -125,7 +125,7 @@ export default class IInputPinTemplate extends PinTemplate {
         return html`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.serialize() ?? "")}">
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
                 </ueb-input>
             </div>
         `

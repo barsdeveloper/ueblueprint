@@ -41,7 +41,7 @@ export default class LocalizedTextEntity extends IEntity {
         /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value
     }
 
-    valueOf() {
+    toString() {
         return Utility.capitalFirstLetter(this.value.valueOf())
     }
 }

@@ -1,8 +1,9 @@
 import IEntity from "./IEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class ComputedTypeEntity extends IEntity {
 
-    static grammar = undefined
+    static grammar = StringEntity.grammar
     /** @type {(entity: IEntity) => typeof IEntity} */
     static f
 
@@ -17,7 +18,7 @@ export default class ComputedTypeEntity extends IEntity {
     }
 
     /** @param {IEntity} entity */
-    compute(entity) {
-        return /** @type {typeof ComputedTypeEntity} */(this.Self()).f(entity)
+    static compute(entity) {
+        return this.f(entity)
     }
 }

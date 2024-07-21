@@ -1,7 +1,7 @@
 import IInputPinTemplate from "./IInputPinTemplate.js"
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends IInputPinTemplate<T>
  */
 export default class INumericPinTemplate extends IInputPinTemplate {
@@ -33,7 +33,7 @@ export default class INumericPinTemplate extends IInputPinTemplate {
      * @param {String[]} rawValues
      */
     setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(/** @type {T} */(values[0]))
+        this.element.setDefaultValue(values[0])
         this.element.requestUpdate()
     }
 }

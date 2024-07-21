@@ -2418,7 +2418,16 @@ class IEntity {
                         attributes[key] !== undefined ? attributes[key] : IEntity.unknownEntity
                     )(values[key]);
                 }
+                const computedEntity = /** @type {ComputedTypeEntityConstructor} */(attributes[key]);
                 this[key] = values[key];
+                if (computedEntity?.compute) {
+                    /** @type {typeof IEntity} */
+                    const actualEntity = computedEntity.compute(this);
+                    const parsed = actualEntity.grammar.run(values[key].toString());
+                    if (parsed.status) {
+                        this[key] = parsed.value;
+                    }
+                }
                 continue
             }
             const attribute = attributes[key];
@@ -2582,40 +2591,6 @@ class IEntity {
         }
     }
 
-    /** @param {IEntity} other */
-    equals(other) {
-        if (!(other instanceof IEntity)) {
-            return false
-        }
-        const thisKeys = Object.keys(this);
-        const otherKeys = Object.keys(other);
-        if (
-            thisKeys.length !== otherKeys.length
-            || this.lookbehind != other.lookbehind
-            || !(this instanceof other.constructor) && !(other instanceof this.constructor)
-        ) {
-            return false
-        }
-        for (let i = 0; i < thisKeys.length; ++i) {
-            const k = thisKeys[i];
-            if (!otherKeys.includes(k)) {
-                return false
-            }
-            const a = this[k];
-            const b = other[k];
-            if (a instanceof IEntity) {
-                if (!a.equals(b)) {
-                    return false
-                }
-            } else {
-                if (a !== b) {
-                    return false
-                }
-            }
-        }
-        return true
-    }
-
     /** @this {IEntity | Array} */
     serialize(
         insideString = false,
@@ -2664,6 +2639,40 @@ class IEntity {
         }
         return wrap(/** @type {IEntity} */(this), result)
     }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof IEntity)) {
+            return false
+        }
+        const thisKeys = Object.keys(this);
+        const otherKeys = Object.keys(other);
+        if (
+            thisKeys.length !== otherKeys.length
+            || this.lookbehind != other.lookbehind
+            || !(this instanceof other.constructor) && !(other instanceof this.constructor)
+        ) {
+            return false
+        }
+        for (let i = 0; i < thisKeys.length; ++i) {
+            const k = thisKeys[i];
+            if (!otherKeys.includes(k)) {
+                return false
+            }
+            const a = this[k];
+            const b = other[k];
+            if (a instanceof IEntity) {
+                if (!a.equals(b)) {
+                    return false
+                }
+            } else {
+                if (a !== b) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
 }
 
 /** @template {(typeof IEntity)[]} T */
@@ -2699,11 +2708,6 @@ class AlternativesEntity extends IEntity {
         result.alternatives = types;
         result.grammar = result.createGrammar();
         return result
-    }
-
-    /** @returns {UnionFromArray<T>} */
-    valueOf() {
-        return
     }
 }
 
@@ -2794,18 +2798,12 @@ class Grammar {
         return attribute
     }
 
-    /**
-     * @param {typeof IEntity} entityType
-     * @param {*} attributeName
-     * @param {*} valueSeparator
-     * @param {*} handleObjectSet
-     * @returns 
-     */
+    /** @param {typeof IEntity} entityType */
     static createAttributeGrammar(
         entityType,
         attributeName = this.attributeName,
         valueSeparator = this.equalSeparation,
-        handleObjectSet = (obj, k, v) => { }
+        handleObjectSet = (obj, k, v) => { },
     ) {
         return Parsernostrum.seq(
             attributeName,
@@ -2823,7 +2821,7 @@ class Grammar {
     }
 
     /**
-     * @template {typeof IEntity} T
+     * @template {typeof IEntity & (new (...values: any) => InstanceType<T>)} T
      * @param {T} entityType
      * @return {Parsernostrum<InstanceType<T>>}
      */
@@ -2869,12 +2867,12 @@ class ColorChannelEntity extends IEntity {
         this.value = value;
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize() {
         return this.value.toFixed(6)
+    }
+
+    valueOf() {
+        return this.value
     }
 }
 
@@ -3164,6 +3162,11 @@ class LinearColorEntity extends IEntity {
             + Math.round(this.A.value * 0xff)
     }
 
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.R.value, this.G.value, this.B.value, this.A.value]
+    }
+
     /** @param {Number} number */
     setFromRGBANumber(number) {
         this.A.value = (number & 0xff) / 0xff;
@@ -3180,11 +3183,6 @@ class LinearColorEntity extends IEntity {
         this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff);
         this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff);
         this.#updateHSV();
-    }
-
-    /** @returns {[Number, Number, Number, Number]} */
-    toArray() {
-        return [this.R.value, this.G.value, this.B.value, this.A.value]
     }
 }
 
@@ -3706,10 +3704,6 @@ class BooleanEntity extends IEntity {
         this.value = value;
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize() {
         return this.value
             ? this.#uppercase
@@ -3718,6 +3712,10 @@ class BooleanEntity extends IEntity {
             : this.#uppercase
                 ? "False"
                 : "false"
+    }
+
+    valueOf() {
+        return this.value
     }
 }
 
@@ -3808,10 +3806,6 @@ class NumberEntity extends IEntity {
         this.#precision = Number(precision);
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize() {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"
@@ -3820,6 +3814,10 @@ class NumberEntity extends IEntity {
             return "-inf"
         }
         return this.#precision ? this.value.toFixed(this.#precision) : this.value.toString()
+    }
+
+    valueOf() {
+        return this.value
     }
 }
 
@@ -3903,18 +3901,18 @@ function nodeTitle(entity) {
     switch (entity.getType()) {
         case Configuration.paths.asyncAction:
             if (entity.ProxyFactoryFunctionName) {
-                return Utility.formatStringName(entity.ProxyFactoryFunctionName?.valueOf())
+                return Utility.formatStringName(entity.ProxyFactoryFunctionName?.toString())
             }
         case Configuration.paths.actorBoundEvent:
         case Configuration.paths.componentBoundEvent:
-            return `${Utility.formatStringName(entity.DelegatePropertyName?.valueOf())} (${entity.ComponentPropertyName?.valueOf() ?? "Unknown"})`
+            return `${Utility.formatStringName(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
         case Configuration.paths.callDelegate:
-            return `Call ${entity.DelegateReference?.MemberName?.valueOf() ?? "None"}`
+            return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
         case Configuration.paths.createDelegate:
             return "Create Event"
         case Configuration.paths.customEvent:
             if (entity.CustomFunctionName) {
-                return entity.CustomFunctionName?.valueOf()
+                return entity.CustomFunctionName?.toString()
             }
         case Configuration.paths.dynamicCast:
             if (!entity.TargetType) {
@@ -3924,7 +3922,7 @@ function nodeTitle(entity) {
         case Configuration.paths.enumLiteral:
             return `Literal enum ${entity.Enum?.getName()}`
         case Configuration.paths.event:
-            return `Event ${(entity.EventReference?.MemberName?.valueOf() ?? "").replace(/^Receive/, "")}`
+            return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
         case Configuration.paths.executionSequence:
             return "Sequence"
         case Configuration.paths.forEachElementInEnum:
@@ -3932,9 +3930,9 @@ function nodeTitle(entity) {
         case Configuration.paths.forEachLoopWithBreak:
             return "For Each Loop with Break"
         case Configuration.paths.functionEntry:
-            return entity.FunctionReference?.MemberName?.valueOf() === "UserConstructionScript"
+            return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
                 ? "Construction Script"
-                : entity.FunctionReference?.MemberName?.valueOf()
+                : entity.FunctionReference?.MemberName?.toString()
         case Configuration.paths.functionResult:
             return "Return Node"
         case Configuration.paths.ifThenElse:
@@ -3951,17 +3949,17 @@ function nodeTitle(entity) {
                 .join("")})`
         }
         case Configuration.paths.materialExpressionConstant:
-            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.valueOf() == "Value")?.DefaultValue];
+            input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
         case Configuration.paths.materialExpressionConstant2Vector:
             input ??= [
-                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.valueOf() == "X")?.DefaultValue,
-                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.valueOf() == "Y")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
             ];
         case Configuration.paths.materialExpressionConstant3Vector:
         case Configuration.paths.materialExpressionConstant4Vector:
             if (!input) {
                 const vector = entity.getCustomproperties()
-                    .find(pinEntity => pinEntity.PinName?.valueOf() == "Constant")
+                    .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
                     ?.DefaultValue;
                 input = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
                     : vector instanceof LinearColorEntity ? [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
@@ -4006,7 +4004,7 @@ function nodeTitle(entity) {
             return "Output"
         case Configuration.paths.spawnActorFromClass:
             let className = entity.getCustomproperties()
-                .find(pinEntity => pinEntity.PinName.valueOf() == "ReturnValue")
+                .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
                 ?.PinType
                 ?.PinSubCategoryObject
                 ?.getName();
@@ -4035,7 +4033,7 @@ function nodeTitle(entity) {
     }
     const keyNameSymbol = entity.getHIDAttribute();
     if (keyNameSymbol) {
-        const name = keyNameSymbol.serialize();
+        const name = keyNameSymbol.toString();
         let title = keyName(name) ?? Utility.formatStringName(name);
         if (entity.getClass() === Configuration.paths.inputDebugKey) {
             title = "Debug Key " + title;
@@ -4065,15 +4063,15 @@ function nodeTitle(entity) {
     if (settingsObject) {
         if (settingsObject.ExportPath.type === Configuration.paths.pcgHiGenGridSizeSettings) {
             return `Grid Size: ${(
-                settingsObject.HiGenGridSize?.serialize().match(/\d+/)?.[0]?.concat("00")
-                ?? settingsObject.HiGenGridSize?.serialize().match(/^\w+$/)?.[0]
+                settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
+                ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
             ) ?? "256"}`
         }
         if (settingsObject.BlueprintElementInstance) {
             return Utility.formatStringName(settingsObject.BlueprintElementType.getName())
         }
         if (settingsObject.Operation) {
-            const match = settingsObject.Name?.valueOf().match(/PCGMetadata(\w+)Settings_\d+/);
+            const match = settingsObject.Name?.toString().match(/PCGMetadata(\w+)Settings_\d+/);
             if (match) {
                 return Utility.formatStringName(match[1] + ": " + settingsObject.Operation)
             }
@@ -4083,9 +4081,9 @@ function nodeTitle(entity) {
             return settingsSubgraphObject.Graph.getName()
         }
     }
-    let memberName = entity.FunctionReference?.MemberName?.valueOf();
+    let memberName = entity.FunctionReference?.MemberName?.toString();
     if (memberName) {
-        const memberParent = entity.FunctionReference.MemberParent?.path?.valueOf() ?? "";
+        const memberParent = entity.FunctionReference.MemberParent?.path ?? "";
         switch (memberName) {
             case "AddKey":
                 let result = memberParent.match(sequencerScriptingNameRegex);
@@ -4220,7 +4218,7 @@ function nodeTitle(entity) {
         return Utility.formatStringName(memberName)
     }
     if (entity.OpName) {
-        switch (entity.OpName.valueOf()) {
+        switch (entity.OpName.toString()) {
             case "Boolean::LogicAnd": return "Logic AND"
             case "Boolean::LogicEq": return "=="
             case "Boolean::LogicNEq": return "!="
@@ -4233,10 +4231,10 @@ function nodeTitle(entity) {
             case "Numeric::DistancePos": return "Distance"
             case "Numeric::Mul": return String.fromCharCode(0x2a2f)
         }
-        return Utility.formatStringName(entity.OpName.valueOf()).replaceAll("::", " ")
+        return Utility.formatStringName(entity.OpName.toString()).replaceAll("::", " ")
     }
     if (entity.FunctionDisplayName) {
-        return Utility.formatStringName(entity.FunctionDisplayName.valueOf())
+        return Utility.formatStringName(entity.FunctionDisplayName.toString())
     }
     if (entity.ObjectRef) {
         return entity.ObjectRef.getName()
@@ -4319,12 +4317,12 @@ function nodeIcon(entity) {
     return SVGIcon.functionSymbol
 }
 
-/** @template {IEntity} T */
+/** @template {typeof IEntity} T */
 class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
-    static grammar = /** @type {P<ArrayEntity<IEntity>>} */(
+    static grammar = /** @type {P<ArrayEntity<typeof IEntity>>} */(
         this.createGrammar()
     )
 
@@ -4332,13 +4330,13 @@ class ArrayEntity extends IEntity {
         return this.values.length
     }
 
-    /** @param {T[]} values */
+    /** @param {(ExtractType<T>)[]} values */
     constructor(values = []) {
         super();
         this.values = values;
     }
 
-    /** @returns {P<ArrayEntity<IEntity>>} */
+    /** @returns {P<ArrayEntity<typeof IEntity>>} */
     static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
         return this.inlined
             ? elementGrammar
@@ -4359,29 +4357,12 @@ class ArrayEntity extends IEntity {
      * @param {T} type
      */
     static of(type) {
-        const result = /** @type {typeof ArrayEntity<ExtractType<T>> & {type: T, grammar: P<ArrayEntity<ExtractType<T>>> }} */(
+        const result = /** @type {typeof ArrayEntity<T> & {type: T, grammar: P<ArrayEntity<T>> }} */(
             this.asUniqueClass()
         );
         result.type = type;
         result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar());
         return result
-    }
-
-    /** @param {IEntity} other */
-    equals(other) {
-        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
-            return false
-        }
-        for (let i = 0; i < this.values.length; ++i) {
-            if (!this.values[i].equals(other.values[i])) {
-                return false
-            }
-        }
-        return true
-    }
-
-    valueOf() {
-        return this.values
     }
 
     serialize(
@@ -4399,6 +4380,23 @@ class ArrayEntity extends IEntity {
             result += Self.attributeSeparator;
         }
         return `(${result})`
+    }
+
+    valueOf() {
+        return this.values
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
+            return false
+        }
+        for (let i = 0; i < this.values.length; ++i) {
+            if (!this.values[i].equals(other.values[i])) {
+                return false
+            }
+        }
+        return true
     }
 }
 
@@ -4430,11 +4428,11 @@ class GuidEntity extends IEntity {
         this.value = value;
     }
 
-    valueOf() {
+    serialize() {
         return this.value
     }
 
-    serialize() {
+    toString() {
         return this.value
     }
 }
@@ -4541,10 +4539,10 @@ function pinColor(entity) {
 /** @param {PinEntity} entity */
 function pinTitle(entity) {
     let result = entity.PinFriendlyName
-        ? entity.PinFriendlyName.valueOf()
-        : Utility.formatStringName(entity.PinName?.valueOf() ?? "");
+        ? entity.PinFriendlyName.toString()
+        : Utility.formatStringName(entity.PinName?.toString() ?? "");
     let match;
-    if (match = entity.PinToolTip?.valueOf().match(/\s*(.+?(?=\n)|.+\S)\s*/)) {
+    if (match = entity.PinToolTip?.toString().match(/\s*(.+?(?=\n)|.+\S)\s*/)) {
         if (match[1].toLowerCase() === result.toLowerCase()) {
             return match[1] // In case they match, then keep the case of the PinToolTip
         }
@@ -4569,9 +4567,45 @@ class ByteEntity extends IntegerEntity {
     }
 }
 
+class StringEntity extends IEntity {
+
+    static grammar = /** @type {P<StringEntity>} */(
+        Parsernostrum.doubleQuotedString
+            .map(insideString => new this(Utility.unescapeString(insideString)))
+            .label("StringEntity")
+    )
+
+    constructor(value = "") {
+        super();
+        this.value = value;
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
+        let result = `"${Utility.escapeString(this.value)}"`;
+        if (insideString) {
+            result = Utility.escapeString(result, false);
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
 class ComputedTypeEntity extends IEntity {
 
-    static grammar = undefined
+    static grammar = StringEntity.grammar
     /** @type {(entity: IEntity) => typeof IEntity} */
     static f
 
@@ -4586,8 +4620,8 @@ class ComputedTypeEntity extends IEntity {
     }
 
     /** @param {IEntity} entity */
-    compute(entity) {
-        return /** @type {typeof ComputedTypeEntity} */(this.Self()).f(entity)
+    static compute(entity) {
+        return this.f(entity)
     }
 }
 
@@ -4651,45 +4685,12 @@ class InvariantTextEntity extends IEntity {
         this.value = value;
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize() {
         return this.lookbehind + "(" + this.value + ")"
     }
-}
-
-class StringEntity extends IEntity {
-
-    static grammar = /** @type {P<StringEntity>} */(
-        Parsernostrum.doubleQuotedString
-            .map(insideString => new this(Utility.unescapeString(insideString)))
-            .label("StringEntity")
-    )
-
-    /** @param {String} value */
-    constructor(value = "") {
-        super();
-        this.value = value;
-    }
 
     valueOf() {
         return this.value
-    }
-
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        let result = `"${Utility.escapeString(this.value)}"`;
-        if (insideString) {
-            result = Utility.escapeString(result, false);
-        }
-        return result
     }
 }
 
@@ -4730,7 +4731,7 @@ class LocalizedTextEntity extends IEntity {
         /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value;
     }
 
-    valueOf() {
+    toString() {
         return Utility.capitalFirstLetter(this.value.valueOf())
     }
 }
@@ -4762,8 +4763,22 @@ class FormatTextEntity extends IEntity {
         this.values = values;
     }
 
-    valueOf() {
-        const pattern = this.values?.[0]?.valueOf(); // The pattern is always the first element of the array
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
+        const separator = Self.attributeSeparator;
+        return this.lookbehind + "("
+            + this.values.map(v => v.serialize(insideString)).join(separator)
+            + (Self.trailing ? separator : "")
+            + ")"
+    }
+
+    toString() {
+        const pattern = this.values?.[0]?.toString(); // The pattern is always the first element of the array
         if (!pattern) {
             return ""
         }
@@ -4784,20 +4799,6 @@ class FormatTextEntity extends IEntity {
                 })
                 : "";
         return result
-    }
-
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        const separator = Self.attributeSeparator;
-        return this.lookbehind + "("
-            + this.values.map(v => v.serialize(insideString)).join(separator)
-            + (Self.trailing ? separator : "")
-            + ")"
     }
 }
 
@@ -4824,10 +4825,6 @@ class Integer64Entity extends IEntity {
         this.value = BigInt(value);
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize(
         insideString = false,
         indentation = "",
@@ -4836,6 +4833,10 @@ class Integer64Entity extends IEntity {
         wrap = Self.wrap,
     ) {
         return this.value.toString()
+    }
+
+    valueOf() {
+        return this.value
     }
 }
 
@@ -4915,14 +4916,6 @@ class ObjectReferenceEntity extends IEntity {
         return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
     }
 
-    /** @param {IEntity} other */
-    equals(other) {
-        if (!(other instanceof ObjectReferenceEntity)) {
-            return false
-        }
-        return this.type == other.type && this.path == other.path
-    }
-
     serialize(
         insideString = false,
         indentation = "",
@@ -4937,6 +4930,14 @@ class ObjectReferenceEntity extends IEntity {
             return this.#fullEscaped
         }
         return this.full
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ObjectReferenceEntity)) {
+            return false
+        }
+        return this.type == other.type && this.path == other.path
     }
 }
 
@@ -5332,13 +5333,13 @@ class PinEntity extends IEntity {
         return this.#recomputesNodeTitleOnChange
     }
 
-    #objectEntity
-    get objectEntity() {
-        return this.#objectEntity
-    }
-    set objectEntity(value) {
-        this.#objectEntity = value;
-    }
+    objectEntity
+    // get objectEntity() {
+    //     return this.#objectEntity
+    // }
+    // set objectEntity(value) {
+    //     this.#objectEntity = value
+    // }
 
     #pinIndex
     get pinIndex() {
@@ -5409,7 +5410,7 @@ class PinEntity extends IEntity {
             }
         }
         if (category === "optional") {
-            const subCategory = this.PinType.PinSubCategory?.valueOf();
+            const subCategory = this.PinType.PinSubCategory?.toString();
             switch (subCategory) {
                 case "red":
                     return "real"
@@ -5460,7 +5461,7 @@ class PinEntity extends IEntity {
     }
 
     isExecution() {
-        return this.PinType.PinCategory.serialize() === "exec"
+        return this.PinType.PinCategory.toString() === "exec"
     }
 
     isHidden() {
@@ -5468,11 +5469,11 @@ class PinEntity extends IEntity {
     }
 
     isInput() {
-        return !this.isHidden() && this.Direction?.valueOf() != "EGPD_Output"
+        return !this.isHidden() && this.Direction?.toString() != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.isHidden() && this.Direction?.valueOf() == "EGPD_Output"
+        return !this.isHidden() && this.Direction?.toString() == "EGPD_Output"
     }
 
     isLinked() {
@@ -5486,11 +5487,11 @@ class PinEntity extends IEntity {
      */
     linkTo(targetObjectName, targetPinEntity) {
         const linkFound = this.LinkedTo.values?.some(pinReferenceEntity =>
-            pinReferenceEntity.objectName.serialize() == targetObjectName
-            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+            pinReferenceEntity.objectName.toString() == targetObjectName
+            && pinReferenceEntity.pinGuid.toString() == targetPinEntity.PinId.toString()
         );
         if (!linkFound) {
-            this.LinkedTo.values.push(new PinReferenceEntity(targetObjectName, targetPinEntity.PinId,));
+            this.LinkedTo.values.push(new PinReferenceEntity(new SymbolEntity(targetObjectName), targetPinEntity.PinId));
             return true
         }
         return false // Already linked
@@ -5503,8 +5504,8 @@ class PinEntity extends IEntity {
      */
     unlinkFrom(targetObjectName, targetPinEntity) {
         const indexElement = this.LinkedTo.values?.findIndex(pinReferenceEntity => {
-            return pinReferenceEntity.objectName.serialize() == targetObjectName
-                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+            return pinReferenceEntity.objectName.toString() == targetObjectName
+                && pinReferenceEntity.pinGuid.toString() == targetPinEntity.PinId.toString()
         });
         if (indexElement >= 0) {
             this.LinkedTo.values.splice(indexElement, 1);
@@ -5984,7 +5985,7 @@ class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor;
         /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName;
-        /** @type {InstanceType<typeof ObjectEntity.attributes.CustomProperties>} */ this.CustomProperties;
+        /** @type {ExtractType<typeof ObjectEntity.attributes.CustomProperties>} */ this.CustomProperties;
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference;
         /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState;
@@ -6285,7 +6286,7 @@ class ObjectEntity extends IEntity {
 
     isPcg() {
         return this.getClass() === Configuration.paths.pcgEditorGraphNode
-            || this.getPcgSubobject()
+            || this.getPcgSubobject() != null
     }
 
     isNiagara() {
@@ -8236,7 +8237,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
             .filter(v => !v.isHidden())
             .map(pinEntity => {
                 this.#hasSubtitle = this.#hasSubtitle
-                    || pinEntity.PinName === "self" && pinEntity.pinTitle() === "Target";
+                    || pinEntity.PinName.toString() === "self" && pinEntity.pinTitle() === "Target";
                 return this.createPinElement(pinEntity)
             })
     }
@@ -9099,7 +9100,7 @@ function nodeTemplateClass(nodeEntity) {
         || nodeEntity.getClass() === Configuration.paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? "";
-        const memberName = nodeEntity.FunctionReference?.MemberName?.valueOf();
+        const memberName = nodeEntity.FunctionReference?.MemberName?.toString();
         if (
             memberName && (
                 memberParent === Configuration.paths.kismetMathLibrary
@@ -9182,7 +9183,7 @@ function nodeTemplateClass(nodeEntity) {
                     "Numeric::Abs",
                     "Numeric::Add",
                     "Numeric::Mul",
-                ].includes(nodeEntity.OpName?.valueOf())
+                ].includes(nodeEntity.OpName?.toString())
             ) {
                 return VariableOperationNodeTemplate
             }
@@ -9360,7 +9361,7 @@ class NodeElement extends ISelectableDraggableElement {
     initialize(entity = new ObjectEntity(), template = new (nodeTemplateClass(entity))()) {
         this.typePath = entity.getType();
         this.nodeTitle = entity.getObjectName();
-        this.advancedPinDisplay = entity.AdvancedPinDisplay?.serialize();
+        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString();
         this.enabledState = entity.EnabledState;
         this.nodeDisplayName = nodeTitle(entity);
         this.pureFunction = entity.bIsPureFunc?.valueOf();
@@ -9474,7 +9475,7 @@ class NodeElement extends ISelectableDraggableElement {
     }
 
     toggleShowAdvancedPinDisplay() {
-        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.serialize() != "Shown");
+        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.toString() != "Shown");
     }
 }
 
@@ -10630,12 +10631,12 @@ class Blueprint extends IElement {
     getPin(pinReference) {
         let result = this.template.getPin(pinReference);
         // Remember could be renamed in the meantime and DOM not yet updated
-        if (!result || result.nodeElement.getNodeName() != pinReference.objectName.serialize()) {
+        if (!result || result.nodeElement.getNodeName() != pinReference.objectName.toString()) {
             // Slower fallback
             result = [... this.nodes
-                .find(n => pinReference.objectName.serialize() == n.getNodeName())
+                .find(n => pinReference.objectName.toString() == n.getNodeName())
                 ?.getPinElements() ?? []]
-                .find(p => pinReference.pinGuid.serialize() == p.getPinId().serialize());
+                .find(p => pinReference.pinGuid.toString() == p.getPinId().toString());
         }
         return result
     }
@@ -11176,7 +11177,7 @@ class BoolPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends PinTemplate<T>
  */
 class IInputPinTemplate extends PinTemplate {
@@ -11297,7 +11298,7 @@ class IInputPinTemplate extends PinTemplate {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${singleLine}" .selectOnFocus="${selectOnFocus}"
-                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.serialize() ?? "")}">
+                    .innerText="${IInputPinTemplate.stringFromUEToInput(this.element.getDefaultValue()?.toString() ?? "")}">
                 </ueb-input>
             </div>
         `
@@ -11325,7 +11326,7 @@ class EnumPinTemplate extends IInputPinTemplate {
                 return [
                     k,
                     this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
-                        ?.PinFriendlyName.serialize()
+                        ?.PinFriendlyName.toString()
                     ?? k
                 ]
             })
@@ -11372,9 +11373,9 @@ class ExecPinTemplate extends PinTemplate {
     }
 
     renderName() {
-        let pinName = this.element.entity.PinName.valueOf();
+        let pinName = this.element.entity.PinName?.toString();
         if (this.element.entity.PinFriendlyName) {
-            pinName = this.element.entity.PinFriendlyName.valueOf();
+            pinName = this.element.entity.PinFriendlyName.toString();
         } else if (pinName === "execute" || pinName === "then") {
             return x``
         }
@@ -11383,7 +11384,7 @@ class ExecPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends IInputPinTemplate<T>
  */
 class INumericPinTemplate extends IInputPinTemplate {
@@ -11415,7 +11416,7 @@ class INumericPinTemplate extends IInputPinTemplate {
      * @param {String[]} rawValues
      */
     setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(/** @type {T} */(values[0]));
+        this.element.setDefaultValue(values[0]);
         this.element.requestUpdate();
     }
 }
@@ -11435,7 +11436,7 @@ class Int64PinTemplate extends INumericPinTemplate {
     renderInput() {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
-                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.serialize() ?? "0"}">
+                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
                 </ueb-input>
             </div>
         `
@@ -11457,7 +11458,7 @@ class IntPinTemplate extends INumericPinTemplate {
     renderInput() {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
-                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.serialize() ?? "0"}">
+                <ueb-input .singleLine="${true}" .innerText="${this.element.getDefaultValue()?.toString() ?? "0"}">
                 </ueb-input>
             </div>
         `
@@ -11799,13 +11800,13 @@ class ColorPickerWindowTemplate extends WindowTemplate {
     renderContent() {
         const theta = this.color.H.value * 2 * Math.PI;
         const style = {
-            "--ueb-color-r": this.color.R.serialize(),
-            "--ueb-color-g": this.color.G.serialize(),
-            "--ueb-color-b": this.color.B.serialize(),
-            "--ueb-color-a": this.color.A.serialize(),
-            "--ueb-color-h": this.color.H.serialize(),
-            "--ueb-color-s": this.color.S.serialize(),
-            "--ueb-color-v": this.color.V.serialize(),
+            "--ueb-color-r": this.color.R.toString(),
+            "--ueb-color-g": this.color.G.toString(),
+            "--ueb-color-b": this.color.B.toString(),
+            "--ueb-color-a": this.color.A.toString(),
+            "--ueb-color-h": this.color.H.toString(),
+            "--ueb-color-s": this.color.S.toString(),
+            "--ueb-color-v": this.color.V.toString(),
             "--ueb-color-wheel-x": `${(this.color.S.value * Math.cos(theta) * 0.5 + 0.5) * 100}%`,
             "--ueb-color-wheel-y": `${(this.color.S.value * Math.sin(theta) * 0.5 + 0.5) * 100}%`,
         };
@@ -11937,9 +11938,9 @@ class LinearColorPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <span class="ueb-pin-input-wrapper ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.serialize() ?? A}"
+            <span class="ueb-pin-input-wrapper ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? A}"
                 @click="${this.#launchColorPickerWindow}"
-                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.serialize() ?? A})">
+                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? A})">
             </span>
         `
     }
@@ -12318,14 +12319,12 @@ class PinElement extends IElement {
         })
     }
 
-    /** @return {GuidEntity} */
     getPinId() {
         return this.entity.PinId
     }
 
-    /** @returns {String} */
     getPinName() {
-        return this.entity.PinName?.valueOf() ?? ""
+        return this.entity.PinName?.toString() ?? ""
     }
 
     getPinDisplayName() {
@@ -12439,8 +12438,8 @@ class PinElement extends IElement {
      */
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
-            pinReference.objectName.serialize() == originalPinElement.getNodeElement().getNodeName()
-            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
+            pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
+            && pinReference.pinGuid.toString() == originalPinElement.entity.PinId.toString()
         );
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference;

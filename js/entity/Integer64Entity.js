@@ -24,10 +24,6 @@ export default class Integer64Entity extends IEntity {
         this.value = BigInt(value)
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize(
         insideString = false,
         indentation = "",
@@ -36,5 +32,9 @@ export default class Integer64Entity extends IEntity {
         wrap = Self.wrap,
     ) {
         return this.value.toString()
+    }
+
+    valueOf() {
+        return this.value
     }
 }

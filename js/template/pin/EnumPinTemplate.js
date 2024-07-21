@@ -25,7 +25,7 @@ export default class EnumPinTemplate extends IInputPinTemplate {
                 return [
                     k,
                     this.element.nodeElement.getPinEntities().find(pinEntity => k === pinEntity.PinName)
-                        ?.PinFriendlyName.serialize()
+                        ?.PinFriendlyName.toString()
                     ?? k
                 ]
             })

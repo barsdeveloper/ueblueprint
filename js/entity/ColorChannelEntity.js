@@ -12,11 +12,11 @@ export default class ColorChannelEntity extends IEntity {
         this.value = value
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize() {
         return this.value.toFixed(6)
+    }
+
+    valueOf() {
+        return this.value
     }
 }

@@ -1,107 +1,25 @@
 /**
- * @template T
- * @typedef {abstract new (...args: any) => T} AnyConstructor
- */
-/**
- * @template {Attribute} T
- * @typedef {AnyConstructor<T> & EntityConstructor | StringConstructor | NumberConstructor | BigIntConstructor
- *     | BooleanConstructor | ArrayConstructor | MirroredEntityConstructor<T>} AttributeConstructor
+ * @template {typeof import("./js/entity/IEntity.js").default} T
+ * @typedef {import("./js/entity/MirroredEntity.js").default<T>} MirroredEntity
  */
 /**
  * @typedef {[Number, Number]} Coordinates
- * @typedef {IEntity | String | Number | BigInt | Boolean | Array} TerminalAttribute
- * @typedef {TerminalAttribute | MirroredEntity<TerminalAttribute>} Attribute
- * @typedef {(
- *      AttributeConstructor<Attribute> | AttributeConstructor<Attribute>[] 
- *     | MirroredEntity<Attribute> | Union<any> | Union<any>[] | ComputedType
- * )} AttributeTypeDescription
- * @typedef {(entity: IEntity) => Attribute} ValueSupplier
- */
-/**
- * @template {Attribute} T
- * @typedef {T extends String
- *     ? StringConstructor
- *     : T extends Number
- *     ? NumberConstructor
- *     : T extends BigInt
- *     ? BigIntConstructor
- *     : T extends Boolean
- *     ? BooleanConstructor
- *     : T extends Array
- *     ? ArrayConstructor
- *     : T extends MirroredEntity<infer R>
- *     ? MirroredEntityConstructor<R>
- *     : T extends IEntity
- *     ? AnyConstructor<T> & EntityConstructor
- *     : any
- * } ConstructorType
- */
-/**
- * @template T
- * @typedef {T extends AnyConstructor<infer R>
- *     ? R
- *     : T extends StringConstructor
- *     ? String
- *     : T extends NumberConstructor
- *     ? Number
- *     : T extends BigIntConstructor
- *     ? BigInt
- *     : T extends BooleanConstructor
- *     ? Boolean
- *     : T extends ArrayConstructor
- *     ? Array
- *     : any
- * } ConstructedType
- */
-/**
- * @template T
- * @typedef {T extends [infer A] ? DescribedType<A>
- *     : T extends [infer A, ...infer B] ? (DescribedType<A> | DescribedTypesFromArray<B>)
- *     : any
- * } DescribedTypesFromArray
- **/
-/**
- * @template T
- * @typedef {T extends AnyConstructor<infer R>
- *     ? R
- *     : T extends StringConstructor
- *     ? String
- *     : T extends NumberConstructor
- *     ? Number
- *     : T extends BigIntConstructor
- *     ? BigInt
- *     : T extends BooleanConstructor
- *     ? Boolean
- *     : T extends Array<infer R>
- *     ? DescribedType<R>[]
- *     : T extends MirroredEntity<infer R>
- *     ? DescribedType<R>
- *     : T
- * } DescribedType
  */
 /**
  * @typedef {CustomEvent<{ value: Coordinates }>} UEBDragEvent
  */
+/** @typedef {typeof import("./js/entity/IEntity.js").default} IEntityConstructor */
 /**
  * @template T
- * @typedef {{
- *     (value: Boolean): BooleanConstructor,
- *     (value: Number): NumberConstructor,
- *     (value: String): StringConstructor,
- *     (value: BigInt): BigIntConstructor,
- *     (value: T): typeof value.constructor,
- * }} TypeGetter
- */
-/**
- * @template T
- * @typedef {T extends [infer A extends EntityConstructor] ? InstanceType<A>
- *     : T extends [infer A extends EntityConstructor, ...infer B] ? InstanceType<A> | UnionFromArray<B>
+ * @typedef {T extends [infer A] ? InstanceType<A>
+ *     : T extends [infer A, ...infer B] ? InstanceType<A> | UnionFromArray<B>
  *     : never
  * } UnionFromArray
  */
 /**
- * @template {EntityConstructor} T
- * @typedef {T extends AlternativesEntityConstructor & { alternatives: infer R } ? UnionFromArray<R>
+ * @template T
+ * @typedef {T extends import("./js/entity/AlternativesEntity.js").default<infer R extends any[]> ? Boolean
+ *     : T extends import("./js/entity/ArrayEntity.js").default<infer R extends IEntityConstructor> ? ExtractType<R>
  *     : InstanceType<T>
  * } ExtractType
  */
@@ -136,6 +54,7 @@
  * @typedef {import("./js/entity/ByteEntity.js").default} ByteEntity
  * @typedef {import("./js/entity/ColorChannelEntity.js").default} ColorChannelEntity
  * @typedef {import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntity
+ * @typedef {typeof import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntityConstructor
  * @typedef {import("./js/entity/EnumDisplayValueEntity.js").default} EnumDisplayValueEntity
  * @typedef {import("./js/entity/EnumEntity.js").default} EnumEntity
  * @typedef {import("./js/entity/FormatTextEntity.js").default} FormatTextEntity
@@ -223,8 +142,4 @@
  *     evaluate<R, Arg>(pageFunction: (node: T, arg: Arg) => R, arg: Arg, options?: { timeout?: number }): Promise<R>
  *     evaluate<R>(pageFunction: (node: T) => R, options?: { timeout?: number }): Promise<R>
  * } & import("@playwright/test").Locator} Locator
- */
-/**
- * @template T
- * @typedef {import("parsernostrum").ProducerParser<T>} Parser
  */

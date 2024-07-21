@@ -42,9 +42,9 @@ export default class LinearColorPinTemplate extends PinTemplate {
 
     renderInput() {
         return html`
-            <span class="ueb-pin-input-wrapper ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.serialize() ?? nothing}"
+            <span class="ueb-pin-input-wrapper ueb-pin-input" data-linear-color="${this.element.getDefaultValue()?.toString() ?? nothing}"
                 @click="${this.#launchColorPickerWindow}"
-                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.serialize() ?? nothing})">
+                style="--ueb-linear-color: rgba(${this.element.getDefaultValue()?.toString() ?? nothing})">
             </span>
         `
     }

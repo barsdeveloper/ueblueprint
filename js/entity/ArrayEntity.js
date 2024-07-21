@@ -2,12 +2,12 @@ import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
 
-/** @template {IEntity} T */
+/** @template {typeof IEntity} T */
 export default class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
-    static grammar = /** @type {P<ArrayEntity<IEntity>>} */(
+    static grammar = /** @type {P<ArrayEntity<typeof IEntity>>} */(
         this.createGrammar()
     )
 
@@ -15,13 +15,13 @@ export default class ArrayEntity extends IEntity {
         return this.values.length
     }
 
-    /** @param {T[]} values */
+    /** @param {(ExtractType<T>)[]} values */
     constructor(values = []) {
         super()
         this.values = values
     }
 
-    /** @returns {P<ArrayEntity<IEntity>>} */
+    /** @returns {P<ArrayEntity<typeof IEntity>>} */
     static createGrammar(elementGrammar = this.type?.grammar ?? P.lazy(() => this.unknownEntityGrammar)) {
         return this.inlined
             ? elementGrammar
@@ -42,29 +42,12 @@ export default class ArrayEntity extends IEntity {
      * @param {T} type
      */
     static of(type) {
-        const result = /** @type {typeof ArrayEntity<ExtractType<T>> & {type: T, grammar: P<ArrayEntity<ExtractType<T>>> }} */(
+        const result = /** @type {typeof ArrayEntity<T> & {type: T, grammar: P<ArrayEntity<T>> }} */(
             this.asUniqueClass()
         )
         result.type = type
         result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar())
         return result
-    }
-
-    /** @param {IEntity} other */
-    equals(other) {
-        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
-            return false
-        }
-        for (let i = 0; i < this.values.length; ++i) {
-            if (!this.values[i].equals(other.values[i])) {
-                return false
-            }
-        }
-        return true
-    }
-
-    valueOf() {
-        return this.values
     }
 
     serialize(
@@ -82,5 +65,22 @@ export default class ArrayEntity extends IEntity {
             result += Self.attributeSeparator
         }
         return `(${result})`
+    }
+
+    valueOf() {
+        return this.values
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
+            return false
+        }
+        for (let i = 0; i < this.values.length; ++i) {
+            if (!this.values[i].equals(other.values[i])) {
+                return false
+            }
+        }
+        return true
     }
 }

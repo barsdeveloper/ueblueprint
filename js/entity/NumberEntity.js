@@ -44,10 +44,6 @@ export default class NumberEntity extends IEntity {
         this.#precision = Number(precision)
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize() {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"
@@ -56,5 +52,9 @@ export default class NumberEntity extends IEntity {
             return "-inf"
         }
         return this.#precision ? this.value.toFixed(this.#precision) : this.value.toString()
+    }
+
+    valueOf() {
+        return this.value
     }
 }

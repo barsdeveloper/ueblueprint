@@ -20,7 +20,7 @@ export default function nodeTemplateClass(nodeEntity) {
         || nodeEntity.getClass() === Configuration.paths.callArrayFunction
     ) {
         const memberParent = nodeEntity.FunctionReference?.MemberParent?.path ?? ""
-        const memberName = nodeEntity.FunctionReference?.MemberName?.valueOf()
+        const memberName = nodeEntity.FunctionReference?.MemberName?.toString()
         if (
             memberName && (
                 memberParent === Configuration.paths.kismetMathLibrary
@@ -103,7 +103,7 @@ export default function nodeTemplateClass(nodeEntity) {
                     "Numeric::Abs",
                     "Numeric::Add",
                     "Numeric::Mul",
-                ].includes(nodeEntity.OpName?.valueOf())
+                ].includes(nodeEntity.OpName?.toString())
             ) {
                 return VariableOperationNodeTemplate
             }

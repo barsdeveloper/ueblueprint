@@ -23,11 +23,11 @@ export default class InvariantTextEntity extends IEntity {
         this.value = value
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize() {
         return this.lookbehind + "(" + this.value + ")"
+    }
+
+    valueOf() {
+        return this.value
     }
 }

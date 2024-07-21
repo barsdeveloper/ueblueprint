@@ -3,10 +3,10 @@ import Utility from "../Utility.js"
 /** @param {PinEntity} entity */
 export default function pinTitle(entity) {
     let result = entity.PinFriendlyName
-        ? entity.PinFriendlyName.valueOf()
-        : Utility.formatStringName(entity.PinName?.valueOf() ?? "")
+        ? entity.PinFriendlyName.toString()
+        : Utility.formatStringName(entity.PinName?.toString() ?? "")
     let match
-    if (match = entity.PinToolTip?.valueOf().match(/\s*(.+?(?=\n)|.+\S)\s*/)) {
+    if (match = entity.PinToolTip?.toString().match(/\s*(.+?(?=\n)|.+\S)\s*/)) {
         if (match[1].toLowerCase() === result.toLowerCase()) {
             return match[1] // In case they match, then keep the case of the PinToolTip
         }

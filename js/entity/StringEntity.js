@@ -10,14 +10,9 @@ export default class StringEntity extends IEntity {
             .label("StringEntity")
     )
 
-    /** @param {String} value */
     constructor(value = "") {
         super()
         this.value = value
-    }
-
-    valueOf() {
-        return this.value
     }
 
     serialize(
@@ -32,5 +27,13 @@ export default class StringEntity extends IEntity {
             result = Utility.escapeString(result, false)
         }
         return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
     }
 }

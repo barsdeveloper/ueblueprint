@@ -29,11 +29,11 @@ export default class GuidEntity extends IEntity {
         this.value = value
     }
 
-    valueOf() {
+    serialize() {
         return this.value
     }
 
-    serialize() {
+    toString() {
         return this.value
     }
 }

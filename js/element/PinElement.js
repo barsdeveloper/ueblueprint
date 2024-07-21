@@ -113,14 +113,12 @@ export default class PinElement extends IElement {
         })
     }
 
-    /** @return {GuidEntity} */
     getPinId() {
         return this.entity.PinId
     }
 
-    /** @returns {String} */
     getPinName() {
-        return this.entity.PinName?.valueOf() ?? ""
+        return this.entity.PinName?.toString() ?? ""
     }
 
     getPinDisplayName() {
@@ -234,8 +232,8 @@ export default class PinElement extends IElement {
      */
     redirectLink(originalPinElement, newReference) {
         const index = this.getLinks().findIndex(pinReference =>
-            pinReference.objectName.serialize() == originalPinElement.getNodeElement().getNodeName()
-            && pinReference.pinGuid.valueOf() == originalPinElement.entity.PinId.valueOf()
+            pinReference.objectName.toString() == originalPinElement.getNodeElement().getNodeName()
+            && pinReference.pinGuid.toString() == originalPinElement.entity.PinId.toString()
         )
         if (index >= 0) {
             this.entity.LinkedTo[index] = newReference

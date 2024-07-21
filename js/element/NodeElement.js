@@ -116,7 +116,7 @@ export default class NodeElement extends ISelectableDraggableElement {
     initialize(entity = new ObjectEntity(), template = new (nodeTemplateClass(entity))()) {
         this.typePath = entity.getType()
         this.nodeTitle = entity.getObjectName()
-        this.advancedPinDisplay = entity.AdvancedPinDisplay?.serialize()
+        this.advancedPinDisplay = entity.AdvancedPinDisplay?.toString()
         this.enabledState = entity.EnabledState
         this.nodeDisplayName = nodeTitle(entity)
         this.pureFunction = entity.bIsPureFunc?.valueOf()
@@ -230,6 +230,6 @@ export default class NodeElement extends ISelectableDraggableElement {
     }
 
     toggleShowAdvancedPinDisplay() {
-        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.serialize() != "Shown")
+        this.setShowAdvancedPinDisplay(this.entity.AdvancedPinDisplay?.toString() != "Shown")
     }
 }

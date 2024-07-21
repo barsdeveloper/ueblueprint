@@ -291,6 +291,11 @@ export default class LinearColorEntity extends IEntity {
             + Math.round(this.A.value * 0xff)
     }
 
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.R.value, this.G.value, this.B.value, this.A.value]
+    }
+
     /** @param {Number} number */
     setFromRGBANumber(number) {
         this.A.value = (number & 0xff) / 0xff
@@ -307,10 +312,5 @@ export default class LinearColorEntity extends IEntity {
         this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff)
         this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff)
         this.#updateHSV()
-    }
-
-    /** @returns {[Number, Number, Number, Number]} */
-    toArray() {
-        return [this.R.value, this.G.value, this.B.value, this.A.value]
     }
 }

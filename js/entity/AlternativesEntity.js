@@ -35,9 +35,4 @@ export default class AlternativesEntity extends IEntity {
         result.grammar = result.createGrammar()
         return result
     }
-
-    /** @returns {UnionFromArray<T>} */
-    valueOf() {
-        return
-    }
 }

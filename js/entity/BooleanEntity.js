@@ -26,10 +26,6 @@ export default class BooleanEntity extends IEntity {
         this.value = value
     }
 
-    valueOf() {
-        return this.value
-    }
-
     serialize() {
         return this.value
             ? this.#uppercase
@@ -38,5 +34,9 @@ export default class BooleanEntity extends IEntity {
             : this.#uppercase
                 ? "False"
                 : "false"
+    }
+
+    valueOf() {
+        return this.value
     }
 }

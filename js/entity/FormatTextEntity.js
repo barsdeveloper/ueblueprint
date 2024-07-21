@@ -31,8 +31,22 @@ export default class FormatTextEntity extends IEntity {
         this.values = values
     }
 
-    valueOf() {
-        const pattern = this.values?.[0]?.valueOf() // The pattern is always the first element of the array
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = this.Self(),
+        printKey = Self.printKey,
+        wrap = Self.wrap,
+    ) {
+        const separator = Self.attributeSeparator
+        return this.lookbehind + "("
+            + this.values.map(v => v.serialize(insideString)).join(separator)
+            + (Self.trailing ? separator : "")
+            + ")"
+    }
+
+    toString() {
+        const pattern = this.values?.[0]?.toString() // The pattern is always the first element of the array
         if (!pattern) {
             return ""
         }
@@ -53,19 +67,5 @@ export default class FormatTextEntity extends IEntity {
                 })
                 : ""
         return result
-    }
-
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        const separator = Self.attributeSeparator
-        return this.lookbehind + "("
-            + this.values.map(v => v.serialize(insideString)).join(separator)
-            + (Self.trailing ? separator : "")
-            + ")"
     }
 }

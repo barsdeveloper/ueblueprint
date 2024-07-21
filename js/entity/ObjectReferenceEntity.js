@@ -79,14 +79,6 @@ export default class ObjectReferenceEntity extends IEntity {
         return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
     }
 
-    /** @param {IEntity} other */
-    equals(other) {
-        if (!(other instanceof ObjectReferenceEntity)) {
-            return false
-        }
-        return this.type == other.type && this.path == other.path
-    }
-
     serialize(
         insideString = false,
         indentation = "",
@@ -101,5 +93,13 @@ export default class ObjectReferenceEntity extends IEntity {
             return this.#fullEscaped
         }
         return this.full
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ObjectReferenceEntity)) {
+            return false
+        }
+        return this.type == other.type && this.path == other.path
     }
 }

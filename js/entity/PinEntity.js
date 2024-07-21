@@ -32,6 +32,7 @@ import StringEntity from "./StringEntity.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import Vector4DEntity from "./Vector4DEntity.js"
 import VectorEntity from "./VectorEntity.js"
+import SymbolEntity from "./SymbolEntity.js"
 
 /** @template {IEntity} T */
 export default class PinEntity extends IEntity {
@@ -104,13 +105,13 @@ export default class PinEntity extends IEntity {
         return this.#recomputesNodeTitleOnChange
     }
 
-    #objectEntity
-    get objectEntity() {
-        return this.#objectEntity
-    }
-    set objectEntity(value) {
-        this.#objectEntity = value
-    }
+    objectEntity
+    // get objectEntity() {
+    //     return this.#objectEntity
+    // }
+    // set objectEntity(value) {
+    //     this.#objectEntity = value
+    // }
 
     #pinIndex
     get pinIndex() {
@@ -181,7 +182,7 @@ export default class PinEntity extends IEntity {
             }
         }
         if (category === "optional") {
-            const subCategory = this.PinType.PinSubCategory?.valueOf()
+            const subCategory = this.PinType.PinSubCategory?.toString()
             switch (subCategory) {
                 case "red":
                     return "real"
@@ -232,7 +233,7 @@ export default class PinEntity extends IEntity {
     }
 
     isExecution() {
-        return this.PinType.PinCategory.serialize() === "exec"
+        return this.PinType.PinCategory.toString() === "exec"
     }
 
     isHidden() {
@@ -240,11 +241,11 @@ export default class PinEntity extends IEntity {
     }
 
     isInput() {
-        return !this.isHidden() && this.Direction?.valueOf() != "EGPD_Output"
+        return !this.isHidden() && this.Direction?.toString() != "EGPD_Output"
     }
 
     isOutput() {
-        return !this.isHidden() && this.Direction?.valueOf() == "EGPD_Output"
+        return !this.isHidden() && this.Direction?.toString() == "EGPD_Output"
     }
 
     isLinked() {
@@ -258,11 +259,11 @@ export default class PinEntity extends IEntity {
      */
     linkTo(targetObjectName, targetPinEntity) {
         const linkFound = this.LinkedTo.values?.some(pinReferenceEntity =>
-            pinReferenceEntity.objectName.serialize() == targetObjectName
-            && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+            pinReferenceEntity.objectName.toString() == targetObjectName
+            && pinReferenceEntity.pinGuid.toString() == targetPinEntity.PinId.toString()
         )
         if (!linkFound) {
-            this.LinkedTo.values.push(new PinReferenceEntity(targetObjectName, targetPinEntity.PinId,))
+            this.LinkedTo.values.push(new PinReferenceEntity(new SymbolEntity(targetObjectName), targetPinEntity.PinId))
             return true
         }
         return false // Already linked
@@ -275,8 +276,8 @@ export default class PinEntity extends IEntity {
      */
     unlinkFrom(targetObjectName, targetPinEntity) {
         const indexElement = this.LinkedTo.values?.findIndex(pinReferenceEntity => {
-            return pinReferenceEntity.objectName.serialize() == targetObjectName
-                && pinReferenceEntity.pinGuid.valueOf() == targetPinEntity.PinId.valueOf()
+            return pinReferenceEntity.objectName.toString() == targetObjectName
+                && pinReferenceEntity.pinGuid.toString() == targetPinEntity.PinId.toString()
         })
         if (indexElement >= 0) {
             this.LinkedTo.values.splice(indexElement, 1)

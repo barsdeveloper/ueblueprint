@@ -74,7 +74,16 @@ export default class IEntity {
                         attributes[key] !== undefined ? attributes[key] : IEntity.unknownEntity
                     )(values[key])
                 }
+                const computedEntity = /** @type {ComputedTypeEntityConstructor} */(attributes[key])
                 this[key] = values[key]
+                if (computedEntity?.compute) {
+                    /** @type {typeof IEntity} */
+                    const actualEntity = computedEntity.compute(this)
+                    const parsed = actualEntity.grammar.run(values[key].toString())
+                    if (parsed.status) {
+                        this[key] = parsed.value
+                    }
+                }
                 continue
             }
             const attribute = attributes[key]
@@ -238,40 +247,6 @@ export default class IEntity {
         }
     }
 
-    /** @param {IEntity} other */
-    equals(other) {
-        if (!(other instanceof IEntity)) {
-            return false
-        }
-        const thisKeys = Object.keys(this)
-        const otherKeys = Object.keys(other)
-        if (
-            thisKeys.length !== otherKeys.length
-            || this.lookbehind != other.lookbehind
-            || !(this instanceof other.constructor) && !(other instanceof this.constructor)
-        ) {
-            return false
-        }
-        for (let i = 0; i < thisKeys.length; ++i) {
-            const k = thisKeys[i]
-            if (!otherKeys.includes(k)) {
-                return false
-            }
-            const a = this[k]
-            const b = other[k]
-            if (a instanceof IEntity) {
-                if (!a.equals(b)) {
-                    return false
-                }
-            } else {
-                if (a !== b) {
-                    return false
-                }
-            }
-        }
-        return true
-    }
-
     /** @this {IEntity | Array} */
     serialize(
         insideString = false,
@@ -319,5 +294,39 @@ export default class IEntity {
             result += Self.attributeSeparator
         }
         return wrap(/** @type {IEntity} */(this), result)
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof IEntity)) {
+            return false
+        }
+        const thisKeys = Object.keys(this)
+        const otherKeys = Object.keys(other)
+        if (
+            thisKeys.length !== otherKeys.length
+            || this.lookbehind != other.lookbehind
+            || !(this instanceof other.constructor) && !(other instanceof this.constructor)
+        ) {
+            return false
+        }
+        for (let i = 0; i < thisKeys.length; ++i) {
+            const k = thisKeys[i]
+            if (!otherKeys.includes(k)) {
+                return false
+            }
+            const a = this[k]
+            const b = other[k]
+            if (a instanceof IEntity) {
+                if (!a.equals(b)) {
+                    return false
+                }
+            } else {
+                if (a !== b) {
+                    return false
+                }
+            }
+        }
+        return true
     }
 }
