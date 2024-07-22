@@ -4640,11 +4640,11 @@ class SymbolEntity extends IEntity {
         this.value = value;
     }
 
-    valueOf() {
+    serialize() {
         return this.value
     }
 
-    serialize() {
+    toString() {
         return this.value
     }
 }
@@ -6145,7 +6145,7 @@ class ObjectEntity extends IEntity {
         if (dropCounter) {
             return this.getNameAndCounter()[0]
         }
-        return this.Name.valueOf()
+        return this.Name.toString()
     }
 
     /** @returns {[String, Number]} */
@@ -10706,7 +10706,7 @@ class Blueprint extends IElement {
             if (element instanceof NodeElement && !this.nodes.includes(element)) {
                 if (element.getType() == Configuration.paths.niagaraClipboardContent) {
                     this.entity = this.entity.mergeWith(element.entity);
-                    const additionalSerialization = atob(element.entity.ExportedNodes);
+                    const additionalSerialization = atob(element.entity.ExportedNodes.toString());
                     this.template.getPasteInputObject().pasted(additionalSerialization)
                         .forEach(node => node.entity._exported = true);
                     continue
@@ -10714,7 +10714,7 @@ class Blueprint extends IElement {
                 const name = element.entity.getObjectName();
                 const homonym = this.entity.getHomonymObjectEntity(element.entity);
                 if (homonym) {
-                    homonym.Name = this.entity.takeFreeName(name);
+                    homonym.Name.value = this.entity.takeFreeName(name);
                 }
                 this.nodes.push(element);
                 this.entity.addObjectEntity(element.entity);
