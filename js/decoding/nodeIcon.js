@@ -54,7 +54,7 @@ export default function nodeIcon(entity) {
     if (entity.getClass() === Configuration.paths.macro) {
         return SVGIcon.macro
     }
-    const hidValue = entity.getHIDAttribute()?.serialize()
+    const hidValue = entity.getHIDAttribute()?.toString()
     if (hidValue) {
         if (hidValue.includes("Mouse")) {
             return SVGIcon.mouse

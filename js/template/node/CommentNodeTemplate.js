@@ -26,7 +26,7 @@ export default class CommentNodeTemplate extends IResizeableTemplate {
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top"
-                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment?.valueOf())}">
+                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment?.toString())}">
                     </div>
                 </div>
             </div>

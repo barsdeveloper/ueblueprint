@@ -3721,6 +3721,10 @@ class NumberEntity extends IEntity {
     valueOf() {
         return this.value
     }
+
+    toString() {
+        return this.value.toString()
+    }
 }
 
 class VectorEntity extends IEntity {
@@ -4213,7 +4217,7 @@ function nodeIcon(entity) {
     if (entity.getClass() === Configuration.paths.macro) {
         return SVGIcon.macro
     }
-    const hidValue = entity.getHIDAttribute()?.serialize();
+    const hidValue = entity.getHIDAttribute()?.toString();
     if (hidValue) {
         if (hidValue.includes("Mouse")) {
             return SVGIcon.mouse
@@ -5447,7 +5451,7 @@ class PinEntity extends IEntity {
 
 /** @param {PinEntity} pinEntity */
 const indexFromUpperCaseLetterName = pinEntity =>
-    pinEntity.PinName?.valueOf().match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
+    pinEntity.PinName?.toString().match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
 
 /** @param {ObjectEntity} entity */
 function nodeVariadic(entity) {
@@ -5462,7 +5466,7 @@ function nodeVariadic(entity) {
     switch (type) {
         case Configuration.paths.commutativeAssociativeBinaryOperator:
         case Configuration.paths.promotableOperator:
-            name = entity.FunctionReference?.MemberName?.valueOf();
+            name = entity.FunctionReference?.MemberName?.toString();
             switch (name) {
                 default:
                     if (
@@ -5501,7 +5505,7 @@ function nodeVariadic(entity) {
             break
         case Configuration.paths.multiGate:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.valueOf().match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.toString().match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
                 `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
             break
@@ -5517,7 +5521,7 @@ function nodeVariadic(entity) {
         //     break
         case Configuration.paths.switchInteger:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.valueOf().match(/^\s*(\d+)\s*$/)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.toString().match(/^\s*(\d+)\s*$/)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => (index < 0 ? max + 1 : index).toString();
             break
         case Configuration.paths.switchGameplayTag:
@@ -5532,7 +5536,7 @@ function nodeVariadic(entity) {
         case Configuration.paths.switchName:
         case Configuration.paths.switchString:
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.valueOf().match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.toString().match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
                 const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
                 entity.PinNames ??= new ArrayEntity();
@@ -8423,7 +8427,7 @@ class CommentNodeTemplate extends IResizeableTemplate {
             <div class="ueb-node-border">
                 <div class="ueb-node-wrapper">
                     <div class="ueb-node-top"
-                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment?.valueOf())}">
+                        .innerText="${Utility.encodeHTMLWhitespace(this.element.entity.NodeComment?.toString())}">
                     </div>
                 </div>
             </div>
@@ -8931,7 +8935,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createDelegatePinElement() {
         const pin = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin")).newObject(
-            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.valueOf() === "delegate"),
+            this.element.getPinEntities().find(v => !v.isHidden() && v.PinType.PinCategory?.toString() === "delegate"),
             new MinimalPinTemplate(),
             this.element
         );
@@ -8941,7 +8945,7 @@ class EventNodeTemplate extends NodeTemplate {
 
     createPinElements() {
         return this.element.getPinEntities()
-            .filter(v => !v.isHidden() && v.PinType.PinCategory !== "delegate")
+            .filter(v => !v.isHidden() && v.PinType.PinCategory?.toString() !== "delegate")
             .map(pinEntity => /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
                 .newObject(pinEntity, undefined, this.element)
             )

@@ -1,8 +1,8 @@
 import P from "parsernostrum"
 import Utility from "../Utility.js"
 import Grammar from "../serialization/Grammar.js"
-import StringEntity from "./StringEntity.js"
 import IEntity from "./IEntity.js"
+import StringEntity from "./StringEntity.js"
 
 export default class LocalizedTextEntity extends IEntity {
 
