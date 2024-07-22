@@ -232,8 +232,9 @@ test("Boolean", () => {
     let value = grammar.parse("true")
     expect(value).toBeInstanceOf(BooleanEntity)
     expect(value).toEqual(new BooleanEntity(true))
-    expect(value.serialize()).toEqual("true")
+    expect(value.serialize()).toBe("true")
     expect(value.equals(new (BooleanEntity.withDefault().flagNullable())(true))).toBeTruthy()
+    expect(value.valueOf()).toBe(true)
 
     value = grammar.parse("True")
     expect(value).toBeInstanceOf(BooleanEntity)
@@ -241,16 +242,19 @@ test("Boolean", () => {
     expect(value.serialize()).toEqual("True")
     expect(value.equals(new BooleanEntity(true))).toBeTruthy()
     expect(value.equals(new BooleanEntity(false))).toBeFalsy()
+    expect(value.valueOf()).toBe(true)
 
     value = grammar.parse("false")
     expect(value).toBeInstanceOf(BooleanEntity)
     expect(value).toEqual(new BooleanEntity(false))
     expect(value.serialize()).toEqual("false")
+    expect(value.valueOf()).toBe(false)
 
     value = grammar.parse("False")
     expect(value).toBeInstanceOf(BooleanEntity)
     expect(value).toEqual(new BooleanEntity(false))
     expect(value.serialize()).toEqual("False")
+    expect(value.valueOf()).toBe(false)
     expect(() => grammar.parse("truee")).toThrow("Could not parse")
 })
 
@@ -258,7 +262,7 @@ test("FormatTextEntity", () => {
     let grammar = FormatTextEntity.grammar
 
     let value = grammar.parse('LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema",   "SplitPinFriendlyNameFormat",  "{PinDisplayName} {ProtoPinDisplayName}"),   "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")')
-    expect(value.valueOf()).toEqual("Out Hit Blocking Hit")
+    expect(value.toString()).toEqual("Out Hit Blocking Hit")
     expect(value.serialize())
         .toEqual('LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")')
 
@@ -272,7 +276,7 @@ test("FormatTextEntity", () => {
         "float",
         "InRangeMin"
     )`)
-    expect(value.valueOf())
+    expect(value.toString())
         .toEqual(`If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\nAttribute type is "float" and its exact name is "InRangeMin"`)
     expect(value.serialize())
         .toEqual(String.raw`LOCGEN_FORMAT_ORDERED(NSLOCTEXT("PCGSettings", "OverridableParamPinTooltip", "{0}Attribute type is \"{1}\" and its exact name is \"{2}\""), "If InRangeMin = InRangeMax, then that density value is mapped to the average of OutRangeMin and OutRangeMax\n", "float", "InRangeMin")`)
@@ -936,39 +940,43 @@ test("StringEntity", () => {
         let value = grammar.parse('""')
         expect(value).toBeInstanceOf(StringEntity)
         expect(value).toEqual(new StringEntity(""))
+        expect(value.serialize()).toEqual(`""`)
+        expect(value.serialize(true)).toEqual(String.raw`\"\"`)
         expect(value.equals(new StringEntity(""))).toBeTruthy()
         expect(value.equals(new StringEntity("1"))).toBeFalsy()
         expect(value.valueOf()).toEqual("")
-        expect(value.serialize()).toEqual(`""`)
-        expect(value.serialize(true)).toEqual(String.raw`\"\"`)
+        expect(value.toString()).toEqual("")
     }
     {
         let value = grammar.parse('"hello"')
         expect(value).toEqual(new StringEntity("hello"))
+        expect(value.serialize()).toEqual(`"hello"`)
+        expect(value.serialize(true)).toEqual(String.raw`\"hello\"`)
         expect(value.equals(new StringEntity("hello"))).toBeTruthy()
         expect(value.equals(new SymbolEntity("hello"))).toBeFalsy()
         expect(value.equals(new NumberEntity())).toBeFalsy()
         expect(value.valueOf()).toEqual("hello")
-        expect(value.serialize()).toEqual(`"hello"`)
-        expect(value.serialize(true)).toEqual(String.raw`\"hello\"`)
+        expect(value.toString()).toEqual("hello")
     }
     {
         let value = grammar.parse('"hello world 123 - éèàò@ç ^ ^^^"')
         expect(value).toEqual(new StringEntity("hello world 123 - éèàò@ç ^ ^^^"))
+        expect(value.serialize()).toEqual(`"hello world 123 - éèàò@ç ^ ^^^"`)
+        expect(value.serialize(true)).toEqual(String.raw`\"hello world 123 - éèàò@ç ^ ^^^\"`)
         expect(value.equals(new StringEntity("hello world 123 - éèàò@ç ^ ^^^"))).toBeTruthy()
         expect(value.equals(new StringEntity("hello world 123 - éèàò@ç ^ ^^^-"))).toBeFalsy()
         expect(value.valueOf()).toEqual("hello world 123 - éèàò@ç ^ ^^^")
-        expect(value.serialize()).toEqual(`"hello world 123 - éèàò@ç ^ ^^^"`)
-        expect(value.serialize(true)).toEqual(String.raw`\"hello world 123 - éèàò@ç ^ ^^^\"`)
+        expect(value.toString()).toEqual("hello world 123 - éèàò@ç ^ ^^^")
     }
     {
         let value = grammar.parse(String.raw`"a:\"hello\", b:\"word is \\\"world\\\"\""`)
         expect(value).toEqual(new StringEntity(String.raw`a:"hello", b:"word is \"world\""`))
+        expect(value.serialize(false)).toEqual(String.raw`"a:\"hello\", b:\"word is \\\"world\\\"\""`)
+        expect(value.serialize(true)).toEqual(String.raw`\"a:\\\"hello\\\", b:\\\"word is \\\\\\\"world\\\\\\\"\\\"\"`)
         expect(value.equals(new StringEntity(String.raw`a:"hello", b:"word is \"world\""`))).toBeTruthy()
         expect(value.equals(new NumberEntity())).toBeFalsy()
         expect(value.valueOf()).toEqual(String.raw`a:"hello", b:"word is \"world\""`)
-        expect(value.serialize(false)).toEqual(String.raw`"a:\"hello\", b:\"word is \\\"world\\\"\""`)
-        expect(value.serialize(true)).toEqual(String.raw`\"a:\\\"hello\\\", b:\\\"word is \\\\\\\"world\\\\\\\"\\\"\"`)
+        expect(value.toString()).toEqual(String.raw`a:"hello", b:"word is \"world\""`)
     }
     expect(() => grammar.parse("Hello")).toThrow()
 })

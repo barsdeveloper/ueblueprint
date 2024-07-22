@@ -59,6 +59,11 @@ export default class LinearColorEntity extends IEntity {
         this.#updateHSV()
     }
 
+    /** @param {LinearColorEntity} value */
+    static printLinearColor(value) {
+        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
+    }
+
     /** @param {Number} x */
     static linearToSRGB(x) {
         if (x <= 0) {
@@ -312,5 +317,9 @@ export default class LinearColorEntity extends IEntity {
         this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff)
         this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff)
         this.#updateHSV()
+    }
+
+    toString() {
+        return LinearColorEntity.printLinearColor(this)
     }
 }

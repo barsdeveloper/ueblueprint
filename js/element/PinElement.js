@@ -1,4 +1,3 @@
-import Utility from "../Utility.js"
 import pinTemplate from "../decoding/pinTemplate.js"
 import ArrayEntity from "../entity/ArrayEntity.js"
 import BooleanEntity from "../entity/BooleanEntity.js"
@@ -45,7 +44,7 @@ export default class PinElement extends IElement {
                 fromAttribute: (value, type) => value
                     ? LinearColorEntity.getLinearColorFromAnyFormat().parse(value)
                     : null,
-                toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
+                toAttribute: (value, type) => value ? LinearColorEntity.printLinearColor(value) : null,
             },
             attribute: "data-color",
             reflect: true,

@@ -1,6 +1,7 @@
 import { html, nothing } from "lit"
 import Configuration from "../Configuration.js"
 import ElementFactory from "../element/ElementFactory.js"
+import LinearColorEntity from "../entity/LinearColorEntity.js"
 import KnotEntity from "../entity/objects/KnotEntity.js"
 import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import MouseClick from "../input/mouse/MouseClick.js"
@@ -175,7 +176,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         }
         const referencePin = this.element.source ?? this.element.destination
         if (referencePin) {
-            this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color))
+            this.element.style.setProperty("--ueb-link-color-rgb", LinearColorEntity.printLinearColor(referencePin.color))
         }
         this.element.style.setProperty("--ueb-y-reflected", `${this.element.fromY > this.element.toY ? 1 : 0}`)
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`)

@@ -255,11 +255,6 @@ export default class Utility {
         return pathValue.match(regex)?.[1] ?? ""
     }
 
-    /** @param {LinearColorEntity} value */
-    static printLinearColor(value) {
-        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
-    }
-
     /**
      * @param {Number} x
      * @param {Number} y

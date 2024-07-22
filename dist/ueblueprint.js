@@ -688,11 +688,6 @@ class Utility {
         return pathValue.match(regex)?.[1] ?? ""
     }
 
-    /** @param {LinearColorEntity} value */
-    static printLinearColor(value) {
-        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
-    }
-
     /**
      * @param {Number} x
      * @param {Number} y
@@ -3276,6 +3271,11 @@ class LinearColorEntity extends IEntity {
         this.#updateHSV();
     }
 
+    /** @param {LinearColorEntity} value */
+    static printLinearColor(value) {
+        return `${Math.round(value.R.valueOf() * 255)}, ${Math.round(value.G.valueOf() * 255)}, ${Math.round(value.B.valueOf() * 255)}`
+    }
+
     /** @param {Number} x */
     static linearToSRGB(x) {
         if (x <= 0) {
@@ -3529,6 +3529,10 @@ class LinearColorEntity extends IEntity {
         this.G.value = LinearColorEntity.sRGBtoLinear(((number >> 16) & 0xff) / 0xff);
         this.R.value = LinearColorEntity.sRGBtoLinear(((number >> 24) & 0xff) / 0xff);
         this.#updateHSV();
+    }
+
+    toString() {
+        return LinearColorEntity.printLinearColor(this)
     }
 }
 
@@ -4446,16 +4450,16 @@ const pinColorMaterial = i$3`120, 120, 120`;
 
 /** @param {PinEntity} entity */
 function pinColor(entity) {
-    if (entity.PinType.PinCategory?.valueOf() == "mask") {
+    if (entity.PinType.PinCategory?.toString() === "mask") {
         const result = colors[entity.PinType.PinSubCategory];
         if (result) {
             return result
         }
-    } else if (entity.PinType.PinCategory?.valueOf() == "optional") {
+    } else if (entity.PinType.PinCategory?.toString() === "optional") {
         return pinColorMaterial
     }
     return colors[entity.getType()]
-        ?? colors[entity.PinType.PinCategory?.valueOf().toLowerCase()]
+        ?? colors[entity.PinType.PinCategory?.toString().toLowerCase()]
         ?? colors["default"]
 }
 
@@ -7074,7 +7078,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
         }
         const referencePin = this.element.source ?? this.element.destination;
         if (referencePin) {
-            this.element.style.setProperty("--ueb-link-color-rgb", Utility.printLinearColor(referencePin.color));
+            this.element.style.setProperty("--ueb-link-color-rgb", LinearColorEntity.printLinearColor(referencePin.color));
         }
         this.element.style.setProperty("--ueb-y-reflected", `${this.element.fromY > this.element.toY ? 1 : 0}`);
         this.element.style.setProperty("--ueb-start-percentage", `${Math.round(this.element.startPercentage)}%`);
@@ -12202,7 +12206,7 @@ const inputPinTemplates = {
 
 /** @param {PinEntity} entity */
 function pinTemplate(entity) {
-    if (entity.PinType.ContainerType?.valueOf() === "Array") {
+    if (entity.PinType.ContainerType?.toString() === "Array") {
         return PinTemplate
     }
     if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
@@ -12248,7 +12252,7 @@ class PinElement extends IElement {
                 fromAttribute: (value, type) => value
                     ? LinearColorEntity.getLinearColorFromAnyFormat().parse(value)
                     : null,
-                toAttribute: (value, type) => value ? Utility.printLinearColor(value) : null,
+                toAttribute: (value, type) => value ? LinearColorEntity.printLinearColor(value) : null,
             },
             attribute: "data-color",
             reflect: true,
