@@ -1,16 +1,21 @@
 import { html, nothing } from "lit"
 import Configuration from "../Configuration.js"
-import Shortcuts from "../Shortcuts.js"
-import Utility from "../Utility.js"
 import ElementFactory from "../element/ElementFactory.js"
 import KnotEntity from "../entity/objects/KnotEntity.js"
 import KeyboardShortcut from "../input/keyboard/KeyboardShortcut.js"
 import MouseClick from "../input/mouse/MouseClick.js"
 import MouseDbClick from "../input/mouse/MouseDbClick.js"
+import Shortcuts from "../Shortcuts.js"
+import Utility from "../Utility.js"
 import IFromToPositionedTemplate from "./IFromToPositionedTemplate.js"
 
 /** @extends {IFromToPositionedTemplate<LinkElement>} */
 export default class LinkTemplate extends IFromToPositionedTemplate {
+
+    /** @param {Number} x */
+    static sigmoidPositive(x, curvature = 3.7, length = 1.1) {
+        return 1 - Math.exp(-((x / length) ** curvature))
+    }
 
     /**
      * Returns a function providing the inverse multiplication y = a / x + q. The value of a and q are calculated using
@@ -157,7 +162,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         const aspectRatio = dy / Math.max(30, dx)
         const c2 =
             LinkTemplate.c2Clamped(dx)
-            * Utility.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
+            * LinkTemplate.sigmoidPositive(fillRatio * 1.2 + aspectRatio * 0.5, 1.5, 1.8)
             + this.element.startPercentage
         this.element.svgPathD = Configuration.linkRightSVGPath(this.element.startPercentage, c1, c2)
     }

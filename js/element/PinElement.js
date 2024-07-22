@@ -1,6 +1,7 @@
 import Utility from "../Utility.js"
 import pinTemplate from "../decoding/pinTemplate.js"
 import ArrayEntity from "../entity/ArrayEntity.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import PinEntity from "../entity/PinEntity.js"
@@ -11,7 +12,7 @@ import ElementFactory from "./ElementFactory.js"
 import IElement from "./IElement.js"
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends {IElement<PinEntity<T>, PinTemplate>}
  */
 export default class PinElement extends IElement {
@@ -55,7 +56,7 @@ export default class PinElement extends IElement {
         },
         isLinked: {
             type: Boolean,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             attribute: "data-linked",
             reflect: true,
         },
@@ -66,7 +67,7 @@ export default class PinElement extends IElement {
         },
         connectable: {
             type: Boolean,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             attribute: "data-connectable",
             reflect: true,
         }

@@ -4,6 +4,7 @@ import IElement from "./element/IElement.js"
 import LinkElement from "./element/LinkElement.js"
 import NodeElement from "./element/NodeElement.js"
 import BlueprintEntity from "./entity/BlueprintEntity.js"
+import BooleanEntity from "./entity/BooleanEntity.js"
 import BlueprintTemplate from "./template/BlueprintTemplate.js"
 
 /** @extends {IElement<BlueprintEntity, BlueprintTemplate>} */
@@ -14,19 +15,19 @@ export default class Blueprint extends IElement {
             type: Boolean,
             attribute: "data-selecting",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         scrolling: {
             type: Boolean,
             attribute: "data-scrolling",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         focused: {
             type: Boolean,
             attribute: "data-focused",
             reflect: true,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
         },
         zoom: {
             type: Number,

@@ -1,9 +1,9 @@
 import { html } from "lit"
-import Utility from "../../Utility.js"
+import NumberEntity from "../../entity/NumberEntity.js"
 import INumericPinTemplate from "./INumericPinTemplate.js"
 
 /**
- * @template {Number} T
+ * @template {NumberEntity} T
  * @extends INumericPinTemplate<T>
  */
 export default class RealPinTemplate extends INumericPinTemplate {
@@ -16,7 +16,7 @@ export default class RealPinTemplate extends INumericPinTemplate {
         return html`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
                 <ueb-input .singleLine="${true}"
-                    .innerText="${Utility.printNumber(this.element.getDefaultValue() ?? 0)}">
+                    .innerText="${NumberEntity.printNumber(this.element.getDefaultValue()?.valueOf() ?? 0)}">
                 </ueb-input>
             </div>
         `

@@ -1,9 +1,10 @@
 import { html } from "lit"
 import { styleMap } from "lit/directives/style-map.js"
+import Configuration from "../../Configuration.js"
 import ColorHandlerElement from "../../element/ColorHandlerElement.js"
 import ColorSliderElement from "../../element/ColorSliderElement.js"
-import Configuration from "../../Configuration.js"
 import LinearColorEntity from "../../entity/LinearColorEntity.js"
+import NumberEntity from "../../entity/NumberEntity.js"
 import Utility from "../../Utility.js"
 import WindowTemplate from "./WindowTemplate.js"
 
@@ -244,7 +245,7 @@ export default class ColorPickerWindowTemplate extends WindowTemplate {
                 <div>
                     <div class="ueb-horizontal-slider">
                         <span class="ueb-horizontal-slider-text"
-                            .innerText="${Utility.printNumber(Utility.roundDecimals(channelValue, 3))}">
+                            .innerText="${NumberEntity.printNumber(Utility.roundDecimals(channelValue, 3))}">
                         </span>
                         <ueb-ui-slider></ueb-ui-slider>
                     </div>

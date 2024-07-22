@@ -35,19 +35,36 @@ const keyNameValue = {
     "Tilde": "`",
 }
 
+/** @param {String} value */
+function numberFromText(value = "") {
+    value = value.toLowerCase()
+    switch (value) {
+        case "zero": return 0
+        case "one": return 1
+        case "two": return 2
+        case "three": return 3
+        case "four": return 4
+        case "five": return 5
+        case "six": return 6
+        case "seven": return 7
+        case "eight": return 8
+        case "nine": return 9
+    }
+}
+
 function keyName(value) {
     /** @type {String} */
     let result = keyNameValue[value]
     if (result) {
         return result
     }
-    result = Utility.numberFromText(value)?.toString()
+    result = numberFromText(value)?.toString()
     if (result) {
         return result
     }
     const match = value.match(/NumPad([a-zA-Z]+)/)
     if (match) {
-        result = Utility.numberFromText(match[1]).toString()
+        result = numberFromText(match[1]).toString()
         if (result) {
             return "Num " + result
         }

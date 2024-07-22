@@ -1,6 +1,7 @@
 import P from "parsernostrum"
 import Grammar from "../serialization/Grammar.js"
 import IEntity from "./IEntity.js"
+import Utility from "../Utility.js"
 
 export default class NumberEntity extends IEntity {
 
@@ -42,6 +43,16 @@ export default class NumberEntity extends IEntity {
         super()
         this.value = Number(value)
         this.#precision = Number(precision)
+    }
+
+    /** @param {Number} num */
+    static printNumber(num) {
+        if (num == Number.POSITIVE_INFINITY) {
+            return "inf"
+        } else if (num == Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        return Utility.minDecimals(num)
     }
 
     serialize() {

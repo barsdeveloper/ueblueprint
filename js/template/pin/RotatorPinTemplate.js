@@ -1,5 +1,5 @@
 import { html } from "lit"
-import Utility from "../../Utility.js"
+import NumberEntity from "../../entity/NumberEntity.js"
 import RotatorEntity from "../../entity/RotatorEntity.js"
 import INumericPinTemplate from "./INumericPinTemplate.js"
 
@@ -7,15 +7,15 @@ import INumericPinTemplate from "./INumericPinTemplate.js"
 export default class RotatorPinTemplate extends INumericPinTemplate {
 
     #getR() {
-        return Utility.printNumber(this.element.getDefaultValue()?.R.valueOf() ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.R.valueOf() ?? 0)
     }
 
     #getP() {
-        return Utility.printNumber(this.element.getDefaultValue()?.P.valueOf() ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.P.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     setDefaultValue(values = [], rawValues = values) {

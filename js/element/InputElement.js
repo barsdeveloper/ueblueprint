@@ -1,6 +1,6 @@
-import IElement from "./IElement.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
 import InputTemplate from "../template/pin/InputTemplate.js"
-import Utility from "../Utility.js"
+import IElement from "./IElement.js"
 
 /** @extends {IElement<Object, InputTemplate>} */
 export default class InputElement extends IElement {
@@ -10,19 +10,19 @@ export default class InputElement extends IElement {
         singleLine: {
             type: Boolean,
             attribute: "data-single-line",
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
         selectOnFocus: {
             type: Boolean,
             attribute: "data-select-focus",
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
         blurOnEnter: {
             type: Boolean,
             attribute: "data-blur-enter",
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             reflect: true,
         },
     }

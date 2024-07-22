@@ -2,31 +2,6 @@ import Configuration from "./Configuration.js"
 
 export default class Utility {
 
-    static booleanConverter = {
-        fromAttribute: (value, type) => {
-            value ? "true" : "false"
-        },
-        toAttribute: (value, type) => {
-            if (value === true) {
-                return "true"
-            }
-            if (value === false) {
-                return "false"
-            }
-            return ""
-        }
-    }
-
-    /** @param {Number} x */
-    static sigmoid(x, curvature = 1.7) {
-        return 1 / (1 + (x / (1 - x) ** -curvature))
-    }
-
-    /** @param {Number} x */
-    static sigmoidPositive(x, curvature = 3.7, length = 1.1) {
-        return 1 - Math.exp(-((x / length) ** curvature))
-    }
-
     /** @param {Number} value */
     static clamp(value, min = -Infinity, max = Infinity) {
         return Math.min(Math.max(value, min), max)
@@ -52,23 +27,6 @@ export default class Utility {
         return num.toFixed(decimals)
     }
 
-    /** @param {String} value */
-    static numberFromText(value = "") {
-        value = value.toLowerCase()
-        switch (value) {
-            case "zero": return 0
-            case "one": return 1
-            case "two": return 2
-            case "three": return 3
-            case "four": return 4
-            case "five": return 5
-            case "six": return 6
-            case "seven": return 7
-            case "eight": return 8
-            case "nine": return 9
-        }
-    }
-
     /**
      * @param {Number} num
      * @param {Number} decimals
@@ -76,16 +34,6 @@ export default class Utility {
     static roundDecimals(num, decimals = 1) {
         const power = 10 ** decimals
         return Math.round(num * power) / power
-    }
-
-    /** @param {Number} num */
-    static printNumber(num) {
-        if (num == Number.POSITIVE_INFINITY) {
-            return "inf"
-        } else if (num == Number.NEGATIVE_INFINITY) {
-            return "-inf"
-        }
-        return Utility.minDecimals(num)
     }
 
     /** @param {Number} num */

@@ -1,7 +1,7 @@
 import Configuration from "../Configuration.js"
-import Utility from "../Utility.js"
 import nodeTemplateClass from "../decoding/nodeTemplate.js"
 import nodeTitle from "../decoding/nodeTitle.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
 import ObjectEntity from "../entity/ObjectEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
@@ -41,7 +41,7 @@ export default class NodeElement extends ISelectableDraggableElement {
         },
         pureFunction: {
             type: Boolean,
-            converter: Utility.booleanConverter,
+            converter: BooleanEntity.booleanConverter,
             attribute: "data-pure-function",
             reflect: true,
         },

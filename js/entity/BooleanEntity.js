@@ -12,6 +12,20 @@ export default class BooleanEntity extends IEntity {
             })
             .label("BooleanEntity")
     )
+    static booleanConverter = {
+        fromAttribute: (value, type) => {
+            value ? "true" : "false"
+        },
+        toAttribute: (value, type) => {
+            if (value === true) {
+                return "true"
+            }
+            if (value === false) {
+                return "false"
+            }
+            return ""
+        }
+    }
 
     #uppercase = true
     get uppercase() {

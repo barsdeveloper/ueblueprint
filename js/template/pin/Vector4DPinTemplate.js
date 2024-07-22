@@ -1,25 +1,25 @@
 import { html } from "lit"
-import Utility from "../../Utility.js"
-import INumericPinTemplate from "./INumericPinTemplate.js"
+import NumberEntity from "../../entity/NumberEntity.js"
 import Vector4DEntity from "../../entity/Vector4DEntity.js"
+import INumericPinTemplate from "./INumericPinTemplate.js"
 
 /** @extends INumericPinTemplate<Vector4DEntity> */
 export default class Vector4DPinTemplate extends INumericPinTemplate {
 
     #getX() {
-        return Utility.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.X.valueOf() ?? 0)
     }
 
     #getY() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Y.valueOf() ?? 0)
     }
 
     #getZ() {
-        return Utility.printNumber(this.element.getDefaultValue()?.Z.valueOf() ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.Z.valueOf() ?? 0)
     }
 
     #getW() {
-        return Utility.printNumber(this.element.getDefaultValue()?.W.valueOf() ?? 0)
+        return NumberEntity.printNumber(this.element.getDefaultValue()?.W.valueOf() ?? 0)
     }
 
     /**
