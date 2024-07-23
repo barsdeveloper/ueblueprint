@@ -2622,7 +2622,7 @@ class IEntity {
     /** @type {(entity: IEntity, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
     /** @type {(entity: IEntity, serialized: String) => String} */
-    static defaultWrapped = (entity, serialized) => `${entity.#lookbehind}(${serialized})`
+    static defaultWrapped = (entity, serialized) => `${entity.lookbehind}(${serialized})`
     static wrap = this.defaultWrapped
     static attributeSeparator = ","
     static keySeparator = "="
@@ -2866,6 +2866,8 @@ class IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         let result = "";
@@ -2881,13 +2883,21 @@ class IEntity {
             if (first) {
                 first = false;
             } else {
-                result += Self.attributeSeparator;
+                result += attributeSeparator;
             }
             if (value.Self?.().inlined) {
                 const inlinedPrintKey = value.Self().className() === "ArrayEntity"
                     ? k => printKey(`${keyValue}${k}`)
                     : k => printKey(`${keyValue}.${k}`);
-                result += value.serialize(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped);
+                result += value.serialize(
+                    insideString,
+                    indentation,
+                    undefined,
+                    inlinedPrintKey,
+                    keySeparator,
+                    attributeSeparator,
+                    Self.notWrapped
+                );
                 continue
             }
             keyValue = printKey(keyValue);
@@ -2895,7 +2905,7 @@ class IEntity {
                 if (Self.quoted) {
                     keyValue = `"${keyValue}"`;
                 }
-                result += (Self.attributeSeparator.includes("\n") ? indentation : "") + keyValue + Self.keySeparator;
+                result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator;
             }
             let serialization = value?.serialize(insideString, indentation);
             if (Self.serialized) {
@@ -2904,7 +2914,7 @@ class IEntity {
             result += serialization;
         }
         if (this instanceof IEntity && this.trailing && result.length) {
-            result += Self.attributeSeparator;
+            result += attributeSeparator;
         }
         return wrap(/** @type {IEntity} */(this), result)
     }
@@ -3653,10 +3663,22 @@ class MirroredEntity extends IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
-        this.serialize = this.getter.toString.bind(this.getter());
-        return this.serialize(insideString, indentation, Self, printKey, wrap)
+        this.serialize = this.getter().serialize.bind(this.getter());
+        return this.serialize(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+    }
+
+    valueOf() {
+        this.valueOf = this.getter().valueOf.bind(this.getter());
+        return this.valueOf()
+    }
+
+    toString() {
+        this.toString = this.getter().toString.bind(this.getter());
+        return this.toString()
     }
 }
 
@@ -4297,10 +4319,21 @@ class ArrayEntity extends IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         if (Self.inlined) {
-            return super.serialize.bind(this.values, insideString, indentation, Self, printKey, wrap)()
+            return super.serialize.bind(
+                this.values,
+                insideString,
+                indentation,
+                Self,
+                printKey,
+                keySeparator,
+                attributeSeparator,
+                wrap
+            )()
         }
         let result = this.values.map(v => v?.serialize(insideString)).join(Self.attributeSeparator);
         if (this.trailing) {
@@ -4695,6 +4728,8 @@ class FormatTextEntity extends IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         const separator = Self.attributeSeparator;
@@ -5053,16 +5088,11 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
         ).label("SimpleSerializationRotatorEntity")
     )
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        return this.P.serialize() + Self.attributeSeparator
-            + this.Y.serialize() + Self.attributeSeparator
-            + this.R.serialize() + (this.trailing ? Self.attributeSeparator : "")
+    serialize() {
+        const attributeSeparator = this.Self().attributeSeparator;
+        return this.P.serialize() + attributeSeparator
+            + this.Y.serialize() + attributeSeparator
+            + this.R.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }
 
@@ -5086,15 +5116,10 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
         ).label("SimpleSerializationVector2DEntity")
     )
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        return this.X.serialize() + Self.attributeSeparator
-            + this.Y.serialize() + (this.trailing ? Self.attributeSeparator : "")
+    serialize() {
+        const attributeSeparator = this.Self().attributeSeparator;
+        return this.X.serialize() + attributeSeparator
+            + this.Y.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }
 
@@ -5176,16 +5201,11 @@ class SimpleSerializationVectorEntity extends VectorEntity {
         )
     )
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        return this.X.serialize() + Self.attributeSeparator
-            + this.Y.serialize() + Self.attributeSeparator
-            + this.Z.serialize() + (this.trailing ? Self.attributeSeparator : "")
+    serialize() {
+        const attributeSeparator = this.Self().attributeSeparator;
+        return this.X.serialize() + attributeSeparator
+            + this.Y.serialize() + attributeSeparator
+            + this.Z.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }
 
@@ -9599,7 +9619,7 @@ class Copy extends IInput {
         const exported = allNodes.filter(n => n.exported).map(n => n.serialize());
         const result = allNodes.filter(n => !n.exported).map(n => n.serialize());
         if (exported.length) {
-            this.blueprint.entity.ExportedNodes = btoa(exported.join(""));
+            this.blueprint.entity.ExportedNodes.value = btoa(exported.join(""));
             result.splice(0, 0, this.blueprint.entity.serialize(false));
             delete this.blueprint.entity.ExportedNodes;
         }

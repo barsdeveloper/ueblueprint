@@ -1,7 +1,6 @@
 import P from "parsernostrum"
-import Grammar from "../serialization/Grammar.js"
-import RotatorEntity from "./RotatorEntity.js"
 import NumberEntity from "./NumberEntity.js"
+import RotatorEntity from "./RotatorEntity.js"
 
 export default class SimpleSerializationRotatorEntity extends RotatorEntity {
 
@@ -27,15 +26,10 @@ export default class SimpleSerializationRotatorEntity extends RotatorEntity {
         ).label("SimpleSerializationRotatorEntity")
     )
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        return this.P.serialize() + Self.attributeSeparator
-            + this.Y.serialize() + Self.attributeSeparator
-            + this.R.serialize() + (this.trailing ? Self.attributeSeparator : "")
+    serialize() {
+        const attributeSeparator = this.Self().attributeSeparator
+        return this.P.serialize() + attributeSeparator
+            + this.Y.serialize() + attributeSeparator
+            + this.R.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }

@@ -1,7 +1,6 @@
 import P from "parsernostrum"
-import Grammar from "../serialization/Grammar.js"
-import Vector2DEntity from "./Vector2DEntity.js"
 import NumberEntity from "./NumberEntity.js"
+import Vector2DEntity from "./Vector2DEntity.js"
 
 export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
 
@@ -23,14 +22,9 @@ export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
         ).label("SimpleSerializationVector2DEntity")
     )
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        return this.X.serialize() + Self.attributeSeparator
-            + this.Y.serialize() + (this.trailing ? Self.attributeSeparator : "")
+    serialize() {
+        const attributeSeparator = this.Self().attributeSeparator
+        return this.X.serialize() + attributeSeparator
+            + this.Y.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }

@@ -55,10 +55,21 @@ export default class ArrayEntity extends IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         if (Self.inlined) {
-            return super.serialize.bind(this.values, insideString, indentation, Self, printKey, wrap)()
+            return super.serialize.bind(
+                this.values,
+                insideString,
+                indentation,
+                Self,
+                printKey,
+                keySeparator,
+                attributeSeparator,
+                wrap
+            )()
         }
         let result = this.values.map(v => v?.serialize(insideString)).join(Self.attributeSeparator)
         if (this.trailing) {

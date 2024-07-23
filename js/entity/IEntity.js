@@ -9,7 +9,7 @@ export default class IEntity {
     /** @type {(entity: IEntity, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
     /** @type {(entity: IEntity, serialized: String) => String} */
-    static defaultWrapped = (entity, serialized) => `${entity.#lookbehind}(${serialized})`
+    static defaultWrapped = (entity, serialized) => `${entity.lookbehind}(${serialized})`
     static wrap = this.defaultWrapped
     static attributeSeparator = ","
     static keySeparator = "="
@@ -253,6 +253,8 @@ export default class IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         let result = ""
@@ -268,13 +270,21 @@ export default class IEntity {
             if (first) {
                 first = false
             } else {
-                result += Self.attributeSeparator
+                result += attributeSeparator
             }
             if (value.Self?.().inlined) {
                 const inlinedPrintKey = value.Self().className() === "ArrayEntity"
                     ? k => printKey(`${keyValue}${k}`)
                     : k => printKey(`${keyValue}.${k}`)
-                result += value.serialize(insideString, indentation, Self, inlinedPrintKey, Self.notWrapped)
+                result += value.serialize(
+                    insideString,
+                    indentation,
+                    undefined,
+                    inlinedPrintKey,
+                    keySeparator,
+                    attributeSeparator,
+                    Self.notWrapped
+                )
                 continue
             }
             keyValue = printKey(keyValue)
@@ -282,7 +292,7 @@ export default class IEntity {
                 if (Self.quoted) {
                     keyValue = `"${keyValue}"`
                 }
-                result += (Self.attributeSeparator.includes("\n") ? indentation : "") + keyValue + Self.keySeparator
+                result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator
             }
             let serialization = value?.serialize(insideString, indentation)
             if (Self.serialized) {
@@ -291,7 +301,7 @@ export default class IEntity {
             result += serialization
         }
         if (this instanceof IEntity && this.trailing && result.length) {
-            result += Self.attributeSeparator
+            result += attributeSeparator
         }
         return wrap(/** @type {IEntity} */(this), result)
     }

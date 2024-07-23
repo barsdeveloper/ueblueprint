@@ -36,6 +36,8 @@ export default class FormatTextEntity extends IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         const separator = Self.attributeSeparator

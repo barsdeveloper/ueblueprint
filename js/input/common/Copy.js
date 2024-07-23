@@ -33,7 +33,7 @@ export default class Copy extends IInput {
         const exported = allNodes.filter(n => n.exported).map(n => n.serialize())
         const result = allNodes.filter(n => !n.exported).map(n => n.serialize())
         if (exported.length) {
-            this.blueprint.entity.ExportedNodes = btoa(exported.join(""))
+            this.blueprint.entity.ExportedNodes.value = btoa(exported.join(""))
             result.splice(0, 0, this.blueprint.entity.serialize(false))
             delete this.blueprint.entity.ExportedNodes
         }

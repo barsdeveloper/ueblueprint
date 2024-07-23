@@ -1,7 +1,6 @@
 import P from "parsernostrum"
-import Grammar from "../serialization/Grammar.js"
-import VectorEntity from "./VectorEntity.js"
 import NumberEntity from "./NumberEntity.js"
+import VectorEntity from "./VectorEntity.js"
 
 export default class SimpleSerializationVectorEntity extends VectorEntity {
 
@@ -28,15 +27,10 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
         )
     )
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
-        return this.X.serialize() + Self.attributeSeparator
-            + this.Y.serialize() + Self.attributeSeparator
-            + this.Z.serialize() + (this.trailing ? Self.attributeSeparator : "")
+    serialize() {
+        const attributeSeparator = this.Self().attributeSeparator
+        return this.X.serialize() + attributeSeparator
+            + this.Y.serialize() + attributeSeparator
+            + this.Z.serialize() + (this.trailing ? attributeSeparator : "")
     }
 }
