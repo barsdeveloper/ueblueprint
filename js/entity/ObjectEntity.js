@@ -27,8 +27,6 @@ import VariableReferenceEntity from "./VariableReferenceEntity.js"
 
 export default class ObjectEntity extends IEntity {
 
-    static trailing = true
-
     #exported = false
     get exported() {
         return this.#exported
@@ -37,6 +35,10 @@ export default class ObjectEntity extends IEntity {
         this.#exported = value
     }
 
+    static #nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static attributeSeparator = "\n"
+    static wrap = this.notWrapped
+    static trailing = true
     static attributes = {
         ...super.attributes,
         Class: ObjectReferenceEntity,
@@ -134,7 +136,6 @@ export default class ObjectEntity extends IEntity {
         ExportedNodes: StringEntity,
         CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
     }
-    static #nameRegex = /^(\w+?)(?:_(\d+))?$/
     static customPropertyGrammar = P.seq(
         P.reg(/CustomProperties\s+/),
         this.attributes.CustomProperties.type.grammar,
@@ -621,6 +622,8 @@ export default class ObjectEntity extends IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         const moreIndentation = indentation + Configuration.indentation
@@ -630,7 +633,7 @@ export default class ObjectEntity extends IEntity {
             + (this.Archetype ? ` Archetype=${this.Archetype.serialize(insideString)}` : "")
             + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.serialize(insideString)}` : "")
             + "\n"
-            + super.serialize(insideString, moreIndentation, Self, printKey, wrap)
+            + super.serialize(insideString, moreIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
             + (!this.CustomProperties.Self().ignored
                 ? this.getCustomproperties().map(pin =>
                     moreIndentation

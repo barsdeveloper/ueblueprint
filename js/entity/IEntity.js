@@ -151,6 +151,16 @@ export default class IEntity {
      * @template {typeof IEntity} T
      * @this {T}
      */
+    static flagIgnored(value = true) {
+        const result = this.asUniqueClass()
+        result.ignored = value
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
     static flagSerialized(value = true) {
         const result = this.asUniqueClass()
         result.serialized = value
@@ -199,7 +209,7 @@ export default class IEntity {
     showProperty(key) {
         /** @type {IEntity} */
         let value = this[key]
-        const Self = this.Self()
+        const Self = value.Self()
         if (Self.silent && Self.default !== undefined) {
             if (Self["#default"] === undefined) {
                 Self["#default"] = Self.default(Self)

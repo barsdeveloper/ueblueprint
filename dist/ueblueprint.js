@@ -2764,6 +2764,16 @@ class IEntity {
      * @template {typeof IEntity} T
      * @this {T}
      */
+    static flagIgnored(value = true) {
+        const result = this.asUniqueClass();
+        result.ignored = value;
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
     static flagSerialized(value = true) {
         const result = this.asUniqueClass();
         result.serialized = value;
@@ -2812,7 +2822,7 @@ class IEntity {
     showProperty(key) {
         /** @type {IEntity} */
         let value = this[key];
-        const Self = this.Self();
+        const Self = value.Self();
         if (Self.silent && Self.default !== undefined) {
             if (Self["#default"] === undefined) {
                 Self["#default"] = Self.default(Self);
@@ -5280,13 +5290,29 @@ class PinEntity extends IEntity {
         return this.#recomputesNodeTitleOnChange
     }
 
-    objectEntity
-    // get objectEntity() {
-    //     return this.#objectEntity
-    // }
-    // set objectEntity(value) {
-    //     this.#objectEntity = value
-    // }
+    #objectEntity = null
+    get objectEntity() {
+        try {
+            /*
+             * Why inside a try block ?
+             * It is because of this issue: https://stackoverflow.com/questions/61237153/access-private-method-in-an-overriden-method-called-from-the-base-class-construc
+             * super(values) will call IEntity constructor while this instance is not yet fully constructed
+             * IEntity will call computedEntity.compute(this) to initialize DefaultValue from this class
+             * Which in turn calls pinEntity.getEntityType(true)
+             * Which calls this.getType()
+             * Which calls this.objectEntity?.isPcg()
+             * Which would access #objectEntity through get objectEntity()
+             * And this would violate the private access rule (because this class is not yet constructed)
+             * If this issue in the future will be fixed in all the major browsers, please remove this try catch
+             */
+            return this.#objectEntity
+        } catch (e) {
+            return null
+        }
+    }
+    set objectEntity(value) {
+        this.#objectEntity = value;
+    }
 
     #pinIndex
     get pinIndex() {
@@ -5315,6 +5341,7 @@ class PinEntity extends IEntity {
         /** @type {InstanceType<typeof PinEntity.attributes.bDefaultValueIsIgnored>} */ this.bDefaultValueIsIgnored;
         /** @type {InstanceType<typeof PinEntity.attributes.bAdvancedView>} */ this.bAdvancedView;
         /** @type {InstanceType<typeof PinEntity.attributes.bOrphanedPin>} */ this.bOrphanedPin;
+        /** @type {ObjectEntity} */ this.objectEntity;
     }
 
     /** @param {ObjectEntity} objectEntity */
@@ -5395,7 +5422,7 @@ class PinEntity extends IEntity {
 
     getDefaultValue(maybeCreate = false) {
         if (this.DefaultValue === undefined && maybeCreate) {
-            this.DefaultValue = new (this.getEntityType(true))();
+            this.DefaultValue = /** @type {T} */(new (this.getEntityType(true))());
         }
         return this.DefaultValue
     }
@@ -5717,8 +5744,6 @@ class VariableReferenceEntity extends IEntity {
 
 class ObjectEntity extends IEntity {
 
-    static trailing = true
-
     #exported = false
     get exported() {
         return this.#exported
@@ -5727,6 +5752,10 @@ class ObjectEntity extends IEntity {
         this.#exported = value;
     }
 
+    static #nameRegex = /^(\w+?)(?:_(\d+))?$/
+    static attributeSeparator = "\n"
+    static wrap = this.notWrapped
+    static trailing = true
     static attributes = {
         ...super.attributes,
         Class: ObjectReferenceEntity,
@@ -5824,7 +5853,6 @@ class ObjectEntity extends IEntity {
         ExportedNodes: StringEntity,
         CustomProperties: ArrayEntity.of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity)).withDefault().flagSilent(),
     }
-    static #nameRegex = /^(\w+?)(?:_(\d+))?$/
     static customPropertyGrammar = Parsernostrum.seq(
         Parsernostrum.reg(/CustomProperties\s+/),
         this.attributes.CustomProperties.type.grammar,
@@ -6309,6 +6337,8 @@ class ObjectEntity extends IEntity {
         indentation = "",
         Self = this.Self(),
         printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         const moreIndentation = indentation + Configuration.indentation;
@@ -6318,7 +6348,7 @@ class ObjectEntity extends IEntity {
             + (this.Archetype ? ` Archetype=${this.Archetype.serialize(insideString)}` : "")
             + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.serialize(insideString)}` : "")
             + "\n"
-            + super.serialize(insideString, moreIndentation, Self, printKey, wrap)
+            + super.serialize(insideString, moreIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
             + (!this.CustomProperties.Self().ignored
                 ? this.getCustomproperties().map(pin =>
                     moreIndentation

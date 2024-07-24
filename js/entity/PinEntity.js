@@ -29,10 +29,10 @@ import SimpleSerializationVector2DEntity from "./SimpleSerializationVector2DEnti
 import SimpleSerializationVector4DEntity from "./SimpleSerializationVector4DEntity.js"
 import SimpleSerializationVectorEntity from "./SimpleSerializationVectorEntity.js"
 import StringEntity from "./StringEntity.js"
+import SymbolEntity from "./SymbolEntity.js"
 import Vector2DEntity from "./Vector2DEntity.js"
 import Vector4DEntity from "./Vector4DEntity.js"
 import VectorEntity from "./VectorEntity.js"
-import SymbolEntity from "./SymbolEntity.js"
 
 /** @template {IEntity} T */
 export default class PinEntity extends IEntity {
@@ -105,13 +105,29 @@ export default class PinEntity extends IEntity {
         return this.#recomputesNodeTitleOnChange
     }
 
-    objectEntity
-    // get objectEntity() {
-    //     return this.#objectEntity
-    // }
-    // set objectEntity(value) {
-    //     this.#objectEntity = value
-    // }
+    #objectEntity = null
+    get objectEntity() {
+        try {
+            /*
+             * Why inside a try block ?
+             * It is because of this issue: https://stackoverflow.com/questions/61237153/access-private-method-in-an-overriden-method-called-from-the-base-class-construc
+             * super(values) will call IEntity constructor while this instance is not yet fully constructed
+             * IEntity will call computedEntity.compute(this) to initialize DefaultValue from this class
+             * Which in turn calls pinEntity.getEntityType(true)
+             * Which calls this.getType()
+             * Which calls this.objectEntity?.isPcg()
+             * Which would access #objectEntity through get objectEntity()
+             * And this would violate the private access rule (because this class is not yet constructed)
+             * If this issue in the future will be fixed in all the major browsers, please remove this try catch
+             */
+            return this.#objectEntity
+        } catch (e) {
+            return null
+        }
+    }
+    set objectEntity(value) {
+        this.#objectEntity = value
+    }
 
     #pinIndex
     get pinIndex() {
@@ -140,6 +156,7 @@ export default class PinEntity extends IEntity {
         /** @type {InstanceType<typeof PinEntity.attributes.bDefaultValueIsIgnored>} */ this.bDefaultValueIsIgnored
         /** @type {InstanceType<typeof PinEntity.attributes.bAdvancedView>} */ this.bAdvancedView
         /** @type {InstanceType<typeof PinEntity.attributes.bOrphanedPin>} */ this.bOrphanedPin
+        /** @type {ObjectEntity} */ this.objectEntity
     }
 
     /** @param {ObjectEntity} objectEntity */
@@ -220,7 +237,7 @@ export default class PinEntity extends IEntity {
 
     getDefaultValue(maybeCreate = false) {
         if (this.DefaultValue === undefined && maybeCreate) {
-            this.DefaultValue = new (this.getEntityType(true))()
+            this.DefaultValue = /** @type {T} */(new (this.getEntityType(true))())
         }
         return this.DefaultValue
     }
