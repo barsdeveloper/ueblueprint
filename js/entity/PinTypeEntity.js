@@ -22,9 +22,7 @@ export default class PinTypeEntity extends IEntity {
         bIsUObjectWrapper: BooleanEntity.withDefault(),
         bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
     }
-    static grammar = /** @type {P<PinTypeEntity>} */(
-        Grammar.createEntityGrammar(this).label("PinTypeEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values = {}) {
         super(values)
@@ -39,6 +37,12 @@ export default class PinTypeEntity extends IEntity {
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bSerializeAsSinglePrecisionFloat>} */ this.bSerializeAsSinglePrecisionFloat
+    }
+
+    static createGrammar() {
+        return /** @type {P<PinTypeEntity>} */(
+            Grammar.createEntityGrammar(this).label("PinTypeEntity")
+        )
     }
 
     /** @param {PinTypeEntity} other */

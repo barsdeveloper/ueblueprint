@@ -16,12 +16,7 @@ export default class KeyBindingEntity extends IEntity {
         bCmd: BooleanEntity,
         Key: SymbolEntity,
     }
-    static grammar = /** @type {P<KeyBindingEntity>} */(
-        P.alt(
-            SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
-            Grammar.createEntityGrammar(this)
-        )
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values)
@@ -31,5 +26,14 @@ export default class KeyBindingEntity extends IEntity {
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.bAlt>} */ this.bAlt
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCmd>} */ this.bCmd
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.Key>} */ this.Key
+    }
+
+    static createGrammar() {
+        return /** @type {P<KeyBindingEntity>} */(
+            P.alt(
+                SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
+                Grammar.createEntityGrammar(this)
+            )
+        )
     }
 }

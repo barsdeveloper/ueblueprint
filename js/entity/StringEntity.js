@@ -4,15 +4,19 @@ import IEntity from "./IEntity.js"
 
 export default class StringEntity extends IEntity {
 
-    static grammar = /** @type {P<StringEntity>} */(
-        P.doubleQuotedString
-            .map(insideString => new this(Utility.unescapeString(insideString)))
-            .label("StringEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(value = "") {
         super()
         this.value = value
+    }
+
+    static createGrammar() {
+        return /** @type {P<StringEntity>} */(
+            P.doubleQuotedString
+                .map(insideString => new this(Utility.unescapeString(insideString)))
+                .label("StringEntity")
+        )
     }
 
     serialize(

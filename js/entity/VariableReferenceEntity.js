@@ -14,9 +14,7 @@ export default class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: BooleanEntity,
     }
-    static grammar = /** @type {P<VariableReferenceEntity>} */(
-        Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values)
@@ -24,5 +22,11 @@ export default class VariableReferenceEntity extends IEntity {
         /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberName>} */ this.MemberName
         /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid
         /** @type {InstanceType<typeof VariableReferenceEntity.attributes.bSelfContext>} */ this.bSelfContext
+    }
+
+    static createGrammar() {
+        return /** @type {P<VariableReferenceEntity>} */(
+            Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+        )
     }
 }

@@ -2622,14 +2622,13 @@ class IEntity {
     /** @type {(entity: IEntity, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
     /** @type {(entity: IEntity, serialized: String) => String} */
-    static defaultWrapped = (entity, serialized) => `${entity.lookbehind}(${serialized})`
+    static defaultWrapped = (entity, serialized) => `${entity.#lookbehind}(${serialized})`
     static wrap = this.defaultWrapped
     static attributeSeparator = ","
     static keySeparator = "="
     /** @type {(k: String) => String} */
     static printKey = k => k
-    /** @type {P<IEntity>} */
-    static grammar = Parsernostrum.lazy(() => this.unknownEntity)
+    static grammar = Parsernostrum.lazy(() => this.createGrammar())
     /** @type {P<IEntity>} */
     static unknownEntityGrammar
     static unknownEntity
@@ -2671,6 +2670,14 @@ class IEntity {
     }
     set keys(value) {
         this.#keys = [... new Set(value)];
+    }
+
+    /**
+     * @protected
+     * @returns {P<IEntity>}
+     */
+    static createGrammar() {
+        return this.unknownEntity
     }
 
     constructor(values = {}) {
@@ -2722,11 +2729,13 @@ class IEntity {
      * @returns {T}
      */
     static asUniqueClass() {
+        let result = this;
         if (this.name.length) {
             // @ts-expect-error
-            return class extends this { }
+            result = class extends this { };
+            result.grammar = result.createGrammar();
         }
-        return this
+        return result
     }
 
     /**
@@ -2918,8 +2927,8 @@ class IEntity {
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator;
             }
             let serialization = value?.serialize(insideString, indentation);
-            if (Self.serialized) {
-                serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`;
+            if (value.Self().serialized) {
+                serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/g, '\\"')}"`;
             }
             result += serialization;
         }
@@ -2966,15 +2975,7 @@ class IEntity {
 
 class BooleanEntity extends IEntity {
 
-    static grammar = /** @type {P<BooleanEntity>} */(
-        Parsernostrum.regArray(/(true)|(True)|(false)|(False)/)
-            .map(v => {
-                const result = (v[1] ?? v[2]) ? new this(true) : new this(false);
-                result.uppercase = (v[2] ?? v[4]) !== undefined;
-                return result
-            })
-            .label("BooleanEntity")
-    )
+    static grammar = this.createGrammar()
     static booleanConverter = {
         fromAttribute: (value, type) => {
         },
@@ -2995,6 +2996,18 @@ class BooleanEntity extends IEntity {
     }
     set uppercase(value) {
         this.#uppercase = value;
+    }
+
+    static createGrammar() {
+        return /** @type {P<BooleanEntity>} */(
+            Parsernostrum.regArray(/(true)|(True)|(false)|(False)/)
+                .map(v => {
+                    const result = (v[1] ?? v[2]) ? new this(true) : new this(false);
+                    result.uppercase = (v[2] ?? v[4]) !== undefined;
+                    return result
+                })
+                .label("BooleanEntity")
+        )
     }
 
     constructor(value = false) {
@@ -3045,14 +3058,14 @@ class AlternativesEntity extends IEntity {
     static className() {
         let result = super.className();
         if (this.alternatives.length) {
-            result += " (accepting: " + this.alternatives.map(v => v.className()).join(", ") + ")";
+            result += ".accepting(" + this.alternatives.map(v => v.className()).join(", ") + ")";
         }
         return result
     }
 
     static createGrammar() {
         const grammars = this.alternatives.map(entity => entity.grammar);
-        if (grammars.includes(this.unknownEntityGrammar)) {
+        if (this.alternatives.length == 0 || grammars.includes(this.unknownEntityGrammar)) {
             return this.unknownEntityGrammar
         }
         return Parsernostrum.alt(...grammars)
@@ -3219,13 +3232,17 @@ class Grammar {
 
 class ColorChannelEntity extends IEntity {
 
-    static grammar = /** @type {P<ColorChannelEntity>} */(
-        Parsernostrum.number.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     constructor(value = 0) {
         super();
         this.value = value;
+    }
+
+    static createGrammar() {
+        return  /** @type {P<ColorChannelEntity>} */(
+            Parsernostrum.number.map(v => new this(v))
+        )
     }
 
     serialize() {
@@ -3246,9 +3263,7 @@ class LinearColorEntity extends IEntity {
         B: ColorChannelEntity.withDefault(),
         A: ColorChannelEntity.withDefault(type => new type(1)),
     }
-    static grammar = /** @type {P<LinearColorEntity>} */(
-        Grammar.createEntityGrammar(this).label("LinearColorEntity")
-    )
+    static grammar = this.createGrammar()
 
     #H = new ColorChannelEntity()
     get H() {
@@ -3289,6 +3304,12 @@ class LinearColorEntity extends IEntity {
         /** @type {InstanceType<typeof LinearColorEntity.attributes.B>} */ this.B;
         /** @type {InstanceType<typeof LinearColorEntity.attributes.A>} */ this.A;
         this.#updateHSV();
+    }
+
+    static createGrammar() {
+        return /** @type {P<LinearColorEntity>} */(
+            Grammar.createEntityGrammar(this).label("LinearColorEntity")
+        )
     }
 
     /** @param {LinearColorEntity} value */
@@ -3695,15 +3716,7 @@ class MirroredEntity extends IEntity {
 class NumberEntity extends IEntity {
 
     static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
-    static grammar = /** @type {P<NumberEntity>} */(
-        Parsernostrum.regArray(
-            new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
-        ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
-            n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
-            precision?.length
-        )
-        ).label("NumberEntity")
-    )
+    static grammar = this.createGrammar()
 
     #precision = 0
     get precision() {
@@ -3732,6 +3745,18 @@ class NumberEntity extends IEntity {
         super();
         this.value = Number(value);
         this.#precision = Number(precision);
+    }
+
+    static createGrammar() {
+        return /** @type {P<NumberEntity>} */(
+            Parsernostrum.regArray(
+                new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
+            ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
+                n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
+                precision?.length
+            )
+            ).label("NumberEntity")
+        )
     }
 
     /** @param {Number} num */
@@ -3771,15 +3796,19 @@ class VectorEntity extends IEntity {
         Y: NumberEntity.withDefault(),
         Z: NumberEntity.withDefault(),
     }
-    static grammar = /** @type {P<VectorEntity>} */(
-        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values);
         /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.X;
         /** @type {InstanceType<typeof VectorEntity.attributes.Y>} */ this.Y;
         /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.Z;
+    }
+    c
+    static createGrammar() {
+        return /** @type {P<VectorEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
+        )
     }
 
     /** @returns {[Number, Number, Number]} */
@@ -4281,9 +4310,6 @@ class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
-    static grammar = /** @type {P<ArrayEntity<typeof IEntity>>} */(
-        this.createGrammar()
-    )
 
     get length() {
         return this.values.length
@@ -4379,9 +4405,7 @@ if (typeof window === "undefined") {
 
 class GuidEntity extends IEntity {
 
-    static grammar = /** @type {P<GuidEntity>} */(
-        Parsernostrum.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
-    )
+    static grammar = this.createGrammar()
 
     static generateGuid() {
         let values = new Uint32Array(4);
@@ -4398,6 +4422,12 @@ class GuidEntity extends IEntity {
         this.value = value;
     }
 
+    static createGrammar() {
+        return /** @type {P<GuidEntity>} */(
+            Parsernostrum.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
+        )
+    }
+
     serialize() {
         return this.value
     }
@@ -4409,9 +4439,7 @@ class GuidEntity extends IEntity {
 
 class IntegerEntity extends NumberEntity {
 
-    static grammar = /** @type {P<IntegerEntity>} */(
-        Parsernostrum.numberInteger.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     get value() {
         return super.value
@@ -4423,13 +4451,17 @@ class IntegerEntity extends NumberEntity {
             super.value = value;
         }
     }
+
+    static createGrammar() {
+        return /** @type {P<IntegerEntity>} */(
+            Parsernostrum.numberInteger.map(v => new this(v))
+        )
+    }
 }
 
 class NaturalNumberEntity extends IntegerEntity {
 
-    static grammar = /** @type {P<NaturalNumberEntity>} */(
-        Parsernostrum.numberNatural.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     get value() {
         return super.value
@@ -4437,6 +4469,12 @@ class NaturalNumberEntity extends IntegerEntity {
     set value(value) {
         value = Math.round(Utility.clamp(this.value, 0));
         super.value = value;
+    }
+
+    static createGrammar() {
+        return /** @type {P<NaturalNumberEntity>} */(
+            Parsernostrum.numberNatural.map(v => new this(v))
+        )
     }
 }
 
@@ -4522,9 +4560,7 @@ function pinTitle(entity) {
 
 class ByteEntity extends IntegerEntity {
 
-    static grammar = /** @type {P<ByteEntity>} */(
-        Parsernostrum.numberByte.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     get value() {
         return super.value
@@ -4535,19 +4571,30 @@ class ByteEntity extends IntegerEntity {
             super.value = value;
         }
     }
+
+    createGrammar() {
+        return /** @type {P<ByteEntity>} */(
+            // @ts-expect-error
+            Parsernostrum.numberByte.map(v => new this(v))
+        )
+    }
 }
 
 class StringEntity extends IEntity {
 
-    static grammar = /** @type {P<StringEntity>} */(
-        Parsernostrum.doubleQuotedString
-            .map(insideString => new this(Utility.unescapeString(insideString)))
-            .label("StringEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(value = "") {
         super();
         this.value = value;
+    }
+
+    static createGrammar() {
+        return /** @type {P<StringEntity>} */(
+            Parsernostrum.doubleQuotedString
+                .map(insideString => new this(Utility.unescapeString(insideString)))
+                .label("StringEntity")
+        )
     }
 
     serialize(
@@ -4575,9 +4622,13 @@ class StringEntity extends IEntity {
 
 class ComputedTypeEntity extends IEntity {
 
-    static grammar = StringEntity.grammar
+    static grammar = this.createGrammar()
     /** @type {(entity: IEntity) => typeof IEntity} */
     static f
+
+    static createGrammar() {
+        return StringEntity.grammar
+    }
 
     /**
      * @template {typeof ComputedTypeEntity.f} T
@@ -4601,9 +4652,13 @@ class SymbolEntity extends IEntity {
         fromAttribute: (value, type) => new this(value),
         toAttribute: (value, type) => value.toString()
     }
-    static grammar = /** @type {P<SymbolEntity>} */(
-        Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<SymbolEntity>} */(
+            Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
+        )
+    }
 
     constructor(value = "") {
         super();
@@ -4621,38 +4676,50 @@ class SymbolEntity extends IEntity {
 
 class EnumEntity extends SymbolEntity {
 
-    static grammar = /** @type {P<EnumEntity>} */(
-        Grammar.symbol.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<EnumEntity>} */(
+            Grammar.symbol.map(v => new this(v))
+        )
+    }
 }
 
 class EnumDisplayValueEntity extends EnumEntity {
 
-    static grammar = /** @type {P<EnumDisplayValueEntity>} */(
-        Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<EnumDisplayValueEntity>} */(
+            Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
+        )
+    }
 }
 
 class InvariantTextEntity extends IEntity {
 
     static lookbehind = "INVTEXT"
 
-    static grammar = /** @type {P<InvariantTextEntity>} */(
-        Parsernostrum.alt(
-            Parsernostrum.seq(
-                Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
-                Parsernostrum.doubleQuotedString,
-                Parsernostrum.reg(/\s*\)/)
-            ).map(([_0, value, _2]) => Number(value)),
-            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
-        )
-            .map(value => new this(value))
-            .label("InvariantTextEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(value = "") {
         super();
         this.value = value;
+    }
+
+    static createGrammar() {
+        return /** @type {P<InvariantTextEntity>} */(
+            Parsernostrum.alt(
+                Parsernostrum.seq(
+                    Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                    Parsernostrum.doubleQuotedString,
+                    Parsernostrum.reg(/\s*\)/)
+                ).map(([_0, value, _2]) => Number(value)),
+                Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
+            )
+                .map(value => new this(value))
+                .label("InvariantTextEntity")
+        )
     }
 
     serialize() {
@@ -4675,30 +4742,34 @@ class LocalizedTextEntity extends IEntity {
         key: StringEntity.withDefault(),
         value: StringEntity.withDefault(),
     }
-    static grammar = /** @type {P<LocalizedTextEntity>} */(
-        Parsernostrum.regArray(new RegExp(
-            String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
-            + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
-            + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
-            + String.raw`(?<trailing>,\s+)?`
-            + String.raw`\)`,
-            "m"
-        )).map(({ groups: { namespace, key, value, trailing } }) => {
-            return new this({
-                namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
-                key: new (this.attributes.namespace)(Utility.unescapeString(key)),
-                value: new (this.attributes.namespace)(Utility.unescapeString(value)),
-                trailing: trailing !== undefined,
-            })
-        }).label("LocalizedTextEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values = {}) {
         super(values);
         /** @type {InstanceType<typeof LocalizedTextEntity.attributes.namespace>} */ this.namespace;
         /** @type {InstanceType<typeof LocalizedTextEntity.attributes.key>} */ this.key;
         /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value;
+    }
+
+    static createGrammar() {
+        return /** @type {P<LocalizedTextEntity>} */(
+            Parsernostrum.regArray(new RegExp(
+                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+                + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
+                + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
+                + String.raw`(?<trailing>,\s+)?`
+                + String.raw`\)`,
+                "m"
+            )).map(({ groups: { namespace, key, value, trailing } }) => {
+                return new this({
+                    namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
+                    key: new (this.attributes.namespace)(Utility.unescapeString(key)),
+                    value: new (this.attributes.namespace)(Utility.unescapeString(value)),
+                    trailing: trailing !== undefined,
+                })
+            }).label("LocalizedTextEntity")
+        )
     }
 
     toString() {
@@ -4710,27 +4781,31 @@ class FormatTextEntity extends IEntity {
 
     static attributeSeparator = ", "
     static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
-    static grammar = /** @type {P<FormatTextEntity>} */(
-        Parsernostrum.lazy(() => Parsernostrum.seq(
-            // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-            Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
-            Parsernostrum.alt(
-                ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
-            ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
-            Parsernostrum.reg(/\s*\)/)
-        )
-            .map(([lookbehind, values]) => {
-                const result = new this(values);
-                result.lookbehind = lookbehind;
-                return result
-            }))
-            .label("FormatTextEntity")
-    )
+    static grammar = this.createGrammar()
 
     /** @param {(StringEntity | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} values */
     constructor(values) {
         super();
         this.values = values;
+    }
+
+    static createGrammar() {
+        return /** @type {P<FormatTextEntity>} */(
+            Parsernostrum.lazy(() => Parsernostrum.seq(
+                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+                Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
+                Parsernostrum.alt(
+                    ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
+                ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
+                Parsernostrum.reg(/\s*\)/)
+            )
+                .map(([lookbehind, values]) => {
+                    const result = new this(values);
+                    result.lookbehind = lookbehind;
+                    return result
+                }))
+                .label("FormatTextEntity")
+        )
     }
 
     serialize(
@@ -4776,9 +4851,7 @@ class FormatTextEntity extends IEntity {
 
 class Integer64Entity extends IEntity {
 
-    static grammar = /** @type {P<Integer64Entity>} */(
-        Parsernostrum.numberBigInteger.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     /** @type {bigint} */
     #value
@@ -4795,6 +4868,12 @@ class Integer64Entity extends IEntity {
     constructor(value = 0n) {
         super();
         this.value = BigInt(value);
+    }
+
+    static createGrammar() {
+        return /** @type {P<Integer64Entity>} */(
+            Parsernostrum.numberBigInteger.map(v => new this(v))
+        )
     }
 
     serialize(
@@ -4838,13 +4917,7 @@ class ObjectReferenceEntity extends IEntity {
         )
     ).map(([full, type, path]) => new this(type, path, full))
     static typeReferenceGrammar = this.typeReference.map(v => new this(v, "", v))
-    static grammar = /** @type {P<ObjectReferenceEntity>} */(
-        Parsernostrum.alt(
-            this.fullReferenceSerializedGrammar,
-            this.fullReferenceGrammar,
-            this.typeReferenceGrammar,
-        ).label("ObjectReferenceEntity")
-    )
+    static grammar = this.createGrammar()
 
     #type
     get type() {
@@ -4878,6 +4951,16 @@ class ObjectReferenceEntity extends IEntity {
         this.#type = type;
         this.#path = path;
         this.#full = full ?? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`;
+    }
+
+    static createGrammar() {
+        return /** @type {P<ObjectReferenceEntity>} */(
+            Parsernostrum.alt(
+                this.fullReferenceSerializedGrammar,
+                this.fullReferenceGrammar,
+                this.typeReferenceGrammar,
+            ).label("ObjectReferenceEntity")
+        )
     }
 
     static createNoneInstance() {
@@ -4915,15 +4998,7 @@ class ObjectReferenceEntity extends IEntity {
 
 class PinReferenceEntity extends IEntity {
 
-    static grammar = /** @type {P<PinReferenceEntity>} */(
-        Parsernostrum.seq(
-            SymbolEntity.grammar,
-            Parsernostrum.whitespace,
-            GuidEntity.grammar
-        )
-            .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
-            .label("PinReferenceEntity")
-    )
+    static grammar = this.createGrammar()
 
     /**
      * @param {SymbolEntity} objectName
@@ -4933,6 +5008,18 @@ class PinReferenceEntity extends IEntity {
         super();
         this.objectName = objectName;
         this.pinGuid = pinGuid;
+    }
+
+    static createGrammar() {
+        return /** @type {P<PinReferenceEntity>} */(
+            Parsernostrum.seq(
+                SymbolEntity.grammar,
+                Parsernostrum.whitespace,
+                GuidEntity.grammar
+            )
+                .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
+                .label("PinReferenceEntity")
+        )
     }
 
     serialize() {
@@ -4948,15 +5035,19 @@ class FunctionReferenceEntity extends IEntity {
         MemberName: StringEntity,
         MemberGuid: GuidEntity,
     }
-    static grammar = /** @type {P<FunctionReferenceEntity>} */(
-        Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values);
         /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberParent>} */ this.MemberParent;
         /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberName>} */ this.MemberName;
         /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid;
+    }
+
+    static createGrammar() {
+        return /** @type {P<FunctionReferenceEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
+        )
     }
 }
 
@@ -4975,9 +5066,7 @@ class PinTypeEntity extends IEntity {
         bIsUObjectWrapper: BooleanEntity.withDefault(),
         bSerializeAsSinglePrecisionFloat: BooleanEntity.withDefault(),
     }
-    static grammar = /** @type {P<PinTypeEntity>} */(
-        Grammar.createEntityGrammar(this).label("PinTypeEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values = {}) {
         super(values);
@@ -4992,6 +5081,12 @@ class PinTypeEntity extends IEntity {
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper;
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper;
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bSerializeAsSinglePrecisionFloat>} */ this.bSerializeAsSinglePrecisionFloat;
+    }
+
+    static createGrammar() {
+        return /** @type {P<PinTypeEntity>} */(
+            Grammar.createEntityGrammar(this).label("PinTypeEntity")
+        )
     }
 
     /** @param {PinTypeEntity} other */
@@ -5011,14 +5106,18 @@ class Vector2DEntity extends IEntity {
         X: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    static grammar = /** @type {P<Vector2DEntity>} */(
-        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values);
         /** @type {InstanceType<typeof Vector2DEntity.attributes.X>} */ this.X;
         /** @type {InstanceType<typeof Vector2DEntity.attributes.Y>} */ this.Y;
+    }
+
+    static createGrammar() {
+        return /** @type {P<Vector2DEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
+        )
     }
 
     /** @returns {[Number, Number]} */
@@ -5029,17 +5128,21 @@ class Vector2DEntity extends IEntity {
 
 class RBSerializationVector2DEntity extends Vector2DEntity {
 
-    static grammar = /** @type {P<RBSerializationVector2DEntity>} */(Parsernostrum.alt(
-        Parsernostrum.regArray(new RegExp(
-            /X\s*=\s*/.source + "(?<x>" + Grammar.numberRegexSource + ")"
-            + "\\s+"
-            + /Y\s*=\s*/.source + "(?<y>" + Grammar.numberRegexSource + ")"
-        )).map(({ groups: { x, y } }) => new this({
-            X: Number(x),
-            Y: Number(y),
-        })),
-        Vector2DEntity.grammar
-    ).label("RBSerializationVector2DEntity"))
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<RBSerializationVector2DEntity>} */(Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                /X\s*=\s*/.source + "(?<x>" + Grammar.numberRegexSource + ")"
+                + "\\s+"
+                + /Y\s*=\s*/.source + "(?<y>" + Grammar.numberRegexSource + ")"
+            )).map(({ groups: { x, y } }) => new this({
+                X: Number(x),
+                Y: Number(y),
+            })),
+            Vector2DEntity.grammar
+        ).label("RBSerializationVector2DEntity"))
+    }
 }
 
 class RotatorEntity extends IEntity {
@@ -5050,15 +5153,19 @@ class RotatorEntity extends IEntity {
         P: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    static grammar = /** @type {P<RotatorEntity>} */(
-        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values);
         /** @type {InstanceType<typeof RotatorEntity.attributes.R>} */ this.R;
         /** @type {InstanceType<typeof RotatorEntity.attributes.P>} */ this.P;
         /** @type {InstanceType<typeof RotatorEntity.attributes.Y>} */ this.Y;
+    }
+
+    static createGrammar() {
+        return /** @type {P<RotatorEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
+        )
     }
 
     getRoll() {
@@ -5077,26 +5184,30 @@ class RotatorEntity extends IEntity {
 class SimpleSerializationRotatorEntity extends RotatorEntity {
 
     static attributeSeparator = ", "
-    static grammar = /** @type {P<SimpleSerializationRotatorEntity>} */(
-        Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                `(${NumberEntity.numberRegexSource})`
-                + String.raw`\s*,\s*`
-                + `(${NumberEntity.numberRegexSource})`
-                + String.raw`\s*,\s*`
-                + `(${NumberEntity.numberRegexSource})`
-            )).map(([_, p, pPrecision, y, yPrecision, r, rPrecision]) => new this({
-                R: new NumberEntity(r, rPrecision?.length),
-                P: new NumberEntity(p, pPrecision?.length),
-                Y: new NumberEntity(y, yPrecision?.length),
-            })),
-            RotatorEntity.grammar.map(v => new this({
-                R: v.R,
-                P: v.P,
-                Y: v.Y,
-            }))
-        ).label("SimpleSerializationRotatorEntity")
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<SimpleSerializationRotatorEntity>} */(
+            Parsernostrum.alt(
+                Parsernostrum.regArray(new RegExp(
+                    `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                )).map(([_, p, pPrecision, y, yPrecision, r, rPrecision]) => new this({
+                    R: new NumberEntity(r, rPrecision?.length),
+                    P: new NumberEntity(p, pPrecision?.length),
+                    Y: new NumberEntity(y, yPrecision?.length),
+                })),
+                RotatorEntity.grammar.map(v => new this({
+                    R: v.R,
+                    P: v.P,
+                    Y: v.Y,
+                }))
+            ).label("SimpleSerializationRotatorEntity")
+        )
+    }
 
     serialize() {
         const attributeSeparator = this.Self().attributeSeparator;
@@ -5109,22 +5220,26 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
 class SimpleSerializationVector2DEntity extends Vector2DEntity {
 
     static attributeSeparator = ", "
-    static grammar = /** @type {P<SimpleSerializationVector2DEntity>} */(
-        Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                `(${NumberEntity.numberRegexSource})`
-                + String.raw`\s*,\s*`
-                + `(${NumberEntity.numberRegexSource})`
-            )).map(([_, x, xPrecision, y, yPrecision]) => new this({
-                X: new NumberEntity(x, xPrecision?.length),
-                Y: new NumberEntity(y, yPrecision?.length),
-            })),
-            Vector2DEntity.grammar.map(v => new this({
-                X: v.X,
-                Y: v.Y,
-            }))
-        ).label("SimpleSerializationVector2DEntity")
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return   /** @type {P<SimpleSerializationVector2DEntity>} */(
+            Parsernostrum.alt(
+                Parsernostrum.regArray(new RegExp(
+                    `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                )).map(([_, x, xPrecision, y, yPrecision]) => new this({
+                    X: new NumberEntity(x, xPrecision?.length),
+                    Y: new NumberEntity(y, yPrecision?.length),
+                })),
+                Vector2DEntity.grammar.map(v => new this({
+                    X: v.X,
+                    Y: v.Y,
+                }))
+            ).label("SimpleSerializationVector2DEntity")
+        )
+    }
 
     serialize() {
         const attributeSeparator = this.Self().attributeSeparator;
@@ -5142,9 +5257,7 @@ class Vector4DEntity extends IEntity {
         Z: NumberEntity.withDefault(),
         W: NumberEntity.withDefault(),
     }
-    static grammar = /** @type {P<Vector4DEntity>} */(
-        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector4DEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values);
@@ -5152,6 +5265,12 @@ class Vector4DEntity extends IEntity {
         /** @type {InstanceType<typeof Vector4DEntity.attributes.Y>} */ this.Y;
         /** @type {InstanceType<typeof Vector4DEntity.attributes.Z>} */ this.Z;
         /** @type {InstanceType<typeof Vector4DEntity.attributes.W>} */ this.W;
+    }
+
+    static createGrammar() {
+        return /** @type {P<Vector4DEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector4DEntity")
+        )
     }
 
     /** @returns {[Number, Number, Number, Number]} */
@@ -5162,8 +5281,9 @@ class Vector4DEntity extends IEntity {
 
 class SimpleSerializationVector4DEntity extends Vector4DEntity {
 
-    static grammar = /** @type {P<SimpleSerializationVector4DEntity> } */(this.createGrammar())
+    static grammar = this.createGrammar()
 
+    /** @returns {P<SimpleSerializationVector4DEntity> } */
     static createGrammar() {
         return Parsernostrum.alt(
             Parsernostrum.regArray(new RegExp(
@@ -5189,27 +5309,31 @@ class SimpleSerializationVector4DEntity extends Vector4DEntity {
 class SimpleSerializationVectorEntity extends VectorEntity {
 
     static attributeSeparator = ", "
-    static grammar = /** @type {P<SimpleSerializationVectorEntity>} */(
-        Parsernostrum.alt(
-            Parsernostrum.regArray(new RegExp(
-                `(${NumberEntity.numberRegexSource})`
-                + String.raw`\s*,\s*`
-                + `(${NumberEntity.numberRegexSource})`
-                + String.raw`\s*,\s*`
-                + `(${NumberEntity.numberRegexSource})`
-            ))
-                .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
-                    X: new NumberEntity(x, xPrecision?.length),
-                    Y: new NumberEntity(y, yPrecision?.length),
-                    Z: new NumberEntity(z, zPrecision?.length),
-                })),
-            VectorEntity.grammar.map(v => new this({
-                X: v.X,
-                Y: v.Y,
-                Z: v.Z,
-            }))
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<SimpleSerializationVectorEntity>} */(
+            Parsernostrum.alt(
+                Parsernostrum.regArray(new RegExp(
+                    `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                ))
+                    .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
+                        X: new NumberEntity(x, xPrecision?.length),
+                        Y: new NumberEntity(y, yPrecision?.length),
+                        Z: new NumberEntity(z, zPrecision?.length),
+                    })),
+                VectorEntity.grammar.map(v => new this({
+                    X: v.X,
+                    Y: v.Y,
+                    Z: v.Z,
+                }))
+            )
         )
-    )
+    }
 
     serialize() {
         const attributeSeparator = this.Self().attributeSeparator;
@@ -5266,8 +5390,8 @@ class PinEntity extends IEntity {
         DefaultValue:
             ComputedTypeEntity.from(
                 /** @param {PinEntity} pinEntity */
-                pinEntity => pinEntity.getEntityType(true) ?? StringEntity
-            ).flagSerialized(),
+                pinEntity => pinEntity.getEntityType(true)?.flagSerialized() ?? StringEntity
+            ),
         AutogeneratedDefaultValue: StringEntity,
         DefaultObject: ObjectReferenceEntity,
         PersistentGuid: GuidEntity,
@@ -5278,9 +5402,7 @@ class PinEntity extends IEntity {
         bAdvancedView: BooleanEntity.withDefault(),
         bOrphanedPin: BooleanEntity.withDefault(),
     }
-    static grammar = /** @type {P<PinEntity>} */(
-        Grammar.createEntityGrammar(this)
-    )
+    static grammar = this.createGrammar()
 
     #recomputesNodeTitleOnChange = false
     set recomputesNodeTitleOnChange(value) {
@@ -5342,6 +5464,12 @@ class PinEntity extends IEntity {
         /** @type {InstanceType<typeof PinEntity.attributes.bAdvancedView>} */ this.bAdvancedView;
         /** @type {InstanceType<typeof PinEntity.attributes.bOrphanedPin>} */ this.bOrphanedPin;
         /** @type {ObjectEntity} */ this.objectEntity;
+    }
+
+    static createGrammar() {
+        return /** @type {P<PinEntity>} */(
+            Grammar.createEntityGrammar(this)
+        )
     }
 
     /** @param {ObjectEntity} objectEntity */
@@ -5653,15 +5781,19 @@ class MacroGraphReferenceEntity extends IEntity {
         GraphBlueprint: ObjectReferenceEntity,
         GraphGuid: GuidEntity,
     }
-    static grammar = /** @type {P<MacroGraphReferenceEntity>} */(
-        Grammar.createEntityGrammar(this)
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values);
         /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.MacroGraph>} */ this.MacroGraph;
         /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphBlueprint>} */ this.GraphBlueprint;
         /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphGuid>} */ this.GraphGuid;
+    }
+
+    static createGrammar() {
+        return /** @type {P<MacroGraphReferenceEntity>} */(
+            Grammar.createEntityGrammar(this)
+        )
     }
 
     getMacroName() {
@@ -5672,11 +5804,15 @@ class MacroGraphReferenceEntity extends IEntity {
 
 class NullEntity extends IEntity {
 
-    static grammar = /** @type {P<NullEntity>} */(
-        // @ts-expect-error
-        Parsernostrum.reg(new RegExp(String.raw`\(${Parsernostrum.whitespaceInlineOpt.getParser().regexp.source}\)`))
-            .map(v => new this())
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<NullEntity>} */(
+            // @ts-expect-error
+            Parsernostrum.reg(new RegExp(String.raw`\(${Parsernostrum.whitespaceInlineOpt.getParser().regexp.source}\)`))
+                .map(v => new this())
+        )
+    }
 
     serialize() {
         return "()"
@@ -5690,34 +5826,42 @@ class ScriptVariableEntity extends IEntity {
         ScriptVariable: ObjectReferenceEntity,
         OriginalChangeId: GuidEntity,
     }
-    static grammar = /** @type {P<ScriptVariableEntity>} */(
-        Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values = {}) {
         super(values);
         /** @type {InstanceType<typeof ScriptVariableEntity.attributes.ScriptVariable>} */ this.ScriptVariable;
         /** @type {InstanceType<typeof ScriptVariableEntity.attributes.OriginalChangeId>} */ this.OriginalChangeId;
     }
+
+    static createGrammar() {
+        return /** @type {P<ScriptVariableEntity>} */(
+            Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
+        )
+    }
 }
 
 class UnknownPinEntity extends PinEntity {
 
-    static grammar = /** @type {P<UnknownPinEntity>} */(
-        Parsernostrum.seq(
-            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`), 1),
-            Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/)
-        ).map(([lookbehind, attributes, _2]) => {
-            lookbehind ??= "";
-            let values = {};
-            if (lookbehind.length) {
-                values.lookbehind = lookbehind;
-            }
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        }).label("UnknownPinEntity")
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<UnknownPinEntity>} */(
+            Parsernostrum.seq(
+                Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source})\\s*\\(\\s*`), 1),
+                Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
+                Parsernostrum.reg(/\s*(?:,\s*)?\)/)
+            ).map(([lookbehind, attributes, _2]) => {
+                lookbehind ??= "";
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            }).label("UnknownPinEntity")
+        )
+    }
 }
 
 class VariableReferenceEntity extends IEntity {
@@ -5729,9 +5873,7 @@ class VariableReferenceEntity extends IEntity {
         MemberGuid: GuidEntity,
         bSelfContext: BooleanEntity,
     }
-    static grammar = /** @type {P<VariableReferenceEntity>} */(
-        Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values);
@@ -5739,6 +5881,12 @@ class VariableReferenceEntity extends IEntity {
         /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberName>} */ this.MemberName;
         /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid;
         /** @type {InstanceType<typeof VariableReferenceEntity.attributes.bSelfContext>} */ this.bSelfContext;
+    }
+
+    static createGrammar() {
+        return /** @type {P<VariableReferenceEntity>} */(
+            Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+        )
     }
 }
 
@@ -5889,32 +6037,7 @@ class ObjectEntity extends IEntity {
                     }
                 )
         )
-    static grammar = /** @type {P<ObjectEntity>} */(
-        Parsernostrum.seq(
-            Parsernostrum.reg(/Begin +Object/),
-            Parsernostrum.seq(
-                Parsernostrum.whitespace,
-                Parsernostrum.alt(
-                    this.createSubObjectGrammar(),
-                    this.customPropertyGrammar,
-                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
-                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
-                    ),
-                    this.inlinedArrayEntryGrammar,
-                )
-            )
-                .map(([_0, entry]) => entry)
-                .many(),
-            Parsernostrum.reg(/\s+End +Object/),
-        )
-            .map(([_0, attributes, _2]) => {
-                const values = {};
-                attributes.forEach(attributeSetter => attributeSetter(values));
-                return new this(values)
-            })
-            .label("ObjectEntity")
-    )
+    static grammar = this.createGrammar()
     static grammarMultipleObjects = Parsernostrum.seq(
         Parsernostrum.whitespaceOpt,
         this.grammar,
@@ -6087,6 +6210,35 @@ class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i;
         });
+    }
+
+    static createGrammar() {
+        return /** @type {P<ObjectEntity>} */(
+            Parsernostrum.seq(
+                Parsernostrum.reg(/Begin +Object/),
+                Parsernostrum.seq(
+                    Parsernostrum.whitespace,
+                    Parsernostrum.alt(
+                        this.createSubObjectGrammar(),
+                        this.customPropertyGrammar,
+                        Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
+                        Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                            Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
+                        ),
+                        this.inlinedArrayEntryGrammar,
+                    )
+                )
+                    .map(([_0, entry]) => entry)
+                    .many(),
+                Parsernostrum.reg(/\s+End +Object/),
+            )
+                .map(([_0, attributes, _2]) => {
+                    const values = {};
+                    attributes.forEach(attributeSetter => attributeSetter(values));
+                    return new this(values)
+                })
+                .label("ObjectEntity")
+        )
     }
 
     getClass() {
@@ -6358,7 +6510,7 @@ class ObjectEntity extends IEntity {
                 ).join("")
                 : ""
             )
-            + indentation + "End Object";
+            + indentation + "End Object\n";
         return result
     }
 }
@@ -6478,12 +6630,7 @@ class KeyBindingEntity extends IEntity {
         bCmd: BooleanEntity,
         Key: SymbolEntity,
     }
-    static grammar = /** @type {P<KeyBindingEntity>} */(
-        Parsernostrum.alt(
-            SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
-            Grammar.createEntityGrammar(this)
-        )
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values);
@@ -6493,6 +6640,15 @@ class KeyBindingEntity extends IEntity {
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.bAlt>} */ this.bAlt;
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.bCmd>} */ this.bCmd;
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.Key>} */ this.Key;
+    }
+
+    static createGrammar() {
+        return /** @type {P<KeyBindingEntity>} */(
+            Parsernostrum.alt(
+                SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
+                Grammar.createEntityGrammar(this)
+            )
+        )
     }
 }
 
@@ -12905,31 +13061,35 @@ function defineElements() {
 
 class UnknownKeysEntity extends IEntity {
 
-    static grammar = /** @type {P<UnknownKeysEntity>} */(
-        Parsernostrum.seq(
-            // Lookbehind
-            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
-            Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
-                .chain(attributeName =>
-                    this.unknownEntityGrammar.map(attributeValue =>
-                        values => values[attributeName] = attributeValue
-                    )
-                )
-                .sepBy(Grammar.commaSeparation),
-            Parsernostrum.reg(/\s*(?:,\s*)?\)/),
-        ).map(([lookbehind, attributes, _2]) => {
-            lookbehind ??= "";
-            let values = {};
-            if (lookbehind.length) {
-                values.lookbehind = lookbehind;
-            }
-            attributes.forEach(attributeSetter => attributeSetter(values));
-            return new this(values)
-        }).label("UnknownKeysEntity")
-    )
+    static grammar = this.createGrammar()
 
     static {
         IEntity.unknownEntity = this;
+    }
+
+    static createGrammar() {
+        return /** @type {P<UnknownKeysEntity>} */(
+            Parsernostrum.seq(
+                // Lookbehind
+                Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Path.source}|${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
+                Parsernostrum.seq(Grammar.attributeName, Grammar.equalSeparation).map(([attribute, equal]) => attribute)
+                    .chain(attributeName =>
+                        this.unknownEntityGrammar.map(attributeValue =>
+                            values => values[attributeName] = attributeValue
+                        )
+                    )
+                    .sepBy(Grammar.commaSeparation),
+                Parsernostrum.reg(/\s*(?:,\s*)?\)/),
+            ).map(([lookbehind, attributes, _2]) => {
+                lookbehind ??= "";
+                let values = {};
+                if (lookbehind.length) {
+                    values.lookbehind = lookbehind;
+                }
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            }).label("UnknownKeysEntity")
+        )
     }
 }
 

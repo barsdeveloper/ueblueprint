@@ -10,9 +10,7 @@ if (typeof window === "undefined") {
 
 export default class GuidEntity extends IEntity {
 
-    static grammar = /** @type {P<GuidEntity>} */(
-        P.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
-    )
+    static grammar = this.createGrammar()
 
     static generateGuid() {
         let values = new Uint32Array(4)
@@ -27,6 +25,12 @@ export default class GuidEntity extends IEntity {
     constructor(value = GuidEntity.generateGuid()) {
         super()
         this.value = value
+    }
+
+    static createGrammar() {
+        return /** @type {P<GuidEntity>} */(
+            P.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
+        )
     }
 
     serialize() {

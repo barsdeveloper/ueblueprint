@@ -172,32 +172,7 @@ export default class ObjectEntity extends IEntity {
                     }
                 )
         )
-    static grammar = /** @type {P<ObjectEntity>} */(
-        P.seq(
-            P.reg(/Begin +Object/),
-            P.seq(
-                P.whitespace,
-                P.alt(
-                    this.createSubObjectGrammar(),
-                    this.customPropertyGrammar,
-                    Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
-                    Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                        Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
-                    ),
-                    this.inlinedArrayEntryGrammar,
-                )
-            )
-                .map(([_0, entry]) => entry)
-                .many(),
-            P.reg(/\s+End +Object/),
-        )
-            .map(([_0, attributes, _2]) => {
-                const values = {}
-                attributes.forEach(attributeSetter => attributeSetter(values))
-                return new this(values)
-            })
-            .label("ObjectEntity")
-    )
+    static grammar = this.createGrammar()
     static grammarMultipleObjects = P.seq(
         P.whitespaceOpt,
         this.grammar,
@@ -370,6 +345,35 @@ export default class ObjectEntity extends IEntity {
                     ? outputIndex++
                     : i
         })
+    }
+
+    static createGrammar() {
+        return /** @type {P<ObjectEntity>} */(
+            P.seq(
+                P.reg(/Begin +Object/),
+                P.seq(
+                    P.whitespace,
+                    P.alt(
+                        this.createSubObjectGrammar(),
+                        this.customPropertyGrammar,
+                        Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
+                        Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
+                            Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
+                        ),
+                        this.inlinedArrayEntryGrammar,
+                    )
+                )
+                    .map(([_0, entry]) => entry)
+                    .many(),
+                P.reg(/\s+End +Object/),
+            )
+                .map(([_0, attributes, _2]) => {
+                    const values = {}
+                    attributes.forEach(attributeSetter => attributeSetter(values))
+                    return new this(values)
+                })
+                .label("ObjectEntity")
+        )
     }
 
     getClass() {
@@ -643,7 +647,7 @@ export default class ObjectEntity extends IEntity {
                 ).join("")
                 : ""
             )
-            + indentation + "End Object"
+            + indentation + "End Object\n"
         return result
     }
 }

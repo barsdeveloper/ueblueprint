@@ -3,9 +3,7 @@ import IntegerEntity from "./IntegerEntity.js"
 
 export default class ByteEntity extends IntegerEntity {
 
-    static grammar = /** @type {P<ByteEntity>} */(
-        P.numberByte.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     get value() {
         return super.value
@@ -15,5 +13,12 @@ export default class ByteEntity extends IntegerEntity {
         if (value >= 0 && value < 1 << 8) {
             super.value = value
         }
+    }
+
+    createGrammar() {
+        return /** @type {P<ByteEntity>} */(
+            // @ts-expect-error
+            P.numberByte.map(v => new this(v))
+        )
     }
 }

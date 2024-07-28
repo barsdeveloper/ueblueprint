@@ -5,22 +5,26 @@ import Vector2DEntity from "./Vector2DEntity.js"
 export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
 
     static attributeSeparator = ", "
-    static grammar = /** @type {P<SimpleSerializationVector2DEntity>} */(
-        P.alt(
-            P.regArray(new RegExp(
-                `(${NumberEntity.numberRegexSource})`
-                + String.raw`\s*,\s*`
-                + `(${NumberEntity.numberRegexSource})`
-            )).map(([_, x, xPrecision, y, yPrecision]) => new this({
-                X: new NumberEntity(x, xPrecision?.length),
-                Y: new NumberEntity(y, yPrecision?.length),
-            })),
-            Vector2DEntity.grammar.map(v => new this({
-                X: v.X,
-                Y: v.Y,
-            }))
-        ).label("SimpleSerializationVector2DEntity")
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return   /** @type {P<SimpleSerializationVector2DEntity>} */(
+            P.alt(
+                P.regArray(new RegExp(
+                    `(${NumberEntity.numberRegexSource})`
+                    + String.raw`\s*,\s*`
+                    + `(${NumberEntity.numberRegexSource})`
+                )).map(([_, x, xPrecision, y, yPrecision]) => new this({
+                    X: new NumberEntity(x, xPrecision?.length),
+                    Y: new NumberEntity(y, yPrecision?.length),
+                })),
+                Vector2DEntity.grammar.map(v => new this({
+                    X: v.X,
+                    Y: v.Y,
+                }))
+            ).label("SimpleSerializationVector2DEntity")
+        )
+    }
 
     serialize() {
         const attributeSeparator = this.Self().attributeSeparator

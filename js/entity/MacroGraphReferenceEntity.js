@@ -12,15 +12,19 @@ export default class MacroGraphReferenceEntity extends IEntity {
         GraphBlueprint: ObjectReferenceEntity,
         GraphGuid: GuidEntity,
     }
-    static grammar = /** @type {P<MacroGraphReferenceEntity>} */(
-        Grammar.createEntityGrammar(this)
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values)
         /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.MacroGraph>} */ this.MacroGraph
         /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphBlueprint>} */ this.GraphBlueprint
         /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphGuid>} */ this.GraphGuid
+    }
+
+    static createGrammar() {
+        return /** @type {P<MacroGraphReferenceEntity>} */(
+            Grammar.createEntityGrammar(this)
+        )
     }
 
     getMacroName() {

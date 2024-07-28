@@ -3,9 +3,13 @@ import StringEntity from "./StringEntity.js"
 
 export default class ComputedTypeEntity extends IEntity {
 
-    static grammar = StringEntity.grammar
+    static grammar = this.createGrammar()
     /** @type {(entity: IEntity) => typeof IEntity} */
     static f
+
+    static createGrammar() {
+        return StringEntity.grammar
+    }
 
     /**
      * @template {typeof ComputedTypeEntity.f} T

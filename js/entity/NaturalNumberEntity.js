@@ -4,9 +4,7 @@ import IntegerEntity from "./IntegerEntity.js"
 
 export default class NaturalNumberEntity extends IntegerEntity {
 
-    static grammar = /** @type {P<NaturalNumberEntity>} */(
-        P.numberNatural.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     get value() {
         return super.value
@@ -14,5 +12,11 @@ export default class NaturalNumberEntity extends IntegerEntity {
     set value(value) {
         value = Math.round(Utility.clamp(this.value, 0))
         super.value = value
+    }
+
+    static createGrammar() {
+        return /** @type {P<NaturalNumberEntity>} */(
+            P.numberNatural.map(v => new this(v))
+        )
     }
 }

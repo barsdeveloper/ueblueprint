@@ -13,14 +13,18 @@ export default class FunctionReferenceEntity extends IEntity {
         MemberName: StringEntity,
         MemberGuid: GuidEntity,
     }
-    static grammar = /** @type {P<FunctionReferenceEntity>} */(
-        Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values)
         /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberParent>} */ this.MemberParent
         /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberName>} */ this.MemberName
         /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid
+    }
+
+    static createGrammar() {
+        return /** @type {P<FunctionReferenceEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
+        )
     }
 }

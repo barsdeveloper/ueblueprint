@@ -4,8 +4,9 @@ import Vector4DEntity from "./Vector4DEntity.js"
 
 export default class SimpleSerializationVector4DEntity extends Vector4DEntity {
 
-    static grammar = /** @type {P<SimpleSerializationVector4DEntity> } */(this.createGrammar())
+    static grammar = this.createGrammar()
 
+    /** @returns {P<SimpleSerializationVector4DEntity> } */
     static createGrammar() {
         const number = Grammar.numberRegexSource
         return P.alt(

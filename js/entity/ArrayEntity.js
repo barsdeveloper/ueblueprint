@@ -7,9 +7,6 @@ export default class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
-    static grammar = /** @type {P<ArrayEntity<typeof IEntity>>} */(
-        this.createGrammar()
-    )
 
     get length() {
         return this.values.length

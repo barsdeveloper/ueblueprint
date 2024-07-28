@@ -8,9 +8,13 @@ export default class SymbolEntity extends IEntity {
         fromAttribute: (value, type) => new this(value),
         toAttribute: (value, type) => value.toString()
     }
-    static grammar = /** @type {P<SymbolEntity>} */(
-        Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
-    )
+    static grammar = this.createGrammar()
+
+    static createGrammar() {
+        return /** @type {P<SymbolEntity>} */(
+            Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
+        )
+    }
 
     constructor(value = "") {
         super()

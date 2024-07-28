@@ -14,9 +14,7 @@ export default class TerminalTypeEntity extends IEntity {
         bTerminalIsWeakPointer: BooleanEntity,
         bTerminalIsUObjectWrapper: BooleanEntity,
     }
-    static grammar = /** @type {P<TerminalTypeEntity>} */(
-        Grammar.createEntityGrammar(this)
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values)
@@ -25,5 +23,11 @@ export default class TerminalTypeEntity extends IEntity {
         /** @type {Boolean} */ this.bTerminalIsConst
         /** @type {Boolean} */ this.bTerminalIsWeakPointer
         /** @type {Boolean} */ this.bTerminalIsUObjectWrapper
+    }
+
+    static createGrammar() {
+        return /** @type {P<TerminalTypeEntity>} */(
+            Grammar.createEntityGrammar(this)
+        )
     }
 }

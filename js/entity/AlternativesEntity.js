@@ -10,14 +10,14 @@ export default class AlternativesEntity extends IEntity {
     static className() {
         let result = super.className()
         if (this.alternatives.length) {
-            result += " (accepting: " + this.alternatives.map(v => v.className()).join(", ") + ")"
+            result += ".accepting(" + this.alternatives.map(v => v.className()).join(", ") + ")"
         }
         return result
     }
 
     static createGrammar() {
         const grammars = this.alternatives.map(entity => entity.grammar)
-        if (grammars.includes(this.unknownEntityGrammar)) {
+        if (this.alternatives.length == 0 || grammars.includes(this.unknownEntityGrammar)) {
             return this.unknownEntityGrammar
         }
         return P.alt(...grammars)

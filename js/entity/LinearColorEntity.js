@@ -14,9 +14,7 @@ export default class LinearColorEntity extends IEntity {
         B: ColorChannelEntity.withDefault(),
         A: ColorChannelEntity.withDefault(type => new type(1)),
     }
-    static grammar = /** @type {P<LinearColorEntity>} */(
-        Grammar.createEntityGrammar(this).label("LinearColorEntity")
-    )
+    static grammar = this.createGrammar()
 
     #H = new ColorChannelEntity()
     get H() {
@@ -57,6 +55,12 @@ export default class LinearColorEntity extends IEntity {
         /** @type {InstanceType<typeof LinearColorEntity.attributes.B>} */ this.B
         /** @type {InstanceType<typeof LinearColorEntity.attributes.A>} */ this.A
         this.#updateHSV()
+    }
+
+    static createGrammar() {
+        return /** @type {P<LinearColorEntity>} */(
+            Grammar.createEntityGrammar(this).label("LinearColorEntity")
+        )
     }
 
     /** @param {LinearColorEntity} value */

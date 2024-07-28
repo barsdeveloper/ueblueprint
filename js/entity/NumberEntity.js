@@ -6,15 +6,7 @@ import Utility from "../Utility.js"
 export default class NumberEntity extends IEntity {
 
     static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
-    static grammar = /** @type {P<NumberEntity>} */(
-        P.regArray(
-            new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
-        ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
-            n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
-            precision?.length
-        )
-        ).label("NumberEntity")
-    )
+    static grammar = this.createGrammar()
 
     #precision = 0
     get precision() {
@@ -43,6 +35,18 @@ export default class NumberEntity extends IEntity {
         super()
         this.value = Number(value)
         this.#precision = Number(precision)
+    }
+
+    static createGrammar() {
+        return /** @type {P<NumberEntity>} */(
+            P.regArray(
+                new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
+            ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
+                n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
+                precision?.length
+            )
+            ).label("NumberEntity")
+        )
     }
 
     /** @param {Number} num */

@@ -29,13 +29,7 @@ export default class ObjectReferenceEntity extends IEntity {
         )
     ).map(([full, type, path]) => new this(type, path, full))
     static typeReferenceGrammar = this.typeReference.map(v => new this(v, "", v))
-    static grammar = /** @type {P<ObjectReferenceEntity>} */(
-        P.alt(
-            this.fullReferenceSerializedGrammar,
-            this.fullReferenceGrammar,
-            this.typeReferenceGrammar,
-        ).label("ObjectReferenceEntity")
-    )
+    static grammar = this.createGrammar()
 
     #type
     get type() {
@@ -69,6 +63,16 @@ export default class ObjectReferenceEntity extends IEntity {
         this.#type = type
         this.#path = path
         this.#full = full ?? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
+    }
+
+    static createGrammar() {
+        return /** @type {P<ObjectReferenceEntity>} */(
+            P.alt(
+                this.fullReferenceSerializedGrammar,
+                this.fullReferenceGrammar,
+                this.typeReferenceGrammar,
+            ).label("ObjectReferenceEntity")
+        )
     }
 
     static createNoneInstance() {

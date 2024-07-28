@@ -10,14 +10,18 @@ export default class Vector2DEntity extends IEntity {
         X: NumberEntity.withDefault(),
         Y: NumberEntity.withDefault(),
     }
-    static grammar = /** @type {P<Vector2DEntity>} */(
-        Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
-    )
+    static grammar = this.createGrammar()
 
     constructor(values) {
         super(values)
         /** @type {InstanceType<typeof Vector2DEntity.attributes.X>} */ this.X
         /** @type {InstanceType<typeof Vector2DEntity.attributes.Y>} */ this.Y
+    }
+
+    static createGrammar() {
+        return /** @type {P<Vector2DEntity>} */(
+            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
+        )
     }
 
     /** @returns {[Number, Number]} */

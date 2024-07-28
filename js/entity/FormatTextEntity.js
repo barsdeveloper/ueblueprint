@@ -8,27 +8,31 @@ export default class FormatTextEntity extends IEntity {
 
     static attributeSeparator = ", "
     static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
-    static grammar = /** @type {P<FormatTextEntity>} */(
-        P.lazy(() => P.seq(
-            // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-            P.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
-            P.alt(
-                ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
-            ).sepBy(P.reg(/\s*\,\s*/)),
-            P.reg(/\s*\)/)
-        )
-            .map(([lookbehind, values]) => {
-                const result = new this(values)
-                result.lookbehind = lookbehind
-                return result
-            }))
-            .label("FormatTextEntity")
-    )
+    static grammar = this.createGrammar()
 
     /** @param {(StringEntity | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} values */
     constructor(values) {
         super()
         this.values = values
+    }
+
+    static createGrammar() {
+        return /** @type {P<FormatTextEntity>} */(
+            P.lazy(() => P.seq(
+                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+                P.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
+                P.alt(
+                    ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
+                ).sepBy(P.reg(/\s*\,\s*/)),
+                P.reg(/\s*\)/)
+            )
+                .map(([lookbehind, values]) => {
+                    const result = new this(values)
+                    result.lookbehind = lookbehind
+                    return result
+                }))
+                .label("FormatTextEntity")
+        )
     }
 
     serialize(

@@ -9,14 +9,13 @@ export default class IEntity {
     /** @type {(entity: IEntity, serialized: String) => String} */
     static notWrapped = (entity, serialized) => serialized
     /** @type {(entity: IEntity, serialized: String) => String} */
-    static defaultWrapped = (entity, serialized) => `${entity.lookbehind}(${serialized})`
+    static defaultWrapped = (entity, serialized) => `${entity.#lookbehind}(${serialized})`
     static wrap = this.defaultWrapped
     static attributeSeparator = ","
     static keySeparator = "="
     /** @type {(k: String) => String} */
     static printKey = k => k
-    /** @type {P<IEntity>} */
-    static grammar = P.lazy(() => this.unknownEntity)
+    static grammar = P.lazy(() => this.createGrammar())
     /** @type {P<IEntity>} */
     static unknownEntityGrammar
     static unknownEntity
@@ -58,6 +57,14 @@ export default class IEntity {
     }
     set keys(value) {
         this.#keys = [... new Set(value)]
+    }
+
+    /**
+     * @protected
+     * @returns {P<IEntity>}
+     */
+    static createGrammar() {
+        return this.unknownEntity
     }
 
     constructor(values = {}) {
@@ -109,11 +116,13 @@ export default class IEntity {
      * @returns {T}
      */
     static asUniqueClass() {
+        let result = this
         if (this.name.length) {
             // @ts-expect-error
-            return class extends this { }
+            result = class extends this { }
+            result.grammar = result.createGrammar() // Seassign grammar to capture the correct this from subclass
         }
-        return this
+        return result
     }
 
     /**
@@ -305,8 +314,8 @@ export default class IEntity {
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator
             }
             let serialization = value?.serialize(insideString, indentation)
-            if (Self.serialized) {
-                serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/, '\\"')}"`
+            if (value.Self().serialized) {
+                serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/g, '\\"')}"`
             }
             result += serialization
         }

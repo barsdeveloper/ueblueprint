@@ -3,9 +3,7 @@ import IEntity from "./IEntity.js"
 
 export default class Integer64Entity extends IEntity {
 
-    static grammar = /** @type {P<Integer64Entity>} */(
-        P.numberBigInteger.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     /** @type {bigint} */
     #value
@@ -22,6 +20,12 @@ export default class Integer64Entity extends IEntity {
     constructor(value = 0n) {
         super()
         this.value = BigInt(value)
+    }
+
+    static createGrammar() {
+        return /** @type {P<Integer64Entity>} */(
+            P.numberBigInteger.map(v => new this(v))
+        )
     }
 
     serialize(

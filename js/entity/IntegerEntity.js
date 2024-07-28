@@ -3,9 +3,7 @@ import NumberEntity from "./NumberEntity.js"
 
 export default class IntegerEntity extends NumberEntity {
 
-    static grammar = /** @type {P<IntegerEntity>} */(
-        P.numberInteger.map(v => new this(v))
-    )
+    static grammar = this.createGrammar()
 
     get value() {
         return super.value
@@ -16,5 +14,11 @@ export default class IntegerEntity extends NumberEntity {
             value = Math.floor(value)
             super.value = value
         }
+    }
+
+    static createGrammar() {
+        return /** @type {P<IntegerEntity>} */(
+            P.numberInteger.map(v => new this(v))
+        )
     }
 }
