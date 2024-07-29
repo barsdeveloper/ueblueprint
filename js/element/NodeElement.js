@@ -99,13 +99,14 @@ export default class NodeElement extends ISelectableDraggableElement {
         return result
     }
 
+    /** @param {String} name */
     #redirectLinksAfterRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(
                     sourcePinElement,
                     new PinReferenceEntity(
-                        name,
+                        new SymbolEntity(name),
                         sourcePinElement.entity.PinId,
                     )
                 )
@@ -130,11 +131,15 @@ export default class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes())
         }
-        entity.listenAttribute("Name", name => {
-            this.nodeTitle = entity.Name
-            this.nodeDisplayName = nodeTitle(entity)
-            this.#redirectLinksAfterRename(name)
-        })
+        entity.listenAttribute(
+            "Name",
+            /** @param {InstanceType<typeof ObjectEntity.attributes.Name>} newName */
+            newName => {
+                this.nodeTitle = newName.value
+                this.nodeDisplayName = nodeTitle(entity)
+                this.#redirectLinksAfterRename(newName.value)
+            }
+        )
     }
 
     async getUpdateComplete() {

@@ -421,6 +421,7 @@ export default class Blueprint extends IElement {
                 const homonym = this.entity.getHomonymObjectEntity(element.entity)
                 if (homonym) {
                     homonym.Name.value = this.entity.takeFreeName(name)
+                    homonym.Name = homonym.Name
                 }
                 this.nodes.push(element)
                 this.entity.addObjectEntity(element.entity)

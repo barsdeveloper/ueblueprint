@@ -2733,7 +2733,7 @@ class IEntity {
         if (this.name.length) {
             // @ts-expect-error
             result = class extends this { };
-            result.grammar = result.createGrammar();
+            result.grammar = result.createGrammar(); // Reassign grammar to capture the correct this from subclass
         }
         return result
     }
@@ -2844,35 +2844,34 @@ class IEntity {
 
     /**
      * 
-     * @param {String} attribute
+     * @param {String} attributeName
      * @param {(v: any) => void} callback
      */
-    listenAttribute(attribute, callback) {
-        const descriptor = Object.getOwnPropertyDescriptor(this, attribute);
+    listenAttribute(attributeName, callback) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, attributeName);
         const setter = descriptor.set;
         if (setter) {
             descriptor.set = v => {
                 setter(v);
                 callback(v);
             };
-            Object.defineProperties(this, { [attribute]: descriptor });
+            Object.defineProperties(this, { [attributeName]: descriptor });
         } else if (descriptor.value) {
+
             Object.defineProperties(this, {
-                ["#" + attribute]: {
+                ["#" + attributeName]: {
                     value: descriptor.value,
                     writable: true,
                     enumerable: false,
                 },
-                [attribute]: {
+                [attributeName]: {
                     enumerable: true,
                     get() {
-                        return this["#" + attribute]
+                        return this["#" + attributeName]
                     },
                     set(v) {
-                        if (v != this["#" + attribute]) {
-                            callback(v);
-                            this["#" + attribute] = v;
-                        }
+                        callback(v);
+                        this["#" + attributeName] = v;
                     },
                 },
             });
@@ -9552,13 +9551,14 @@ class NodeElement extends ISelectableDraggableElement {
         return result
     }
 
+    /** @param {String} name */
     #redirectLinksAfterRename(name) {
         for (let sourcePinElement of this.getPinElements()) {
             for (let targetPinReference of sourcePinElement.getLinks()) {
                 this.blueprint.getPin(targetPinReference).redirectLink(
                     sourcePinElement,
                     new PinReferenceEntity(
-                        name,
+                        new SymbolEntity(name),
                         sourcePinElement.entity.PinId,
                     )
                 );
@@ -9583,11 +9583,15 @@ class NodeElement extends ISelectableDraggableElement {
         } else {
             this.updateComplete.then(() => this.computeSizes());
         }
-        entity.listenAttribute("Name", name => {
-            this.nodeTitle = entity.Name;
-            this.nodeDisplayName = nodeTitle(entity);
-            this.#redirectLinksAfterRename(name);
-        });
+        entity.listenAttribute(
+            "Name",
+            /** @param {InstanceType<typeof ObjectEntity.attributes.Name>} newName */
+            newName => {
+                this.nodeTitle = newName.value;
+                this.nodeDisplayName = nodeTitle(entity);
+                this.#redirectLinksAfterRename(newName.value);
+            }
+        );
     }
 
     async getUpdateComplete() {
@@ -10923,6 +10927,7 @@ class Blueprint extends IElement {
                 const homonym = this.entity.getHomonymObjectEntity(element.entity);
                 if (homonym) {
                     homonym.Name.value = this.entity.takeFreeName(name);
+                    homonym.Name = homonym.Name;
                 }
                 this.nodes.push(element);
                 this.entity.addObjectEntity(element.entity);

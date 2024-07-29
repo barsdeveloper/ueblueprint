@@ -120,7 +120,7 @@ export default class IEntity {
         if (this.name.length) {
             // @ts-expect-error
             result = class extends this { }
-            result.grammar = result.createGrammar() // Seassign grammar to capture the correct this from subclass
+            result.grammar = result.createGrammar() // Reassign grammar to capture the correct this from subclass
         }
         return result
     }
@@ -231,35 +231,34 @@ export default class IEntity {
 
     /**
      * 
-     * @param {String} attribute
+     * @param {String} attributeName
      * @param {(v: any) => void} callback
      */
-    listenAttribute(attribute, callback) {
-        const descriptor = Object.getOwnPropertyDescriptor(this, attribute)
+    listenAttribute(attributeName, callback) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, attributeName)
         const setter = descriptor.set
         if (setter) {
             descriptor.set = v => {
                 setter(v)
                 callback(v)
             }
-            Object.defineProperties(this, { [attribute]: descriptor })
+            Object.defineProperties(this, { [attributeName]: descriptor })
         } else if (descriptor.value) {
+
             Object.defineProperties(this, {
-                ["#" + attribute]: {
+                ["#" + attributeName]: {
                     value: descriptor.value,
                     writable: true,
                     enumerable: false,
                 },
-                [attribute]: {
+                [attributeName]: {
                     enumerable: true,
                     get() {
-                        return this["#" + attribute]
+                        return this["#" + attributeName]
                     },
                     set(v) {
-                        if (v != this["#" + attribute]) {
-                            callback(v)
-                            this["#" + attribute] = v
-                        }
+                        callback(v)
+                        this["#" + attributeName] = v
                     },
                 },
             })
