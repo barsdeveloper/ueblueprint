@@ -357,8 +357,12 @@ export default class ObjectEntity extends IEntity {
                         this.createSubObjectGrammar(),
                         this.customPropertyGrammar,
                         Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
-                        Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                            Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
+                        Grammar.createAttributeGrammar(
+                            this,
+                            Grammar.attributeNameQuoted,
+                            undefined,
+                            undefined,
+                            entity => entity.flagQuoted()
                         ),
                         this.inlinedArrayEntryGrammar,
                     )

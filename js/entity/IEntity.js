@@ -311,7 +311,7 @@ export default class IEntity {
             }
             keyValue = printKey(keyValue)
             if (keyValue.length) {
-                if (Self.quoted) {
+                if (value.Self().quoted) {
                     keyValue = `"${keyValue}"`
                 }
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator

@@ -94,17 +94,21 @@ export default class Grammar {
     /** @param {typeof IEntity} entityType */
     static createAttributeGrammar(
         entityType,
-        attributeName = this.attributeName,
+        attributeNameGrammar = this.attributeName,
         valueSeparator = this.equalSeparation,
-        handleObjectSet = (obj, k, v) => { },
+        handleObjectSet = (values, attributeKey, attributeValue) => { },
+        entityTransformer = /** @param {typeof IEntity} v */ v => v
     ) {
         return Parsernostrum.seq(
-            attributeName,
+            attributeNameGrammar,
             valueSeparator,
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator)
             const attributeValue = this.getAttribute(entityType, attributeKey)
-            return (attributeValue?.grammar ?? IEntity.unknownEntityGrammar).map(attributeValue =>
+            const grammar = attributeValue
+                ? entityTransformer(attributeValue).grammar
+                : entityTransformer(IEntity).unknownEntityGrammar
+            return grammar.map(attributeValue =>
                 values => {
                     handleObjectSet(values, attributeKey, attributeValue)
                     Utility.objectSet(values, attributeKey, attributeValue)

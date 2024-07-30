@@ -2924,7 +2924,7 @@ class IEntity {
             }
             keyValue = printKey(keyValue);
             if (keyValue.length) {
-                if (Self.quoted) {
+                if (value.Self().quoted) {
                     keyValue = `"${keyValue}"`;
                 }
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator;
@@ -3178,17 +3178,21 @@ class Grammar {
     /** @param {typeof IEntity} entityType */
     static createAttributeGrammar(
         entityType,
-        attributeName = this.attributeName,
+        attributeNameGrammar = this.attributeName,
         valueSeparator = this.equalSeparation,
-        handleObjectSet = (obj, k, v) => { },
+        handleObjectSet = (values, attributeKey, attributeValue) => { },
+        entityTransformer = /** @param {typeof IEntity} v */ v => v
     ) {
         return Parsernostrum.seq(
-            attributeName,
+            attributeNameGrammar,
             valueSeparator,
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator);
             const attributeValue = this.getAttribute(entityType, attributeKey);
-            return (attributeValue?.grammar ?? IEntity.unknownEntityGrammar).map(attributeValue =>
+            const grammar = attributeValue
+                ? entityTransformer(attributeValue).grammar
+                : entityTransformer(IEntity).unknownEntityGrammar;
+            return grammar.map(attributeValue =>
                 values => {
                     handleObjectSet(values, attributeKey, attributeValue);
                     Utility.objectSet(values, attributeKey, attributeValue);
@@ -6226,8 +6230,12 @@ class ObjectEntity extends IEntity {
                         this.createSubObjectGrammar(),
                         this.customPropertyGrammar,
                         Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
-                        Grammar.createAttributeGrammar(this, Grammar.attributeNameQuoted, undefined, (obj, k, v) =>
-                            Utility.objectSet(obj, ["attributes", ...k, "quoted"], true)
+                        Grammar.createAttributeGrammar(
+                            this,
+                            Grammar.attributeNameQuoted,
+                            undefined,
+                            undefined,
+                            entity => entity.flagQuoted()
                         ),
                         this.inlinedArrayEntryGrammar,
                     )
