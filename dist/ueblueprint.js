@@ -2677,7 +2677,7 @@ class IEntity {
      * @returns {P<IEntity>}
      */
     static createGrammar() {
-        return this.unknownEntity
+        return this.unknownEntityGrammar
     }
 
     constructor(values = {}) {
@@ -2714,12 +2714,16 @@ class IEntity {
         }
     }
 
-    static className() {
+    static actualClass() {
         let self = this;
         while (!self.name) {
             self = Object.getPrototypeOf(self);
         }
-        return self.name
+        return self
+    }
+
+    static className() {
+        return this.actualClass().name
     }
 
     /**
@@ -2732,7 +2736,7 @@ class IEntity {
         let result = this;
         if (this.name.length) {
             // @ts-expect-error
-            result = class extends this { };
+            result = (() => class extends this { })(); // Comes from a lambda otherwise the class will have name "result"
             result.grammar = result.createGrammar(); // Reassign grammar to capture the correct this from subclass
         }
         return result
@@ -2947,7 +2951,7 @@ class IEntity {
         if (
             thisKeys.length !== otherKeys.length
             || this.lookbehind != other.lookbehind
-            || !(this instanceof other.constructor) && !(other instanceof this.constructor)
+            || !(other instanceof this.Self().actualClass()) && !(this instanceof other.Self().actualClass())
         ) {
             return false
         }
@@ -4309,6 +4313,7 @@ class ArrayEntity extends IEntity {
 
     /** @type {typeof IEntity} */
     static type
+    static grammar = this.createGrammar()
 
     get length() {
         return this.values.length
