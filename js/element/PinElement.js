@@ -5,7 +5,7 @@ import GuidEntity from "../entity/GuidEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import PinEntity from "../entity/PinEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
-import StringEntity from "../entity/StringEntity.js"
+import SymbolEntity from "../entity/SymbolEntity.js"
 import PinTemplate from "../template/pin/PinTemplate.js"
 import ElementFactory from "./ElementFactory.js"
 import IElement from "./IElement.js"
@@ -107,10 +107,7 @@ export default class PinElement extends IElement {
     }
 
     createPinReference() {
-        return new PinReferenceEntity({
-            objectName: new StringEntity(this.nodeElement.getNodeName()),
-            pinGuid: this.getPinId(),
-        })
+        return new PinReferenceEntity(new SymbolEntity(this.nodeElement.getNodeName()), this.getPinId())
     }
 
     getPinId() {
