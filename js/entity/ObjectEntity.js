@@ -1,10 +1,10 @@
 import P from "parsernostrum"
 import Configuration from "../Configuration.js"
-import Utility from "../Utility.js"
 import nodeColor from "../decoding/nodeColor.js"
 import nodeIcon from "../decoding/nodeIcon.js"
 import nodeVariadic from "../decoding/nodeVariadic.js"
 import Grammar from "../serialization/Grammar.js"
+import Utility from "../Utility.js"
 import AlternativesEntity from "./AlternativesEntity.js"
 import ArrayEntity from "./ArrayEntity.js"
 import BooleanEntity from "./BooleanEntity.js"
@@ -36,6 +36,8 @@ export default class ObjectEntity extends IEntity {
     }
 
     static #nameRegex = /^(\w+?)(?:_(\d+))?$/
+    /** @type {(k: String) => String} */
+    static printKey = k => !k.startsWith(Configuration.subObjectAttributeNamePrefix) ? k : ""
     static attributeSeparator = "\n"
     static wrap = this.notWrapped
     static trailing = true
@@ -186,9 +188,14 @@ export default class ObjectEntity extends IEntity {
     ).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
     static createSubObjectGrammar() {
+        // const self = this.asUniqueClass()
+        // self.trailing = false
         return P.lazy(() => this.grammar)
             .map(object =>
-                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+                values => {
+                    object.trailing = false
+                    values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+                }
             )
     }
 
@@ -301,14 +308,15 @@ export default class ObjectEntity extends IEntity {
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
                 // The following attributes are too generic therefore not assigned a MirroredEntity
                 const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName.serialize() === pinName && (pin.recomputesNodeTitleOnChange = true))
+                    this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
                 )
                 const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
                 obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue)
                 obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue)
                 obj["B"] = new silentBool(() => rgbaPins[2].DefaultValue)
                 obj["A"] = new silentBool(() => rgbaPins[3].DefaultValue)
-                obj.keys = [...Configuration.rgba, ...super.keys.filter(k => !Configuration.rgba.includes(k))]
+                // Reorder RGBA so that they stay first
+                obj.keys = [...Configuration.rgba, ...obj.keys.filter(k => !Configuration.rgba.includes(k))]
             }
         }
         /** @type {ObjectEntity} */
@@ -347,37 +355,36 @@ export default class ObjectEntity extends IEntity {
         })
     }
 
+    /** @returns {P<ObjectEntity>} */
     static createGrammar() {
-        return /** @type {P<ObjectEntity>} */(
+        return P.seq(
+            P.reg(/Begin +Object/),
             P.seq(
-                P.reg(/Begin +Object/),
-                P.seq(
-                    P.whitespace,
-                    P.alt(
-                        this.createSubObjectGrammar(),
-                        this.customPropertyGrammar,
-                        Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
-                        Grammar.createAttributeGrammar(
-                            this,
-                            Grammar.attributeNameQuoted,
-                            undefined,
-                            undefined,
-                            entity => entity.flagQuoted()
-                        ),
-                        this.inlinedArrayEntryGrammar,
-                    )
+                P.whitespace,
+                P.alt(
+                    this.createSubObjectGrammar(),
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this, P.reg(Grammar.Regex.MultipleWordsSymbols)),
+                    Grammar.createAttributeGrammar(
+                        this,
+                        Grammar.attributeNameQuoted,
+                        undefined,
+                        undefined,
+                        entity => entity.flagQuoted()
+                    ),
+                    this.inlinedArrayEntryGrammar,
                 )
-                    .map(([_0, entry]) => entry)
-                    .many(),
-                P.reg(/\s+End +Object/),
             )
-                .map(([_0, attributes, _2]) => {
-                    const values = {}
-                    attributes.forEach(attributeSetter => attributeSetter(values))
-                    return new this(values)
-                })
-                .label("ObjectEntity")
+                .map(([_0, entry]) => entry)
+                .many(),
+            P.reg(/\s+End +Object/),
         )
+            .map(([_0, attributes, _2]) => {
+                const values = {}
+                attributes.forEach(attributeSetter => attributeSetter(values))
+                return new this(values)
+            })
+            .label("ObjectEntity")
     }
 
     getClass() {
@@ -587,7 +594,7 @@ export default class ObjectEntity extends IEntity {
 
     isDevelopmentOnly() {
         const nodeClass = this.getClass()
-        return this.EnabledState?.serialize() === "DevelopmentOnly"
+        return this.EnabledState?.toString() === "DevelopmentOnly"
             || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
     }
 
@@ -625,6 +632,7 @@ export default class ObjectEntity extends IEntity {
         return super.showProperty(key)
     }
 
+    /** @param {typeof ObjectEntity} Self */
     serialize(
         insideString = false,
         indentation = "",
@@ -634,24 +642,25 @@ export default class ObjectEntity extends IEntity {
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
-        const moreIndentation = indentation + Configuration.indentation
+        const deeperIndentation = indentation + Configuration.indentation
+        const content = super.serialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
         let result = indentation + "Begin Object"
-            + (this.Class?.type || this.Class?.path ? ` Class=${this.Class.serialize(insideString)}` : "")
-            + (this.Name ? ` Name=${this.Name.serialize(insideString)}` : "")
-            + (this.Archetype ? ` Archetype=${this.Archetype.serialize(insideString)}` : "")
-            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.serialize(insideString)}` : "")
-            + "\n"
-            + super.serialize(insideString, moreIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+            + (this.Class?.type || this.Class?.path ? ` Class${keySeparator}${this.Class.serialize(insideString)}` : "")
+            + (this.Name ? ` Name${keySeparator}${this.Name.serialize(insideString)}` : "")
+            + (this.Archetype ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}` : "")
+            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}` : "")
+            + (content ? attributeSeparator + content : "")
             + (!this.CustomProperties.Self().ignored
                 ? this.getCustomproperties().map(pin =>
-                    moreIndentation
+                    deeperIndentation
                     + printKey("CustomProperties ")
                     + pin.serialize(insideString)
-                    + this.Self().attributeSeparator
-                ).join("")
+                ).join(this.Self().attributeSeparator)
                 : ""
             )
-            + indentation + "End Object\n"
+            + attributeSeparator
+            + indentation + "End Object"
+            + (this.trailing ? attributeSeparator : "")
         return result
     }
 }

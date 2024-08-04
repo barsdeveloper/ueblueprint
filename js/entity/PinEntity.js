@@ -303,7 +303,7 @@ export default class PinEntity extends IEntity {
         if (indexElement >= 0) {
             this.LinkedTo.values.splice(indexElement, 1)
             if (this.LinkedTo.length === 0 && PinEntity.attributes.LinkedTo.default === undefined) {
-                this.LinkedTo = undefined
+                this.LinkedTo.values = []
             }
             return true
         }

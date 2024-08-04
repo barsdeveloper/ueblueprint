@@ -162,7 +162,7 @@ export default class PinElement extends IElement {
 
     /** @param  {IElement[]} nodesWhitelist */
     sanitizeLinks(nodesWhitelist = []) {
-        this.entity.LinkedTo = new ArrayEntity(
+        this.entity.LinkedTo = new (PinEntity.attributes.LinkedTo)(
             this.entity.LinkedTo?.valueOf().filter(pinReference => {
                 let pin = this.blueprint.getPin(pinReference)
                 if (pin) {

@@ -9,12 +9,12 @@ import VariableConversionNodeTemplate from "../node/VariableConversionNodeTempla
 import VariableOperationNodeTemplate from "../node/VariableOperationNodeTemplate.js"
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends ITemplate<PinElement<T>>
  */
 export default class PinTemplate extends ITemplate {
@@ -115,7 +115,7 @@ export default class PinTemplate extends ITemplate {
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.valueOf().toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType?.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {

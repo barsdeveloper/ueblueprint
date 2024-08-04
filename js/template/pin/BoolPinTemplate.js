@@ -1,14 +1,19 @@
 import { html } from "lit"
+import BooleanEntity from "../../entity/BooleanEntity.js"
 import MouseIgnore from "../../input/mouse/MouseIgnore.js"
 import PinTemplate from "./PinTemplate.js"
 
-/** @extends PinTemplate<Boolean> */
+/** @extends PinTemplate<BooleanEntity> */
 export default class BoolPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement?} */
     #input
 
-    #onChangeHandler = () => this.element.setDefaultValue(this.#input.checked)
+    #onChangeHandler = () => {
+        const entity = this.element.getDefaultValue()
+        entity.value = this.#input.checked
+        this.element.setDefaultValue(entity)
+    }
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
@@ -35,7 +40,7 @@ export default class BoolPinTemplate extends PinTemplate {
 
     renderInput() {
         return html`
-            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue === true}" />
+            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue.valueOf() === true}" />
         `
     }
 }

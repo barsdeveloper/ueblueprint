@@ -12,9 +12,12 @@ import IEntity from "../js/entity/IEntity.js"
 import IntegerEntity from "../js/entity/IntegerEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
+import MirroredEntity from "../js/entity/MirroredEntity.js"
 import NullEntity from "../js/entity/NullEntity.js"
 import NumberEntity from "../js/entity/NumberEntity.js"
 import ObjectReferenceEntity from "../js/entity/ObjectReferenceEntity.js"
+import PinEntity from "../js/entity/PinEntity.js"
+import PinTypeEntity from "../js/entity/PinTypeEntity.js"
 import RotatorEntity from "../js/entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../js/entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../js/entity/SimpleSerializationVector2DEntity.js"
@@ -26,8 +29,6 @@ import Vector2DEntity from "../js/entity/Vector2DEntity.js"
 import Vector4DEntity from "../js/entity/Vector4DEntity.js"
 import VectorEntity from "../js/entity/VectorEntity.js"
 import initializeSerializerFactory from "../js/serialization/initializeSerializerFactory.js"
-import PinEntity from "../js/entity/PinEntity.js"
-import PinTypeEntity from "../js/entity/PinTypeEntity.js"
 
 test.beforeAll(() => initializeSerializerFactory())
 
@@ -559,6 +560,32 @@ test("LinearColorEntity", () => {
         B: new ColorChannelEntity(0),
         A: new ColorChannelEntity(1),
     }))
+})
+
+test("MirroredEntity", () => {
+    const grammarBool = MirroredEntity.of(BooleanEntity).grammar
+    const grammarNumber = MirroredEntity.of(NumberEntity).grammar
+    const a = grammarBool.parse("true")
+    const b = grammarBool.parse("true")
+    const c = grammarBool.parse("false")
+
+    expect(a.equals(a)).toBeTruthy()
+    expect(a.equals(b)).toBeTruthy()
+    expect(a.equals(c)).toBeFalsy()
+    expect(a.equals(new BooleanEntity(true))).toBeTruthy()
+    expect(a.equals(new BooleanEntity(false))).toBeFalsy()
+
+    expect(b.equals(a)).toBeTruthy()
+    expect(b.equals(b)).toBeTruthy()
+    expect(b.equals(c)).toBeFalsy()
+    expect(b.equals(new BooleanEntity(true))).toBeTruthy()
+    expect(b.equals(new BooleanEntity(false))).toBeFalsy()
+
+    expect(c.equals(a)).toBeFalsy()
+    expect(c.equals(b)).toBeFalsy()
+    expect(c.equals(c)).toBeTruthy()
+    expect(c.equals(new BooleanEntity(true))).toBeFalsy()
+    expect(c.equals(new BooleanEntity(false))).toBeTruthy()
 })
 
 test("NullEntity", () => {

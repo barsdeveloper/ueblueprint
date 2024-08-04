@@ -143,8 +143,10 @@ export default class IEntity {
     /**
      * @template {typeof IEntity} T
      * @this {T}
+     * @param {(type: T) => (InstanceType<T> | NullEntity)} value
+     * @returns {T}
      */
-    static withDefault(value = /** @type {(type: T) => (InstanceType<T> | NullEntity)} */(type => new type())) {
+    static withDefault(value = type => new type()) {
         const result = this.asUniqueClass()
         result.default = value
         return result

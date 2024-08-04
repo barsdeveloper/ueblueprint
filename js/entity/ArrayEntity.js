@@ -37,10 +37,21 @@ export default class ArrayEntity extends IEntity {
 
     /**
      * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagInlined(value = true) {
+        const result = this.asUniqueClass()
+        result.inlined = value
+        result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar())
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
      * @param {T} type
      */
     static of(type) {
-        const result = /** @type {typeof ArrayEntity<T> & {type: T, grammar: P<ArrayEntity<T>> }} */(
+        const result = /** @type {{type: T, grammar: P<ArrayEntity<T>> } & typeof ArrayEntity<T>} */(
             this.asUniqueClass()
         )
         result.type = type

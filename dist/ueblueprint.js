@@ -2756,8 +2756,10 @@ class IEntity {
     /**
      * @template {typeof IEntity} T
      * @this {T}
+     * @param {(type: T) => (InstanceType<T> | NullEntity)} value
+     * @returns {T}
      */
-    static withDefault(value = /** @type {(type: T) => (InstanceType<T> | NullEntity)} */(type => new type())) {
+    static withDefault(value = type => new type()) {
         const result = this.asUniqueClass();
         result.default = value;
         return result
@@ -3675,22 +3677,39 @@ class MirroredEntity extends IEntity {
         this.getter = getter;
     }
 
+    static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
+        return this.getTargetType()?.grammar.map(v => new this(() => v))
+    }
+
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {(type: T) => (InstanceType<T> | NullEntity)} value
+     * @returns {T}
+     */
+    // @ts-expect-error
+    static withDefault(value = type => new type(() => new (type.type)())) {
+        // @ts-expect-error
+        return super.withDefault(value)
+    }
+
     /**
      * @template {typeof IEntity} T
      * @param {T} type
-     * @returns {typeof MirroredEntity<T>}
      */
     static of(type) {
-        const result = this.asUniqueClass();
+        const result = /** @type {{type: T, grammar: P<MirroredEntity<T>> } & typeof MirroredEntity<T>} */(
+            this.asUniqueClass()
+        );
         result.type = type;
-        result.grammar = result.getTargetType().grammar.map(v => new this());
+        result.grammar = result.createGrammar();
         return result
     }
 
     /** @returns {typeof IEntity} */
     static getTargetType() {
         const result = this.type;
-        if (result.prototype instanceof MirroredEntity) {
+        if (result?.prototype instanceof MirroredEntity) {
             return /** @type {typeof MirroredEntity} */(result).getTargetType()
         }
         return result
@@ -3707,6 +3726,14 @@ class MirroredEntity extends IEntity {
     ) {
         this.serialize = this.getter().serialize.bind(this.getter());
         return this.serialize(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (other instanceof MirroredEntity) {
+            other = other.getter?.();
+        }
+        return this.getter?.().equals(other)
     }
 
     valueOf() {
@@ -4347,10 +4374,21 @@ class ArrayEntity extends IEntity {
 
     /**
      * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagInlined(value = true) {
+        const result = this.asUniqueClass();
+        result.inlined = value;
+        result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar());
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
      * @param {T} type
      */
     static of(type) {
-        const result = /** @type {typeof ArrayEntity<T> & {type: T, grammar: P<ArrayEntity<T>> }} */(
+        const result = /** @type {{type: T, grammar: P<ArrayEntity<T>> } & typeof ArrayEntity<T>} */(
             this.asUniqueClass()
         );
         result.type = type;
@@ -5620,7 +5658,7 @@ class PinEntity extends IEntity {
         if (indexElement >= 0) {
             this.LinkedTo.values.splice(indexElement, 1);
             if (this.LinkedTo.length === 0 && PinEntity.attributes.LinkedTo.default === undefined) {
-                this.LinkedTo = undefined;
+                this.LinkedTo.values = [];
             }
             return true
         }
@@ -5909,6 +5947,8 @@ class ObjectEntity extends IEntity {
     }
 
     static #nameRegex = /^(\w+?)(?:_(\d+))?$/
+    /** @type {(k: String) => String} */
+    static printKey = k => !k.startsWith(Configuration.subObjectAttributeNamePrefix) ? k : ""
     static attributeSeparator = "\n"
     static wrap = this.notWrapped
     static trailing = true
@@ -6059,9 +6099,14 @@ class ObjectEntity extends IEntity {
     ).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
     static createSubObjectGrammar() {
+        // const self = this.asUniqueClass()
+        // self.trailing = false
         return Parsernostrum.lazy(() => this.grammar)
             .map(object =>
-                values => values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+                values => {
+                    object.trailing = false;
+                    values[Configuration.subObjectAttributeNameFromEntity(object)] = object;
+                }
             )
     }
 
@@ -6174,14 +6219,15 @@ class ObjectEntity extends IEntity {
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
                 // The following attributes are too generic therefore not assigned a MirroredEntity
                 const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName.serialize() === pinName && (pin.recomputesNodeTitleOnChange = true))
+                    this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
                 );
                 const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent();
                 obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue);
                 obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue);
                 obj["B"] = new silentBool(() => rgbaPins[2].DefaultValue);
                 obj["A"] = new silentBool(() => rgbaPins[3].DefaultValue);
-                obj.keys = [...Configuration.rgba, ...super.keys.filter(k => !Configuration.rgba.includes(k))];
+                // Reorder RGBA so that they stay first
+                obj.keys = [...Configuration.rgba, ...obj.keys.filter(k => !Configuration.rgba.includes(k))];
             }
         }
         /** @type {ObjectEntity} */
@@ -6220,37 +6266,36 @@ class ObjectEntity extends IEntity {
         });
     }
 
+    /** @returns {P<ObjectEntity>} */
     static createGrammar() {
-        return /** @type {P<ObjectEntity>} */(
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/Begin +Object/),
             Parsernostrum.seq(
-                Parsernostrum.reg(/Begin +Object/),
-                Parsernostrum.seq(
-                    Parsernostrum.whitespace,
-                    Parsernostrum.alt(
-                        this.createSubObjectGrammar(),
-                        this.customPropertyGrammar,
-                        Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
-                        Grammar.createAttributeGrammar(
-                            this,
-                            Grammar.attributeNameQuoted,
-                            undefined,
-                            undefined,
-                            entity => entity.flagQuoted()
-                        ),
-                        this.inlinedArrayEntryGrammar,
-                    )
+                Parsernostrum.whitespace,
+                Parsernostrum.alt(
+                    this.createSubObjectGrammar(),
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
+                    Grammar.createAttributeGrammar(
+                        this,
+                        Grammar.attributeNameQuoted,
+                        undefined,
+                        undefined,
+                        entity => entity.flagQuoted()
+                    ),
+                    this.inlinedArrayEntryGrammar,
                 )
-                    .map(([_0, entry]) => entry)
-                    .many(),
-                Parsernostrum.reg(/\s+End +Object/),
             )
-                .map(([_0, attributes, _2]) => {
-                    const values = {};
-                    attributes.forEach(attributeSetter => attributeSetter(values));
-                    return new this(values)
-                })
-                .label("ObjectEntity")
+                .map(([_0, entry]) => entry)
+                .many(),
+            Parsernostrum.reg(/\s+End +Object/),
         )
+            .map(([_0, attributes, _2]) => {
+                const values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
+            .label("ObjectEntity")
     }
 
     getClass() {
@@ -6458,7 +6503,7 @@ class ObjectEntity extends IEntity {
 
     isDevelopmentOnly() {
         const nodeClass = this.getClass();
-        return this.EnabledState?.serialize() === "DevelopmentOnly"
+        return this.EnabledState?.toString() === "DevelopmentOnly"
             || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
     }
 
@@ -6496,6 +6541,7 @@ class ObjectEntity extends IEntity {
         return super.showProperty(key)
     }
 
+    /** @param {typeof ObjectEntity} Self */
     serialize(
         insideString = false,
         indentation = "",
@@ -6505,24 +6551,25 @@ class ObjectEntity extends IEntity {
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
-        const moreIndentation = indentation + Configuration.indentation;
+        const deeperIndentation = indentation + Configuration.indentation;
+        const content = super.serialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap);
         let result = indentation + "Begin Object"
-            + (this.Class?.type || this.Class?.path ? ` Class=${this.Class.serialize(insideString)}` : "")
-            + (this.Name ? ` Name=${this.Name.serialize(insideString)}` : "")
-            + (this.Archetype ? ` Archetype=${this.Archetype.serialize(insideString)}` : "")
-            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath=${this.ExportPath.serialize(insideString)}` : "")
-            + "\n"
-            + super.serialize(insideString, moreIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+            + (this.Class?.type || this.Class?.path ? ` Class${keySeparator}${this.Class.serialize(insideString)}` : "")
+            + (this.Name ? ` Name${keySeparator}${this.Name.serialize(insideString)}` : "")
+            + (this.Archetype ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}` : "")
+            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}` : "")
+            + (content ? attributeSeparator + content : "")
             + (!this.CustomProperties.Self().ignored
                 ? this.getCustomproperties().map(pin =>
-                    moreIndentation
+                    deeperIndentation
                     + printKey("CustomProperties ")
                     + pin.serialize(insideString)
-                    + this.Self().attributeSeparator
-                ).join("")
+                ).join(this.Self().attributeSeparator)
                 : ""
             )
-            + indentation + "End Object\n";
+            + attributeSeparator
+            + indentation + "End Object"
+            + (this.trailing ? attributeSeparator : "");
         return result
     }
 }
@@ -8934,12 +8981,12 @@ class VariableOperationNodeTemplate extends VariableManagementNodeTemplate {
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @typedef {import("../../element/PinElement.js").default<T>} PinElement
  */
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends ITemplate<PinElement<T>>
  */
 class PinTemplate extends ITemplate {
@@ -9040,7 +9087,7 @@ class PinTemplate extends ITemplate {
             case "Set": return SVGIcon.setPin
             case "Map": return SVGIcon.mapPin
         }
-        if (this.element.entity.PinType?.PinCategory?.valueOf().toLocaleLowerCase() === "delegate") {
+        if (this.element.entity.PinType?.PinCategory?.toString().toLocaleLowerCase() === "delegate") {
             return SVGIcon.delegate
         }
         if (this.element.nodeElement?.template instanceof VariableOperationNodeTemplate) {
@@ -11364,13 +11411,17 @@ class InputElement extends IElement {
     }
 }
 
-/** @extends PinTemplate<Boolean> */
+/** @extends PinTemplate<BooleanEntity> */
 class BoolPinTemplate extends PinTemplate {
 
     /** @type {HTMLInputElement?} */
     #input
 
-    #onChangeHandler = () => this.element.setDefaultValue(this.#input.checked)
+    #onChangeHandler = () => {
+        const entity = this.element.getDefaultValue();
+        entity.value = this.#input.checked;
+        this.element.setDefaultValue(entity);
+    }
 
     /** @param {PropertyValues} changedProperties */
     firstUpdated(changedProperties) {
@@ -11397,7 +11448,7 @@ class BoolPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue === true}" />
+            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue.valueOf() === true}" />
         `
     }
 }
@@ -12539,10 +12590,7 @@ class PinElement extends IElement {
     }
 
     createPinReference() {
-        return new PinReferenceEntity({
-            objectName: new StringEntity(this.nodeElement.getNodeName()),
-            pinGuid: this.getPinId(),
-        })
+        return new PinReferenceEntity(new SymbolEntity(this.nodeElement.getNodeName()), this.getPinId())
     }
 
     getPinId() {
@@ -12597,7 +12645,7 @@ class PinElement extends IElement {
 
     /** @param  {IElement[]} nodesWhitelist */
     sanitizeLinks(nodesWhitelist = []) {
-        this.entity.LinkedTo = new ArrayEntity(
+        this.entity.LinkedTo = new (PinEntity.attributes.LinkedTo)(
             this.entity.LinkedTo?.valueOf().filter(pinReference => {
                 let pin = this.blueprint.getPin(pinReference);
                 if (pin) {
