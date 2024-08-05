@@ -11448,7 +11448,7 @@ class BoolPinTemplate extends PinTemplate {
 
     renderInput() {
         return x`
-            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue.valueOf() === true}" />
+            <input type="checkbox" class="ueb-pin-input-wrapper ueb-pin-input" ?checked="${this.element.defaultValue?.valueOf() === true}" />
         `
     }
 }
@@ -12487,10 +12487,11 @@ function pinTemplate(entity) {
     if (entity.PinType.bIsReference?.valueOf() && !entity.PinType.bIsConst?.valueOf()) {
         return inputPinTemplates["MUTABLE_REFERENCE"]
     }
-    if (entity.getType() === "exec") {
+    const type = entity.getType();
+    if (type === "exec") {
         return ExecPinTemplate
     }
-    return (entity.isInput() ? inputPinTemplates[entity.getType()] : PinTemplate) ?? PinTemplate
+    return (entity.isInput() ? inputPinTemplates[type] : PinTemplate) ?? PinTemplate
 }
 
 /**

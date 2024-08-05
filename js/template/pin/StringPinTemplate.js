@@ -1,5 +1,5 @@
 import IInputPinTemplate from "./IInputPinTemplate.js"
 
-/** @extends IInputPinTemplate<String> */
+/** @extends IInputPinTemplate<StringEntity> */
 export default class StringPinTemplate extends IInputPinTemplate {
 }

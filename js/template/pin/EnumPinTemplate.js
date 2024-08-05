@@ -48,7 +48,7 @@ export default class EnumPinTemplate extends IInputPinTemplate {
             <ueb-dropdown
                 class="ueb-pin-input-wrapper ueb-pin-input"
                 .options="${this.#dropdownEntries}"
-                .selectedOption="${this.element.defaultValue.value}"
+                .selectedOption="${this.element.defaultValue}"
             >
             </ueb-dropdown>
         `

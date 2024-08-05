@@ -59,6 +59,7 @@
  * @typedef {import("./js/entity/EnumEntity.js").default} EnumEntity
  * @typedef {import("./js/entity/FormatTextEntity.js").default} FormatTextEntity
  * @typedef {import("./js/entity/FunctionReferenceEntity.js").default} FunctionReferenceEntity
+ * @typedef {import("./js/entity/StringEntity.js").default} StringEntity
  * @typedef {import("./js/entity/GuidEntity.js").default} GuidEntity
  * @typedef {import("./js/entity/IEntity.js").default} IEntity
  * @typedef {import("./js/entity/Integer64Entity.js").default} Integer64Entity
