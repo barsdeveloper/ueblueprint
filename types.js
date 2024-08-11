@@ -54,12 +54,10 @@
  * @typedef {import("./js/entity/ByteEntity.js").default} ByteEntity
  * @typedef {import("./js/entity/ColorChannelEntity.js").default} ColorChannelEntity
  * @typedef {import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntity
- * @typedef {typeof import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntityConstructor
  * @typedef {import("./js/entity/EnumDisplayValueEntity.js").default} EnumDisplayValueEntity
  * @typedef {import("./js/entity/EnumEntity.js").default} EnumEntity
  * @typedef {import("./js/entity/FormatTextEntity.js").default} FormatTextEntity
  * @typedef {import("./js/entity/FunctionReferenceEntity.js").default} FunctionReferenceEntity
- * @typedef {import("./js/entity/StringEntity.js").default} StringEntity
  * @typedef {import("./js/entity/GuidEntity.js").default} GuidEntity
  * @typedef {import("./js/entity/IEntity.js").default} IEntity
  * @typedef {import("./js/entity/Integer64Entity.js").default} Integer64Entity
@@ -71,6 +69,7 @@
  * @typedef {import("./js/entity/MacroGraphReferenceEntity.js").default} MacroGraphReferenceEntity
  * @typedef {import("./js/entity/NaturalNumberEntity.js").default} NaturalNumberEntity
  * @typedef {import("./js/entity/NullEntity.js").default} NullEntity
+ * @typedef {import("./js/entity/NumberEntity.js").default} NumberEntity
  * @typedef {import("./js/entity/ObjectEntity.js").default} ObjectEntity
  * @typedef {import("./js/entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
  * @typedef {import("./js/entity/objects/KnotEntity.js").default} KnotEntity
@@ -82,6 +81,7 @@
  * @typedef {import("./js/entity/SimpleSerializationRotatorEntity.js").default} SimpleSerializationRotatorEntity
  * @typedef {import("./js/entity/SimpleSerializationVector2DEntity.js").default} SimpleSerializationVector2DEntity
  * @typedef {import("./js/entity/SimpleSerializationVectorEntity.js").default} SimpleSerializationVectorEntity
+ * @typedef {import("./js/entity/StringEntity.js").default} StringEntity
  * @typedef {import("./js/entity/SymbolEntity.js").default} SymbolEntity
  * @typedef {import("./js/entity/TerminalTypeEntity.js").default} TerminalTypeEntity
  * @typedef {import("./js/entity/UnknownKeysEntity.js").default} UnknownKeysEntity
@@ -97,6 +97,7 @@
  * @typedef {import("./js/template/ColorSliderTemplate.js").default} ColorSliderTemplate
  * @typedef {import("./js/template/IDraggableControlTemplate.js").default} IDraggableControlTemplate
  * @typedef {import("./js/template/IDraggablePositionedTemplate.js").default} IDraggablePositionedTemplate
+ * @typedef {typeof import("./js/entity/ComputedTypeEntity.js").default} ComputedTypeEntityConstructor
  * @typedef {import("./js/template/IDraggableTemplate.js").default} IDraggableTemplate
  * @typedef {import("./js/template/IFromToPositionedTemplate.js").default} IFromToPositionedTemplate
  * @typedef {import("./js/template/IResizeableTemplate.js").default} IResizeableTemplate

@@ -86,8 +86,8 @@ test("ArrayEntity", () => {
             new NumberEntity(6),
         ]))).toBeFalsy()
         expect(value.serialize()).toEqual("(1,2,3,4,5,6)")
-        expect(value.Self().className()).toEqual("ArrayEntity")
-        value.values.map(v => v.Self().className()).forEach(v => expect(v).toEqual("NumberEntity"))
+        expect(value.constructor.className()).toEqual("ArrayEntity")
+        value.values.map(v => v.constructor.className()).forEach(v => expect(v).toEqual("NumberEntity"))
         value = grammar.parse("(1, 2, )")
         expect(value).toEqual(new ArrayEntity([
             new NumberEntity(1),
@@ -116,7 +116,7 @@ test("ArrayEntity", () => {
             new IntegerEntity(-2),
         ]))
         expect(value.serialize()).toEqual("(0,-1,-2)")
-        value.values.map(v => v.Self().className()).forEach(v => expect(v).toEqual("IntegerEntity"))
+        value.values.map(v => v.constructor.className()).forEach(v => expect(v).toEqual("IntegerEntity"))
         value = grammar.parse("(-0, -1, -2,)")
         expect(value).toEqual(new ArrayEntity([
             new IntegerEntity(0),
@@ -146,7 +146,7 @@ test("ArrayEntity", () => {
             })
         ]))
         expect(value.serialize()).toEqual('("alpha","beta",123,3BEF2168446CAA32D5B54289FAB2F0BA,Some(a=1,b="number:\\"2\\""))')
-        expect(value.values.map(v => v.Self().className())).toEqual([
+        expect(value.values.map(v => v.constructor.className())).toEqual([
             "StringEntity",
             "StringEntity",
             "NumberEntity",
@@ -225,6 +225,17 @@ test("ArrayEntity", () => {
         ]))
         expect(value.serialize()).toEqual("(One(a=(1,(2,(3,(4)))),b=()),)")
     }
+    {
+        // Serialized subentitites
+        const value = new ArrayEntity([
+            new StringEntity("alpha"),
+            new (ArrayEntity.flagSerialized())([
+                new (NumberEntity.flagSerialized())(12),
+                new NumberEntity(23),
+            ]),
+        ])
+        expect(value.serialize()).toEqual(String.raw`("alpha","(\"12\",23)")`)
+    }
 })
 
 test("Boolean", () => {
@@ -257,15 +268,27 @@ test("Boolean", () => {
     expect(value.serialize()).toEqual("False")
     expect(value.valueOf()).toBe(false)
     expect(() => grammar.parse("truee")).toThrow("Could not parse")
+
+    expect(BooleanEntity.flagSerialized().grammar.parse("False").serialize()).toEqual(`"False"`)
+    expect(BooleanEntity.flagSerialized().grammar.parse("true").serialize()).toEqual(`"true"`)
 })
 
 test("FormatTextEntity", () => {
     let grammar = FormatTextEntity.grammar
+    let grammar2 = FormatTextEntity.flagSerialized().grammar
 
-    let value = grammar.parse('LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema",   "SplitPinFriendlyNameFormat",  "{PinDisplayName} {ProtoPinDisplayName}"),   "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")')
+    const input = 'LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema",   "SplitPinFriendlyNameFormat",  "{PinDisplayName} {ProtoPinDisplayName}"),   "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")'
+    let value = grammar.parse(input)
+    let value2 = grammar2.parse(input)
+    expect(value).toBeInstanceOf(FormatTextEntity)
+    expect(value2).toBeInstanceOf(FormatTextEntity)
     expect(value.toString()).toEqual("Out Hit Blocking Hit")
     expect(value.serialize())
         .toEqual('LOCGEN_FORMAT_NAMED(NSLOCTEXT("KismetSchema", "SplitPinFriendlyNameFormat", "{PinDisplayName} {ProtoPinDisplayName}"), "PinDisplayName", "Out Hit", "ProtoPinDisplayName", "Blocking Hit")')
+    expect(value2.serialize())
+        .toEqual(String.raw`"LOCGEN_FORMAT_NAMED(NSLOCTEXT(\"KismetSchema\", \"SplitPinFriendlyNameFormat\", \"{PinDisplayName} {ProtoPinDisplayName}\"), \"PinDisplayName\", \"Out Hit\", \"ProtoPinDisplayName\", \"Blocking Hit\")"`)
+    expect(value.equals(value2)).toBeTruthy()
+    expect(value2.equals(value)).toBeTruthy()
 
     value = grammar.parse(String.raw`LOCGEN_FORMAT_ORDERED(
         NSLOCTEXT(
@@ -285,10 +308,12 @@ test("FormatTextEntity", () => {
 })
 
 test("FunctionReferenceEntity", () => {
-    let grammar = FunctionReferenceEntity.grammar
+    const grammar = FunctionReferenceEntity.grammar
+    const grammar2 = FunctionReferenceEntity.flagSerialized().grammar
     {
         const s = `(MemberParent=/Script/Engine.BlueprintGeneratedClass'"/Temp/Untitled_1.Untitled_C"',MemberName="MoveCharacterRandomLocation",MemberGuid=9C3BF2E5A27C4B45825C025A224639EA)`
         const value = grammar.parse(s)
+        const value2 = grammar2.parse(s)
         expect(value).toBeInstanceOf(FunctionReferenceEntity)
         expect(value.equals(new FunctionReferenceEntity({
             MemberParent: new ObjectReferenceEntity(
@@ -298,6 +323,8 @@ test("FunctionReferenceEntity", () => {
             MemberName: new StringEntity("MoveCharacterRandomLocation"),
             MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
         }))).toBeTruthy()
+        expect(value.equals(value2)).toBeTruthy()
+        expect(value2.equals(value)).toBeTruthy()
         expect(value.equals(new FunctionReferenceEntity({
             MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
             MemberName: new StringEntity("MoveCharacterRandomLocation"),
@@ -308,7 +335,7 @@ test("FunctionReferenceEntity", () => {
         }))).toBeTruthy()
         expect(value.equals(new FunctionReferenceEntity({
             MemberParent: new ObjectReferenceEntity(
-                "/Script/Engine.BlueprintGeneratedClass2",
+                "/Script/Engine.BlueprintGeneratedClass2", // This is different
                 "/Temp/Untitled_1.Untitled_C"
             ),
             MemberName: new StringEntity("MoveCharacterRandomLocation"),
@@ -319,7 +346,7 @@ test("FunctionReferenceEntity", () => {
                 "/Script/Engine.BlueprintGeneratedClass",
                 "/Temp/Untitled_1.Untitled_C"
             ),
-            MemberName: new StringEntity("MoveCharacterRandomLocation2"),
+            MemberName: new StringEntity("MoveCharacterRandomLocation2"), // This is different
             MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
         }))).toBeFalsy()
         expect(value.equals(new FunctionReferenceEntity({
@@ -327,11 +354,15 @@ test("FunctionReferenceEntity", () => {
                 "/Script/Engine.BlueprintGeneratedClass",
                 "/Temp/Untitled_1.Untitled_C"
             ),
+            // Missing MemberName
             MemberGuid: new GuidEntity("9C3BF2E5A27C4B45825C025A224639EA"),
         }))).toBeFalsy()
         expect(value.serialize()).toEqual(s)
         expect(value.serialize(true)).toEqual(
             String.raw`(MemberParent=/Script/Engine.BlueprintGeneratedClass'\"/Temp/Untitled_1.Untitled_C\"',MemberName=\"MoveCharacterRandomLocation\",MemberGuid=9C3BF2E5A27C4B45825C025A224639EA)`
+        )
+        expect(value2.serialize()).toEqual(
+            String.raw`"(MemberParent=/Script/Engine.BlueprintGeneratedClass'\"/Temp/Untitled_1.Untitled_C\"',MemberName=\"MoveCharacterRandomLocation\",MemberGuid=9C3BF2E5A27C4B45825C025A224639EA)"`
         )
     }
     {
@@ -372,7 +403,9 @@ test("FunctionReferenceEntity", () => {
     {
         const s = `(Unexpected="Hello")`
         const value = grammar.parse(s)
+        const value2 = grammar2.parse(s)
         expect(value).toBeInstanceOf(FunctionReferenceEntity)
+        expect(value2).toBeInstanceOf(FunctionReferenceEntity)
         expect(value.equals(new FunctionReferenceEntity({
             Unexpected: new StringEntity("Hello")
         }))).toBeTruthy()
@@ -385,7 +418,7 @@ test("FunctionReferenceEntity", () => {
 test("GuidEntity", () => {
     let grammar = GuidEntity.flagInlined().grammar
     {
-        let value = grammar.parse("0556a3ecabf648d0a5c07b2478e9dd32")
+        const value = grammar.parse("0556a3ecabf648d0a5c07b2478e9dd32")
         expect(value).toBeInstanceOf(GuidEntity)
         expect(value).toEqual(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))
         expect(value.equals(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
@@ -457,6 +490,8 @@ test("IntegerEntity", () => {
     expect(value.serialize()).toEqual("1000000000")
 
     expect(() => grammar.parse("1.2").value).toThrow()
+
+    expect(IntegerEntity.flagSerialized().grammar.parse("589").serialize()).toEqual(`"589"`)
 })
 
 test("KeyBindingEntity", () => {
@@ -565,27 +600,77 @@ test("LinearColorEntity", () => {
 test("MirroredEntity", () => {
     const grammarBool = MirroredEntity.of(BooleanEntity).grammar
     const grammarNumber = MirroredEntity.of(NumberEntity).grammar
+    const grammarNumber2 = MirroredEntity.of(NumberEntity.withPrecision(5)).grammar
     const a = grammarBool.parse("true")
-    const b = grammarBool.parse("true")
+    const b = grammarBool.parse("True")
     const c = grammarBool.parse("false")
+    const d = grammarNumber.parse("1")
+    const e = grammarNumber.parse("-12.67")
+    const f = grammarNumber2.parse("1")
+
+    expect(() => grammarBool.parse("123")).toThrow()
+    expect(() => grammarNumber.parse("abc")).toThrow()
 
     expect(a.equals(a)).toBeTruthy()
     expect(a.equals(b)).toBeTruthy()
     expect(a.equals(c)).toBeFalsy()
+    expect(a.equals(d)).toBeFalsy()
+    expect(a.equals(e)).toBeFalsy()
+    expect(a.equals(f)).toBeFalsy()
     expect(a.equals(new BooleanEntity(true))).toBeTruthy()
     expect(a.equals(new BooleanEntity(false))).toBeFalsy()
 
     expect(b.equals(a)).toBeTruthy()
     expect(b.equals(b)).toBeTruthy()
     expect(b.equals(c)).toBeFalsy()
+    expect(b.equals(d)).toBeFalsy()
+    expect(b.equals(e)).toBeFalsy()
+    expect(b.equals(f)).toBeFalsy()
     expect(b.equals(new BooleanEntity(true))).toBeTruthy()
     expect(b.equals(new BooleanEntity(false))).toBeFalsy()
 
     expect(c.equals(a)).toBeFalsy()
     expect(c.equals(b)).toBeFalsy()
     expect(c.equals(c)).toBeTruthy()
+    expect(c.equals(d)).toBeFalsy()
+    expect(c.equals(e)).toBeFalsy()
+    expect(c.equals(f)).toBeFalsy()
     expect(c.equals(new BooleanEntity(true))).toBeFalsy()
     expect(c.equals(new BooleanEntity(false))).toBeTruthy()
+
+    expect(d.equals(a)).toBeFalsy()
+    expect(d.equals(b)).toBeFalsy()
+    expect(d.equals(c)).toBeFalsy()
+    expect(d.equals(d)).toBeTruthy()
+    expect(d.equals(e)).toBeFalsy()
+    expect(d.equals(f)).toBeTruthy()
+    expect(d.equals(new BooleanEntity(true))).toBeFalsy()
+    expect(d.equals(new IntegerEntity(1))).toBeTruthy()
+    expect(d.equals(new IntegerEntity(2))).toBeFalsy()
+
+    expect(a.serialize()).toEqual("true")
+    expect(b.serialize()).toEqual("True")
+    expect(c.serialize()).toEqual("false")
+    expect(d.serialize()).toEqual("1")
+    expect(e.serialize()).toEqual("-12.67")
+    expect(f.serialize()).toEqual("1.00000")
+
+    const number = new (NumberEntity.flagSerialized())(8)
+    const mirroredEntity = MirroredEntity
+        .of(NumberEntity.withPrecision(3))
+        .withDefault(() => new MirroredEntity(() => number))
+    const mirroredEntity2 = MirroredEntity
+        .of(mirroredEntity)
+        .withDefault(() => new MirroredEntity(() => new MirroredEntity(() => number)))
+    const mirror = new mirroredEntity()
+    const mirror2 = new mirroredEntity2()
+    expect(number.serialize()).toEqual(`"8"`)
+    // Not serialized and also with trailing 0s even though it's printing the same number instance
+    expect(mirror.serialize()).toEqual("8.000")
+    expect(mirror2.serialize()).toEqual("8.000")
+
+    const value = mirroredEntity2.grammar.parse("123.4")
+    expect(value.serialize()).toEqual("123.400")
 })
 
 test("NullEntity", () => {
@@ -597,6 +682,7 @@ test("NullEntity", () => {
     expect(value.equals(new NullEntity())).toBeTruthy()
     expect(value.equals(new NumberEntity())).toBeFalsy()
     expect(value.equals(123)).toBeFalsy()
+    expect(NullEntity.flagSerialized().grammar.parse("()").serialize()).toEqual(`"()"`)
     expect(() => grammar.parse("123")).toThrow("Could not parse")
     expect(() => grammar.parse("(a)")).toThrow("Could not parse")
     expect(() => grammar.parse("(")).toThrow("Could not parse")
@@ -608,6 +694,9 @@ test("NumberEntity", () => {
     expect(grammar.parse("+0").value).toBeCloseTo(0, 0.00001)
     expect(grammar.parse("-0").value).toBeCloseTo(0, 0.00001)
     expect(grammar.parse("5").value).toBeCloseTo(5, 0.00001)
+    expect(grammar.parse("5").equals(new NumberEntity(5))).toBeTruthy()
+    expect(grammar.parse("5").equals(new IntegerEntity(5))).toBeTruthy()
+    expect(grammar.parse("5.001").equals(new NumberEntity(5))).toBeFalsy()
     expect(grammar.parse("0.05").value).toBeCloseTo(0.05, 0.00001)
     expect(grammar.parse("-999.666").value).toBeCloseTo(-999.666, 0.001)
     expect(grammar.parse("+45.454500").value).toBeCloseTo(45.4545, 0.001)

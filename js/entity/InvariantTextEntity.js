@@ -27,7 +27,7 @@ export default class InvariantTextEntity extends IEntity {
         )
     }
 
-    serialize() {
+    doSerialize() {
         return this.lookbehind + "(" + this.value + ")"
     }
 

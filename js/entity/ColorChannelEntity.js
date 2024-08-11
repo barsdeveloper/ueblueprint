@@ -16,8 +16,16 @@ export default class ColorChannelEntity extends IEntity {
         )
     }
 
-    serialize() {
-        return this.value.toFixed(6)
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value.toFixed(6)
+        if (Self.serialized) {
+            result = `"${result}"`
+        }
+        return result
     }
 
     valueOf() {

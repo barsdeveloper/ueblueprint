@@ -21,8 +21,16 @@ export default class SymbolEntity extends IEntity {
         this.value = value
     }
 
-    serialize() {
-        return this.value
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value
+        if (Self.serialized) {
+            result = `"${result}"`
+        }
+        return result
     }
 
     toString() {

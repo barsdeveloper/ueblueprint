@@ -7,10 +7,12 @@ export default class NumberEntity extends IEntity {
 
     static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
     static grammar = this.createGrammar()
+    /** @type {Number} */
+    static precision // Can override this.precision
 
-    #precision = 0
+    #precision
     get precision() {
-        return this.#precision
+        return /** @type {typeof NumberEntity} */(this.constructor).precision ?? this.#precision
     }
     set precision(value) {
         this.#precision = value
@@ -31,10 +33,12 @@ export default class NumberEntity extends IEntity {
         this._value = value
     }
 
-    constructor(value = 0, precision = 0) {
+    constructor(value = 0, precision = null) {
         super()
         this.value = Number(value)
-        this.#precision = Number(precision)
+        if (precision !== null) {
+            this.#precision = Number(precision)
+        }
     }
 
     static createGrammar() {
@@ -49,6 +53,17 @@ export default class NumberEntity extends IEntity {
         )
     }
 
+    /**
+     * @template {typeof NumberEntity} T
+     * @this {T}
+     * @returns {T}
+     */
+    static withPrecision(value = 0) {
+        const result = this.asUniqueClass()
+        result.precision = value
+        return result
+    }
+
     /** @param {Number} num */
     static printNumber(num) {
         if (num == Number.POSITIVE_INFINITY) {
@@ -59,14 +74,23 @@ export default class NumberEntity extends IEntity {
         return Utility.minDecimals(num)
     }
 
-    serialize() {
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof NumberEntity} */(this.constructor),
+    ) {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"
         }
         if (this.value === Number.NEGATIVE_INFINITY) {
             return "-inf"
         }
-        return this.#precision ? this.value.toFixed(this.#precision) : this.value.toString()
+        const precision = Self.precision ?? this.precision
+        let result = precision !== undefined ? this.value.toFixed(precision) : this.value.toString()
+        if (Self.serialized) {
+            result = `"${result}"`
+        }
+        return result
     }
 
     valueOf() {

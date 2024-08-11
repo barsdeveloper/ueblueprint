@@ -44,14 +44,18 @@ export default class BooleanEntity extends IEntity {
         this.value = value
     }
 
-    serialize() {
-        return this.value
-            ? this.#uppercase
-                ? "True"
-                : "true"
-            : this.#uppercase
-                ? "False"
-                : "false"
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value
+            ? this.#uppercase ? "True" : "true"
+            : this.#uppercase ? "False" : "false"
+        if (Self.serialized) {
+            result = `"${result}"`
+        }
+        return result
     }
 
     valueOf() {

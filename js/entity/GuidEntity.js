@@ -3,6 +3,7 @@ import P from "parsernostrum"
 
 var crypto
 if (typeof window === "undefined") {
+    // When used in nodejs, mainly for test purpose
     import("crypto").then(mod => crypto = mod.default).catch()
 } else {
     crypto = window.crypto
@@ -33,8 +34,16 @@ export default class GuidEntity extends IEntity {
         )
     }
 
-    serialize() {
-        return this.value
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value
+        if (Self.serialized) {
+            result = `"${result}"`
+        }
+        return result
     }
 
     toString() {

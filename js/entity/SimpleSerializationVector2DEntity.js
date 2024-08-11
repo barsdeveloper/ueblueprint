@@ -26,8 +26,10 @@ export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
         )
     }
 
-    serialize() {
-        const attributeSeparator = this.Self().attributeSeparator
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationVector2DEntity} */(
+            this.constructor
+        ).attributeSeparator
         return this.X.serialize() + attributeSeparator
             + this.Y.serialize() + (this.trailing ? attributeSeparator : "")
     }

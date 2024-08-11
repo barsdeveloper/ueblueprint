@@ -17,6 +17,7 @@ import MacroGraphReferenceEntity from "./MacroGraphReferenceEntity.js"
 import MirroredEntity from "./MirroredEntity.js"
 import NaturalNumberEntity from "./NaturalNumberEntity.js"
 import NullEntity from "./NullEntity.js"
+import NumberEntity from "./NumberEntity.js"
 import ObjectReferenceEntity from "./ObjectReferenceEntity.js"
 import PinEntity from "./PinEntity.js"
 import ScriptVariableEntity from "./ScriptVariableEntity.js"
@@ -50,6 +51,8 @@ export default class ObjectEntity extends IEntity {
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
+        ConstA: MirroredEntity.of(NumberEntity),
+        ConstB: MirroredEntity.of(NumberEntity),
         PinTags: ArrayEntity.of(NullEntity).flagInlined(),
         PinNames: ArrayEntity.of(StringEntity).flagInlined(),
         AxisKey: SymbolEntity,
@@ -156,7 +159,7 @@ export default class ObjectEntity extends IEntity {
         .chain(
             /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
             ([[symbol, quoted], index]) =>
-                this.attributes[symbol].grammar.map(currentValue =>
+                (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
                     values => {
                         if (values[symbol] === undefined) {
                             let arrayEntity = ArrayEntity
@@ -220,12 +223,14 @@ export default class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey
         /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType
         /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class
         /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor
         /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName
         /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName
-        /** @type {ExtractType<typeof ObjectEntity.attributes.CustomProperties>} */ this.CustomProperties
+        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference
         /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState
@@ -306,17 +311,37 @@ export default class ObjectEntity extends IEntity {
             obj.MaterialExpressionEditorX && (obj.MaterialExpressionEditorX.getter = () => this.NodePosX)
             obj.MaterialExpressionEditorY && (obj.MaterialExpressionEditorY.getter = () => this.NodePosY)
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
-                // The following attributes are too generic therefore not assigned a MirroredEntity
-                const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
-                )
+                const rgbaPins = Configuration.rgba.map(pinName => {
+                    const result = this.getPinEntities().find(pin => pin.PinName.toString() === pinName)
+                    result.recomputesNodeTitleOnChange = true
+                    return result
+                })
+                // Reorder keys so that the added ones stay first
+                obj.keys = [...Configuration.rgba, ...obj.keys]
                 const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent()
                 obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue)
                 obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue)
                 obj["B"] = new silentBool(() => rgbaPins[2].DefaultValue)
                 obj["A"] = new silentBool(() => rgbaPins[3].DefaultValue)
-                // Reorder RGBA so that they stay first
-                obj.keys = [...Configuration.rgba, ...obj.keys.filter(k => !Configuration.rgba.includes(k))]
+            } else if (this.getType() === Configuration.paths.materialExpressionSubtract) {
+                const silentNumber = MirroredEntity
+                    .of(NumberEntity.withPrecision(6))
+                    .withDefault(() => new MirroredEntity(() => new NumberEntity(1)))
+                    .flagSilent()
+                const pinA = this.getCustomproperties().find(pin => pin.PinName?.toString() === "A")
+                const pinB = this.getCustomproperties().find(pin => pin.PinName?.toString() === "B")
+                if (pinA || pinB) {
+                    // Reorder keys so that the added ones stay first
+                    obj.keys = ["ConstA", "ConstB", ...obj.keys]
+                    if (pinA) {
+                        pinA.recomputesNodeTitleOnChange = true
+                        obj.ConstA = new silentNumber(() => pinA.DefaultValue)
+                    }
+                    if (pinB) {
+                        pinB.recomputesNodeTitleOnChange = true
+                        obj.ConstB = new silentNumber(() => pinB.DefaultValue)
+                    }
+                }
             }
         }
         /** @type {ObjectEntity} */
@@ -390,7 +415,7 @@ export default class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? (this.ExportPath?.path ? this.ExportPath.path : this.ExportPath?.type)
+                ?? this.ExportPath.type
                 ?? ""
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -633,29 +658,29 @@ export default class ObjectEntity extends IEntity {
     }
 
     /** @param {typeof ObjectEntity} Self */
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof ObjectEntity} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         const deeperIndentation = indentation + Configuration.indentation
-        const content = super.serialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+        const content = super.doSerialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
         let result = indentation + "Begin Object"
             + (this.Class?.type || this.Class?.path ? ` Class${keySeparator}${this.Class.serialize(insideString)}` : "")
             + (this.Name ? ` Name${keySeparator}${this.Name.serialize(insideString)}` : "")
             + (this.Archetype ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}` : "")
             + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}` : "")
             + (content ? attributeSeparator + content : "")
-            + (!this.CustomProperties.Self().ignored
+            + (!/** @type {typeof IEntity} */(this.CustomProperties.constructor).ignored
                 ? this.getCustomproperties().map(pin =>
                     deeperIndentation
                     + printKey("CustomProperties ")
                     + pin.serialize(insideString)
-                ).join(this.Self().attributeSeparator)
+                ).join(Self.attributeSeparator)
                 : ""
             )
             + attributeSeparator

@@ -19,13 +19,7 @@ export default class StringEntity extends IEntity {
         )
     }
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
+    doSerialize(insideString = false) {
         let result = `"${Utility.escapeString(this.value)}"`
         if (insideString) {
             result = Utility.escapeString(result, false)

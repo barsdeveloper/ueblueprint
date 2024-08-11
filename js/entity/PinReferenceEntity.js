@@ -29,7 +29,7 @@ export default class PinReferenceEntity extends IEntity {
         )
     }
 
-    serialize() {
+    doSerialize() {
         return this.objectName.serialize() + " " + this.pinGuid.serialize()
     }
 }

@@ -59,10 +59,10 @@ export default class ArrayEntity extends IEntity {
         return result
     }
 
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof ArrayEntity<T>} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,

@@ -31,8 +31,10 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
         )
     }
 
-    serialize() {
-        const attributeSeparator = this.Self().attributeSeparator
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationVectorEntity} */(
+            this.constructor
+        ).attributeSeparator
         return this.X.serialize() + attributeSeparator
             + this.Y.serialize() + attributeSeparator
             + this.Z.serialize() + (this.trailing ? attributeSeparator : "")

@@ -13,7 +13,15 @@ export default class NullEntity extends IEntity {
         )
     }
 
-    serialize() {
-        return "()"
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor)
+    ) {
+        let result = "()"
+        if (Self.serialized) {
+            result = `"${result}"`
+        }
+        return result
     }
 }

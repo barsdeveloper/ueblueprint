@@ -31,11 +31,13 @@ export default class Integer64Entity extends IEntity {
     serialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
+        Self = /** @type {typeof IEntity} */(this.constructor),
     ) {
-        return this.value.toString()
+        let result = this.value.toString()
+        if (Self.serialized) {
+            result = `"${result}"`
+        }
+        return result
     }
 
     valueOf() {

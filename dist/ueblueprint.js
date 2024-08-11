@@ -190,6 +190,7 @@ class Configuration {
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
         materialExpressionMaterialFunctionCall: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
+        materialExpressionSubtract: "/Script/Engine.MaterialExpressionSubtract",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
@@ -2647,7 +2648,7 @@ class IEntity {
     static silent = false // Do not serialize if default
     static trailing = false // Add attribute separator after the last attribute when serializing
 
-    #trailing = this.Self().trailing
+    #trailing = this.constructor.trailing
     get trailing() {
         return this.#trailing
     }
@@ -2655,7 +2656,7 @@ class IEntity {
         this.#trailing = value;
     }
 
-    #lookbehind = /** @type {String} */(this.Self().lookbehind)
+    #lookbehind = /** @type {String} */(this.constructor.lookbehind)
     get lookbehind() {
         return this.#lookbehind.trim()
     }
@@ -2672,16 +2673,8 @@ class IEntity {
         this.#keys = [... new Set(value)];
     }
 
-    /**
-     * @protected
-     * @returns {P<IEntity>}
-     */
-    static createGrammar() {
-        return this.unknownEntityGrammar
-    }
-
     constructor(values = {}) {
-        const attributes = this.Self().attributes;
+        const attributes = /** @type {typeof IEntity} */(this.constructor).attributes;
         const keys = Utility.mergeArrays(
             Object.keys(values),
             Object.entries(attributes).filter(([k, v]) => v.default !== undefined).map(([k, v]) => k)
@@ -2712,6 +2705,14 @@ class IEntity {
                 continue
             }
         }
+    }
+
+    /**
+     * @protected
+     * @returns {P<IEntity>}
+     */
+    static createGrammar() {
+        return this.unknownEntityGrammar
     }
 
     static actualClass() {
@@ -2826,23 +2827,23 @@ class IEntity {
     }
 
     /**
-     * @template {typeof IEntity} T
-     * @this {InstanceType<T>}
+     * @protected
+     * @param {String} string
      */
-    Self() {
-        return /** @type {T} */(this.constructor)
+    static asSerializedString(string) {
+        return `"${string.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/g, '\\"')}"`
     }
 
     /** @param {String} key */
     showProperty(key) {
         /** @type {IEntity} */
         let value = this[key];
-        const Self = value.Self();
-        if (Self.silent && Self.default !== undefined) {
-            if (Self["#default"] === undefined) {
-                Self["#default"] = Self.default(Self);
+        const valueType = /** @type {typeof IEntity} */(value.constructor);
+        if (valueType.silent && valueType.default !== undefined) {
+            if (valueType["#default"] === undefined) {
+                valueType["#default"] = valueType.default(valueType);
             }
-            const defaultValue = Self["#default"];
+            const defaultValue = valueType["#default"];
             return !value.equals(defaultValue)
         }
         return true
@@ -2885,10 +2886,10 @@ class IEntity {
     }
 
     /** @this {IEntity | Array} */
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof IEntity} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,
@@ -2900,6 +2901,7 @@ class IEntity {
         for (const key of keys) {
             /** @type {IEntity} */
             const value = this[key];
+            const valueType = /** @type {typeof IEntity} */(value?.constructor);
             let keyValue = this instanceof Array ? `(${key})` : key;
             if (value === undefined || this instanceof IEntity && !this.showProperty(key)) {
                 continue
@@ -2909,8 +2911,8 @@ class IEntity {
             } else {
                 result += attributeSeparator;
             }
-            if (value.Self?.().inlined) {
-                const inlinedPrintKey = value.Self().className() === "ArrayEntity"
+            if (valueType.inlined) {
+                const inlinedPrintKey = valueType.className() === "ArrayEntity"
                     ? k => printKey(`${keyValue}${k}`)
                     : k => printKey(`${keyValue}.${k}`);
                 result += value.serialize(
@@ -2926,15 +2928,12 @@ class IEntity {
             }
             keyValue = printKey(keyValue);
             if (keyValue.length) {
-                if (value.Self().quoted) {
+                if (valueType.quoted) {
                     keyValue = `"${keyValue}"`;
                 }
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator;
             }
             let serialization = value?.serialize(insideString, indentation);
-            if (value.Self().serialized) {
-                serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/g, '\\"')}"`;
-            }
             result += serialization;
         }
         if (this instanceof IEntity && this.trailing && result.length) {
@@ -2943,17 +2942,37 @@ class IEntity {
         return wrap(/** @type {IEntity} */(this), result)
     }
 
-    /** @param {IEntity} other */
+    /** @this {IEntity | Array} */
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        let result = this instanceof Array
+            ? IEntity.prototype.doSerialize.bind(this)(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+            : this.doSerialize(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap);
+        if (Self.serialized) {
+            result = IEntity.asSerializedString(result);
+        }
+        return result
+    }
+
     equals(other) {
         if (!(other instanceof IEntity)) {
             return false
         }
         const thisKeys = Object.keys(this);
         const otherKeys = Object.keys(other);
+        const thisType = /** @type {typeof IEntity} */(this.constructor).actualClass();
+        const otherType = /** @type {typeof IEntity} */(other.constructor).actualClass();
         if (
             thisKeys.length !== otherKeys.length
             || this.lookbehind != other.lookbehind
-            || !(other instanceof this.Self().actualClass()) && !(this instanceof other.Self().actualClass())
+            || !(other instanceof thisType) && !(this instanceof otherType)
         ) {
             return false
         }
@@ -2967,6 +2986,15 @@ class IEntity {
             if (a instanceof IEntity) {
                 if (!a.equals(b)) {
                     return false
+                }
+            } else if (a instanceof Array && b instanceof Array) {
+                if (a.length !== b.length) {
+                    return false
+                }
+                for (let j = 0; j < a.length; ++j) {
+                    if (!(a[j] instanceof IEntity && a[j].equals(b[j])) && a[j] !== b[j]) {
+                        return false
+                    }
                 }
             } else {
                 if (a !== b) {
@@ -3020,14 +3048,18 @@ class BooleanEntity extends IEntity {
         this.value = value;
     }
 
-    serialize() {
-        return this.value
-            ? this.#uppercase
-                ? "True"
-                : "true"
-            : this.#uppercase
-                ? "False"
-                : "false"
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value
+            ? this.#uppercase ? "True" : "true"
+            : this.#uppercase ? "False" : "false";
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
     }
 
     valueOf() {
@@ -3254,8 +3286,16 @@ class ColorChannelEntity extends IEntity {
         )
     }
 
-    serialize() {
-        return this.value.toFixed(6)
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value.toFixed(6);
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
     }
 
     valueOf() {
@@ -3674,16 +3714,19 @@ class MirroredEntity extends IEntity {
     /** @param {() => InstanceType<T>} getter */
     constructor(getter = null) {
         super();
+        const self = /** @type {typeof MirroredEntity<T>} */(this.constructor);
+        getter ??= self.default !== undefined ? /** @type {MirroredEntity} */(self.default(self)).getter : getter;
         this.getter = getter;
     }
 
     static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
-        return this.getTargetType()?.grammar.map(v => new this(() => v))
+        return this.type?.grammar.map(v => new this(() => v))
     }
 
 
     /**
      * @template {typeof IEntity} T
+     * @this {T}
      * @param {(type: T) => (InstanceType<T> | NullEntity)} value
      * @returns {T}
      */
@@ -3706,26 +3749,17 @@ class MirroredEntity extends IEntity {
         return result
     }
 
-    /** @returns {typeof IEntity} */
-    static getTargetType() {
-        const result = this.type;
-        if (result?.prototype instanceof MirroredEntity) {
-            return /** @type {typeof MirroredEntity} */(result).getTargetType()
-        }
-        return result
-    }
-
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof MirroredEntity<T>} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
-        this.serialize = this.getter().serialize.bind(this.getter());
-        return this.serialize(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+        const value = this.getter();
+        return value.serialize(insideString, indentation, Self.type, printKey, keySeparator, attributeSeparator, wrap)
     }
 
     /** @param {IEntity} other */
@@ -3751,10 +3785,12 @@ class NumberEntity extends IEntity {
 
     static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
     static grammar = this.createGrammar()
+    /** @type {Number} */
+    static precision // Can override this.precision
 
-    #precision = 0
+    #precision
     get precision() {
-        return this.#precision
+        return /** @type {typeof NumberEntity} */(this.constructor).precision ?? this.#precision
     }
     set precision(value) {
         this.#precision = value;
@@ -3775,10 +3811,12 @@ class NumberEntity extends IEntity {
         this._value = value;
     }
 
-    constructor(value = 0, precision = 0) {
+    constructor(value = 0, precision = null) {
         super();
         this.value = Number(value);
-        this.#precision = Number(precision);
+        if (precision !== null) {
+            this.#precision = Number(precision);
+        }
     }
 
     static createGrammar() {
@@ -3793,6 +3831,17 @@ class NumberEntity extends IEntity {
         )
     }
 
+    /**
+     * @template {typeof NumberEntity} T
+     * @this {T}
+     * @returns {T}
+     */
+    static withPrecision(value = 0) {
+        const result = this.asUniqueClass();
+        result.precision = value;
+        return result
+    }
+
     /** @param {Number} num */
     static printNumber(num) {
         if (num == Number.POSITIVE_INFINITY) {
@@ -3803,14 +3852,23 @@ class NumberEntity extends IEntity {
         return Utility.minDecimals(num)
     }
 
-    serialize() {
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof NumberEntity} */(this.constructor),
+    ) {
         if (this.value === Number.POSITIVE_INFINITY) {
             return "+inf"
         }
         if (this.value === Number.NEGATIVE_INFINITY) {
             return "-inf"
         }
-        return this.#precision ? this.value.toFixed(this.#precision) : this.value.toString()
+        const precision = Self.precision ?? this.precision;
+        let result = precision !== undefined ? this.value.toFixed(precision) : this.value.toString();
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
     }
 
     valueOf() {
@@ -3965,10 +4023,12 @@ function nodeTitle(entity) {
             }
         case Configuration.paths.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject();
-            return `Mask ( ${Configuration.rgba
-                .filter(k => /** @type {MirroredEntity<typeof BooleanEntity>} */(materialObject[k]).getter().value === true)
-                .map(v => v + " ")
-                .join("")})`
+            if (materialObject) {
+                return `Mask ( ${Configuration.rgba
+                    .filter(k => /** @type {MirroredEntity<typeof BooleanEntity>} */(materialObject[k]).getter().value === true)
+                    .map(v => v + " ")
+                    .join("")})`
+            }
         }
         case Configuration.paths.materialExpressionConstant:
             input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
@@ -4011,6 +4071,11 @@ function nodeTitle(entity) {
             break
         case Configuration.paths.materialExpressionSquareRoot:
             return "Sqrt"
+        case Configuration.paths.materialExpressionSubtract:
+            const materialObject = entity.getMaterialSubobject();
+            if (materialObject) {
+                return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
+            }
         case Configuration.paths.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"];
             if (name) {
@@ -4396,10 +4461,10 @@ class ArrayEntity extends IEntity {
         return result
     }
 
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof ArrayEntity<T>} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,
@@ -4444,6 +4509,7 @@ class ArrayEntity extends IEntity {
 
 var crypto;
 if (typeof window === "undefined") {
+    // When used in nodejs, mainly for test purpose
     import('crypto').then(mod => crypto = mod.default).catch();
 } else {
     crypto = window.crypto;
@@ -4474,8 +4540,16 @@ class GuidEntity extends IEntity {
         )
     }
 
-    serialize() {
-        return this.value
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value;
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
     }
 
     toString() {
@@ -4643,13 +4717,7 @@ class StringEntity extends IEntity {
         )
     }
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
+    doSerialize(insideString = false) {
         let result = `"${Utility.escapeString(this.value)}"`;
         if (insideString) {
             result = Utility.escapeString(result, false);
@@ -4711,8 +4779,16 @@ class SymbolEntity extends IEntity {
         this.value = value;
     }
 
-    serialize() {
-        return this.value
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value;
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
     }
 
     toString() {
@@ -4768,7 +4844,7 @@ class InvariantTextEntity extends IEntity {
         )
     }
 
-    serialize() {
+    doSerialize() {
         return this.lookbehind + "(" + this.value + ")"
     }
 
@@ -4835,29 +4911,28 @@ class FormatTextEntity extends IEntity {
         this.values = values;
     }
 
+    /** @returns {P<FormatTextEntity>} */
     static createGrammar() {
-        return /** @type {P<FormatTextEntity>} */(
-            Parsernostrum.lazy(() => Parsernostrum.seq(
-                // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
-                Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
-                Parsernostrum.alt(
-                    ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
-                ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
-                Parsernostrum.reg(/\s*\)/)
-            )
-                .map(([lookbehind, values]) => {
-                    const result = new this(values);
-                    result.lookbehind = lookbehind;
-                    return result
-                }))
-                .label("FormatTextEntity")
+        return Parsernostrum.lazy(() => Parsernostrum.seq(
+            // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+            Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
+            Parsernostrum.alt(
+                ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
+            ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
+            Parsernostrum.reg(/\s*\)/)
         )
+            .map(([lookbehind, values]) => {
+                const result = new this(values);
+                result.lookbehind = lookbehind;
+                return result
+            }))
+            .label("FormatTextEntity")
     }
 
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof FormatTextEntity} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,
@@ -4925,11 +5000,13 @@ class Integer64Entity extends IEntity {
     serialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
+        Self = /** @type {typeof IEntity} */(this.constructor),
     ) {
-        return this.value.toString()
+        let result = this.value.toString();
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
     }
 
     valueOf() {
@@ -5017,13 +5094,7 @@ class ObjectReferenceEntity extends IEntity {
         return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
     }
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
+    doSerialize(insideString = false) {
         if (insideString) {
             if (this.#fullEscaped === undefined) {
                 this.#fullEscaped = Utility.escapeString(this.#full, false);
@@ -5068,7 +5139,7 @@ class PinReferenceEntity extends IEntity {
         )
     }
 
-    serialize() {
+    doSerialize() {
         return this.objectName.serialize() + " " + this.pinGuid.serialize()
     }
 }
@@ -5090,10 +5161,9 @@ class FunctionReferenceEntity extends IEntity {
         /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid;
     }
 
+    /** @returns {P<FunctionReferenceEntity>} */
     static createGrammar() {
-        return /** @type {P<FunctionReferenceEntity>} */(
-            Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
-        )
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
     }
 }
 
@@ -5255,8 +5325,10 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
         )
     }
 
-    serialize() {
-        const attributeSeparator = this.Self().attributeSeparator;
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationRotatorEntity} */(
+            this.constructor
+        ).attributeSeparator;
         return this.P.serialize() + attributeSeparator
             + this.Y.serialize() + attributeSeparator
             + this.R.serialize() + (this.trailing ? attributeSeparator : "")
@@ -5287,8 +5359,10 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
         )
     }
 
-    serialize() {
-        const attributeSeparator = this.Self().attributeSeparator;
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationVector2DEntity} */(
+            this.constructor
+        ).attributeSeparator;
         return this.X.serialize() + attributeSeparator
             + this.Y.serialize() + (this.trailing ? attributeSeparator : "")
     }
@@ -5381,8 +5455,10 @@ class SimpleSerializationVectorEntity extends VectorEntity {
         )
     }
 
-    serialize() {
-        const attributeSeparator = this.Self().attributeSeparator;
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationVectorEntity} */(
+            this.constructor
+        ).attributeSeparator;
         return this.X.serialize() + attributeSeparator
             + this.Y.serialize() + attributeSeparator
             + this.Z.serialize() + (this.trailing ? attributeSeparator : "")
@@ -5860,8 +5936,16 @@ class NullEntity extends IEntity {
         )
     }
 
-    serialize() {
-        return "()"
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor)
+    ) {
+        let result = "()";
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
     }
 }
 
@@ -5961,6 +6045,8 @@ class ObjectEntity extends IEntity {
         ObjectRef: ObjectReferenceEntity,
         BlueprintElementType: ObjectReferenceEntity,
         BlueprintElementInstance: ObjectReferenceEntity,
+        ConstA: MirroredEntity.of(NumberEntity),
+        ConstB: MirroredEntity.of(NumberEntity),
         PinTags: ArrayEntity.of(NullEntity).flagInlined(),
         PinNames: ArrayEntity.of(StringEntity).flagInlined(),
         AxisKey: SymbolEntity,
@@ -6067,7 +6153,7 @@ class ObjectEntity extends IEntity {
         .chain(
             /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
             ([[symbol, quoted], index]) =>
-                this.attributes[symbol].grammar.map(currentValue =>
+                (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
                     values => {
                         if (values[symbol] === undefined) {
                             let arrayEntity = ArrayEntity;
@@ -6131,12 +6217,14 @@ class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey;
         /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc;
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB;
         /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType;
         /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class;
         /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor;
         /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName;
-        /** @type {ExtractType<typeof ObjectEntity.attributes.CustomProperties>} */ this.CustomProperties;
+        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties;
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName;
         /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference;
         /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState;
@@ -6217,17 +6305,37 @@ class ObjectEntity extends IEntity {
             obj.MaterialExpressionEditorX && (obj.MaterialExpressionEditorX.getter = () => this.NodePosX);
             obj.MaterialExpressionEditorY && (obj.MaterialExpressionEditorY.getter = () => this.NodePosY);
             if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
-                // The following attributes are too generic therefore not assigned a MirroredEntity
-                const rgbaPins = Configuration.rgba.map(pinName =>
-                    this.getPinEntities().find(pin => pin.PinName.toString() === pinName && (pin.recomputesNodeTitleOnChange = true))
-                );
+                const rgbaPins = Configuration.rgba.map(pinName => {
+                    const result = this.getPinEntities().find(pin => pin.PinName.toString() === pinName);
+                    result.recomputesNodeTitleOnChange = true;
+                    return result
+                });
+                // Reorder keys so that the added ones stay first
+                obj.keys = [...Configuration.rgba, ...obj.keys];
                 const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent();
                 obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue);
                 obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue);
                 obj["B"] = new silentBool(() => rgbaPins[2].DefaultValue);
                 obj["A"] = new silentBool(() => rgbaPins[3].DefaultValue);
-                // Reorder RGBA so that they stay first
-                obj.keys = [...Configuration.rgba, ...obj.keys.filter(k => !Configuration.rgba.includes(k))];
+            } else if (this.getType() === Configuration.paths.materialExpressionSubtract) {
+                const silentNumber = MirroredEntity
+                    .of(NumberEntity.withPrecision(6))
+                    .withDefault(() => new MirroredEntity(() => new NumberEntity(1)))
+                    .flagSilent();
+                const pinA = this.getCustomproperties().find(pin => pin.PinName?.toString() === "A");
+                const pinB = this.getCustomproperties().find(pin => pin.PinName?.toString() === "B");
+                if (pinA || pinB) {
+                    // Reorder keys so that the added ones stay first
+                    obj.keys = ["ConstA", "ConstB", ...obj.keys];
+                    if (pinA) {
+                        pinA.recomputesNodeTitleOnChange = true;
+                        obj.ConstA = new silentNumber(() => pinA.DefaultValue);
+                    }
+                    if (pinB) {
+                        pinB.recomputesNodeTitleOnChange = true;
+                        obj.ConstB = new silentNumber(() => pinB.DefaultValue);
+                    }
+                }
             }
         }
         /** @type {ObjectEntity} */
@@ -6301,7 +6409,7 @@ class ObjectEntity extends IEntity {
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
-                ?? (this.ExportPath?.path ? this.ExportPath.path : this.ExportPath?.type)
+                ?? this.ExportPath.type
                 ?? "";
             if (this.#class && !this.#class.startsWith("/")) {
                 // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
@@ -6542,29 +6650,29 @@ class ObjectEntity extends IEntity {
     }
 
     /** @param {typeof ObjectEntity} Self */
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof ObjectEntity} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
         const deeperIndentation = indentation + Configuration.indentation;
-        const content = super.serialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap);
+        const content = super.doSerialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap);
         let result = indentation + "Begin Object"
             + (this.Class?.type || this.Class?.path ? ` Class${keySeparator}${this.Class.serialize(insideString)}` : "")
             + (this.Name ? ` Name${keySeparator}${this.Name.serialize(insideString)}` : "")
             + (this.Archetype ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}` : "")
             + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}` : "")
             + (content ? attributeSeparator + content : "")
-            + (!this.CustomProperties.Self().ignored
+            + (!/** @type {typeof IEntity} */(this.CustomProperties.constructor).ignored
                 ? this.getCustomproperties().map(pin =>
                     deeperIndentation
                     + printKey("CustomProperties ")
                     + pin.serialize(insideString)
-                ).join(this.Self().attributeSeparator)
+                ).join(Self.attributeSeparator)
                 : ""
             )
             + attributeSeparator
@@ -9154,7 +9262,7 @@ class PinTemplate extends ITemplate {
 }
 
 /**
- * @template {TerminalAttribute} T
+ * @template {IEntity} T
  * @extends PinTemplate<T>
  */
 class MinimalPinTemplate extends PinTemplate {
@@ -11626,7 +11734,7 @@ class EnumPinTemplate extends IInputPinTemplate {
             <ueb-dropdown
                 class="ueb-pin-input-wrapper ueb-pin-input"
                 .options="${this.#dropdownEntries}"
-                .selectedOption="${this.element.defaultValue.value}"
+                .selectedOption="${this.element.defaultValue}"
             >
             </ueb-dropdown>
         `
@@ -11661,7 +11769,7 @@ class ExecPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {IEntity} T
+ * @template {NumberEntity} T
  * @extends IInputPinTemplate<T>
  */
 class INumericPinTemplate extends IInputPinTemplate {
@@ -11693,7 +11801,9 @@ class INumericPinTemplate extends IInputPinTemplate {
      * @param {String[]} rawValues
      */
     setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(values[0]);
+        const value = this.element.getDefaultValue();
+        value.value = values[0];
+        this.element.setDefaultValue(value);
         this.element.requestUpdate();
     }
 }
@@ -12234,10 +12344,6 @@ class NamePinTemplate extends IInputPinTemplate {
  */
 class RealPinTemplate extends INumericPinTemplate {
 
-    setDefaultValue(values = [], rawValues = values) {
-        this.element.setDefaultValue(values[0]);
-    }
-
     renderInput() {
         return x`
             <div class="ueb-pin-input-wrapper ueb-pin-input">
@@ -12302,7 +12408,7 @@ class RotatorPinTemplate extends INumericPinTemplate {
     }
 }
 
-/** @extends IInputPinTemplate<String> */
+/** @extends IInputPinTemplate<StringEntity> */
 class StringPinTemplate extends IInputPinTemplate {
 }
 

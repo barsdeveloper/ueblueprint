@@ -119,10 +119,12 @@ export default function nodeTitle(entity) {
             }
         case Configuration.paths.materialExpressionComponentMask: {
             const materialObject = entity.getMaterialSubobject()
-            return `Mask ( ${Configuration.rgba
-                .filter(k => /** @type {MirroredEntity<typeof BooleanEntity>} */(materialObject[k]).getter().value === true)
-                .map(v => v + " ")
-                .join("")})`
+            if (materialObject) {
+                return `Mask ( ${Configuration.rgba
+                    .filter(k => /** @type {MirroredEntity<typeof BooleanEntity>} */(materialObject[k]).getter().value === true)
+                    .map(v => v + " ")
+                    .join("")})`
+            }
         }
         case Configuration.paths.materialExpressionConstant:
             input ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue]
@@ -165,6 +167,11 @@ export default function nodeTitle(entity) {
             break
         case Configuration.paths.materialExpressionSquareRoot:
             return "Sqrt"
+        case Configuration.paths.materialExpressionSubtract:
+            const materialObject = entity.getMaterialSubobject()
+            if (materialObject) {
+                return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
+            }
         case Configuration.paths.metasoundEditorGraphExternalNode: {
             const name = entity["ClassName"]?.["Name"]
             if (name) {

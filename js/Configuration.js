@@ -166,6 +166,7 @@ export default class Configuration {
         materialExpressionLogarithm2: "/Script/Engine.MaterialExpressionLogarithm2",
         materialExpressionMaterialFunctionCall: "/Script/Engine.MaterialExpressionMaterialFunctionCall",
         materialExpressionSquareRoot: "/Script/Engine.MaterialExpressionSquareRoot",
+        materialExpressionSubtract: "/Script/Engine.MaterialExpressionSubtract",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",

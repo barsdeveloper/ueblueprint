@@ -83,13 +83,7 @@ export default class ObjectReferenceEntity extends IEntity {
         return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
     }
 
-    serialize(
-        insideString = false,
-        indentation = "",
-        Self = this.Self(),
-        printKey = Self.printKey,
-        wrap = Self.wrap,
-    ) {
+    doSerialize(insideString = false) {
         if (insideString) {
             if (this.#fullEscaped === undefined) {
                 this.#fullEscaped = Utility.escapeString(this.#full, false)

@@ -22,9 +22,8 @@ export default class FunctionReferenceEntity extends IEntity {
         /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid
     }
 
+    /** @returns {P<FunctionReferenceEntity>} */
     static createGrammar() {
-        return /** @type {P<FunctionReferenceEntity>} */(
-            Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
-        )
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
     }
 }

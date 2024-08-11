@@ -34,7 +34,7 @@ export default class IEntity {
     static silent = false // Do not serialize if default
     static trailing = false // Add attribute separator after the last attribute when serializing
 
-    #trailing = this.Self().trailing
+    #trailing = this.constructor.trailing
     get trailing() {
         return this.#trailing
     }
@@ -42,7 +42,7 @@ export default class IEntity {
         this.#trailing = value
     }
 
-    #lookbehind = /** @type {String} */(this.Self().lookbehind)
+    #lookbehind = /** @type {String} */(this.constructor.lookbehind)
     get lookbehind() {
         return this.#lookbehind.trim()
     }
@@ -59,16 +59,8 @@ export default class IEntity {
         this.#keys = [... new Set(value)]
     }
 
-    /**
-     * @protected
-     * @returns {P<IEntity>}
-     */
-    static createGrammar() {
-        return this.unknownEntityGrammar
-    }
-
     constructor(values = {}) {
-        const attributes = this.Self().attributes
+        const attributes = /** @type {typeof IEntity} */(this.constructor).attributes
         const keys = Utility.mergeArrays(
             Object.keys(values),
             Object.entries(attributes).filter(([k, v]) => v.default !== undefined).map(([k, v]) => k)
@@ -99,6 +91,14 @@ export default class IEntity {
                 continue
             }
         }
+    }
+
+    /**
+     * @protected
+     * @returns {P<IEntity>}
+     */
+    static createGrammar() {
+        return this.unknownEntityGrammar
     }
 
     static actualClass() {
@@ -213,23 +213,23 @@ export default class IEntity {
     }
 
     /**
-     * @template {typeof IEntity} T
-     * @this {InstanceType<T>}
+     * @protected
+     * @param {String} string
      */
-    Self() {
-        return /** @type {T} */(this.constructor)
+    static asSerializedString(string) {
+        return `"${string.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/g, '\\"')}"`
     }
 
     /** @param {String} key */
     showProperty(key) {
         /** @type {IEntity} */
         let value = this[key]
-        const Self = value.Self()
-        if (Self.silent && Self.default !== undefined) {
-            if (Self["#default"] === undefined) {
-                Self["#default"] = Self.default(Self)
+        const valueType = /** @type {typeof IEntity} */(value.constructor)
+        if (valueType.silent && valueType.default !== undefined) {
+            if (valueType["#default"] === undefined) {
+                valueType["#default"] = valueType.default(valueType)
             }
-            const defaultValue = Self["#default"]
+            const defaultValue = valueType["#default"]
             return !value.equals(defaultValue)
         }
         return true
@@ -272,10 +272,10 @@ export default class IEntity {
     }
 
     /** @this {IEntity | Array} */
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof IEntity} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,
@@ -287,6 +287,7 @@ export default class IEntity {
         for (const key of keys) {
             /** @type {IEntity} */
             const value = this[key]
+            const valueType = /** @type {typeof IEntity} */(value?.constructor)
             let keyValue = this instanceof Array ? `(${key})` : key
             if (value === undefined || this instanceof IEntity && !this.showProperty(key)) {
                 continue
@@ -296,8 +297,8 @@ export default class IEntity {
             } else {
                 result += attributeSeparator
             }
-            if (value.Self?.().inlined) {
-                const inlinedPrintKey = value.Self().className() === "ArrayEntity"
+            if (valueType.inlined) {
+                const inlinedPrintKey = valueType.className() === "ArrayEntity"
                     ? k => printKey(`${keyValue}${k}`)
                     : k => printKey(`${keyValue}.${k}`)
                 result += value.serialize(
@@ -313,15 +314,12 @@ export default class IEntity {
             }
             keyValue = printKey(keyValue)
             if (keyValue.length) {
-                if (value.Self().quoted) {
+                if (valueType.quoted) {
                     keyValue = `"${keyValue}"`
                 }
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator
             }
             let serialization = value?.serialize(insideString, indentation)
-            if (value.Self().serialized) {
-                serialization = `"${serialization.replaceAll(/(?<=(?:[^\\]|^)(?:\\\\)*?)"/g, '\\"')}"`
-            }
             result += serialization
         }
         if (this instanceof IEntity && this.trailing && result.length) {
@@ -330,17 +328,37 @@ export default class IEntity {
         return wrap(/** @type {IEntity} */(this), result)
     }
 
-    /** @param {IEntity} other */
+    /** @this {IEntity | Array} */
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        let result = this instanceof Array
+            ? IEntity.prototype.doSerialize.bind(this)(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+            : this.doSerialize(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+        if (Self.serialized) {
+            result = IEntity.asSerializedString(result)
+        }
+        return result
+    }
+
     equals(other) {
         if (!(other instanceof IEntity)) {
             return false
         }
         const thisKeys = Object.keys(this)
         const otherKeys = Object.keys(other)
+        const thisType = /** @type {typeof IEntity} */(this.constructor).actualClass()
+        const otherType = /** @type {typeof IEntity} */(other.constructor).actualClass()
         if (
             thisKeys.length !== otherKeys.length
             || this.lookbehind != other.lookbehind
-            || !(other instanceof this.Self().actualClass()) && !(this instanceof other.Self().actualClass())
+            || !(other instanceof thisType) && !(this instanceof otherType)
         ) {
             return false
         }
@@ -354,6 +372,15 @@ export default class IEntity {
             if (a instanceof IEntity) {
                 if (!a.equals(b)) {
                     return false
+                }
+            } else if (a instanceof Array && b instanceof Array) {
+                if (a.length !== b.length) {
+                    return false
+                }
+                for (let j = 0; j < a.length; ++j) {
+                    if (!(a[j] instanceof IEntity && a[j].equals(b[j])) && a[j] !== b[j]) {
+                        return false
+                    }
                 }
             } else {
                 if (a !== b) {

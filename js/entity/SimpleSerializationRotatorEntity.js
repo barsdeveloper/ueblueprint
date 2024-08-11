@@ -30,8 +30,10 @@ export default class SimpleSerializationRotatorEntity extends RotatorEntity {
         )
     }
 
-    serialize() {
-        const attributeSeparator = this.Self().attributeSeparator
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationRotatorEntity} */(
+            this.constructor
+        ).attributeSeparator
         return this.P.serialize() + attributeSeparator
             + this.Y.serialize() + attributeSeparator
             + this.R.serialize() + (this.trailing ? attributeSeparator : "")

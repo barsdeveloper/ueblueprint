@@ -10,16 +10,19 @@ export default class MirroredEntity extends IEntity {
     /** @param {() => InstanceType<T>} getter */
     constructor(getter = null) {
         super()
+        const self = /** @type {typeof MirroredEntity<T>} */(this.constructor)
+        getter ??= self.default !== undefined ? /** @type {MirroredEntity} */(self.default(self)).getter : getter
         this.getter = getter
     }
 
     static createGrammar(elementGrammar = this.type?.grammar ?? P.lazy(() => this.unknownEntityGrammar)) {
-        return this.getTargetType()?.grammar.map(v => new this(() => v))
+        return this.type?.grammar.map(v => new this(() => v))
     }
 
 
     /**
      * @template {typeof IEntity} T
+     * @this {T}
      * @param {(type: T) => (InstanceType<T> | NullEntity)} value
      * @returns {T}
      */
@@ -42,26 +45,17 @@ export default class MirroredEntity extends IEntity {
         return result
     }
 
-    /** @returns {typeof IEntity} */
-    static getTargetType() {
-        const result = this.type
-        if (result?.prototype instanceof MirroredEntity) {
-            return /** @type {typeof MirroredEntity} */(result).getTargetType()
-        }
-        return result
-    }
-
-    serialize(
+    doSerialize(
         insideString = false,
         indentation = "",
-        Self = this.Self(),
+        Self = /** @type {typeof MirroredEntity<T>} */(this.constructor),
         printKey = Self.printKey,
         keySeparator = Self.keySeparator,
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
-        this.serialize = this.getter().serialize.bind(this.getter())
-        return this.serialize(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+        const value = this.getter()
+        return value.serialize(insideString, indentation, Self.type, printKey, keySeparator, attributeSeparator, wrap)
     }
 
     /** @param {IEntity} other */
