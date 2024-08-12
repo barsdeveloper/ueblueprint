@@ -18,9 +18,9 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
                     + `(${NumberEntity.numberRegexSource})`
                 ))
                     .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
-                        X: new NumberEntity(x, xPrecision?.length),
-                        Y: new NumberEntity(y, yPrecision?.length),
-                        Z: new NumberEntity(z, zPrecision?.length),
+                        X: new (VectorEntity.attributes.X)(x, xPrecision?.length),
+                        Y: new (VectorEntity.attributes.Y)(y, yPrecision?.length),
+                        Z: new (VectorEntity.attributes.Z)(z, zPrecision?.length),
                     })),
                 VectorEntity.grammar.map(v => new this({
                     X: v.X,

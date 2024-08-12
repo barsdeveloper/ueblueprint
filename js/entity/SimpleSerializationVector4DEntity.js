@@ -20,10 +20,10 @@ export default class SimpleSerializationVector4DEntity extends Vector4DEntity {
                 + `(${Grammar.numberRegexSource})`
             ))
                 .map(([_0, x, y, z, w]) => new this({
-                    X: Number(x),
-                    Y: Number(y),
-                    Z: Number(z),
-                    W: Number(w),
+                    X: new (Vector4DEntity.attributes.X)(x),
+                    Y: new (Vector4DEntity.attributes.Y)(y),
+                    Z: new (Vector4DEntity.attributes.Z)(z),
+                    W: new (Vector4DEntity.attributes.W)(w),
                 })),
             Vector4DEntity.grammar
         )

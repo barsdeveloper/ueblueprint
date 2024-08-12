@@ -34,12 +34,13 @@ export default class IEntity {
     static silent = false // Do not serialize if default
     static trailing = false // Add attribute separator after the last attribute when serializing
 
-    #trailing = this.constructor.trailing
-    get trailing() {
-        return this.#trailing
+    /** @type {String[]} */
+    #keys
+    get keys() {
+        return this.#keys ?? Object.keys(this)
     }
-    set trailing(value) {
-        this.#trailing = value
+    set keys(value) {
+        this.#keys = [... new Set(value)]
     }
 
     #lookbehind = /** @type {String} */(this.constructor.lookbehind)
@@ -50,13 +51,20 @@ export default class IEntity {
         this.#lookbehind = value
     }
 
-    /** @type {String[]} */
-    #keys
-    get keys() {
-        return this.#keys ?? Object.keys(this)
+    #ignored = this.constructor.ignored
+    get ignored() {
+        return this.#ignored
     }
-    set keys(value) {
-        this.#keys = [... new Set(value)]
+    set ignored(value) {
+        this.#ignored = value
+    }
+
+    #trailing = this.constructor.trailing
+    get trailing() {
+        return this.#trailing
+    }
+    set trailing(value) {
+        this.#trailing = value
     }
 
     constructor(values = {}) {

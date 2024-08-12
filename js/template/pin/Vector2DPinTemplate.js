@@ -22,12 +22,9 @@ export default class Vector2DPinTemplate extends INumericPinTemplate {
      */
     setDefaultValue(values, rawValues) {
         const vector = this.element.getDefaultValue(true)
-        if (!(vector instanceof Vector2DEntity)) {
-            throw new TypeError("Expected DefaultValue to be a Vector2DEntity")
-        }
         vector.X.value = values[0]
         vector.Y.value = values[1]
-        this.element.requestUpdate("DefaultValue", vector)
+        this.element.setDefaultValue(vector)
     }
 
     renderInput() {

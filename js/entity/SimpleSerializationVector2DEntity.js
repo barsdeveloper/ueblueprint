@@ -15,8 +15,8 @@ export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
                     + String.raw`\s*,\s*`
                     + `(${NumberEntity.numberRegexSource})`
                 )).map(([_, x, xPrecision, y, yPrecision]) => new this({
-                    X: new NumberEntity(x, xPrecision?.length),
-                    Y: new NumberEntity(y, yPrecision?.length),
+                    X: new (Vector2DEntity.attributes.X)(x, xPrecision?.length),
+                    Y: new (Vector2DEntity.attributes.Y)(y, yPrecision?.length),
                 })),
                 Vector2DEntity.grammar.map(v => new this({
                     X: v.X,

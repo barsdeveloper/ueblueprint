@@ -2648,12 +2648,13 @@ class IEntity {
     static silent = false // Do not serialize if default
     static trailing = false // Add attribute separator after the last attribute when serializing
 
-    #trailing = this.constructor.trailing
-    get trailing() {
-        return this.#trailing
+    /** @type {String[]} */
+    #keys
+    get keys() {
+        return this.#keys ?? Object.keys(this)
     }
-    set trailing(value) {
-        this.#trailing = value;
+    set keys(value) {
+        this.#keys = [... new Set(value)];
     }
 
     #lookbehind = /** @type {String} */(this.constructor.lookbehind)
@@ -2664,13 +2665,20 @@ class IEntity {
         this.#lookbehind = value;
     }
 
-    /** @type {String[]} */
-    #keys
-    get keys() {
-        return this.#keys ?? Object.keys(this)
+    #ignored = this.constructor.ignored
+    get ignored() {
+        return this.#ignored
     }
-    set keys(value) {
-        this.#keys = [... new Set(value)];
+    set ignored(value) {
+        this.#ignored = value;
+    }
+
+    #trailing = this.constructor.trailing
+    get trailing() {
+        return this.#trailing
+    }
+    set trailing(value) {
+        this.#trailing = value;
     }
 
     constructor(values = {}) {
@@ -3975,7 +3983,10 @@ function keyName(value) {
     }
 }
 
-/** @param {ObjectEntity} entity */
+/**
+ * @param {ObjectEntity} entity
+ * @returns {String}
+ */
 function nodeTitle(entity) {
     let input;
     switch (entity.getType()) {
@@ -4116,7 +4127,7 @@ function nodeTitle(entity) {
         return `Switch on ${switchTarget}`
     }
     if (entity.isComment()) {
-        return entity.NodeComment
+        return entity.NodeComment.toString()
     }
     const keyNameSymbol = entity.getHIDAttribute();
     if (keyNameSymbol) {
@@ -4139,7 +4150,7 @@ function nodeTitle(entity) {
     }
     if (entity.isPcg() && entity.getPcgSubobject()) {
         let pcgSubobject = entity.getPcgSubobject();
-        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle : nodeTitle(pcgSubobject);
+        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle.toString() : nodeTitle(pcgSubobject);
         return result
     }
     const subgraphObject = entity.getSubgraphObject();
@@ -5230,10 +5241,9 @@ class Vector2DEntity extends IEntity {
         /** @type {InstanceType<typeof Vector2DEntity.attributes.Y>} */ this.Y;
     }
 
+    /** @returns {P<Vector2DEntity>} */
     static createGrammar() {
-        return /** @type {P<Vector2DEntity>} */(
-            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
-        )
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
     }
 
     /** @returns {[Number, Number]} */
@@ -5253,10 +5263,13 @@ class RBSerializationVector2DEntity extends Vector2DEntity {
                 + "\\s+"
                 + /Y\s*=\s*/.source + "(?<y>" + Grammar.numberRegexSource + ")"
             )).map(({ groups: { x, y } }) => new this({
-                X: Number(x),
-                Y: Number(y),
+                X: new (Vector2DEntity.attributes.X)(x),
+                Y: new (Vector2DEntity.attributes.Y)(y),
             })),
-            Vector2DEntity.grammar
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
         ).label("RBSerializationVector2DEntity"))
     }
 }
@@ -5312,9 +5325,9 @@ class SimpleSerializationRotatorEntity extends RotatorEntity {
                     + String.raw`\s*,\s*`
                     + `(${NumberEntity.numberRegexSource})`
                 )).map(([_, p, pPrecision, y, yPrecision, r, rPrecision]) => new this({
-                    R: new NumberEntity(r, rPrecision?.length),
-                    P: new NumberEntity(p, pPrecision?.length),
-                    Y: new NumberEntity(y, yPrecision?.length),
+                    R: new (RotatorEntity.attributes.R)(r, rPrecision?.length),
+                    P: new (RotatorEntity.attributes.P)(p, pPrecision?.length),
+                    Y: new (RotatorEntity.attributes.Y)(y, yPrecision?.length),
                 })),
                 RotatorEntity.grammar.map(v => new this({
                     R: v.R,
@@ -5348,8 +5361,8 @@ class SimpleSerializationVector2DEntity extends Vector2DEntity {
                     + String.raw`\s*,\s*`
                     + `(${NumberEntity.numberRegexSource})`
                 )).map(([_, x, xPrecision, y, yPrecision]) => new this({
-                    X: new NumberEntity(x, xPrecision?.length),
-                    Y: new NumberEntity(y, yPrecision?.length),
+                    X: new (Vector2DEntity.attributes.X)(x, xPrecision?.length),
+                    Y: new (Vector2DEntity.attributes.Y)(y, yPrecision?.length),
                 })),
                 Vector2DEntity.grammar.map(v => new this({
                     X: v.X,
@@ -5416,10 +5429,10 @@ class SimpleSerializationVector4DEntity extends Vector4DEntity {
                 + `(${Grammar.numberRegexSource})`
             ))
                 .map(([_0, x, y, z, w]) => new this({
-                    X: Number(x),
-                    Y: Number(y),
-                    Z: Number(z),
-                    W: Number(w),
+                    X: new (Vector4DEntity.attributes.X)(x),
+                    Y: new (Vector4DEntity.attributes.Y)(y),
+                    Z: new (Vector4DEntity.attributes.Z)(z),
+                    W: new (Vector4DEntity.attributes.W)(w),
                 })),
             Vector4DEntity.grammar
         )
@@ -5442,9 +5455,9 @@ class SimpleSerializationVectorEntity extends VectorEntity {
                     + `(${NumberEntity.numberRegexSource})`
                 ))
                     .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
-                        X: new NumberEntity(x, xPrecision?.length),
-                        Y: new NumberEntity(y, yPrecision?.length),
-                        Z: new NumberEntity(z, zPrecision?.length),
+                        X: new (VectorEntity.attributes.X)(x, xPrecision?.length),
+                        Y: new (VectorEntity.attributes.Y)(y, yPrecision?.length),
+                        Z: new (VectorEntity.attributes.Z)(z, zPrecision?.length),
                     })),
                 VectorEntity.grammar.map(v => new this({
                     X: v.X,
@@ -5678,10 +5691,10 @@ class PinEntity extends IEntity {
     }
 
     isEnum() {
-        const type = this.PinType.PinSubCategoryObject.type;
+        const type = this.PinType.PinSubCategoryObject?.type;
         return type === Configuration.paths.enum
             || type === Configuration.paths.userDefinedEnum
-            || type.toLowerCase() === "enum"
+            || type?.toLowerCase() === "enum"
     }
 
     isExecution() {
@@ -6281,8 +6294,8 @@ class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.VariableReference>} */ this.VariableReference;
 
         // Legacy nodes pins
-        if (this["Pins"] instanceof Array) {
-            this["Pins"].forEach(
+        if (this["Pins"] instanceof ArrayEntity) {
+            this["Pins"].valueOf().forEach(
                 /** @param {ObjectReferenceEntity} objectReference */
                 objectReference => {
                     const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)];
@@ -6290,7 +6303,7 @@ class ObjectEntity extends IEntity {
                         const pinEntity = PinEntity.fromLegacyObject(pinObject);
                         pinEntity.LinkedTo = new (PinEntity.attributes.LinkedTo)();
                         this.getCustomproperties(true).push(pinEntity);
-                        Utility.objectSet(this, ["attributes", "CustomProperties", "ignored"], true);
+                        this.CustomProperties.ignored = true;
                     }
                 }
             );
@@ -6662,12 +6675,32 @@ class ObjectEntity extends IEntity {
         const deeperIndentation = indentation + Configuration.indentation;
         const content = super.doSerialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap);
         let result = indentation + "Begin Object"
-            + (this.Class?.type || this.Class?.path ? ` Class${keySeparator}${this.Class.serialize(insideString)}` : "")
-            + (this.Name ? ` Name${keySeparator}${this.Name.serialize(insideString)}` : "")
-            + (this.Archetype ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}` : "")
-            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}` : "")
+            + ((this.Class?.type || this.Class?.path)
+                // && Self.attributes.Class.ignored !== true
+                // && this.Class.ignored !== true
+                ? ` Class${keySeparator}${this.Class.serialize(insideString)}`
+                : ""
+            )
+            + (this.Name
+                // && Self.attributes.Name.ignored !== true
+                // && this.Name.ignored !== true
+                ? ` Name${keySeparator}${this.Name.serialize(insideString)}`
+                : ""
+            )
+            + (this.Archetype
+                // && Self.attributes.Archetype.ignored !== true
+                // && this.Archetype.ignored !== true
+                ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
+                : ""
+            )
+            + ((this.ExportPath?.type || this.ExportPath?.path)
+                // && Self.attributes.ExportPath.ignored !== true
+                // && this.ExportPath.ignored !== true
+                ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
+                : ""
+            )
             + (content ? attributeSeparator + content : "")
-            + (!/** @type {typeof IEntity} */(this.CustomProperties.constructor).ignored
+            + (Self.attributes.CustomProperties.ignored !== true && this.CustomProperties.ignored !== true
                 ? this.getCustomproperties().map(pin =>
                     deeperIndentation
                     + printKey("CustomProperties ")
@@ -11769,14 +11802,17 @@ class ExecPinTemplate extends PinTemplate {
 }
 
 /**
- * @template {NumberEntity} T
+ * @template {IEntity} T
  * @extends IInputPinTemplate<T>
  */
 class INumericPinTemplate extends IInputPinTemplate {
 
     static singleLineInput = true
 
-    /** @param {String[]} values */
+    /**
+     * @this {INumericPinTemplate<NumberEntity>}
+     * @param {String[]} values
+     */
     setInputs(values = [], updateDefaultValue = false) {
         if (!values || values.length == 0) {
             values = [this.getInput()];
@@ -11797,6 +11833,7 @@ class INumericPinTemplate extends IInputPinTemplate {
     }
 
     /**
+     * @this {INumericPinTemplate<NumberEntity>}
      * @param {Number[]} values
      * @param {String[]} rawValues
      */
@@ -12431,12 +12468,9 @@ class Vector2DPinTemplate extends INumericPinTemplate {
      */
     setDefaultValue(values, rawValues) {
         const vector = this.element.getDefaultValue(true);
-        if (!(vector instanceof Vector2DEntity)) {
-            throw new TypeError("Expected DefaultValue to be a Vector2DEntity")
-        }
         vector.X.value = values[0];
         vector.Y.value = values[1];
-        this.element.requestUpdate("DefaultValue", vector);
+        this.element.setDefaultValue(vector);
     }
 
     renderInput() {

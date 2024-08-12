@@ -13,10 +13,13 @@ export default class RBSerializationVector2DEntity extends Vector2DEntity {
                 + "\\s+"
                 + /Y\s*=\s*/.source + "(?<y>" + Grammar.numberRegexSource + ")"
             )).map(({ groups: { x, y } }) => new this({
-                X: Number(x),
-                Y: Number(y),
+                X: new (Vector2DEntity.attributes.X)(x),
+                Y: new (Vector2DEntity.attributes.Y)(y),
             })),
-            Vector2DEntity.grammar
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
         ).label("RBSerializationVector2DEntity"))
     }
 }

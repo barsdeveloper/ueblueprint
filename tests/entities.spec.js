@@ -18,6 +18,7 @@ import NumberEntity from "../js/entity/NumberEntity.js"
 import ObjectReferenceEntity from "../js/entity/ObjectReferenceEntity.js"
 import PinEntity from "../js/entity/PinEntity.js"
 import PinTypeEntity from "../js/entity/PinTypeEntity.js"
+import RBSerializationVector2DEntity from "../js/entity/RBSerializationVector2DEntity.js"
 import RotatorEntity from "../js/entity/RotatorEntity.js"
 import SimpleSerializationRotatorEntity from "../js/entity/SimpleSerializationRotatorEntity.js"
 import SimpleSerializationVector2DEntity from "../js/entity/SimpleSerializationVector2DEntity.js"
@@ -874,7 +875,7 @@ test("ObjectReferenceEntity", () => {
 test("PinEntity", () => {
     const grammar = PinEntity.grammar
     const s = `Pin (PinId=370DE2594FC6D3DF81672491D09FA4F2,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_ComponentBoundEvent_2 CA668D354E07DD5D3FDF828A8DCB31E2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)`
-    let value = grammar.parse(s)
+    const value = grammar.parse(s)
     expect(value).toBeInstanceOf(PinEntity)
     expect(value.PinId).toBeInstanceOf(GuidEntity)
     expect(value.PinId.equals(new GuidEntity("370DE2594FC6D3DF81672491D09FA4F2"))).toBeTruthy()
@@ -890,6 +891,37 @@ test("PinEntity", () => {
     expect(value.PinType.bIsReference).toBeInstanceOf(BooleanEntity)
     expect(value.PinType.bIsReference.equals(new BooleanEntity(false))).toBeTruthy()
     expect(value.serialize()).toEqual(s)
+})
+
+test("RBSerializationVector2DEntity", () => {
+    const grammar = RBSerializationVector2DEntity.grammar
+    {
+        const s = `X=0 Y=0`
+        const value = grammar.parse(s)
+        expect(value).toBeInstanceOf(RBSerializationVector2DEntity)
+        expect(value).toEqual(new RBSerializationVector2DEntity({
+            X: new NumberEntity(0),
+            Y: new NumberEntity(0)
+        }))
+    }
+    {
+        const s = `X=34 Y=-98.55`
+        const value = grammar.parse(s)
+        expect(value).toBeInstanceOf(RBSerializationVector2DEntity)
+        expect(value).toEqual(new RBSerializationVector2DEntity({
+            X: new NumberEntity(34),
+            Y: new NumberEntity(-98.55)
+        }))
+    }
+    {
+        const s = `(X=+67,Y=-0.002)`
+        const value = grammar.parse(s)
+        expect(value).toBeInstanceOf(RBSerializationVector2DEntity)
+        expect(value).toEqual(new RBSerializationVector2DEntity({
+            X: new NumberEntity(67),
+            Y: new NumberEntity(-0.002)
+        }))
+    }
 })
 
 test("SimpleSerializationRotatorEntity", () => {

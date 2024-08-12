@@ -247,10 +247,10 @@ export default class PinEntity extends IEntity {
     }
 
     isEnum() {
-        const type = this.PinType.PinSubCategoryObject.type
+        const type = this.PinType.PinSubCategoryObject?.type
         return type === Configuration.paths.enum
             || type === Configuration.paths.userDefinedEnum
-            || type.toLowerCase() === "enum"
+            || type?.toLowerCase() === "enum"
     }
 
     isExecution() {

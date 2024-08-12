@@ -18,10 +18,9 @@ export default class Vector2DEntity extends IEntity {
         /** @type {InstanceType<typeof Vector2DEntity.attributes.Y>} */ this.Y
     }
 
+    /** @returns {P<Vector2DEntity>} */
     static createGrammar() {
-        return /** @type {P<Vector2DEntity>} */(
-            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
-        )
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
     }
 
     /** @returns {[Number, Number]} */

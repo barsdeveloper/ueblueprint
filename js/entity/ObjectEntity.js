@@ -287,8 +287,8 @@ export default class ObjectEntity extends IEntity {
         /** @type {InstanceType<typeof ObjectEntity.attributes.VariableReference>} */ this.VariableReference
 
         // Legacy nodes pins
-        if (this["Pins"] instanceof Array) {
-            this["Pins"].forEach(
+        if (this["Pins"] instanceof ArrayEntity) {
+            this["Pins"].valueOf().forEach(
                 /** @param {ObjectReferenceEntity} objectReference */
                 objectReference => {
                     const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)]
@@ -296,7 +296,7 @@ export default class ObjectEntity extends IEntity {
                         const pinEntity = PinEntity.fromLegacyObject(pinObject)
                         pinEntity.LinkedTo = new (PinEntity.attributes.LinkedTo)()
                         this.getCustomproperties(true).push(pinEntity)
-                        Utility.objectSet(this, ["attributes", "CustomProperties", "ignored"], true)
+                        this.CustomProperties.ignored = true
                     }
                 }
             )
@@ -670,12 +670,32 @@ export default class ObjectEntity extends IEntity {
         const deeperIndentation = indentation + Configuration.indentation
         const content = super.doSerialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
         let result = indentation + "Begin Object"
-            + (this.Class?.type || this.Class?.path ? ` Class${keySeparator}${this.Class.serialize(insideString)}` : "")
-            + (this.Name ? ` Name${keySeparator}${this.Name.serialize(insideString)}` : "")
-            + (this.Archetype ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}` : "")
-            + (this.ExportPath?.type || this.ExportPath?.path ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}` : "")
+            + ((this.Class?.type || this.Class?.path)
+                // && Self.attributes.Class.ignored !== true
+                // && this.Class.ignored !== true
+                ? ` Class${keySeparator}${this.Class.serialize(insideString)}`
+                : ""
+            )
+            + (this.Name
+                // && Self.attributes.Name.ignored !== true
+                // && this.Name.ignored !== true
+                ? ` Name${keySeparator}${this.Name.serialize(insideString)}`
+                : ""
+            )
+            + (this.Archetype
+                // && Self.attributes.Archetype.ignored !== true
+                // && this.Archetype.ignored !== true
+                ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
+                : ""
+            )
+            + ((this.ExportPath?.type || this.ExportPath?.path)
+                // && Self.attributes.ExportPath.ignored !== true
+                // && this.ExportPath.ignored !== true
+                ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
+                : ""
+            )
             + (content ? attributeSeparator + content : "")
-            + (!/** @type {typeof IEntity} */(this.CustomProperties.constructor).ignored
+            + (Self.attributes.CustomProperties.ignored !== true && this.CustomProperties.ignored !== true
                 ? this.getCustomproperties().map(pin =>
                     deeperIndentation
                     + printKey("CustomProperties ")

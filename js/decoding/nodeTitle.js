@@ -71,7 +71,10 @@ function keyName(value) {
     }
 }
 
-/** @param {ObjectEntity} entity */
+/**
+ * @param {ObjectEntity} entity
+ * @returns {String}
+ */
 export default function nodeTitle(entity) {
     let input
     switch (entity.getType()) {
@@ -212,7 +215,7 @@ export default function nodeTitle(entity) {
         return `Switch on ${switchTarget}`
     }
     if (entity.isComment()) {
-        return entity.NodeComment
+        return entity.NodeComment.toString()
     }
     const keyNameSymbol = entity.getHIDAttribute()
     if (keyNameSymbol) {
@@ -235,7 +238,7 @@ export default function nodeTitle(entity) {
     }
     if (entity.isPcg() && entity.getPcgSubobject()) {
         let pcgSubobject = entity.getPcgSubobject()
-        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle : nodeTitle(pcgSubobject)
+        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle.toString() : nodeTitle(pcgSubobject)
         return result
     }
     const subgraphObject = entity.getSubgraphObject()

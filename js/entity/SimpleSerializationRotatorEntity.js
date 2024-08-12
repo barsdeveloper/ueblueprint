@@ -17,9 +17,9 @@ export default class SimpleSerializationRotatorEntity extends RotatorEntity {
                     + String.raw`\s*,\s*`
                     + `(${NumberEntity.numberRegexSource})`
                 )).map(([_, p, pPrecision, y, yPrecision, r, rPrecision]) => new this({
-                    R: new NumberEntity(r, rPrecision?.length),
-                    P: new NumberEntity(p, pPrecision?.length),
-                    Y: new NumberEntity(y, yPrecision?.length),
+                    R: new (RotatorEntity.attributes.R)(r, rPrecision?.length),
+                    P: new (RotatorEntity.attributes.P)(p, pPrecision?.length),
+                    Y: new (RotatorEntity.attributes.Y)(y, yPrecision?.length),
                 })),
                 RotatorEntity.grammar.map(v => new this({
                     R: v.R,
