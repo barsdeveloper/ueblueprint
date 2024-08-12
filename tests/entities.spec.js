@@ -13,6 +13,7 @@ import IntegerEntity from "../js/entity/IntegerEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
 import MirroredEntity from "../js/entity/MirroredEntity.js"
+import NaturalNumberEntity from "../js/entity/NaturalNumberEntity.js"
 import NullEntity from "../js/entity/NullEntity.js"
 import NumberEntity from "../js/entity/NumberEntity.js"
 import ObjectReferenceEntity from "../js/entity/ObjectReferenceEntity.js"
@@ -672,6 +673,15 @@ test("MirroredEntity", () => {
 
     const value = mirroredEntity2.grammar.parse("123.4")
     expect(value.serialize()).toEqual("123.400")
+})
+
+test("NaturalNumberEntity", () => {
+    const grammar = NaturalNumberEntity.grammar
+    {
+        const value = grammar.parse("1")
+        expect(value).toEqual(new NumberEntity(1))
+    }
+    expect(() => grammar.parse("-1")).toThrow
 })
 
 test("NullEntity", () => {

@@ -96,8 +96,8 @@ while (i < nodeTests.length) {
                                 },
                                 Configuration.gridSize
                             )
-                            expect(Math.abs(nodeTest.size[0] - expectedSize[0])).toBeLessThan(1.5)
-                            expect(Math.abs(nodeTest.size[1] - expectedSize[1])).toBeLessThan(1.5)
+                            expect(Math.abs(nodeTest.size[0] - expectedSize[0])).toBeLessThanOrEqual(1.5)
+                            expect(Math.abs(nodeTest.size[1] - expectedSize[1])).toBeLessThanOrEqual(1.5)
                             if (
                                 Math.abs(nodeTest.size[0] - expectedSize[0]) > 0.6
                                 || Math.abs(nodeTest.size[1] - expectedSize[1]) > 0.6

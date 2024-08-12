@@ -4605,7 +4605,7 @@ class NaturalNumberEntity extends IntegerEntity {
         return super.value
     }
     set value(value) {
-        value = Math.round(Utility.clamp(this.value, 0));
+        value = Math.round(Utility.clamp(value, 0));
         super.value = value;
     }
 
