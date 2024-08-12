@@ -30,7 +30,8 @@ export default class IEntity {
     static serialized = false // Value is written and read as string
     static expected = false // Must be there
     static inlined = false // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
-    static quoted = false // Key is serialized with quotes
+    /** @type {Boolean} */
+    static quoted // Key is serialized with quotes
     static silent = false // Do not serialize if default
     static trailing = false // Add attribute separator after the last attribute when serializing
 
@@ -57,6 +58,14 @@ export default class IEntity {
     }
     set ignored(value) {
         this.#ignored = value
+    }
+
+    #quoted
+    get quoted() {
+        return /** @type {typeof IEntity} */(this.constructor).quoted ?? this.#quoted ?? false
+    }
+    set quoted(value) {
+        this.#quoted = value
     }
 
     #trailing = this.constructor.trailing
@@ -133,6 +142,7 @@ export default class IEntity {
             // @ts-expect-error
             result = (() => class extends this { })() // Comes from a lambda otherwise the class will have name "result"
             result.grammar = result.createGrammar() // Reassign grammar to capture the correct this from subclass
+
         }
         return result
     }
@@ -322,7 +332,7 @@ export default class IEntity {
             }
             keyValue = printKey(keyValue)
             if (keyValue.length) {
-                if (valueType.quoted) {
+                if (Self.attributes[key]?.quoted === true || value.quoted === true) {
                     keyValue = `"${keyValue}"`
                 }
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator

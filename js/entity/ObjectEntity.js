@@ -190,21 +190,6 @@ export default class ObjectEntity extends IEntity {
         P.whitespaceOpt
     ).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
-    static createSubObjectGrammar() {
-        // const self = this.asUniqueClass()
-        // self.trailing = false
-        return P.lazy(() => this.grammar)
-            .map(object =>
-                values => {
-                    object.trailing = false
-                    values[Configuration.subObjectAttributeNameFromEntity(object)] = object
-                }
-            )
-    }
-
-    /** @type {String} */
-    #class
-
     constructor(values = {}) {
         if (("NodePosX" in values) !== ("NodePosY" in values)) {
             const entries = Object.entries(values)
@@ -394,8 +379,9 @@ export default class ObjectEntity extends IEntity {
                         this,
                         Grammar.attributeNameQuoted,
                         undefined,
-                        undefined,
-                        entity => entity.flagQuoted()
+                        (values, attributeKey, attributeValue) => {
+                            Utility.objectSet(values, [...attributeKey, "quoted"], true)
+                        },
                     ),
                     this.inlinedArrayEntryGrammar,
                 )
@@ -412,6 +398,18 @@ export default class ObjectEntity extends IEntity {
             .label("ObjectEntity")
     }
 
+    static createSubObjectGrammar() {
+        return P.lazy(() => this.grammar)
+            .map(object =>
+                values => {
+                    object.trailing = false
+                    values[Configuration.subObjectAttributeNameFromEntity(object)] = object
+                }
+            )
+    }
+
+    /** @type {String} */
+    #class
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)

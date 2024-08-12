@@ -2644,7 +2644,8 @@ class IEntity {
     static serialized = false // Value is written and read as string
     static expected = false // Must be there
     static inlined = false // The key is a subobject or array and printed as inlined (A.B=123, A(0)=123)
-    static quoted = false // Key is serialized with quotes
+    /** @type {Boolean} */
+    static quoted // Key is serialized with quotes
     static silent = false // Do not serialize if default
     static trailing = false // Add attribute separator after the last attribute when serializing
 
@@ -2671,6 +2672,14 @@ class IEntity {
     }
     set ignored(value) {
         this.#ignored = value;
+    }
+
+    #quoted
+    get quoted() {
+        return /** @type {typeof IEntity} */(this.constructor).quoted ?? this.#quoted ?? false
+    }
+    set quoted(value) {
+        this.#quoted = value;
     }
 
     #trailing = this.constructor.trailing
@@ -2747,6 +2756,7 @@ class IEntity {
             // @ts-expect-error
             result = (() => class extends this { })(); // Comes from a lambda otherwise the class will have name "result"
             result.grammar = result.createGrammar(); // Reassign grammar to capture the correct this from subclass
+
         }
         return result
     }
@@ -2936,7 +2946,7 @@ class IEntity {
             }
             keyValue = printKey(keyValue);
             if (keyValue.length) {
-                if (valueType.quoted) {
+                if (Self.attributes[key]?.quoted === true || value.quoted === true) {
                     keyValue = `"${keyValue}"`;
                 }
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator;
@@ -3223,7 +3233,6 @@ class Grammar {
         attributeNameGrammar = this.attributeName,
         valueSeparator = this.equalSeparation,
         handleObjectSet = (values, attributeKey, attributeValue) => { },
-        entityTransformer = /** @param {typeof IEntity} v */ v => v
     ) {
         return Parsernostrum.seq(
             attributeNameGrammar,
@@ -3231,13 +3240,11 @@ class Grammar {
         ).chain(([attributeName, _1]) => {
             const attributeKey = attributeName.split(Configuration.keysSeparator);
             const attributeValue = this.getAttribute(entityType, attributeKey);
-            const grammar = attributeValue
-                ? entityTransformer(attributeValue).grammar
-                : entityTransformer(IEntity).unknownEntityGrammar;
+            const grammar = attributeValue ? attributeValue.grammar : IEntity.unknownEntityGrammar;
             return grammar.map(attributeValue =>
                 values => {
-                    handleObjectSet(values, attributeKey, attributeValue);
                     Utility.objectSet(values, attributeKey, attributeValue);
+                    handleObjectSet(values, attributeKey, attributeValue);
                 }
             )
         })
@@ -5027,7 +5034,8 @@ class Integer64Entity extends IEntity {
 
 class ObjectReferenceEntity extends IEntity {
 
-    static #quotedParser = Parsernostrum.regArray(new RegExp(
+    /** @protected */
+    static _quotedParser = Parsernostrum.regArray(new RegExp(
         `'"(${Grammar.Regex.InsideString.source})"'`
         + "|"
         + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
@@ -5036,21 +5044,7 @@ class ObjectReferenceEntity extends IEntity {
         // @ts-expect-error
         new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
     )
-    static fullReferenceGrammar = Parsernostrum.regArray(
-        new RegExp(
-            // @ts-expect-error
-            "(" + this.typeReference.getParser().regexp.source + ")"
-            // @ts-expect-error
-            + "(?:" + this.#quotedParser.getParser().parser.regexp.source + ")"
-        )
-    ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
-    static fullReferenceSerializedGrammar = Parsernostrum.regArray(
-        new RegExp(
-            '"(' + Grammar.Regex.InsideString.source + "?)"
-            + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
-        )
-    ).map(([full, type, path]) => new this(type, path, full))
-    static typeReferenceGrammar = this.typeReference.map(v => new this(v, "", v))
+    static fullReferenceGrammar = this.createFullReferenceGrammar()
     static grammar = this.createGrammar()
 
     #type
@@ -5087,14 +5081,40 @@ class ObjectReferenceEntity extends IEntity {
         this.#full = full ?? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`;
     }
 
+    /** @returns {P<ObjectReferenceEntity>} */
     static createGrammar() {
-        return /** @type {P<ObjectReferenceEntity>} */(
-            Parsernostrum.alt(
-                this.fullReferenceSerializedGrammar,
-                this.fullReferenceGrammar,
-                this.typeReferenceGrammar,
-            ).label("ObjectReferenceEntity")
-        )
+        return Parsernostrum.alt(
+            this.createFullReferenceSerializedGrammar(),
+            this.createFullReferenceGrammar(),
+            this.createTypeReferenceGrammar(),
+        ).label("ObjectReferenceEntity")
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createFullReferenceGrammar() {
+        return Parsernostrum.regArray(
+            new RegExp(
+                // @ts-expect-error
+                "(" + this.typeReference.getParser().regexp.source + ")"
+                // @ts-expect-error
+                + "(?:" + this._quotedParser.getParser().parser.regexp.source + ")"
+            )
+        ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createFullReferenceSerializedGrammar() {
+        return Parsernostrum.regArray(
+            new RegExp(
+                '"(' + Grammar.Regex.InsideString.source + "?)"
+                + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
+            )
+        ).map(([full, type, path]) => new this(type, path, full))
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createTypeReferenceGrammar() {
+        return this.typeReference.map(v => new this(v, "", v))
     }
 
     static createNoneInstance() {
@@ -6197,21 +6217,6 @@ class ObjectEntity extends IEntity {
         Parsernostrum.whitespaceOpt
     ).map(([_0, first, remaining, _4]) => [first, ...remaining])
 
-    static createSubObjectGrammar() {
-        // const self = this.asUniqueClass()
-        // self.trailing = false
-        return Parsernostrum.lazy(() => this.grammar)
-            .map(object =>
-                values => {
-                    object.trailing = false;
-                    values[Configuration.subObjectAttributeNameFromEntity(object)] = object;
-                }
-            )
-    }
-
-    /** @type {String} */
-    #class
-
     constructor(values = {}) {
         if (("NodePosX" in values) !== ("NodePosY" in values)) {
             const entries = Object.entries(values);
@@ -6401,8 +6406,9 @@ class ObjectEntity extends IEntity {
                         this,
                         Grammar.attributeNameQuoted,
                         undefined,
-                        undefined,
-                        entity => entity.flagQuoted()
+                        (values, attributeKey, attributeValue) => {
+                            Utility.objectSet(values, [...attributeKey, "quoted"], true);
+                        },
                     ),
                     this.inlinedArrayEntryGrammar,
                 )
@@ -6419,6 +6425,18 @@ class ObjectEntity extends IEntity {
             .label("ObjectEntity")
     }
 
+    static createSubObjectGrammar() {
+        return Parsernostrum.lazy(() => this.grammar)
+            .map(object =>
+                values => {
+                    object.trailing = false;
+                    values[Configuration.subObjectAttributeNameFromEntity(object)] = object;
+                }
+            )
+    }
+
+    /** @type {String} */
+    #class
     getClass() {
         if (!this.#class) {
             this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
@@ -13301,7 +13319,6 @@ class UnknownKeysEntity extends IEntity {
 }
 
 function initializeSerializerFactory() {
-
     IEntity.unknownEntityGrammar =
         Parsernostrum.alt(
             // Remember to keep the order, otherwise parsing might fail

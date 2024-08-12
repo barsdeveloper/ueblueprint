@@ -1,27 +1,26 @@
 import Parsernostrum from "parsernostrum"
+import AlternativesEntity from "../entity/AlternativesEntity.js"
+import ArrayEntity from "../entity/ArrayEntity.js"
+import BooleanEntity from "../entity/BooleanEntity.js"
 import FormatTextEntity from "../entity/FormatTextEntity.js"
 import GuidEntity from "../entity/GuidEntity.js"
+import IEntity from "../entity/IEntity.js"
 import InvariantTextEntity from "../entity/InvariantTextEntity.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
 import LocalizedTextEntity from "../entity/LocalizedTextEntity.js"
+import NullEntity from "../entity/NullEntity.js"
+import NumberEntity from "../entity/NumberEntity.js"
 import ObjectReferenceEntity from "../entity/ObjectReferenceEntity.js"
 import PinReferenceEntity from "../entity/PinReferenceEntity.js"
 import RotatorEntity from "../entity/RotatorEntity.js"
+import StringEntity from "../entity/StringEntity.js"
 import SymbolEntity from "../entity/SymbolEntity.js"
 import UnknownKeysEntity from "../entity/UnknownKeysEntity.js"
 import Vector2DEntity from "../entity/Vector2DEntity.js"
 import Vector4DEntity from "../entity/Vector4DEntity.js"
 import VectorEntity from "../entity/VectorEntity.js"
-import BooleanEntity from "../entity/BooleanEntity.js"
-import NumberEntity from "../entity/NumberEntity.js"
-import StringEntity from "../entity/StringEntity.js"
-import ArrayEntity from "../entity/ArrayEntity.js"
-import AlternativesEntity from "../entity/AlternativesEntity.js"
-import NullEntity from "../entity/NullEntity.js"
-import IEntity from "../entity/IEntity.js"
 
 export default function initializeSerializerFactory() {
-
     IEntity.unknownEntityGrammar =
         Parsernostrum.alt(
             // Remember to keep the order, otherwise parsing might fail

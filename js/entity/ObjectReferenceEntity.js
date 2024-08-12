@@ -5,7 +5,8 @@ import IEntity from "./IEntity.js"
 
 export default class ObjectReferenceEntity extends IEntity {
 
-    static #quotedParser = P.regArray(new RegExp(
+    /** @protected */
+    static _quotedParser = P.regArray(new RegExp(
         `'"(${Grammar.Regex.InsideString.source})"'`
         + "|"
         + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
@@ -14,21 +15,7 @@ export default class ObjectReferenceEntity extends IEntity {
         // @ts-expect-error
         new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
     )
-    static fullReferenceGrammar = P.regArray(
-        new RegExp(
-            // @ts-expect-error
-            "(" + this.typeReference.getParser().regexp.source + ")"
-            // @ts-expect-error
-            + "(?:" + this.#quotedParser.getParser().parser.regexp.source + ")"
-        )
-    ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
-    static fullReferenceSerializedGrammar = P.regArray(
-        new RegExp(
-            '"(' + Grammar.Regex.InsideString.source + "?)"
-            + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
-        )
-    ).map(([full, type, path]) => new this(type, path, full))
-    static typeReferenceGrammar = this.typeReference.map(v => new this(v, "", v))
+    static fullReferenceGrammar = this.createFullReferenceGrammar()
     static grammar = this.createGrammar()
 
     #type
@@ -65,14 +52,40 @@ export default class ObjectReferenceEntity extends IEntity {
         this.#full = full ?? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
     }
 
+    /** @returns {P<ObjectReferenceEntity>} */
     static createGrammar() {
-        return /** @type {P<ObjectReferenceEntity>} */(
-            P.alt(
-                this.fullReferenceSerializedGrammar,
-                this.fullReferenceGrammar,
-                this.typeReferenceGrammar,
-            ).label("ObjectReferenceEntity")
-        )
+        return P.alt(
+            this.createFullReferenceSerializedGrammar(),
+            this.createFullReferenceGrammar(),
+            this.createTypeReferenceGrammar(),
+        ).label("ObjectReferenceEntity")
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createFullReferenceGrammar() {
+        return P.regArray(
+            new RegExp(
+                // @ts-expect-error
+                "(" + this.typeReference.getParser().regexp.source + ")"
+                // @ts-expect-error
+                + "(?:" + this._quotedParser.getParser().parser.regexp.source + ")"
+            )
+        ).map(([full, type, ...path]) => new this(type, path.find(v => v), full))
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createFullReferenceSerializedGrammar() {
+        return P.regArray(
+            new RegExp(
+                '"(' + Grammar.Regex.InsideString.source + "?)"
+                + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
+            )
+        ).map(([full, type, path]) => new this(type, path, full))
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createTypeReferenceGrammar() {
+        return this.typeReference.map(v => new this(v, "", v))
     }
 
     static createNoneInstance() {
