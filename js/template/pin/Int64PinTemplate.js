@@ -10,7 +10,9 @@ export default class Int64PinTemplate extends INumericPinTemplate {
      * @param {String[]} rawValues
      */
     setDefaultValue(values = [], rawValues) {
-        this.element.setDefaultValue(new Integer64Entity(values[0]))
+        const value = this.element.getDefaultValue()
+        value.value = BigInt(values[0])
+        this.element.setDefaultValue(value)
         this.element.requestUpdate()
     }
 

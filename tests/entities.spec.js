@@ -9,6 +9,7 @@ import FormatTextEntity from "../js/entity/FormatTextEntity.js"
 import FunctionReferenceEntity from "../js/entity/FunctionReferenceEntity.js"
 import GuidEntity from "../js/entity/GuidEntity.js"
 import IEntity from "../js/entity/IEntity.js"
+import Integer64Entity from "../js/entity/Integer64Entity.js"
 import IntegerEntity from "../js/entity/IntegerEntity.js"
 import KeyBindingEntity from "../js/entity/KeyBindingEntity.js"
 import LinearColorEntity from "../js/entity/LinearColorEntity.js"
@@ -419,30 +420,40 @@ test("FunctionReferenceEntity", () => {
 
 test("GuidEntity", () => {
     let grammar = GuidEntity.flagInlined().grammar
-    {
-        const value = grammar.parse("0556a3ecabf648d0a5c07b2478e9dd32")
-        expect(value).toBeInstanceOf(GuidEntity)
-        expect(value).toEqual(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))
-        expect(value.equals(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
-        expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
-        expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd33"))).toBeFalsy()
-        expect(value.serialize()).toEqual("0556a3ecabf648d0a5c07b2478e9dd32")
-    }
-    {
-        const value = grammar.parse("64023BC344E0453DBB583FAC411489BC")
-        expect(value).toBeInstanceOf(GuidEntity)
-        expect(value).toEqual(new GuidEntity("64023BC344E0453DBB583FAC411489BC"))
-        expect(value.serialize()).toEqual("64023BC344E0453DBB583FAC411489BC")
-    }
-    {
-        const value = grammar.parse("6edC4a425ca948da8bC78bA52DED6C6C")
-        expect(value).toBeInstanceOf(GuidEntity)
-        expect(value).toEqual(new GuidEntity("6edC4a425ca948da8bC78bA52DED6C6C"))
-        expect(value.serialize()).toEqual("6edC4a425ca948da8bC78bA52DED6C6C")
-    }
+
+    let value = grammar.parse("0556a3ecabf648d0a5c07b2478e9dd32")
+    expect(value).toBeInstanceOf(GuidEntity)
+    expect(value).toEqual(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))
+    expect(value.equals(new GuidEntity("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
+    expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd32"))).toBeTruthy()
+    expect(value.equals(new (GuidEntity.withDefault().flagInlined())("0556a3ecabf648d0a5c07b2478e9dd33"))).toBeFalsy()
+    expect(value.serialize()).toEqual("0556a3ecabf648d0a5c07b2478e9dd32")
+
+    value = grammar.parse("64023BC344E0453DBB583FAC411489BC")
+    expect(value).toBeInstanceOf(GuidEntity)
+    expect(value).toEqual(new GuidEntity("64023BC344E0453DBB583FAC411489BC"))
+    expect(value.serialize()).toEqual("64023BC344E0453DBB583FAC411489BC")
+
+    value = grammar.parse("6edC4a425ca948da8bC78bA52DED6C6C")
+    expect(value).toBeInstanceOf(GuidEntity)
+    expect(value).toEqual(new GuidEntity("6edC4a425ca948da8bC78bA52DED6C6C"))
+    expect(value.serialize()).toEqual("6edC4a425ca948da8bC78bA52DED6C6C")
+
     expect(() => grammar.parse("172087193 9B04362973544B3564FDB2C")).toThrow("Could not parse")
     expect(() => grammar.parse("E25F14F8F3E9441AB07153E7DA2BA2B")).toThrow("Could not parse")
     expect(() => grammar.parse("A78988B0097E48418C8CB87EC5A67ABF7")).toThrow("Could not parse")
+})
+
+test("Integer64Entity", () => {
+    let grammar = Integer64Entity.grammar
+
+    let value = grammar.parse("446")
+    expect(value).toBeInstanceOf(Integer64Entity)
+    expect(value.equals(new Integer64Entity(446))).toBeTruthy()
+    expect(value.equals(new Integer64Entity(445))).toBeFalsy()
+    expect(value.equals(new Integer64Entity(-446))).toBeFalsy()
+    expect(value.toString()).toEqual("446")
+    expect(value.serialize()).toEqual("446")
 })
 
 test("IntegerEntity", () => {
@@ -459,40 +470,48 @@ test("IntegerEntity", () => {
     expect(value.equals(new ByteEntity(0.9))).toBeTruthy()
     expect(value.equals(new ByteEntity(-0.9))).toBeTruthy()
     expect(value.equals(new ByteEntity(1))).toBeFalsy()
+    expect(value.toString()).toEqual("0")
     expect(value.serialize()).toEqual("0")
 
     value = grammar.parse("+0")
     expect(value).toBeInstanceOf(IntegerEntity)
     expect(value).toEqual(new IntegerEntity(0))
+    expect(value.toString()).toEqual("0")
     expect(value.serialize()).toEqual("0")
 
     value = grammar.parse("-0")
     expect(value).toBeInstanceOf(IntegerEntity)
     expect(value).toEqual(new IntegerEntity(0))
+    expect(value.toString()).toEqual("0")
     expect(value.serialize()).toEqual("0")
 
     value = grammar.parse("99")
     expect(value).toBeInstanceOf(IntegerEntity)
     expect(value).toEqual(new IntegerEntity(99))
+    expect(value).toEqual(new NumberEntity(99))
+    expect(value).toEqual(new ByteEntity(99))
+    expect(value.toString()).toEqual("99")
     expect(value.serialize()).toEqual("99")
 
     value = grammar.parse("-8685")
     expect(value).toBeInstanceOf(IntegerEntity)
     expect(value).toEqual(new IntegerEntity(-8685))
+    expect(value.toString()).toEqual("-8685")
     expect(value.serialize()).toEqual("-8685")
 
     value = grammar.parse("+555")
     expect(value).toBeInstanceOf(IntegerEntity)
     expect(value).toEqual(new IntegerEntity(555))
+    expect(value.toString()).toEqual("555")
     expect(value.serialize()).toEqual("555")
 
     value = grammar.parse("1000000000")
     expect(value).toBeInstanceOf(IntegerEntity)
     expect(value).toEqual(new IntegerEntity(1000000000))
+    expect(value.toString()).toEqual("1000000000")
     expect(value.serialize()).toEqual("1000000000")
 
     expect(() => grammar.parse("1.2").value).toThrow()
-
     expect(IntegerEntity.flagSerialized().grammar.parse("589").serialize()).toEqual(`"589"`)
 })
 

@@ -132,10 +132,10 @@ export default class IssuesNodes1 extends NodeTests {
                     await expect(pins[1].locator("ueb-input")).toHaveText("1.0")
                     let inputs = await node.locator("ueb-input").all()
                     await inputs[0].fill("-8")
-                    await inputs[0].blur()
+                    await blueprintPage.blur()
                     expect(await node.evaluate(n => n.nodeDisplayName)).toEqual("Subtract(-8,1)")
                     await inputs[1].fill("9.2")
-                    await inputs[1].blur()
+                    await blueprintPage.blur()
                     expect(await node.evaluate(n => n.nodeDisplayName)).toEqual("Subtract(-8,9.2)")
                 }
             },

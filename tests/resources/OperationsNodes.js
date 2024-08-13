@@ -276,11 +276,21 @@ export default class OperationsNodes extends NodeTests {
                 delegate: false,
                 development: false,
                 variadic: true,
-                additionalTest: async (node, pins) => {
+                additionalTest: async (node, pins, blueprintPage) => {
                     for (const pin of pins) {
                         expect(await pin.evaluate(pin => pin.template.renderIcon().strings.join("")))
                             .toStrictEqual(SVGIcon.operationPin.strings.join(""))
                     }
+                    expect(await pins[0].evaluate(pin => pin.entity.DefaultValue.constructor.serialized)).toBeTruthy()
+                    expect(await pins[1].evaluate(pin => pin.entity.DefaultValue.constructor.serialized)).toBeTruthy()
+                    await pins[0].locator("ueb-input").fill("54")
+                    await blueprintPage.blur()
+                    expect(await pins[0].evaluate(pin => pin.entity.DefaultValue.constructor.serialized)).toBeTruthy()
+                    expect(await pins[0].evaluate(pin => pin.entity.DefaultValue.serialize())).toEqual('"54"')
+                    await pins[1].locator("ueb-input").fill("771")
+                    await blueprintPage.blur()
+                    expect(await pins[1].evaluate(pin => pin.entity.DefaultValue.constructor.serialized)).toBeTruthy()
+                    expect(await pins[1].evaluate(pin => pin.entity.DefaultValue.serialize())).toEqual('"771"')
                 }
             },
             {

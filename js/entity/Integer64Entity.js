@@ -5,14 +5,17 @@ export default class Integer64Entity extends IEntity {
 
     static grammar = this.createGrammar()
 
-    /** @type {bigint} */
-    #value
+    /**
+     * @protected
+     * @type {bigint}
+     */
+    _value
     get value() {
-        return this.#value
+        return this._value
     }
     set value(value) {
         if (value >= -(1n << 63n) && value < 1n << 63n) {
-            this.#value = value
+            this._value = value
         }
     }
 
@@ -42,5 +45,9 @@ export default class Integer64Entity extends IEntity {
 
     valueOf() {
         return this.value
+    }
+
+    toString() {
+        return this.value.toString()
     }
 }
