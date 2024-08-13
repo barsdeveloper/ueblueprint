@@ -2920,7 +2920,6 @@ class IEntity {
             /** @type {IEntity} */
             const value = this[key];
             const valueType = /** @type {typeof IEntity} */(value?.constructor);
-            let keyValue = this instanceof Array ? `(${key})` : key;
             if (value === undefined || this instanceof IEntity && !this.showProperty(key)) {
                 continue
             }
@@ -2928,6 +2927,10 @@ class IEntity {
                 first = false;
             } else {
                 result += attributeSeparator;
+            }
+            let keyValue = this instanceof Array ? `(${key})` : key;
+            if (keyValue.length && (Self.attributes[key]?.quoted === true || value.quoted === true)) {
+                keyValue = `"${keyValue}"`;
             }
             if (valueType.inlined) {
                 const inlinedPrintKey = valueType.className() === "ArrayEntity"
@@ -2946,9 +2949,6 @@ class IEntity {
             }
             keyValue = printKey(keyValue);
             if (keyValue.length) {
-                if (Self.attributes[key]?.quoted === true || value.quoted === true) {
-                    keyValue = `"${keyValue}"`;
-                }
                 result += (attributeSeparator.includes("\n") ? indentation : "") + keyValue + keySeparator;
             }
             let serialization = value?.serialize(insideString, indentation);
