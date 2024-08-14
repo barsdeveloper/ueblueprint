@@ -5574,6 +5574,7 @@ class PinEntity extends IEntity {
         return this.#recomputesNodeTitleOnChange
     }
 
+    /** @type {ObjectEntity} */
     #objectEntity = null
     get objectEntity() {
         try {
@@ -5640,7 +5641,7 @@ class PinEntity extends IEntity {
     }
 
     getType() {
-        const category = this.PinType.PinCategory?.valueOf().toLocaleLowerCase();
+        const category = this.PinType.PinCategory?.toString().toLocaleLowerCase();
         if (category === "struct" || category === "class" || category === "object" || category === "type") {
             return this.PinType.PinSubCategoryObject?.path
         }
@@ -5650,12 +5651,12 @@ class PinEntity extends IEntity {
         if (this.objectEntity?.isPcg()) {
             const pcgSuboject = this.objectEntity.getPcgSubobject();
             const pinObjectReference = this.isInput()
-                ? pcgSuboject.InputPins?.[this.pinIndex]
-                : pcgSuboject.OutputPins?.[this.pinIndex];
+                ? pcgSuboject.InputPins?.valueOf()[this.pinIndex]
+                : pcgSuboject.OutputPins?.valueOf()[this.pinIndex];
             if (pinObjectReference) {
                 /** @type {ObjectEntity} */
                 const pinObject = pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)];
-                let allowedTypes = pinObject.Properties?.AllowedTypes?.valueOf() ?? "";
+                let allowedTypes = pinObject.Properties?.AllowedTypes?.toString() ?? "";
                 if (allowedTypes == "") {
                     allowedTypes = this.PinType.PinCategory ?? "";
                     if (allowedTypes == "") {
