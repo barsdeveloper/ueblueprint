@@ -39,11 +39,6 @@ export default class PinEntity extends IEntity {
 
     static lookbehind = "Pin"
     static #typeEntityMap = {
-        [Configuration.paths.linearColor]: LinearColorEntity,
-        [Configuration.paths.rotator]: RotatorEntity,
-        [Configuration.paths.vector]: VectorEntity,
-        [Configuration.paths.vector2D]: Vector2DEntity,
-        [Configuration.paths.vector4f]: Vector4DEntity,
         "bool": BooleanEntity,
         "byte": ByteEntity,
         "enum": EnumEntity,
@@ -53,10 +48,17 @@ export default class PinEntity extends IEntity {
         "name": StringEntity,
         "real": NumberEntity,
         "string": StringEntity,
+        [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.niagaraPosition]: VectorEntity,
+        [Configuration.paths.rotator]: RotatorEntity,
+        [Configuration.paths.vector]: VectorEntity,
+        [Configuration.paths.vector2D]: Vector2DEntity,
+        [Configuration.paths.vector4f]: Vector4DEntity,
     }
     static #alternativeTypeEntityMap = {
         "enum": EnumDisplayValueEntity,
         "rg": RBSerializationVector2DEntity,
+        [Configuration.paths.niagaraPosition]: SimpleSerializationVectorEntity.flagAllowShortSerialization(),
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
@@ -223,9 +225,9 @@ export default class PinEntity extends IEntity {
 
     /** @returns {typeof IEntity} */
     getEntityType(alternative = false) {
-        const typeString = this.getType()
-        const entity = PinEntity.#typeEntityMap[typeString]
-        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[typeString]
+        const type = this.getType()
+        const entity = PinEntity.#typeEntityMap[type]
+        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[type]
         return alternative && alternativeEntity !== undefined
             ? alternativeEntity
             : entity

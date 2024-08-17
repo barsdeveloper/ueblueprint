@@ -237,7 +237,7 @@ class Configuration {
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
-    static pinInputWrapWidth = 143 // px
+    static pinInputWrapWidth = 145 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,
@@ -5468,6 +5468,7 @@ class SimpleSerializationVector4DEntity extends Vector4DEntity {
 
 class SimpleSerializationVectorEntity extends VectorEntity {
 
+    static allowShortSerialization = false
     static attributeSeparator = ", "
     static grammar = this.createGrammar()
 
@@ -5476,10 +5477,14 @@ class SimpleSerializationVectorEntity extends VectorEntity {
             Parsernostrum.alt(
                 Parsernostrum.regArray(new RegExp(
                     `(${NumberEntity.numberRegexSource})`
+                    // If allow simple serialization then it can parse only a single number ...
+                    + (this.allowShortSerialization ? `(?:` : "")
                     + String.raw`\s*,\s*`
                     + `(${NumberEntity.numberRegexSource})`
                     + String.raw`\s*,\s*`
                     + `(${NumberEntity.numberRegexSource})`
+                    // ... that will be assigned to X and the rest is optional and set to 0
+                    + (this.allowShortSerialization ? `)?` : "")
                 ))
                     .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
                         X: new (VectorEntity.attributes.X)(x, xPrecision?.length),
@@ -5493,6 +5498,19 @@ class SimpleSerializationVectorEntity extends VectorEntity {
                 }))
             )
         )
+    }
+
+    /**
+     * @template {typeof SimpleSerializationVectorEntity} T
+     * @this {T}
+     */
+    static flagAllowShortSerialization(value = true) {
+        const result = this.asUniqueClass();
+        if (value !== result.allowShortSerialization) {
+            result.allowShortSerialization = value;
+            result.grammar = result.createGrammar();
+        }
+        return result
     }
 
     doSerialize() {
@@ -5510,11 +5528,6 @@ class PinEntity extends IEntity {
 
     static lookbehind = "Pin"
     static #typeEntityMap = {
-        [Configuration.paths.linearColor]: LinearColorEntity,
-        [Configuration.paths.rotator]: RotatorEntity,
-        [Configuration.paths.vector]: VectorEntity,
-        [Configuration.paths.vector2D]: Vector2DEntity,
-        [Configuration.paths.vector4f]: Vector4DEntity,
         "bool": BooleanEntity,
         "byte": ByteEntity,
         "enum": EnumEntity,
@@ -5524,10 +5537,17 @@ class PinEntity extends IEntity {
         "name": StringEntity,
         "real": NumberEntity,
         "string": StringEntity,
+        [Configuration.paths.linearColor]: LinearColorEntity,
+        [Configuration.paths.niagaraPosition]: VectorEntity,
+        [Configuration.paths.rotator]: RotatorEntity,
+        [Configuration.paths.vector]: VectorEntity,
+        [Configuration.paths.vector2D]: Vector2DEntity,
+        [Configuration.paths.vector4f]: Vector4DEntity,
     }
     static #alternativeTypeEntityMap = {
         "enum": EnumDisplayValueEntity,
         "rg": RBSerializationVector2DEntity,
+        [Configuration.paths.niagaraPosition]: SimpleSerializationVectorEntity.flagAllowShortSerialization(),
         [Configuration.paths.rotator]: SimpleSerializationRotatorEntity,
         [Configuration.paths.vector]: SimpleSerializationVectorEntity,
         [Configuration.paths.vector2D]: SimpleSerializationVector2DEntity,
@@ -5694,9 +5714,9 @@ class PinEntity extends IEntity {
 
     /** @returns {typeof IEntity} */
     getEntityType(alternative = false) {
-        const typeString = this.getType();
-        const entity = PinEntity.#typeEntityMap[typeString];
-        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[typeString];
+        const type = this.getType();
+        const entity = PinEntity.#typeEntityMap[type];
+        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[type];
         return alternative && alternativeEntity !== undefined
             ? alternativeEntity
             : entity
@@ -11658,6 +11678,10 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
+        if (this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width < 20) {
+            // Do not wrap if the pin name is just a letter (like A, B, V, ...)
+            return
+        }
         const width = this.blueprint.scaleCorrect(this.#inputWrapper.getBoundingClientRect().width) + this.nameWidth;
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap");
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {
@@ -12618,6 +12642,16 @@ class VectorPinTemplate extends INumericPinTemplate {
 }
 
 const inputPinTemplates = {
+    "bool": BoolPinTemplate,
+    "byte": IntPinTemplate,
+    "enum": EnumPinTemplate,
+    "int": IntPinTemplate,
+    "int64": Int64PinTemplate,
+    "MUTABLE_REFERENCE": ReferencePinTemplate,
+    "name": NamePinTemplate,
+    "real": RealPinTemplate,
+    "rg": Vector2DPinTemplate,
+    "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
@@ -12626,19 +12660,9 @@ const inputPinTemplates = {
     [Configuration.paths.vector2D]: Vector2DPinTemplate,
     [Configuration.paths.vector3f]: VectorPinTemplate,
     [Configuration.paths.vector4f]: Vector4DPinTemplate,
-    "bool": BoolPinTemplate,
-    "byte": IntPinTemplate,
-    "enum": EnumPinTemplate,
-    "int": IntPinTemplate,
-    "int64": Int64PinTemplate,
-    "MUTABLE_REFERENCE": ReferencePinTemplate,
-    "name": NamePinTemplate,
-    "rg": Vector2DPinTemplate,
-    "real": RealPinTemplate,
-    "string": StringPinTemplate,
 };
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 function pinTemplate(entity) {
     if (entity.PinType.ContainerType?.toString() === "Array") {
         return PinTemplate

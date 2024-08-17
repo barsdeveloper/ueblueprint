@@ -34,6 +34,10 @@
  * @typedef {typeof import("./js/entity/ObjectEntity.js").default} ObjectEntityConstructor
  */
 /**
+ * @template {IEntity} T
+ * @typedef {import("./js/entity/PinEntity.js").default<T>} PinEntity<T>
+ */
+/**
  * @typedef {import ("./tests/fixtures/BlueprintFixture.js").default} BlueprintFixture
  * @typedef {import("./js/Blueprint.js").default} Blueprint
  * @typedef {import("./js/element/ColorHandlerElement.js").default} ColorHandlerElement
@@ -73,7 +77,6 @@
  * @typedef {import("./js/entity/ObjectEntity.js").default} ObjectEntity
  * @typedef {import("./js/entity/ObjectReferenceEntity.js").default} ObjectReferenceEntity
  * @typedef {import("./js/entity/objects/KnotEntity.js").default} KnotEntity
- * @typedef {import("./js/entity/PinEntity.js").default} PinEntity
  * @typedef {import("./js/entity/PinReferenceEntity.js").default} PinReferenceEntity
  * @typedef {import("./js/entity/PinTypeEntity.js").default} PinTypeEntity
  * @typedef {import("./js/entity/RBSerializationVector2DEntity.js").default} RBSerializationVector2DEntity

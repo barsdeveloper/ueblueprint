@@ -16,6 +16,16 @@ import Vector4DPinTemplate from "../template/pin/Vector4DPinTemplate.js"
 import VectorPinTemplate from "../template/pin/VectorPinTemplate.js"
 
 const inputPinTemplates = {
+    "bool": BoolPinTemplate,
+    "byte": IntPinTemplate,
+    "enum": EnumPinTemplate,
+    "int": IntPinTemplate,
+    "int64": Int64PinTemplate,
+    "MUTABLE_REFERENCE": ReferencePinTemplate,
+    "name": NamePinTemplate,
+    "real": RealPinTemplate,
+    "rg": Vector2DPinTemplate,
+    "string": StringPinTemplate,
     [Configuration.paths.linearColor]: LinearColorPinTemplate,
     [Configuration.paths.niagaraBool]: BoolPinTemplate,
     [Configuration.paths.niagaraPosition]: VectorPinTemplate,
@@ -24,19 +34,9 @@ const inputPinTemplates = {
     [Configuration.paths.vector2D]: Vector2DPinTemplate,
     [Configuration.paths.vector3f]: VectorPinTemplate,
     [Configuration.paths.vector4f]: Vector4DPinTemplate,
-    "bool": BoolPinTemplate,
-    "byte": IntPinTemplate,
-    "enum": EnumPinTemplate,
-    "int": IntPinTemplate,
-    "int64": Int64PinTemplate,
-    "MUTABLE_REFERENCE": ReferencePinTemplate,
-    "name": NamePinTemplate,
-    "rg": Vector2DPinTemplate,
-    "real": RealPinTemplate,
-    "string": StringPinTemplate,
 }
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 export default function pinTemplate(entity) {
     if (entity.PinType.ContainerType?.toString() === "Array") {
         return PinTemplate

@@ -213,7 +213,7 @@ export default class Configuration {
         vector4f: "/Script/CoreUObject.Vector4f",
         whileLoop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:WhileLoop",
     }
-    static pinInputWrapWidth = 143 // px
+    static pinInputWrapWidth = 145 // px
     static removeEventName = "ueb-element-delete"
     static scale = {
         [-12]: 0.133333,

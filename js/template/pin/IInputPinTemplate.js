@@ -41,6 +41,10 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
+        if (this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width < 20) {
+            // Do not wrap if the pin name is just a letter (like A, B, V, ...)
+            return
+        }
         const width = this.blueprint.scaleCorrect(this.#inputWrapper.getBoundingClientRect().width) + this.nameWidth
         const inputWrapped = this.element.classList.contains("ueb-pin-input-wrap")
         if (!inputWrapped && width > Configuration.pinInputWrapWidth) {

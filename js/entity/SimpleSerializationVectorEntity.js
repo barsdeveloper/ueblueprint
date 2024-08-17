@@ -4,6 +4,7 @@ import VectorEntity from "./VectorEntity.js"
 
 export default class SimpleSerializationVectorEntity extends VectorEntity {
 
+    static allowShortSerialization = false
     static attributeSeparator = ", "
     static grammar = this.createGrammar()
 
@@ -12,10 +13,14 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
             P.alt(
                 P.regArray(new RegExp(
                     `(${NumberEntity.numberRegexSource})`
+                    // If allow simple serialization then it can parse only a single number ...
+                    + (this.allowShortSerialization ? `(?:` : "")
                     + String.raw`\s*,\s*`
                     + `(${NumberEntity.numberRegexSource})`
                     + String.raw`\s*,\s*`
                     + `(${NumberEntity.numberRegexSource})`
+                    // ... that will be assigned to X and the rest is optional and set to 0
+                    + (this.allowShortSerialization ? `)?` : "")
                 ))
                     .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
                         X: new (VectorEntity.attributes.X)(x, xPrecision?.length),
@@ -29,6 +34,19 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
                 }))
             )
         )
+    }
+
+    /**
+     * @template {typeof SimpleSerializationVectorEntity} T
+     * @this {T}
+     */
+    static flagAllowShortSerialization(value = true) {
+        const result = this.asUniqueClass()
+        if (value !== result.allowShortSerialization) {
+            result.allowShortSerialization = value
+            result.grammar = result.createGrammar()
+        }
+        return result
     }
 
     doSerialize() {
