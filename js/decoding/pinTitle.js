@@ -1,6 +1,6 @@
 import Utility from "../Utility.js"
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 export default function pinTitle(entity) {
     let result = entity.PinFriendlyName
         ? entity.PinFriendlyName.toString()

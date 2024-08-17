@@ -25,12 +25,13 @@
  */
 /**
  * @typedef {typeof import("./js/Blueprint.js").default} BlueprintConstructor
+ * @typedef {typeof import("./js/element/IElement.js").default} IElementConstructor
  * @typedef {typeof import("./js/element/LinkElement.js").default} LinkElementConstructor
  * @typedef {typeof import("./js/element/NodeElement.js").default} NodeElementConstructor
  * @typedef {typeof import("./js/element/PinElement.js").default} PinElementConstructor
  * @typedef {typeof import("./js/element/WindowElement.js").default} WindowElementConstructor
- * @typedef {typeof import("./js/entity/IEntity.js").default} EntityConstructor
  * @typedef {typeof import("./js/entity/AlternativesEntity.js").default} AlternativesEntityConstructor
+ * @typedef {typeof import("./js/entity/IEntity.js").default} EntityConstructor
  * @typedef {typeof import("./js/entity/ObjectEntity.js").default} ObjectEntityConstructor
  */
 /**
