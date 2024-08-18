@@ -41,7 +41,7 @@ export default class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
-        if (this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width < 20) {
+        if (this.element.querySelector(".ueb-pin-name")?.getBoundingClientRect().width < 20) {
             // Do not wrap if the pin name is just a letter (like A, B, V, ...)
             return
         }

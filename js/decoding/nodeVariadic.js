@@ -18,6 +18,7 @@ export default function nodeVariadic(entity) {
     /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number, newPin: PinEntity) => String} */
     let pinNameFromIndex
     const type = entity.getType()
+    let prefix
     let name
     switch (type) {
         case Configuration.paths.commutativeAssociativeBinaryOperator:
@@ -59,11 +60,16 @@ export default function nodeVariadic(entity) {
                     break
             }
             break
+        case Configuration.paths.executionSequence:
+            prefix ??= "Then"
         case Configuration.paths.multiGate:
+            prefix ??= "Out"
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput())
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.toString().match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1])
+            pinIndexFromEntity ??= pinEntity => Number(
+                pinEntity.PinName?.toString().match(new RegExp(String.raw`^\s*${prefix}[_\s]+(\d+)\s*$`, "i"))?.[1]
+            )
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
-                `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`
+                `${prefix} ${index >= 0 ? index : min > 0 ? `${prefix} 0` : max + 1}`
             break
         // case Configuration.paths.niagaraNodeOp:
         //     pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput())

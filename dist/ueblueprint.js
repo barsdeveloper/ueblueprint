@@ -3174,8 +3174,10 @@ class Grammar {
     static true = Parsernostrum.reg(/true/i).map(() => true)
     static false = Parsernostrum.reg(/false/i).map(() => false)
     static number = Parsernostrum.regArray(
+        // @ts-expect-error
         new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
     ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
+    // @ts-expect-error
     static bigInt = Parsernostrum.reg(new RegExp(Parsernostrum.number.getParser().parser.regexp.source)).map(BigInt)
         .map(result =>
             result[2] !== undefined
@@ -5824,6 +5826,7 @@ function nodeVariadic(entity) {
     /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number, newPin: PinEntity) => String} */
     let pinNameFromIndex;
     const type = entity.getType();
+    let prefix;
     let name;
     switch (type) {
         case Configuration.paths.commutativeAssociativeBinaryOperator:
@@ -5865,11 +5868,16 @@ function nodeVariadic(entity) {
                     break
             }
             break
+        case Configuration.paths.executionSequence:
+            prefix ??= "Then";
         case Configuration.paths.multiGate:
+            prefix ??= "Out";
             pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
-            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.toString().match(/^\s*Out[_\s]+(\d+)\s*$/i)?.[1]);
+            pinIndexFromEntity ??= pinEntity => Number(
+                pinEntity.PinName?.toString().match(new RegExp(String.raw`^\s*${prefix}[_\s]+(\d+)\s*$`, "i"))?.[1]
+            );
             pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
-                `Out ${index >= 0 ? index : min > 0 ? "Out 0" : max + 1}`;
+                `${prefix} ${index >= 0 ? index : min > 0 ? `${prefix} 0` : max + 1}`;
             break
         // case Configuration.paths.niagaraNodeOp:
         //     pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput())
@@ -11682,7 +11690,7 @@ class IInputPinTemplate extends PinTemplate {
 
     /** @param {HTMLElement}  inputElement*/
     #updateWrapClass(inputElement) {
-        if (this.element.querySelector(".ueb-pin-name").getBoundingClientRect().width < 20) {
+        if (this.element.querySelector(".ueb-pin-name")?.getBoundingClientRect().width < 20) {
             // Do not wrap if the pin name is just a letter (like A, B, V, ...)
             return
         }

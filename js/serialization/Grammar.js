@@ -38,8 +38,10 @@ export default class Grammar {
     static true = Parsernostrum.reg(/true/i).map(() => true)
     static false = Parsernostrum.reg(/false/i).map(() => false)
     static number = Parsernostrum.regArray(
+        // @ts-expect-error
         new RegExp(`(${Parsernostrum.number.getParser().parser.regexp.source})|(\\+?inf)|(-inf)`)
     ).map(([_0, n, plusInf, minusInf]) => n ? Number(n) : plusInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY)
+    // @ts-expect-error
     static bigInt = Parsernostrum.reg(new RegExp(Parsernostrum.number.getParser().parser.regexp.source)).map(BigInt)
         .map(result =>
             result[2] !== undefined
