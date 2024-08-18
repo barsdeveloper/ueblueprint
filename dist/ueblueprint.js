@@ -3087,12 +3087,12 @@ class BooleanEntity extends IEntity {
 
 class ElementFactory {
 
-    /** @type {Map<String, AnyConstructor<IElement>>} */
+    /** @type {Map<String, IElementConstructor>} */
     static #elementConstructors = new Map()
 
     /**
      * @param {String} tagName
-     * @param {AnyConstructor<IElement>} entityConstructor
+     * @param {IElementConstructor} entityConstructor
      */
     static registerElement(tagName, entityConstructor) {
         ElementFactory.#elementConstructors.set(tagName, entityConstructor);
@@ -4667,7 +4667,7 @@ const colors = {
 
 const pinColorMaterial = i$3`120, 120, 120`;
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 function pinColor(entity) {
     if (entity.PinType.PinCategory?.toString() === "mask") {
         const result = colors[entity.PinType.PinSubCategory];
@@ -4682,7 +4682,7 @@ function pinColor(entity) {
         ?? colors["default"]
 }
 
-/** @param {PinEntity} entity */
+/** @param {PinEntity<IEntity>} entity */
 function pinTitle(entity) {
     let result = entity.PinFriendlyName
         ? entity.PinFriendlyName.toString()
@@ -5950,6 +5950,8 @@ function nodeVariadic(entity) {
             newPin.PinId = new GuidEntity();
             newPin.PinName = new StringEntity(pinNameFromIndex(index, min, max, newPin));
             newPin.PinToolTip = undefined;
+            // @ts-expect-error
+            newPin.DefaultValue = new (newPin.DefaultValue.constructor)();
             entity.getCustomproperties(true).push(newPin);
             return newPin
         }
@@ -8537,7 +8539,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
 
     #hasSubtitle = false
 
-    /** @type {() => PinEntity} */
+    /** @type {() => PinEntity<IEntity>} */
     pinInserter
 
     /** @type {HTMLElement} */
@@ -8567,7 +8569,7 @@ class NodeTemplate extends ISelectableDraggableTemplate {
         this.element.updateComplete.then(() => this.element.acknowledgeReflow());
     }
 
-    /** @param {PinEntity} pinEntity */
+    /** @param {PinEntity<IEntity>} pinEntity */
     createPinElement(pinEntity) {
         const pinElement = /** @type {PinElementConstructor} */(ElementFactory.getConstructor("ueb-pin"))
             .newObject(pinEntity, undefined, this.element);

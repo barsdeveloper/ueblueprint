@@ -144,6 +144,8 @@ export default function nodeVariadic(entity) {
             newPin.PinId = new GuidEntity()
             newPin.PinName = new StringEntity(pinNameFromIndex(index, min, max, newPin))
             newPin.PinToolTip = undefined
+            // @ts-expect-error
+            newPin.DefaultValue = new (newPin.DefaultValue.constructor)()
             entity.getCustomproperties(true).push(newPin)
             return newPin
         }

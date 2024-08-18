@@ -193,10 +193,23 @@ export default class OperationsNodes extends NodeTests {
                 delegate: false,
                 development: false,
                 variadic: true,
-                additionalTest: async (node, pins) => {
+                additionalTest: async (node, pins, blueprintPage) => {
                     for (const pin of pins) {
                         expect(await pin.evaluate(pin => pin.template.renderIcon().strings.join("")))
                             .toStrictEqual(SVGIcon.operationPin.strings.join(""))
+                    }
+                    let inputs = await node.locator(".ueb-pin-input").all()
+                    for (const input of inputs) {
+                        expect(await input.isChecked()).toBeFalsy()
+                    }
+                    await inputs[inputs.length - 1].check()
+                    expect(await inputs[inputs.length - 1].isChecked()).toBeTruthy()
+                    const variadic = blueprintPage.node.getByText("Add pin")
+                    await variadic.click()
+                    inputs = await node.locator(".ueb-pin-input").all()
+                    await inputs[inputs.length - 2].uncheck()
+                    for (const input of inputs) {
+                        expect(await input.isChecked()).toBeFalsy()
                     }
                 }
             },
