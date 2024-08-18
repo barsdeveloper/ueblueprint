@@ -11,21 +11,21 @@ export default class KnotEntity extends ObjectEntity {
      */
     constructor(values = {}, pinReferenceForType = undefined) {
         values.Class = new ObjectReferenceEntity(Configuration.paths.knot)
-        values.Name = "K2Node_Knot"
+        values.Name = new (ObjectEntity.attributes.Name)("K2Node_Knot")
         const inputPinEntity = new PinEntity(
-            { PinName: "InputPin" },
+            { PinName: new (PinEntity.attributes.PinName)("InputPin") },
         )
         const outputPinEntity = new PinEntity(
             {
-                PinName: "OutputPin",
-                Direction: "EGPD_Output",
+                PinName: new (PinEntity.attributes.PinName)("OutputPin"),
+                Direction: new (PinEntity.attributes.Direction)("EGPD_Output"),
             },
         )
         if (pinReferenceForType) {
             inputPinEntity.copyTypeFrom(pinReferenceForType)
             outputPinEntity.copyTypeFrom(pinReferenceForType)
         }
-        values["CustomProperties"] = [inputPinEntity, outputPinEntity]
+        values["CustomProperties"] = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity])
         super(values)
     }
 }

@@ -6781,21 +6781,21 @@ class KnotEntity extends ObjectEntity {
      */
     constructor(values = {}, pinReferenceForType = undefined) {
         values.Class = new ObjectReferenceEntity(Configuration.paths.knot);
-        values.Name = "K2Node_Knot";
+        values.Name = new (ObjectEntity.attributes.Name)("K2Node_Knot");
         const inputPinEntity = new PinEntity(
-            { PinName: "InputPin" },
+            { PinName: new (PinEntity.attributes.PinName)("InputPin") },
         );
         const outputPinEntity = new PinEntity(
             {
-                PinName: "OutputPin",
-                Direction: "EGPD_Output",
+                PinName: new (PinEntity.attributes.PinName)("OutputPin"),
+                Direction: new (PinEntity.attributes.Direction)("EGPD_Output"),
             },
         );
         if (pinReferenceForType) {
             inputPinEntity.copyTypeFrom(pinReferenceForType);
             outputPinEntity.copyTypeFrom(pinReferenceForType);
         }
-        values["CustomProperties"] = [inputPinEntity, outputPinEntity];
+        values["CustomProperties"] = new (ObjectEntity.attributes.CustomProperties)([inputPinEntity, outputPinEntity]);
         super(values);
     }
 }
@@ -7540,7 +7540,7 @@ class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("originatesFromInput")) {
             this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0");
         }
-        const referencePin = this.element.source ?? this.element.destination;
+        const referencePin = this.element.getOutputPin(true);
         if (referencePin) {
             this.element.style.setProperty("--ueb-link-color-rgb", LinearColorEntity.printLinearColor(referencePin.color));
         }
@@ -7832,11 +7832,16 @@ class LinkElement extends IFromToPositionedElement {
         this.toY = location[1];
     }
 
-    getInputPin() {
+    getInputPin(getSomething = false) {
         if (this.source?.isInput()) {
             return this.source
         }
-        return this.destination
+        if (this.destination?.isInput()) {
+            return this.destination
+        }
+        if (getSomething) {
+            return this.source ?? this.destination
+        }
     }
 
     /** @param {PinElement} pin */
@@ -7847,11 +7852,16 @@ class LinkElement extends IFromToPositionedElement {
         this.destination = pin;
     }
 
-    getOutputPin() {
+    getOutputPin(getSomething = false) {
+        if (this.source?.isOutput()) {
+            return this.source
+        }
         if (this.destination?.isOutput()) {
             return this.destination
         }
-        return this.source
+        if (getSomething) {
+            return this.source ?? this.destination
+        }
     }
 
     /** @param {PinElement} pin */
@@ -9079,6 +9089,7 @@ class MouseCreateLink extends IMouseClickDrag {
         });
         this.#listenedPins = null;
         if (this.enteredPin && this.linkValid) {
+            // Knot can use wither the input or output (by default) part indifferently, check if a switch is needed
             if (this.#knotPin) {
                 const otherPin = this.#knotPin !== this.link.source ? this.link.source : this.enteredPin;
                 // Knot pin direction correction
@@ -9091,7 +9102,11 @@ class MouseCreateLink extends IMouseClickDrag {
                     }
                 }
             } else if (this.enteredPin.nodeElement.getType() === Configuration.paths.knot) {
-                this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin();
+                this.#knotPin = this.enteredPin;
+                if (this.link.source.isOutput()) {
+                    // Knot uses by default the output pin, let's switch to keep it coherent with the source node we have
+                    this.enteredPin = /** @type {KnotPinTemplate} */(this.enteredPin.template).getOppositePin();
+                }
             }
             if (!this.link.source.getLinks().find(ref => ref.equals(this.enteredPin.createPinReference()))) {
                 this.blueprint.addGraphElement(this.link);

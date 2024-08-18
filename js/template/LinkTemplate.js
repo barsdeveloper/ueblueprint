@@ -174,7 +174,7 @@ export default class LinkTemplate extends IFromToPositionedTemplate {
         if (changedProperties.has("originatesFromInput")) {
             this.element.style.setProperty("--ueb-from-input", this.element.originatesFromInput ? "1" : "0")
         }
-        const referencePin = this.element.source ?? this.element.destination
+        const referencePin = this.element.getOutputPin(true)
         if (referencePin) {
             this.element.style.setProperty("--ueb-link-color-rgb", LinearColorEntity.printLinearColor(referencePin.color))
         }
