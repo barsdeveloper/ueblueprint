@@ -166,8 +166,10 @@ while (i < nodeTests.length) {
                         async ({ blueprintPage }) => {
                             const variadic = blueprintPage.node.getByText("Add pin")
                             await expect(variadic).toBeVisible()
+                            await variadic.hover()
                             await variadic.click()
                             expect(await blueprintPage.node.locator("ueb-pin").all()).toHaveLength(nodeTest.pins + 1)
+                            await variadic.blur()
                         }
                     )
                 }
