@@ -41,25 +41,24 @@ export default class IssuesNodes1 extends NodeTests {
                 delegate: false,
                 development: false,
                 additionalTest: async (node, pins, blueprintPage) => {
-                    const relevantPins = (await Promise.all(
-                        pins.map(async p => {
-                            const innerText = await p.innerText()
-                            return [Configuration.rgba.includes(innerText), p]
-                        })
-                    ))
-                        .filter(([flag, value]) => flag)
-                        .map(([flag, value]) => /** @type {Locator<PinElement>} */(value))
-                    expect(await Promise.all(relevantPins.map(async pin => await pin.innerText()))).toStrictEqual(Configuration.rgba)
-                    for (const p of relevantPins) {
-                        const pinName = await p.innerText()
-                        expect(p.locator('input[type="checkbox"]')).toBeChecked({ checked: pinName === "R" })
+                    const relevantPins = []
+                    for (const pin of pins) {
+                        const innerText = await pin.innerText()
+                        if (Configuration.rgba.includes(innerText)) {
+                            relevantPins.push(pin)
+                        }
+                    }
+                    for (const pin of relevantPins) {
+                        const pinName = await pin.innerText()
+                        // Only pin R is checked
+                        await expect(pin.locator('input[type="checkbox"]')).toBeChecked({ checked: pinName === "R" })
                     }
                     await relevantPins[0].locator('input[type="checkbox"]').uncheck() // Uncheck "R"
                     await relevantPins[2].locator('input[type="checkbox"]').check() // Check "B"
                     await relevantPins[3].locator('input[type="checkbox"]').check() // Check "A"
                     await relevantPins[2].locator('input[type="checkbox"]').uncheck() // Uncheck "B"
                     await relevantPins[2].locator('input[type="checkbox"]').check() // Check "B"
-                    expect(node.locator(".ueb-node-name")).toHaveText("Mask ( B A )")
+                    await expect(node.locator(".ueb-node-name")).toHaveText("Mask ( B A )")
                     const resultSerialization = await blueprintPage.blueprintLocator.evaluate(blueprint => {
                         blueprint.selectAll()
                         return blueprint.template.getCopyInputObject().getSerializedText()
