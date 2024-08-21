@@ -16,7 +16,7 @@ export default class EnumPinTemplate extends IInputPinTemplate {
 
     setup() {
         super.setup()
-        const enumEntries = this.element.nodeElement.entity.EnumEntries.valueOf()
+        const enumEntries = this.element.nodeElement.entity.EnumEntries?.valueOf()
         this.#dropdownEntries =
             enumEntries?.map(k => {
                 if (k.valueOf() === "") {

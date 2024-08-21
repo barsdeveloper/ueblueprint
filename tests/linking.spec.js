@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures/test.js"
 
 test.describe("Linking", () => {
 
-    test.beforeAll(async ({ blueprintPage }) => {
+    test.beforeEach(async ({ blueprintPage }) => {
         await blueprintPage.removeNodes()
         await blueprintPage.paste(String.raw`
             Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_29" ExportPath="/Script/BlueprintGraph.K2Node_CallFunction'/Engine/Maps/Templates/NewWorld.NewWorld:PersistentLevel.NewWorld.EventGraph.K2Node_CallFunction_29'"
@@ -78,5 +78,80 @@ test.describe("Linking", () => {
             .toEqual(color)
         expect(await aPin.evaluate(pin => pin.entity.isLinked())).toBeTruthy()
         expect(await bPin.evaluate(pin => pin.entity.isLinked())).toBeTruthy()
+    })
+
+    test("Can connect only once", async ({ blueprintPage }) => {
+        {
+            const { aPin, bPin } = getElements(blueprintPage)
+            const aRect = await aPin.evaluate(pin => pin.getBoundingClientRect())
+            const bRect = await bPin.evaluate(pin => pin.getBoundingClientRect())
+            const mouse = blueprintPage.page.mouse
+            await aPin.hover({
+                position: {
+                    x: Math.floor(aRect.width / 2),
+                    y: Math.floor(aRect.height / 2),
+                }
+            })
+            await mouse.down()
+            await mouse.move(aRect.left + aRect.width + 100, aRect.top + aRect.height + 100, { steps: 4 })
+            await bPin.hover({
+                position: {
+                    x: Math.floor(bRect.width / 2),
+                    y: Math.floor(bRect.height / 2),
+                }
+            })
+            await mouse.up()
+            await expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(1)
+        }
+
+        {
+            const { aPin, bPin } = getElements(blueprintPage)
+            const aRect = await aPin.evaluate(pin => pin.getBoundingClientRect())
+            const bRect = await bPin.evaluate(pin => pin.getBoundingClientRect())
+            const mouse = blueprintPage.page.mouse
+            await aPin.hover({
+                position: {
+                    x: Math.floor(aRect.width / 2),
+                    y: Math.floor(aRect.height / 2),
+                }
+            })
+            await mouse.down()
+            await mouse.move(aRect.left + aRect.width + 100, aRect.top + aRect.height + 100, { steps: 4 })
+            await expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(2)
+            await bPin.hover({
+                position: {
+                    x: Math.floor(bRect.width / 2),
+                    y: Math.floor(bRect.height / 2),
+                }
+            })
+            await expect(blueprintPage.blueprintLocator.locator('ueb-link[data-dragging="true"] .ueb-link-message-text'))
+                .toContainText("Replace existing input connections")
+            await mouse.up()
+            await expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(1)
+        }
+
+        {
+            const { aPin, bPin } = getElements(blueprintPage)
+            const aRect = await aPin.evaluate(pin => pin.getBoundingClientRect())
+            const bRect = await bPin.evaluate(pin => pin.getBoundingClientRect())
+            const mouse = blueprintPage.page.mouse
+            await bPin.hover({
+                position: {
+                    x: Math.floor(bRect.width / 2),
+                    y: Math.floor(bRect.height / 2),
+                }
+            })
+            await mouse.down()
+            await mouse.move(bRect.left + bRect.width + 100, bRect.top + bRect.height + 100, { steps: 4 })
+            await expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(2)
+            await aPin.hover({
+                position: {
+                    x: Math.floor(aRect.width / 2),
+                    y: Math.floor(aRect.height / 2),
+                }
+            })
+            await mouse.up()
+            await expect(blueprintPage.blueprintLocator.locator("ueb-link")).toHaveCount(1)
+        }
     })
 })

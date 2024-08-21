@@ -152,6 +152,7 @@ class Configuration {
         eTextureMipValueMode: "/Script/Engine.ETextureMipValueMode",
         eTraceTypeQuery: "/Script/Engine.ETraceTypeQuery",
         event: "/Script/BlueprintGraph.K2Node_Event",
+        eWorldPositionIncludedOffsets: "/Script/Engine.EWorldPositionIncludedOffsets",
         executionSequence: "/Script/BlueprintGraph.K2Node_ExecutionSequence",
         flipflop: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
         forEachElementInEnum: "/Script/BlueprintGraph.K2Node_ForEachElementInEnum",
@@ -193,6 +194,7 @@ class Configuration {
         materialExpressionSubtract: "/Script/Engine.MaterialExpressionSubtract",
         materialExpressionTextureCoordinate: "/Script/Engine.MaterialExpressionTextureCoordinate",
         materialExpressionTextureSample: "/Script/Engine.MaterialExpressionTextureSample",
+        materialExpressionWorldPosition: "/Script/Engine.MaterialExpressionWorldPosition",
         materialGraphNode: "/Script/UnrealEd.MaterialGraphNode",
         materialGraphNodeComment: "/Script/UnrealEd.MaterialGraphNode_Comment",
         metasoundEditorGraphExternalNode: "/Script/MetasoundEditor.MetasoundEditorGraphExternalNode",
@@ -290,6 +292,7 @@ class Configuration {
             "KeepWorld",
             "SnapToTarget",
         ],
+        [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
         [this.paths.eMaterialSamplerType]: [
             "Color",
             "Grayscale",
@@ -316,6 +319,14 @@ class Configuration {
             ["NewEnumerator3", "A"],
         ],
         [this.paths.eSamplerSourceMode]: ["From texture asset", "Shared: Wrap", "Shared: Clamp", "Hidden"],
+        [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
+        [this.paths.eWorldPositionIncludedOffsets]: [
+            "Absolute World Position (Including Material Shader Offsets)",
+            "Absolute World Position (Excluding Material Shader Offsets)",
+            "Camera Relative World Position (Including Material Shader Offsets)",
+            "Camera Relative World Position (Excluding Material Shader Offsets)",
+        ],
+        [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
         [this.paths.eSpawnActorCollisionHandlingMethod]: [
             ["Undefined", "Default"],
             ["AlwaysSpawn", "Always Spawn, Ignore Collisions"],
@@ -323,9 +334,6 @@ class Configuration {
             ["AdjustIfPossibleButDontSpawnIfColliding", "Try To Adjust Location, Don't Spawn If Still Colliding"],
             ["DontSpawnIfColliding", "Do Not Spawn"],
         ],
-        [this.paths.eSearchCase]: ["CaseSensitive", "IgnoreCase"],
-        [this.paths.eSearchDir]: ["FromStart", "FromEnd"],
-        [this.paths.eDrawDebugTrace]: ["None", "ForOneFrame", "ForDuration", "Persistent"],
         [this.paths.eTextureMipValueMode]: [
             "None (use computed mip level)",
             "MipLevel (absolute, 0 is full resolution)",
@@ -3650,19 +3658,18 @@ function nodeColor(entity) {
         case Configuration.paths.materialExpressionConstant3Vector:
         case Configuration.paths.materialExpressionConstant4Vector:
             return Configuration.nodeColors.yellow
+        case Configuration.paths.materialExpressionFunctionInput:
+        case Configuration.paths.materialExpressionTextureCoordinate:
+        case Configuration.paths.materialExpressionWorldPosition:
+        case Configuration.paths.pcgEditorGraphNodeInput:
+        case Configuration.paths.pcgEditorGraphNodeOutput:
+            return Configuration.nodeColors.red
         case Configuration.paths.makeStruct:
             return Configuration.nodeColors.darkBlue
         case Configuration.paths.materialExpressionMaterialFunctionCall:
             return Configuration.nodeColors.blue
-        case Configuration.paths.materialExpressionFunctionInput:
-            return Configuration.nodeColors.red
         case Configuration.paths.materialExpressionTextureSample:
             return Configuration.nodeColors.darkTurquoise
-        case Configuration.paths.materialExpressionTextureCoordinate:
-            return Configuration.nodeColors.red
-        case Configuration.paths.pcgEditorGraphNodeInput:
-        case Configuration.paths.pcgEditorGraphNodeOutput:
-            return Configuration.nodeColors.red
     }
     switch (entity.getClass()) {
         case Configuration.paths.callFunction:
@@ -11812,7 +11819,7 @@ class EnumPinTemplate extends IInputPinTemplate {
 
     setup() {
         super.setup();
-        const enumEntries = this.element.nodeElement.entity.EnumEntries.valueOf();
+        const enumEntries = this.element.nodeElement.entity.EnumEntries?.valueOf();
         this.#dropdownEntries =
             enumEntries?.map(k => {
                 if (k.valueOf() === "") {

@@ -490,9 +490,7 @@ export default class MaterialNodes extends NodeTests {
                 color: Configuration.nodeColors.red,
                 icon: null,
                 pins: 2,
-                pinNames: [
-                    "Preview",
-                ],
+                pinNames: ["Preview"],
                 delegate: false,
                 development: false,
             },
@@ -520,8 +518,40 @@ export default class MaterialNodes extends NodeTests {
                 color: Configuration.nodeColors.red,
                 icon: null,
                 pins: 2,
+                pinNames: ["Preview"],
+                delegate: false,
+                development: false,
+            },
+            {
+                name: "Absolute World Position",
+                value: String.raw`
+                    Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_2" ExportPath="/Script/UnrealEd.MaterialGraphNode'/Engine/Transient.NewMaterial:MaterialGraph_0.MaterialGraphNode_2'"
+                        Begin Object Class=/Script/Engine.MaterialExpressionWorldPosition Name="MaterialExpressionWorldPosition_2" ExportPath="/Script/Engine.MaterialExpressionWorldPosition'/Engine/Transient.NewMaterial:MaterialGraph_0.MaterialGraphNode_2.MaterialExpressionWorldPosition_2'"
+                        End Object
+                        Begin Object Name="MaterialExpressionWorldPosition_2" ExportPath="/Script/Engine.MaterialExpressionWorldPosition'/Engine/Transient.NewMaterial:MaterialGraph_0.MaterialGraphNode_2.MaterialExpressionWorldPosition_2'"
+                            MaterialExpressionEditorX=-371
+                            MaterialExpressionEditorY=426
+                            MaterialExpressionGuid=54D33F4B96B64E9FBC8960C9730D2713
+                            Material="/Script/UnrealEd.PreviewMaterial'/Engine/Transient.NewMaterial'"
+                        End Object
+                        MaterialExpression="/Script/Engine.MaterialExpressionWorldPosition'MaterialExpressionWorldPosition_2'"
+                        NodePosX=-371
+                        NodePosY=426
+                        AdvancedPinDisplay=Hidden
+                        NodeGuid=3E8E4AB0BF034850B6A8F140B3FE89EA
+                        CustomProperties Pin (PinId=4735B45980474C00BDA4947E092CD74B,PinName="Shader Offsets",PinType.PinCategory="optional",PinType.PinSubCategory="byte",PinType.PinSubCategoryObject="/Script/CoreUObject.Enum'/Script/Engine.EWorldPositionIncludedOffsets'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="Absolute World Position (Including Material Shader Offsets)",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=True,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+                        CustomProperties Pin (PinId=9B2318CCFAF549709518CF1128DAD376,PinName="XYZ",Direction="EGPD_Output",PinType.PinCategory="mask",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                        CustomProperties Pin (PinId=97DB346537C34E62A9178FE53901C865,PinName="XY",Direction="EGPD_Output",PinType.PinCategory="mask",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                        CustomProperties Pin (PinId=33DB08B0A8B64093B953AA9EC0D78017,PinName="Z",Direction="EGPD_Output",PinType.PinCategory="mask",PinType.PinSubCategory="blue",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                    End Object
+                `,
+                color: Configuration.nodeColors.red,
+                icon: null,
+                pins: 2,
                 pinNames: [
-                    "Preview",
+                    "XYZ",
+                    "XY",
+                    "Z",
                 ],
                 delegate: false,
                 development: false,
