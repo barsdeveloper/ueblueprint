@@ -6115,7 +6115,6 @@ class ObjectEntity extends IEntity {
     static printKey = k => !k.startsWith(Configuration.subObjectAttributeNamePrefix) ? k : ""
     static attributeSeparator = "\n"
     static wrap = this.notWrapped
-    static trailing = true
     static attributes = {
         ...super.attributes,
         Class: ObjectReferenceEntity,
@@ -6768,14 +6767,14 @@ class ObjectEntity extends IEntity {
             + (Self.attributes.CustomProperties.ignored !== true && this.CustomProperties.ignored !== true
                 ? this.getCustomproperties().map(pin =>
                     deeperIndentation
+                    + attributeSeparator
                     + printKey("CustomProperties ")
                     + pin.serialize(insideString)
-                ).join(Self.attributeSeparator)
+                ).join("")
                 : ""
             )
             + attributeSeparator
-            + indentation + "End Object"
-            + (this.trailing ? attributeSeparator : "");
+            + indentation + "End Object\n";
         return result
     }
 }
