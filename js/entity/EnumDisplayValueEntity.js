@@ -6,9 +6,8 @@ export default class EnumDisplayValueEntity extends EnumEntity {
 
     static grammar = this.createGrammar()
 
+    /** @returns {P<EnumDisplayValueEntity>} */
     static createGrammar() {
-        return /** @type {P<EnumDisplayValueEntity>} */(
-            P.reg(Grammar.Regex.InsideString).map(v => new this(v))
-        )
+        return P.reg(Grammar.Regex.InsideString).map(v => new this(v))
     }
 }

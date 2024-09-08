@@ -19,9 +19,8 @@ export default class ScriptVariableEntity extends IEntity {
         /** @type {InstanceType<typeof ScriptVariableEntity.attributes.OriginalChangeId>} */ this.OriginalChangeId
     }
 
+    /** @returns {P<ScriptVariableEntity>} */
     static createGrammar() {
-        return /** @type {P<ScriptVariableEntity>} */(
-            Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
-        )
+        return Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
     }
 }

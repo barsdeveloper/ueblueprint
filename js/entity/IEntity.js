@@ -52,7 +52,7 @@ export default class IEntity {
         this.#lookbehind = value
     }
 
-    #ignored = this.constructor.ignored
+    #ignored = /** @type {typeof IEntity} */(this.constructor).ignored
     get ignored() {
         return this.#ignored
     }
@@ -62,15 +62,16 @@ export default class IEntity {
 
     #quoted
     get quoted() {
-        return /** @type {typeof IEntity} */(this.constructor).quoted ?? this.#quoted ?? false
+        return this.#quoted ?? /** @type {typeof IEntity} */(this.constructor).quoted ?? false
     }
     set quoted(value) {
         this.#quoted = value
     }
 
-    #trailing = this.constructor.trailing
+    /** @type {Boolean} */
+    #trailing
     get trailing() {
-        return this.#trailing
+        return this.#trailing ?? /** @type {typeof IEntity} */(this.constructor).trailing ?? false
     }
     set trailing(value) {
         this.#trailing = value
@@ -231,6 +232,16 @@ export default class IEntity {
     }
 
     /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagTrailing(value = true) {
+        const result = this.asUniqueClass()
+        result.trailing = value
+        return result
+    }
+
+    /**
      * @protected
      * @param {String} string
      */
@@ -299,6 +310,7 @@ export default class IEntity {
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
+        const isSelfOverriden = Self !== this.constructor
         let result = ""
         let first = true
         const keys = this instanceof IEntity ? this.keys : Object.keys(this)
@@ -315,7 +327,7 @@ export default class IEntity {
                 result += attributeSeparator
             }
             let keyValue = this instanceof Array ? `(${key})` : key
-            if (keyValue.length && (Self.attributes[key]?.quoted === true || value.quoted === true)) {
+            if (keyValue.length && (Self.attributes[key]?.quoted || value.quoted)) {
                 keyValue = `"${keyValue}"`
             }
             if (valueType.inlined) {
@@ -340,7 +352,7 @@ export default class IEntity {
             let serialization = value?.serialize(insideString, indentation)
             result += serialization
         }
-        if (this instanceof IEntity && this.trailing && result.length) {
+        if (this instanceof IEntity && (isSelfOverriden && Self.trailing || this.trailing) && result.length) {
             result += attributeSeparator
         }
         return wrap(/** @type {IEntity} */(this), result)
@@ -356,6 +368,7 @@ export default class IEntity {
         attributeSeparator = Self.attributeSeparator,
         wrap = Self.wrap,
     ) {
+        const isSelfOverriden = Self !== this.constructor
         let result = this instanceof Array
             ? IEntity.prototype.doSerialize.bind(this)(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)
             : this.doSerialize(insideString, indentation, Self, printKey, keySeparator, attributeSeparator, wrap)

@@ -15,10 +15,9 @@ export default class ByteEntity extends IntegerEntity {
         }
     }
 
+    /** @returns {P<ByteEntity>} */
     createGrammar() {
-        return /** @type {P<ByteEntity>} */(
-            // @ts-expect-error
-            P.numberByte.map(v => new this(v))
-        )
+        // @ts-expect-error
+        return P.numberByte.map(v => new this(v))
     }
 }

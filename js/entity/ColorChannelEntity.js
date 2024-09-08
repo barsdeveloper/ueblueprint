@@ -10,10 +10,9 @@ export default class ColorChannelEntity extends IEntity {
         this.value = value
     }
 
+    /** @returns {P<ColorChannelEntity>} */
     static createGrammar() {
-        return  /** @type {P<ColorChannelEntity>} */(
-            P.number.map(v => new this(v))
-        )
+        return P.number.map(v => new this(v))
     }
 
     serialize(

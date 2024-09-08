@@ -7,23 +7,22 @@ export default class SimpleSerializationVector2DEntity extends Vector2DEntity {
     static attributeSeparator = ", "
     static grammar = this.createGrammar()
 
+    /** @returns {P<SimpleSerializationVector2DEntity>} */
     static createGrammar() {
-        return   /** @type {P<SimpleSerializationVector2DEntity>} */(
-            P.alt(
-                P.regArray(new RegExp(
-                    `(${NumberEntity.numberRegexSource})`
-                    + String.raw`\s*,\s*`
-                    + `(${NumberEntity.numberRegexSource})`
-                )).map(([_, x, xPrecision, y, yPrecision]) => new this({
-                    X: new (Vector2DEntity.attributes.X)(x, xPrecision?.length),
-                    Y: new (Vector2DEntity.attributes.Y)(y, yPrecision?.length),
-                })),
-                Vector2DEntity.grammar.map(v => new this({
-                    X: v.X,
-                    Y: v.Y,
-                }))
-            ).label("SimpleSerializationVector2DEntity")
-        )
+        return P.alt(
+            P.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+            )).map(([_, x, xPrecision, y, yPrecision]) => new this({
+                X: new (Vector2DEntity.attributes.X)(x, xPrecision?.length),
+                Y: new (Vector2DEntity.attributes.Y)(y, yPrecision?.length),
+            })),
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
+        ).label("SimpleSerializationVector2DEntity")
     }
 
     doSerialize() {

@@ -24,9 +24,8 @@ export default class VariableReferenceEntity extends IEntity {
         /** @type {InstanceType<typeof VariableReferenceEntity.attributes.bSelfContext>} */ this.bSelfContext
     }
 
+    /** @returns {P<VariableReferenceEntity>} */
     static createGrammar() {
-        return /** @type {P<VariableReferenceEntity>} */(
-            Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
-        )
+        return Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
     }
 }

@@ -6,8 +6,9 @@ export default class RBSerializationVector2DEntity extends Vector2DEntity {
 
     static grammar = this.createGrammar()
 
+    /** @returns {P<RBSerializationVector2DEntity>} */
     static createGrammar() {
-        return /** @type {P<RBSerializationVector2DEntity>} */(P.alt(
+        return P.alt(
             P.regArray(new RegExp(
                 /X\s*=\s*/.source + "(?<x>" + Grammar.numberRegexSource + ")"
                 + "\\s+"
@@ -20,6 +21,6 @@ export default class RBSerializationVector2DEntity extends Vector2DEntity {
                 X: v.X,
                 Y: v.Y,
             }))
-        ).label("RBSerializationVector2DEntity"))
+        ).label("RBSerializationVector2DEntity")
     }
 }

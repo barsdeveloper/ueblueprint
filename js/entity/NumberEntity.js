@@ -41,16 +41,15 @@ export default class NumberEntity extends IEntity {
         }
     }
 
+    /** @returns {P<NumberEntity>} */
     static createGrammar() {
-        return /** @type {P<NumberEntity>} */(
-            P.regArray(
-                new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
-            ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
-                n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
-                precision?.length
-            )
-            ).label("NumberEntity")
+        return P.regArray(
+            new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
+        ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
+            n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
+            precision?.length
         )
+        ).label("NumberEntity")
     }
 
     /**

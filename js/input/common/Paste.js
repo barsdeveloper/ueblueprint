@@ -54,11 +54,11 @@ export default class Paste extends IInput {
             this.blueprint.unselectAll()
         }
         let mousePosition = this.blueprint.mousePosition
-        nodes.forEach(node => {
+        for (const node of nodes) {
             node.addLocation(mousePosition[0] - left, mousePosition[1] - top)
             node.snapToGrid()
             node.setSelected(true)
-        })
+        }
         this.blueprint.addGraphElement(...nodes)
         return nodes
     }

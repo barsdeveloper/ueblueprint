@@ -10,10 +10,9 @@ export default class SymbolEntity extends IEntity {
     }
     static grammar = this.createGrammar()
 
+    /** @returns {P<SymbolEntity>} */
     static createGrammar() {
-        return /** @type {P<SymbolEntity>} */(
-            Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
-        )
+        return Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
     }
 
     constructor(value = "") {

@@ -24,25 +24,24 @@ export default class LocalizedTextEntity extends IEntity {
         /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value
     }
 
+    /** @returns {P<LocalizedTextEntity>} */
     static createGrammar() {
-        return /** @type {P<LocalizedTextEntity>} */(
-            P.regArray(new RegExp(
-                String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
-                + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
-                + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
-                + String.raw`(?<trailing>,\s+)?`
-                + String.raw`\)`,
-                "m"
-            )).map(({ groups: { namespace, key, value, trailing } }) => {
-                return new this({
-                    namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
-                    key: new (this.attributes.namespace)(Utility.unescapeString(key)),
-                    value: new (this.attributes.namespace)(Utility.unescapeString(value)),
-                    trailing: trailing !== undefined,
-                })
-            }).label("LocalizedTextEntity")
-        )
+        return P.regArray(new RegExp(
+            String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+            + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
+            + String.raw`(?<trailing>,\s+)?`
+            + String.raw`\)`,
+            "m"
+        )).map(({ groups: { namespace, key, value, trailing } }) => {
+            return new this({
+                namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
+                key: new (this.attributes.namespace)(Utility.unescapeString(key)),
+                value: new (this.attributes.namespace)(Utility.unescapeString(value)),
+                trailing: trailing !== undefined,
+            })
+        }).label("LocalizedTextEntity")
     }
 
     toString() {

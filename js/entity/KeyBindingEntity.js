@@ -28,12 +28,11 @@ export default class KeyBindingEntity extends IEntity {
         /** @type {InstanceType<typeof KeyBindingEntity.attributes.Key>} */ this.Key
     }
 
+    /** @returs {P<KeyBindingEntity>} */
     static createGrammar() {
-        return /** @type {P<KeyBindingEntity>} */(
-            P.alt(
-                SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
-                Grammar.createEntityGrammar(this)
-            )
+        return P.alt(
+            SymbolEntity.grammar.map(identifier => new this({ Key: identifier })),
+            Grammar.createEntityGrammar(this),
         )
     }
 }

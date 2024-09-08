@@ -19,11 +19,10 @@ export default class VectorEntity extends IEntity {
         /** @type {InstanceType<typeof VectorEntity.attributes.Y>} */ this.Y
         /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.Z
     }
-    c
+
+    /** @returns {P<VectorEntity>} */
     static createGrammar() {
-        return /** @type {P<VectorEntity>} */(
-            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("VectorEntity")
-        )
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 1).label("VectorEntity")
     }
 
     /** @returns {[Number, Number, Number]} */

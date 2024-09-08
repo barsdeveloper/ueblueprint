@@ -39,10 +39,9 @@ export default class PinTypeEntity extends IEntity {
         /** @type {InstanceType<typeof PinTypeEntity.attributes.bSerializeAsSinglePrecisionFloat>} */ this.bSerializeAsSinglePrecisionFloat
     }
 
+    /** @returns {P<PinTypeEntity>} */
     static createGrammar() {
-        return /** @type {P<PinTypeEntity>} */(
-            Grammar.createEntityGrammar(this).label("PinTypeEntity")
-        )
+        return Grammar.createEntityGrammar(this).label("PinTypeEntity")
     }
 
     /** @param {PinTypeEntity} other */

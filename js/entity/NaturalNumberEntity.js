@@ -14,9 +14,8 @@ export default class NaturalNumberEntity extends IntegerEntity {
         super.value = value
     }
 
+    /** @returns {P<NaturalNumberEntity>} */
     static createGrammar() {
-        return /** @type {P<NaturalNumberEntity>} */(
-            P.numberNatural.map(v => new this(v))
-        )
+        return P.numberNatural.map(v => new this(v))
     }
 }

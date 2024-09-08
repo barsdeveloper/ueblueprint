@@ -160,10 +160,9 @@ export default class PinEntity extends IEntity {
         /** @type {ObjectEntity} */ this.objectEntity
     }
 
+    /** @returns {P<PinEntity>} */
     static createGrammar() {
-        return /** @type {P<PinEntity>} */(
-            Grammar.createEntityGrammar(this)
-        )
+        return Grammar.createEntityGrammar(this)
     }
 
     /** @param {ObjectEntity} objectEntity */

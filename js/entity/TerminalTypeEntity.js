@@ -25,9 +25,8 @@ export default class TerminalTypeEntity extends IEntity {
         /** @type {Boolean} */ this.bTerminalIsUObjectWrapper
     }
 
+    /** @returns {P<TerminalTypeEntity>} */
     static createGrammar() {
-        return /** @type {P<TerminalTypeEntity>} */(
-            Grammar.createEntityGrammar(this)
-        )
+        return Grammar.createEntityGrammar(this)
     }
 }

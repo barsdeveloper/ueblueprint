@@ -666,7 +666,10 @@ export default class ObjectEntity extends IEntity {
         wrap = Self.wrap,
     ) {
         const deeperIndentation = indentation + Configuration.indentation
+        const initial_trailing = this.trailing
+        this.trailing = false
         const content = super.doSerialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap)
+        this.trailing = initial_trailing
         let result = indentation + "Begin Object"
             + ((this.Class?.type || this.Class?.path)
                 // && Self.attributes.Class.ignored !== true
@@ -694,11 +697,14 @@ export default class ObjectEntity extends IEntity {
             )
             + (content ? attributeSeparator + content : "")
             + (Self.attributes.CustomProperties.ignored !== true && this.CustomProperties.ignored !== true
-                ? this.getCustomproperties().map(pin =>
-                    deeperIndentation
-                    + printKey("CustomProperties ")
-                    + pin.serialize(insideString)
-                ).join(Self.attributeSeparator)
+                ? this.getCustomproperties()
+                    .map(pin =>
+                        attributeSeparator
+                        + deeperIndentation
+                        + printKey("CustomProperties ")
+                        + pin.serialize(insideString)
+                    )
+                    .join("")
                 : ""
             )
             + attributeSeparator

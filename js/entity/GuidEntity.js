@@ -28,10 +28,9 @@ export default class GuidEntity extends IEntity {
         this.value = value
     }
 
+    /** @returns {P<GuidEntity>} */
     static createGrammar() {
-        return /** @type {P<GuidEntity>} */(
-            P.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
-        )
+        return P.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
     }
 
     serialize(

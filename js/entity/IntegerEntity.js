@@ -16,9 +16,8 @@ export default class IntegerEntity extends NumberEntity {
         }
     }
 
+    /** @returns {P<IntegerEntity>} */
     static createGrammar() {
-        return /** @type {P<IntegerEntity>} */(
-            P.numberInteger.map(v => new this(v))
-        )
+        return P.numberInteger.map(v => new this(v))
     }
 }

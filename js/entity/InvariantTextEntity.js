@@ -12,19 +12,18 @@ export default class InvariantTextEntity extends IEntity {
         this.value = value
     }
 
+    /** @returns {P<InvariantTextEntity>} */
     static createGrammar() {
-        return /** @type {P<InvariantTextEntity>} */(
-            P.alt(
-                P.seq(
-                    P.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
-                    P.doubleQuotedString,
-                    P.reg(/\s*\)/)
-                ).map(([_0, value, _2]) => Number(value)),
-                P.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
-            )
-                .map(value => new this(value))
-                .label("InvariantTextEntity")
+        return P.alt(
+            P.seq(
+                P.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                P.doubleQuotedString,
+                P.reg(/\s*\)/)
+            ).map(([_0, value, _2]) => Number(value)),
+            P.reg(new RegExp(this.lookbehind)).map(() => 0) // InvariantTextEntity can not have arguments
         )
+            .map(value => new this(value))
+            .label("InvariantTextEntity")
     }
 
     doSerialize() {

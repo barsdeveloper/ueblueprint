@@ -27,16 +27,15 @@ export default class BooleanEntity extends IEntity {
         this.#uppercase = value
     }
 
+    /** @returns {P<BooleanEntity>} */
     static createGrammar() {
-        return /** @type {P<BooleanEntity>} */(
-            P.regArray(/(true)|(True)|(false)|(False)/)
-                .map(v => {
-                    const result = (v[1] ?? v[2]) ? new this(true) : new this(false)
-                    result.uppercase = (v[2] ?? v[4]) !== undefined
-                    return result
-                })
-                .label("BooleanEntity")
-        )
+        return P.regArray(/(true)|(True)|(false)|(False)/)
+            .map(v => {
+                const result = (v[1] ?? v[2]) ? new this(true) : new this(false)
+                result.uppercase = (v[2] ?? v[4]) !== undefined
+                return result
+            })
+            .label("BooleanEntity")
     }
 
     constructor(value = false) {

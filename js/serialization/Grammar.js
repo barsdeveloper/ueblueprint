@@ -119,10 +119,13 @@ export default class Grammar {
     /**
      * @template {typeof IEntity & (new (...values: any) => InstanceType<T>)} T
      * @param {T} entityType
+     * @param {Number} completeness
      * @return {Parsernostrum<InstanceType<T>>}
      */
-    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, complete = false, minKeys = 1) {
-        const lookbehind = entityType.lookbehind instanceof Array ? entityType.lookbehind.join("|") : entityType.lookbehind
+    static createEntityGrammar(entityType, entriesSeparator = this.commaSeparation, completeness = null, minKeys = 1) {
+        const lookbehind = entityType.lookbehind instanceof Array
+            ? entityType.lookbehind.join("|")
+            : entityType.lookbehind
         return Parsernostrum.seq(
             Parsernostrum.reg(new RegExp(String.raw`(${lookbehind}\s*)\(\s*`), 1),
             this.createAttributeGrammar(entityType).sepBy(entriesSeparator, minKeys),
@@ -143,9 +146,12 @@ export default class Grammar {
                     entityType = entityType.withLookbehind(lookbehind)
                 }
                 const keys = Object.keys(values)
-                return complete
+                const expectedKeys = Object.keys(entityType.attributes)
+                return completeness != null
                     ? Parsernostrum.success()
-                        .assert(v => Object.keys(entityType.attributes).every(k => keys.includes(k)))
+                        .assert(
+                            v => keys.filter(k => expectedKeys.includes(k)).length / expectedKeys.length >= completeness
+                        )
                         .map(() => new entityType(values))
                     : Parsernostrum.success().map(() => new entityType(values))
             })

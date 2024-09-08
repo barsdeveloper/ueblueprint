@@ -25,10 +25,9 @@ export default class Integer64Entity extends IEntity {
         this.value = BigInt(value)
     }
 
+    /** @returns {P<Integer64Entity>} */
     static createGrammar() {
-        return /** @type {P<Integer64Entity>} */(
-            P.numberBigInteger.map(v => new this(v))
-        )
+        return P.numberBigInteger.map(v => new this(v))
     }
 
     serialize(

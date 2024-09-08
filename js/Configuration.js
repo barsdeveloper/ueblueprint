@@ -240,7 +240,7 @@ export default class Configuration {
         7: 2,
     }
     static smoothScrollTime = 1000 // ms
-    static stringEscapedCharacters = /["\\]/g
+    static stringEscapedCharacters = /["\\]/g // Try to remove
     static subObjectAttributeNamePrefix = "#SubObject"
     /** @param {ObjectEntity} objectEntity */
     static subObjectAttributeNameFromEntity = (objectEntity, nameOnly = false) =>
@@ -256,7 +256,7 @@ export default class Configuration {
         begin: "ueb-tracking-mouse-begin",
         end: "ueb-tracking-mouse-end",
     }
-    static unescapedBackslash = /(?<=(?:[^\\]|^)(?:\\\\)*)\\(?!\\)/
+    static unescapedBackslash = /(?<=(?:[^\\]|^)(?:\\\\)*)\\(?!\\)/ // Try to remove
     static windowApplyEventName = "ueb-window-apply"
     static windowApplyButtonText = "OK"
     static windowCancelEventName = "ueb-window-cancel"

@@ -24,6 +24,6 @@ export default class FunctionReferenceEntity extends IEntity {
 
     /** @returns {P<FunctionReferenceEntity>} */
     static createGrammar() {
-        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, false, 0)
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 0, 0)
     }
 }

@@ -5,12 +5,11 @@ export default class NullEntity extends IEntity {
 
     static grammar = this.createGrammar()
 
+    /** @returns {P<NullEntity>} */
     static createGrammar() {
-        return /** @type {P<NullEntity>} */(
-            // @ts-expect-error
-            P.reg(new RegExp(String.raw`\(${P.whitespaceInlineOpt.getParser().regexp.source}\)`))
-                .map(v => new this())
-        )
+        // @ts-expect-error
+        return P.reg(new RegExp(String.raw`\(${P.whitespaceInlineOpt.getParser().regexp.source}\)`))
+            .map(v => new this())
     }
 
     serialize(

@@ -21,10 +21,9 @@ export default class MacroGraphReferenceEntity extends IEntity {
         /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphGuid>} */ this.GraphGuid
     }
 
+    /** @returns {P<MacroGraphReferenceEntity>} */
     static createGrammar() {
-        return /** @type {P<MacroGraphReferenceEntity>} */(
-            Grammar.createEntityGrammar(this)
-        )
+        return Grammar.createEntityGrammar(this)
     }
 
     getMacroName() {

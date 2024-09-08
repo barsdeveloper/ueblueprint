@@ -57,10 +57,9 @@ export default class LinearColorEntity extends IEntity {
         this.#updateHSV()
     }
 
+    /** @returns {P<LinearColorEntity>} */
     static createGrammar() {
-        return /** @type {P<LinearColorEntity>} */(
-            Grammar.createEntityGrammar(this).label("LinearColorEntity")
-        )
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 0.5).label("LinearColorEntity")
     }
 
     /** @param {LinearColorEntity} value */

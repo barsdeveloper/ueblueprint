@@ -6,9 +6,8 @@ export default class EnumEntity extends SymbolEntity {
 
     static grammar = this.createGrammar()
 
+    /** @returns {P<EnumEntity>} */
     static createGrammar() {
-        return /** @type {P<EnumEntity>} */(
-            Grammar.symbol.map(v => new this(v))
-        )
+        return Grammar.symbol.map(v => new this(v))
     }
 }

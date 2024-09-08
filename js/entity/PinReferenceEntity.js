@@ -17,16 +17,15 @@ export default class PinReferenceEntity extends IEntity {
         this.pinGuid = pinGuid
     }
 
+    /** @returns {P<PinReferenceEntity>} */
     static createGrammar() {
-        return /** @type {P<PinReferenceEntity>} */(
-            P.seq(
-                SymbolEntity.grammar,
-                P.whitespace,
-                GuidEntity.grammar
-            )
-                .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
-                .label("PinReferenceEntity")
+        return P.seq(
+            SymbolEntity.grammar,
+            P.whitespace,
+            GuidEntity.grammar
         )
+            .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
+            .label("PinReferenceEntity")
     }
 
     doSerialize() {

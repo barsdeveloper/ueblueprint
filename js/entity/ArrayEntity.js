@@ -29,8 +29,11 @@ export default class ArrayEntity extends IEntity {
                 P.reg(/\s*(,\s*)?\)/, 1),
             ).map(([_0, values, trailing]) => {
                 values = values instanceof Array ? values : []
-                const result = new this(values)
-                result.trailing = trailing !== undefined
+                let Self = this
+                if (trailing !== undefined != Self.trailing) {
+                    Self = Self.flagTrailing()
+                }
+                const result = new Self(values)
                 return result
             }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
     }

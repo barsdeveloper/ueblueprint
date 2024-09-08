@@ -20,10 +20,9 @@ export default class RotatorEntity extends IEntity {
         /** @type {InstanceType<typeof RotatorEntity.attributes.Y>} */ this.Y
     }
 
+    /** @returns {P<RotatorEntity>} */
     static createGrammar() {
-        return /** @type {P<RotatorEntity>} */(
-            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("RotatorEntity")
-        )
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 1).label("RotatorEntity")
     }
 
     getRoll() {

@@ -22,10 +22,9 @@ export default class Vector4DEntity extends IEntity {
         /** @type {InstanceType<typeof Vector4DEntity.attributes.W>} */ this.W
     }
 
+    /** @returns {P<Vector4DEntity>} */
     static createGrammar() {
-        return /** @type {P<Vector4DEntity>} */(
-            Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector4DEntity")
-        )
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 1).label("Vector4DEntity")
     }
 
     /** @returns {[Number, Number, Number, Number]} */

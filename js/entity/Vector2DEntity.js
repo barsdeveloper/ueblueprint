@@ -20,7 +20,7 @@ export default class Vector2DEntity extends IEntity {
 
     /** @returns {P<Vector2DEntity>} */
     static createGrammar() {
-        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, true).label("Vector2DEntity")
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 1).label("Vector2DEntity")
     }
 
     /** @returns {[Number, Number]} */

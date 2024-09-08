@@ -8,31 +8,30 @@ export default class SimpleSerializationVectorEntity extends VectorEntity {
     static attributeSeparator = ", "
     static grammar = this.createGrammar()
 
+    /** @returns {P<SimpleSerializationVectorEntity>} */
     static createGrammar() {
-        return /** @type {P<SimpleSerializationVectorEntity>} */(
-            P.alt(
-                P.regArray(new RegExp(
-                    `(${NumberEntity.numberRegexSource})`
-                    // If allow simple serialization then it can parse only a single number ...
-                    + (this.allowShortSerialization ? `(?:` : "")
-                    + String.raw`\s*,\s*`
-                    + `(${NumberEntity.numberRegexSource})`
-                    + String.raw`\s*,\s*`
-                    + `(${NumberEntity.numberRegexSource})`
-                    // ... that will be assigned to X and the rest is optional and set to 0
-                    + (this.allowShortSerialization ? `)?` : "")
-                ))
-                    .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
-                        X: new (VectorEntity.attributes.X)(x, xPrecision?.length),
-                        Y: new (VectorEntity.attributes.Y)(y, yPrecision?.length),
-                        Z: new (VectorEntity.attributes.Z)(z, zPrecision?.length),
-                    })),
-                VectorEntity.grammar.map(v => new this({
-                    X: v.X,
-                    Y: v.Y,
-                    Z: v.Z,
-                }))
-            )
+        return P.alt(
+            P.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                // If allow simple serialization then it can parse only a single number ...
+                + (this.allowShortSerialization ? `(?:` : "")
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+                // ... that will be assigned to X and the rest is optional and set to 0
+                + (this.allowShortSerialization ? `)?` : "")
+            ))
+                .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
+                    X: new (VectorEntity.attributes.X)(x, xPrecision?.length),
+                    Y: new (VectorEntity.attributes.Y)(y, yPrecision?.length),
+                    Z: new (VectorEntity.attributes.Z)(z, zPrecision?.length),
+                })),
+            VectorEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+                Z: v.Z,
+            }))
         )
     }
 
