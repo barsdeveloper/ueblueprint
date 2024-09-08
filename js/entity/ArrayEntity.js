@@ -30,8 +30,8 @@ export default class ArrayEntity extends IEntity {
             ).map(([_0, values, trailing]) => {
                 values = values instanceof Array ? values : []
                 let Self = this
-                if (trailing !== undefined != Self.trailing) {
-                    Self = Self.flagTrailing()
+                if ((trailing !== undefined) !== Self.trailing) {
+                    Self = Self.flagTrailing(trailing !== undefined)
                 }
                 const result = new Self(values)
                 return result

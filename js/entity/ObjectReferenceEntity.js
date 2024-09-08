@@ -49,7 +49,11 @@ export default class ObjectReferenceEntity extends IEntity {
         super()
         this.#type = type
         this.#path = path
-        this.#full = full ?? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
+        this.#full = full ?? (
+            this.type.includes("/") || this.path
+                ? `"${this.type + (this.path ? (`'${this.path}'`) : "")}"`
+                : this.type
+        )
     }
 
     /** @returns {P<ObjectReferenceEntity>} */
@@ -89,7 +93,7 @@ export default class ObjectReferenceEntity extends IEntity {
     }
 
     static createNoneInstance() {
-        return new ObjectReferenceEntity("None")
+        return new ObjectReferenceEntity("None", "", "None")
     }
 
     getName(dropCounter = false) {

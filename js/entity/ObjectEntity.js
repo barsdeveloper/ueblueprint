@@ -346,6 +346,7 @@ export default class ObjectEntity extends IEntity {
                             obj.Node.getter = () => new ObjectReferenceEntity(
                                 this.PCGNode.type,
                                 `${this.Name}.${this.PCGNode.path}`,
+                                nodeRef.full,
                             )
                         }
                     }
